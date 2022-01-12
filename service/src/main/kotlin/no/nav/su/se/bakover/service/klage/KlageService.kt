@@ -62,7 +62,6 @@ interface KlageService {
     fun brevutkast(
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekst: String,
     ): Either<KunneIkkeLageBrevutkast, ByteArray>
 }
 

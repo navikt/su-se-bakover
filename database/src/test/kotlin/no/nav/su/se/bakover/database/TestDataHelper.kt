@@ -1208,13 +1208,13 @@ internal class TestDataHelper(
         }
     }
 
-    fun avvistKlage(
+    fun iverksattAvvistKlage(
         vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
         oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     ): IverksattAvvistKlage {
         return avvistKlageTilAttestering(vedtak, oppgaveId).avvis(
             iverksattAttestering = Attestering.Iverksatt(
-                attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerAvvistKlage"),
+                attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerIverksattAvvistKlage"),
                 opprettet = fixedTidspunkt,
             ),
         ).getOrFail().also { klagePostgresRepo.lagre(it) }

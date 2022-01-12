@@ -66,6 +66,7 @@ sealed class KlageTilAttestering : Klage {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer.leggTilNyAttestering(iverksattAttestering),
                 datoKlageMottatt = datoKlageMottatt,
+                fritekstTilBrev = fritekstTilBrev
             ).right()
         }
 
@@ -206,7 +207,7 @@ sealed class KlageTilAttestering : Klage {
                 oppgaveId: OppgaveId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-                vurderinger: VurderingerTilKlage,
+                vurderinger: VurderingerTilKlage.Utfylt,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
             ): Vurdert {
@@ -222,10 +223,7 @@ sealed class KlageTilAttestering : Klage {
                     datoKlageMottatt = datoKlageMottatt,
                     attesteringer = attesteringer,
                     vilkårsvurderinger = vilkårsvurderinger,
-                    vurderinger = when (vurderinger) {
-                        is VurderingerTilKlage.Påbegynt -> throw IllegalStateException("Prøvde å lage en klage til attestering (TilVurdering) uten vurderinger. En klage til attestering må ha vurderinger. Id $id")
-                        is VurderingerTilKlage.Utfylt -> vurderinger
-                    },
+                    vurderinger = vurderinger,
                 )
             }
         }

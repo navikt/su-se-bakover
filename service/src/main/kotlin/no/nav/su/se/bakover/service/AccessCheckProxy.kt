@@ -852,10 +852,9 @@ open class AccessCheckProxy(
                 override fun brevutkast(
                     klageId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                    fritekst: String,
                 ): Either<KunneIkkeLageBrevutkast, ByteArray> {
                     assertHarTilgangTilKlage(klageId)
-                    return services.klageService.brevutkast(klageId, saksbehandler, fritekst)
+                    return services.klageService.brevutkast(klageId, saksbehandler)
                 }
             },
             klagevedtakService = object : KlagevedtakService {

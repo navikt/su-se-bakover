@@ -216,26 +216,24 @@ internal fun Route.klageRoutes(
 
     authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
         post("$klagePath/{klageId}/brevutkast") {
-            data class Body(val fritekst: String)
+
             call.withKlageId { klageId ->
-                call.withBody<Body> { body ->
-                    klageService.brevutkast(
-                        klageId = klageId,
-                        saksbehandler = call.suUserContext.saksbehandler,
-                        fritekst = body.fritekst,
-                    ).fold(
-                        ifLeft = {
-                            val resultat = when (it) {
-                                KunneIkkeLageBrevutkast.FantIkkeKlage -> fantIkkeKlage
-                                is KunneIkkeLageBrevutkast.GenereringAvBrevFeilet -> it.feil.toErrorJson()
-                            }
-                            call.svar(resultat)
-                        },
-                        ifRight = {
-                            call.respondBytes(it, ContentType.Application.Pdf)
-                        },
-                    )
-                }
+
+                klageService.brevutkast(
+                    klageId = klageId,
+                    saksbehandler = call.suUserContext.saksbehandler,
+                ).fold(
+                    ifLeft = {
+                        val resultat = when (it) {
+                            KunneIkkeLageBrevutkast.FantIkkeKlage -> fantIkkeKlage
+                            is KunneIkkeLageBrevutkast.GenereringAvBrevFeilet -> it.feil.toErrorJson()
+                        }
+                        call.svar(resultat)
+                    },
+                    ifRight = {
+                        call.respondBytes(it, ContentType.Application.Pdf)
+                    },
+                )
             }
         }
     }
@@ -441,6 +439,10 @@ internal fun Route.klageRoutes(
                         KunneIkkeIverksetteAvvistKlage.FantIkkeKlage -> fantIkkeKlage
                         is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev -> it.feil.toErrorJson()
                         is KunneIkkeIverksetteAvvistKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                        KunneIkkeIverksetteAvvistKlage.FeilVedLagringAvDokumentOgKlage -> InternalServerError.errorJson(
+                            "Feil ved lagrinng av brev/klagen",
+                            "feil_ved_lagring_av_brev_og_klage",
+                        )
                     }
                 }
             }
@@ -457,5 +459,9 @@ private fun KunneIkkeLageBrevForKlage.toErrorJson(): Resultat {
         KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler -> fantIkkeSaksbehandlerEllerAttestant.copy(httpCode = InternalServerError)
         KunneIkkeLageBrevForKlage.FantIkkeVedtakKnyttetTilKlagen -> fantIkkeVedtak.copy(httpCode = InternalServerError)
         KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF -> kunneIkkeGenerereBrev.copy(httpCode = InternalServerError)
+        is KunneIkkeLageBrevForKlage.UgyldigTilstand -> return BadRequest.errorJson(
+            "Kan ikke lagre brevutkast for tilstanden ${fra.simpleName}",
+            "ugyldig_tilstand_for_brev",
+        )
     }
 }

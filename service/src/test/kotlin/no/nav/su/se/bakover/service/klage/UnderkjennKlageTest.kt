@@ -368,7 +368,7 @@ internal class UnderkjennKlageTest {
                     ),
                     datoKlageMottatt = 1.desember(2021),
                 ),
-                fritekstTilBrev = "fritekstTilBrev",
+                fritekstTilBrev = "dette er en fritekst",
             )
             it shouldBe expectedKlage
         }

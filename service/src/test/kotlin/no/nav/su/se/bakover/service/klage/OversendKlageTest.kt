@@ -443,7 +443,7 @@ internal class OversendKlageTest {
     }
 
     @Test
-    fun `Skal kunne iverksette klage som er til attestering`() {
+    fun `Skal kunne oversende en klage som er til attestering`() {
         val (sak, klage) = vurdertKlageTilAttestering()
         val journalpostIdForVedtak = JournalpostId(UUID.randomUUID().toString())
         val person = person(fnr = sak.fnr)

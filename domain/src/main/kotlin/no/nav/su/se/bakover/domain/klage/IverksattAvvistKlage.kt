@@ -24,6 +24,7 @@ data class IverksattAvvistKlage private constructor(
     val attesteringer: Attesteringshistorikk,
     val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
     val vurderinger: VurderingerTilKlage?,
+    val fritekstTilBrev: String,
 ) : Klage {
 
     companion object {
@@ -40,6 +41,7 @@ data class IverksattAvvistKlage private constructor(
             vurderinger: VurderingerTilKlage?,
             attesteringer: Attesteringshistorikk,
             datoKlageMottatt: LocalDate,
+            fritekstTilBrev: String,
         ): IverksattAvvistKlage {
             return IverksattAvvistKlage(
                 id = id,
@@ -54,6 +56,7 @@ data class IverksattAvvistKlage private constructor(
                 attesteringer = attesteringer,
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
+                fritekstTilBrev = fritekstTilBrev,
             )
         }
     }
@@ -61,7 +64,8 @@ data class IverksattAvvistKlage private constructor(
 
 sealed class KunneIkkeIverksetteAvvistKlage {
     object FantIkkeKlage : KunneIkkeIverksetteAvvistKlage()
-    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeIverksetteAvvistKlage()
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteAvvistKlage()
+    object FeilVedLagringAvDokumentOgKlage : KunneIkkeIverksetteAvvistKlage()
+    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeIverksetteAvvistKlage()
     data class KunneIkkeLageBrev(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeIverksetteAvvistKlage()
 }

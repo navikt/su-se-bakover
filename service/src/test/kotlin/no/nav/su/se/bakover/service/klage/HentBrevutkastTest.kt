@@ -38,7 +38,6 @@ internal class HentBrevutkastTest {
         mocks.service.brevutkast(
             klageId = klageId,
             saksbehandler = saksbehandler,
-            fritekst = "Dette er friteksten til brevet.",
         ) shouldBe KunneIkkeLageBrevutkast.FantIkkeKlage.left()
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
         mocks.verifyNoMoreInteractions()
@@ -63,7 +62,6 @@ internal class HentBrevutkastTest {
         mocks.service.brevutkast(
             klageId = klage.id,
             saksbehandler = saksbehandler,
-            fritekst = "Dette er friteksten til brevet.",
         ) shouldBe KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(KunneIkkeLageBrevForKlage.FantIkkeVedtakKnyttetTilKlagen)
             .left()
 
@@ -90,7 +88,6 @@ internal class HentBrevutkastTest {
         mocks.service.brevutkast(
             klageId = klage.id,
             saksbehandler = saksbehandler,
-            fritekst = "Dette er friteksten til brevet.",
         ) shouldBe KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler)
             .left()
 
@@ -121,7 +118,6 @@ internal class HentBrevutkastTest {
         mocks.service.brevutkast(
             klageId = klage.id,
             saksbehandler = saksbehandler,
-            fritekst = "Dette er friteksten til brevet.",
         ) shouldBe KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(KunneIkkeLageBrevForKlage.FantIkkePerson).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
@@ -155,11 +151,9 @@ internal class HentBrevutkastTest {
 
         val saksbehandler = NavIdentBruker.Saksbehandler("s2")
 
-        val fritekstTilBrev = "Dette er friteksten til brevet."
         mocks.service.brevutkast(
             klageId = klage.id,
             saksbehandler = saksbehandler,
-            fritekst = fritekstTilBrev,
         ) shouldBe KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
@@ -172,7 +166,7 @@ internal class HentBrevutkastTest {
                     person = person,
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Ola Nordmann",
-                    fritekst = fritekstTilBrev,
+                    fritekst = "",
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
@@ -206,11 +200,9 @@ internal class HentBrevutkastTest {
         )
         val saksbehandler = NavIdentBruker.Saksbehandler("s2")
 
-        val fritekstTilBrev = "Dette er friteksten til brevet."
         mocks.service.brevutkast(
             klageId = klage.id,
             saksbehandler = saksbehandler,
-            fritekst = fritekstTilBrev,
         ) shouldBe pdfAsBytes.right()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
@@ -223,7 +215,56 @@ internal class HentBrevutkastTest {
                     person = person,
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Ola Nordmann",
-                    fritekst = fritekstTilBrev,
+                    fritekst = "",
+                    klageDato = 1.desember(2021),
+                    vedtakDato = 1.januar(2021),
+                    saksnummer = Saksnummer(12345676)
+                )
+            },
+        )
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `Skal kunne hente brevutkast til klage der klagen har fritekst`() {
+        val (sak, klage) = påbegyntVurdertKlage(fritekstTilBrev = "jeg er fritekst for et brev")
+        val vedtak = sak.vedtakListe.first()
+        val person = person(fnr = sak.fnr)
+        val pdfAsBytes = "brevbytes".toByteArray()
+
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+                on { hentKnyttetVedtaksdato(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
+            },
+            microsoftGraphApiMock = mock {
+                on { hentNavnForNavIdent(any()) } doReturn "Ola Nordmann".right()
+            },
+            personServiceMock = mock {
+                on { hentPerson(any()) } doReturn person.right()
+            },
+            brevServiceMock = mock {
+                on { lagBrev(any()) } doReturn pdfAsBytes.right()
+            },
+        )
+        val saksbehandler = NavIdentBruker.Saksbehandler("s2")
+
+        mocks.service.brevutkast(
+            klageId = klage.id,
+            saksbehandler = saksbehandler,
+        ) shouldBe pdfAsBytes.right()
+
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
+        verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })
+        verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
+        verify(mocks.brevServiceMock).lagBrev(
+            argThat {
+                it shouldBe LagBrevRequest.Klage.Oppretthold(
+                    person = person,
+                    dagensDato = fixedLocalDate,
+                    saksbehandlerNavn = "Ola Nordmann",
+                    fritekst = "jeg er fritekst for et brev",
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676)

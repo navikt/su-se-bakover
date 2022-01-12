@@ -309,9 +309,39 @@ class KlageServiceImpl(
             return it.left()
         }
 
-        // TODO: Litt brev ting, og snacks
+        val dokument = lagBrevRequest(
+            klage = avvistKlage,
+            saksbehandler = avvistKlage.saksbehandler,
+            fritekstTilBrev = avvistKlage.fritekstTilBrev,
+        ).flatMap {
+            it.tilDokument { brevRequest ->
+                brevService.lagBrev(brevRequest).mapLeft {
+                    LagBrevRequest.KunneIkkeGenererePdf
+                }
+            }.mapLeft {
+                KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF
+            }
+        }.map {
+            it.leggTilMetadata(
+                Dokument.Metadata(
+                    klageId = klage.id,
+                    sakId = klage.sakId,
+                    bestillBrev = true,
+                ),
+            )
+        }.getOrHandle {
+            return KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev(it).left()
+        }
 
-        klageRepo.lagre(avvistKlage)
+        try {
+            sessionFactory.withTransactionContext {
+                brevService.lagreDokument(dokument, it)
+                klageRepo.lagre(avvistKlage, it)
+            }
+        } catch (_: Exception) {
+            return KunneIkkeIverksetteAvvistKlage.FeilVedLagringAvDokumentOgKlage.left()
+        }
+
         oppgaveService.lukkOppgave(avvistKlage.oppgaveId)
         return avvistKlage.right()
     }
@@ -319,7 +349,6 @@ class KlageServiceImpl(
     override fun brevutkast(
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekst: String,
     ): Either<KunneIkkeLageBrevutkast, ByteArray> {
 
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
@@ -327,7 +356,7 @@ class KlageServiceImpl(
         return lagBrevRequest(
             klage = klage,
             saksbehandler = saksbehandler,
-            fritekstTilBrev = fritekst,
+            fritekstTilBrev = getBrevFritekstFromKlage(klage),
         ).mapLeft {
             KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(it)
         }.flatMap {
@@ -344,11 +373,31 @@ class KlageServiceImpl(
         }
     }
 
+    private fun getBrevFritekstFromKlage(klage: Klage): String {
+        return when (klage) {
+            is OpprettetKlage,
+            is VilkårsvurdertKlage.Bekreftet.Avvist,
+            is VilkårsvurdertKlage.Bekreftet.TilVurdering,
+            is VilkårsvurdertKlage.Påbegynt,
+            is VilkårsvurdertKlage.Utfylt,
+            is IverksattAvvistKlage,
+            is OversendtKlage,
+            -> throw IllegalStateException("Kan ikke lage brevutkast i følgende tilstand: ${klage::class}. id: ${klage.id}")
+
+            is AvvistKlage.Bekreftet -> klage.fritekstTilBrev
+            is AvvistKlage.Påbegynt -> klage.fritekstTilBrev.orEmpty()
+
+            is KlageTilAttestering.Avvist -> klage.fritekstTilBrev
+            is KlageTilAttestering.Vurdert -> klage.vurderinger.fritekstTilBrev
+            is VurdertKlage -> klage.vurderinger.fritekstTilBrev.orEmpty()
+        }
+    }
+
     private fun lagBrevRequest(
         klage: Klage,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekstTilBrev: String,
-    ): Either<KunneIkkeLageBrevForKlage, LagBrevRequest.Klage.Oppretthold> {
+    ): Either<KunneIkkeLageBrevForKlage, LagBrevRequest.Klage> {
         val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(saksbehandler)
             .getOrElse { return KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler.left() }
         val vedtakDato =
@@ -356,14 +405,39 @@ class KlageServiceImpl(
                 ?: return KunneIkkeLageBrevForKlage.FantIkkeVedtakKnyttetTilKlagen.left()
 
         return personService.hentPerson(klage.fnr).map { person ->
-            lagBrevRequestForOppretthold(
-                person = person,
-                saksbehandlerNavn = saksbehandlerNavn,
-                fritekst = fritekstTilBrev,
-                klageDato = klage.datoKlageMottatt,
-                vedtakDato = vedtakDato,
-                saksnummer = klage.saksnummer,
-            )
+            return when (klage) {
+                is OpprettetKlage,
+                is VilkårsvurdertKlage.Påbegynt,
+                is VilkårsvurdertKlage.Utfylt,
+                is VilkårsvurdertKlage.Bekreftet.Avvist,
+                is KlageTilAttestering.Vurdert,
+                -> KunneIkkeLageBrevForKlage.UgyldigTilstand(klage::class).left()
+
+                is IverksattAvvistKlage,
+                is KlageTilAttestering.Avvist,
+                is AvvistKlage.Påbegynt,
+                is AvvistKlage.Bekreftet,
+                -> lagBrevRequestForAvvistKlage(
+                    person = person,
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    fritekst = fritekstTilBrev,
+                    saksnummer = klage.saksnummer,
+                ).right()
+
+                is OversendtKlage,
+                is VilkårsvurdertKlage.Bekreftet.TilVurdering,
+                is VurdertKlage.Påbegynt,
+                is VurdertKlage.Utfylt,
+                is VurdertKlage.Bekreftet,
+                -> lagBrevRequestForOppretthold(
+                    person = person,
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    fritekst = fritekstTilBrev,
+                    klageDato = klage.datoKlageMottatt,
+                    vedtakDato = vedtakDato,
+                    saksnummer = klage.saksnummer,
+                ).right()
+            }
         }.mapLeft {
             KunneIkkeLageBrevForKlage.FantIkkePerson
         }
@@ -384,6 +458,21 @@ class KlageServiceImpl(
             fritekst = fritekst,
             klageDato = klageDato,
             vedtakDato = vedtakDato,
+            saksnummer = saksnummer,
+        )
+    }
+
+    private fun lagBrevRequestForAvvistKlage(
+        person: Person,
+        saksbehandlerNavn: String,
+        fritekst: String,
+        saksnummer: Saksnummer,
+    ): LagBrevRequest.Klage.Avvist {
+        return LagBrevRequest.Klage.Avvist(
+            person = person,
+            dagensDato = LocalDate.now(clock),
+            saksbehandlerNavn = saksbehandlerNavn,
+            fritekst = fritekst,
             saksnummer = saksnummer,
         )
     }

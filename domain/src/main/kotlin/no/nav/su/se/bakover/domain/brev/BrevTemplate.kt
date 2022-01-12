@@ -67,8 +67,12 @@ sealed class BrevTemplate(
     sealed class Klage(pdfTemplate: PdfTemplate, brevTittel: String) : BrevTemplate(pdfTemplate, brevTittel) {
         object Oppretthold : Klage(
             pdfTemplate = PdfTemplate.Klage.Oppretthold,
-            // TODO aryan: Working title
             brevTittel = "Oversendelsesbrev til klager",
+        )
+
+        object Avvist : Klage(
+            pdfTemplate = PdfTemplate.Klage.Avvist,
+            brevTittel = "Avvist klage"
         )
     }
 }

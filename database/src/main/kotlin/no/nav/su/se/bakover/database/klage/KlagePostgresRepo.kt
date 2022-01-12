@@ -55,9 +55,16 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         transactionContext.withTransaction { transaction ->
             when (klage) {
                 is OpprettetKlage -> lagreOpprettetKlage(klage, transaction)
-                is VilkårsvurdertKlage -> lagreVilkårsvurdertKlage(klage, transaction)
+
+                is VilkårsvurdertKlage.Påbegynt -> lagreVilkårsvurdertKlage(klage, transaction)
+                is VilkårsvurdertKlage.Utfylt -> lagreVilkårsvurdertKlage(klage, transaction)
+                is VilkårsvurdertKlage.Bekreftet -> lagreVilkårsvurdertKlage(klage, transaction)
+
                 is VurdertKlage -> lagreVurdertKlage(klage, transaction)
-                is AvvistKlage -> lagreAvvistKlage(klage, transaction)
+
+                is AvvistKlage.Påbegynt -> lagreAvvistKlage(klage, transaction)
+                is AvvistKlage.Bekreftet -> lagreAvvistKlage(klage, transaction)
+
                 is KlageTilAttestering -> lagreTilAttestering(klage, transaction)
                 is OversendtKlage -> lagreOversendtKlage(klage, transaction)
                 is IverksattAvvistKlage -> lagreIverksattAvvistKlage(klage, transaction)
@@ -157,6 +164,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 klage
             SET
                 type=:type,
+                attestering=to_jsonb(:attestering::jsonb),
                 fritekstTilBrev=:fritekst
             WHERE
                 id=:id
@@ -164,6 +172,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
             mapOf(
                 "id" to klage.id,
                 "type" to klage.databasetype(),
+                "attestering" to klage.attesteringer.toDatabaseJson(),
                 "fritekst" to klage.fritekstTilBrev,
             ),
             session,
@@ -549,7 +558,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 datoKlageMottatt = datoKlageMottatt,
                 klagevedtakshistorikk = klagevedtakshistorikk,
             )
-            Tilstand.AVVIST -> IverksattAvvistKlage.create(
+            Tilstand.IVERKSATT_AVVIST -> IverksattAvvistKlage.create(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -559,9 +568,10 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
-                vurderinger = vurderinger,
+                vurderinger = null,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                fritekstTilBrev = fritekstTilBrev!!,
             )
         }
     }
@@ -602,7 +612,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         TIL_ATTESTERING_AVVIST("til_attestering_avvist"),
 
         OVERSENDT("oversendt"),
-        AVVIST("avvist");
+        IVERKSATT_AVVIST("iverksatt_avvist");
 
         companion object {
             fun Klage.databasetype(): String {
@@ -626,7 +636,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     is KlageTilAttestering.Avvist -> TIL_ATTESTERING_AVVIST
 
                     is OversendtKlage -> OVERSENDT
-                    is IverksattAvvistKlage -> AVVIST
+                    is IverksattAvvistKlage -> IVERKSATT_AVVIST
                 }.toString()
             }
 

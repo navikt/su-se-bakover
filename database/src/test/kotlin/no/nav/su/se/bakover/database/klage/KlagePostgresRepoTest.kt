@@ -156,7 +156,7 @@ internal class KlagePostgresRepoTest {
     }
 
     @Test
-    fun `iverksatt klage`() {
+    fun `oversendt klage`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
@@ -174,14 +174,14 @@ internal class KlagePostgresRepoTest {
     }
 
     @Test
-    fun `lagrer en avvist klage`() {
+    fun `lagrer en iverksatt avvist klage`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
             val urelatertKlage = testDataHelper.nyKlage()
 
-            val klage = testDataHelper.avvistKlage()
+            val klage = testDataHelper.iverksattAvvistKlage()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext) shouldBe listOf(klage)

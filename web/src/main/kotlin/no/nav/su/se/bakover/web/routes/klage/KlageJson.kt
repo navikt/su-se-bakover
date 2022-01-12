@@ -195,7 +195,7 @@ internal fun Klage.toJson(): KlageJson {
             klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
             erUnderskrevet = this.vilkårsvurderinger.erUnderskrevet?.toString(),
             begrunnelse = this.vilkårsvurderinger.begrunnelse,
-            fritekstTilBrev = null,
+            fritekstTilBrev = this.fritekstTilBrev,
             vedtaksvurdering = null,
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },

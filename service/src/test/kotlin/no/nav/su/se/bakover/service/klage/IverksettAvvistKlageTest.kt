@@ -7,19 +7,24 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.avvistKlageTilAttestering
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
 import no.nav.su.se.bakover.test.underkjentAvvistKlage
@@ -207,12 +212,24 @@ internal class IverksettAvvistKlageTest {
     @Test
     fun `kan iverksette en klage som er til attestering avvist`() {
 
-        val (_, klage) = avvistKlageTilAttestering()
+        val (_, klage) = avvistKlageTilAttestering(fritekstTilBrev = "dette er min fritekst")
         val attestant = NavIdentBruker.Attestant("attestant")
-
+        val person = person(fnr = klage.fnr)
+        val dokument = "myDoc".toByteArray()
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
+                on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2022)
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            brevServiceMock = mock {
+                on { lagBrev(any()) } doReturn dokument.right()
+            },
+            microsoftGraphApiMock = mock {
+                on { hentNavnForNavIdent(any()) } doReturn "Johnny".right()
+            },
+            personServiceMock = mock {
+                on { hentPerson(any()) } doReturn person.right()
             },
             oppgaveService = mock {
                 on { lukkOppgave(any()) } doReturn Unit.right()
@@ -241,11 +258,49 @@ internal class IverksettAvvistKlageTest {
                 ),
             ),
             datoKlageMottatt = klage.datoKlageMottatt,
+            fritekstTilBrev = klage.fritekstTilBrev,
         )
 
         actual shouldBe expected
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
+        verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe klage.fnr })
+        verify(mocks.brevServiceMock).lagBrev(
+            argThat {
+                it shouldBe LagBrevRequest.Klage.Avvist(
+                    person = person,
+                    dagensDato = fixedLocalDate,
+                    saksbehandlerNavn = "Johnny",
+                    fritekst = "dette er min fritekst",
+                    saksnummer = klage.saksnummer,
+                )
+            },
+        )
+        verify(mocks.brevServiceMock).lagreDokument(
+            argThat {
+                it shouldBe Dokument.MedMetadata.Vedtak(
+                    utenMetadata = Dokument.UtenMetadata.Vedtak(
+                        id = it.id,
+                        opprettet = it.opprettet,
+                        tittel = "Avvist klage",
+                        generertDokument = dokument,
+                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${klage.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\"},\"saksbehandlerNavn\":\"Johnny\",\"fritekst\":\"dette er min fritekst\",\"saksnummer\":${klage.saksnummer}}"
+                    ),
+                    metadata = Dokument.Metadata(
+                        sakId = klage.sakId,
+                        klageId = klage.id,
+                        bestillBrev = true,
+                    ),
+                )
+            },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        verify(mocks.klageRepoMock).lagre(
+            argThat { it shouldBe expected },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
         verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe expected.oppgaveId })
     }
 }

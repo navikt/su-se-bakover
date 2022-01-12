@@ -563,6 +563,7 @@ fun avvistKlageTilAttestering(
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     begrunnelse: String = "begrunnelse",
+    fritekstTilBrev: String = "dette er en fritekst",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
 ): Pair<Sak, KlageTilAttestering.Avvist> {
     return bekreftetAvvistKlage(
@@ -578,6 +579,7 @@ fun avvistKlageTilAttestering(
         erUnderskrevet = erUnderskrevet,
         begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
+        fritekstTilBrev = fritekstTilBrev
     ).let {
         val klage = it.second.sendTilAttestering(
             saksbehandler,
