@@ -33,7 +33,7 @@ import org.mockito.kotlin.mock
 import java.time.Clock
 import java.time.LocalDate
 
-object RevurderingTestUtils {
+internal object RevurderingTestUtils {
     private val dagensDato = fixedLocalDate.let {
         LocalDate.of(
             it.year,

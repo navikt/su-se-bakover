@@ -299,7 +299,9 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                     it shouldBe OppgaveConfig.Søknad(
                         journalpostId = journalførtSøknad.journalpostId,
                         søknadId = journalførtSøknad.id,
-                        aktørId = person.ident.aktørId
+                        aktørId = person.ident.aktørId,
+                        clock = fixedClock,
+                        tilordnetRessurs = null,
                     )
                 },
             )
@@ -397,7 +399,9 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                     it shouldBe OppgaveConfig.Søknad(
                         journalpostId = journalførtSøknad.journalpostId,
                         søknadId = journalførtSøknad.id,
-                        aktørId = person.ident.aktørId
+                        aktørId = person.ident.aktørId,
+                        clock = fixedClock,
+                        tilordnetRessurs = null,
                     )
                 },
             )

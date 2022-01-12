@@ -91,9 +91,9 @@ internal class SakPostgresRepoTest {
                     testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first,
                     stønadsperiode.periode,
                 )
-            val tilAttesteringRevurdering = testDataHelper.tilAttesteringRevurdering()
-            val underkjentRevurdering = testDataHelper.underkjentRevurdering()
-            testDataHelper.tilIverksattRevurdering()
+            val tilAttesteringRevurdering = testDataHelper.revurderingTilAttesteringInnvilget()
+            val underkjentRevurdering = testDataHelper.underkjentRevurderingFraInnvilget()
+            testDataHelper.iverksattRevurderingInnvilget()
 
             val alleRestanser = repo.hentSakRestanser()
 

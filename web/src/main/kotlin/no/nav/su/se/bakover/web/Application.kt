@@ -271,8 +271,13 @@ fun Application.susebakover(
         ferdigstillVedtakService = services.ferdigstillVedtak,
         clock = clock,
     )
-    val personhendelseService =
-        PersonhendelseService(databaseRepos.sak, databaseRepos.personhendelseRepo, services.oppgave, services.person)
+    val personhendelseService = PersonhendelseService(
+        sakRepo = databaseRepos.sak,
+        personhendelseRepo = databaseRepos.personhendelseRepo,
+        oppgaveServiceImpl = services.oppgave,
+        personService = services.person,
+        clock = clock,
+    )
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,

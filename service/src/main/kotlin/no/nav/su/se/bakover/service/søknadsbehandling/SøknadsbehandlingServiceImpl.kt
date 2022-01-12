@@ -230,6 +230,7 @@ internal class SøknadsbehandlingServiceImpl(
                 søknadId = søknadsbehandling.søknad.id,
                 aktørId = aktørId,
                 tilordnetRessurs = tilordnetRessurs,
+                clock = clock,
             ),
         ).getOrElse {
             log.error("Kunne ikke opprette Attesteringsoppgave. Avbryter handlingen.")
@@ -285,6 +286,7 @@ internal class SøknadsbehandlingServiceImpl(
                     søknadId = underkjent.søknad.id,
                     aktørId = aktørId,
                     tilordnetRessurs = underkjent.saksbehandler,
+                    clock = clock,
                 ),
             ).getOrElse {
                 log.error("Behandling ${underkjent.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")

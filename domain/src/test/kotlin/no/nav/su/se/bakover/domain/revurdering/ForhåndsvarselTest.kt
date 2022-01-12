@@ -1,0 +1,274 @@
+package no.nav.su.se.bakover.domain.revurdering
+
+import arrow.core.left
+import arrow.core.right
+import io.kotest.matchers.shouldBe
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+
+internal class ForhåndsvarselTest {
+
+    @Nested
+    inner class `Overganger fra null` {
+
+        @Test
+        fun `Gyldig overgang fra null til SkalIkkeForhåndsvarsles`() {
+            (null as Forhåndsvarsel?).prøvOvergangTilSkalIkkeForhåndsvarsles() shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles.right()
+        }
+
+        @Test
+        fun `Gyldig overgang fra null til Sendt`() {
+            (null as Forhåndsvarsel?).prøvOvergangTilSendt() shouldBe Forhåndsvarsel.UnderBehandling.Sendt.right()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra null til Avsluttet`() {
+            (null as Forhåndsvarsel?).prøvOvergangTilAvsluttet("a") shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Nothing::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra null til FortsettMedSammeGrunnlag`() {
+            (null as Forhåndsvarsel?).prøvOvergangTilFortsettMedSammeGrunnlag("b") shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Nothing::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra null til EndreGrunnlaget`() {
+            (null as Forhåndsvarsel?).prøvOvergangTilEndreGrunnlaget("c") shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Nothing::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget::class,
+            ).left()
+        }
+    }
+
+    @Nested
+    inner class `Overganger fra SkalIkkeForhåndsvarsles` {
+
+        @Test
+        fun `Gyldig overgang fra SkalIkkeForhåndsvarsles til SkalIkkeForhåndsvarsles`() {
+            Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles.prøvOvergangTilSkalIkkeForhåndsvarsles() shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles.right()
+        }
+
+        @Test
+        fun `Gyldig overgang fra SkalIkkeForhåndsvarsles til Sendt`() {
+            Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles.prøvOvergangTilSendt() shouldBe Forhåndsvarsel.UnderBehandling.Sendt.right()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra SkalIkkeForhåndsvarsles til Avsluttet`() {
+            Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles.prøvOvergangTilAvsluttet("d") shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra SkalIkkeForhåndsvarsles til FortsettMedSammeGrunnlag`() {
+            Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles.prøvOvergangTilFortsettMedSammeGrunnlag("e") shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra SkalIkkeForhåndsvarsles til EndreGrunnlaget`() {
+            Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles.prøvOvergangTilEndreGrunnlaget("f") shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget::class,
+            ).left()
+        }
+    }
+
+    @Nested
+    inner class `Overganger fra Sendt` {
+
+        @Test
+        fun `Ugyldig overgang fra Sendt til SkalIkkeForhåndsvarsles`() {
+            Forhåndsvarsel.UnderBehandling.Sendt.prøvOvergangTilSkalIkkeForhåndsvarsles() shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.UnderBehandling.Sendt::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra Sendt til Sendt`() {
+            Forhåndsvarsel.UnderBehandling.Sendt.prøvOvergangTilSendt() shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.UnderBehandling.Sendt::class,
+                til = Forhåndsvarsel.UnderBehandling.Sendt::class,
+            ).left()
+        }
+
+        @Test
+        fun `Gyldig overgang fra Sendt til Avsluttet`() {
+            Forhåndsvarsel.UnderBehandling.Sendt.prøvOvergangTilAvsluttet("g") shouldBe Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet(
+                "g",
+            ).right()
+        }
+
+        @Test
+        fun `Gyldig overgang fra Sendt til FortsettMedSammeGrunnlag`() {
+            Forhåndsvarsel.UnderBehandling.Sendt.prøvOvergangTilFortsettMedSammeGrunnlag("h") shouldBe Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag(
+                "h",
+            ).right()
+        }
+
+        @Test
+        fun `Gyldig overgang fra Sendt til EndreGrunnlaget`() {
+            Forhåndsvarsel.UnderBehandling.Sendt.prøvOvergangTilEndreGrunnlaget("i") shouldBe Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget(
+                "i",
+            ).right()
+        }
+    }
+
+    @Nested
+    inner class `Overganger fra Avsluttet` {
+
+        @Test
+        fun `Ugyldig overgang fra Avsluttet til SkalIkkeForhåndsvarsles`() {
+            Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet("j")
+                .prøvOvergangTilSkalIkkeForhåndsvarsles() shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra Avsluttet til Sendt`() {
+            Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet("k")
+                .prøvOvergangTilSendt() shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet::class,
+                til = Forhåndsvarsel.UnderBehandling.Sendt::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra Avsluttet til Avsluttet`() {
+            Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet("l")
+                .prøvOvergangTilAvsluttet("m") shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra Avsluttet til FortsettMedSammeGrunnlag`() {
+            Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet("n")
+                .prøvOvergangTilFortsettMedSammeGrunnlag("o") shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra Avsluttet til EndreGrunnlaget`() {
+            Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet("p")
+                .prøvOvergangTilEndreGrunnlaget("q") shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget::class,
+            ).left()
+        }
+    }
+
+    @Nested
+    inner class `Overganger fra FortsettMedSammeGrunnlag` {
+
+        @Test
+        fun `Ugyldig overgang fra FortsettMedSammeGrunnlag til SkalIkkeForhåndsvarsles`() {
+            Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag("r")
+                .prøvOvergangTilSkalIkkeForhåndsvarsles() shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra FortsettMedSammeGrunnlag til Sendt`() {
+            Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag("s")
+                .prøvOvergangTilSendt() shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag::class,
+                til = Forhåndsvarsel.UnderBehandling.Sendt::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra FortsettMedSammeGrunnlag til Avsluttet`() {
+            Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag("t")
+                .prøvOvergangTilAvsluttet("u") shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra FortsettMedSammeGrunnlag til FortsettMedSammeGrunnlag`() {
+            Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag("v")
+                .prøvOvergangTilFortsettMedSammeGrunnlag("w") shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra FortsettMedSammeGrunnlag til EndreGrunnlaget`() {
+            Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag("x")
+                .prøvOvergangTilEndreGrunnlaget("y") shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget::class,
+            ).left()
+        }
+    }
+
+    @Nested
+    inner class `Overganger fra EndreGrunnlaget` {
+
+        @Test
+        fun `Ugyldig overgang fra EndreGrunnlaget til SkalIkkeForhåndsvarsles`() {
+            Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget("z")
+                .prøvOvergangTilSkalIkkeForhåndsvarsles() shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra EndreGrunnlaget til Sendt`() {
+            Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget("æ")
+                .prøvOvergangTilSendt() shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget::class,
+                til = Forhåndsvarsel.UnderBehandling.Sendt::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra EndreGrunnlaget til Avsluttet`() {
+            Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget("ø")
+                .prøvOvergangTilAvsluttet("å") shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra EndreGrunnlaget til FortsettMedSammeGrunnlag`() {
+            Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget("aa")
+                .prøvOvergangTilFortsettMedSammeGrunnlag("bb") shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag::class,
+            ).left()
+        }
+
+        @Test
+        fun `Ugyldig overgang fra EndreGrunnlaget til EndreGrunnlaget`() {
+            Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget("cc")
+                .prøvOvergangTilEndreGrunnlaget("dd") shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                fra = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget::class,
+                til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget::class,
+            ).left()
+        }
+    }
+}

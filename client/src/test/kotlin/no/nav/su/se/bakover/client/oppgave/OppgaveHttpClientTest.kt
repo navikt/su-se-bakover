@@ -117,9 +117,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         client.opprettOppgave(
             OppgaveConfig.Søknad(
-                journalpostId,
-                søknadId,
-                AktørId(aktørId),
+                journalpostId = journalpostId,
+                søknadId = søknadId,
+                aktørId = AktørId(aktørId),
+                tilordnetRessurs = null,
                 clock = fixedClock,
             ),
         ) shouldBe OppgaveId("111").right()
@@ -132,9 +133,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         client.opprettOppgaveMedSystembruker(
             OppgaveConfig.Søknad(
-                journalpostId,
-                søknadId,
-                AktørId(aktørId),
+                journalpostId = journalpostId,
+                søknadId = søknadId,
+                aktørId = AktørId(aktørId),
+                tilordnetRessurs = null,
                 clock = fixedClock,
             ),
         ) shouldBe OppgaveId("111").right()
@@ -291,6 +293,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 søknadId = søknadId,
                 aktørId = AktørId(aktørId),
                 clock = fixedClock,
+                tilordnetRessurs = null,
             ),
         ) shouldBe OppgaveId("111").right()
     }
@@ -313,10 +316,11 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
         client.opprettOppgave(
             OppgaveConfig.Søknad(
-                journalpostId,
-                søknadId,
-                AktørId(aktørId),
+                journalpostId = journalpostId,
+                søknadId = søknadId,
+                aktørId = AktørId(aktørId),
                 clock = fixedClock,
+                tilordnetRessurs = null,
             ),
         ) shouldBe OppgaveFeil.KunneIkkeOppretteOppgave.left()
     }
@@ -817,6 +821,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 saksnummer = saksnummer,
                 aktørId = AktørId(aktørId),
                 tilordnetRessurs = null,
+                clock = fixedClock,
             ),
         ) shouldBe OppgaveFeil.KunneIkkeOppretteOppgave.left()
     }

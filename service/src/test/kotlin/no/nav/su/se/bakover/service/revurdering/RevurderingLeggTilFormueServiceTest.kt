@@ -55,6 +55,7 @@ import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -141,6 +142,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         )
 
         verify(revurderingRepoMock).hent(revurderingId)
+        verify(revurderingRepoMock).defaultTransactionContext()
         verify(revurderingRepoMock).lagre(
             argThat {
                 val arg = it as Revurdering
@@ -151,6 +153,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     vilkårsvurderinger = expectedVilkårsvurderinger,
                 )
             },
+            anyOrNull()
         )
         verify(vilkårsvurderingServiceMock).lagre(
             argThat { it shouldBe revurderingId },
@@ -433,10 +436,12 @@ internal class RevurderingLeggTilFormueServiceTest {
         actual.feilmeldinger.shouldContain(RevurderingsutfallSomIkkeStøttes.OpphørAvFlereVilkår)
 
         verify(revurderingRepoMock).hent(revurderingId)
+        verify(revurderingRepoMock).defaultTransactionContext()
         verify(revurderingRepoMock).lagre(
             argThat {
                 it shouldBe actual.revurdering
             },
+            anyOrNull()
         )
         verifyNoMoreInteractions(revurderingRepoMock)
     }
@@ -603,7 +608,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         oppgaveId = OppgaveId("oppgaveid"),
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
-        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+        forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
         beregning = testBeregning,
         simulering = Simulering(
             gjelderId = fnr,

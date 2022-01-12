@@ -111,6 +111,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         søknadId = søknadId,
         aktørId = aktørId,
         tilordnetRessurs = saksbehandler,
+        clock = fixedClock,
     )
 
     @Test

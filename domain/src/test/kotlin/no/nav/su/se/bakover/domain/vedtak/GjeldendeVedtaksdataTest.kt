@@ -235,7 +235,7 @@ internal class GjeldendeVedtaksdataTest {
                         fixedTidspunkt,
                     ),
                 ),
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             simulering = Simulering(
                 gjelderId = Fnr.generer(),
                 gjelderNavn = "",

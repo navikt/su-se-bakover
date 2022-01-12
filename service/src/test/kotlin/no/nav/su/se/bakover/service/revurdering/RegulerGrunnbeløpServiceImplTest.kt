@@ -78,6 +78,7 @@ import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doReturnConsecutively
 import org.mockito.kotlin.inOrder
@@ -131,6 +132,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
         )
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+        verify(revurderingRepoMock).defaultTransactionContext()
         verify(revurderingRepoMock).lagre(
             argThat {
                 it shouldBe opprettetRevurdering.copy(
@@ -148,6 +150,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Uførhet),
                 )
             },
+            anyOrNull()
         )
         verify(vilkårsvurderingServiceMock).lagre(
             argThat { it shouldBe opprettetRevurdering.id },
@@ -307,7 +310,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
             revurderingRepoMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual }, anyOrNull())
         }
         verifyNoMoreInteractions(
             revurderingRepoMock,
@@ -327,7 +331,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
             beregning = TestBeregning,
             simulering = mock(),
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = mock {
                 on { resultat } doReturn Vilkårsvurderingsresultat.Innvilget(emptySet())
@@ -338,7 +342,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
-            on { hentEventuellTidligereAttestering(any()) } doReturn mock()
         }
         val personServiceMock = mock<PersonService> {
             on { hentAktørId(any()) } doReturn aktørId.right()
@@ -364,9 +367,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-
-            verify(revurderingRepoMock).hentEventuellTidligereAttestering(revurderingId)
-
             verify(oppgaveServiceMock).opprettOppgave(any())
             verify(oppgaveServiceMock).lukkOppgave(any())
         }
@@ -387,7 +387,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             beregning = TestBeregning,
             simulering = mock(),
             attesteringer = mock(),
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = mock {
                 on { resultat } doReturn Vilkårsvurderingsresultat.Innvilget(emptySet())
@@ -397,7 +397,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
-            on { hentEventuellTidligereAttestering(any()) } doReturn mock()
         }
         val personServiceMock = mock<PersonService> {
             on { hentAktørId(any()) } doReturn aktørId.right()
@@ -423,8 +422,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-
-            verify(revurderingRepoMock).hentEventuellTidligereAttestering(revurderingId)
 
             verify(oppgaveServiceMock).opprettOppgave(any())
             verify(oppgaveServiceMock).lukkOppgave(any())
@@ -456,7 +453,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn beregnetRevurdering
-            on { hentEventuellTidligereAttestering(any()) } doReturn mock()
         }
         val personServiceMock = mock<PersonService> {
             on { hentAktørId(any()) } doReturn aktørId.right()
@@ -489,7 +485,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             fritekstTilBrev = "Fritekst",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
             beregning = actual.beregning,
-            skalFøreTilBrevutsending = false,
+            skalFøreTilUtsendingAvVedtaksbrev = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = actual.vilkårsvurderinger,
@@ -501,12 +497,11 @@ internal class RegulerGrunnbeløpServiceImplTest {
             verify(revurderingRepoMock).hent(revurderingId)
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
 
-            verify(revurderingRepoMock).hentEventuellTidligereAttestering(revurderingId)
-
             verify(oppgaveServiceMock).opprettOppgave(any())
             verify(oppgaveServiceMock).lukkOppgave(any())
 
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual }, anyOrNull())
         }
         verifyNoMoreInteractions(revurderingRepoMock, personServiceMock, oppgaveServiceMock)
     }
@@ -525,8 +520,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
             beregning = TestBeregning,
             attesteringer = Attesteringshistorikk.empty(),
-            skalFøreTilBrevutsending = true,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            skalFøreTilUtsendingAvVedtaksbrev = true,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = mock {
                 on { resultat } doReturn Vilkårsvurderingsresultat.Innvilget(emptySet())
@@ -536,7 +531,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn underkjentRevurdering
-            on { hentEventuellTidligereAttestering(any()) } doReturn mock()
         }
         val personServiceMock = mock<PersonService> {
             on { hentAktørId(any()) } doReturn aktørId.right()
@@ -569,8 +563,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
             fritekstTilBrev = "Fritekst",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
             beregning = actual.beregning,
-            skalFøreTilBrevutsending = false,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            skalFøreTilUtsendingAvVedtaksbrev = false,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = actual.vilkårsvurderinger,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -581,12 +575,11 @@ internal class RegulerGrunnbeløpServiceImplTest {
             verify(revurderingRepoMock).hent(revurderingId)
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
 
-            verify(revurderingRepoMock).hentEventuellTidligereAttestering(revurderingId)
-
             verify(oppgaveServiceMock).opprettOppgave(any())
             verify(oppgaveServiceMock).lukkOppgave(any())
 
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual }, anyOrNull())
         }
         verifyNoMoreInteractions(revurderingRepoMock, personServiceMock, oppgaveServiceMock)
     }
@@ -606,7 +599,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            skalFøreTilBrevutsending = false,
+            skalFøreTilUtsendingAvVedtaksbrev = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
@@ -626,7 +619,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 .leggTilNyAttestering(Attestering.Iverksatt(attestant, fixedTidspunkt)),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            skalFøreTilBrevutsending = false,
+            skalFøreTilUtsendingAvVedtaksbrev = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
@@ -661,7 +654,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     it should beOfType<Vedtak.IngenEndringIYtelse>()
                 },
             )
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe iverksattRevurdering })
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe iverksattRevurdering }, anyOrNull())
             verify(eventObserver).handle(
                 argThat {
                     it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering)

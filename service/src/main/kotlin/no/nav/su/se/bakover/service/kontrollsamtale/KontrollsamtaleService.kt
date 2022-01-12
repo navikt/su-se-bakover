@@ -56,7 +56,13 @@ class KontrollsamtaleServiceImpl(
         return Either.catch {
             sessionFactory.withTransactionContext {
                 brevService.lagreDokument(dokument, it)
-                oppgaveService.opprettOppgave(OppgaveConfig.Kontrollsamtale(sak.saksnummer, person.ident.aktørId))
+                oppgaveService.opprettOppgave(
+                    config = OppgaveConfig.Kontrollsamtale(
+                        saksnummer = sak.saksnummer,
+                        aktørId = person.ident.aktørId,
+                        clock = clock,
+                    )
+                )
                     .getOrElse {
                         throw RuntimeException("Fikk ikke opprettet oppgave").also {
                             log.error("Fikk ikke opprettet oppgave")

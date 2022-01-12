@@ -1,13 +1,9 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.grunnlag.throwIfMultiple
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -19,6 +15,8 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
+import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.ForhåndsvarselJson
+import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.ForhåndsvarselJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
@@ -226,40 +224,6 @@ internal data class GjenopptakAvYtelseJson(
     val simulering: SimuleringJson,
 ) : RevurderingJson()
 
-internal fun Forhåndsvarsel.toJson() = when (this) {
-    is Forhåndsvarsel.IngenForhåndsvarsel -> ForhåndsvarselJson.IngenForhåndsvarsel
-    is Forhåndsvarsel.SkalForhåndsvarsles.Besluttet -> ForhåndsvarselJson.SkalVarslesBesluttet(
-        begrunnelse = begrunnelse,
-        beslutningEtterForhåndsvarsling = valg,
-    )
-    is Forhåndsvarsel.SkalForhåndsvarsles.Sendt -> ForhåndsvarselJson.SkalVarslesSendt
-}
-
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.PROPERTY,
-    property = "type",
-)
-@JsonSubTypes(
-    JsonSubTypes.Type(value = ForhåndsvarselJson.IngenForhåndsvarsel::class, name = "INGEN_FORHÅNDSVARSEL"),
-    JsonSubTypes.Type(value = ForhåndsvarselJson.SkalVarslesSendt::class, name = "SKAL_FORHÅNDSVARSLES_SENDT"),
-    JsonSubTypes.Type(value = ForhåndsvarselJson.SkalVarslesBesluttet::class, name = "SKAL_FORHÅNDSVARSLES_BESLUTTET"),
-)
-internal sealed class ForhåndsvarselJson {
-    object IngenForhåndsvarsel : ForhåndsvarselJson() {
-        override fun equals(other: Any?) = other is IngenForhåndsvarsel
-    }
-
-    object SkalVarslesSendt : ForhåndsvarselJson() {
-        override fun equals(other: Any?) = other is SkalVarslesSendt
-    }
-
-    data class SkalVarslesBesluttet(
-        val begrunnelse: String,
-        val beslutningEtterForhåndsvarsling: BeslutningEtterForhåndsvarsling,
-    ) : ForhåndsvarselJson()
-}
-
 internal fun Revurdering.toJson(): RevurderingJson = when (this) {
     is OpprettetRevurdering -> OpprettetRevurderingJson(
         id = id.toString(),
@@ -308,7 +272,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         saksbehandler = saksbehandler.toString(),
         fritekstTilBrev = fritekstTilBrev,
         skalFøreTilBrevutsending = when (this) {
-            is RevurderingTilAttestering.IngenEndring -> skalFøreTilBrevutsending
+            is RevurderingTilAttestering.IngenEndring -> skalFøreTilUtsendingAvVedtaksbrev
             is RevurderingTilAttestering.Innvilget -> true
             is RevurderingTilAttestering.Opphørt -> true
         },
@@ -337,7 +301,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         saksbehandler = saksbehandler.toString(),
         fritekstTilBrev = fritekstTilBrev,
         skalFøreTilBrevutsending = when (this) {
-            is IverksattRevurdering.IngenEndring -> skalFøreTilBrevutsending
+            is IverksattRevurdering.IngenEndring -> skalFøreTilUtsendingAvVedtaksbrev
             is IverksattRevurdering.Innvilget -> true
             is IverksattRevurdering.Opphørt -> true
         },
@@ -366,7 +330,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         saksbehandler = saksbehandler.toString(),
         fritekstTilBrev = fritekstTilBrev,
         skalFøreTilBrevutsending = when (this) {
-            is UnderkjentRevurdering.IngenEndring -> skalFøreTilBrevutsending
+            is UnderkjentRevurdering.IngenEndring -> skalFøreTilUtsendingAvVedtaksbrev
             is UnderkjentRevurdering.Innvilget -> true
             is UnderkjentRevurdering.Opphørt -> true
         },

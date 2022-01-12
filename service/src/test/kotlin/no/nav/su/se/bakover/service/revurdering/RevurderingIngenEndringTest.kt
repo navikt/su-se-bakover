@@ -60,13 +60,14 @@ import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
-class RevurderingIngenEndringTest {
+internal class RevurderingIngenEndringTest {
 
     @Test
     fun `Revurderingen går ikke gjennom hvis endring av utbetaling er under ti prosent`() {
@@ -178,7 +179,8 @@ class RevurderingIngenEndringTest {
             revurderingRepoMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual }, anyOrNull())
         }
         verifyNoMoreInteractions(
             revurderingRepoMock,
@@ -219,7 +221,7 @@ class RevurderingIngenEndringTest {
             fritekstTilBrev = "endret fritekst",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            skalFøreTilBrevutsending = true,
+            skalFøreTilUtsendingAvVedtaksbrev = true,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = vilkårsvurderingerMock,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -227,7 +229,6 @@ class RevurderingIngenEndringTest {
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn beregnetRevurdering
-            on { hentEventuellTidligereAttestering(any()) } doReturn null
         }
         val utbetalingServiceMock = mock<UtbetalingService>()
         val vedtakRepoMock = mock<VedtakRepo>()
@@ -266,17 +267,19 @@ class RevurderingIngenEndringTest {
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(revurderingRepoMock).hentEventuellTidligereAttestering(argThat { it shouldBe revurderingId })
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.AttesterRevurdering(
                         saksnummer = saksnummer,
                         aktørId = aktørId,
+                        tilordnetRessurs = null,
+                        clock = fixedClock,
                     )
                 },
             )
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe søknadOppgaveId })
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe revurderingTilAttestering })
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe revurderingTilAttestering }, anyOrNull())
         }
         verifyNoMoreInteractions(
             personServiceMock,
@@ -301,7 +304,7 @@ class RevurderingIngenEndringTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            skalFøreTilBrevutsending = false,
+            skalFøreTilUtsendingAvVedtaksbrev = false,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -319,7 +322,7 @@ class RevurderingIngenEndringTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attesteringUnderkjent(clock = fixedClock)),
-            skalFøreTilBrevutsending = false,
+            skalFøreTilUtsendingAvVedtaksbrev = false,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -366,10 +369,12 @@ class RevurderingIngenEndringTest {
                         saksnummer = saksnummer,
                         aktørId = aktørId,
                         tilordnetRessurs = saksbehandler,
+                        clock = fixedClock,
                     )
                 },
             )
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe underkjentRevurdering })
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe underkjentRevurdering }, anyOrNull())
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe søknadOppgaveId })
         }
         verifyNoMoreInteractions(
@@ -433,7 +438,8 @@ class RevurderingIngenEndringTest {
                         it.metadata.bestillBrev shouldBe true
                     },
                 )
-                verify(it.revurderingRepo).lagre(iverksattRevurdering)
+                verify(it.revurderingRepo).defaultTransactionContext()
+                verify(it.revurderingRepo).lagre(argThat { it shouldBe iverksattRevurdering }, anyOrNull())
 
                 it.verifyNoMoreInteractions()
             }
@@ -467,7 +473,8 @@ class RevurderingIngenEndringTest {
         ) {
             verify(revurderingRepoMock).hent(revurderingTilAttestering.id)
             verify(serviceAndMocks.vedtakRepo).lagre(argThat { it shouldBe vedtak.copy(id = it.id) })
-            verify(revurderingRepoMock).lagre(any())
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(revurderingRepoMock).lagre(any(), anyOrNull())
             verifyNoMoreInteractions()
         }
     }

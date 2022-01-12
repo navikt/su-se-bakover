@@ -2,10 +2,11 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.nonEmptyListOf
+import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
@@ -15,38 +16,34 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
-internal class RevurderingServiceLeggTilFradragsgrunnlagTest {
+internal class LeggTilFradragsgrunnlagTest {
+
     @Test
     fun `lagreFradrag happy case`() {
-        val revurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
+        val revurderingsperiode = Periode.create(1.januar(2021), 31.desember(2021))
+        val eksisterendeRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn revurdering
+            on { hent(any()) } doReturn eksisterendeRevurdering
         }
 
         val grunnlagServiceMock = mock<GrunnlagService>()
@@ -57,50 +54,41 @@ internal class RevurderingServiceLeggTilFradragsgrunnlagTest {
         )
 
         val request = LeggTilFradragsgrunnlagRequest(
-            behandlingId = revurdering.id,
+            behandlingId = eksisterendeRevurdering.id,
             fradragsgrunnlag = listOf(
                 lagFradragsgrunnlag(
                     type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 5000.0,
-                    periode = revurdering.periode,
+                    månedsbeløp = 0.0,
+                    periode = revurderingsperiode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
         )
 
-        revurderingService.leggTilFradragsgrunnlag(request).getOrHandle { fail { "uventet respons" } }
+        val actual = revurderingService.leggTilFradragsgrunnlag(
+            request,
+        ).getOrHandle { fail("Feilet med $it") }
 
-        verify(revurderingRepoMock).hent(argThat { it shouldBe revurdering.id })
-        verify(grunnlagServiceMock).lagreFradragsgrunnlag(
-            argThat { it shouldBe revurdering.id },
-            argThat { it shouldBe request.fradragsgrunnlag },
-        )
-        verify(revurderingRepoMock).defaultTransactionContext()
-        verify(revurderingRepoMock).lagre(
-            argThat {
-                it shouldBe revurdering.copy(
-                    informasjonSomRevurderes = InformasjonSomRevurderes.create(
-                        mapOf(Revurderingsteg.Inntekt to Vurderingstatus.Vurdert),
-                    ),
-                    grunnlagsdata = Grunnlagsdata.create(
-                        bosituasjon = revurdering.grunnlagsdata.bosituasjon,
-                        fradragsgrunnlag = nonEmptyListOf(
-                            fradragsgrunnlagArbeidsinntekt(periode = revurdering.periode, arbeidsinntekt = 5000.0).copy(
-                                id = it.grunnlagsdata.fradragsgrunnlag.first().id,
-                            ),
-                        ),
-                    ),
-                )
-            },
-            anyOrNull()
-        )
+        inOrder(
+            revurderingRepoMock,
+            grunnlagServiceMock,
+        ) {
+            verify(revurderingRepoMock).hent(argThat { it shouldBe eksisterendeRevurdering.id })
+
+            verify(grunnlagServiceMock).lagreFradragsgrunnlag(
+                argThat { it shouldBe eksisterendeRevurdering.id },
+                argThat { it shouldBe request.fradragsgrunnlag },
+            )
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
+        }
 
         verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)
     }
 
     @Test
-    fun `lagreFradrag finner ikke revurdering`() {
+    fun `leggTilFradragsgrunnlag - lagreFradrag finner ikke revurdering`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn null
         }
@@ -140,12 +128,11 @@ internal class RevurderingServiceLeggTilFradragsgrunnlagTest {
     }
 
     @Test
-    fun `lagreFradrag har en status som gjør at man ikke kan legge til fradrag`() {
-
-        val tidligereRevurdering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
+    fun `leggTilFradragsgrunnlag - lagreFradrag har en status som gjør at man ikke kan legge til fradrag`() {
+        val eksisterendeRevurdering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn tidligereRevurdering
+            on { hent(any()) } doReturn eksisterendeRevurdering
         }
 
         val grunnlagServiceMock = mock<GrunnlagService>()
@@ -156,7 +143,7 @@ internal class RevurderingServiceLeggTilFradragsgrunnlagTest {
         )
 
         val request = LeggTilFradragsgrunnlagRequest(
-            behandlingId = tidligereRevurdering.id,
+            behandlingId = eksisterendeRevurdering.id,
             fradragsgrunnlag = listOf(
                 lagFradragsgrunnlag(
                     type = Fradragstype.Arbeidsinntekt,
@@ -170,12 +157,18 @@ internal class RevurderingServiceLeggTilFradragsgrunnlagTest {
 
         revurderingService.leggTilFradragsgrunnlag(
             request,
-        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
-            fra = tidligereRevurdering::class,
-            til = OpprettetRevurdering::class,
-        ).left()
+        ) shouldBe
+            KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                fra = eksisterendeRevurdering::class,
+                til = OpprettetRevurdering::class,
+            ).left()
 
-        verify(revurderingRepoMock).hent(argThat { it shouldBe tidligereRevurdering.id })
+        inOrder(
+            revurderingRepoMock,
+            grunnlagServiceMock,
+        ) {
+            verify(revurderingRepoMock).hent(argThat { it shouldBe eksisterendeRevurdering.id })
+        }
 
         verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)
     }
@@ -214,17 +207,14 @@ internal class RevurderingServiceLeggTilFradragsgrunnlagTest {
                 lagFradragsgrunnlag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 0.0,
-                    periode = opprettetRevurdering.second.periode,
+                    periode = revurderingsperiode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 lagFradragsgrunnlag(
                     type = Fradragstype.Kontantstøtte,
                     månedsbeløp = 0.0,
-                    periode = Periode.create(
-                        fraOgMed = opprettetRevurdering.second.periode.fraOgMed.minusMonths(3),
-                        tilOgMed = opprettetRevurdering.second.periode.tilOgMed,
-                    ),
+                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.juli(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),

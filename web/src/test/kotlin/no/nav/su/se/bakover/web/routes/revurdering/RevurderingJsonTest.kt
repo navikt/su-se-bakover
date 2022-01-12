@@ -560,7 +560,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -644,7 +644,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -728,7 +728,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            skalFøreTilBrevutsending = false,
+            skalFøreTilUtsendingAvVedtaksbrev = false,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -818,7 +818,7 @@ internal class RevurderingJsonTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -917,7 +917,7 @@ internal class RevurderingJsonTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -1016,7 +1016,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            skalFøreTilBrevutsending = false,
+            skalFøreTilUtsendingAvVedtaksbrev = false,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -1111,7 +1111,7 @@ internal class RevurderingJsonTest {
                 ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -1202,7 +1202,7 @@ internal class RevurderingJsonTest {
                 ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -1293,7 +1293,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            skalFøreTilBrevutsending = true,
+            skalFøreTilUtsendingAvVedtaksbrev = true,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
