@@ -110,6 +110,9 @@ sealed interface VilkårsvurdertKlage : Klage {
         }
     }
 
+    /**
+     * Denne tilstanden representerer en klage når alle vilkårsvurderingene er blitt fylt ut, og ikke har blitt bekreftet
+     */
     sealed class Utfylt : VilkårsvurdertKlage {
         abstract override val id: UUID
         abstract override val opprettet: Tidspunkt
@@ -143,6 +146,9 @@ sealed interface VilkårsvurdertKlage : Klage {
             ).right()
         }
 
+        /**
+         * En vilkårsvurdert avvist representerer en klage der minst et av vilkårene er blitt besvart 'nei/false'
+         */
         data class Avvist private constructor(
             override val id: UUID,
             override val opprettet: Tidspunkt,
@@ -191,6 +197,9 @@ sealed interface VilkårsvurdertKlage : Klage {
             }
         }
 
+        /**
+         * En vilkårsvurdert avvist representerer en klage alle vilkårene oppfylt
+         */
         data class TilVurdering private constructor(
             override val id: UUID,
             override val opprettet: Tidspunkt,
@@ -288,8 +297,8 @@ sealed interface VilkårsvurdertKlage : Klage {
     }
 
     /**
-     * Denne tilstanden representerer klagen når den er i oppsummerings-steget dersom klagen er avvist,
-     * men også når den har blitt underkjent
+     * Denne bekreftet representer en klage som er blitt utfylt, og saksbehandler har gått et steg videre i prosessen
+     * Her vil dem starte vurderingen, eller avvisningen.
      */
     sealed class Bekreftet : VilkårsvurdertKlage {
         abstract override val id: UUID

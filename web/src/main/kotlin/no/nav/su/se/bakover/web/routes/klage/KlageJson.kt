@@ -302,13 +302,23 @@ private enum class Typer(val verdi: String) {
     VURDERT_UTFYLT("VURDERT_UTFYLT"),
 
     /**
-     * Alias oppsummeringssteget.
+     * Alias oppsummeringssteget (for vurderte klager).
      * Man kommer i denne tilstanden dersom alle vilkårsvurderingene er utfylt og bekreftet og vurderingene er utfylt og bekreftet.
      * Kan gå fram til TIL_ATTESTERING
      */
     VURDERT_BEKREFTET("VURDERT_BEKREFTET"),
 
+    /**
+     * Man kommer i denne tilstanden etter at man har bekreftet vilkårsvurderingene, der minst et av svarene er avvist,
+     * og har lagret en midlertidig tilstand av brev-friteksten
+     * Kan gå fram til AVVIST_BEKREFTET
+     */
     AVVIST_PÅBEGYNT("AVVIST_PÅBEGYNT"),
+
+    /**
+     * Man kommer i denne tilstanden etter at man har bekreftet friteksten til brevet som skal sendes ut ved avvisning
+     * Kan gå fram til TIL_AVVTERING_AVVIST
+     */
     AVVIST_BEKREFTET("AVVIST_BEKREFTET"),
 
     /**
@@ -320,7 +330,7 @@ private enum class Typer(val verdi: String) {
 
     /**
      * Man kommer i denne tilstanden dersom man var i VILKÅRSVURDERT_BEKREFTET og valgte å sende til attestering.
-     * Kan gå tilbake til VILKÅRSVURDERT_BEKREFTET (underkjent)
+     * Kan gå tilbake til AVVIST_BEKREFTET (underkjent)
      * Kan gå fram til AVVIST
      */
     TIL_ATTESTERING_AVVIST("TIL_ATTESTERING_AVVIST"),

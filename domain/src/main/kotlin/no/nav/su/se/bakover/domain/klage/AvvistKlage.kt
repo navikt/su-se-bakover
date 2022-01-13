@@ -9,8 +9,8 @@ import kotlin.reflect.KClass
 
 /**
  * Representerer en klage når minst et av formkravene er besvart 'nei/false'
- * forrige-steg: [VilkårsvurdertKlage]
- * neste-steg: [KlageTilAttestering.Avvist]
+ * forrige-klasse: [VilkårsvurdertKlage.Bekreftet.Avvist]
+ * neste-klasse: [KlageTilAttestering.Avvist]
  */
 sealed interface AvvistKlage : VilkårsvurdertKlage {
     val fritekstTilBrev: String?
@@ -74,8 +74,7 @@ sealed interface AvvistKlage : VilkårsvurdertKlage {
 
     /**
      * Representerer en avvist klage der fritekst er bekreftet
-     * forrige-steg: [VilkårsvurdertKlage.Bekreftet.Avvist]
-     * forrige-avvist-steg: [AvvistKlage.Påbegynt]
+     * forrige-steg: [AvvistKlage.Påbegynt]
      * neste-steg: [KlageTilAttestering.Avvist]
      */
     data class Bekreftet private constructor(

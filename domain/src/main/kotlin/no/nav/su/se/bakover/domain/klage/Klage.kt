@@ -28,11 +28,11 @@ import kotlin.reflect.KClass
  * - [VurdertKlage.Utfylt] -> [VilkårsvurdertKlage] og [VurdertKlage]
  * - [VurdertKlage.Bekreftet] -> [VilkårsvurdertKlage] og [VurdertKlage] og [KlageTilAttestering]
  *
- * - [AvvistKlage.Påbegynt] -> [AvvistKlage.Bekreftet]
- * - [AvvistKlage.Bekreftet] -> [KlageTilAttestering.Avvist]
+ * - [AvvistKlage.Påbegynt] -> [AvvistKlage.Bekreftet] og [VilkårsvurdertKlage]
+ * - [AvvistKlage.Bekreftet] -> [KlageTilAttestering.Avvist] og [VilkårsvurdertKlage]
  *
  * - [KlageTilAttestering.Vurdert] -> [OversendtKlage] og [VurdertKlage.Bekreftet]
- * - [KlageTilAttestering.Avvist] -> [IverksattAvvistKlage], og [VilkårsvurdertKlage.Bekreftet]
+ * - [KlageTilAttestering.Avvist] -> [IverksattAvvistKlage] og [AvvistKlage.Bekreftet]
  *
  * - [OversendtKlage] -> ingen
  * - [IverksattAvvistKlage] -> ingen
@@ -109,7 +109,7 @@ sealed interface Klage {
         return KunneIkkeSendeTilAttestering.UgyldigTilstand(this::class, KlageTilAttestering::class).left()
     }
 
-    /** @return [VurdertKlage.Bekreftet] eller [VilkårsvurdertKlage.Bekreftet] */
+    /** @return [VurdertKlage.Bekreftet] eller [AvvistKlage.Bekreftet] */
     fun underkjenn(
         underkjentAttestering: Attestering.Underkjent,
         opprettOppgave: () -> Either<KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave, OppgaveId>,

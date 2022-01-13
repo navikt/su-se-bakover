@@ -293,7 +293,7 @@ sealed class VurdertKlage : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    fritekstTilBrev = null,
+                    fritekstTilBrev = vurderinger.fritekstTilBrev,
                     klagevedtakshistorikk = klagevedtakshistorikk,
                 )
             }
