@@ -90,6 +90,8 @@ internal class KlagevedtakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klagevedtakRepo = testDataHelper.klagevedtakPostgresRepo
             val id = UUID.randomUUID()
+            val klage = testDataHelper.oversendtKlage()
+
             UprosessertFattetKlagevedtak(
                 id = id,
                 opprettet = fixedTidspunkt,
@@ -98,15 +100,16 @@ internal class KlagevedtakPostgresRepoTest {
                     offset = 1,
                     partisjon = 2,
                     key = UUID.randomUUID().toString(),
-                    value = "{}",
+                    value = "{\"kildeReferanse\": ${klage.id}}",
                 ),
             ).also {
                 klagevedtakRepo.lagre(it)
                 klagevedtakRepo.lagre(
                     ProsessertKlagevedtak(
                         id = it.id,
+                        opprettet = fixedTidspunkt,
                         eventId = it.metadata.hendelseId,
-                        klageId = UUID.randomUUID(),
+                        klageId = klage.id,
                         utfall = KlagevedtakUtfall.STADFESTELSE,
                         vedtaksbrevReferanse = UUID.randomUUID().toString(),
                         oppgaveId = null

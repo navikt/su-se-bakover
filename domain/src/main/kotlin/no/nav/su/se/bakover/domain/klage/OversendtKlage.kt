@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
-import arrow.core.right
+import arrow.core.left
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -63,12 +63,32 @@ data class OversendtKlage private constructor(
         }
     }
 
-    override fun leggTilNyttKlagevedtak(vedtattUtfall: VedtattUtfall): Either<KunneIkkeLeggeTilVedtak, OversendtKlage> {
-        return this.copy(klagevedtakshistorikk = klagevedtakshistorikk.leggTilNyttVedtak(vedtattUtfall)).right()
+    override fun leggTilNyttKlagevedtak(
+        uprosessertKlagevedtak: UprosessertKlagevedtak,
+        lagOppgaveCallback: () -> Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId>,
+    ): Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, Klage> {
+        return when (uprosessertKlagevedtak.utfall) {
+            KlagevedtakUtfall.AVVIST,
+            KlagevedtakUtfall.TRUKKET,
+            KlagevedtakUtfall.STADFESTELSE,
+            -> lagOppgaveCallback().map { oppgaveId ->
+                leggTilKlagevedtakshistorikk(uprosessertKlagevedtak.tilProsessert(oppgaveId))
+            }
+            KlagevedtakUtfall.RETUR -> {
+                lagOppgaveCallback().map { oppgaveId ->
+                    leggTilKlagevedtakshistorikk(uprosessertKlagevedtak.tilProsessert(oppgaveId)).toBekreftet(oppgaveId)
+                }
+            }
+            KlagevedtakUtfall.OPPHEVET,
+            KlagevedtakUtfall.MEDHOLD,
+            KlagevedtakUtfall.DELVIS_MEDHOLD,
+            KlagevedtakUtfall.UGUNST,
+            -> KunneIkkeLeggeTilNyttKlageinstansVedtak.IkkeStøttetUtfall.left()
+        }
     }
 
-    override fun krevYtterligereHandling(oppgaveId: OppgaveId): Either<KunneIkkeLeggeTilNyOppgaveId, VurdertKlage.Bekreftet> {
-        return VurdertKlage.Bekreftet.create(
+    private fun toBekreftet(oppgaveId: OppgaveId) =
+        VurdertKlage.Bekreftet.create(
             id = id,
             opprettet = opprettet,
             sakId = sakId,
@@ -81,19 +101,20 @@ data class OversendtKlage private constructor(
             vurderinger = vurderinger,
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
-            klagevedtakshistorikk = klagevedtakshistorikk
-        ).right()
-    }
+            klagevedtakshistorikk = klagevedtakshistorikk,
+        )
+
+    private fun leggTilKlagevedtakshistorikk(prosessertKlagevedtak: ProsessertKlagevedtak): OversendtKlage =
+        this.copy(klagevedtakshistorikk = this.klagevedtakshistorikk.leggTilNyttVedtak(prosessertKlagevedtak))
 }
 
 sealed class KunneIkkeOversendeKlage {
     object FantIkkeKlage : KunneIkkeOversendeKlage()
-    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeOversendeKlage()
+    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) :
+        KunneIkkeOversendeKlage()
+
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeOversendeKlage()
     data class KunneIkkeLageBrev(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeOversendeKlage()
     object FantIkkeJournalpostIdKnyttetTilVedtaket : KunneIkkeOversendeKlage()
     object KunneIkkeOversendeTilKlageinstans : KunneIkkeOversendeKlage()
 }
-
-object KunneIkkeLeggeTilVedtak
-object KunneIkkeLeggeTilNyOppgaveId

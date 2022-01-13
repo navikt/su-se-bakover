@@ -4,6 +4,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.klage.UprosessertKlagevedtak
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -19,6 +20,7 @@ internal class KlagevedtakJobTest {
 
         KlagevedtakJob.mapper(
             klagevedtakId,
+            fixedTidspunkt,
             jsonMelding(
                 eventId = eventId,
                 kildeReferanse = kildeReferanse,
@@ -27,6 +29,7 @@ internal class KlagevedtakJobTest {
             )
         ) shouldBe UprosessertKlagevedtak(
             id = klagevedtakId,
+            opprettet = fixedTidspunkt,
             eventId = eventId.toString(),
             klageId = kildeReferanse,
             utfall = KlagevedtakUtfall.STADFESTELSE,

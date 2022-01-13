@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -56,8 +57,10 @@ import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
@@ -1106,6 +1109,29 @@ internal class TestDataHelper(
         ).orNull()!!.also {
             klagePostgresRepo.lagre(it)
         }
+    }
+
+    fun uprosessertKlagevedtak(
+        id: UUID = UUID.randomUUID(),
+        klageId: UUID = UUID.randomUUID(),
+        utfall: KlagevedtakUtfall = KlagevedtakUtfall.STADFESTELSE,
+        opprettet: Tidspunkt = fixedTidspunkt,
+    ): Pair<UUID, UUID> {
+        klagevedtakPostgresRepo.lagre(
+            UprosessertFattetKlagevedtak(
+                id = id,
+                opprettet = opprettet,
+                metadata = UprosessertFattetKlagevedtak.Metadata(
+                    hendelseId = UUID.randomUUID().toString(),
+                    offset = 0,
+                    partisjon = 0,
+                    key = "",
+                    value = "{\"kildeReferanse\": \"$klageId\", \"utfall\":\"$utfall\"}"
+                )
+            )
+        )
+
+        return Pair(id, klageId)
     }
 
     companion object {

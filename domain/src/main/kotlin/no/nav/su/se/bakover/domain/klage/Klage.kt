@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.Clock
 import java.time.LocalDate
@@ -98,21 +99,17 @@ sealed class Klage {
         return KunneIkkeOversendeKlage.UgyldigTilstand(this::class, OversendtKlage::class).left()
     }
 
-    /** @return [OversendtKlage] */
     open fun leggTilNyttKlagevedtak(
-        vedtattUtfall: VedtattUtfall,
-    ): Either<KunneIkkeLeggeTilVedtak, OversendtKlage> {
-        return KunneIkkeLeggeTilVedtak.left()
+        uprosessertKlagevedtak: UprosessertKlagevedtak,
+        lagOppgaveCallback: () -> Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId>,
+    ): Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, Klage> {
+        return KunneIkkeLeggeTilNyttKlageinstansVedtak.UgyldigTilstand.left()
     }
-
-    /**
-     * Klagen kan komma i retur fra Klageinstans og trenger da ny handling
-     * @return [VurdertKlage.Bekreftet]
-     * */
-    open fun krevYtterligereHandling(
-        oppgaveId: OppgaveId,
-    ): Either<KunneIkkeLeggeTilNyOppgaveId, VurdertKlage.Bekreftet> {
-        return KunneIkkeLeggeTilNyOppgaveId.left()
+    sealed interface KunneIkkeLeggeTilNyttKlageinstansVedtak {
+        object UgyldigTilstand : KunneIkkeLeggeTilNyttKlageinstansVedtak
+        object IkkeStøttetUtfall : KunneIkkeLeggeTilNyttKlageinstansVedtak
+        object KunneIkkeHenteAktørId : KunneIkkeLeggeTilNyttKlageinstansVedtak
+        data class KunneIkkeLageOppgave(val feil: OppgaveFeil) : KunneIkkeLeggeTilNyttKlageinstansVedtak
     }
 
     companion object {
@@ -136,7 +133,7 @@ sealed class Klage {
                 oppgaveId = oppgaveId,
                 datoKlageMottatt = datoKlageMottatt,
                 saksbehandler = saksbehandler,
-                klagevedtakshistorikk = Klagevedtakshistorikk.empty()
+                klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
             )
         }
     }

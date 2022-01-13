@@ -40,7 +40,7 @@ import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
-import no.nav.su.se.bakover.domain.klage.VedtattUtfall
+import no.nav.su.se.bakover.domain.klage.ProsessertKlagevedtak
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
@@ -215,19 +215,25 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         }
     }
 
-    private fun hentKlagevedtak(klageId: UUID): List<VedtattUtfall> {
+    private fun hentProsesserteKlagevedtak(klageId: UUID): List<ProsessertKlagevedtak> {
         return sessionFactory.withSession { session ->
             """
-            select opprettet, utlest_utfall from klagevedtak where utlest_klageid = :klageid
+            select * from klagevedtak where utlest_klageid = :klageid AND type = :type
             """.trimIndent().hentListe(
                 mapOf(
                     "klageid" to klageId,
+                    "type" to KlagevedtakPostgresRepo.KlagevedtakType.PROSESSERT.toString()
                 ),
                 session,
             ) {
-                VedtattUtfall(
+                ProsessertKlagevedtak(
+                    id = it.uuid("id"),
                     opprettet = it.tidspunkt("opprettet"),
-                    klagevedtakUtfall = KlagevedtakUtfall.valueOf(it.string("utlest_utfall")),
+                    eventId = it.string("utlest_eventid"),
+                    klageId = it.uuid("utlest_klageid"),
+                    utfall = KlagevedtakUtfall.valueOf(it.string("utlest_utfall")),
+                    vedtaksbrevReferanse = it.string("utlest_journalpostid"),
+                    oppgaveId = OppgaveId(it.string("oppgaveid")),
                 )
             }
         }
@@ -266,7 +272,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         val saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(row.string("saksbehandler"))
 
         val attesteringer = row.string("attestering").toAttesteringshistorikk()
-        val klagevedtakshistorikk = Klagevedtakshistorikk.create(hentKlagevedtak(id))
+        val klagevedtakshistorikk = Klagevedtakshistorikk.create(hentProsesserteKlagevedtak(id))
 
         val vilkårsvurderingerTilKlage = VilkårsvurderingerTilKlage.create(
             vedtakId = row.uuidOrNull("vedtakId"),

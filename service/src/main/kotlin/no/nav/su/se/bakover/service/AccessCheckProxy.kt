@@ -830,7 +830,7 @@ open class AccessCheckProxy(
             },
             klagevedtakService = object : KlagevedtakService {
                 override fun lagre(klageVedtak: UprosessertFattetKlagevedtak) = kastKanKunKallesFraAnnenService()
-                override fun håndterUtfallFraKlageinstans(deserializeAndMap: (id: UUID, json: String) -> Either<KanIkkeTolkeKlagevedtak, UprosessertKlagevedtak>) {
+                override fun håndterUtfallFraKlageinstans(deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KanIkkeTolkeKlagevedtak, UprosessertKlagevedtak>) {
                     kastKanKunKallesFraAnnenService()
                 }
             },

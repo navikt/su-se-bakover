@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
-import no.nav.su.se.bakover.domain.klage.VedtattUtfall
+import no.nav.su.se.bakover.domain.klage.ProsessertKlagevedtak
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
@@ -388,9 +388,9 @@ enum class UtfallJson {
     }
 }
 
-internal fun VedtattUtfall.toJson(): KlageJson.VedtattUtfallJson {
+internal fun ProsessertKlagevedtak.toJson(): KlageJson.VedtattUtfallJson {
     return KlageJson.VedtattUtfallJson(
-        utfall = when (this.klagevedtakUtfall) {
+        utfall = when (this.utfall) {
             KlagevedtakUtfall.TRUKKET -> "TRUKKET"
             KlagevedtakUtfall.RETUR -> "RETUR"
             KlagevedtakUtfall.OPPHEVET -> "OPPHEVET"

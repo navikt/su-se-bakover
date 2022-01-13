@@ -4,23 +4,18 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
 
-data class VedtattUtfall(
-    val klagevedtakUtfall: KlagevedtakUtfall,
-    val opprettet: Tidspunkt,
-)
-
 data class Klagevedtakshistorikk private constructor(
-    private val underlying: List<VedtattUtfall>
-) : List<VedtattUtfall> by underlying {
+    private val underlying: List<ProsessertKlagevedtak>
+) : List<ProsessertKlagevedtak> by underlying {
     companion object {
         fun empty() = Klagevedtakshistorikk(emptyList())
 
-        fun create(vedtattUtfall: List<VedtattUtfall>): Klagevedtakshistorikk {
+        fun create(vedtattUtfall: List<ProsessertKlagevedtak>): Klagevedtakshistorikk {
             return Klagevedtakshistorikk(vedtattUtfall.sortedBy { it.opprettet.instant })
         }
     }
 
-    fun leggTilNyttVedtak(vedtattUtfall: VedtattUtfall): Klagevedtakshistorikk {
+    fun leggTilNyttVedtak(vedtattUtfall: ProsessertKlagevedtak): Klagevedtakshistorikk {
         assert(this.all { it.opprettet.instant < vedtattUtfall.opprettet.instant }) {
             "Kan ikke legge til ett vedtak som er eldre enn det forrige vedtaket"
         }
@@ -34,6 +29,7 @@ data class Klagevedtakshistorikk private constructor(
  */
 data class UprosessertKlagevedtak(
     val id: UUID,
+    val opprettet: Tidspunkt,
     val eventId: String,
     val klageId: UUID,
     val utfall: KlagevedtakUtfall,
@@ -41,6 +37,7 @@ data class UprosessertKlagevedtak(
 ) {
     fun tilProsessert(oppgaveId: OppgaveId?) = ProsessertKlagevedtak(
         id = id,
+        opprettet = opprettet,
         eventId = eventId,
         klageId = klageId,
         utfall = utfall,
@@ -51,6 +48,7 @@ data class UprosessertKlagevedtak(
 
 data class ProsessertKlagevedtak(
     val id: UUID,
+    val opprettet: Tidspunkt,
     val eventId: String,
     val klageId: UUID,
     val utfall: KlagevedtakUtfall,

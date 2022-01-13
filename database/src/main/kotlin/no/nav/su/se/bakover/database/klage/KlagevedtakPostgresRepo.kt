@@ -60,7 +60,8 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
                     oppgaveId = :oppgaveid,
                     utlest_utfall = :utlest_utfall,
                     utlest_journalpostid = :utlest_journalpostid,
-                    utlest_klageid = :utlest_klageid
+                    utlest_klageid = :utlest_klageid,
+                    utlest_eventid = :utlest_eventid
                     where id = :id
             """.trimIndent()
                 .insert(
@@ -70,7 +71,8 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
                         "oppgaveid" to klagevedtak.oppgaveId,
                         "utlest_utfall" to klagevedtak.utfall.toString(),
                         "utlest_journalpostid" to klagevedtak.vedtaksbrevReferanse,
-                        "utlest_klageid" to klagevedtak.klageId
+                        "utlest_klageid" to klagevedtak.klageId,
+                        "utlest_eventid" to klagevedtak.eventId,
                     ),
                     session = transaction,
                 )

@@ -160,8 +160,7 @@ object ServiceBuilder {
             klagevedtakRepo = databaseRepos.klageVedtakRepo,
             klageRepo = databaseRepos.klageRepo,
             oppgaveService = oppgaveService,
-            personService = personService,
-            sessionFactory = databaseRepos.sessionFactory
+            personService = personService
         )
         return Services(
             avstemming = AvstemmingServiceImpl(

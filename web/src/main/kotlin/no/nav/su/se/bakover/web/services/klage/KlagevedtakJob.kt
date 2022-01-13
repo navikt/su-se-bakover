@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.services.klage
 
 import arrow.core.Either
 import arrow.core.flatMap
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.klage.KanIkkeTolkeKlagevedtak
 import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
@@ -27,7 +28,7 @@ class KlagevedtakJob(
     private val hostName = InetAddress.getLocalHost().hostName
 
     companion object {
-        fun mapper(id: UUID, json: String): Either<KanIkkeTolkeKlagevedtak, UprosessertKlagevedtak> =
+        fun mapper(id: UUID, opprettet: Tidspunkt, json: String): Either<KanIkkeTolkeKlagevedtak, UprosessertKlagevedtak> =
             Either.catch {
                 deserialize<FattetKlagevedtak>(json)
             }.mapLeft { KanIkkeTolkeKlagevedtak.KunneIkkeDeserialisere }
@@ -35,6 +36,7 @@ class KlagevedtakJob(
                     Either.catch {
                         UprosessertKlagevedtak(
                             id = id,
+                            opprettet = opprettet,
                             eventId = klagevedtak.eventId,
                             utfall = KlagevedtakUtfall.valueOf(klagevedtak.utfall),
                             klageId = UUID.fromString(klagevedtak.kildeReferanse),

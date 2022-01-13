@@ -10,11 +10,11 @@ interface OppgaveClient {
     fun oppdaterOppgave(oppgaveId: OppgaveId, beskrivelse: String): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit>
 }
 
-sealed class OppgaveFeil {
-    object KunneIkkeOppretteOppgave : OppgaveFeil()
-    object KunneIkkeLukkeOppgave : OppgaveFeil()
-    object KunneIkkeOppdatereOppgave : OppgaveFeil()
-    object KunneIkkeEndreOppgave : OppgaveFeil()
-    object KunneIkkeSøkeEtterOppgave : OppgaveFeil()
-    object KunneIkkeLageToken : OppgaveFeil()
+sealed interface OppgaveFeil {
+    object KunneIkkeOppretteOppgave : OppgaveFeil
+    object KunneIkkeLukkeOppgave : OppgaveFeil
+    object KunneIkkeOppdatereOppgave : OppgaveFeil
+    object KunneIkkeEndreOppgave : OppgaveFeil
+    object KunneIkkeSøkeEtterOppgave : OppgaveFeil
+    object KunneIkkeLageToken : OppgaveFeil
 }
