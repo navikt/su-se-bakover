@@ -50,7 +50,7 @@ sealed interface Klage {
     abstract val klagevedtakshistorikk: Klagevedtakshistorikk
 
     fun erÅpen(): Boolean {
-        return this !is OversendtKlage
+        return this !is OversendtKlage && this !is IverksattAvvistKlage
     }
 
     /**

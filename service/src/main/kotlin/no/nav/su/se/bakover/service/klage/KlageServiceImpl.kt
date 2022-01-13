@@ -376,20 +376,22 @@ class KlageServiceImpl(
     private fun getBrevFritekstFromKlage(klage: Klage): String {
         return when (klage) {
             is OpprettetKlage,
-            is VilkårsvurdertKlage.Bekreftet.Avvist,
-            is VilkårsvurdertKlage.Bekreftet.TilVurdering,
             is VilkårsvurdertKlage.Påbegynt,
             is VilkårsvurdertKlage.Utfylt,
-            is IverksattAvvistKlage,
-            is OversendtKlage,
+            is VilkårsvurdertKlage.Bekreftet.Avvist,
+            is VilkårsvurdertKlage.Bekreftet.TilVurdering,
             -> throw IllegalStateException("Kan ikke lage brevutkast i følgende tilstand: ${klage::class}. id: ${klage.id}")
 
-            is AvvistKlage.Bekreftet -> klage.fritekstTilBrev
+            is VurdertKlage -> klage.vurderinger.fritekstTilBrev.orEmpty()
+
             is AvvistKlage.Påbegynt -> klage.fritekstTilBrev.orEmpty()
+            is AvvistKlage.Bekreftet -> klage.fritekstTilBrev
 
             is KlageTilAttestering.Avvist -> klage.fritekstTilBrev
             is KlageTilAttestering.Vurdert -> klage.vurderinger.fritekstTilBrev
-            is VurdertKlage -> klage.vurderinger.fritekstTilBrev.orEmpty()
+
+            is OversendtKlage -> klage.vurderinger.fritekstTilBrev
+            is IverksattAvvistKlage -> klage.fritekstTilBrev
         }
     }
 
@@ -410,7 +412,6 @@ class KlageServiceImpl(
                 is VilkårsvurdertKlage.Påbegynt,
                 is VilkårsvurdertKlage.Utfylt,
                 is VilkårsvurdertKlage.Bekreftet.Avvist,
-                is KlageTilAttestering.Vurdert,
                 -> KunneIkkeLageBrevForKlage.UgyldigTilstand(klage::class).left()
 
                 is IverksattAvvistKlage,
@@ -424,11 +425,12 @@ class KlageServiceImpl(
                     saksnummer = klage.saksnummer,
                 ).right()
 
-                is OversendtKlage,
                 is VilkårsvurdertKlage.Bekreftet.TilVurdering,
                 is VurdertKlage.Påbegynt,
                 is VurdertKlage.Utfylt,
                 is VurdertKlage.Bekreftet,
+                is KlageTilAttestering.Vurdert,
+                is OversendtKlage,
                 -> lagBrevRequestForOppretthold(
                     person = person,
                     saksbehandlerNavn = saksbehandlerNavn,

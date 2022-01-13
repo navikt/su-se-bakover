@@ -461,7 +461,7 @@ private fun KunneIkkeLageBrevForKlage.toErrorJson(): Resultat {
         KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF -> kunneIkkeGenerereBrev.copy(httpCode = InternalServerError)
         is KunneIkkeLageBrevForKlage.UgyldigTilstand -> return BadRequest.errorJson(
             "Kan ikke lagre brevutkast for tilstanden ${fra.simpleName}",
-            "ugyldig_tilstand_for_brev",
+            "genererer_brev_fra_ugyldig_tilstand",
         )
     }
 }
