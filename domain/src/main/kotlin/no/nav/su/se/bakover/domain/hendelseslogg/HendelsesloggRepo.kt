@@ -1,6 +1,4 @@
-package no.nav.su.se.bakover.database.hendelseslogg
-
-import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
+package no.nav.su.se.bakover.domain.hendelseslogg
 
 interface HendelsesloggRepo {
     fun hentHendelseslogg(id: String): Hendelseslogg?

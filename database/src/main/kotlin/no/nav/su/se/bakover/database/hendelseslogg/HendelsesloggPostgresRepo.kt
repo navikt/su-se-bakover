@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
+import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.HendelseListWriter
 import javax.sql.DataSource
 

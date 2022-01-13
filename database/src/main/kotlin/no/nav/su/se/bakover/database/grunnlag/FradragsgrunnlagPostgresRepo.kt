@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.FradragsgrunnlagRepo
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.util.UUID
 import javax.sql.DataSource

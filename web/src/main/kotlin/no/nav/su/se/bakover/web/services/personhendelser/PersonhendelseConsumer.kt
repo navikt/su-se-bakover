@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.services.personhendelser
 import arrow.core.Either
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.hendelse.Personhendelse
+import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecords

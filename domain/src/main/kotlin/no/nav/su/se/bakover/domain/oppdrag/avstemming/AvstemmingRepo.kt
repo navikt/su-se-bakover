@@ -1,9 +1,8 @@
-package no.nav.su.se.bakover.database.avstemming
+package no.nav.su.se.bakover.domain.oppdrag.avstemming
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import java.time.LocalDate
 
 interface AvstemmingRepo {

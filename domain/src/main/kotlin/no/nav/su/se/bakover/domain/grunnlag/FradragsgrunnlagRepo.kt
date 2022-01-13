@@ -1,6 +1,5 @@
-package no.nav.su.se.bakover.database.grunnlag
+package no.nav.su.se.bakover.domain.grunnlag
 
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.util.UUID
 
 interface FradragsgrunnlagRepo {
