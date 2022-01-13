@@ -451,7 +451,7 @@ internal class SøknadRoutesKtTest {
                     },
                 )
 
-                response.content shouldBe serialize(sak.toJson())
+                response.content shouldBe serialize(sak.toJson(fixedClock))
             }
         }
     }

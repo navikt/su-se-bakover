@@ -29,11 +29,13 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSakId
+import java.time.Clock
 
 internal const val sakPath = "/saker"
 
 internal fun Route.sakRoutes(
     sakService: SakService,
+    clock: Clock,
 ) {
     authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
         post("$sakPath/søk") {
@@ -63,7 +65,7 @@ internal fun Route.sakRoutes(
                                     }
                                     .map {
                                         call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                                        call.svar(Resultat.json(OK, serialize(it.toJson())))
+                                        call.svar(Resultat.json(OK, serialize(it.toJson(clock))))
                                     }
                             },
                         )
@@ -89,7 +91,7 @@ internal fun Route.sakRoutes(
                                         },
                                         {
                                             call.audit(it.fnr, AuditLogEvent.Action.ACCESS, null)
-                                            Resultat.json(OK, serialize((it.toJson())))
+                                            Resultat.json(OK, serialize((it.toJson(clock))))
                                         },
                                     ),
                                 )
@@ -148,7 +150,7 @@ internal fun Route.sakRoutes(
                         { NotFound.errorJson("Fant ikke sak med id: $sakId", "fant_ikke_sak") },
                         {
                             call.audit(it.fnr, AuditLogEvent.Action.ACCESS, null)
-                            Resultat.json(OK, serialize((it.toJson())))
+                            Resultat.json(OK, serialize((it.toJson(clock))))
                         },
                     ),
                 )
