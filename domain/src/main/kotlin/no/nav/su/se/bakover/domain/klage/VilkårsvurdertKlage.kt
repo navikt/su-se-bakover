@@ -351,8 +351,8 @@ sealed interface VilkårsvurdertKlage : Klage {
             override fun leggTilAvvistFritekstTilBrev(
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 fritekst: String?,
-            ): Either<KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand, AvvistKlage.Påbegynt> {
-                return AvvistKlage.Påbegynt.create(
+            ): Either<KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand, AvvistKlage> {
+                return AvvistKlage.create(
                     forrigeSteg = this,
                     fritekstTilBrev = fritekst,
                 ).right()

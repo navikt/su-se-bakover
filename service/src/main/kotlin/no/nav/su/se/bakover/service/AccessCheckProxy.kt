@@ -807,17 +807,9 @@ open class AccessCheckProxy(
                     klageId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     fritekst: String?,
-                ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage.Påbegynt> {
+                ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage> {
                     assertHarTilgangTilKlage(klageId)
                     return services.klageService.leggTilAvvistFritekstTilBrev(klageId, saksbehandler, fritekst)
-                }
-
-                override fun bekreftAvvistFritekst(
-                    klageId: UUID,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeBekrefteKlagesteg, AvvistKlage.Bekreftet> {
-                    assertHarTilgangTilKlage(klageId)
-                    return services.klageService.bekreftAvvistFritekst(klageId, saksbehandler)
                 }
 
                 override fun sendTilAttestering(

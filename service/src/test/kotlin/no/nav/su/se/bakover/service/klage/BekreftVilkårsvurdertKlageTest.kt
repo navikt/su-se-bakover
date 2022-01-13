@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
-import no.nav.su.se.bakover.test.bekreftetAvvistKlage
+import no.nav.su.se.bakover.test.avvistKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
-import no.nav.su.se.bakover.test.påbegyntAvvistKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
 import no.nav.su.se.bakover.test.underkjentKlageTilVurdering
@@ -184,19 +183,7 @@ internal class BekreftVilkårsvurdertKlageTest {
 
     @Test
     fun `Skal kunne bekrefte påbegyntAvvist`() {
-        påbegyntAvvistKlage().also {
-            verifiserGyldigStatusovergang(
-                vedtak = it.first.vedtakListe.first(),
-                klage = it.second,
-                vilkårsvurderingerTilKlage = it.second.vilkårsvurderinger,
-                vurderingerTilKlage = it.second.vurderinger,
-            )
-        }
-    }
-
-    @Test
-    fun `Skal kunne bekrefte bekreftetAvvist`() {
-        bekreftetAvvistKlage().also {
+        avvistKlage().also {
             verifiserGyldigStatusovergang(
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,

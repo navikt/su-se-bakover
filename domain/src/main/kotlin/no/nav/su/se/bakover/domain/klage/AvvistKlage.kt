@@ -1,12 +1,93 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import kotlin.reflect.KClass
 
+/**
+ * Representerer en klage når minst et av formkravene er besvart 'nei/false', og det har blitt lagret minst en gang
+ * forrige-klasse: [VilkårsvurdertKlage.Bekreftet.Avvist]
+ * neste-klasse: [KlageTilAttestering.Avvist]
+ */
+data class AvvistKlage private constructor(
+    private val forrigeSteg: VilkårsvurdertKlage.Bekreftet.Avvist,
+    val fritekstTilBrev: String?,
+) : Klage, VilkårsvurdertKlage by forrigeSteg {
+    override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt = forrigeSteg.vilkårsvurderinger
+
+    override fun vurder(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        vurderinger: VurderingerTilKlage,
+    ): Either<KunneIkkeVurdereKlage.UgyldigTilstand, VurdertKlage> {
+        return KunneIkkeVurdereKlage.UgyldigTilstand(this::class, VurdertKlage::class).left()
+    }
+
+    override fun bekreftVurderinger(saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, VurdertKlage.Bekreftet> {
+        return KunneIkkeBekrefteKlagesteg.UgyldigTilstand(this::class, VurdertKlage.Bekreftet::class).left()
+    }
+
+    override fun leggTilAvvistFritekstTilBrev(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        fritekst: String?,
+    ): Either<KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand, AvvistKlage> {
+        return create(
+            forrigeSteg = forrigeSteg,
+            fritekstTilBrev = fritekst,
+        ).right()
+    }
+
+    override fun sendTilAttestering(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        opprettOppgave: () -> Either<KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave, OppgaveId>,
+    ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering.Avvist> {
+        if (fritekstTilBrev == null) {
+            return KunneIkkeSendeTilAttestering.FritekstMåVæreUtfyltForÅSendeTilAttestering.left()
+        }
+
+        return opprettOppgave().map { oppgaveId ->
+            KlageTilAttestering.Avvist.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+                vurderinger = vurderinger,
+                attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
+                fritekstTilBrev = fritekstTilBrev,
+            )
+        }
+    }
+
+    override fun oversend(iverksattAttestering: Attestering.Iverksatt): Either<KunneIkkeOversendeKlage, OversendtKlage> {
+        return KunneIkkeOversendeKlage.UgyldigTilstand(this::class, OversendtKlage::class).left()
+    }
+
+    override fun avvis(iverksattAttestering: Attestering.Iverksatt): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage> {
+        return KunneIkkeIverksetteAvvistKlage.UgyldigTilstand(this::class, IverksattAvvistKlage::class).left()
+    }
+
+    companion object {
+        fun create(
+            forrigeSteg: VilkårsvurdertKlage.Bekreftet.Avvist,
+            fritekstTilBrev: String?,
+        ): AvvistKlage {
+            return AvvistKlage(
+                forrigeSteg, fritekstTilBrev,
+            )
+        }
+    }
+}
+
+/*
 /**
  * Representerer en klage når minst et av formkravene er besvart 'nei/false'
  * forrige-klasse: [VilkårsvurdertKlage.Bekreftet.Avvist]
@@ -152,7 +233,7 @@ sealed interface AvvistKlage : VilkårsvurdertKlage {
         }
     }
 }
-
+*/
 sealed class KunneIkkeLeggeTilFritekstForAvvist {
     object FantIkkeKlage : KunneIkkeLeggeTilFritekstForAvvist()
     data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) :

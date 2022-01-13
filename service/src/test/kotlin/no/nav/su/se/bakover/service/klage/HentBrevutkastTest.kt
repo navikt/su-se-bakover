@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
+import no.nav.su.se.bakover.test.avvistKlage
 import no.nav.su.se.bakover.test.avvistKlageTilAttestering
-import no.nav.su.se.bakover.test.bekreftetAvvistKlage
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.person
-import no.nav.su.se.bakover.test.påbegyntAvvistKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
 import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
@@ -371,8 +370,8 @@ internal class HentBrevutkastTest {
     }
 
     @Test
-    fun `kan hente brevutkast fra påbegyntAvvist`() {
-        val (sak, klage) = påbegyntAvvistKlage()
+    fun `kan hente brevutkast fra avvist klage`() {
+        val (sak, klage) = avvistKlage()
         val person = person(fnr = sak.fnr)
 
         kanHenteBrevUtkastFraTilstand(
@@ -383,26 +382,7 @@ internal class HentBrevutkastTest {
                 person = person,
                 dagensDato = fixedLocalDate,
                 saksbehandlerNavn = "Ola Nordmann",
-                fritekst = "fritekstTilBrev",
-                saksnummer = Saksnummer(12345676),
-            ),
-        )
-    }
-
-    @Test
-    fun `kan hente brevutkast fra bekreftetAvvist`() {
-        val (sak, klage) = bekreftetAvvistKlage()
-        val person = person(fnr = sak.fnr)
-
-        kanHenteBrevUtkastFraTilstand(
-            sak,
-            klage,
-            person,
-            LagBrevRequest.Klage.Avvist(
-                person = person,
-                dagensDato = fixedLocalDate,
-                saksbehandlerNavn = "Ola Nordmann",
-                fritekst = "fritekstTilBrev",
+                fritekst = "dette er en fritekst med person opplysninger",
                 saksnummer = Saksnummer(12345676),
             ),
         )
@@ -442,7 +422,7 @@ internal class HentBrevutkastTest {
                 person = person,
                 dagensDato = fixedLocalDate,
                 saksbehandlerNavn = "Ola Nordmann",
-                fritekst = "fritekst",
+                fritekst = "dette er en fritekst med person opplysninger",
                 saksnummer = Saksnummer(12345676),
             ),
         )
@@ -482,7 +462,7 @@ internal class HentBrevutkastTest {
                 person = person,
                 dagensDato = fixedLocalDate,
                 saksbehandlerNavn = "Ola Nordmann",
-                fritekst = "fritekstTilBrev",
+                fritekst = "dette er en fritekst med person opplysninger",
                 saksnummer = Saksnummer(12345676),
             ),
         )

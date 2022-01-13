@@ -86,19 +86,12 @@ sealed interface Klage {
         return KunneIkkeBekrefteKlagesteg.UgyldigTilstand(this::class, VurdertKlage.Bekreftet::class).left()
     }
 
-    /** @return [AvvistKlage.Utfylt] */
+    /** @return [AvvistKlage] */
     fun leggTilAvvistFritekstTilBrev(
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekst: String?,
-    ): Either<KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand, AvvistKlage.Påbegynt> {
-        return KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand(this::class, AvvistKlage.Påbegynt::class).left()
-    }
-
-    /** @return [AvvistKlage.Bekreftet] */
-    fun bekreftAvvistFritekstTilBrev(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, AvvistKlage.Bekreftet> {
-        return KunneIkkeBekrefteKlagesteg.UgyldigTilstand(this::class, AvvistKlage.Bekreftet::class).left()
+    ): Either<KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand, AvvistKlage> {
+        return KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand(this::class, AvvistKlage::class).left()
     }
 
     /** @return [KlageTilAttestering] */

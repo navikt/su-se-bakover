@@ -41,12 +41,7 @@ interface KlageService {
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekst: String?
-    ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage.Påbegynt>
-
-    fun bekreftAvvistFritekst(
-        klageId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler
-    ): Either<KunneIkkeBekrefteKlagesteg, AvvistKlage.Bekreftet>
+    ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage>
 
     fun sendTilAttestering(
         klageId: UUID,

@@ -162,8 +162,7 @@ internal fun Klage.toJson(): KlageJson {
         )
         is VurdertKlage.Utfylt -> this.mapUtfyltOgBekreftetTilKlageJson()
         is VurdertKlage.Bekreftet -> this.mapUtfyltOgBekreftetTilKlageJson()
-        is AvvistKlage.Påbegynt -> this.mapPåbegyntOgBekreftetTilKlageJson()
-        is AvvistKlage.Bekreftet -> this.mapPåbegyntOgBekreftetTilKlageJson()
+        is AvvistKlage -> this.mapPåbegyntOgBekreftetTilKlageJson()
         is KlageTilAttestering.Vurdert -> KlageJson(
             id = this.id.toString(),
             sakid = this.sakId.toString(),
@@ -311,15 +310,9 @@ private enum class Typer(val verdi: String) {
     /**
      * Man kommer i denne tilstanden etter at man har bekreftet vilkårsvurderingene, der minst et av svarene er avvist,
      * og har lagret en midlertidig tilstand av brev-friteksten
-     * Kan gå fram til AVVIST_BEKREFTET
+     * Kan gå fram til TIL_ATTESTERING_AVVIST
      */
-    AVVIST_PÅBEGYNT("AVVIST_PÅBEGYNT"),
-
-    /**
-     * Man kommer i denne tilstanden etter at man har bekreftet friteksten til brevet som skal sendes ut ved avvisning
-     * Kan gå fram til TIL_AVVTERING_AVVIST
-     */
-    AVVIST_BEKREFTET("AVVIST_BEKREFTET"),
+    AVVIST("AVVIST"),
 
     /**
      * Man kommer i denne tilstanden dersom man var i VURDERT_BEKREFTET og valgte å sende til attestering.
@@ -364,8 +357,7 @@ private enum class Typer(val verdi: String) {
                 is VurdertKlage.Utfylt -> VURDERT_UTFYLT
                 is VurdertKlage.Bekreftet -> VURDERT_BEKREFTET
 
-                is AvvistKlage.Påbegynt -> AVVIST_PÅBEGYNT
-                is AvvistKlage.Bekreftet -> AVVIST_BEKREFTET
+                is AvvistKlage -> AVVIST
 
                 is KlageTilAttestering.Vurdert -> TIL_ATTESTERING_TIL_VURDERING
                 is KlageTilAttestering.Avvist -> TIL_ATTESTERING_AVVIST

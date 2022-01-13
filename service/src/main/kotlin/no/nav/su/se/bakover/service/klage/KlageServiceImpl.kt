@@ -153,21 +153,10 @@ class KlageServiceImpl(
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekst: String?,
-    ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage.Påbegynt> {
+    ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLeggeTilFritekstForAvvist.FantIkkeKlage.left()
 
         return klage.leggTilAvvistFritekstTilBrev(saksbehandler = saksbehandler, fritekst = fritekst).tap {
-            klageRepo.lagre(it)
-        }
-    }
-
-    override fun bekreftAvvistFritekst(
-        klageId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeBekrefteKlagesteg, AvvistKlage.Bekreftet> {
-        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeBekrefteKlagesteg.FantIkkeKlage.left()
-
-        return klage.bekreftAvvistFritekstTilBrev(saksbehandler).tap {
             klageRepo.lagre(it)
         }
     }
@@ -188,7 +177,7 @@ class KlageServiceImpl(
                         tilordnetRessurs = when (klage) {
                             is VurdertKlage -> klage.attesteringer.map { it.attestant }
                                 .lastOrNull()
-                            is AvvistKlage.Bekreftet -> klage.attesteringer.map { it.attestant }
+                            is AvvistKlage -> klage.attesteringer.map { it.attestant }
                                 .lastOrNull()
                             else -> null
                         },
@@ -384,8 +373,7 @@ class KlageServiceImpl(
 
             is VurdertKlage -> klage.vurderinger.fritekstTilBrev.orEmpty()
 
-            is AvvistKlage.Påbegynt -> klage.fritekstTilBrev.orEmpty()
-            is AvvistKlage.Bekreftet -> klage.fritekstTilBrev
+            is AvvistKlage -> klage.fritekstTilBrev.orEmpty()
 
             is KlageTilAttestering.Avvist -> klage.fritekstTilBrev
             is KlageTilAttestering.Vurdert -> klage.vurderinger.fritekstTilBrev
@@ -416,8 +404,7 @@ class KlageServiceImpl(
 
                 is IverksattAvvistKlage,
                 is KlageTilAttestering.Avvist,
-                is AvvistKlage.Påbegynt,
-                is AvvistKlage.Bekreftet,
+                is AvvistKlage,
                 -> lagBrevRequestForAvvistKlage(
                     person = person,
                     saksbehandlerNavn = saksbehandlerNavn,

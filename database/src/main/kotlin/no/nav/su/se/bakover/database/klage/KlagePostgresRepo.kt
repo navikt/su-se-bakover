@@ -62,8 +62,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
 
                 is VurdertKlage -> lagreVurdertKlage(klage, transaction)
 
-                is AvvistKlage.Påbegynt -> lagreAvvistKlage(klage, transaction)
-                is AvvistKlage.Bekreftet -> lagreAvvistKlage(klage, transaction)
+                is AvvistKlage -> lagreAvvistKlage(klage, transaction)
 
                 is KlageTilAttestering -> lagreTilAttestering(klage, transaction)
                 is OversendtKlage -> lagreOversendtKlage(klage, transaction)
@@ -477,7 +476,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 datoKlageMottatt = datoKlageMottatt,
                 klagevedtakshistorikk = klagevedtakshistorikk,
             )
-            Tilstand.AVVIST_PÅBEGYNT -> AvvistKlage.Påbegynt.create(
+            Tilstand.AVVIST -> AvvistKlage.create(
                 forrigeSteg = VilkårsvurdertKlage.Bekreftet.Avvist.create(
                     id = id,
                     opprettet = opprettet,
@@ -493,24 +492,6 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     datoKlageMottatt = datoKlageMottatt,
                 ),
                 fritekstTilBrev = fritekstTilBrev,
-            )
-            Tilstand.AVVIST_BEKREFTET -> AvvistKlage.Bekreftet.create(
-                forrigeSteg = VilkårsvurdertKlage.Bekreftet.Avvist.create(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    journalpostId = journalpostId,
-                    oppgaveId = oppgaveId,
-                    saksbehandler = saksbehandler,
-                    vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
-                    vurderinger = null,
-                    attesteringer = attesteringer,
-                    datoKlageMottatt = datoKlageMottatt,
-                ),
-                fritekstTilBrev = fritekstTilBrev
-                    ?: throw IllegalStateException("Er lagret en AVVIST_BREKREFTET klage uten fritekst. AVVIST_BEKREFTET må ha fritekst. id: $id"),
             )
             Tilstand.TIL_ATTESTERING_TIL_VURDERING -> KlageTilAttestering.Vurdert.create(
                 id = id,
@@ -605,8 +586,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         VURDERT_UTFYLT("vurdert_utfylt"),
         VURDERT_BEKREFTET("vurdert_bekreftet"),
 
-        AVVIST_PÅBEGYNT("avvist_påbegynt"),
-        AVVIST_BEKREFTET("avvist_bekreftet"),
+        AVVIST("avvist"),
 
         TIL_ATTESTERING_TIL_VURDERING("til_attestering_til_vurdering"),
         TIL_ATTESTERING_AVVIST("til_attestering_avvist"),
@@ -629,8 +609,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     is VurdertKlage.Utfylt -> VURDERT_UTFYLT
                     is VurdertKlage.Bekreftet -> VURDERT_BEKREFTET
 
-                    is AvvistKlage.Påbegynt -> AVVIST_PÅBEGYNT
-                    is AvvistKlage.Bekreftet -> AVVIST_BEKREFTET
+                    is AvvistKlage -> AVVIST
 
                     is KlageTilAttestering.Vurdert -> TIL_ATTESTERING_TIL_VURDERING
                     is KlageTilAttestering.Avvist -> TIL_ATTESTERING_AVVIST

@@ -336,7 +336,7 @@ internal class UnderkjennKlageTest {
 
         val attestant = NavIdentBruker.Attestant("s2")
 
-        var expectedKlage: AvvistKlage.Bekreftet?
+        var expectedKlage: AvvistKlage?
         val request = UnderkjennKlageRequest(
             klageId = klage.id,
             attestant = attestant,
@@ -344,7 +344,7 @@ internal class UnderkjennKlageTest {
             kommentar = "underkjennelseskommentar",
         )
         mocks.service.underkjenn(request).getOrHandle { throw RuntimeException(it.toString()) }.also {
-            expectedKlage = AvvistKlage.Bekreftet.create(
+            expectedKlage = AvvistKlage.create(
                 forrigeSteg = VilkårsvurdertKlage.Bekreftet.Avvist.create(
                     id = it.id,
                     opprettet = fixedTidspunkt,
@@ -368,7 +368,7 @@ internal class UnderkjennKlageTest {
                     ),
                     datoKlageMottatt = 1.desember(2021),
                 ),
-                fritekstTilBrev = "fritekst",
+                fritekstTilBrev = "dette er en fritekst med person opplysninger",
             )
             it shouldBe expectedKlage
         }

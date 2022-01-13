@@ -1113,20 +1113,11 @@ internal class TestDataHelper(
         vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
         saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerPåbegyntAvvistKlage"),
         fritekstTilBrev: String? = "en god, og lang fritekst",
-    ): AvvistKlage.Påbegynt {
+    ): AvvistKlage {
         return bekreftetAvvistVilkårsvurdertKlage(vedtak).leggTilAvvistFritekstTilBrev(
             saksbehandler,
             fritekstTilBrev,
         ).getOrFail().also {
-            klagePostgresRepo.lagre(it)
-        }
-    }
-
-    fun bekreftetAvvistKlage(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
-        saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerBekreftetAvvistKlage"),
-    ): AvvistKlage.Bekreftet {
-        return påbegyntAvvistKlage(vedtak, saksbehandler).bekreftAvvistFritekstTilBrev(saksbehandler).getOrFail().also {
             klagePostgresRepo.lagre(it)
         }
     }
@@ -1150,13 +1141,10 @@ internal class TestDataHelper(
         vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
         oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     ): KlageTilAttestering.Avvist {
-        return bekreftetAvvistKlage(vedtak).sendTilAttestering(
+        return påbegyntAvvistKlage(vedtak).sendTilAttestering(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerKlageTilAttestering"),
             opprettOppgave = { oppgaveId.right() },
-        ).getOrFail().let {
-            if (it !is KlageTilAttestering.Avvist) throw IllegalStateException("Forventet en KlageTilAttestering(Avvist). fikk ${it::class} ved opprettelse av test-data")
-            it
-        }.also {
+        ).getOrFail().also {
             klagePostgresRepo.lagre(it)
         }
     }
@@ -1183,7 +1171,7 @@ internal class TestDataHelper(
     fun underkjentAvvistKlage(
         vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
         oppgaveId: OppgaveId = OppgaveId("underkjentKlageOppgaveId"),
-    ): AvvistKlage.Bekreftet {
+    ): AvvistKlage {
         return avvistKlageTilAttestering(vedtak).underkjenn(
             underkjentAttestering = Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerUnderkjentKlage"),

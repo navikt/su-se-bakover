@@ -293,12 +293,12 @@ internal class SendKlageTilAttesteringTest {
                     oppgaveId = OppgaveId("nyOppgaveId"),
                     saksbehandler = NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene"),
                     vilkårsvurderinger = when (klage) {
-                        is AvvistKlage.Bekreftet -> klage.vilkårsvurderinger
+                        is AvvistKlage -> klage.vilkårsvurderinger
                         is VurdertKlage.Bekreftet -> klage.vilkårsvurderinger
                         else -> throw IllegalStateException("Bare VilkårsvurdertKlage.Bekreftet(Avvist), og VurdertKlage.Bekreftet kan sendes til attestering")
                     },
                     vurderinger = when (klage) {
-                        is AvvistKlage.Bekreftet -> klage.vurderinger
+                        is AvvistKlage -> klage.vurderinger
                         is VurdertKlage.Bekreftet -> klage.vurderinger
                         else -> throw IllegalStateException("Bare VilkårsvurdertKlage.Bekreftet(Avvist), og VurdertKlage.Bekreftet kan sendes til attestering")
                     },

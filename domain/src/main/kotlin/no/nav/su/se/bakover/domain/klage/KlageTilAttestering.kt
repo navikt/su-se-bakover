@@ -73,12 +73,12 @@ sealed class KlageTilAttestering : Klage {
         override fun underkjenn(
             underkjentAttestering: Attestering.Underkjent,
             opprettOppgave: () -> Either<KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave, OppgaveId>,
-        ): Either<KunneIkkeUnderkjenne, AvvistKlage.Bekreftet> {
+        ): Either<KunneIkkeUnderkjenne, AvvistKlage> {
             if (underkjentAttestering.attestant.navIdent == saksbehandler.navIdent) {
                 return KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
             return opprettOppgave().map { oppgaveId ->
-                AvvistKlage.Bekreftet.create(
+                AvvistKlage.create(
                     forrigeSteg = VilkårsvurdertKlage.Bekreftet.Avvist.create(
                         id = id,
                         opprettet = opprettet,
@@ -289,6 +289,7 @@ sealed class KlageTilAttestering : Klage {
 sealed class KunneIkkeSendeTilAttestering {
     object FantIkkeKlage : KunneIkkeSendeTilAttestering()
     object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering()
+    object FritekstMåVæreUtfyltForÅSendeTilAttestering : KunneIkkeSendeTilAttestering()
     data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeSendeTilAttestering()
 }
 

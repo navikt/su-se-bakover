@@ -198,22 +198,6 @@ internal fun Route.klageRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$klagePath/{klageId}/avvist/bekreft") {
-            call.withKlageId { klageId ->
-                klageService.bekreftAvvistFritekst(klageId, call.suUserContext.saksbehandler).map {
-                    call.svar(Resultat.json(OK, serialize(it.toJson())))
-                }.mapLeft {
-                    val error = when (it) {
-                        KunneIkkeBekrefteKlagesteg.FantIkkeKlage -> fantIkkeKlage
-                        is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
-                    }
-                    call.svar(error)
-                }
-            }
-        }
-    }
-
     authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
         post("$klagePath/{klageId}/brevutkast") {
 
@@ -332,6 +316,10 @@ internal fun Route.klageRoutes(
                             KunneIkkeSendeTilAttestering.FantIkkeKlage -> fantIkkeKlage
                             is KunneIkkeSendeTilAttestering.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
                             KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+                            KunneIkkeSendeTilAttestering.FritekstMåVæreUtfyltForÅSendeTilAttestering -> BadRequest.errorJson(
+                                "Fritekst vå være utfylt for å sende til attestering",
+                                "fritekst_må_være_utfylt_for_å_sende_til_attestering"
+                            )
                         },
                     )
                 }

@@ -23,7 +23,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.util.UUID
 
-internal class PåbegyntAvvistKlageTest {
+internal class AvvistKlageTest {
 
     //language=JSON
     private val validBody = """
@@ -90,9 +90,9 @@ internal class PåbegyntAvvistKlageTest {
     @Test
     fun `ugyldig tilstand`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand(OpprettetKlage::class, AvvistKlage.Påbegynt::class),
+            feilkode = KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand(OpprettetKlage::class, AvvistKlage::class),
             status = HttpStatusCode.BadRequest,
-            body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden Påbegynt\",\"code\":\"ugyldig_tilstand\"}",
+            body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden AvvistKlage\",\"code\":\"ugyldig_tilstand\"}",
         )
     }
 
