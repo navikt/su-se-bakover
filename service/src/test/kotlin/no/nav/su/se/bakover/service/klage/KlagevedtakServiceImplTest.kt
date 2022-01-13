@@ -89,7 +89,9 @@ internal class KlagevedtakServiceImplTest {
                 )
             },
         )
-        verify(klagevedtakRepoMock).lagre(mappedKlagevedtak.tilProsessert(OppgaveId("212121")))
+        TestSessionFactory().withTransactionContext { tx ->
+            verify(klagevedtakRepoMock).lagre(mappedKlagevedtak.tilProsessert(OppgaveId("212121")), tx)
+        }
     }
 
     @Test
@@ -161,7 +163,7 @@ internal class KlagevedtakServiceImplTest {
                 ),
                 tx
             )
-            verify(klagevedtakRepoMock).lagre(mappedKlagevedtak.tilProsessert(OppgaveId("212121")))
+            verify(klagevedtakRepoMock).lagre(mappedKlagevedtak.tilProsessert(OppgaveId("212121")), tx)
         }
     }
 
@@ -188,7 +190,8 @@ internal class KlagevedtakServiceImplTest {
             klageRepo = klageRepo,
             oppgaveService = oppgaveService,
             personService = personService,
-            clock = fixedClock
+            clock = fixedClock,
+            sessionFactory = TestSessionFactory()
         )
     }
 }

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.Either
 import arrow.core.flatMap
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -27,7 +28,8 @@ class KlagevedtakServiceImpl(
     private val klageRepo: KlageRepo,
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
-    private val clock: Clock = Clock.systemUTC(),
+    private val sessionFactory: SessionFactory,
+    private val clock: Clock,
 ) : KlagevedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -77,7 +79,7 @@ class KlagevedtakServiceImpl(
                 Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.IkkeStøttetUtfall -> log.error("Utfall: ${klagevedtak.utfall} fra Klageinstans er ikke håndtert.")
                 Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.KunneIkkeHenteAktørId -> log.error("Feil skjedde i prosessering av vedtak fra Klageinstans. Kunne ikke hente aktørId for klagevedtak: ${klagevedtak.id}")
                 is Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.KunneIkkeLageOppgave -> log.error("Feil skjedde i prosessering av vedtak fra Klageinstans. Kall mot oppgave feilet for klagevedtak: ${klagevedtak.id}")
-                Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.UgyldigTilstand -> log.error("Feil skjedde i prosessering av vedtak fra Klageinstans. Må være i tilstand ${OversendtKlage::class.java.name} men var ${klage::class.java} for klagevedtak: ${klagevedtak.id}")
+                is Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.MåVæreEnOversendtKlage -> log.error("Feil skjedde i prosessering av vedtak fra Klageinstans. Må være i tilstand ${OversendtKlage::class.java.name} men var ${it.menVar.java.name} for klagevedtak: ${klagevedtak.id}")
             }
             /** Disse lagres som FEIL i databasen uten videre håndtering. Tanken er at vi får håndtere
              * de casene som intreffer og så må vi manuellt putte de til 'UPROSSESERT' vid senere tidspunkt.
@@ -85,8 +87,10 @@ class KlagevedtakServiceImpl(
             klagevedtakRepo.markerSomFeil(klagevedtak.id)
         }
             .tap {
-                klageRepo.lagre(it)
-                klagevedtakRepo.lagre(it.klagevedtakshistorikk.last())
+                sessionFactory.withTransactionContext { tx ->
+                    klageRepo.lagre(it, tx)
+                    klagevedtakRepo.lagre(it.klagevedtakshistorikk.last(), tx)
+                }
             }
     }
 

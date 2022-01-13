@@ -103,10 +103,10 @@ sealed class Klage {
         uprosessertKlagevedtak: UprosessertKlagevedtak,
         lagOppgaveCallback: () -> Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId>,
     ): Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, Klage> {
-        return KunneIkkeLeggeTilNyttKlageinstansVedtak.UgyldigTilstand.left()
+        return KunneIkkeLeggeTilNyttKlageinstansVedtak.MåVæreEnOversendtKlage(menVar = this::class).left()
     }
     sealed interface KunneIkkeLeggeTilNyttKlageinstansVedtak {
-        object UgyldigTilstand : KunneIkkeLeggeTilNyttKlageinstansVedtak
+        data class MåVæreEnOversendtKlage(val menVar: KClass<out Klage>) : KunneIkkeLeggeTilNyttKlageinstansVedtak
         object IkkeStøttetUtfall : KunneIkkeLeggeTilNyttKlageinstansVedtak
         object KunneIkkeHenteAktørId : KunneIkkeLeggeTilNyttKlageinstansVedtak
         data class KunneIkkeLageOppgave(val feil: OppgaveFeil) : KunneIkkeLeggeTilNyttKlageinstansVedtak
