@@ -56,7 +56,11 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
         transactionContext.withTransaction { transaction ->
             """
                 update klagevedtak
-                    set type = :type, oppgaveId = :oppgaveid
+                    set type = :type,
+                    oppgaveId = :oppgaveid,
+                    utlest_utfall = :utlest_utfall,
+                    utlest_journalpostid = :utlest_journalpostid,
+                    utlest_klageid = :utlest_klageid
                     where id = :id
             """.trimIndent()
                 .insert(
@@ -64,6 +68,9 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
                         "id" to klagevedtak.id,
                         "type" to KlagevedtakType.PROSESSERT.toString(),
                         "oppgaveid" to klagevedtak.oppgaveId,
+                        "utlest_utfall" to klagevedtak.utfall.toString(),
+                        "utlest_journalpostid" to klagevedtak.vedtaksbrevReferanse,
+                        "utlest_klageid" to klagevedtak.klageId
                     ),
                     session = transaction,
                 )

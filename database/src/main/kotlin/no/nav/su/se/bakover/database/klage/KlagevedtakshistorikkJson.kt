@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.klage.VedtattUtfall
 internal fun Klagevedtakshistorikk.toDatabaseJson(): String {
     return this.map {
         VedtattUtfallJson(
-            it.id,
             it.opprettet,
             when (it.klagevedtakUtfall) {
                 KlagevedtakUtfall.TRUKKET -> VedtattUtfallJson.UtfallJson.TRUKKET
@@ -31,7 +30,6 @@ internal fun String.toKlagevedtakshistorikk(): Klagevedtakshistorikk {
     return Klagevedtakshistorikk.create(
         vedtattUtfall = vedtattUtfall.map {
             VedtattUtfall(
-                id = it.id,
                 klagevedtakUtfall = when (it.utfallJson) {
                     VedtattUtfallJson.UtfallJson.TRUKKET -> KlagevedtakUtfall.TRUKKET
                     VedtattUtfallJson.UtfallJson.RETUR -> KlagevedtakUtfall.RETUR

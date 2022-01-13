@@ -85,7 +85,6 @@ class KlagevedtakServiceImpl(
                     klage
                         .leggTilNyttKlagevedtak(
                             VedtattUtfall(
-                                id = klagevedtak.id,
                                 klagevedtakUtfall = klagevedtak.utfall,
                                 opprettet = Tidspunkt.now(clock),
                             ),
@@ -113,7 +112,6 @@ class KlagevedtakServiceImpl(
             oppgaveService.opprettOppgaveMedSystembruker(oppgaveConfig).map { oppgaveId ->
                 klage.leggTilNyttKlagevedtak(
                     VedtattUtfall(
-                        id = klagevedtak.id,
                         klagevedtakUtfall = klagevedtak.utfall,
                         opprettet = Tidspunkt.now(clock),
                     ),

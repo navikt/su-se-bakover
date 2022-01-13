@@ -156,7 +156,6 @@ internal class KlagevedtakServiceImplTest {
                     klagevedtakshistorikk = Klagevedtakshistorikk.create(
                         listOf(
                             VedtattUtfall(
-                                id = mappedKlagevedtak.id,
                                 klagevedtakUtfall = mappedKlagevedtak.utfall,
                                 opprettet = fixedTidspunkt,
                             )

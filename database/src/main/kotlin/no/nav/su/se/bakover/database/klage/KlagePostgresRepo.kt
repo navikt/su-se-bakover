@@ -36,8 +36,11 @@ import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
+import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.klage.VedtattUtfall
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
@@ -61,8 +64,8 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
 
     private fun lagreOpprettetKlage(klage: OpprettetKlage, session: Session) {
         """
-            insert into klage(id,  sakid,  opprettet,  journalpostid,  oppgaveid,  saksbehandler,  datoKlageMottatt,  type, klagevedtakshistorikk)
-                      values(:id, :sakid, :opprettet, :journalpostid, :oppgaveid, :saksbehandler, :datoKlageMottatt, :type, to_jsonb(:klagevedtakshistorikk::jsonb))
+            insert into klage(id,  sakid,  opprettet,  journalpostid,  oppgaveid,  saksbehandler,  datoKlageMottatt,  type)
+                      values(:id, :sakid, :opprettet, :journalpostid, :oppgaveid, :saksbehandler, :datoKlageMottatt, :type)
         """.trimIndent()
             .insert(
                 params = mapOf(
@@ -74,7 +77,6 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     "saksbehandler" to klage.saksbehandler,
                     "datoKlageMottatt" to klage.datoKlageMottatt,
                     "type" to klage.databasetype(),
-                    "klagevedtakshistorikk" to klage.klagevedtakshistorikk.toDatabaseJson()
                 ),
                 session = session,
             )
@@ -91,8 +93,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 innenforFristen=:innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket=:klagesDetPaaKonkreteElementerIVedtaket,
                 erUnderskrevet=:erUnderskrevet,
-                begrunnelse=:begrunnelse,
-                klagevedtakshistorikk=to_jsonb(:klagevedtakshistorikk::jsonb)
+                begrunnelse=:begrunnelse
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -107,7 +108,6 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
                     "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet?.tilDatabaseType(),
                     "begrunnelse" to klage.vilkårsvurderinger.begrunnelse,
-                    "klagevedtakshistorikk" to klage.klagevedtakshistorikk.toDatabaseJson()
                 ),
                 session,
             )
@@ -126,8 +126,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 erUnderskrevet=:erUnderskrevet,
                 begrunnelse=:begrunnelse,
                 fritekstTilBrev=:fritekstTilBrev,
-                vedtaksvurdering=to_jsonb(:vedtaksvurdering::jsonb),
-                klagevedtakshistorikk=to_jsonb(:klagevedtakshistorikk::jsonb)
+                vedtaksvurdering=to_jsonb(:vedtaksvurdering::jsonb)
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -144,7 +143,6 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     "fritekstTilBrev" to klage.vurderinger.fritekstTilBrev,
                     "vedtaksvurdering" to klage.vurderinger.vedtaksvurdering?.toJson(),
                     "attestering" to klage.attesteringer.toDatabaseJson(),
-                    "klagevedtakshistorikk" to klage.klagevedtakshistorikk.toDatabaseJson()
                 ),
                 session,
             )
@@ -180,8 +178,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
             set
                 oppgaveid=:oppgaveid,
                 type=:type,
-                attestering=to_jsonb(:attestering::jsonb),
-                klagevedtakshistorikk=to_jsonb(:klagevedtakshistorikk::jsonb)
+                attestering=to_jsonb(:attestering::jsonb)
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -190,7 +187,6 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     "oppgaveid" to klage.oppgaveId,
                     "type" to klage.databasetype(),
                     "attestering" to klage.attesteringer.toDatabaseJson(),
-                    "klagevedtakshistorikk" to klage.klagevedtakshistorikk.toDatabaseJson()
                 ),
                 session,
             )
@@ -216,6 +212,24 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 ),
                 session,
             ) { rowToKlage(it) }
+        }
+    }
+
+    private fun hentKlagevedtak(klageId: UUID): List<VedtattUtfall> {
+        return sessionFactory.withSession { session ->
+            """
+            select opprettet, utlest_utfall from klagevedtak where utlest_klageid = :klageid
+            """.trimIndent().hentListe(
+                mapOf(
+                    "klageid" to klageId,
+                ),
+                session,
+            ) {
+                VedtattUtfall(
+                    opprettet = it.tidspunkt("opprettet"),
+                    klagevedtakUtfall = KlagevedtakUtfall.valueOf(it.string("utlest_utfall")),
+                )
+            }
         }
     }
 
@@ -252,7 +266,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         val saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(row.string("saksbehandler"))
 
         val attesteringer = row.string("attestering").toAttesteringshistorikk()
-        val klagevedtakshistorikk = row.string("klagevedtakshistorikk").toKlagevedtakshistorikk()
+        val klagevedtakshistorikk = Klagevedtakshistorikk.create(hentKlagevedtak(id))
 
         val vilkårsvurderingerTilKlage = VilkårsvurderingerTilKlage.create(
             vedtakId = row.uuidOrNull("vedtakId"),
@@ -286,7 +300,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
+                klagevedtakshistorikk = klagevedtakshistorikk,
             )
             Tilstand.VILKÅRSVURDERT_PÅBEGYNT -> {
                 VilkårsvurdertKlage.Påbegynt.create(
@@ -302,7 +316,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk
+                    klagevedtakshistorikk = klagevedtakshistorikk,
                 )
             }
             Tilstand.VILKÅRSVURDERT_UTFYLT -> VilkårsvurdertKlage.Utfylt.create(
@@ -318,7 +332,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
+                klagevedtakshistorikk = klagevedtakshistorikk,
             )
             Tilstand.VILKÅRSVURDERT_BEKREFTET -> VilkårsvurdertKlage.Bekreftet.create(
                 id = id,
@@ -333,7 +347,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
+                klagevedtakshistorikk = klagevedtakshistorikk,
             )
             Tilstand.VURDERT_PÅBEGYNT -> VurdertKlage.Påbegynt.create(
                 id = id,
@@ -348,7 +362,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vurderinger = if (vurderinger == null) VurderingerTilKlage.empty() else vurderinger as VurderingerTilKlage.Påbegynt,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
+                klagevedtakshistorikk = klagevedtakshistorikk,
             )
             Tilstand.VURDERT_UTFYLT -> VurdertKlage.Utfylt.create(
                 id = id,
@@ -363,7 +377,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
+                klagevedtakshistorikk = klagevedtakshistorikk,
             )
             Tilstand.VURDERT_BEKREFTET -> VurdertKlage.Bekreftet.create(
                 id = id,
@@ -378,7 +392,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
+                klagevedtakshistorikk = klagevedtakshistorikk,
             )
             Tilstand.TIL_ATTESTERING -> KlageTilAttestering.create(
                 id = id,
@@ -393,7 +407,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
+                klagevedtakshistorikk = klagevedtakshistorikk,
             )
             Tilstand.OVERSENDT -> OversendtKlage.create(
                 id = id,
@@ -408,7 +422,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
+                klagevedtakshistorikk = klagevedtakshistorikk,
             )
         }
     }
