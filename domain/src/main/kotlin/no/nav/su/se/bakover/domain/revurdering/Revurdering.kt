@@ -323,27 +323,17 @@ sealed class Revurdering :
             }
             else -> {
                 when (
-                    VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-                        eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
-                        nyBeregning = revurdertBeregning,
+                    VurderOmBeregningGirOpphørVedRevurdering(
+                        beregning = revurdertBeregning,
+                        clock = Clock.systemUTC(),
                     ).resultat
                 ) {
-                    true -> {
-                        when (
-                            VurderOmBeregningGirOpphørVedRevurdering(
-                                beregning = revurdertBeregning,
-                                clock = Clock.systemUTC(),
-                            ).resultat
-                        ) {
-                            is OpphørVedRevurdering.Ja -> {
-                                opphør(revurdertBeregning)
-                            }
-                            is OpphørVedRevurdering.Nei -> {
-                                innvilget(revurdertBeregning)
-                            }
-                        }
+                    is OpphørVedRevurdering.Ja -> {
+                        opphør(revurdertBeregning)
                     }
-                    false -> ingenEndring(revurdertBeregning)
+                    is OpphørVedRevurdering.Nei -> {
+                        innvilget(revurdertBeregning)
+                    }
                 }
             }
         }.right()

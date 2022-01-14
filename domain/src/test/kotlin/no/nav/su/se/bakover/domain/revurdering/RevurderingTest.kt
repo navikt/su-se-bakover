@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.util.UUID
@@ -79,6 +80,7 @@ internal class RevurderingTest {
     }
 
     @Test
+    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `beregning gir ikke opphør hvis vilkår er oppfylt`() {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         lagRevurdering(
@@ -115,6 +117,7 @@ internal class RevurderingTest {
     }
 
     @Test
+    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `beregningen gir ikke opphør dersom beløpet er under minstegrense, men endringen er mindre enn 10 prosent`() {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         lagRevurdering(
@@ -204,6 +207,7 @@ internal class RevurderingTest {
     }
 
     @Test
+    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `beregning med beløpsendring mindre enn 10 prosent fører ikke til endring`() {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         lagRevurdering(
