@@ -7,7 +7,7 @@ import java.util.UUID
  * Representerer foreløpig kun et uprosessert fattet klagevedtak (Kabal).
  * Vi har filtrert ut hendelser som ikke angår Supplerende Stønad Uføre.
  */
-data class UprosessertFattetKlagevedtak(
+data class UprosessertFattetKlageinstansvedtak(
     val id: UUID,
     val opprettet: Tidspunkt,
     val metadata: Metadata,

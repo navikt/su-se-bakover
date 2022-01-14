@@ -60,7 +60,7 @@ import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
-import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
@@ -1118,10 +1118,10 @@ internal class TestDataHelper(
         opprettet: Tidspunkt = fixedTidspunkt,
     ): Pair<UUID, UUID> {
         klagevedtakPostgresRepo.lagre(
-            UprosessertFattetKlagevedtak(
+            UprosessertFattetKlageinstansvedtak(
                 id = id,
                 opprettet = opprettet,
-                metadata = UprosessertFattetKlagevedtak.Metadata(
+                metadata = UprosessertFattetKlageinstansvedtak.Metadata(
                     hendelseId = UUID.randomUUID().toString(),
                     offset = 0,
                     partisjon = 0,

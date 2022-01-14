@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
 import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
-import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
-import no.nav.su.se.bakover.domain.klage.UprosessertKlagevedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -33,11 +33,11 @@ class KlagevedtakServiceImpl(
 ) : KlagevedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun lagre(klageVedtak: UprosessertFattetKlagevedtak) {
+    override fun lagre(klageVedtak: UprosessertFattetKlageinstansvedtak) {
         klagevedtakRepo.lagre(klageVedtak)
     }
 
-    override fun håndterUtfallFraKlageinstans(deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KanIkkeTolkeKlagevedtak, UprosessertKlagevedtak>) {
+    override fun håndterUtfallFraKlageinstans(deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KanIkkeTolkeKlagevedtak, UprosessertKlageinstansvedtak>) {
         val ubehandletKlagevedtak = klagevedtakRepo.hentUbehandlaKlagevedtak()
 
         ubehandletKlagevedtak.forEach { uprosessertFattetKlagevedtak ->
@@ -57,7 +57,7 @@ class KlagevedtakServiceImpl(
         }
     }
 
-    private fun prosesserKlagevedtak(klagevedtak: UprosessertKlagevedtak) {
+    private fun prosesserKlagevedtak(klagevedtak: UprosessertKlageinstansvedtak) {
         val klage = klageRepo.hentKlage(klagevedtak.klageId)
 
         if (klage == null) {

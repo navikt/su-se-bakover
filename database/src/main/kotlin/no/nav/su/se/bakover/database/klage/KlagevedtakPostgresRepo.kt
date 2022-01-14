@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
-import no.nav.su.se.bakover.domain.klage.ProsessertKlagevedtak
-import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
+import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstansvedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
 import org.postgresql.util.PSQLException
 import java.util.UUID
 
@@ -25,7 +25,7 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
         override fun toString(): String = verdi
     }
 
-    override fun lagre(klagevedtak: UprosessertFattetKlagevedtak) {
+    override fun lagre(klagevedtak: UprosessertFattetKlageinstansvedtak) {
         Either.catch {
             return sessionFactory.withSession { session ->
                 """
@@ -52,7 +52,7 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
         }
     }
 
-    override fun lagre(klagevedtak: ProsessertKlagevedtak, transactionContext: TransactionContext) {
+    override fun lagre(klagevedtak: ProsessertKlageinstansvedtak, transactionContext: TransactionContext) {
         transactionContext.withTransaction { transaction ->
             """
                 update klagevedtak
@@ -60,8 +60,7 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
                     oppgaveId = :oppgaveid,
                     utlest_utfall = :utlest_utfall,
                     utlest_journalpostid = :utlest_journalpostid,
-                    utlest_klageid = :utlest_klageid,
-                    utlest_eventid = :utlest_eventid
+                    utlest_klageid = :utlest_klageid
                     where id = :id
             """.trimIndent()
                 .insert(
@@ -69,17 +68,16 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
                         "id" to klagevedtak.id,
                         "type" to KlagevedtakType.PROSESSERT.toString(),
                         "oppgaveid" to klagevedtak.oppgaveId,
-                        "utlest_utfall" to klagevedtak.utfall.toString(),
+                        "utlest_utfall" to klagevedtak.utfall.toDatabaseType(),
                         "utlest_journalpostid" to klagevedtak.vedtaksbrevReferanse,
                         "utlest_klageid" to klagevedtak.klageId,
-                        "utlest_eventid" to klagevedtak.eventId,
                     ),
                     session = transaction,
                 )
         }
     }
 
-    override fun hentUbehandlaKlagevedtak(): List<UprosessertFattetKlagevedtak> {
+    override fun hentUbehandlaKlagevedtak(): List<UprosessertFattetKlageinstansvedtak> {
         return sessionFactory.withSession { session ->
             """
                 select * from klagevedtak where type = '${KlagevedtakType.UPROSESSERT}'
@@ -98,8 +96,8 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
         }
     }
 
-    private fun rowToKlage(row: Row): UprosessertFattetKlagevedtak {
-        return UprosessertFattetKlagevedtak(
+    private fun rowToKlage(row: Row): UprosessertFattetKlageinstansvedtak {
+        return UprosessertFattetKlageinstansvedtak(
             id = row.uuid("id"),
             opprettet = row.tidspunkt("opprettet"),
             metadata = KlagevedtakMetadataJson.toKlagevedtakMetadata(row.string("metadata")),

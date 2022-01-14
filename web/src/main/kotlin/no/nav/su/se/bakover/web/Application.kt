@@ -79,8 +79,8 @@ import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
 import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
-import no.nav.su.se.bakover.web.services.klage.FattetKlagevedtakConsumer
-import no.nav.su.se.bakover.web.services.klage.KlagevedtakJob
+import no.nav.su.se.bakover.web.services.klage.FattetKlageinstansvedtakConsumer
+import no.nav.su.se.bakover.web.services.klage.KlageinstansvedtakJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
@@ -294,7 +294,7 @@ fun Application.susebakover(
             personhendelseService = personhendelseService,
             maxBatchSize = applicationConfig.kafkaConfig.consumerCfg.kafkaConfig[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] as? Int,
         )
-        FattetKlagevedtakConsumer(
+        FattetKlageinstansvedtakConsumer(
             consumer = KafkaConsumer(applicationConfig.kabalKafkaConfig.kafkaConfig),
             klagevedtakService = services.klagevedtakService,
             maxBatchSize = applicationConfig.kabalKafkaConfig.kafkaConfig[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] as? Int,
@@ -314,7 +314,7 @@ fun Application.susebakover(
             clock = clock,
         ).schedule()
 
-        KlagevedtakJob(klagevedtakService = services.klagevedtakService, leaderPodLookup = clients.leaderPodLookup).schedule()
+        KlageinstansvedtakJob(klagevedtakService = services.klagevedtakService, leaderPodLookup = clients.leaderPodLookup).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         LokalKvitteringJob(LokalKvitteringService(databaseRepos.utbetaling, utbetalingKvitteringConsumer)).schedule()
 
@@ -342,7 +342,7 @@ fun Application.susebakover(
         intervall = applicationConfig.jobConfig.personhendelse.intervall,
     ).schedule()
 
-    KlagevedtakJob(klagevedtakService = services.klagevedtakService, leaderPodLookup = clients.leaderPodLookup).schedule()
+    KlageinstansvedtakJob(klagevedtakService = services.klagevedtakService, leaderPodLookup = clients.leaderPodLookup).schedule()
 }
 
 fun Route.withAccessProtectedServices(

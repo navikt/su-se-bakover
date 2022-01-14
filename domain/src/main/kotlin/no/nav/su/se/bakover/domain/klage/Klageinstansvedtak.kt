@@ -5,17 +5,17 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
 
 data class Klagevedtakshistorikk private constructor(
-    private val underlying: List<ProsessertKlagevedtak>
-) : List<ProsessertKlagevedtak> by underlying {
+    private val underlying: List<ProsessertKlageinstansvedtak>
+) : List<ProsessertKlageinstansvedtak> by underlying {
     companion object {
         fun empty() = Klagevedtakshistorikk(emptyList())
 
-        fun create(vedtattUtfall: List<ProsessertKlagevedtak>): Klagevedtakshistorikk {
+        fun create(vedtattUtfall: List<ProsessertKlageinstansvedtak>): Klagevedtakshistorikk {
             return Klagevedtakshistorikk(vedtattUtfall.sortedBy { it.opprettet.instant })
         }
     }
 
-    fun leggTilNyttVedtak(vedtattUtfall: ProsessertKlagevedtak): Klagevedtakshistorikk {
+    fun leggTilNyttVedtak(vedtattUtfall: ProsessertKlageinstansvedtak): Klagevedtakshistorikk {
         assert(this.all { it.opprettet.instant < vedtattUtfall.opprettet.instant }) {
             "Kan ikke legge til ett vedtak som er eldre enn det forrige vedtaket"
         }
@@ -27,18 +27,16 @@ data class Klagevedtakshistorikk private constructor(
 /**
  * Representerer ett fattet klagevedtak av Kabal.
  */
-data class UprosessertKlagevedtak(
+data class UprosessertKlageinstansvedtak(
     val id: UUID,
     val opprettet: Tidspunkt,
-    val eventId: String,
     val klageId: UUID,
     val utfall: KlagevedtakUtfall,
     val vedtaksbrevReferanse: String,
 ) {
-    fun tilProsessert(oppgaveId: OppgaveId?) = ProsessertKlagevedtak(
+    fun tilProsessert(oppgaveId: OppgaveId?) = ProsessertKlageinstansvedtak(
         id = id,
         opprettet = opprettet,
-        eventId = eventId,
         klageId = klageId,
         utfall = utfall,
         vedtaksbrevReferanse = vedtaksbrevReferanse,
@@ -46,10 +44,9 @@ data class UprosessertKlagevedtak(
     )
 }
 
-data class ProsessertKlagevedtak(
+data class ProsessertKlageinstansvedtak(
     val id: UUID,
     val opprettet: Tidspunkt,
-    val eventId: String,
     val klageId: UUID,
     val utfall: KlagevedtakUtfall,
     val vedtaksbrevReferanse: String,

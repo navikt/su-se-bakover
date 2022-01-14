@@ -3,12 +3,12 @@ package no.nav.su.se.bakover.web.services.klage
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
-import no.nav.su.se.bakover.domain.klage.UprosessertKlagevedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class KlagevedtakJobTest {
+internal class KlageinstansvedtakJobTest {
 
     @Test
     fun `deserializerer klagevedtak-melding`() {
@@ -18,7 +18,7 @@ internal class KlagevedtakJobTest {
         val kildeReferanse = UUID.randomUUID()
         val kabalReferanse = UUID.randomUUID()
 
-        KlagevedtakJob.mapper(
+        KlageinstansvedtakJob.mapper(
             klagevedtakId,
             fixedTidspunkt,
             jsonMelding(
@@ -27,10 +27,9 @@ internal class KlagevedtakJobTest {
                 kabalReferanse = kabalReferanse,
                 vedtaksbrevReferanse = "210219347"
             )
-        ) shouldBe UprosessertKlagevedtak(
+        ) shouldBe UprosessertKlageinstansvedtak(
             id = klagevedtakId,
             opprettet = fixedTidspunkt,
-            eventId = eventId.toString(),
             klageId = kildeReferanse,
             utfall = KlagevedtakUtfall.STADFESTELSE,
             vedtaksbrevReferanse = "210219347",

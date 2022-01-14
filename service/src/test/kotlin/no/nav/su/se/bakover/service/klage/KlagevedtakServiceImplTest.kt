@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
 import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
-import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
-import no.nav.su.se.bakover.domain.klage.UprosessertKlagevedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -59,10 +59,9 @@ internal class KlagevedtakServiceImplTest {
         val oppgaveServiceMock: OppgaveService = mock {
             on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("212121").right()
         }
-        val mappedKlagevedtak = UprosessertKlagevedtak(
+        val mappedKlagevedtak = UprosessertKlageinstansvedtak(
             id = id,
             opprettet = fixedTidspunkt,
-            eventId = UUID.randomUUID().toString(),
             klageId = klage.id,
             utfall = KlagevedtakUtfall.STADFESTELSE,
             vedtaksbrevReferanse = "123456",
@@ -110,10 +109,9 @@ internal class KlagevedtakServiceImplTest {
         val oppgaveServiceMock: OppgaveService = mock {
             on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("212121").right()
         }
-        val mappedKlagevedtak = UprosessertKlagevedtak(
+        val mappedKlagevedtak = UprosessertKlageinstansvedtak(
             id = id,
             opprettet = fixedTidspunkt,
-            eventId = UUID.randomUUID().toString(),
             klageId = klage.id,
             utfall = KlagevedtakUtfall.RETUR,
             vedtaksbrevReferanse = "123456",
@@ -167,10 +165,10 @@ internal class KlagevedtakServiceImplTest {
         }
     }
 
-    private fun uprosessertFattetKlagevedtak(id: UUID) = UprosessertFattetKlagevedtak(
+    private fun uprosessertFattetKlagevedtak(id: UUID) = UprosessertFattetKlageinstansvedtak(
         id = id,
         opprettet = fixedTidspunkt,
-        metadata = UprosessertFattetKlagevedtak.Metadata(
+        metadata = UprosessertFattetKlageinstansvedtak.Metadata(
             hendelseId = "55",
             offset = 0,
             partisjon = 0,

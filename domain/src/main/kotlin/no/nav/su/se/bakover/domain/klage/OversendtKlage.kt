@@ -64,19 +64,19 @@ data class OversendtKlage private constructor(
     }
 
     override fun leggTilNyttKlagevedtak(
-        uprosessertKlagevedtak: UprosessertKlagevedtak,
+        uprosessertKlageinstansVedtak: UprosessertKlageinstansvedtak,
         lagOppgaveCallback: () -> Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId>,
     ): Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, Klage> {
-        return when (uprosessertKlagevedtak.utfall) {
+        return when (uprosessertKlageinstansVedtak.utfall) {
             KlagevedtakUtfall.AVVIST,
             KlagevedtakUtfall.TRUKKET,
             KlagevedtakUtfall.STADFESTELSE,
             -> lagOppgaveCallback().map { oppgaveId ->
-                leggTilKlagevedtakshistorikk(uprosessertKlagevedtak.tilProsessert(oppgaveId))
+                leggTilKlagevedtakshistorikk(uprosessertKlageinstansVedtak.tilProsessert(oppgaveId))
             }
             KlagevedtakUtfall.RETUR -> {
                 lagOppgaveCallback().map { oppgaveId ->
-                    leggTilKlagevedtakshistorikk(uprosessertKlagevedtak.tilProsessert(oppgaveId)).toBekreftet(oppgaveId)
+                    leggTilKlagevedtakshistorikk(uprosessertKlageinstansVedtak.tilProsessert(oppgaveId)).toBekreftet(oppgaveId)
                 }
             }
             KlagevedtakUtfall.OPPHEVET,
@@ -104,8 +104,8 @@ data class OversendtKlage private constructor(
             klagevedtakshistorikk = klagevedtakshistorikk,
         )
 
-    private fun leggTilKlagevedtakshistorikk(prosessertKlagevedtak: ProsessertKlagevedtak): OversendtKlage =
-        this.copy(klagevedtakshistorikk = this.klagevedtakshistorikk.leggTilNyttVedtak(prosessertKlagevedtak))
+    private fun leggTilKlagevedtakshistorikk(prosessertKlageinstansVedtak: ProsessertKlageinstansvedtak): OversendtKlage =
+        this.copy(klagevedtakshistorikk = this.klagevedtakshistorikk.leggTilNyttVedtak(prosessertKlageinstansVedtak))
 }
 
 sealed class KunneIkkeOversendeKlage {

@@ -36,11 +36,10 @@ import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
-import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
-import no.nav.su.se.bakover.domain.klage.ProsessertKlagevedtak
+import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstansvedtak
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
@@ -215,7 +214,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         }
     }
 
-    private fun hentProsesserteKlagevedtak(klageId: UUID): List<ProsessertKlagevedtak> {
+    private fun hentProsesserteKlagevedtak(klageId: UUID): List<ProsessertKlageinstansvedtak> {
         return sessionFactory.withSession { session ->
             """
             select * from klagevedtak where utlest_klageid = :klageid AND type = :type
@@ -226,12 +225,11 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 ),
                 session,
             ) {
-                ProsessertKlagevedtak(
+                ProsessertKlageinstansvedtak(
                     id = it.uuid("id"),
                     opprettet = it.tidspunkt("opprettet"),
-                    eventId = it.string("utlest_eventid"),
                     klageId = it.uuid("utlest_klageid"),
-                    utfall = KlagevedtakUtfall.valueOf(it.string("utlest_utfall")),
+                    utfall = UtfallJson.valueOf(it.string("utlest_utfall")).toDomain(),
                     vedtaksbrevReferanse = it.string("utlest_journalpostid"),
                     oppgaveId = OppgaveId(it.string("oppgaveid")),
                 )

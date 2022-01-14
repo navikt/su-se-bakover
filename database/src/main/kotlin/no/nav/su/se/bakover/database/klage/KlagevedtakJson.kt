@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.database.klage
 
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
 
 internal data class KlagevedtakMetadataJson(
     val hendelseId: String,
@@ -13,9 +13,9 @@ internal data class KlagevedtakMetadataJson(
 ) {
     companion object {
         @Suppress("unused")
-        fun toKlagevedtakMetadata(value: String): UprosessertFattetKlagevedtak.Metadata {
+        fun toKlagevedtakMetadata(value: String): UprosessertFattetKlageinstansvedtak.Metadata {
             return deserialize<KlagevedtakMetadataJson>(value).let {
-                UprosessertFattetKlagevedtak.Metadata(
+                UprosessertFattetKlageinstansvedtak.Metadata(
                     hendelseId = it.hendelseId,
                     offset = it.offset,
                     partisjon = it.partisjon,
@@ -27,7 +27,7 @@ internal data class KlagevedtakMetadataJson(
     }
 }
 
-internal fun UprosessertFattetKlagevedtak.Metadata.toDatabaseJson(): String {
+internal fun UprosessertFattetKlageinstansvedtak.Metadata.toDatabaseJson(): String {
     return KlagevedtakMetadataJson(
         hendelseId = hendelseId,
         offset = offset,

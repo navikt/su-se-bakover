@@ -100,7 +100,7 @@ sealed class Klage {
     }
 
     open fun leggTilNyttKlagevedtak(
-        uprosessertKlagevedtak: UprosessertKlagevedtak,
+        uprosessertKlageinstansVedtak: UprosessertKlageinstansvedtak,
         lagOppgaveCallback: () -> Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId>,
     ): Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, Klage> {
         return KunneIkkeLeggeTilNyttKlageinstansVedtak.MåVæreEnOversendtKlage(menVar = this::class).left()

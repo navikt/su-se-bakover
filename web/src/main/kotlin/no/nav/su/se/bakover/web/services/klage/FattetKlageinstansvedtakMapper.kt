@@ -10,11 +10,11 @@ import org.json.JSONObject
 import java.time.Clock
 import java.util.UUID
 
-internal object KlagevedtakMapper {
+internal object KlageinstansvedtakMapper {
     fun map(
         message: ConsumerRecord<String, String>,
         clock: Clock,
-    ): Either<KunneIkkeMappeKlagevedtak, no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak> {
+    ): Either<KunneIkkeMappeKlagevedtak, no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak> {
         val key = message.key()
         val value = message.value()
 
@@ -26,10 +26,10 @@ internal object KlagevedtakMapper {
         val eventId = Either.catch { JSONObject(value).getString("eventId") }
             .getOrHandle { return KunneIkkeMappeKlagevedtak.FantIkkeEventId.left() }
 
-        return no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak(
+        return no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
-            metadata = no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak.Metadata(
+            metadata = no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak.Metadata(
                 hendelseId = eventId,
                 offset = message.offset(),
                 partisjon = message.partition(),
