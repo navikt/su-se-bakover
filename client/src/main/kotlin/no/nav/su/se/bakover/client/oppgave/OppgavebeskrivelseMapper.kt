@@ -5,9 +5,7 @@ import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 
 object OppgavebeskrivelseMapper {
-    fun map(utfall: KlagevedtakUtfall) {
-        "Utfall: ${utfall.toReadableName()}\n\n${utfall.LukkBeskrivelse()}"
-    }
+    fun map(utfall: KlagevedtakUtfall): String = "Utfall: ${utfall.toReadableName()}\n\n${utfall.LukkBeskrivelse()}"
 
     fun map(hendelse: Personhendelse.Hendelse) = when (hendelse) {
         is Personhendelse.Hendelse.Dødsfall -> {
