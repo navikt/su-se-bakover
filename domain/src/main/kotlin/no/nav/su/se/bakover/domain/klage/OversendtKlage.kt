@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.klage
 
+import arrow.core.Either
+import arrow.core.left
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -21,6 +23,7 @@ data class OversendtKlage private constructor(
     override val oppgaveId: OppgaveId,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val datoKlageMottatt: LocalDate,
+    override val klagevedtakshistorikk: Klagevedtakshistorikk,
     val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
     val vurderinger: VurderingerTilKlage.Utfylt,
     val attesteringer: Attesteringshistorikk,
@@ -40,6 +43,7 @@ data class OversendtKlage private constructor(
             vurderinger: VurderingerTilKlage.Utfylt,
             attesteringer: Attesteringshistorikk,
             datoKlageMottatt: LocalDate,
+            klagevedtakshistorikk: Klagevedtakshistorikk,
         ): OversendtKlage {
             return OversendtKlage(
                 id = id,
@@ -53,15 +57,62 @@ data class OversendtKlage private constructor(
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt
+                datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk,
             )
         }
     }
+
+    override fun leggTilNyttKlagevedtak(
+        uprosessertKlageinstansVedtak: UprosessertKlageinstansvedtak,
+        lagOppgaveCallback: () -> Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId>,
+    ): Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, Klage> {
+        return when (uprosessertKlageinstansVedtak.utfall) {
+            KlagevedtakUtfall.AVVIST,
+            KlagevedtakUtfall.TRUKKET,
+            KlagevedtakUtfall.STADFESTELSE,
+            -> lagOppgaveCallback().map { oppgaveId ->
+                leggTilKlagevedtakshistorikk(uprosessertKlageinstansVedtak.tilProsessert(oppgaveId))
+            }
+            KlagevedtakUtfall.RETUR -> {
+                lagOppgaveCallback().map { oppgaveId ->
+                    leggTilKlagevedtakshistorikk(uprosessertKlageinstansVedtak.tilProsessert(oppgaveId)).toBekreftet(oppgaveId)
+                }
+            }
+            KlagevedtakUtfall.OPPHEVET,
+            KlagevedtakUtfall.MEDHOLD,
+            KlagevedtakUtfall.DELVIS_MEDHOLD,
+            KlagevedtakUtfall.UGUNST,
+            -> KunneIkkeLeggeTilNyttKlageinstansVedtak.IkkeStøttetUtfall.left()
+        }
+    }
+
+    private fun toBekreftet(oppgaveId: OppgaveId) =
+        VurdertKlage.Bekreftet.create(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            journalpostId = journalpostId,
+            oppgaveId = oppgaveId,
+            saksbehandler = saksbehandler,
+            vilkårsvurderinger = vilkårsvurderinger,
+            vurderinger = vurderinger,
+            attesteringer = attesteringer,
+            datoKlageMottatt = datoKlageMottatt,
+            klagevedtakshistorikk = klagevedtakshistorikk,
+        )
+
+    private fun leggTilKlagevedtakshistorikk(prosessertKlageinstansVedtak: ProsessertKlageinstansvedtak): OversendtKlage =
+        this.copy(klagevedtakshistorikk = this.klagevedtakshistorikk.leggTilNyttVedtak(prosessertKlageinstansVedtak))
 }
 
 sealed class KunneIkkeOversendeKlage {
     object FantIkkeKlage : KunneIkkeOversendeKlage()
-    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeOversendeKlage()
+    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) :
+        KunneIkkeOversendeKlage()
+
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeOversendeKlage()
     data class KunneIkkeLageBrev(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeOversendeKlage()
     object FantIkkeJournalpostIdKnyttetTilVedtaket : KunneIkkeOversendeKlage()

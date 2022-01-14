@@ -199,7 +199,8 @@ internal class VurderKlageTest {
                   "begrunnelse":"begrunnelse",
                   "fritekstTilBrev":null,
                   "vedtaksvurdering":null,
-                  "attesteringer":[]
+                  "attesteringer":[],
+                  "klagevedtakshistorikk": []
                 }
                 """.trimIndent(),
                 response.content,

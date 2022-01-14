@@ -1,16 +1,22 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
+import arrow.core.flatMap
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KanIkkeTolkeKlagevedtak
+import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
 import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
-import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
-import no.nav.su.se.bakover.domain.klage.UprosessertKlagevedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import org.slf4j.LoggerFactory
@@ -23,18 +29,23 @@ class KlagevedtakServiceImpl(
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
     private val sessionFactory: SessionFactory,
+    private val clock: Clock,
 ) : KlagevedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun lagre(klageVedtak: UprosessertFattetKlagevedtak) {
+    override fun lagre(klageVedtak: UprosessertFattetKlageinstansvedtak) {
         klagevedtakRepo.lagre(klageVedtak)
     }
 
-    override fun håndterUtfallFraKlageinstans(deserializeAndMap: (id: UUID, json: String) -> Either<KanIkkeTolkeKlagevedtak, UprosessertKlagevedtak>) {
+    override fun håndterUtfallFraKlageinstans(deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KanIkkeTolkeKlagevedtak, UprosessertKlageinstansvedtak>) {
         val ubehandletKlagevedtak = klagevedtakRepo.hentUbehandlaKlagevedtak()
 
         ubehandletKlagevedtak.forEach { uprosessertFattetKlagevedtak ->
-            deserializeAndMap(uprosessertFattetKlagevedtak.id, uprosessertFattetKlagevedtak.metadata.value)
+            deserializeAndMap(
+                uprosessertFattetKlagevedtak.id,
+                uprosessertFattetKlagevedtak.opprettet,
+                uprosessertFattetKlagevedtak.metadata.value,
+            )
                 .tapLeft {
                     log.error(
                         "Deserializering av melding fra Klageinstans feilet for klagevedtak med hendelseId: ${uprosessertFattetKlagevedtak.metadata.hendelseId}",
@@ -46,7 +57,7 @@ class KlagevedtakServiceImpl(
         }
     }
 
-    private fun prosesserKlagevedtak(klagevedtak: UprosessertKlagevedtak) {
+    private fun prosesserKlagevedtak(klagevedtak: UprosessertKlageinstansvedtak) {
         val klage = klageRepo.hentKlage(klagevedtak.klageId)
 
         if (klage == null) {
@@ -54,85 +65,72 @@ class KlagevedtakServiceImpl(
             return klagevedtakRepo.markerSomFeil(klagevedtak.id)
         }
 
-        // TODO ai: Flytt over til Klage når vi har ett konsept om vedtak i Klage.
-        if (klage !is OversendtKlage) {
-            log.error("Kunne ikke prosessere melding fra Klageinstans. Feil skjedde ved uthenting av klagen, forventet ${OversendtKlage::class.java.name} men var ${klage::class.java.name}")
-            return klagevedtakRepo.markerSomFeil(klagevedtak.id)
-        }
-
-        when (klagevedtak.utfall) {
-            KlagevedtakUtfall.STADFESTELSE -> håndterStadfestelse(klagevedtak, klage)
-            KlagevedtakUtfall.RETUR -> håndterRetur(klagevedtak, klage)
-            KlagevedtakUtfall.TRUKKET,
-            KlagevedtakUtfall.OPPHEVET,
-            KlagevedtakUtfall.MEDHOLD,
-            KlagevedtakUtfall.DELVIS_MEDHOLD,
-            KlagevedtakUtfall.UGUNST,
-            KlagevedtakUtfall.AVVIST,
-            -> {
-                /*
-                * Desse lagres som FEIL i databasen uten videre håndtering. Tanken er att vi får håndtere
-                * de casene som intreffer og så må vi manuellt putte de til 'UPROSSESERT' vid senere tidspunkt.
-                * */
-                log.error("Utfall: ${klagevedtak.utfall} fra Klageinstans er ikke håndtert.")
-                klagevedtakRepo.markerSomFeil(klagevedtak.id)
+        klage.leggTilNyttKlagevedtak(
+            klagevedtak,
+        ) {
+            lagOppgaveConfig(
+                klage.saksnummer,
+                klage.fnr,
+                klagevedtak.utfall,
+                JournalpostId(klagevedtak.vedtaksbrevReferanse),
+            )
+        }.tapLeft {
+            when (it) {
+                Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.IkkeStøttetUtfall -> log.error("Utfall: ${klagevedtak.utfall} fra Klageinstans er ikke håndtert.")
+                Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.KunneIkkeHenteAktørId -> log.error("Feil skjedde i prosessering av vedtak fra Klageinstans. Kunne ikke hente aktørId for klagevedtak: ${klagevedtak.id}")
+                is Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.KunneIkkeLageOppgave -> log.error("Feil skjedde i prosessering av vedtak fra Klageinstans. Kall mot oppgave feilet for klagevedtak: ${klagevedtak.id}")
+                is Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.MåVæreEnOversendtKlage -> log.error("Feil skjedde i prosessering av vedtak fra Klageinstans. Må være i tilstand ${OversendtKlage::class.java.name} men var ${it.menVar.java.name} for klagevedtak: ${klagevedtak.id}")
             }
+            /** Disse lagres som FEIL i databasen uten videre håndtering. Tanken er at vi får håndtere
+             * de casene som intreffer og så må vi manuellt putte de til 'UPROSSESERT' vid senere tidspunkt.
+             */
+            klagevedtakRepo.markerSomFeil(klagevedtak.id)
         }
-    }
-
-    private fun håndterRetur(klagevedtak: UprosessertKlagevedtak, klage: OversendtKlage) {
-        lagOppgaveConfig(klagevedtak, klage).map { oppgaveConfig ->
-            oppgaveService.opprettOppgaveMedSystembruker(oppgaveConfig).map { oppgaveId ->
+            .tap {
                 sessionFactory.withTransactionContext { tx ->
-                    klageRepo.lagre(klage.copy(oppgaveId = oppgaveId), tx)
-                    klagevedtakRepo.lagre(klagevedtak.tilProsessert(oppgaveId), tx)
+                    klageRepo.lagre(it, tx)
+                    klagevedtakRepo.lagre(it.klagevedtakshistorikk.last(), tx)
                 }
             }
-        }
-    }
-
-    private fun håndterStadfestelse(klagevedtak: UprosessertKlagevedtak, klage: OversendtKlage) {
-        lagOppgaveConfig(klagevedtak, klage).map { oppgaveConfig ->
-            oppgaveService.opprettOppgaveMedSystembruker(oppgaveConfig).map { oppgaveId ->
-                klagevedtakRepo.lagre(klagevedtak.tilProsessert(oppgaveId))
-            }
-        }
     }
 
     private fun lagOppgaveConfig(
-        klagevedtak: UprosessertKlagevedtak,
-        klage: OversendtKlage,
-    ): Either<KunneIkkeHenteAktørId, OppgaveConfig.Klage.Vedtak> {
-        return personService.hentAktørIdMedSystembruker(klage.fnr).map { aktørId ->
-            when (klagevedtak.utfall) {
+        saksnummer: Saksnummer,
+        fnr: Fnr,
+        utfall: KlagevedtakUtfall,
+        journalpostId: JournalpostId,
+    ): Either<Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId> {
+        return personService.hentAktørIdMedSystembruker(fnr).map { aktørId ->
+            when (utfall) {
                 KlagevedtakUtfall.TRUKKET,
                 KlagevedtakUtfall.AVVIST,
-                KlagevedtakUtfall.STADFESTELSE -> OppgaveConfig.Klage.Vedtak.Informasjon(
-                    saksnummer = klage.saksnummer,
+                KlagevedtakUtfall.STADFESTELSE,
+                -> OppgaveConfig.Klage.Vedtak.Informasjon(
+                    saksnummer = saksnummer,
                     aktørId = aktørId,
-                    journalpostId = JournalpostId(klagevedtak.vedtaksbrevReferanse),
+                    journalpostId = journalpostId,
                     tilordnetRessurs = null,
-                    clock = Clock.systemUTC(),
-                    utfall = klagevedtak.utfall
+                    clock = clock,
+                    utfall = utfall,
                 )
                 KlagevedtakUtfall.RETUR,
                 KlagevedtakUtfall.OPPHEVET,
                 KlagevedtakUtfall.MEDHOLD,
                 KlagevedtakUtfall.DELVIS_MEDHOLD,
-                KlagevedtakUtfall.UGUNST -> OppgaveConfig.Klage.Vedtak.Handling(
-                    saksnummer = klage.saksnummer,
+                KlagevedtakUtfall.UGUNST,
+                -> OppgaveConfig.Klage.Vedtak.Handling(
+                    saksnummer = saksnummer,
                     aktørId = aktørId,
-                    journalpostId = JournalpostId(klagevedtak.vedtaksbrevReferanse),
+                    journalpostId = journalpostId,
                     tilordnetRessurs = null,
-                    clock = Clock.systemUTC(),
-                    utfall = klagevedtak.utfall
+                    clock = clock,
+                    utfall = utfall,
                 )
             }
-        }.mapLeft {
-            KunneIkkeHenteAktørId
-        }
+        }.mapLeft { Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.KunneIkkeHenteAktørId }
+            .flatMap {
+                oppgaveService.opprettOppgaveMedSystembruker(it)
+                    .mapLeft { Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.KunneIkkeLageOppgave(it) }
+            }
     }
 }
-
-object KunneIkkeHenteAktørId
-object KunneIkkeOppretteOppgave

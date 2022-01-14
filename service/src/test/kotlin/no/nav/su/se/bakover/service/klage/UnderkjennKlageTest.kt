@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -283,6 +284,7 @@ internal class UnderkjennKlageTest {
                     ),
                 ),
                 datoKlageMottatt = 1.desember(2021),
+                klagevedtakshistorikk = Klagevedtakshistorikk.empty()
             )
             it shouldBe expectedKlage
         }

@@ -44,6 +44,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             )
             is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
                 id = id,
@@ -58,6 +59,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             )
         }.right()
     }
@@ -75,6 +77,7 @@ sealed class VilkårsvurdertKlage : Klage() {
         override val vurderinger: VurderingerTilKlage?,
         override val attesteringer: Attesteringshistorikk,
         override val datoKlageMottatt: LocalDate,
+        override val klagevedtakshistorikk: Klagevedtakshistorikk,
     ) : VilkårsvurdertKlage() {
 
         companion object {
@@ -91,6 +94,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vurderinger: VurderingerTilKlage?,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
+                klagevedtakshistorikk: Klagevedtakshistorikk,
             ) = Påbegynt(
                 id = id,
                 opprettet = opprettet,
@@ -104,6 +108,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             )
         }
     }
@@ -121,6 +126,7 @@ sealed class VilkårsvurdertKlage : Klage() {
         override val vurderinger: VurderingerTilKlage?,
         override val attesteringer: Attesteringshistorikk,
         override val datoKlageMottatt: LocalDate,
+        override val klagevedtakshistorikk: Klagevedtakshistorikk,
     ) : VilkårsvurdertKlage() {
 
         override fun bekreftVilkårsvurderinger(
@@ -139,6 +145,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             ).right()
         }
 
@@ -156,6 +163,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vurderinger: VurderingerTilKlage?,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
+                klagevedtakshistorikk: Klagevedtakshistorikk
             ) = Utfylt(
                 id = id,
                 opprettet = opprettet,
@@ -169,6 +177,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             )
         }
     }
@@ -186,6 +195,7 @@ sealed class VilkårsvurdertKlage : Klage() {
         override val vurderinger: VurderingerTilKlage?,
         override val attesteringer: Attesteringshistorikk,
         override val datoKlageMottatt: LocalDate,
+        override val klagevedtakshistorikk: Klagevedtakshistorikk,
     ) : VilkårsvurdertKlage() {
 
         override fun bekreftVilkårsvurderinger(
@@ -204,6 +214,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             ).right()
         }
 
@@ -234,6 +245,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             )
         }
 
@@ -252,7 +264,9 @@ sealed class VilkårsvurdertKlage : Klage() {
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
-                attesteringer = attesteringer, datoKlageMottatt = datoKlageMottatt,
+                attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             )
         }
 
@@ -270,6 +284,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vurderinger: VurderingerTilKlage?,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
+                klagevedtakshistorikk: Klagevedtakshistorikk
             ) = Bekreftet(
                 id = id,
                 opprettet = opprettet,
@@ -283,6 +298,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             )
         }
     }

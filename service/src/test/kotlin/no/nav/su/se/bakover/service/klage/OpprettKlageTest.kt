@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -204,6 +205,7 @@ internal class OpprettKlageTest {
                     navIdent = "2",
                 ),
                 datoKlageMottatt = 1.desember(2021),
+                klagevedtakshistorikk = Klagevedtakshistorikk.empty()
             )
             it shouldBe expectedKlage
         }

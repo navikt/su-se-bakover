@@ -1,12 +1,20 @@
 package no.nav.su.se.bakover.database.klage
 
+import arrow.core.right
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
+import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class KlagePostgresRepoTest {
 
@@ -161,6 +169,63 @@ internal class KlagePostgresRepoTest {
             }
             klageRepo.hentKlage(klage.id) shouldBe klage
             klageRepo.hentKlage(urelatertKlage.id) shouldBe urelatertKlage
+        }
+    }
+
+    @Test
+    fun `henter klagevedtak knyttet til klagen`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val klageRepo = testDataHelper.klagePostgresRepo
+
+            val klage = testDataHelper.oversendtKlage()
+            val (klagevedtakId, _) = testDataHelper.uprosessertKlagevedtak(klageId = klage.id)
+
+            val uprosessertKlageinstansVedtak = UprosessertKlageinstansvedtak(
+                id = klagevedtakId,
+                opprettet = fixedTidspunkt,
+                klageId = klage.id,
+                utfall = KlagevedtakUtfall.RETUR,
+                vedtaksbrevReferanse = UUID.randomUUID().toString()
+            )
+
+            val nyOppgave = OppgaveId("123")
+            val nyKlage = klage.leggTilNyttKlagevedtak(uprosessertKlageinstansVedtak) { nyOppgave.right() }.getOrFail()
+
+            testDataHelper.sessionFactory.withTransactionContext { tx ->
+                klageRepo.lagre(nyKlage, tx)
+                testDataHelper.klagevedtakPostgresRepo.lagre(uprosessertKlageinstansVedtak.tilProsessert(nyOppgave), tx)
+            }
+            klageRepo.hentKlage(klage.id) shouldBe nyKlage
+            klageRepo.hentKlager(klage.sakId) shouldBe listOf(nyKlage)
+        }
+    }
+
+    @Test
+    fun `henter kun prosesserte klagevedtak knyttet til klagen`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val klageRepo = testDataHelper.klagePostgresRepo
+
+            val klage = testDataHelper.oversendtKlage()
+            val (klagevedtakId, _) = testDataHelper.uprosessertKlagevedtak(klageId = klage.id)
+
+            val uprosessertKlageinstansVedtak = UprosessertKlageinstansvedtak(
+                id = klagevedtakId,
+                opprettet = fixedTidspunkt,
+                klageId = klage.id,
+                utfall = KlagevedtakUtfall.RETUR,
+                vedtaksbrevReferanse = UUID.randomUUID().toString()
+            )
+
+            val nyOppgave = OppgaveId("123")
+            val nyKlage = klage.leggTilNyttKlagevedtak(uprosessertKlageinstansVedtak) { nyOppgave.right() }.getOrFail()
+
+            testDataHelper.sessionFactory.withTransactionContext { tx ->
+                klageRepo.lagre(nyKlage, tx)
+            }
+
+            klageRepo.hentKlage(klage.id)!!.klagevedtakshistorikk.shouldBeEmpty()
         }
     }
 }

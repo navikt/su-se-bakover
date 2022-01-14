@@ -28,6 +28,7 @@ data class KlageTilAttestering private constructor(
     val attesteringer: Attesteringshistorikk,
     val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
     val vurderinger: VurderingerTilKlage.Utfylt,
+    override val klagevedtakshistorikk: Klagevedtakshistorikk,
 ) : Klage() {
 
     override fun underkjenn(
@@ -51,6 +52,7 @@ data class KlageTilAttestering private constructor(
                 vurderinger = vurderinger,
                 attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             )
         }
     }
@@ -74,6 +76,7 @@ data class KlageTilAttestering private constructor(
             vurderinger = vurderinger,
             attesteringer = attesteringer.leggTilNyAttestering(iverksattAttestering),
             datoKlageMottatt = datoKlageMottatt,
+            klagevedtakshistorikk = klagevedtakshistorikk
         ).right()
     }
 
@@ -91,6 +94,7 @@ data class KlageTilAttestering private constructor(
             vurderinger: VurderingerTilKlage.Utfylt,
             attesteringer: Attesteringshistorikk,
             datoKlageMottatt: LocalDate,
+            klagevedtakshistorikk: Klagevedtakshistorikk
         ): KlageTilAttestering {
             return KlageTilAttestering(
                 id = id,
@@ -105,6 +109,7 @@ data class KlageTilAttestering private constructor(
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             )
         }
     }

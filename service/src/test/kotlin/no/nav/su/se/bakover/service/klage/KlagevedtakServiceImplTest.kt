@@ -9,14 +9,17 @@ import no.nav.su.se.bakover.domain.klage.KanIkkeTolkeKlagevedtak
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
 import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
-import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
-import no.nav.su.se.bakover.domain.klage.UprosessertKlagevedtak
+import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
+import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
+import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.oversendtKlage
 import org.junit.jupiter.api.Test
@@ -24,7 +27,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import java.time.Clock
 import java.util.UUID
 
 internal class KlagevedtakServiceImplTest {
@@ -37,7 +39,7 @@ internal class KlagevedtakServiceImplTest {
             on { hentUbehandlaKlagevedtak() } doReturn listOf(uprosessertFattetKlagevedtak(id))
         }
 
-        buildKlagevedtakService(klagevedtakRepoMock).håndterUtfallFraKlageinstans { _, _ -> KanIkkeTolkeKlagevedtak.KunneIkkeDeserialisere.left() }
+        buildKlagevedtakService(klagevedtakRepoMock).håndterUtfallFraKlageinstans { _, _, _ -> KanIkkeTolkeKlagevedtak.KunneIkkeDeserialisere.left() }
         verify(klagevedtakRepoMock).markerSomFeil(argThat { it shouldBe id })
     }
 
@@ -57,9 +59,9 @@ internal class KlagevedtakServiceImplTest {
         val oppgaveServiceMock: OppgaveService = mock {
             on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("212121").right()
         }
-        val mappedKlagevedtak = UprosessertKlagevedtak(
+        val mappedKlagevedtak = UprosessertKlageinstansvedtak(
             id = id,
-            eventId = UUID.randomUUID().toString(),
+            opprettet = fixedTidspunkt,
             klageId = klage.id,
             utfall = KlagevedtakUtfall.STADFESTELSE,
             vedtaksbrevReferanse = "123456",
@@ -70,7 +72,7 @@ internal class KlagevedtakServiceImplTest {
             klageRepo = klageRepoMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
-        ).håndterUtfallFraKlageinstans { _, _ -> mappedKlagevedtak.right() }
+        ).håndterUtfallFraKlageinstans { _, _, _ -> mappedKlagevedtak.right() }
         verify(klagevedtakRepoMock).hentUbehandlaKlagevedtak()
         verify(klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(personServiceMock).hentAktørIdMedSystembruker(klage.fnr)
@@ -81,12 +83,14 @@ internal class KlagevedtakServiceImplTest {
                     aktørId = AktørId(aktørId = ""),
                     journalpostId = JournalpostId(value = mappedKlagevedtak.vedtaksbrevReferanse),
                     tilordnetRessurs = null,
-                    clock = Clock.systemUTC(),
+                    clock = fixedClock,
                     utfall = KlagevedtakUtfall.STADFESTELSE
                 )
             },
         )
-        verify(klagevedtakRepoMock).lagre(mappedKlagevedtak.tilProsessert(OppgaveId("212121")))
+        TestSessionFactory().withTransactionContext { tx ->
+            verify(klagevedtakRepoMock).lagre(mappedKlagevedtak.tilProsessert(OppgaveId("212121")), tx)
+        }
     }
 
     @Test
@@ -105,9 +109,9 @@ internal class KlagevedtakServiceImplTest {
         val oppgaveServiceMock: OppgaveService = mock {
             on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("212121").right()
         }
-        val mappedKlagevedtak = UprosessertKlagevedtak(
+        val mappedKlagevedtak = UprosessertKlageinstansvedtak(
             id = id,
-            eventId = UUID.randomUUID().toString(),
+            opprettet = fixedTidspunkt,
             klageId = klage.id,
             utfall = KlagevedtakUtfall.RETUR,
             vedtaksbrevReferanse = "123456",
@@ -118,7 +122,7 @@ internal class KlagevedtakServiceImplTest {
             klageRepo = klageRepoMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
-        ).håndterUtfallFraKlageinstans { _, _ -> mappedKlagevedtak.right() }
+        ).håndterUtfallFraKlageinstans { _, _, _ -> mappedKlagevedtak.right() }
         verify(klagevedtakRepoMock).hentUbehandlaKlagevedtak()
         verify(klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(personServiceMock).hentAktørIdMedSystembruker(klage.fnr)
@@ -129,21 +133,42 @@ internal class KlagevedtakServiceImplTest {
                     aktørId = AktørId(aktørId = ""),
                     journalpostId = JournalpostId(value = "123456"),
                     tilordnetRessurs = null,
-                    clock = Clock.systemUTC(),
+                    clock = fixedClock,
                     utfall = KlagevedtakUtfall.RETUR
                 )
             },
         )
         TestSessionFactory().withTransactionContext { tx ->
-            verify(klageRepoMock).lagre(klage.copy(oppgaveId = OppgaveId("212121")), tx)
+            verify(klageRepoMock).lagre(
+                VurdertKlage.Bekreftet.create(
+                    id = klage.id,
+                    opprettet = klage.opprettet,
+                    sakId = klage.sakId,
+                    saksnummer = klage.saksnummer,
+                    fnr = klage.fnr,
+                    journalpostId = klage.journalpostId,
+                    oppgaveId = OppgaveId("212121"),
+                    saksbehandler = klage.saksbehandler,
+                    vilkårsvurderinger = klage.vilkårsvurderinger,
+                    vurderinger = klage.vurderinger,
+                    attesteringer = klage.attesteringer,
+                    datoKlageMottatt = klage.datoKlageMottatt,
+                    klagevedtakshistorikk = Klagevedtakshistorikk.create(
+                        listOf(
+                            mappedKlagevedtak.tilProsessert(OppgaveId("212121"))
+                        )
+                    )
+                ),
+                tx
+            )
             verify(klagevedtakRepoMock).lagre(mappedKlagevedtak.tilProsessert(OppgaveId("212121")), tx)
         }
     }
 
-    private fun uprosessertFattetKlagevedtak(id: UUID) = UprosessertFattetKlagevedtak(
+    private fun uprosessertFattetKlagevedtak(id: UUID) = UprosessertFattetKlageinstansvedtak(
         id = id,
         opprettet = fixedTidspunkt,
-        metadata = UprosessertFattetKlagevedtak.Metadata(
+        metadata = UprosessertFattetKlageinstansvedtak.Metadata(
             hendelseId = "55",
             offset = 0,
             partisjon = 0,
@@ -157,14 +182,14 @@ internal class KlagevedtakServiceImplTest {
         klageRepo: KlageRepo = mock(),
         oppgaveService: OppgaveService = mock(),
         personService: PersonService = mock(),
-        sessionFactory: TestSessionFactory = TestSessionFactory(),
     ): KlagevedtakService {
         return KlagevedtakServiceImpl(
             klagevedtakRepo = klagevedtakRepo,
             klageRepo = klageRepo,
             oppgaveService = oppgaveService,
             personService = personService,
-            sessionFactory = sessionFactory
+            clock = fixedClock,
+            sessionFactory = TestSessionFactory()
         )
     }
 }

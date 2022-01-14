@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.Clock
 import java.time.LocalDate
@@ -36,6 +37,7 @@ sealed class Klage {
     abstract val oppgaveId: OppgaveId
     abstract val datoKlageMottatt: LocalDate
     abstract val saksbehandler: NavIdentBruker.Saksbehandler
+    abstract val klagevedtakshistorikk: Klagevedtakshistorikk
 
     fun erÅpen(): Boolean {
         return this !is OversendtKlage
@@ -97,6 +99,19 @@ sealed class Klage {
         return KunneIkkeOversendeKlage.UgyldigTilstand(this::class, OversendtKlage::class).left()
     }
 
+    open fun leggTilNyttKlagevedtak(
+        uprosessertKlageinstansVedtak: UprosessertKlageinstansvedtak,
+        lagOppgaveCallback: () -> Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId>,
+    ): Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, Klage> {
+        return KunneIkkeLeggeTilNyttKlageinstansVedtak.MåVæreEnOversendtKlage(menVar = this::class).left()
+    }
+    sealed interface KunneIkkeLeggeTilNyttKlageinstansVedtak {
+        data class MåVæreEnOversendtKlage(val menVar: KClass<out Klage>) : KunneIkkeLeggeTilNyttKlageinstansVedtak
+        object IkkeStøttetUtfall : KunneIkkeLeggeTilNyttKlageinstansVedtak
+        object KunneIkkeHenteAktørId : KunneIkkeLeggeTilNyttKlageinstansVedtak
+        data class KunneIkkeLageOppgave(val feil: OppgaveFeil) : KunneIkkeLeggeTilNyttKlageinstansVedtak
+    }
+
     companion object {
         fun ny(
             sakId: UUID,
@@ -118,6 +133,7 @@ sealed class Klage {
                 oppgaveId = oppgaveId,
                 datoKlageMottatt = datoKlageMottatt,
                 saksbehandler = saksbehandler,
+                klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
             )
         }
     }
