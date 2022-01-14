@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurd
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.service.revurdering.Varselmelding
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.ErrorJson
 import no.nav.su.se.bakover.web.Resultat
@@ -61,11 +62,13 @@ internal fun Route.beregnOgSimulerRevurdering(
 internal data class RevurderingOgFeilmeldingerResponseJson(
     val revurdering: RevurderingJson,
     val feilmeldinger: List<ErrorJson>,
+    val varselmeldinger: List<ErrorJson>,
 )
 
 internal fun RevurderingOgFeilmeldingerResponse.toJson() = RevurderingOgFeilmeldingerResponseJson(
     revurdering = revurdering.toJson(),
     feilmeldinger = feilmeldinger.map { it.toJson() },
+    varselmeldinger = varselmeldinger.map { it.toJson() },
 )
 
 internal fun RevurderingsutfallSomIkkeStøttes.toJson(): ErrorJson = when (this) {
@@ -85,6 +88,17 @@ internal fun RevurderingsutfallSomIkkeStøttes.toJson(): ErrorJson = when (this)
         message = "Opphør i kombinasjon med andre endringer støttes ikke. Revurdering må gjennomføres i flere steg.",
         code = "opphør_og_andre_endringer_i_kombinasjon",
     )
+}
+
+internal fun Varselmelding.toJson(): ErrorJson {
+    return when (this) {
+        Varselmelding.BeløpsendringUnder10Prosent -> {
+            ErrorJson(
+                message = "Beløpsendring er mindre enn 10 prosent av gjeldende utbetaling.",
+                code = "beløpsendring_mindre_enn_ti_prosent",
+            )
+        }
+    }
 }
 
 private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
