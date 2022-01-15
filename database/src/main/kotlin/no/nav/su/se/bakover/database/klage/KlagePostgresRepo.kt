@@ -491,7 +491,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                 ),
-                fritekstTilBrev = fritekstTilBrev,
+                fritekstTilBrev = fritekstTilBrev!!,
             )
             Tilstand.TIL_ATTESTERING_TIL_VURDERING -> KlageTilAttestering.Vurdert.create(
                 id = id,
@@ -518,7 +518,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
-                vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
+                vurderinger = null,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 fritekstTilBrev = fritekstTilBrev
@@ -549,7 +549,6 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
-                vurderinger = null,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 fritekstTilBrev = fritekstTilBrev!!,

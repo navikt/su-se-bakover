@@ -256,7 +256,7 @@ internal class SendKlageTilAttesteringTest {
         klage: Klage,
         attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
         tilordnetRessurs: NavIdentBruker.Attestant? = null,
-        fritekstTilBrev: String? = null,
+        fritekstTilBrev: String = "attesterings fritekst for brevet",
     ) {
         val session = TestSessionFactory()
 

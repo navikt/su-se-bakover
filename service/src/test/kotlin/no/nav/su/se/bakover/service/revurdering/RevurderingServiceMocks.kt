@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
@@ -23,7 +23,7 @@ internal data class RevurderingServiceMocks(
     val revurderingRepo: RevurderingRepo = mock(),
     val oppgaveService: OppgaveService = mock(),
     val personService: PersonService = mock(),
-    val microsoftGraphApiClient: MicrosoftGraphApiOppslag = mock(),
+    val identClient: IdentClient = mock(),
     val brevService: BrevService = mock(),
     val vedtakRepo: VedtakRepo = mock(),
     val ferdigstillVedtakService: FerdigstillVedtakService = mock(),
@@ -37,7 +37,7 @@ internal data class RevurderingServiceMocks(
         revurderingRepo = revurderingRepo,
         oppgaveService = oppgaveService,
         personService = personService,
-        microsoftGraphApiClient = microsoftGraphApiClient,
+        identClient = identClient,
         brevService = brevService,
         clock = fixedClock,
         vedtakRepo = vedtakRepo,
@@ -54,7 +54,7 @@ internal data class RevurderingServiceMocks(
         revurderingRepo,
         oppgaveService,
         personService,
-        microsoftGraphApiClient,
+        identClient,
         brevService,
         vedtakRepo,
         ferdigstillVedtakService,

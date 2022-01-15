@@ -101,7 +101,7 @@ data class ProdClientsBuilder(
                     jmsContext = jmsConfig.jmsContext,
                 ),
             ),
-            microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
+            identClient = MicrosoftGraphApiClient(oAuth),
             digitalKontaktinformasjon = dkif,
             leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
             kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),

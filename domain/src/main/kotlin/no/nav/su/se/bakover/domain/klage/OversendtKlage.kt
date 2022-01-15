@@ -1,14 +1,23 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
+import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
+import arrow.core.Either
 import arrow.core.left
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -28,6 +37,32 @@ data class OversendtKlage private constructor(
     val vurderinger: VurderingerTilKlage.Utfylt,
     val attesteringer: Attesteringshistorikk,
 ) : Klage {
+
+    override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
+        return vurderinger.fritekstTilBrev.right()
+    }
+
+    override fun lagBrevRequest(
+        hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+        hentVedtakDato: (klageId: UUID) -> LocalDate?,
+        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
+        clock: Clock,
+    ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage> {
+        return LagBrevRequest.Klage.Oppretthold(
+            person = hentPerson(this.fnr).getOrHandle {
+                return KunneIkkeLageBrevRequest.FeilVedHentingAvPerson(it).left()
+            },
+            dagensDato = LocalDate.now(clock),
+            saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrHandle {
+                return KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(it).left()
+            },
+            fritekst = this.vurderinger.fritekstTilBrev,
+            saksnummer = this.saksnummer,
+            klageDato = this.datoKlageMottatt,
+            vedtakDato = hentVedtakDato(this.id)
+                ?: return KunneIkkeLageBrevRequest.FeilVedHentingAvVedtakDato.left(),
+        ).right()
+    }
 
     companion object {
         fun create(
@@ -117,4 +152,6 @@ sealed class KunneIkkeOversendeKlage {
     data class KunneIkkeLageBrev(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeOversendeKlage()
     object FantIkkeJournalpostIdKnyttetTilVedtaket : KunneIkkeOversendeKlage()
     object KunneIkkeOversendeTilKlageinstans : KunneIkkeOversendeKlage()
+    data class KunneIkkeLageBrevRequest(val feil: no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequest) :
+        KunneIkkeOversendeKlage()
 }

@@ -1,12 +1,21 @@
 package no.nav.su.se.bakover.domain.klage
 
+import arrow.core.Either
+import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -23,9 +32,31 @@ data class IverksattAvvistKlage private constructor(
     override val datoKlageMottatt: LocalDate,
     val attesteringer: Attesteringshistorikk,
     val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-    val vurderinger: VurderingerTilKlage?,
     val fritekstTilBrev: String,
 ) : Klage {
+
+    override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
+        return fritekstTilBrev.right()
+    }
+
+    override fun lagBrevRequest(
+        hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+        hentVedtakDato: (klageId: UUID) -> LocalDate?,
+        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
+        clock: Clock,
+    ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage> {
+        return LagBrevRequest.Klage.Avvist(
+            person = hentPerson(this.fnr).getOrHandle {
+                return KunneIkkeLageBrevRequest.FeilVedHentingAvPerson(it).left()
+            },
+            dagensDato = LocalDate.now(clock),
+            saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrHandle {
+                return KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(it).left()
+            },
+            fritekst = this.fritekstTilBrev,
+            saksnummer = this.saksnummer,
+        ).right()
+    }
 
     companion object {
         fun create(
@@ -38,7 +69,6 @@ data class IverksattAvvistKlage private constructor(
             oppgaveId: OppgaveId,
             saksbehandler: NavIdentBruker.Saksbehandler,
             vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-            vurderinger: VurderingerTilKlage?,
             attesteringer: Attesteringshistorikk,
             datoKlageMottatt: LocalDate,
             fritekstTilBrev: String,
@@ -55,17 +85,18 @@ data class IverksattAvvistKlage private constructor(
                 datoKlageMottatt = datoKlageMottatt,
                 attesteringer = attesteringer,
                 vilkårsvurderinger = vilkårsvurderinger,
-                vurderinger = vurderinger,
                 fritekstTilBrev = fritekstTilBrev,
             )
         }
     }
 }
 
-sealed class KunneIkkeIverksetteAvvistKlage {
-    object FantIkkeKlage : KunneIkkeIverksetteAvvistKlage()
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteAvvistKlage()
-    object FeilVedLagringAvDokumentOgKlage : KunneIkkeIverksetteAvvistKlage()
-    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeIverksetteAvvistKlage()
-    data class KunneIkkeLageBrev(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeIverksetteAvvistKlage()
+sealed interface KunneIkkeIverksetteAvvistKlage {
+    object FantIkkeKlage : KunneIkkeIverksetteAvvistKlage
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteAvvistKlage
+    object FeilVedLagringAvDokumentOgKlage : KunneIkkeIverksetteAvvistKlage
+    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeIverksetteAvvistKlage
+    data class KunneIkkeLageBrev(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeIverksetteAvvistKlage
+    data class KunneIkkeLageBrevRequest(val feil: no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequest) :
+        KunneIkkeIverksetteAvvistKlage
 }

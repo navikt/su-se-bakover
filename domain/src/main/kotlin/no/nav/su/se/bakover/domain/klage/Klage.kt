@@ -5,11 +5,15 @@ import arrow.core.left
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -50,7 +54,31 @@ sealed interface Klage {
     abstract val klagevedtakshistorikk: Klagevedtakshistorikk
 
     fun erÅpen(): Boolean {
-        return this !is OversendtKlage && this !is IverksattAvvistKlage
+        return when (this) {
+            is OpprettetKlage,
+            is VilkårsvurdertKlage,
+            is VurdertKlage,
+            is AvvistKlage,
+            is KlageTilAttestering,
+            -> true
+
+            is IverksattAvvistKlage,
+            is OversendtKlage,
+            -> false
+        }
+    }
+
+    fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
+        return KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
+    }
+
+    fun lagBrevRequest(
+        hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+        hentVedtakDato: (klageId: UUID) -> LocalDate?,
+        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
+        clock: Clock,
+    ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage> {
+        return KunneIkkeLageBrevRequest.UgyldigTilstand(this::class).left()
     }
 
     /**
@@ -86,10 +114,9 @@ sealed interface Klage {
         return KunneIkkeBekrefteKlagesteg.UgyldigTilstand(this::class, VurdertKlage.Bekreftet::class).left()
     }
 
-    /** @return [AvvistKlage] */
     fun leggTilAvvistFritekstTilBrev(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekst: String?,
+        fritekst: String,
     ): Either<KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand, AvvistKlage> {
         return KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand(this::class, AvvistKlage::class).left()
     }
@@ -110,18 +137,10 @@ sealed interface Klage {
         return KunneIkkeUnderkjenne.UgyldigTilstand(this::class, VurdertKlage.Bekreftet::class).left()
     }
 
-    /** @return [OversendtKlage] */
     fun oversend(
         iverksattAttestering: Attestering.Iverksatt,
     ): Either<KunneIkkeOversendeKlage, OversendtKlage> {
         return KunneIkkeOversendeKlage.UgyldigTilstand(this::class, OversendtKlage::class).left()
-    }
-
-    /** @return [IverksattAvvistKlage]*/
-    fun avvis(
-        iverksattAttestering: Attestering.Iverksatt,
-    ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage> {
-        return KunneIkkeIverksetteAvvistKlage.UgyldigTilstand(this::class, IverksattAvvistKlage::class).left()
     }
 
     open fun leggTilNyttKlagevedtak(
@@ -162,6 +181,17 @@ sealed interface Klage {
             )
         }
     }
+}
+
+sealed interface KunneIkkeLageBrevRequest {
+    object FeilVedHentingAvVedtakDato : KunneIkkeLageBrevRequest
+    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeLageBrevRequest
+    data class FeilVedHentingAvPerson(val personFeil: KunneIkkeHentePerson) : KunneIkkeLageBrevRequest
+    data class FeilVedHentingAvSaksbehandlernavn(val feil: KunneIkkeHenteNavnForNavIdent) : KunneIkkeLageBrevRequest
+}
+
+sealed interface KunneIkkeHenteFritekstTilBrev {
+    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeHenteFritekstTilBrev
 }
 
 sealed class KunneIkkeBekrefteKlagesteg {

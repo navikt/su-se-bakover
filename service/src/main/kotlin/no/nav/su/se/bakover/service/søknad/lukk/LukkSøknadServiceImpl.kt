@@ -6,8 +6,6 @@ import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -18,6 +16,8 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.person.IdentClient
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest.Companion.lukk
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
@@ -42,7 +42,7 @@ internal class LukkSøknadServiceImpl(
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
     private val søknadsbehandlingService: SøknadsbehandlingService,
-    private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
+    private val identClient: IdentClient,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
 ) : LukkSøknadService {
@@ -167,8 +167,8 @@ internal class LukkSøknadServiceImpl(
         }
     }
 
-    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
-        return microsoftGraphApiClient.hentNavnForNavIdent(navIdent)
+    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<KunneIkkeHenteNavnForNavIdent, String> {
+        return identClient.hentNavnForNavIdent(navIdent)
     }
 
     private fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad> {

@@ -5,7 +5,6 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -18,9 +17,11 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequest
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -91,12 +92,16 @@ internal class OversendKlageTest {
     @Test
     fun `kunne ikke lage brevrequest`() {
         val klage = vurdertKlageTilAttestering().second
+        val person = person(fnr = klage.fnr)
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
             },
-            microsoftGraphApiMock = mock {
-                on { hentNavnForNavIdent(any()) } doReturn MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
+            personServiceMock = mock {
+                on { hentPerson(any()) } doReturn person.right()
+            },
+            identClient = mock {
+                on { hentNavnForNavIdent(any()) } doReturn KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent.left()
             },
         )
 
@@ -104,10 +109,12 @@ internal class OversendKlageTest {
         mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
-        ) shouldBe KunneIkkeOversendeKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler).left()
+        ) shouldBe
+            KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent)).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe klage.fnr })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         mocks.verifyNoMoreInteractions()
     }
 
@@ -120,7 +127,7 @@ internal class OversendKlageTest {
                 on { hentKlage(any()) } doReturn klage
                 on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
             },
-            microsoftGraphApiMock = mock {
+            identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
             },
             personServiceMock = mock {
@@ -138,7 +145,7 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {
@@ -165,7 +172,7 @@ internal class OversendKlageTest {
                 on { hentKlage(any()) } doReturn klage
                 on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
             },
-            microsoftGraphApiMock = mock {
+            identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
             },
             personServiceMock = mock {
@@ -186,7 +193,7 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {
@@ -216,7 +223,7 @@ internal class OversendKlageTest {
                 on { hentKlage(any()) } doReturn klage
                 on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
             },
-            microsoftGraphApiMock = mock {
+            identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
             },
             personServiceMock = mock {
@@ -240,7 +247,7 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {
@@ -457,7 +464,7 @@ internal class OversendKlageTest {
             vedtakRepoMock = mock {
                 on { hentJournalpostId(any()) } doReturn journalpostIdForVedtak
             },
-            microsoftGraphApiMock = mock {
+            identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
             },
             personServiceMock = mock {
@@ -504,7 +511,7 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {

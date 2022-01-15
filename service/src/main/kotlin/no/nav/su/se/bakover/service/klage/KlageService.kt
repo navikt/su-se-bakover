@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequest
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
@@ -40,7 +41,7 @@ interface KlageService {
     fun leggTilAvvistFritekstTilBrev(
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekst: String?
+        fritekst: String
     ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage>
 
     fun sendTilAttestering(
@@ -52,7 +53,10 @@ interface KlageService {
 
     fun oversend(klageId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeOversendeKlage, OversendtKlage>
 
-    fun avvis(klageId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage>
+    fun iverksettAvvistKlage(
+        klageId: UUID,
+        attestant: NavIdentBruker.Attestant,
+    ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage>
 
     fun brevutkast(
         klageId: UUID,
@@ -62,5 +66,6 @@ interface KlageService {
 
 sealed class KunneIkkeLageBrevutkast {
     object FantIkkeKlage : KunneIkkeLageBrevutkast()
+    data class FeilVedBrevRequest(val feil: KunneIkkeLageBrevRequest) : KunneIkkeLageBrevutkast()
     data class GenereringAvBrevFeilet(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeLageBrevutkast()
 }

@@ -431,7 +431,7 @@ fun avvistKlage(
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     begrunnelse: String = "begrunnelse",
-    fritekstTilBrev: String? = "dette er en fritekst med person opplysninger",
+    fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
 ): Pair<Sak, AvvistKlage> {
     return bekreftetAvvistVilkårsvurdertKlage(
@@ -786,7 +786,7 @@ fun iverksattAvvistKlage(
         fritekstTilBrev = fritekstTilBrev,
         sakMedVedtak = sakMedVedtak,
     ).let {
-        val klage = it.second.avvis(
+        val klage = it.second.iverksett(
             iverksattAttestering = Attestering.Iverksatt(
                 attestant = attestant,
                 opprettet = opprettet,

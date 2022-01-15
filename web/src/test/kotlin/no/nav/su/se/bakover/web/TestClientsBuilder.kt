@@ -34,7 +34,7 @@ object TestClientsBuilder : ClientsBuilder {
         utbetalingPublisher = UtbetalingStub,
         dokDistFordeling = DokDistFordelingStub,
         avstemmingPublisher = AvstemmingStub,
-        microsoftGraphApiClient = MicrosoftGraphApiClientStub,
+        identClient = MicrosoftGraphApiClientStub,
         digitalKontaktinformasjon = DkifClientStub,
         leaderPodLookup = LeaderPodLookupStub,
         kafkaPublisher = KafkaPublisherStub,

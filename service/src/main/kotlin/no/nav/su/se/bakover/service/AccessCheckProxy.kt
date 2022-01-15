@@ -806,7 +806,7 @@ open class AccessCheckProxy(
                 override fun leggTilAvvistFritekstTilBrev(
                     klageId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                    fritekst: String?,
+                    fritekst: String,
                 ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage> {
                     assertHarTilgangTilKlage(klageId)
                     return services.klageService.leggTilAvvistFritekstTilBrev(klageId, saksbehandler, fritekst)
@@ -833,12 +833,12 @@ open class AccessCheckProxy(
                     return services.klageService.oversend(klageId, attestant)
                 }
 
-                override fun avvis(
+                override fun iverksettAvvistKlage(
                     klageId: UUID,
                     attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage> {
                     assertHarTilgangTilKlage(klageId)
-                    return services.klageService.avvis(klageId, attestant)
+                    return services.klageService.iverksettAvvistKlage(klageId, attestant)
                 }
 
                 override fun brevutkast(

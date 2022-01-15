@@ -53,7 +53,7 @@ internal class IverksettAvvistKlageTest {
         val klageId = UUID.randomUUID()
         val attestant = NavIdentBruker.Attestant("attestantensen")
 
-        mocks.service.avvis(klageId, attestant) shouldBe KunneIkkeIverksetteAvvistKlage.FantIkkeKlage.left()
+        mocks.service.iverksettAvvistKlage(klageId, attestant) shouldBe KunneIkkeIverksetteAvvistKlage.FantIkkeKlage.left()
         Mockito.verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
         mocks.verifyNoMoreInteractions()
     }
@@ -68,7 +68,7 @@ internal class IverksettAvvistKlageTest {
             },
         )
         val attestant = NavIdentBruker.Attestant(klage.saksbehandler.navIdent)
-        mocks.service.avvis(
+        mocks.service.iverksettAvvistKlage(
             klageId = klage.id,
             attestant = attestant,
         ) shouldBe KunneIkkeIverksetteAvvistKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -200,7 +200,7 @@ internal class IverksettAvvistKlageTest {
                 on { hentKlage(any()) } doReturn klage
             },
         )
-        mocks.service.avvis(
+        mocks.service.iverksettAvvistKlage(
             klageId = klage.id,
             attestant = NavIdentBruker.Attestant("attestant"),
         ) shouldBe KunneIkkeIverksetteAvvistKlage.UgyldigTilstand(klage::class, IverksattAvvistKlage::class).left()
@@ -225,7 +225,7 @@ internal class IverksettAvvistKlageTest {
             brevServiceMock = mock {
                 on { lagBrev(any()) } doReturn dokument.right()
             },
-            microsoftGraphApiMock = mock {
+            identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Johnny".right()
             },
             personServiceMock = mock {
@@ -236,7 +236,7 @@ internal class IverksettAvvistKlageTest {
             },
         )
 
-        val actual = mocks.service.avvis(klage.id, attestant).getOrFail()
+        val actual = mocks.service.iverksettAvvistKlage(klage.id, attestant).getOrFail()
 
         val expected = IverksattAvvistKlage.create(
             id = klage.id,
@@ -248,7 +248,6 @@ internal class IverksettAvvistKlageTest {
             oppgaveId = klage.oppgaveId,
             saksbehandler = klage.saksbehandler,
             vilkårsvurderinger = klage.vilkårsvurderinger,
-            vurderinger = null,
             attesteringer = Attesteringshistorikk.create(
                 listOf(
                     Attestering.Iverksatt(
@@ -264,8 +263,7 @@ internal class IverksettAvvistKlageTest {
         actual shouldBe expected
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
-        verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe klage.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {

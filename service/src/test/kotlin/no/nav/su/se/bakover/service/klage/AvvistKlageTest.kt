@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
-import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
@@ -17,6 +16,7 @@ import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.avvistKlage
 import no.nav.su.se.bakover.test.avvistKlageTilAttestering
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
@@ -53,7 +53,7 @@ internal class AvvistKlageTest {
             mocks.service.leggTilAvvistFritekstTilBrev(
                 klageId = klage.id,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                fritekst = null,
+                fritekst = "min fritekst",
             ) shouldBe KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand(klage::class, AvvistKlage::class)
                 .left()
 
@@ -152,19 +152,6 @@ internal class AvvistKlageTest {
         fun `fra IverksattAvvist til avvist`() {
             kanIkkeLeggeTilFritekstFraTilstand(iverksattAvvistKlage().second)
         }
-
-        @Test
-        fun `får feil dersom man prøver å sende til attestering uten fritekst`() {
-            val klage = avvistKlage(fritekstTilBrev = null).second
-
-            val actual = klage.sendTilAttestering(
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            ) {
-                OppgaveId("oppgaveId").right()
-            }
-
-            actual shouldBe KunneIkkeSendeTilAttestering.FritekstMåVæreUtfyltForÅSendeTilAttestering.left()
-        }
     }
 
     @Nested
@@ -173,15 +160,32 @@ internal class AvvistKlageTest {
         fun `fra bekreftetVilkårsvurdert(Avvist) til Avvist`() {
             val klage = bekreftetAvvistVilkårsvurdertKlage().second
 
-            val actual = klage.leggTilAvvistFritekstTilBrev(
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                fritekst = null,
+            val mocks = KlageServiceMocks(
+                klageRepoMock = mock {
+                    on { hentKlage(any()) } doReturn klage
+                    on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+                },
             )
 
-            actual shouldBe AvvistKlage.create(
+            val actual = mocks.service.leggTilAvvistFritekstTilBrev(
+                klageId = klage.id,
+                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+                fritekst = "en nice fritekst",
+            ).getOrFail()
+
+            val expected = AvvistKlage.create(
                 forrigeSteg = klage,
-                fritekstTilBrev = null,
-            ).right()
+                fritekstTilBrev = "en nice fritekst",
+            )
+
+            actual shouldBe expected
+
+            Mockito.verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+
+            Mockito.verify(mocks.klageRepoMock).lagre(
+                argThat { it shouldBe expected },
+                argThat { it shouldBe TestSessionFactory.transactionContext },
+            )
         }
 
         @Test
@@ -319,7 +323,7 @@ internal class AvvistKlageTest {
             vurderinger = klage.vurderinger,
             attesteringer = klage.attesteringer,
             datoKlageMottatt = klage.datoKlageMottatt,
-            fritekstTilBrev = klage.fritekstTilBrev!!,
+            fritekstTilBrev = klage.fritekstTilBrev,
         )
     }
 }

@@ -1109,10 +1109,10 @@ internal class TestDataHelper(
         }
     }
 
-    fun påbegyntAvvistKlage(
+    fun avvistKlage(
         vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
-        saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerPåbegyntAvvistKlage"),
-        fritekstTilBrev: String? = "en god, og lang fritekst",
+        saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerAvvistKlage"),
+        fritekstTilBrev: String = "en god, og lang fritekst",
     ): AvvistKlage {
         return bekreftetAvvistVilkårsvurdertKlage(vedtak).leggTilAvvistFritekstTilBrev(
             saksbehandler,
@@ -1140,9 +1140,11 @@ internal class TestDataHelper(
     fun avvistKlageTilAttestering(
         vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
         oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
+        saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerAvvistKlageTilAttestering"),
+        fritekstTilBrev: String = "en god, og lang fritekst",
     ): KlageTilAttestering.Avvist {
-        return påbegyntAvvistKlage(vedtak).sendTilAttestering(
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerKlageTilAttestering"),
+        return avvistKlage(vedtak, saksbehandler, fritekstTilBrev).sendTilAttestering(
+            saksbehandler = saksbehandler,
             opprettOppgave = { oppgaveId.right() },
         ).getOrFail().also {
             klagePostgresRepo.lagre(it)
@@ -1172,14 +1174,16 @@ internal class TestDataHelper(
         vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
         oppgaveId: OppgaveId = OppgaveId("underkjentKlageOppgaveId"),
     ): AvvistKlage {
-        return avvistKlageTilAttestering(vedtak).underkjenn(
+        return avvistKlageTilAttestering(vedtak, oppgaveId).underkjenn(
             underkjentAttestering = Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerUnderkjentKlage"),
                 opprettet = fixedTidspunkt,
                 grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                 kommentar = "underkjennelseskommentar",
             ),
-        ) { oppgaveId.right() }.getOrFail()
+        ) { oppgaveId.right() }.getOrFail().also {
+            klagePostgresRepo.lagre(it)
+        }
     }
 
     fun oversendtKlage(
@@ -1200,7 +1204,7 @@ internal class TestDataHelper(
         vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
         oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     ): IverksattAvvistKlage {
-        return avvistKlageTilAttestering(vedtak, oppgaveId).avvis(
+        return avvistKlageTilAttestering(vedtak, oppgaveId).iverksett(
             iverksattAttestering = Attestering.Iverksatt(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerIverksattAvvistKlage"),
                 opprettet = fixedTidspunkt,

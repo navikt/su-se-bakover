@@ -262,7 +262,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
             ): Utfylt {
-                if (erAvvist(vilkårsvurderinger)) {
+                if (vilkårsvurderinger.erAvvist()) {
                     return Avvist.create(
                         id = id,
                         opprettet = opprettet,
@@ -350,7 +350,7 @@ sealed interface VilkårsvurdertKlage : Klage {
     ) : Bekreftet() {
             override fun leggTilAvvistFritekstTilBrev(
                 saksbehandler: NavIdentBruker.Saksbehandler,
-                fritekst: String?,
+                fritekst: String,
             ): Either<KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand, AvvistKlage> {
                 return AvvistKlage.create(
                     forrigeSteg = this,
@@ -505,7 +505,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
                 klagevedtakshistorikk: Klagevedtakshistorikk): Bekreftet {
-                if (erAvvist(vilkårsvurderinger)) {
+                if (vilkårsvurderinger.erAvvist()) {
                     return Avvist.create(
                         id = id,
                         opprettet = opprettet,
@@ -541,10 +541,10 @@ sealed interface VilkårsvurdertKlage : Klage {
     }
 
     companion object {
-        internal fun erAvvist(vilkårsvurderinger: VilkårsvurderingerTilKlage): Boolean {
-            return vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket == false ||
-                vilkårsvurderinger.innenforFristen == VilkårsvurderingerTilKlage.Svarord.NEI ||
-                vilkårsvurderinger.erUnderskrevet == VilkårsvurderingerTilKlage.Svarord.NEI
+        internal fun VilkårsvurderingerTilKlage.erAvvist(): Boolean {
+            return this.klagesDetPåKonkreteElementerIVedtaket == false ||
+                this.innenforFristen == VilkårsvurderingerTilKlage.Svarord.NEI ||
+                this.erUnderskrevet == VilkårsvurderingerTilKlage.Svarord.NEI
         }
     }
 }

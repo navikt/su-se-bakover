@@ -1,16 +1,23 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage.Companion.erAvvist
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -47,7 +54,30 @@ sealed class KlageTilAttestering : Klage {
         val fritekstTilBrev: String,
     ) : KlageTilAttestering() {
 
-        override fun avvis(
+        override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
+            return fritekstTilBrev.right()
+        }
+
+        override fun lagBrevRequest(
+            hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+            hentVedtakDato: (klageId: UUID) -> LocalDate?,
+            hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
+            clock: Clock,
+        ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage> {
+            return LagBrevRequest.Klage.Avvist(
+                person = hentPerson(this.fnr).getOrHandle {
+                    return KunneIkkeLageBrevRequest.FeilVedHentingAvPerson(it).left()
+                },
+                dagensDato = LocalDate.now(clock),
+                saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrHandle {
+                    return KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(it).left()
+                },
+                fritekst = this.fritekstTilBrev,
+                saksnummer = this.saksnummer,
+            ).right()
+        }
+
+        fun iverksett(
             iverksattAttestering: Attestering.Iverksatt,
         ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage> {
             if (iverksattAttestering.attestant.navIdent == saksbehandler.navIdent) {
@@ -63,10 +93,9 @@ sealed class KlageTilAttestering : Klage {
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
-                vurderinger = vurderinger,
                 attesteringer = attesteringer.leggTilNyAttestering(iverksattAttestering),
                 datoKlageMottatt = datoKlageMottatt,
-                fritekstTilBrev = fritekstTilBrev
+                fritekstTilBrev = fritekstTilBrev,
             ).right()
         }
 
@@ -93,7 +122,7 @@ sealed class KlageTilAttestering : Klage {
                         attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
                         datoKlageMottatt = datoKlageMottatt,
                     ),
-                    fritekstTilBrev = this.fritekstTilBrev,
+                    fritekstTilBrev = fritekstTilBrev,
                 )
             }
         }
@@ -148,6 +177,32 @@ sealed class KlageTilAttestering : Klage {
         override val vurderinger: VurderingerTilKlage.Utfylt,
         override val klagevedtakshistorikk: Klagevedtakshistorikk,
     ) : KlageTilAttestering() {
+
+        override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
+            return vurderinger.fritekstTilBrev.right()
+        }
+
+        override fun lagBrevRequest(
+            hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+            hentVedtakDato: (klageId: UUID) -> LocalDate?,
+            hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
+            clock: Clock,
+        ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage> {
+            return LagBrevRequest.Klage.Oppretthold(
+                person = hentPerson(this.fnr).getOrHandle {
+                    return KunneIkkeLageBrevRequest.FeilVedHentingAvPerson(it).left()
+                },
+                dagensDato = LocalDate.now(clock),
+                saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrHandle {
+                    return KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(it).left()
+                },
+                fritekst = this.vurderinger.fritekstTilBrev,
+                saksnummer = this.saksnummer,
+                klageDato = this.datoKlageMottatt,
+                vedtakDato = hentVedtakDato(this.id)
+                    ?: return KunneIkkeLageBrevRequest.FeilVedHentingAvVedtakDato.left(),
+            ).right()
+        }
 
         override fun underkjenn(
             underkjentAttestering: Attestering.Underkjent,
@@ -246,7 +301,7 @@ sealed class KlageTilAttestering : Klage {
             fritekstTilBrev: String,
             klagevedtakshistorikk: Klagevedtakshistorikk,
         ): KlageTilAttestering {
-            if (VilkårsvurdertKlage.erAvvist(vilkårsvurderinger)) {
+            if (vilkårsvurderinger.erAvvist()) {
                 return Avvist.create(
                     id = id,
                     opprettet = opprettet,
@@ -260,8 +315,7 @@ sealed class KlageTilAttestering : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    fritekstTilBrev = fritekstTilBrev
-                        ?: throw IllegalStateException("Avvist klage som er til attestering må ha brev-tekst. id: $id"),
+                    fritekstTilBrev = fritekstTilBrev,
                 )
             }
             return Vurdert.create(
@@ -289,7 +343,6 @@ sealed class KlageTilAttestering : Klage {
 sealed class KunneIkkeSendeTilAttestering {
     object FantIkkeKlage : KunneIkkeSendeTilAttestering()
     object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering()
-    object FritekstMåVæreUtfyltForÅSendeTilAttestering : KunneIkkeSendeTilAttestering()
     data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeSendeTilAttestering()
 }
 

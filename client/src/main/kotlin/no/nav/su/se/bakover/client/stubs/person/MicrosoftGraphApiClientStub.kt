@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.client.stubs.person
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.person.IdentClient
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 
-object MicrosoftGraphApiClientStub : MicrosoftGraphApiOppslag {
-    override fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> =
+object MicrosoftGraphApiClientStub : IdentClient {
+    override fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<KunneIkkeHenteNavnForNavIdent, String> =
         "Testbruker, Lokal".right()
 }
