@@ -4,8 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import arrow.core.Either
-import arrow.core.left
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -100,8 +98,8 @@ data class OversendtKlage private constructor(
 
     override fun leggTilNyttKlagevedtak(
         uprosessertKlageinstansVedtak: UprosessertKlageinstansvedtak,
-        lagOppgaveCallback: () -> Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId>,
-    ): Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, Klage> {
+        lagOppgaveCallback: () -> Either<Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId>,
+    ): Either<Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak, Klage> {
         return when (uprosessertKlageinstansVedtak.utfall) {
             KlagevedtakUtfall.AVVIST,
             KlagevedtakUtfall.TRUKKET,
@@ -111,14 +109,16 @@ data class OversendtKlage private constructor(
             }
             KlagevedtakUtfall.RETUR -> {
                 lagOppgaveCallback().map { oppgaveId ->
-                    leggTilKlagevedtakshistorikk(uprosessertKlageinstansVedtak.tilProsessert(oppgaveId)).toBekreftet(oppgaveId)
+                    leggTilKlagevedtakshistorikk(uprosessertKlageinstansVedtak.tilProsessert(oppgaveId)).toBekreftet(
+                        oppgaveId,
+                    )
                 }
             }
             KlagevedtakUtfall.OPPHEVET,
             KlagevedtakUtfall.MEDHOLD,
             KlagevedtakUtfall.DELVIS_MEDHOLD,
             KlagevedtakUtfall.UGUNST,
-            -> KunneIkkeLeggeTilNyttKlageinstansVedtak.IkkeStøttetUtfall.left()
+            -> Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.IkkeStøttetUtfall.left()
         }
     }
 

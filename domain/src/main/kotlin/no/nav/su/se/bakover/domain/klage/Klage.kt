@@ -51,7 +51,7 @@ sealed interface Klage {
     val oppgaveId: OppgaveId
     val datoKlageMottatt: LocalDate
     val saksbehandler: NavIdentBruker.Saksbehandler
-    abstract val klagevedtakshistorikk: Klagevedtakshistorikk
+    val klagevedtakshistorikk: Klagevedtakshistorikk
 
     fun erÅpen(): Boolean {
         return when (this) {
@@ -143,7 +143,7 @@ sealed interface Klage {
         return KunneIkkeOversendeKlage.UgyldigTilstand(this::class, OversendtKlage::class).left()
     }
 
-    open fun leggTilNyttKlagevedtak(
+    fun leggTilNyttKlagevedtak(
         uprosessertKlageinstansVedtak: UprosessertKlageinstansvedtak,
         lagOppgaveCallback: () -> Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId>,
     ): Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, Klage> {

@@ -258,6 +258,7 @@ internal class IverksettAvvistKlageTest {
             ),
             datoKlageMottatt = klage.datoKlageMottatt,
             fritekstTilBrev = klage.fritekstTilBrev,
+            klagevedtakshistorikk = klage.klagevedtakshistorikk,
         )
 
         actual shouldBe expected

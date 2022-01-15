@@ -424,6 +424,7 @@ private fun VilkårsvurdertKlage.mapUtfyltOgBekreftetTilKlageJson(): KlageJson {
         fritekstTilBrev = null,
         vedtaksvurdering = null,
         attesteringer = this.attesteringer.toJson(),
+        klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },
     )
 }
 
@@ -448,6 +449,7 @@ private fun VurdertKlage.mapUtfyltOgBekreftetTilKlageJson(): KlageJson {
         // Vedtaksvurderingen kan ikke være null dersom klagen er utfylt / bekreftet
         vedtaksvurdering = this.vurderinger.vedtaksvurdering!!.toJson(),
         attesteringer = this.attesteringer.toJson(),
+        klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },
     )
 }
 
@@ -468,6 +470,7 @@ private fun AvvistKlage.mapPåbegyntOgBekreftetTilKlageJson(): KlageJson {
         fritekstTilBrev = this.fritekstTilBrev,
         vedtaksvurdering = null,
         attesteringer = this.attesteringer.toJson(),
+        klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },
     )
 }
 

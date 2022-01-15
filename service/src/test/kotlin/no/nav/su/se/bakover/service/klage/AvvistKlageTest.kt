@@ -210,6 +210,7 @@ internal class AvvistKlageTest {
                 vurderinger = klage.vurderinger,
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
+                klagevedtakshistorikk = klage.klagevedtakshistorikk,
             ).right()
         }
 
@@ -241,6 +242,7 @@ internal class AvvistKlageTest {
                 vurderinger = klage.vurderinger,
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
+                klagevedtakshistorikk = klage.klagevedtakshistorikk,
             )
         }
 
@@ -272,6 +274,7 @@ internal class AvvistKlageTest {
                 vurderinger = klage.vurderinger,
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
+                klagevedtakshistorikk = klage.klagevedtakshistorikk,
             )
         }
 
@@ -296,6 +299,7 @@ internal class AvvistKlageTest {
                 vurderinger = klage.vurderinger,
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
+                klagevedtakshistorikk = klage.klagevedtakshistorikk,
             )
         }
     }
@@ -324,6 +328,7 @@ internal class AvvistKlageTest {
             attesteringer = klage.attesteringer,
             datoKlageMottatt = klage.datoKlageMottatt,
             fritekstTilBrev = klage.fritekstTilBrev,
+            klagevedtakshistorikk = klage.klagevedtakshistorikk,
         )
     }
 }

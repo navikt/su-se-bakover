@@ -143,6 +143,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk,
             ).right()
         }
 
@@ -162,8 +163,8 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val vurderinger: VurderingerTilKlage?,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
-        override val klagevedtakshistorikk: Klagevedtakshistorikk,
-    ) : Utfylt() {
+            override val klagevedtakshistorikk: Klagevedtakshistorikk,
+        ) : Utfylt() {
             companion object {
                 fun create(
                     id: UUID,
@@ -178,6 +179,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger: VurderingerTilKlage?,
                     attesteringer: Attesteringshistorikk,
                     datoKlageMottatt: LocalDate,
+                    klagevedtakshistorikk: Klagevedtakshistorikk,
                 ): Avvist {
                     return Avvist(
                         id = id,
@@ -191,7 +193,8 @@ sealed interface VilkårsvurdertKlage : Klage {
                         vilkårsvurderinger = vilkårsvurderinger,
                         vurderinger = vurderinger,
                         attesteringer = attesteringer,
-                        datoKlageMottatt = datoKlageMottatt,klagevedtakshistorikk = klagevedtakshistorikk
+                        datoKlageMottatt = datoKlageMottatt,
+                        klagevedtakshistorikk = klagevedtakshistorikk,
                     )
                 }
             }
@@ -213,6 +216,7 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val vurderinger: VurderingerTilKlage?,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
+            override val klagevedtakshistorikk: Klagevedtakshistorikk,
         ) : Utfylt() {
             companion object {
                 fun create(
@@ -228,7 +232,8 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger: VurderingerTilKlage?,
                     attesteringer: Attesteringshistorikk,
                     datoKlageMottatt: LocalDate,
-                klagevedtakshistorikk: Klagevedtakshistorikk): TilVurdering {
+                    klagevedtakshistorikk: Klagevedtakshistorikk,
+                ): TilVurdering {
                     return TilVurdering(
                         id = id,
                         opprettet = opprettet,
@@ -242,7 +247,8 @@ sealed interface VilkårsvurdertKlage : Klage {
                         vurderinger = vurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk)
+                        klagevedtakshistorikk = klagevedtakshistorikk,
+                    )
                 }
             }
         }
@@ -261,6 +267,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                 vurderinger: VurderingerTilKlage?,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
+                klagevedtakshistorikk: Klagevedtakshistorikk,
             ): Utfylt {
                 if (vilkårsvurderinger.erAvvist()) {
                     return Avvist.create(
@@ -276,6 +283,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                         vurderinger = vurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
+                        klagevedtakshistorikk = klagevedtakshistorikk,
                     )
                 }
                 return TilVurdering.create(
@@ -291,6 +299,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
+                    klagevedtakshistorikk = klagevedtakshistorikk,
                 )
             }
         }
@@ -330,6 +339,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk,
             ).right()
         }
 
@@ -346,8 +356,8 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val vurderinger: VurderingerTilKlage?,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
-        override val klagevedtakshistorikk: Klagevedtakshistorikk,
-    ) : Bekreftet() {
+            override val klagevedtakshistorikk: Klagevedtakshistorikk,
+        ) : Bekreftet() {
             override fun leggTilAvvistFritekstTilBrev(
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 fritekst: String,
@@ -372,6 +382,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger: VurderingerTilKlage?,
                     attesteringer: Attesteringshistorikk,
                     datoKlageMottatt: LocalDate,
+                    klagevedtakshistorikk: Klagevedtakshistorikk,
                 ): Avvist {
                     return Avvist(
                         id = id,
@@ -386,7 +397,8 @@ sealed interface VilkårsvurdertKlage : Klage {
                         vurderinger = vurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk)
+                        klagevedtakshistorikk = klagevedtakshistorikk,
+                    )
                 }
             }
         }
@@ -404,6 +416,7 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val vurderinger: VurderingerTilKlage?,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
+            override val klagevedtakshistorikk: Klagevedtakshistorikk,
         ) : Bekreftet() {
 
             override fun vurder(
@@ -433,7 +446,8 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk)
+                    klagevedtakshistorikk = klagevedtakshistorikk
+                )
             }
 
             fun vurder(
@@ -452,8 +466,8 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
+                    datoKlageMottatt = datoKlageMottatt,
+                    klagevedtakshistorikk = klagevedtakshistorikk
                 )
             }
 
@@ -471,6 +485,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger: VurderingerTilKlage?,
                     attesteringer: Attesteringshistorikk,
                     datoKlageMottatt: LocalDate,
+                    klagevedtakshistorikk: Klagevedtakshistorikk,
                 ): TilVurdering {
                     return TilVurdering(
                         id = id,
@@ -485,6 +500,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                         vurderinger = vurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
+                        klagevedtakshistorikk = klagevedtakshistorikk,
                     )
                 }
             }
@@ -504,7 +520,8 @@ sealed interface VilkårsvurdertKlage : Klage {
                 vurderinger: VurderingerTilKlage?,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
-                klagevedtakshistorikk: Klagevedtakshistorikk): Bekreftet {
+                klagevedtakshistorikk: Klagevedtakshistorikk
+            ): Bekreftet {
                 if (vilkårsvurderinger.erAvvist()) {
                     return Avvist.create(
                         id = id,
@@ -519,6 +536,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                         vurderinger = vurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
+                        klagevedtakshistorikk = klagevedtakshistorikk,
                     )
                 }
 
@@ -535,7 +553,8 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk)
+                    klagevedtakshistorikk = klagevedtakshistorikk,
+                )
             }
         }
     }

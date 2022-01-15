@@ -96,6 +96,7 @@ sealed class KlageTilAttestering : Klage {
                 attesteringer = attesteringer.leggTilNyAttestering(iverksattAttestering),
                 datoKlageMottatt = datoKlageMottatt,
                 fritekstTilBrev = fritekstTilBrev,
+                klagevedtakshistorikk = klagevedtakshistorikk,
             ).right()
         }
 
@@ -121,6 +122,7 @@ sealed class KlageTilAttestering : Klage {
                         vurderinger = vurderinger,
                         attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
                         datoKlageMottatt = datoKlageMottatt,
+                        klagevedtakshistorikk = klagevedtakshistorikk,
                     ),
                     fritekstTilBrev = fritekstTilBrev,
                 )
@@ -142,6 +144,7 @@ sealed class KlageTilAttestering : Klage {
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
                 fritekstTilBrev: String,
+                klagevedtakshistorikk: Klagevedtakshistorikk,
             ): Avvist {
                 return Avvist(
                     id = id,
@@ -157,6 +160,7 @@ sealed class KlageTilAttestering : Klage {
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
                     fritekstTilBrev = fritekstTilBrev,
+                    klagevedtakshistorikk = klagevedtakshistorikk,
                 )
             }
         }
@@ -225,7 +229,8 @@ sealed class KlageTilAttestering : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
                     datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk)
+                    klagevedtakshistorikk = klagevedtakshistorikk
+                )
             }
         }
 
@@ -248,7 +253,8 @@ sealed class KlageTilAttestering : Klage {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer.leggTilNyAttestering(iverksattAttestering),
                 datoKlageMottatt = datoKlageMottatt,
-            klagevedtakshistorikk = klagevedtakshistorikk).right()
+                klagevedtakshistorikk = klagevedtakshistorikk
+            ).right()
         }
 
         companion object {
@@ -265,6 +271,7 @@ sealed class KlageTilAttestering : Klage {
                 vurderinger: VurderingerTilKlage.Utfylt,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
+                klagevedtakshistorikk: Klagevedtakshistorikk,
             ): Vurdert {
                 return Vurdert(
                     id = id,
@@ -279,6 +286,7 @@ sealed class KlageTilAttestering : Klage {
                     attesteringer = attesteringer,
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
+                    klagevedtakshistorikk = klagevedtakshistorikk,
                 )
             }
         }
@@ -316,6 +324,7 @@ sealed class KlageTilAttestering : Klage {
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     fritekstTilBrev = fritekstTilBrev,
+                    klagevedtakshistorikk = klagevedtakshistorikk,
                 )
             }
             return Vurdert.create(

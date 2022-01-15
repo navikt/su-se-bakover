@@ -386,6 +386,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk,
             )
             Tilstand.VILKÅRSVURDERT_UTFYLT_AVVIST -> VilkårsvurdertKlage.Utfylt.Avvist.create(
                 id = id,
@@ -415,6 +416,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk,
             )
             Tilstand.VILKÅRSVURDERT_BEKREFTET_AVVIST -> VilkårsvurdertKlage.Bekreftet.Avvist.create(
                 id = id,
@@ -490,6 +492,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     vurderinger = null,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
+                    klagevedtakshistorikk = klagevedtakshistorikk,
                 ),
                 fritekstTilBrev = fritekstTilBrev!!,
             )
@@ -523,6 +526,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 datoKlageMottatt = datoKlageMottatt,
                 fritekstTilBrev = fritekstTilBrev
                     ?: throw IllegalStateException("Fritekst må være fyllt ut for en avvist klage som er til attestering. id: $id"),
+                klagevedtakshistorikk = klagevedtakshistorikk,
             )
             Tilstand.OVERSENDT -> OversendtKlage.create(
                 id = id,
@@ -552,6 +556,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 fritekstTilBrev = fritekstTilBrev!!,
+                klagevedtakshistorikk = klagevedtakshistorikk,
             )
         }
     }

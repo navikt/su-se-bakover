@@ -367,6 +367,7 @@ internal class UnderkjennKlageTest {
                         ),
                     ),
                     datoKlageMottatt = 1.desember(2021),
+                    klagevedtakshistorikk = klage.klagevedtakshistorikk
                 ),
                 fritekstTilBrev = "dette er en fritekst med person opplysninger",
             )

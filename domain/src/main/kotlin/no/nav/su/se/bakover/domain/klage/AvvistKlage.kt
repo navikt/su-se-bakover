@@ -91,6 +91,7 @@ data class AvvistKlage private constructor(
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 fritekstTilBrev = fritekstTilBrev,
+                klagevedtakshistorikk = klagevedtakshistorikk,
             )
         }
     }
