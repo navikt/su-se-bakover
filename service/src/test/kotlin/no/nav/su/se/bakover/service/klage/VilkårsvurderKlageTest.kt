@@ -226,7 +226,6 @@ internal class VilkårsvurderKlageTest {
         verifiserGyldigStatusovergangTilPåbegynt(
             vedtak = vedtak,
             klage = klage,
-            vurderingerTilKlage = klage.vurderinger,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             vedtak = vedtak,
@@ -243,7 +242,6 @@ internal class VilkårsvurderKlageTest {
         verifiserGyldigStatusovergangTilPåbegynt(
             vedtak = vedtak,
             klage = klage,
-            vurderingerTilKlage = klage.vurderinger,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             vedtak = vedtak,
@@ -260,7 +258,6 @@ internal class VilkårsvurderKlageTest {
         verifiserGyldigStatusovergangTilPåbegynt(
             vedtak = vedtak,
             klage = klage,
-            vurderingerTilKlage = klage.vurderinger,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             vedtak = vedtak,
@@ -277,7 +274,6 @@ internal class VilkårsvurderKlageTest {
         verifiserGyldigStatusovergangTilPåbegynt(
             vedtak = vedtak,
             klage = klage,
-            vurderingerTilKlage = klage.vurderinger,
             attesteringer = klage.attesteringer,
         )
         verifiserGyldigStatusovergangTilUtfylt(
@@ -307,7 +303,6 @@ internal class VilkårsvurderKlageTest {
     private fun verifiserGyldigStatusovergangTilPåbegynt(
         vedtak: Vedtak,
         klage: Klage,
-        vurderingerTilKlage: VurderingerTilKlage? = null,
         attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     ) {
         val mocks = KlageServiceMocks(
@@ -331,7 +326,7 @@ internal class VilkårsvurderKlageTest {
         )
 
         var expectedKlage: VilkårsvurdertKlage.Påbegynt?
-        mocks.service.vilkårsvurder(request).orNull()!!.also {
+        mocks.service.vilkårsvurder(request).getOrFail().also {
             expectedKlage = VilkårsvurdertKlage.Påbegynt.create(
                 id = it.id,
                 opprettet = fixedTidspunkt,
@@ -342,7 +337,6 @@ internal class VilkårsvurderKlageTest {
                 oppgaveId = klage.oppgaveId,
                 saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
                 vilkårsvurderinger = VilkårsvurderingerTilKlage.empty(),
-                vurderinger = vurderingerTilKlage,
                 attesteringer = attesteringer,
                 datoKlageMottatt = 1.desember(2021),
                 klagevedtakshistorikk = Klagevedtakshistorikk.empty()

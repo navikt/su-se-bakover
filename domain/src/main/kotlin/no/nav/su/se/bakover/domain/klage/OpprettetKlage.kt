@@ -75,7 +75,6 @@ data class OpprettetKlage private constructor(
             oppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
             vilkårsvurderinger = vilkårsvurderinger,
-            vurderinger = null,
             attesteringer = Attesteringshistorikk.empty(),
             datoKlageMottatt = datoKlageMottatt,
             klagevedtakshistorikk = klagevedtakshistorikk

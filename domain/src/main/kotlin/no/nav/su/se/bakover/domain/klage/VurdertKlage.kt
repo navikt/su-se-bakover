@@ -67,7 +67,6 @@ sealed class VurdertKlage : Klage {
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
-                vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 klagevedtakshistorikk = klagevedtakshistorikk

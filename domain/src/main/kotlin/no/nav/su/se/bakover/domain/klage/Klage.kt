@@ -82,7 +82,6 @@ sealed interface Klage {
     }
 
     /**
-     * Dersom vi allerede har vurderinger vil vi ta vare på disse videre.
      * @return [VilkårsvurdertKlage.Påbegynt] eller [VilkårsvurdertKlage.Utfylt]
      */
     fun vilkårsvurder(

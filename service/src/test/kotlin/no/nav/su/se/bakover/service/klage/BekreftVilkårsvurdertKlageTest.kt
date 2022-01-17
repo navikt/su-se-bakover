@@ -128,7 +128,7 @@ internal class BekreftVilkårsvurdertKlageTest {
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
                 vilkårsvurderingerTilKlage = it.second.vilkårsvurderinger,
-                vurderingerTilKlage = it.second.vurderinger,
+                vurderingerTilKlage = null,
             )
         }
     }
@@ -188,7 +188,7 @@ internal class BekreftVilkårsvurdertKlageTest {
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
                 vilkårsvurderingerTilKlage = it.second.vilkårsvurderinger,
-                vurderingerTilKlage = it.second.vurderinger,
+                vurderingerTilKlage = null,
             )
         }
     }

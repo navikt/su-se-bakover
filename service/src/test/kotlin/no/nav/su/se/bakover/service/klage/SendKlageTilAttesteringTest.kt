@@ -298,7 +298,7 @@ internal class SendKlageTilAttesteringTest {
                         else -> throw IllegalStateException("Bare VilkårsvurdertKlage.Bekreftet(Avvist), og VurdertKlage.Bekreftet kan sendes til attestering")
                     },
                     vurderinger = when (klage) {
-                        is AvvistKlage -> klage.vurderinger
+                        is AvvistKlage -> null
                         is VurdertKlage.Bekreftet -> klage.vurderinger
                         else -> throw IllegalStateException("Bare VilkårsvurdertKlage.Bekreftet(Avvist), og VurdertKlage.Bekreftet kan sendes til attestering")
                     },

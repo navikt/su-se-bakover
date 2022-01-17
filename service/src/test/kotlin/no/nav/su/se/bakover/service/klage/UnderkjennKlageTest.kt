@@ -355,7 +355,6 @@ internal class UnderkjennKlageTest {
                     oppgaveId = OppgaveId("nyOppgaveId"),
                     saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                     vilkårsvurderinger = klage.vilkårsvurderinger,
-                    vurderinger = klage.vurderinger,
                     attesteringer = Attesteringshistorikk.create(
                         listOf(
                             Attestering.Underkjent(
