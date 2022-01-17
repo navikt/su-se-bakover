@@ -32,7 +32,6 @@ sealed class KlageTilAttestering : Klage {
     abstract override val oppgaveId: OppgaveId
     abstract override val saksbehandler: NavIdentBruker.Saksbehandler
     abstract override val datoKlageMottatt: LocalDate
-    abstract override val klagevedtakshistorikk: Klagevedtakshistorikk
     abstract val attesteringer: Attesteringshistorikk
     abstract val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
 
@@ -48,7 +47,6 @@ sealed class KlageTilAttestering : Klage {
         override val datoKlageMottatt: LocalDate,
         override val attesteringer: Attesteringshistorikk,
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-        override val klagevedtakshistorikk: Klagevedtakshistorikk,
         val fritekstTilBrev: String,
     ) : KlageTilAttestering() {
 
@@ -94,7 +92,6 @@ sealed class KlageTilAttestering : Klage {
                 attesteringer = attesteringer.leggTilNyAttestering(iverksattAttestering),
                 datoKlageMottatt = datoKlageMottatt,
                 fritekstTilBrev = fritekstTilBrev,
-                klagevedtakshistorikk = klagevedtakshistorikk,
             ).right()
         }
 
@@ -119,7 +116,6 @@ sealed class KlageTilAttestering : Klage {
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
                         datoKlageMottatt = datoKlageMottatt,
-                        klagevedtakshistorikk = klagevedtakshistorikk,
                     ),
                     fritekstTilBrev = fritekstTilBrev,
                 )
@@ -140,7 +136,6 @@ sealed class KlageTilAttestering : Klage {
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
                 fritekstTilBrev: String,
-                klagevedtakshistorikk: Klagevedtakshistorikk,
             ): Avvist {
                 return Avvist(
                     id = id,
@@ -155,7 +150,6 @@ sealed class KlageTilAttestering : Klage {
                     attesteringer = attesteringer,
                     vilkårsvurderinger = vilkårsvurderinger,
                     fritekstTilBrev = fritekstTilBrev,
-                    klagevedtakshistorikk = klagevedtakshistorikk,
                 )
             }
         }
@@ -173,7 +167,7 @@ sealed class KlageTilAttestering : Klage {
         override val datoKlageMottatt: LocalDate,
         override val attesteringer: Attesteringshistorikk,
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-        override val klagevedtakshistorikk: Klagevedtakshistorikk,
+        val klagevedtakshistorikk: Klagevedtakshistorikk,
         val vurderinger: VurderingerTilKlage.Utfylt,
     ) : KlageTilAttestering() {
 
@@ -302,7 +296,7 @@ sealed class KlageTilAttestering : Klage {
             attesteringer: Attesteringshistorikk,
             datoKlageMottatt: LocalDate,
             fritekstTilBrev: String,
-            klagevedtakshistorikk: Klagevedtakshistorikk,
+            klagevedtakshistorikk: Klagevedtakshistorikk?,
         ): KlageTilAttestering {
             if (vilkårsvurderinger.erAvvist()) {
                 return Avvist.create(
@@ -318,7 +312,6 @@ sealed class KlageTilAttestering : Klage {
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     fritekstTilBrev = fritekstTilBrev,
-                    klagevedtakshistorikk = klagevedtakshistorikk,
                 )
             }
             return Vurdert.create(
@@ -338,6 +331,7 @@ sealed class KlageTilAttestering : Klage {
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 klagevedtakshistorikk = klagevedtakshistorikk
+                    ?: throw IllegalArgumentException("Ugyldig argumenter for lage en Vurdert klage. Klagevedtakhistorikk på være fyllt ut"),
             )
         }
     }

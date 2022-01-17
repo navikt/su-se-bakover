@@ -30,7 +30,7 @@ data class OversendtKlage private constructor(
     override val oppgaveId: OppgaveId,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val datoKlageMottatt: LocalDate,
-    override val klagevedtakshistorikk: Klagevedtakshistorikk,
+    val klagevedtakshistorikk: Klagevedtakshistorikk,
     val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
     val vurderinger: VurderingerTilKlage.Utfylt,
     val attesteringer: Attesteringshistorikk,

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
@@ -209,7 +210,6 @@ internal class AvvistKlageTest {
                 vilkårsvurderinger = VilkårsvurderingerTilKlage.Påbegynt.empty(),
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
-                klagevedtakshistorikk = klage.klagevedtakshistorikk,
             ).right()
         }
 
@@ -241,7 +241,7 @@ internal class AvvistKlageTest {
                 vurderinger = null,
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
-                klagevedtakshistorikk = klage.klagevedtakshistorikk,
+                klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
             )
         }
 
@@ -272,7 +272,6 @@ internal class AvvistKlageTest {
                 vilkårsvurderinger = actual.vilkårsvurderinger as VilkårsvurderingerTilKlage.Utfylt,
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
-                klagevedtakshistorikk = klage.klagevedtakshistorikk,
             )
         }
 
@@ -296,7 +295,6 @@ internal class AvvistKlageTest {
                 vilkårsvurderinger = actual.vilkårsvurderinger,
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
-                klagevedtakshistorikk = klage.klagevedtakshistorikk,
             )
         }
     }
@@ -324,7 +322,6 @@ internal class AvvistKlageTest {
             attesteringer = klage.attesteringer,
             datoKlageMottatt = klage.datoKlageMottatt,
             fritekstTilBrev = klage.fritekstTilBrev,
-            klagevedtakshistorikk = klage.klagevedtakshistorikk,
         )
     }
 }

@@ -32,6 +32,17 @@ sealed interface VilkårsvurdertKlage : Klage {
             is Utfylt.TilVurdering -> this.vurderinger
         }
 
+        val klagevedtakshistorikk = when (this) {
+            is Påbegynt,
+            is Utfylt.Avvist,
+            is Bekreftet.Avvist,
+            is AvvistKlage,
+            -> Klagevedtakshistorikk.empty()
+
+            is Bekreftet.TilVurdering -> this.klagevedtakshistorikk
+            is Utfylt.TilVurdering -> this.klagevedtakshistorikk
+        }
+
         return when (vilkårsvurderinger) {
             is VilkårsvurderingerTilKlage.Utfylt -> Utfylt.create(
                 id = id,
@@ -60,7 +71,6 @@ sealed interface VilkårsvurdertKlage : Klage {
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk,
             )
         }.right()
     }
@@ -77,7 +87,6 @@ sealed interface VilkårsvurdertKlage : Klage {
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
         override val attesteringer: Attesteringshistorikk,
         override val datoKlageMottatt: LocalDate,
-        override val klagevedtakshistorikk: Klagevedtakshistorikk,
     ) : VilkårsvurdertKlage {
 
         companion object {
@@ -93,7 +102,6 @@ sealed interface VilkårsvurdertKlage : Klage {
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
-                klagevedtakshistorikk: Klagevedtakshistorikk,
             ) = Påbegynt(
                 id = id,
                 opprettet = opprettet,
@@ -106,7 +114,6 @@ sealed interface VilkårsvurdertKlage : Klage {
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
             )
         }
     }
@@ -142,7 +149,6 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
-            override val klagevedtakshistorikk: Klagevedtakshistorikk,
         ) : Utfylt() {
 
             override fun bekreftVilkårsvurderinger(
@@ -160,7 +166,6 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk,
                 ).right()
             }
 
@@ -177,7 +182,6 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
                     attesteringer: Attesteringshistorikk,
                     datoKlageMottatt: LocalDate,
-                    klagevedtakshistorikk: Klagevedtakshistorikk,
                 ): Avvist {
                     return Avvist(
                         id = id,
@@ -191,7 +195,6 @@ sealed interface VilkårsvurdertKlage : Klage {
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
-                        klagevedtakshistorikk = klagevedtakshistorikk,
                     )
                 }
             }
@@ -212,10 +215,7 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
-            override val klagevedtakshistorikk: Klagevedtakshistorikk,
-            /**
-             * Siden det er mulig å gå tilbake fra [VurdertKlage] til [VilkårsvurdertKlage] må vå holde på den informasjon.
-             */
+            val klagevedtakshistorikk: Klagevedtakshistorikk,
             val vurderinger: VurderingerTilKlage?,
         ) : Utfylt() {
 
@@ -303,9 +303,9 @@ sealed interface VilkårsvurdertKlage : Klage {
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
-                        klagevedtakshistorikk = klagevedtakshistorikk,
                     )
                 }
+
                 return TilVurdering.create(
                     id = id,
                     opprettet = opprettet,
@@ -354,7 +354,6 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
-            override val klagevedtakshistorikk: Klagevedtakshistorikk,
         ) : Bekreftet() {
             override fun leggTilAvvistFritekstTilBrev(
                 saksbehandler: NavIdentBruker.Saksbehandler,
@@ -381,7 +380,6 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk,
                 ).right()
             }
 
@@ -398,7 +396,6 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
                     attesteringer: Attesteringshistorikk,
                     datoKlageMottatt: LocalDate,
-                    klagevedtakshistorikk: Klagevedtakshistorikk,
                 ): Avvist {
                     return Avvist(
                         id = id,
@@ -412,7 +409,6 @@ sealed interface VilkårsvurdertKlage : Klage {
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
-                        klagevedtakshistorikk = klagevedtakshistorikk,
                     )
                 }
             }
@@ -430,8 +426,8 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
-            override val klagevedtakshistorikk: Klagevedtakshistorikk,
             val vurderinger: VurderingerTilKlage?,
+            val klagevedtakshistorikk: Klagevedtakshistorikk,
         ) : Bekreftet() {
 
             override fun vurder(
@@ -555,7 +551,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                 vurderinger: VurderingerTilKlage?,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
-                klagevedtakshistorikk: Klagevedtakshistorikk
+                klagevedtakshistorikk: Klagevedtakshistorikk,
             ): Bekreftet {
                 if (vilkårsvurderinger.erAvvist()) {
                     return Avvist.create(
@@ -570,7 +566,6 @@ sealed interface VilkårsvurdertKlage : Klage {
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
-                        klagevedtakshistorikk = klagevedtakshistorikk,
                     )
                 }
 

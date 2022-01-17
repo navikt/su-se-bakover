@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.klage
 import arrow.core.right
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -10,6 +11,7 @@ import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
+import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -340,7 +342,7 @@ internal class KlagePostgresRepoTest {
                 opprettet = fixedTidspunkt,
                 klageId = klage.id,
                 utfall = KlagevedtakUtfall.RETUR,
-                vedtaksbrevReferanse = UUID.randomUUID().toString()
+                vedtaksbrevReferanse = UUID.randomUUID().toString(),
             )
 
             val nyOppgave = OppgaveId("123")
@@ -350,7 +352,9 @@ internal class KlagePostgresRepoTest {
                 klageRepo.lagre(nyKlage, tx)
             }
 
-            klageRepo.hentKlage(klage.id)!!.klagevedtakshistorikk.shouldBeEmpty()
+            val hentet = klageRepo.hentKlage(klage.id)!!
+            hentet.shouldBeTypeOf<VurdertKlage.Bekreftet>()
+            hentet.klagevedtakshistorikk.shouldBeEmpty()
         }
     }
 }

@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
-import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
@@ -34,7 +33,6 @@ fun opprettetKlage(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 1.desember(2021),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
-    klagevedtakshistorikk: Klagevedtakshistorikk = Klagevedtakshistorikk.empty()
 ): Pair<Sak, OpprettetKlage> {
     assert(sakMedVedtak.vedtakListe.isNotEmpty())
     val klage = OpprettetKlage.create(
@@ -47,7 +45,6 @@ fun opprettetKlage(
         oppgaveId = oppgaveId,
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
-        klagevedtakshistorikk = klagevedtakshistorikk
     )
     return Pair(
         sakMedVedtak.copy(klager = sakMedVedtak.klager + klage),

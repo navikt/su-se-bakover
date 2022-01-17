@@ -30,7 +30,6 @@ data class IverksattAvvistKlage private constructor(
     override val oppgaveId: OppgaveId,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val datoKlageMottatt: LocalDate,
-    override val klagevedtakshistorikk: Klagevedtakshistorikk,
     val attesteringer: Attesteringshistorikk,
     val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
     val fritekstTilBrev: String,
@@ -73,7 +72,6 @@ data class IverksattAvvistKlage private constructor(
             attesteringer: Attesteringshistorikk,
             datoKlageMottatt: LocalDate,
             fritekstTilBrev: String,
-            klagevedtakshistorikk: Klagevedtakshistorikk,
         ): IverksattAvvistKlage {
             return IverksattAvvistKlage(
                 id = id,
@@ -88,7 +86,6 @@ data class IverksattAvvistKlage private constructor(
                 attesteringer = attesteringer,
                 vilkårsvurderinger = vilkårsvurderinger,
                 fritekstTilBrev = fritekstTilBrev,
-                klagevedtakshistorikk = klagevedtakshistorikk,
             )
         }
     }

@@ -51,20 +51,23 @@ sealed interface Klage {
     val oppgaveId: OppgaveId
     val datoKlageMottatt: LocalDate
     val saksbehandler: NavIdentBruker.Saksbehandler
-    val klagevedtakshistorikk: Klagevedtakshistorikk
 
     fun erÅpen(): Boolean {
         return when (this) {
-            is OpprettetKlage,
-            is VilkårsvurdertKlage,
-            is VurdertKlage,
-            is AvvistKlage,
-            is KlageTilAttestering,
-            -> true
-
-            is IverksattAvvistKlage,
-            is OversendtKlage,
-            -> false
+            is AvvistKlage -> true
+            is IverksattAvvistKlage -> true
+            is KlageTilAttestering.Avvist -> true
+            is KlageTilAttestering.Vurdert -> true
+            is OpprettetKlage -> true
+            is OversendtKlage -> true
+            is VilkårsvurdertKlage.Bekreftet.Avvist -> true
+            is VilkårsvurdertKlage.Bekreftet.TilVurdering -> true
+            is VilkårsvurdertKlage.Påbegynt -> true
+            is VilkårsvurdertKlage.Utfylt.Avvist -> true
+            is VilkårsvurdertKlage.Utfylt.TilVurdering -> true
+            is VurdertKlage.Bekreftet -> true
+            is VurdertKlage.Påbegynt -> true
+            is VurdertKlage.Utfylt -> true
         }
     }
 
@@ -128,7 +131,7 @@ sealed interface Klage {
         return KunneIkkeSendeTilAttestering.UgyldigTilstand(this::class, KlageTilAttestering::class).left()
     }
 
-    /** @return [VurdertKlage.Bekreftet] eller [AvvistKlage.Bekreftet] */
+    /** @return [VurdertKlage.Bekreftet] eller [AvvistKlage] */
     fun underkjenn(
         underkjentAttestering: Attestering.Underkjent,
         opprettOppgave: () -> Either<KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave, OppgaveId>,
@@ -142,6 +145,7 @@ sealed interface Klage {
         return KunneIkkeOversendeKlage.UgyldigTilstand(this::class, OversendtKlage::class).left()
     }
 
+    /** @return [OversendtKlage] eller [VurdertKlage.Bekreftet] */
     fun leggTilNyttKlagevedtak(
         uprosessertKlageinstansVedtak: UprosessertKlageinstansvedtak,
         lagOppgaveCallback: () -> Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId>,
@@ -176,7 +180,6 @@ sealed interface Klage {
                 oppgaveId = oppgaveId,
                 datoKlageMottatt = datoKlageMottatt,
                 saksbehandler = saksbehandler,
-                klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
             )
         }
     }

@@ -339,7 +339,6 @@ internal class VilkårsvurderKlageTest {
                 vilkårsvurderinger = VilkårsvurderingerTilKlage.empty(),
                 attesteringer = attesteringer,
                 datoKlageMottatt = 1.desember(2021),
-                klagevedtakshistorikk = Klagevedtakshistorikk.empty()
             )
             it shouldBe expectedKlage
         }

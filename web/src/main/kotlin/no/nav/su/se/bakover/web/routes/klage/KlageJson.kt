@@ -118,7 +118,7 @@ internal fun Klage.toJson(): KlageJson {
             fritekstTilBrev = null,
             vedtaksvurdering = null,
             attesteringer = emptyList(),
-            klagevedtakshistorikk = this.klagevedtakshistorikk.map { it.toJson() },
+            klagevedtakshistorikk = emptyList(),
         )
         is VilkårsvurdertKlage.Påbegynt -> KlageJson(
             id = this.id.toString(),
@@ -136,7 +136,7 @@ internal fun Klage.toJson(): KlageJson {
             fritekstTilBrev = null,
             vedtaksvurdering = null,
             attesteringer = this.attesteringer.toJson(),
-            klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },
+            klagevedtakshistorikk = emptyList(),
         )
         is VilkårsvurdertKlage.Utfylt.TilVurdering -> this.mapUtfyltOgBekreftetTilKlageJson()
         is VilkårsvurdertKlage.Utfylt.Avvist -> this.mapUtfyltOgBekreftetTilKlageJson()
@@ -197,7 +197,7 @@ internal fun Klage.toJson(): KlageJson {
             fritekstTilBrev = this.fritekstTilBrev,
             vedtaksvurdering = null,
             attesteringer = this.attesteringer.toJson(),
-            klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },
+            klagevedtakshistorikk = emptyList(),
         )
         is OversendtKlage -> KlageJson(
             id = this.id.toString(),
@@ -233,7 +233,7 @@ internal fun Klage.toJson(): KlageJson {
             fritekstTilBrev = this.fritekstTilBrev,
             vedtaksvurdering = null,
             attesteringer = this.attesteringer.toJson(),
-            klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },
+            klagevedtakshistorikk = emptyList(),
         )
     }
 }
@@ -424,7 +424,14 @@ private fun VilkårsvurdertKlage.mapUtfyltOgBekreftetTilKlageJson(): KlageJson {
         fritekstTilBrev = null,
         vedtaksvurdering = null,
         attesteringer = this.attesteringer.toJson(),
-        klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },
+        klagevedtakshistorikk = when (this) {
+            is AvvistKlage -> emptyList()
+            is VilkårsvurdertKlage.Bekreftet.Avvist -> emptyList()
+            is VilkårsvurdertKlage.Bekreftet.TilVurdering -> klagevedtakshistorikk.map { it.toJson() }
+            is VilkårsvurdertKlage.Påbegynt -> emptyList()
+            is VilkårsvurdertKlage.Utfylt.Avvist -> emptyList()
+            is VilkårsvurdertKlage.Utfylt.TilVurdering -> klagevedtakshistorikk.map { it.toJson() }
+        },
     )
 }
 
@@ -470,7 +477,7 @@ private fun AvvistKlage.mapPåbegyntOgBekreftetTilKlageJson(): KlageJson {
         fritekstTilBrev = this.fritekstTilBrev,
         vedtaksvurdering = null,
         attesteringer = this.attesteringer.toJson(),
-        klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },
+        klagevedtakshistorikk = emptyList(),
     )
 }
 

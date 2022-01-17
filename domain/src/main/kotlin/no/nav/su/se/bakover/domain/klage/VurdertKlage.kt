@@ -25,6 +25,7 @@ sealed class VurdertKlage : Klage {
     abstract val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
     abstract val vurderinger: VurderingerTilKlage
     abstract val attesteringer: Attesteringshistorikk
+    abstract val klagevedtakshistorikk: Klagevedtakshistorikk
 
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
         return vurderinger.fritekstTilBrev.orEmpty().right()
@@ -69,7 +70,6 @@ sealed class VurdertKlage : Klage {
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
             )
             is VilkårsvurderingerTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
                 id = id,
