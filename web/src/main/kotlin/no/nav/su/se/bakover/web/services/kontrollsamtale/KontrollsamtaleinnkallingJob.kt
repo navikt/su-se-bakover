@@ -25,7 +25,7 @@ class KontrollsamtaleinnkallingJob(
     private val periode = Duration.of(1, ChronoUnit.DAYS).toMillis()
 
     private val nå = LocalDateTime.now(clock)
-    private val iMorgenKlokka7 = nå.plusDays(1).withHour(7).withMinute(0).withSecond(0) // TODO(Når vil vi sende ut?)
+    private val iMorgenKlokka7 = nå.plusDays(1).withHour(7).withMinute(0).withSecond(0)
     private val tidTilKlokka7IMorgen = ChronoUnit.MILLIS.between(nå, iMorgenKlokka7)
 
     fun schedule() {

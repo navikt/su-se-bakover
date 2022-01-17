@@ -8,7 +8,5 @@ interface KontrollsamtaleRepo {
     fun lagre(kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext = defaultTransactionContext())
     fun hent(sakId: UUID): List<Kontrollsamtale>
     fun hentAllePlanlagte(tilOgMed: LocalDate): List<Kontrollsamtale>
-    fun oppdaterStatus(id: UUID, status: Kontrollsamtalestatus)
-    fun oppdaterKontrollsamtale(kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext = defaultTransactionContext())
     fun defaultTransactionContext(): TransactionContext
 }

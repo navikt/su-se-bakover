@@ -85,7 +85,7 @@ class KontrollsamtaleServiceImpl(
                     sakId = sakId,
                     tx = tx,
                 )
-                kontrollsamtaleRepo.oppdaterKontrollsamtale(
+                kontrollsamtaleRepo.lagre(
                     kontrollsamtale = kontrollsamtale.copy(
                         status = Kontrollsamtalestatus.INNKALT,
                         dokumentId = dokument.id,
@@ -97,7 +97,7 @@ class KontrollsamtaleServiceImpl(
                         saksnummer = sak.saksnummer,
                         aktørId = person.ident.aktørId,
                         clock = clock,
-                    )
+                    ),
                 )
                     .getOrElse {
                         throw RuntimeException("Fikk ikke opprettet oppgave").also {
@@ -130,7 +130,7 @@ class KontrollsamtaleServiceImpl(
                 kontrollsamtaleRepo.lagre(nyKontrollsamtale)
             },
             ifRight = {
-                kontrollsamtaleRepo.oppdaterKontrollsamtale(
+                kontrollsamtaleRepo.lagre(
                     it.copy(
                         innkallingsdato = dato,
                         frist = regnUtFristFraInnkallingsdato(dato),
@@ -147,7 +147,7 @@ class KontrollsamtaleServiceImpl(
 
     override fun hentPlanlagteKontrollsamtaler(clock: Clock): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> =
         Either.catch { kontrollsamtaleRepo.hentAllePlanlagte(LocalDate.now(clock)) }.mapLeft {
-            log.error("Kunne ikke hente planlagte kontrollsamtaler før ${LocalDate.now(clock)}. Stacktrace: ${it.stackTrace}")
+            log.error("Kunne ikke hente planlagte kontrollsamtaler før ${LocalDate.now(clock)}", it)
             return KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler.left()
         }
 
@@ -183,7 +183,7 @@ class KontrollsamtaleServiceImpl(
             log.info("Fant ingen planlagt kontrollsamtale for sakId $sakId")
             KunneIkkeKalleInnTilKontrollsamtale.FantIkkeKontrollsamtale
         }.map {
-            kontrollsamtaleRepo.oppdaterStatus(it.id, status)
+            kontrollsamtaleRepo.lagre(it.copy(status = status))
         }
 
     private fun opprettPlanlagtKontrollsamtaleOmDetTrengs(
@@ -248,28 +248,28 @@ class KontrollsamtaleServiceImpl(
     }
 }
 
-sealed class KunneIkkeSetteNyDatoForKontrollsamtale {
-    object KunneIkkeEndreDato : KunneIkkeSetteNyDatoForKontrollsamtale()
+sealed interface KunneIkkeSetteNyDatoForKontrollsamtale {
+    object KunneIkkeEndreDato : KunneIkkeSetteNyDatoForKontrollsamtale
 }
 
-sealed class KunneIkkeKalleInnTilKontrollsamtale {
-    object FantIkkeSak : KunneIkkeKalleInnTilKontrollsamtale()
-    object FantIkkePerson : KunneIkkeKalleInnTilKontrollsamtale()
-    object KunneIkkeGenerereDokument : KunneIkkeKalleInnTilKontrollsamtale()
-    object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeKalleInnTilKontrollsamtale()
-    object KunneIkkeKalleInn : KunneIkkeKalleInnTilKontrollsamtale()
-    object FantIkkeGjeldendeStønadsperiode : KunneIkkeKalleInnTilKontrollsamtale()
-    object KunneIkkeLagreKontrollsamtale : KunneIkkeKalleInnTilKontrollsamtale()
-    object FantIkkeKontrollsamtale : KunneIkkeKalleInnTilKontrollsamtale()
-    object SkalIkkePlanleggeKontrollsamtale : KunneIkkeKalleInnTilKontrollsamtale()
-    object PlanlagtKontrollsamtaleFinnesAllerede : KunneIkkeKalleInnTilKontrollsamtale()
+sealed interface KunneIkkeKalleInnTilKontrollsamtale {
+    object FantIkkeSak : KunneIkkeKalleInnTilKontrollsamtale
+    object FantIkkePerson : KunneIkkeKalleInnTilKontrollsamtale
+    object KunneIkkeGenerereDokument : KunneIkkeKalleInnTilKontrollsamtale
+    object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeKalleInnTilKontrollsamtale
+    object KunneIkkeKalleInn : KunneIkkeKalleInnTilKontrollsamtale
+    object FantIkkeGjeldendeStønadsperiode : KunneIkkeKalleInnTilKontrollsamtale
+    object KunneIkkeLagreKontrollsamtale : KunneIkkeKalleInnTilKontrollsamtale
+    object FantIkkeKontrollsamtale : KunneIkkeKalleInnTilKontrollsamtale
+    object SkalIkkePlanleggeKontrollsamtale : KunneIkkeKalleInnTilKontrollsamtale
+    object PlanlagtKontrollsamtaleFinnesAllerede : KunneIkkeKalleInnTilKontrollsamtale
 }
 
-sealed class LagreKontrollsamtale {
-    object InnkallingOpprettet : LagreKontrollsamtale()
+sealed interface LagreKontrollsamtale {
+    object InnkallingOpprettet : LagreKontrollsamtale
 }
 
-sealed class KunneIkkeHenteKontrollsamtale {
-    object FantIkkeKontrollsamtale : KunneIkkeHenteKontrollsamtale()
-    object KunneIkkeHenteKontrollsamtaler : KunneIkkeHenteKontrollsamtale()
+sealed interface KunneIkkeHenteKontrollsamtale {
+    object FantIkkeKontrollsamtale : KunneIkkeHenteKontrollsamtale
+    object KunneIkkeHenteKontrollsamtaler : KunneIkkeHenteKontrollsamtale
 }

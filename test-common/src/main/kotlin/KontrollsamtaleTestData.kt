@@ -12,7 +12,7 @@ fun kontrollsamtale(
     sakId: UUID = UUID.randomUUID(),
     innkallingsdato: LocalDate = fixedLocalDate.plusMonths(4),
     status: Kontrollsamtalestatus = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
-    frist: LocalDate? = fixedLocalDate.plusMonths(5),
+    frist: LocalDate = fixedLocalDate.plusMonths(5),
     dokumentId: UUID? = null
 ): Kontrollsamtale = Kontrollsamtale(
     id = id,

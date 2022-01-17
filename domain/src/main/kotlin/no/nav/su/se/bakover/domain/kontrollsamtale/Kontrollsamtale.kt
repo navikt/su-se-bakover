@@ -14,7 +14,7 @@ data class Kontrollsamtale(
     val sakId: UUID,
     val innkallingsdato: LocalDate,
     val status: Kontrollsamtalestatus,
-    val frist: LocalDate?,
+    val frist: LocalDate,
     val dokumentId: UUID?,
 )
 
@@ -25,7 +25,7 @@ enum class Kontrollsamtalestatus(val value: String) {
     ANNULLERT("ANNULLERT"),
 }
 
-fun regnUtFristFraInnkallingsdato(innkallingsdato: LocalDate?): LocalDate? = innkallingsdato?.endOfMonth()
+fun regnUtFristFraInnkallingsdato(innkallingsdato: LocalDate): LocalDate = innkallingsdato.endOfMonth()
 
 private fun LocalDate.erMindreEnnEnMånedSenere(localDate: LocalDate) = this.isBefore(localDate.plusMonths(1))
 

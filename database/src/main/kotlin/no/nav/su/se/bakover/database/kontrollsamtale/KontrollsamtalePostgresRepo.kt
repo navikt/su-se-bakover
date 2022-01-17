@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
-import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuidOrNull
@@ -22,9 +21,18 @@ internal class KontrollsamtalePostgresRepo(
     override fun lagre(kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext) {
         transactionContext.withTransaction { transaction ->
             (
-                "insert into kontrollsamtale (id, opprettet, sakid, innkallingsdato, status, frist, dokumentid) " +
-                    "values (:id, :opprettet, :sakId, :innkallingsdato, :status, :frist, :dokumentid)"
-                ).insert(
+                """
+                    insert into kontrollsamtale (id, opprettet, sakid, innkallingsdato, status, frist, dokumentid)
+                    values (:id, :opprettet, :sakId, :innkallingsdato, :status, :frist, :dokumentid)
+                    on conflict(id)
+                    do
+                        update set 
+                            status=:status,
+                            innkallingsdato=:innkallingsdato,
+                            frist=:frist,
+                            dokumentid=:dokumentId
+                """
+                ).trimIndent().insert(
                 mapOf(
                     "id" to kontrollsamtale.id,
                     "opprettet" to kontrollsamtale.opprettet,
@@ -32,7 +40,7 @@ internal class KontrollsamtalePostgresRepo(
                     "innkallingsdato" to kontrollsamtale.innkallingsdato,
                     "status" to kontrollsamtale.status.toString(),
                     "frist" to kontrollsamtale.frist,
-                    "dokumentId" to kontrollsamtale.dokumentId
+                    "dokumentId" to kontrollsamtale.dokumentId,
                 ),
                 transaction,
             )
@@ -59,43 +67,6 @@ internal class KontrollsamtalePostgresRepo(
                 ) { it.toKontrollsamtale() }
         }
 
-    override fun oppdaterStatus(id: UUID, status: Kontrollsamtalestatus) {
-        sessionFactory.withSession { session ->
-            """
-                update kontrollsamtale set 
-                    status=:status,
-                where id=:id
-            """.trimIndent().oppdatering(
-                mapOf(
-                    "status" to status,
-                ),
-                session,
-            )
-        }
-    }
-
-    override fun oppdaterKontrollsamtale(kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext) {
-        transactionContext.withTransaction { tx ->
-            """
-                update kontrollsamtale set 
-                    status=:status,
-                    innkallingsdato=:innkallingsdato,
-                    frist=:frist,
-                    dokumentid=:dokumentId
-                where id=:id
-            """.trimIndent().oppdatering(
-                mapOf(
-                    "id" to kontrollsamtale.id,
-                    "status" to kontrollsamtale.status.toString(),
-                    "innkallingsdato" to kontrollsamtale.innkallingsdato,
-                    "frist" to kontrollsamtale.frist,
-                    "dokumentId" to kontrollsamtale.dokumentId,
-                ),
-                tx,
-            )
-        }
-    }
-
     override fun defaultTransactionContext(): TransactionContext = sessionFactory.newTransactionContext()
 
     private fun Row.toKontrollsamtale(): Kontrollsamtale =
@@ -106,6 +77,6 @@ internal class KontrollsamtalePostgresRepo(
             innkallingsdato = localDate("innkallingsdato"),
             frist = localDate("frist"),
             status = Kontrollsamtalestatus.valueOf(string("status")),
-            dokumentId = uuidOrNull("dokumentid")
+            dokumentId = uuidOrNull("dokumentid"),
         )
 }
