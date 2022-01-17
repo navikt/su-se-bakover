@@ -66,6 +66,11 @@ class KlageServiceImpl(
             // TODO jah: Justere denne sjekken når vi har konseptet lukket klage.
             return KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
         }
+
+        if (sak.hentKlager().any { it.journalpostId == request.journalpostId }) {
+            return KunneIkkeOppretteKlage.HarAlleredeEnKlageBehandling.left()
+        }
+
         val aktørId = personService.hentAktørId(sak.fnr).getOrElse {
             return KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
         }

@@ -151,6 +151,7 @@ data class Sak(
             }.reduser()
     }
 
+    fun hentKlager(): List<Klage> = klager
     fun hentÅpneKlager(): List<Klage> = klager.filter { it.erÅpen() }
 
     fun hentKlage(klageId: UUID): Klage? = klager.find { it.id == klageId }

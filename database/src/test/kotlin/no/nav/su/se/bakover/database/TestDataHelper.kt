@@ -1003,7 +1003,7 @@ internal class TestDataHelper(
             sakId = vedtak.behandling.sakId,
             saksnummer = vedtak.behandling.saksnummer,
             fnr = vedtak.behandling.fnr,
-            journalpostId = JournalpostId(value = "journalpostIdKlage"),
+            journalpostId = JournalpostId(value = UUID.randomUUID().toString()),
             oppgaveId = oppgaveId,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerNyKlage"),
             clock = fixedClock,
