@@ -151,12 +151,12 @@ data class RevurderingOgFeilmeldingerResponse(
     val varselmeldinger: List<Varselmelding> = emptyList(),
 ) {
     fun leggTil(varselmelding: Varselmelding): RevurderingOgFeilmeldingerResponse {
-        return copy(varselmeldinger = varselmeldinger + varselmelding)
+        return copy(varselmeldinger = (varselmeldinger + varselmelding).distinct())
     }
 }
 
-sealed class Varselmelding {
-    object BeløpsendringUnder10Prosent : Varselmelding()
+sealed interface Varselmelding {
+    object BeløpsendringUnder10Prosent : Varselmelding
 }
 
 object FantIkkeRevurdering
