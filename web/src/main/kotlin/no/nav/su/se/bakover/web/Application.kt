@@ -248,11 +248,12 @@ fun Application.susebakover(
                     accessCheckProxy,
                 ) { accessProtectedServices ->
                     personRoutes(accessProtectedServices.person, clock)
-                    sakRoutes(accessProtectedServices.sak)
+                    sakRoutes(accessProtectedServices.sak, clock)
                     søknadRoutes(
                         søknadService = accessProtectedServices.søknad,
                         lukkSøknadService = accessProtectedServices.lukkSøknad,
                         avslåSøknadManglendeDokumentasjonService = accessProtectedServices.avslåSøknadManglendeDokumentasjonService,
+                        clock = clock,
                     )
                     overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling, clock)
                     avstemmingRoutes(accessProtectedServices.avstemming, clock)

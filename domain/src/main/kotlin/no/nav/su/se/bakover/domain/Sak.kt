@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -153,6 +154,39 @@ data class Sak(
     fun hentÅpneKlager(): List<Klage> = klager.filter { it.erÅpen() }
 
     fun hentKlage(klageId: UUID): Klage? = klager.find { it.id == klageId }
+
+    fun kanUtbetalingerStansesEllerGjenopptas(clock: Clock): KanStansesEllerGjenopptas {
+        return utbetalingstidslinje().tidslinje.let {
+            if (it.isNotEmpty() && ingenKommendeOpphørEllerHull(it, clock)) {
+                if (it.last() is UtbetalingslinjePåTidslinje.Stans) {
+                    KanStansesEllerGjenopptas.GJENOPPTA
+                } else {
+                    KanStansesEllerGjenopptas.STANS
+                }
+            } else {
+                KanStansesEllerGjenopptas.INGEN
+            }
+        }
+    }
+
+    /**
+     * Tillater ikke stans dersom stønadsperiodene inneholder opphør eller hull frem i tid, siden det kan bli
+     * problematisk hvis man stanser og gjenopptar på tvers av disse. Ta opp igjen problemstillingen dersom
+     * fag trenger å stanse i et slikt tilfelle.
+     */
+    private fun ingenKommendeOpphørEllerHull(utbetalingslinjer: List<UtbetalingslinjePåTidslinje>, clock: Clock): Boolean {
+        val kommendeUtbetalingslinjer = utbetalingslinjer.filter { it.periode.tilOgMed.isAfter(LocalDate.now(clock)) }
+
+        if (kommendeUtbetalingslinjer.any { it is UtbetalingslinjePåTidslinje.Opphør }) {
+            return false
+        }
+
+        if (kommendeUtbetalingslinjer.map { linje -> linje.periode }.reduser().size > 1) {
+            return false
+        }
+
+        return true
+    }
 }
 
 data class NySak(
@@ -205,3 +239,9 @@ data class BegrensetSakinfo(
     val harÅpenSøknad: Boolean,
     val iverksattInnvilgetStønadsperiode: Periode?,
 )
+
+enum class KanStansesEllerGjenopptas {
+    STANS,
+    GJENOPPTA,
+    INGEN;
+}

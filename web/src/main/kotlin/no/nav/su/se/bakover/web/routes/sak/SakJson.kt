@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.sak
 
+import no.nav.su.se.bakover.domain.KanStansesEllerGjenopptas
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
@@ -15,6 +16,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.vedtak.VedtakJson
 import no.nav.su.se.bakover.web.routes.vedtak.toJson
+import java.time.Clock
 
 internal data class SakJson(
     val id: String,
@@ -26,16 +28,10 @@ internal data class SakJson(
     val utbetalingerKanStansesEllerGjenopptas: KanStansesEllerGjenopptas,
     val revurderinger: List<RevurderingJson>,
     val vedtak: List<VedtakJson>,
-    val klager: List<KlageJson>
+    val klager: List<KlageJson>,
 ) {
-    enum class KanStansesEllerGjenopptas {
-        STANS,
-        GJENOPPTA,
-        INGEN;
-    }
-
     companion object {
-        internal fun Sak.toJson() = SakJson(
+        internal fun Sak.toJson(clock: Clock) = SakJson(
             id = id.toString(),
             saksnummer = saksnummer.nummer,
             fnr = fnr.toString(),
@@ -54,16 +50,10 @@ internal data class SakJson(
                     }.toString(),
                 )
             },
-            utbetalingerKanStansesEllerGjenopptas = utbetalingstidslinje().tidslinje.let {
-                when {
-                    it.isEmpty() -> KanStansesEllerGjenopptas.INGEN
-                    it.last() is UtbetalingslinjePåTidslinje.Stans -> KanStansesEllerGjenopptas.GJENOPPTA
-                    else -> KanStansesEllerGjenopptas.STANS
-                }
-            },
+            utbetalingerKanStansesEllerGjenopptas = kanUtbetalingerStansesEllerGjenopptas(clock),
             revurderinger = revurderinger.map { it.toJson() },
             vedtak = vedtakListe.map { it.toJson() },
-            klager = klager.map { it.toJson() }
+            klager = klager.map { it.toJson() },
         )
     }
 }
