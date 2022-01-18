@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.domain.klage.harEksisterendeJournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
@@ -67,7 +68,7 @@ class KlageServiceImpl(
             return KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
         }
 
-        if (sak.hentKlager().any { it.journalpostId == request.journalpostId }) {
+        if (sak.klager.harEksisterendeJournalpostId(request.journalpostId)) {
             return KunneIkkeOppretteKlage.HarAlleredeEnKlageBehandling.left()
         }
 

@@ -144,3 +144,5 @@ sealed class KunneIkkeBekrefteKlagesteg {
     data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) :
         KunneIkkeBekrefteKlagesteg()
 }
+
+fun List<Klage>.harEksisterendeJournalpostId(journalpostId: JournalpostId) = this.any { it.journalpostId == journalpostId }
