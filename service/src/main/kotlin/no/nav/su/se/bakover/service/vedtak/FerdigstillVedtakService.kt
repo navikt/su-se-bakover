@@ -5,6 +5,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.dokument.Dokument
@@ -12,16 +13,20 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak
 import org.slf4j.LoggerFactory
 
 interface FerdigstillVedtakService {
-    fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Either<KunneIkkeFerdigstilleVedtak, Unit>
-    fun lukkOppgaveMedBruker(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak>
+    fun ferdigstillVedtakEtterUtbetaling(
+        utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering
+    ): Either<KunneIkkeFerdigstilleVedtak, Unit>
+    fun lukkOppgaveMedBruker(
+        behandling: Behandling
+    ): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>
 
     sealed class KunneIkkeFerdigstilleVedtak {
         data class FantIkkeVedtakForUtbetalingId(val utbetalingId: UUID30) : KunneIkkeFerdigstilleVedtak()
@@ -65,19 +70,19 @@ internal class FerdigstillVedtakServiceImpl(
         }
     }
 
-    private fun ferdigstillVedtak(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak, Vedtak> {
+    private fun ferdigstillVedtak(vedtak: VedtakSomKanRevurderes): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
         // TODO jm: sjekk om vi allerede har distribuert?
         return if (vedtak.skalSendeBrev()) {
             lagreDokument(vedtak).getOrHandle { return it.left() }
-            lukkOppgaveMedSystembruker(vedtak)
+            lukkOppgaveMedSystembruker(vedtak.behandling)
             vedtak.right()
         } else {
-            lukkOppgaveMedSystembruker(vedtak)
+            lukkOppgaveMedSystembruker(vedtak.behandling)
             vedtak.right()
         }
     }
 
-    fun lagreDokument(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak, Vedtak> {
+    fun lagreDokument(vedtak: VedtakSomKanRevurderes): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {
         return brevService.lagDokument(vedtak)
             .mapLeft {
                 KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev
@@ -98,41 +103,40 @@ internal class FerdigstillVedtakServiceImpl(
             }
     }
 
-    private fun lukkOppgaveMedSystembruker(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> {
-        return lukkOppgaveIntern(vedtak) {
+    private fun lukkOppgaveMedSystembruker(behandling: Behandling): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit> {
+        return lukkOppgaveIntern(behandling) {
             oppgaveService.lukkOppgaveMedSystembruker(it)
         }
     }
 
-    override fun lukkOppgaveMedBruker(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> {
-        return lukkOppgaveIntern(vedtak) {
+    override fun lukkOppgaveMedBruker(behandling: Behandling): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit> {
+        return lukkOppgaveIntern(behandling) {
             oppgaveService.lukkOppgave(it)
         }
     }
 
     private fun lukkOppgaveIntern(
-        vedtak: Vedtak,
+        behandling: Behandling,
         lukkOppgave: (oppgaveId: OppgaveId) -> Either<KunneIkkeLukkeOppgave, Unit>,
-    ): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> {
-        val oppgaveId = if (vedtak.behandling is BehandlingMedOppgave) {
-            (vedtak.behandling as BehandlingMedOppgave).oppgaveId
+    ): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit> {
+        val oppgaveId = if (behandling is BehandlingMedOppgave) {
+            behandling.oppgaveId
         } else {
             return KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
         }
 
         return lukkOppgave(oppgaveId)
             .mapLeft {
-                log.error("Kunne ikke lukke oppgave: $oppgaveId for behandling: ${vedtak.behandling.id}")
+                log.error("Kunne ikke lukke oppgave: $oppgaveId for behandling: ${behandling.id}")
                 KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave
             }.map {
-                log.info("Lukket oppgave: $oppgaveId for behandling: ${vedtak.behandling.id}")
-                incrementLukketOppgave(vedtak)
-                vedtak
+                log.info("Lukket oppgave: $oppgaveId for behandling: ${behandling.id}")
+                incrementLukketOppgave(behandling)
             }
     }
 
-    private fun incrementLukketOppgave(vedtak: Vedtak) {
-        return when (vedtak.behandling) {
+    private fun incrementLukketOppgave(behandling: Behandling) {
+        return when (behandling) {
             is Søknadsbehandling.Iverksatt.Avslag -> {
                 behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
             }

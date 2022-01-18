@@ -26,8 +26,8 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -395,7 +395,7 @@ internal class RevurderingIngenEndringTest {
         )
 
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant, fixedClock).orNull()!!
-        val vedtak = Vedtak.from(iverksattRevurdering, fixedClock)
+        val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, fixedClock)
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
@@ -428,7 +428,7 @@ internal class RevurderingIngenEndringTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(revurderingTilAttestering.id)
-                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<Vedtak.IngenEndringIYtelse>() })
+                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<VedtakSomKanRevurderes.IngenEndringIYtelse>() })
                 verify(it.vedtakRepo).lagre(argThat { it shouldBe vedtak.copy(id = it.id) })
                 verify(it.brevService).lagreDokument(
                     argThat {
@@ -455,7 +455,7 @@ internal class RevurderingIngenEndringTest {
         )
 
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant, fixedClock).orNull()!!
-        val vedtak = Vedtak.from(iverksattRevurdering, fixedClock)
+        val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, fixedClock)
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingTilAttestering
@@ -536,7 +536,7 @@ internal class RevurderingIngenEndringTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(revurderingTilAttestering.id)
-                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<Vedtak.IngenEndringIYtelse>() })
+                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<VedtakSomKanRevurderes.IngenEndringIYtelse>() })
                 verifyNoMoreInteractions()
             }
         }
@@ -565,7 +565,7 @@ internal class RevurderingIngenEndringTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(revurderingTilAttestering.id)
-                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<Vedtak.IngenEndringIYtelse>() })
+                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<VedtakSomKanRevurderes.IngenEndringIYtelse>() })
                 verifyNoMoreInteractions()
             }
         }

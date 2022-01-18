@@ -3,7 +3,7 @@ package db.migration
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DbMetrics
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import java.time.Clock
@@ -25,7 +25,7 @@ internal class V107__migrer_avslagsgrunner_for_eksisterende_avslag : BaseJavaMig
         val ps = context.connection.prepareStatement("update vedtak set avslagsgrunner = to_json(?::json) where id = ?")
 
         vedtakRepo.hentAlle()
-            .filterIsInstance<Vedtak.Avslag>()
+            .filterIsInstance<Avslagsvedtak>()
             .map { it.id to it.avslagsgrunner }
             .forEach { (id, avslagsgrunner) ->
                 ps.setString(1, avslagsgrunner.serialize())

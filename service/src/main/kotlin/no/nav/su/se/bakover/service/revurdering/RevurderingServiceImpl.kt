@@ -57,8 +57,8 @@ import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.harSendtForhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
@@ -434,7 +434,7 @@ internal class RevurderingServiceImpl(
     private fun identifiserFeilOgLagResponse(revurdering: Revurdering): RevurderingOgFeilmeldingerResponse {
 
         val tidligereBeregning = when (val tilRevurdering = revurdering.tilRevurdering) {
-            is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> {
+            is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> {
                 return RevurderingOgFeilmeldingerResponse(
                     revurdering = revurdering,
                     feilmeldinger = identifiserUtfallSomIkkeStøttes(
@@ -443,10 +443,10 @@ internal class RevurderingServiceImpl(
                     ).swap().getOrElse { emptySet() }.toList(),
                 )
             }
-            is Vedtak.EndringIYtelse.InnvilgetRevurdering -> tilRevurdering.beregning
-            is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> tilRevurdering.beregning
-            is Vedtak.EndringIYtelse.OpphørtRevurdering -> tilRevurdering.beregning
-            is Vedtak.EndringIYtelse.StansAvYtelse -> {
+            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> tilRevurdering.beregning
+            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> tilRevurdering.beregning
+            is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> tilRevurdering.beregning
+            is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> {
                 return RevurderingOgFeilmeldingerResponse(
                     revurdering = revurdering,
                     feilmeldinger = identifiserUtfallSomIkkeStøttes(
@@ -455,7 +455,7 @@ internal class RevurderingServiceImpl(
                     ).swap().getOrElse { emptySet() }.toList(),
                 )
             }
-            is Vedtak.IngenEndringIYtelse -> tilRevurdering.beregning
+            is VedtakSomKanRevurderes.IngenEndringIYtelse -> tilRevurdering.beregning
         }
 
         val feilmeldinger = when (revurdering) {
@@ -995,7 +995,7 @@ internal class RevurderingServiceImpl(
     private fun kanSendesTilAttestering(revurdering: Revurdering): Either<KunneIkkeSendeRevurderingTilAttestering, Unit> {
 
         val tidligereBeregning = when (val tilRevurdering = revurdering.tilRevurdering) {
-            is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> {
+            is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> {
                 return identifiserUtfallSomIkkeStøttes(
                     revurdering.vilkårsvurderinger,
                     revurdering.periode,
@@ -1003,10 +1003,10 @@ internal class RevurderingServiceImpl(
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }
             }
-            is Vedtak.EndringIYtelse.InnvilgetRevurdering -> tilRevurdering.beregning
-            is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> tilRevurdering.beregning
-            is Vedtak.EndringIYtelse.OpphørtRevurdering -> tilRevurdering.beregning
-            is Vedtak.EndringIYtelse.StansAvYtelse -> {
+            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> tilRevurdering.beregning
+            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> tilRevurdering.beregning
+            is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> tilRevurdering.beregning
+            is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> {
                 return identifiserUtfallSomIkkeStøttes(
                     revurdering.vilkårsvurderinger,
                     revurdering.periode,
@@ -1014,7 +1014,7 @@ internal class RevurderingServiceImpl(
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }
             }
-            is Vedtak.IngenEndringIYtelse -> tilRevurdering.beregning
+            is VedtakSomKanRevurderes.IngenEndringIYtelse -> tilRevurdering.beregning
         }
 
         return when (revurdering) {
@@ -1114,7 +1114,7 @@ internal class RevurderingServiceImpl(
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
         var utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering? = null
-        var vedtak: Vedtak? = null
+        var vedtak: VedtakSomKanRevurderes? = null
 
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
@@ -1125,7 +1125,7 @@ internal class RevurderingServiceImpl(
                     is RevurderingTilAttestering.IngenEndring -> {
                         revurdering.tilIverksatt(attestant, clock)
                             .map { iverksattRevurdering ->
-                                val vedtakIngenEndring = Vedtak.from(iverksattRevurdering, clock)
+                                val vedtakIngenEndring = VedtakSomKanRevurderes.from(iverksattRevurdering, clock)
                                 if (vedtakIngenEndring.skalSendeBrev()) {
                                     val dokument = brevService.lagDokument(vedtakIngenEndring)
                                         .getOrHandle {
@@ -1174,7 +1174,7 @@ internal class RevurderingServiceImpl(
                                 it.id
                             }
                         }.map { iverksattRevurdering ->
-                            vedtak = Vedtak.from(iverksattRevurdering, utbetaling!!.id, clock).let {
+                            vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling!!.id, clock).let {
                                 vedtakRepo.lagre(it)
                                 it
                             }
@@ -1196,7 +1196,7 @@ internal class RevurderingServiceImpl(
                                 it.id
                             }
                         }.map {
-                            val opphørtVedtak = Vedtak.from(it, utbetaling!!.id, clock)
+                            val opphørtVedtak = VedtakSomKanRevurderes.from(it, utbetaling!!.id, clock)
                             vedtakRepo.lagre(opphørtVedtak)
                             kontrollsamtaleService.oppdaterNestePlanlagteKontrollsamtaleStatus(opphørtVedtak.behandling.sakId, Kontrollsamtalestatus.ANNULLERT)
                             vedtak = opphørtVedtak
@@ -1217,10 +1217,10 @@ internal class RevurderingServiceImpl(
                     observer.handle(
                         Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering),
                     )
-                    if (vedtak is Vedtak.EndringIYtelse) {
+                    if (vedtak is VedtakSomKanRevurderes.EndringIYtelse) {
                         observer.handle(
                             Event.Statistikk.Vedtaksstatistikk(
-                                vedtak as Vedtak.EndringIYtelse,
+                                vedtak as VedtakSomKanRevurderes.EndringIYtelse,
                             ),
                         )
                     }

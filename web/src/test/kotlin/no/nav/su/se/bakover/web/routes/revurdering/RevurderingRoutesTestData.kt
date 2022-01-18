@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.create
@@ -46,7 +46,7 @@ object RevurderingRoutesTestData {
     internal val testServices = TestServicesBuilder.services()
     internal val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
 
-    internal val vedtak = Vedtak.fromSøknadsbehandling(
+    internal val vedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(
         søknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,

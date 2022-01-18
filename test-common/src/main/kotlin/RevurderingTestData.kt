@@ -37,7 +37,6 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.vedtak.VedtakFelles
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import java.time.Clock
 import java.time.LocalDate
@@ -80,9 +79,7 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
 ): Pair<Sak, OpprettetRevurdering> {
-    // Får kompileringsfeil i denne versjonen av Kotlin/Java hvis vi tar vekk type arguments: '<VedtakFelles>'.
-    @Suppress("RemoveExplicitTypeArguments")
-    require(sakOgVedtakSomKanRevurderes.first.vedtakListe.contains<VedtakFelles>(sakOgVedtakSomKanRevurderes.second)) {
+    require(sakOgVedtakSomKanRevurderes.first.vedtakListe.contains(sakOgVedtakSomKanRevurderes.second)) {
         "Dersom man sender inn vedtak som skal revurderes, må man også sende inn en sak som inneholder nevnt vedtak."
     }
     require(

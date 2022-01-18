@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 
 /**
@@ -196,35 +196,35 @@ internal inline fun <reified T : AbstraktRevurdering> T.persistertVariant(): T {
 
 internal fun VedtakSomKanRevurderes.persistertVariant(): VedtakSomKanRevurderes {
     return when (this) {
-        is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> {
+        is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> {
             copy(
                 behandling = behandling.persistertVariant(),
             )
         }
-        is Vedtak.EndringIYtelse.InnvilgetRevurdering -> {
-            copy(
-                behandling = behandling.persistertVariant(),
-                beregning = beregning.persistertVariant(),
-            )
-        }
-        is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> {
+        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> {
             copy(
                 behandling = behandling.persistertVariant(),
                 beregning = beregning.persistertVariant(),
             )
         }
-        is Vedtak.EndringIYtelse.OpphørtRevurdering -> {
+        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> {
             copy(
                 behandling = behandling.persistertVariant(),
                 beregning = beregning.persistertVariant(),
             )
         }
-        is Vedtak.EndringIYtelse.StansAvYtelse -> {
+        is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> {
+            copy(
+                behandling = behandling.persistertVariant(),
+                beregning = beregning.persistertVariant(),
+            )
+        }
+        is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> {
             copy(
                 behandling = behandling.persistertVariant(),
             )
         }
-        is Vedtak.IngenEndringIYtelse -> {
+        is VedtakSomKanRevurderes.IngenEndringIYtelse -> {
             copy(
                 behandling = behandling.persistertVariant(),
                 beregning = beregning.persistertVariant(),
@@ -233,15 +233,15 @@ internal fun VedtakSomKanRevurderes.persistertVariant(): VedtakSomKanRevurderes 
     }
 }
 
-internal fun Vedtak.Avslag.persistertVariant(): Vedtak {
+internal fun Avslagsvedtak.persistertVariant(): Avslagsvedtak {
     return when (this) {
-        is Vedtak.Avslag.AvslagBeregning -> {
+        is Avslagsvedtak.AvslagBeregning -> {
             copy(
                 behandling = behandling.persistertVariant(),
                 beregning = beregning.persistertVariant(),
             )
         }
-        is Vedtak.Avslag.AvslagVilkår -> {
+        is Avslagsvedtak.AvslagVilkår -> {
             copy(
                 behandling = behandling.persistertVariant(),
             )
