@@ -324,4 +324,10 @@ internal class AvvistKlageTest {
             fritekstTilBrev = klage.fritekstTilBrev,
         )
     }
+
+    @Test
+    fun `en avvist klage er en åpen klage`() {
+        val klage = avvistKlage().second
+        klage.erÅpen() shouldBe true
+    }
 }

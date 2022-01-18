@@ -123,6 +123,18 @@ internal class VurderKlageTest {
     }
 
     @Test
+    fun `en påbegyntVurdert klage er en åpen klage`() {
+        val klage = påbegyntVurdertKlage().second
+        klage.erÅpen() shouldBe true
+    }
+
+    @Test
+    fun `en utfyltVurdert klage er en åpen klage`() {
+        val klage = utfyltVurdertKlage().second
+        klage.erÅpen() shouldBe true
+    }
+
+    @Test
     fun `Ugyldig tilstandsovergang fra opprettet`() {
         verifiserUgyldigTilstandsovergang(
             klage = opprettetKlage().second,

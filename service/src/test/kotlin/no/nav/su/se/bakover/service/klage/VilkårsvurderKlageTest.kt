@@ -133,6 +133,24 @@ internal class VilkårsvurderKlageTest {
     }
 
     @Test
+    fun `en påbegyntVilkårsvurdert klage er en åpen klage`() {
+        val klage = påbegyntVilkårsvurdertKlage().second
+        klage.erÅpen() shouldBe true
+    }
+
+    @Test
+    fun `en utfyltVilkårsvurdert(tilVurdering) klage er en åpen klage`() {
+        val klage = utfyltVilkårsvurdertKlageTilVurdering().second
+        klage.erÅpen() shouldBe true
+    }
+
+    @Test
+    fun `en utfyltVilkårsvurdert(avvist) klage er en åpen klage`() {
+        val klage = utfyltAvvistVilkårsvurdertKlage().second
+        klage.erÅpen() shouldBe true
+    }
+
+    @Test
     fun `Skal kunne vilkårsvurdere opprettet klage`() {
         val (sak, klage) = opprettetKlage()
         val vedtak = sak.vedtakListe.first()

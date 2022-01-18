@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
+import no.nav.su.se.bakover.test.underkjentAvvistKlage
 import no.nav.su.se.bakover.test.underkjentKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
@@ -151,6 +152,18 @@ internal class UnderkjennKlageTest {
         ) shouldBe KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `en underkjent(Vurdert) klage er en åpen klage`() {
+        val klage = underkjentKlageTilVurdering().second
+        klage.erÅpen() shouldBe true
+    }
+
+    @Test
+    fun `en underkjent(avvist) klage er en åpen klage`() {
+        val klage = underkjentAvvistKlage().second
+        klage.erÅpen() shouldBe true
     }
 
     @Test

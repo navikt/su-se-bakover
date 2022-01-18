@@ -71,6 +71,12 @@ internal class OversendKlageTest {
     }
 
     @Test
+    fun `en oversendtKlage er en lukket klage`() {
+        val klage = oversendtKlage().second
+        klage.erÅpen() shouldBe false
+    }
+
+    @Test
     fun `Attestant og saksbehandler kan ikke være samme person`() {
         val klage = vurdertKlageTilAttestering().second
         val mocks = KlageServiceMocks(

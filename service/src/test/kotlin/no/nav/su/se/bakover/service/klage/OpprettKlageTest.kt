@@ -106,6 +106,12 @@ internal class OpprettKlageTest {
     }
 
     @Test
+    fun `en opprettetKlage er en åpen klage`() {
+        val klage = opprettetKlage().second
+        klage.erÅpen() shouldBe true
+    }
+
+    @Test
     fun `kunne ikke opprette oppgave`() {
         val sakId = UUID.randomUUID()
         val sak = nySakMedjournalførtSøknadOgOppgave(

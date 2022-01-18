@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.avvistKlageTilAttestering
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
@@ -119,6 +120,18 @@ internal class SendKlageTilAttesteringTest {
         )
         verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
         mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `en klageTilAttestering(Vurdert) er en åpen klage`() {
+        val klage = vurdertKlageTilAttestering().second
+        klage.erÅpen() shouldBe true
+    }
+
+    @Test
+    fun `en klageTilAttestering(avvist) er en åpen klage`() {
+        val klage = avvistKlageTilAttestering().second
+        klage.erÅpen() shouldBe true
     }
 
     @Test

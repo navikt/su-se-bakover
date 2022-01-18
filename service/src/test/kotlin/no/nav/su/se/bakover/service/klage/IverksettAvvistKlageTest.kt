@@ -78,6 +78,12 @@ internal class IverksettAvvistKlageTest {
     }
 
     @Test
+    fun `en iverksattAvvist klage er en lukket klage`() {
+        val klage = iverksattAvvistKlage().second
+        klage.erÅpen() shouldBe false
+    }
+
+    @Test
     fun `Ugyldig tilstandsovergang fra opprettet`() {
         opprettetKlage().also {
             verifiserUgyldigTilstandsovergang(

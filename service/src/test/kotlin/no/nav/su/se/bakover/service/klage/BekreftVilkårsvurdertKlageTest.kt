@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.avvistKlage
+import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -55,6 +56,18 @@ internal class BekreftVilkårsvurdertKlageTest {
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
         mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `en bekreftet vilkårsvurdert(tilVurdering) er en åpen klage`() {
+        val klage = bekreftetVilkårsvurdertKlageTilVurdering().second
+        klage.erÅpen() shouldBe true
+    }
+
+    @Test
+    fun `en bekreftet vilkårsvurdert(avvist) er en åpen klage`() {
+        val klage = bekreftetAvvistVilkårsvurdertKlage().second
+        klage.erÅpen() shouldBe true
     }
 
     @Test
