@@ -143,6 +143,16 @@ internal object Feilresponser {
         "attestant_og_saksbehandler_kan_ikke_være_samme_person",
     )
 
+    val feilVedHentingAvSaksbehandlerNavn = InternalServerError.errorJson(
+        "Feil ved henting av saksbehandler navn",
+        "feil_ved_henting_av_saksbehandler_navn",
+    )
+
+    val feilVedHentingAvVedtakDato = InternalServerError.errorJson(
+        "Feil ved henting av vedtak dato",
+        "feil_ved_henting_av_vedtak_dato",
+    )
+
     fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {
         return BadRequest.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName} til tilstanden ${til.simpleName}",

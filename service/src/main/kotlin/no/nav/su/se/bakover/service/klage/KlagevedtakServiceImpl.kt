@@ -7,14 +7,20 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.AvvistKlage
+import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KanIkkeTolkeKlagevedtak
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
 import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
+import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
 import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
+import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
+import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -87,9 +93,26 @@ class KlagevedtakServiceImpl(
             klagevedtakRepo.markerSomFeil(klagevedtak.id)
         }
             .tap {
-                sessionFactory.withTransactionContext { tx ->
-                    klageRepo.lagre(it, tx)
-                    klagevedtakRepo.lagre(it.klagevedtakshistorikk.last(), tx)
+                when (it) {
+                    is OpprettetKlage,
+                    is VilkårsvurdertKlage,
+                    is AvvistKlage,
+                    is KlageTilAttestering,
+                    is IverksattAvvistKlage,
+                    -> {
+                        log.error("Støtter kun Vurderte klager, og Oversendte klager i retur fra leggTilNyttKlagevedtak(). klageId: ${it.id} ")
+                        throw IllegalStateException("Kan ikke lagre klage, og klageVedtak fra tilstand ${it::class}")
+                    }
+
+                    is VurdertKlage,
+                    -> sessionFactory.withTransactionContext { tx ->
+                        klageRepo.lagre(it, tx)
+                        klagevedtakRepo.lagre(it.klagevedtakshistorikk.last(), tx)
+                    }
+                    is OversendtKlage -> sessionFactory.withTransactionContext { tx ->
+                        klageRepo.lagre(it, tx)
+                        klagevedtakRepo.lagre(it.klagevedtakshistorikk.last(), tx)
+                    }
                 }
                 log.info("Prosessert og lagat oppgave for klageinstansvedtak med id: ${klagevedtak.id}")
             }

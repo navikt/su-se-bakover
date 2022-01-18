@@ -10,8 +10,6 @@ import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.dokdistfordeling.KunneIkkeBestilleDistribusjon
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -32,6 +30,8 @@ import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.person.IdentClient
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
@@ -382,17 +382,17 @@ internal class BrevServiceImplTest {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
 
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn MicrosoftGraphApiOppslagFeil.KallTilMicrosoftGraphApiFeilet.left()
+        val microsoftGraphApiOppslagMock = mock<IdentClient> {
+            on { hentNavnForNavIdent(any()) } doReturn KunneIkkeHenteNavnForNavIdent.KallTilMicrosoftGraphApiFeilet.left()
         }
 
         ServiceOgMocks(
             personService = personServiceMock,
-            microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
+            identClient = microsoftGraphApiOppslagMock,
         ).let {
             it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
             verify(it.personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
-            verify(it.microsoftGraphApiOppslag).hentNavnForNavIdent(vedtak.behandling.saksbehandler)
+            verify(it.identClient).hentNavnForNavIdent(vedtak.behandling.saksbehandler)
             it.verifyNoMoreInteraction()
         }
     }
@@ -405,7 +405,7 @@ internal class BrevServiceImplTest {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
 
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
+        val microsoftGraphApiOppslagMock = mock<IdentClient> {
             on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
                 "Kåre Kropp".right(),
                 "Suveren Severin".right(),
@@ -418,14 +418,14 @@ internal class BrevServiceImplTest {
 
         ServiceOgMocks(
             personService = personServiceMock,
-            microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
+            identClient = microsoftGraphApiOppslagMock,
             utbetalingService = utbetalingServiceMock,
             clock = fixedClock,
         ).let {
             it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling.left()
             verify(it.personService).hentPersonMedSystembruker(vedtak.tilRevurdering.behandling.fnr)
-            verify(it.microsoftGraphApiOppslag).hentNavnForNavIdent(vedtak.saksbehandler)
-            verify(it.microsoftGraphApiOppslag).hentNavnForNavIdent(vedtak.attesteringer.hentSisteAttestering().attestant)
+            verify(it.identClient).hentNavnForNavIdent(vedtak.saksbehandler)
+            verify(it.identClient).hentNavnForNavIdent(vedtak.attesteringer.hentSisteAttestering().attestant)
             verify(it.utbetalingService).hentGjeldendeUtbetaling(sak.id, vedtak.opprettet.toLocalDate(zoneIdOslo))
             it.verifyNoMoreInteraction()
         }
@@ -439,7 +439,7 @@ internal class BrevServiceImplTest {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
 
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
+        val microsoftGraphApiOppslagMock = mock<IdentClient> {
             on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
                 "Kåre Kropp".right(),
                 "Suveren Severin".right(),
@@ -461,15 +461,15 @@ internal class BrevServiceImplTest {
 
         ServiceOgMocks(
             personService = personServiceMock,
-            microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
+            identClient = microsoftGraphApiOppslagMock,
             utbetalingService = utbetalingServiceMock,
             pdfGenerator = pdfGeneratorMock,
             clock = fixedClock,
         ).let {
             it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
             verify(it.personService).hentPersonMedSystembruker(vedtak.tilRevurdering.behandling.fnr)
-            verify(it.microsoftGraphApiOppslag).hentNavnForNavIdent(vedtak.saksbehandler)
-            verify(it.microsoftGraphApiOppslag).hentNavnForNavIdent(vedtak.attesteringer.hentSisteAttestering().attestant)
+            verify(it.identClient).hentNavnForNavIdent(vedtak.saksbehandler)
+            verify(it.identClient).hentNavnForNavIdent(vedtak.attesteringer.hentSisteAttestering().attestant)
             verify(it.utbetalingService).hentGjeldendeUtbetaling(sak.id, vedtak.opprettet.toLocalDate(zoneIdOslo))
             verify(it.pdfGenerator).genererPdf(any<BrevInnhold.VedtakIngenEndring>())
             it.verifyNoMoreInteraction()
@@ -517,7 +517,7 @@ internal class BrevServiceImplTest {
         val sakService: SakService = mock(),
         val personService: PersonService = mock(),
         val sessionFactory: SessionFactory = mock(),
-        val microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
+        val identClient: IdentClient = mock(),
         val utbetalingService: UtbetalingService = mock(),
         val clock: Clock = mock(),
 
@@ -530,7 +530,7 @@ internal class BrevServiceImplTest {
             sakService = sakService,
             personService = personService,
             sessionFactory = sessionFactory,
-            microsoftGraphApiOppslag = microsoftGraphApiOppslag,
+            microsoftGraphApiOppslag = identClient,
             utbetalingService = utbetalingService,
             clock = clock,
         )
@@ -544,7 +544,7 @@ internal class BrevServiceImplTest {
                 sakService,
                 personService,
                 sessionFactory,
-                microsoftGraphApiOppslag,
+                identClient,
                 utbetalingService,
             )
         }

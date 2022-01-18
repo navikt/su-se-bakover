@@ -6,7 +6,6 @@ import arrow.core.right
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
@@ -14,6 +13,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -55,7 +55,7 @@ internal class LagreOgSendForhåndsvarselTest {
         val simulertRevurdering = RevurderingTestUtils.simulertRevurderingInnvilget
 
         val mocks = RevurderingServiceMocks(
-            microsoftGraphApiClient = mock {
+            identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandlerNavn.right()
             },
             oppgaveService = mock {
@@ -113,7 +113,7 @@ internal class LagreOgSendForhåndsvarselTest {
             },
             anyOrNull(),
         )
-        verify(mocks.microsoftGraphApiClient).hentNavnForNavIdent(
+        verify(mocks.identClient).hentNavnForNavIdent(
             argThat { it shouldBe simulertRevurdering.saksbehandler },
         )
         verify(mocks.oppgaveService).oppdaterOppgave(
@@ -162,7 +162,7 @@ internal class LagreOgSendForhåndsvarselTest {
             oppgaveService = mock {
                 on { oppdaterOppgave(any(), any()) } doReturn Unit.right()
             },
-            microsoftGraphApiClient = mock {
+            identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
             },
         )
@@ -183,7 +183,7 @@ internal class LagreOgSendForhåndsvarselTest {
         verify(mocks.revurderingRepo).lagre(any(), anyOrNull())
         verify(mocks.brevService).lagreDokument(any(), anyOrNull())
         verify(mocks.oppgaveService).oppdaterOppgave(any(), any())
-        verify(mocks.microsoftGraphApiClient).hentNavnForNavIdent(any())
+        verify(mocks.identClient).hentNavnForNavIdent(any())
         mocks.verifyNoMoreInteractions()
     }
 
@@ -312,7 +312,7 @@ internal class LagreOgSendForhåndsvarselTest {
             on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         }
 
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
+        val microsoftGraphApiClientMock = mock<IdentClient> {
             on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
         }
 
@@ -320,7 +320,7 @@ internal class LagreOgSendForhåndsvarselTest {
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
             brevService = brevServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiClientMock,
+            identClient = microsoftGraphApiClientMock,
         ).lagreOgSendForhåndsvarsel(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
@@ -349,7 +349,7 @@ internal class LagreOgSendForhåndsvarselTest {
             oppgaveService = mock {
                 on { oppdaterOppgave(any(), any()) } doReturn OppgaveFeil.KunneIkkeOppdatereOppgave.left()
             },
-            microsoftGraphApiClient = mock {
+            identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
             },
         )
@@ -382,7 +382,7 @@ internal class LagreOgSendForhåndsvarselTest {
             },
             anyOrNull(),
         )
-        verify(mocks.microsoftGraphApiClient).hentNavnForNavIdent(argThat { it shouldBe simulertRevurdering.saksbehandler })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe simulertRevurdering.saksbehandler })
         verify(mocks.personService).hentPerson(argThat { it shouldBe simulertRevurdering.fnr })
         verify(mocks.oppgaveService).oppdaterOppgave(
             oppgaveId = argThat { it shouldBe simulertRevurdering.oppgaveId },

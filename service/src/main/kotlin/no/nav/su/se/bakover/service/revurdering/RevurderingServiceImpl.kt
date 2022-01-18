@@ -7,7 +7,6 @@ import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
@@ -31,6 +30,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -84,7 +84,7 @@ internal class RevurderingServiceImpl(
     private val revurderingRepo: RevurderingRepo,
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
-    private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
+    private val identClient: IdentClient,
     private val brevService: BrevService,
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
@@ -1457,7 +1457,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson.left()
         }
 
-        val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(saksbehandler).getOrElse {
+        val saksbehandlerNavn = identClient.hentNavnForNavIdent(saksbehandler).getOrElse {
             log.error("Fant ikke saksbehandlernavn for saksbehandler: $saksbehandler")
             return KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
         }

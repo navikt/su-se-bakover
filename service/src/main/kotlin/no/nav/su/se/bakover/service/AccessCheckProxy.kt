@@ -22,9 +22,14 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.klage.AvvistKlage
+import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KanIkkeTolkeKlagevedtak
+import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
+import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
@@ -798,6 +803,15 @@ open class AccessCheckProxy(
                     return services.klageService.bekreftVurderinger(klageId, saksbehandler)
                 }
 
+                override fun leggTilAvvistFritekstTilBrev(
+                    klageId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    fritekst: String,
+                ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.leggTilAvvistFritekstTilBrev(klageId, saksbehandler, fritekst)
+                }
+
                 override fun sendTilAttestering(
                     klageId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
@@ -806,7 +820,7 @@ open class AccessCheckProxy(
                     return services.klageService.sendTilAttestering(klageId, saksbehandler)
                 }
 
-                override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet> {
+                override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, Klage> {
                     assertHarTilgangTilKlage(request.klageId)
                     return services.klageService.underkjenn(request)
                 }
@@ -819,13 +833,20 @@ open class AccessCheckProxy(
                     return services.klageService.oversend(klageId, attestant)
                 }
 
+                override fun iverksettAvvistKlage(
+                    klageId: UUID,
+                    attestant: NavIdentBruker.Attestant,
+                ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.iverksettAvvistKlage(klageId, attestant)
+                }
+
                 override fun brevutkast(
                     klageId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                    fritekst: String,
                 ): Either<KunneIkkeLageBrevutkast, ByteArray> {
                     assertHarTilgangTilKlage(klageId)
-                    return services.klageService.brevutkast(klageId, saksbehandler, fritekst)
+                    return services.klageService.brevutkast(klageId, saksbehandler)
                 }
             },
             klagevedtakService = object : KlagevedtakService {

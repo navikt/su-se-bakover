@@ -22,8 +22,7 @@ data class OpprettetKlage private constructor(
     override val oppgaveId: OppgaveId,
     override val datoKlageMottatt: LocalDate,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
-    override val klagevedtakshistorikk: Klagevedtakshistorikk,
-) : Klage() {
+) : Klage {
 
     companion object {
         fun create(
@@ -36,7 +35,6 @@ data class OpprettetKlage private constructor(
             oppgaveId: OppgaveId,
             datoKlageMottatt: LocalDate,
             saksbehandler: NavIdentBruker.Saksbehandler,
-            klagevedtakshistorikk: Klagevedtakshistorikk
         ): OpprettetKlage = OpprettetKlage(
             id = id,
             opprettet = opprettet,
@@ -47,7 +45,6 @@ data class OpprettetKlage private constructor(
             oppgaveId = oppgaveId,
             datoKlageMottatt = datoKlageMottatt,
             saksbehandler = saksbehandler,
-            klagevedtakshistorikk = klagevedtakshistorikk,
         )
     }
 
@@ -61,7 +58,7 @@ data class OpprettetKlage private constructor(
         }.right()
     }
 
-    fun vilkårsvurder(
+    private fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
     ): VilkårsvurdertKlage.Påbegynt {
@@ -75,14 +72,12 @@ data class OpprettetKlage private constructor(
             oppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
             vilkårsvurderinger = vilkårsvurderinger,
-            vurderinger = null,
             attesteringer = Attesteringshistorikk.empty(),
             datoKlageMottatt = datoKlageMottatt,
-            klagevedtakshistorikk = klagevedtakshistorikk
         )
     }
 
-    fun vilkårsvurder(
+    private fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
     ): VilkårsvurdertKlage.Utfylt {
@@ -99,7 +94,7 @@ data class OpprettetKlage private constructor(
             vurderinger = null,
             attesteringer = Attesteringshistorikk.empty(),
             datoKlageMottatt = datoKlageMottatt,
-            klagevedtakshistorikk = klagevedtakshistorikk
+            klagevedtakshistorikk = Klagevedtakshistorikk.empty()
         )
     }
 }

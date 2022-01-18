@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.klage
 
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -20,7 +20,7 @@ internal data class KlageServiceMocks(
     val vedtakRepoMock: VedtakRepo = mock(),
     val brevServiceMock: BrevService = mock(),
     val personServiceMock: PersonService = mock(),
-    val microsoftGraphApiMock: MicrosoftGraphApiOppslag = mock(),
+    val identClient: IdentClient = mock(),
     val klageClient: KlageClient = mock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val oppgaveService: OppgaveService = mock(),
@@ -32,7 +32,7 @@ internal data class KlageServiceMocks(
         vedtakRepo = vedtakRepoMock,
         brevService = brevServiceMock,
         personService = personServiceMock,
-        microsoftGraphApiClient = microsoftGraphApiMock,
+        identClient = identClient,
         klageClient = klageClient,
         sessionFactory = sessionFactory,
         oppgaveService = oppgaveService,
@@ -45,7 +45,7 @@ internal data class KlageServiceMocks(
         vedtakRepoMock,
         brevServiceMock,
         personServiceMock,
-        microsoftGraphApiMock,
+        identClient,
         klageClient,
         oppgaveService,
     ).toTypedArray()

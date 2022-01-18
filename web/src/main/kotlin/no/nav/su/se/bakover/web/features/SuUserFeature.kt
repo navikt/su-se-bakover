@@ -14,9 +14,9 @@ import io.ktor.routing.RoutingResolveContext
 import io.ktor.routing.application
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelinePhase
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.web.getGroupsFromJWT
 import no.nav.su.se.bakover.web.getNAVidentFromJwt
 import no.nav.su.se.bakover.web.getNavnFromJwt
@@ -56,7 +56,7 @@ internal sealed class SuUserFeaturefeil(override val message: String) : RuntimeE
 
 internal object ManglerAuthHeader : SuUserFeaturefeil("Mangler auth header")
 internal object IkkeInitialisert : SuUserFeaturefeil("Ikke initialisert")
-internal data class KallMotMicrosoftGraphApiFeilet(val feil: MicrosoftGraphApiOppslagFeil) :
+internal data class KallMotMicrosoftGraphApiFeilet(val feil: KunneIkkeHenteNavnForNavIdent) :
     SuUserFeaturefeil("Kall mot Microsoft Graph Api feilet")
 
 internal object FantBrukerMenManglerNAVIdent : SuUserFeaturefeil("Bruker mangler NAVIdent")

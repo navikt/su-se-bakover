@@ -1,23 +1,57 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
+import arrow.core.getOrHandle
+import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
-sealed class VurdertKlage : Klage() {
+sealed class VurdertKlage : Klage {
 
     abstract val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
     abstract val vurderinger: VurderingerTilKlage
     abstract val attesteringer: Attesteringshistorikk
+    abstract val klagevedtakshistorikk: Klagevedtakshistorikk
+
+    override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
+        return vurderinger.fritekstTilBrev.orEmpty().right()
+    }
+
+    override fun lagBrevRequest(
+        hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+        hentVedtakDato: (klageId: UUID) -> LocalDate?,
+        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
+        clock: Clock,
+    ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage> {
+        return LagBrevRequest.Klage.Oppretthold(
+            person = hentPerson(this.fnr).getOrHandle {
+                return KunneIkkeLageBrevRequest.FeilVedHentingAvPerson(it).left()
+            },
+            dagensDato = LocalDate.now(clock),
+            saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrHandle {
+                return KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(it).left()
+            },
+            fritekst = this.vurderinger.fritekstTilBrev.orEmpty(),
+            saksnummer = this.saksnummer,
+            klageDato = this.datoKlageMottatt,
+            vedtakDato = hentVedtakDato(this.id)
+                ?: return KunneIkkeLageBrevRequest.FeilVedHentingAvVedtakDato.left(),
+        ).right()
+    }
 
     override fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -34,10 +68,8 @@ sealed class VurdertKlage : Klage() {
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
-                vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
             )
             is VilkårsvurderingerTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
                 id = id,
@@ -293,7 +325,8 @@ sealed class VurdertKlage : Klage() {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk
+                    fritekstTilBrev = vurderinger.fritekstTilBrev,
+                    klagevedtakshistorikk = klagevedtakshistorikk,
                 )
             }
         }

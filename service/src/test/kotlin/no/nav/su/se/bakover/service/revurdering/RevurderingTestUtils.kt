@@ -4,11 +4,11 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
@@ -94,7 +94,7 @@ internal object RevurderingTestUtils {
         revurderingRepo: RevurderingRepo = mock(),
         oppgaveService: OppgaveService = mock(),
         personService: PersonService = mock(),
-        microsoftGraphApiClient: MicrosoftGraphApiOppslag = mock(),
+        identClient: IdentClient = mock(),
         brevService: BrevService = mock(),
         clock: Clock = fixedClock,
         vedtakRepo: VedtakRepo = mock(),
@@ -108,7 +108,7 @@ internal object RevurderingTestUtils {
             revurderingRepo = revurderingRepo,
             oppgaveService = oppgaveService,
             personService = personService,
-            microsoftGraphApiClient = microsoftGraphApiClient,
+            identClient = identClient,
             brevService = brevService,
             clock = clock,
             vedtakRepo = vedtakRepo,

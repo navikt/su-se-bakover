@@ -46,7 +46,7 @@ internal class ServiceBuilderTest {
                 utbetalingPublisher = mock(),
                 dokDistFordeling = mock(),
                 avstemmingPublisher = mock(),
-                microsoftGraphApiClient = mock(),
+                identClient = mock(),
                 digitalKontaktinformasjon = mock(),
                 leaderPodLookup = mock(),
                 kafkaPublisher = mock(),

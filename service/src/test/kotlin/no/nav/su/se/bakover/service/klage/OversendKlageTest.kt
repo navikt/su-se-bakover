@@ -5,7 +5,6 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -18,25 +17,31 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequest
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.test.TestSessionFactory
-import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.klageTilAttestering
+import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
-import no.nav.su.se.bakover.test.underkjentKlage
-import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.underkjentAvvistKlage
+import no.nav.su.se.bakover.test.underkjentKlageTilVurdering
+import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
+import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -66,8 +71,14 @@ internal class OversendKlageTest {
     }
 
     @Test
+    fun `en oversendtKlage er en lukket klage`() {
+        val klage = oversendtKlage().second
+        klage.erÅpen() shouldBe false
+    }
+
+    @Test
     fun `Attestant og saksbehandler kan ikke være samme person`() {
-        val klage = klageTilAttestering().second
+        val klage = vurdertKlageTilAttestering().second
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -86,13 +97,17 @@ internal class OversendKlageTest {
 
     @Test
     fun `kunne ikke lage brevrequest`() {
-        val klage = klageTilAttestering().second
+        val klage = vurdertKlageTilAttestering().second
+        val person = person(fnr = klage.fnr)
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
             },
-            microsoftGraphApiMock = mock {
-                on { hentNavnForNavIdent(any()) } doReturn MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
+            personServiceMock = mock {
+                on { hentPerson(any()) } doReturn person.right()
+            },
+            identClient = mock {
+                on { hentNavnForNavIdent(any()) } doReturn KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent.left()
             },
         )
 
@@ -100,23 +115,25 @@ internal class OversendKlageTest {
         mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
-        ) shouldBe KunneIkkeOversendeKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler).left()
+        ) shouldBe
+            KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent)).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe klage.fnr })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `Dokumentgenerering feilet`() {
-        val (sak, klage) = klageTilAttestering()
+        val (sak, klage) = vurdertKlageTilAttestering()
         val person = person(fnr = sak.fnr)
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
                 on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
             },
-            microsoftGraphApiMock = mock {
+            identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
             },
             personServiceMock = mock {
@@ -134,7 +151,7 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {
@@ -154,14 +171,14 @@ internal class OversendKlageTest {
 
     @Test
     fun `Fant ikke journalpost-id knyttet til vedtaket`() {
-        val (sak, klage) = klageTilAttestering()
+        val (sak, klage) = vurdertKlageTilAttestering()
         val person = person(fnr = sak.fnr)
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
                 on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
             },
-            microsoftGraphApiMock = mock {
+            identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
             },
             personServiceMock = mock {
@@ -182,7 +199,7 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {
@@ -203,7 +220,7 @@ internal class OversendKlageTest {
 
     @Test
     fun `Kunne ikke oversende til klageinstans`() {
-        val (sak, klage) = klageTilAttestering()
+        val (sak, klage) = vurdertKlageTilAttestering()
         val person = person(fnr = sak.fnr)
         val journalpostIdKnyttetTilVedtakDetKlagePå = JournalpostId("journalpostIdKnyttetTilVedtakDetKlagePå")
         val pdfAsBytes = "brevbytes".toByteArray()
@@ -212,7 +229,7 @@ internal class OversendKlageTest {
                 on { hentKlage(any()) } doReturn klage
                 on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
             },
-            microsoftGraphApiMock = mock {
+            identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
             },
             personServiceMock = mock {
@@ -236,7 +253,7 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {
@@ -326,7 +343,7 @@ internal class OversendKlageTest {
 
     @Test
     fun `Ugyldig tilstandsovergang fra utfylt vilkårsvurdering`() {
-        utfyltVilkårsvurdertKlage().also {
+        utfyltVilkårsvurdertKlageTilVurdering().also {
             verifiserUgyldigTilstandsovergang(
                 klage = it.second,
             )
@@ -334,8 +351,26 @@ internal class OversendKlageTest {
     }
 
     @Test
-    fun `Ugyldig tilstandsovergang fra bekreftet vilkårsvurdering`() {
-        bekreftetVilkårsvurdertKlage().also {
+    fun `Ugyldig tilstandsovergang fra utfylt vilkårsvurdering avvist`() {
+        utfyltAvvistVilkårsvurdertKlage().also {
+            verifiserUgyldigTilstandsovergang(
+                klage = it.second,
+            )
+        }
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang fra bekreftet vilkårsvurdering til vurdering`() {
+        bekreftetVilkårsvurdertKlageTilVurdering().also {
+            verifiserUgyldigTilstandsovergang(
+                klage = it.second,
+            )
+        }
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang fra bekreftet vilkårsvurdering avvist`() {
+        bekreftetAvvistVilkårsvurdertKlage().also {
             verifiserUgyldigTilstandsovergang(
                 klage = it.second,
             )
@@ -371,7 +406,16 @@ internal class OversendKlageTest {
 
     @Test
     fun `Ugyldig tilstandsovergang underkjent vurdering`() {
-        underkjentKlage().also {
+        underkjentKlageTilVurdering().also {
+            verifiserUgyldigTilstandsovergang(
+                klage = it.second,
+            )
+        }
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang underkjent vurdering avvist`() {
+        underkjentAvvistKlage().also {
             verifiserUgyldigTilstandsovergang(
                 klage = it.second,
             )
@@ -381,6 +425,15 @@ internal class OversendKlageTest {
     @Test
     fun `Ugyldig tilstandsovergang fra iverksatt`() {
         oversendtKlage().also {
+            verifiserUgyldigTilstandsovergang(
+                klage = it.second,
+            )
+        }
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang fra avvist`() {
+        iverksattAvvistKlage().also {
             verifiserUgyldigTilstandsovergang(
                 klage = it.second,
             )
@@ -403,8 +456,8 @@ internal class OversendKlageTest {
     }
 
     @Test
-    fun `Skal kunne iverksette klage som er til attestering`() {
-        val (sak, klage) = klageTilAttestering()
+    fun `Skal kunne oversende en klage som er til attestering`() {
+        val (sak, klage) = vurdertKlageTilAttestering()
         val journalpostIdForVedtak = JournalpostId(UUID.randomUUID().toString())
         val person = person(fnr = sak.fnr)
         val pdfAsBytes = "brevbytes".toByteArray()
@@ -417,7 +470,7 @@ internal class OversendKlageTest {
             vedtakRepoMock = mock {
                 on { hentJournalpostId(any()) } doReturn journalpostIdForVedtak
             },
-            microsoftGraphApiMock = mock {
+            identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
             },
             personServiceMock = mock {
@@ -464,7 +517,7 @@ internal class OversendKlageTest {
 
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
+        verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
             argThat {

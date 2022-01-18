@@ -104,15 +104,6 @@ internal class VilkårsvurderKlageTest {
     }
 
     @Test
-    fun `kan ikke svare nei på vilkårsvurderingene i mvp`() {
-        verifiserFeilkode(
-            feilkode = KunneIkkeVilkårsvurdereKlage.NeiSvarErIkkeStøttet,
-            status = HttpStatusCode.BadRequest,
-            body = "{\"message\":\"Vi har ikke støtte for å svare nei\",\"code\":\"nei_er_ikke_støttet\"}",
-        )
-    }
-
-    @Test
     fun `ugyldig tilstand`() {
         verifiserFeilkode(
             feilkode = KunneIkkeVilkårsvurdereKlage.UgyldigTilstand(OpprettetKlage::class, OversendtKlage::class),

@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
@@ -69,7 +69,7 @@ class LagBrevutkastForForhåndsvarslingTest {
             on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         }
 
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
+        val microsoftGraphApiClientMock = mock<IdentClient> {
             on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
         }
 
@@ -77,7 +77,7 @@ class LagBrevutkastForForhåndsvarslingTest {
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
             brevService = brevServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiClientMock,
+            identClient = microsoftGraphApiClientMock,
         ).lagBrevutkastForForhåndsvarsling(
             UUID.randomUUID(),
             "fritekst til forhåndsvarsling",

@@ -24,5 +24,6 @@ sealed class PdfTemplate(
     }
     sealed class Klage(templateName: String) : PdfTemplate(templateName) {
         object Oppretthold : Klage("sendtTilKlageinstans")
+        object Avvist : Klage("avvistKlage")
     }
 }

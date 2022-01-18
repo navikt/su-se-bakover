@@ -32,7 +32,9 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Hjemler
+import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
@@ -53,10 +55,18 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         transactionContext.withTransaction { transaction ->
             when (klage) {
                 is OpprettetKlage -> lagreOpprettetKlage(klage, transaction)
-                is VilkårsvurdertKlage -> lagreVilkårsvurdertKlage(klage, transaction)
+
+                is VilkårsvurdertKlage.Påbegynt -> lagreVilkårsvurdertKlage(klage, transaction)
+                is VilkårsvurdertKlage.Utfylt -> lagreVilkårsvurdertKlage(klage, transaction)
+                is VilkårsvurdertKlage.Bekreftet -> lagreVilkårsvurdertKlage(klage, transaction)
+
                 is VurdertKlage -> lagreVurdertKlage(klage, transaction)
+
+                is AvvistKlage -> lagreAvvistKlage(klage, transaction)
+
                 is KlageTilAttestering -> lagreTilAttestering(klage, transaction)
                 is OversendtKlage -> lagreOversendtKlage(klage, transaction)
+                is IverksattAvvistKlage -> lagreIverksattAvvistKlage(klage, transaction)
             }
         }
     }
@@ -147,6 +157,27 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
             )
     }
 
+    private fun lagreAvvistKlage(klage: AvvistKlage, session: Session) {
+        """
+            UPDATE
+                klage
+            SET
+                type=:type,
+                attestering=to_jsonb(:attestering::jsonb),
+                fritekstTilBrev=:fritekst
+            WHERE
+                id=:id
+        """.trimIndent().oppdatering(
+            mapOf(
+                "id" to klage.id,
+                "type" to klage.databasetype(),
+                "attestering" to klage.attesteringer.toDatabaseJson(),
+                "fritekst" to klage.fritekstTilBrev,
+            ),
+            session,
+        )
+    }
+
     private fun lagreTilAttestering(klage: KlageTilAttestering, session: Session) {
         """
             update 
@@ -189,6 +220,25 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 ),
                 session,
             )
+    }
+
+    private fun lagreIverksattAvvistKlage(klage: IverksattAvvistKlage, session: Session) {
+        """
+            UPDATE
+                klage
+            SET
+                type=:type,
+                attestering=to_jsonb(:attestering::jsonb)
+            WHERE
+                id=:id
+        """.trimIndent().oppdatering(
+            mapOf(
+                "id" to klage.id,
+                "type" to klage.databasetype(),
+                "attestering" to klage.attesteringer.toDatabaseJson(),
+            ),
+            session,
+        )
     }
 
     override fun hentKlage(klageId: UUID): Klage? {
@@ -304,7 +354,6 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk,
             )
             Tilstand.VILKÅRSVURDERT_PÅBEGYNT -> {
                 VilkårsvurdertKlage.Påbegynt.create(
@@ -317,13 +366,11 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     oppgaveId = oppgaveId,
                     saksbehandler = saksbehandler,
                     vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Påbegynt,
-                    vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk,
                 )
             }
-            Tilstand.VILKÅRSVURDERT_UTFYLT -> VilkårsvurdertKlage.Utfylt.create(
+            Tilstand.VILKÅRSVURDERT_UTFYLT_TIL_VURDERING -> VilkårsvurdertKlage.Utfylt.TilVurdering.create(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -338,7 +385,20 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 datoKlageMottatt = datoKlageMottatt,
                 klagevedtakshistorikk = klagevedtakshistorikk,
             )
-            Tilstand.VILKÅRSVURDERT_BEKREFTET -> VilkårsvurdertKlage.Bekreftet.create(
+            Tilstand.VILKÅRSVURDERT_UTFYLT_AVVIST -> VilkårsvurdertKlage.Utfylt.Avvist.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
+            )
+            Tilstand.VILKÅRSVURDERT_BEKREFTET_TIL_VURDERING -> VilkårsvurdertKlage.Bekreftet.TilVurdering.create(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -352,6 +412,19 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 klagevedtakshistorikk = klagevedtakshistorikk,
+            )
+            Tilstand.VILKÅRSVURDERT_BEKREFTET_AVVIST -> VilkårsvurdertKlage.Bekreftet.Avvist.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             )
             Tilstand.VURDERT_PÅBEGYNT -> VurdertKlage.Påbegynt.create(
                 id = id,
@@ -398,7 +471,23 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 datoKlageMottatt = datoKlageMottatt,
                 klagevedtakshistorikk = klagevedtakshistorikk,
             )
-            Tilstand.TIL_ATTESTERING -> KlageTilAttestering.create(
+            Tilstand.AVVIST -> AvvistKlage.create(
+                forrigeSteg = VilkårsvurdertKlage.Bekreftet.Avvist.create(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    journalpostId = journalpostId,
+                    oppgaveId = oppgaveId,
+                    saksbehandler = saksbehandler,
+                    vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                    attesteringer = attesteringer,
+                    datoKlageMottatt = datoKlageMottatt,
+                ),
+                fritekstTilBrev = fritekstTilBrev!!,
+            )
+            Tilstand.TIL_ATTESTERING_TIL_VURDERING -> KlageTilAttestering.Vurdert.create(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -412,6 +501,21 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 klagevedtakshistorikk = klagevedtakshistorikk,
+            )
+            Tilstand.TIL_ATTESTERING_AVVIST -> KlageTilAttestering.Avvist.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
+                fritekstTilBrev = fritekstTilBrev
+                    ?: throw IllegalStateException("Fritekst må være fyllt ut for en avvist klage som er til attestering. id: $id"),
             )
             Tilstand.OVERSENDT -> OversendtKlage.create(
                 id = id,
@@ -427,6 +531,20 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 klagevedtakshistorikk = klagevedtakshistorikk,
+            )
+            Tilstand.IVERKSATT_AVVIST -> IverksattAvvistKlage.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
+                fritekstTilBrev = fritekstTilBrev!!,
             )
         }
     }
@@ -449,27 +567,47 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
 
     private enum class Tilstand(val verdi: String) {
         OPPRETTET("opprettet"),
+
         VILKÅRSVURDERT_PÅBEGYNT("vilkårsvurdert_påbegynt"),
-        VILKÅRSVURDERT_UTFYLT("vilkårsvurdert_utfylt"),
-        VILKÅRSVURDERT_BEKREFTET("vilkårsvurdert_bekreftet"),
+        VILKÅRSVURDERT_UTFYLT_TIL_VURDERING("vilkårsvurdert_utfylt_til_vurdering"),
+        VILKÅRSVURDERT_UTFYLT_AVVIST("vilkårsvurdert_utfylt_avvist"),
+        VILKÅRSVURDERT_BEKREFTET_TIL_VURDERING("vilkårsvurdert_bekreftet_til_vurdering"),
+        VILKÅRSVURDERT_BEKREFTET_AVVIST("vilkårsvurdert_bekreftet_avvist"),
+
         VURDERT_PÅBEGYNT("vurdert_påbegynt"),
         VURDERT_UTFYLT("vurdert_utfylt"),
         VURDERT_BEKREFTET("vurdert_bekreftet"),
-        TIL_ATTESTERING("til_attestering"),
-        OVERSENDT("oversendt");
+
+        AVVIST("avvist"),
+
+        TIL_ATTESTERING_TIL_VURDERING("til_attestering_til_vurdering"),
+        TIL_ATTESTERING_AVVIST("til_attestering_avvist"),
+
+        OVERSENDT("oversendt"),
+        IVERKSATT_AVVIST("iverksatt_avvist");
 
         companion object {
             fun Klage.databasetype(): String {
                 return when (this) {
                     is OpprettetKlage -> OPPRETTET
+
                     is VilkårsvurdertKlage.Påbegynt -> VILKÅRSVURDERT_PÅBEGYNT
-                    is VilkårsvurdertKlage.Utfylt -> VILKÅRSVURDERT_UTFYLT
-                    is VilkårsvurdertKlage.Bekreftet -> VILKÅRSVURDERT_BEKREFTET
+                    is VilkårsvurdertKlage.Utfylt.TilVurdering -> VILKÅRSVURDERT_UTFYLT_TIL_VURDERING
+                    is VilkårsvurdertKlage.Utfylt.Avvist -> VILKÅRSVURDERT_UTFYLT_AVVIST
+                    is VilkårsvurdertKlage.Bekreftet.TilVurdering -> VILKÅRSVURDERT_BEKREFTET_TIL_VURDERING
+                    is VilkårsvurdertKlage.Bekreftet.Avvist -> VILKÅRSVURDERT_BEKREFTET_AVVIST
+
                     is VurdertKlage.Påbegynt -> VURDERT_PÅBEGYNT
                     is VurdertKlage.Utfylt -> VURDERT_UTFYLT
                     is VurdertKlage.Bekreftet -> VURDERT_BEKREFTET
-                    is KlageTilAttestering -> TIL_ATTESTERING
+
+                    is AvvistKlage -> AVVIST
+
+                    is KlageTilAttestering.Vurdert -> TIL_ATTESTERING_TIL_VURDERING
+                    is KlageTilAttestering.Avvist -> TIL_ATTESTERING_AVVIST
+
                     is OversendtKlage -> OVERSENDT
+                    is IverksattAvvistKlage -> IVERKSATT_AVVIST
                 }.toString()
             }
 
