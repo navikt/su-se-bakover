@@ -91,6 +91,7 @@ class KlagevedtakServiceImpl(
                     klageRepo.lagre(it, tx)
                     klagevedtakRepo.lagre(it.klagevedtakshistorikk.last(), tx)
                 }
+                log.info("Prosessert og lagat oppgave for klageinstansvedtak med id: ${klagevedtak.id}")
             }
     }
 
@@ -130,7 +131,7 @@ class KlagevedtakServiceImpl(
         }.mapLeft { Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.KunneIkkeHenteAktørId }
             .flatMap {
                 oppgaveService.opprettOppgaveMedSystembruker(it)
-                    .mapLeft { Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.KunneIkkeLageOppgave(it) }
+                    .mapLeft { feil -> Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.KunneIkkeLageOppgave(feil) }
             }
     }
 }
