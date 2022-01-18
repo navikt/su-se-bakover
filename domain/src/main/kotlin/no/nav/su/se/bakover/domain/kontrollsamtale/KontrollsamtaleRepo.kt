@@ -6,7 +6,7 @@ import java.util.UUID
 
 interface KontrollsamtaleRepo {
     fun lagre(kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext = defaultTransactionContext())
-    fun hent(sakId: UUID): List<Kontrollsamtale>
+    fun hentForSakId(sakId: UUID): List<Kontrollsamtale>
     fun hentAllePlanlagte(tilOgMed: LocalDate): List<Kontrollsamtale>
     fun defaultTransactionContext(): TransactionContext
 }

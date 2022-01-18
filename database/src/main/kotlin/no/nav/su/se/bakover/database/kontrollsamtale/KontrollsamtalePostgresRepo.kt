@@ -47,7 +47,7 @@ internal class KontrollsamtalePostgresRepo(
         }
     }
 
-    override fun hent(sakId: UUID): List<Kontrollsamtale> =
+    override fun hentForSakId(sakId: UUID): List<Kontrollsamtale> =
         sessionFactory.withSession { session ->
             "select * from kontrollsamtale where sakid=:sakId"
                 .trimIndent()

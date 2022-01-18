@@ -201,7 +201,7 @@ internal class KontrollsamtaleServiceImplTest {
     fun `hentNestePlanlagteKontrollsamtale skal returnere left om det ikke eksisterer data i databasen`() {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
-                on { hent(any()) } doReturn emptyList()
+                on { hentForSakId(any()) } doReturn emptyList()
             },
         )
         services.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(
@@ -213,7 +213,7 @@ internal class KontrollsamtaleServiceImplTest {
     fun `hentNestePlanlagteKontrollsamtale skal returnere left om det ikke finnes noen med status INNKALT`() {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
-                on { hent(any()) } doReturn listOf(
+                on { hentForSakId(any()) } doReturn listOf(
                     kontrollsamtale(status = Kontrollsamtalestatus.INNKALT),
                     kontrollsamtale(status = Kontrollsamtalestatus.GJENNOMFØRT),
                 )
@@ -230,7 +230,7 @@ internal class KontrollsamtaleServiceImplTest {
             kontrollsamtale(status = Kontrollsamtalestatus.PLANLAGT_INNKALLING, innkallingsdato = fixedLocalDate)
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
-                on { hent(any()) } doReturn listOf(
+                on { hentForSakId(any()) } doReturn listOf(
                     kontrollsamtale(
                         status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
                         innkallingsdato = fixedLocalDate.plusMonths(1),

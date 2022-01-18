@@ -1,24 +1,21 @@
 package no.nav.su.se.bakover.service.kontrollsamtale
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import arrow.core.rightIfNotNull
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
-import no.nav.su.se.bakover.domain.kontrollsamtale.regnUtInnkallingsdato
-import no.nav.su.se.bakover.domain.kontrollsamtale.regnUtInnkallingsdatoOm4Mnd
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -79,11 +76,6 @@ class KontrollsamtaleServiceImpl(
         return Either.catch {
             sessionFactory.withTransactionContext { tx ->
                 brevService.lagreDokument(dokument, tx)
-                opprettPlanlagtKontrollsamtaleOmDetTrengs(
-                    gjeldendeStønadsperiode = gjeldendeStønadsperiode,
-                    sakId = sakId,
-                    tx = tx,
-                )
                 kontrollsamtaleRepo.lagre(
                     kontrollsamtale = kontrollsamtale.oppdater(
                         status = Kontrollsamtalestatus.INNKALT,
@@ -91,6 +83,11 @@ class KontrollsamtaleServiceImpl(
                     ),
                     transactionContext = tx,
                 )
+                Kontrollsamtale.opprettNyKontrollsamtale(gjeldendeStønadsperiode, sakId, clock).map {
+                    lagreInnkallingTilKontrollsamtale(it, tx).getOrElse {
+                        throw RuntimeException("Fikk ikke opprettet ny innkalling til neste kontrollsamtale")
+                    }
+                }
                 oppgaveService.opprettOppgave(
                     config = OppgaveConfig.Kontrollsamtale(
                         saksnummer = sak.saksnummer,
@@ -133,7 +130,7 @@ class KontrollsamtaleServiceImpl(
         ).right()
 
     override fun hentNestePlanlagteKontrollsamtale(sakId: UUID): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale> {
-        val samtaler = kontrollsamtaleRepo.hent(sakId).sortedBy { it.innkallingsdato }
+        val samtaler = kontrollsamtaleRepo.hentForSakId(sakId).sortedBy { it.innkallingsdato }
         return samtaler.find { it.status === Kontrollsamtalestatus.PLANLAGT_INNKALLING }?.right()
             ?: KunneIkkeHenteKontrollsamtale.FantIkkeKontrollsamtale.left()
     }
@@ -145,26 +142,18 @@ class KontrollsamtaleServiceImpl(
         }
 
     override fun opprettPlanlagtKontrollsamtale(vedtak: Vedtak): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> {
-        val innkallingsdato = regnUtInnkallingsdato(vedtak.periode, vedtak.opprettet.toLocalDate(zoneIdOslo), clock)
-            ?: return KunneIkkeKalleInnTilKontrollsamtale.SkalIkkePlanleggeKontrollsamtale.left()
-
-        val kontrollsamtale = Kontrollsamtale(
-            sakId = vedtak.behandling.sakId,
-            innkallingsdato = innkallingsdato,
-            status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
-            dokumentId = null,
-        )
-
         val planlagtKontrollsamtaleEksisterer = hentNestePlanlagteKontrollsamtale(vedtak.behandling.sakId).isRight()
 
         return if (planlagtKontrollsamtaleEksisterer) {
             KunneIkkeKalleInnTilKontrollsamtale.PlanlagtKontrollsamtaleFinnesAllerede.left()
-        } else {
-            sessionFactory.withTransactionContext {
-                lagreInnkallingTilKontrollsamtale(kontrollsamtale, it)
+        } else
+            Kontrollsamtale.opprettNyKontrollsamtaleFraVedtak(vedtak, clock).flatMap { kontrollsamtale ->
+                sessionFactory.withTransactionContext {
+                    lagreInnkallingTilKontrollsamtale(kontrollsamtale, it)
+                }
+            }.mapLeft {
+                KunneIkkeKalleInnTilKontrollsamtale.SkalIkkePlanleggeKontrollsamtale
             }
-            kontrollsamtale.right()
-        }
     }
 
     override fun oppdaterNestePlanlagteKontrollsamtaleStatus(
@@ -178,30 +167,10 @@ class KontrollsamtaleServiceImpl(
             kontrollsamtaleRepo.lagre(it.oppdater(status = status))
         }
 
-    private fun opprettPlanlagtKontrollsamtaleOmDetTrengs(
-        gjeldendeStønadsperiode: Periode,
-        sakId: UUID,
-        dokumentId: UUID? = null,
-        tx: TransactionContext,
-    ) {
-        val innkallingsdato =
-            regnUtInnkallingsdatoOm4Mnd(gjeldendeStønadsperiode.tilOgMed, LocalDate.now(clock)) ?: return
-
-        val kontrollsamtale = Kontrollsamtale(
-            sakId = sakId,
-            innkallingsdato = innkallingsdato,
-            status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
-            dokumentId = dokumentId,
-        )
-        lagreInnkallingTilKontrollsamtale(kontrollsamtale, tx).getOrElse {
-            throw RuntimeException("Fikk ikke opprettet innkalling til ny kontrollsamtale")
-        }
-    }
-
     private fun lagreInnkallingTilKontrollsamtale(
         kontrollsamtale: Kontrollsamtale,
         transactionContext: TransactionContext,
-    ): Either<KunneIkkeKalleInnTilKontrollsamtale, LagreKontrollsamtale> =
+    ): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> =
         Either.catch {
             kontrollsamtaleRepo.lagre(kontrollsamtale, transactionContext)
         }.fold(
@@ -211,7 +180,7 @@ class KontrollsamtaleServiceImpl(
             },
             ifRight = {
                 log.info("Opprettet ny kontrollsamtale for sakId ${kontrollsamtale.sakId}")
-                LagreKontrollsamtale.InnkallingOpprettet.right()
+                kontrollsamtale.right()
             },
         )
 
@@ -254,10 +223,6 @@ sealed interface KunneIkkeKalleInnTilKontrollsamtale {
     object FantIkkeKontrollsamtale : KunneIkkeKalleInnTilKontrollsamtale
     object SkalIkkePlanleggeKontrollsamtale : KunneIkkeKalleInnTilKontrollsamtale
     object PlanlagtKontrollsamtaleFinnesAllerede : KunneIkkeKalleInnTilKontrollsamtale
-}
-
-sealed interface LagreKontrollsamtale {
-    object InnkallingOpprettet : LagreKontrollsamtale
 }
 
 sealed interface KunneIkkeHenteKontrollsamtale {

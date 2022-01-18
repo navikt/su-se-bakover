@@ -1,11 +1,15 @@
 package no.nav.su.se.bakover.domain.kontrollsamtale
 
+import arrow.core.Either
+import arrow.core.rightIfNotNull
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.erMindreEnnEnMånedSenere
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -36,6 +40,39 @@ data class Kontrollsamtale(
         frist = frist,
         dokumentId = dokumentId
     )
+
+    companion object {
+        fun opprettNyKontrollsamtaleFraVedtak(
+            vedtak: Vedtak,
+            clock: Clock
+        ): Either<SkalIkkeOppretteKontrollsamtale, Kontrollsamtale> =
+            regnUtInnkallingsdato(vedtak.periode, vedtak.opprettet.toLocalDate(zoneIdOslo), clock).rightIfNotNull {
+                SkalIkkeOppretteKontrollsamtale
+            }.map {
+                Kontrollsamtale(
+                    sakId = vedtak.behandling.sakId,
+                    innkallingsdato = it,
+                    status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
+                    dokumentId = null
+                )
+            }
+
+        fun opprettNyKontrollsamtale(
+            gjeldendeStønadsperiode: Periode,
+            sakId: UUID,
+            clock: Clock
+        ): Either<SkalIkkeOppretteKontrollsamtale, Kontrollsamtale> =
+            regnUtInnkallingsdatoOm4Mnd(gjeldendeStønadsperiode.tilOgMed, LocalDate.now(clock)).rightIfNotNull {
+                SkalIkkeOppretteKontrollsamtale
+            }.map {
+                Kontrollsamtale(
+                    sakId = sakId,
+                    innkallingsdato = it,
+                    status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
+                    dokumentId = null
+                )
+            }
+    }
 }
 
 enum class Kontrollsamtalestatus(val value: String) {
@@ -79,3 +116,5 @@ fun regnUtInnkallingsdatoOm4Mnd(stønadsslutt: LocalDate, fraDato: LocalDate): L
     val innkallingsdato = fraDato.startOfMonth().plusMonths(4)
     return if (stønadsslutt.erMindreEnnEnMånedSenere(innkallingsdato.endOfMonth())) null else innkallingsdato
 }
+
+object SkalIkkeOppretteKontrollsamtale
