@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
@@ -114,7 +115,7 @@ internal class RevurderingBeregnOgSimulerTest {
                     ),
                 ),
                 formue = Vilkår.Formue.IkkeVurdert,
-                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert
+                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -153,6 +154,43 @@ internal class RevurderingBeregnOgSimulerTest {
         response.feilmeldinger shouldBe listOf(
             RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
         )
+        response.varselmeldinger shouldBe emptyList()
+    }
+
+    @Test
+    fun `legger ved varsel dersom beløpsendring er mindre enn 10 prosent av gjeldende utbetaling`() {
+        val (sak, revurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().let { (sak, revurdering) ->
+            sak to revurdering.oppdaterFradragOgMarkerSomVurdert(
+                listOf(
+                    fradragsgrunnlagArbeidsinntekt(
+                        arbeidsinntekt = 6000.0,
+                    ),
+                ),
+            ).getOrFail()
+        }
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(revurderingId) } doReturn revurdering
+        }
+        val simulertUtbetaling = mock<Utbetaling.SimulertUtbetaling> {
+            on { simulering } doReturn mock()
+        }
+
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { simulerUtbetaling(any(), any(), any(), any()) } doReturn simulertUtbetaling.right()
+            on { hentUtbetalinger(any()) } doReturn sak.utbetalinger
+        }
+
+        val response = RevurderingTestUtils.createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            utbetalingService = utbetalingServiceMock,
+        ).beregnOgSimuler(
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
+        ).getOrFail()
+
+        response.feilmeldinger shouldBe emptyList()
+        response.varselmeldinger shouldBe listOf(Varselmelding.BeløpsendringUnder10Prosent)
     }
 
     @Test

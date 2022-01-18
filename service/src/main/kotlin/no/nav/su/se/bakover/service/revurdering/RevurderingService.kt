@@ -90,7 +90,11 @@ interface RevurderingService {
         request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
 
-    fun lagBrevutkastForRevurdering(revurderingId: UUID, fritekst: String?): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
+    fun lagBrevutkastForRevurdering(
+        revurderingId: UUID,
+        fritekst: String?,
+    ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
+
     fun iverksett(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
@@ -110,7 +114,7 @@ interface RevurderingService {
     ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilUtenlandsopphold(
-        request: LeggTilFlereUtenlandsoppholdRequest
+        request: LeggTilFlereUtenlandsoppholdRequest,
     ): Either<KunneIkkeLeggeTilUtenlandsopphold, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilFradragsgrunnlag(
@@ -144,7 +148,16 @@ interface RevurderingService {
 data class RevurderingOgFeilmeldingerResponse(
     val revurdering: Revurdering,
     val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes> = emptyList(),
-)
+    val varselmeldinger: List<Varselmelding> = emptyList(),
+) {
+    fun leggTil(varselmelding: Varselmelding): RevurderingOgFeilmeldingerResponse {
+        return copy(varselmeldinger = (varselmeldinger + varselmelding).distinct())
+    }
+}
+
+sealed interface Varselmelding {
+    object BeløpsendringUnder10Prosent : Varselmelding
+}
 
 object FantIkkeRevurdering
 

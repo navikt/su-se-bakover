@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 internal class AvsluttetRevurderingTest {
@@ -68,6 +69,7 @@ internal class AvsluttetRevurderingTest {
     }
 
     @Test
+    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `får feil dersom man prøver å lage en avsluttet revurdering med iverksatt som underliggende`() {
         AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second,

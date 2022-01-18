@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøkna
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 internal class SkalSendeBrevVisitorTest {
@@ -77,6 +78,7 @@ internal class SkalSendeBrevVisitorTest {
     }
 
     @Test
+    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `vedtak for revurdering uten endringer sender brev hvis det er valgt`() {
         val skalSendeBrev = Vedtak.from(
             revurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
@@ -93,6 +95,7 @@ internal class SkalSendeBrevVisitorTest {
     }
 
     @Test
+    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `vedtak for revurdering uten endringer sender ikke brev hvis det er valgt`() {
         val skalIkkeSendeBrev = Vedtak.from(
             revurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(

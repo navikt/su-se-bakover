@@ -50,6 +50,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak.Årsak.REGULER
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.revurdering.VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.revurdering.VurderOmVilkårGirOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.harSendtForhåndsvarsel
@@ -646,10 +647,26 @@ internal class RevurderingServiceImpl(
                         }.left()
                     }
 
+                val leggTilVarselForBeløpsendringUnder10Prosent =
+                    !VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+                        eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
+                        nyBeregning = beregnetRevurdering.beregning,
+                    ).resultat
+
                 when (beregnetRevurdering) {
                     is BeregnetRevurdering.IngenEndring -> {
                         revurderingRepo.lagre(beregnetRevurdering)
-                        identifiserFeilOgLagResponse(beregnetRevurdering).right()
+                        when (leggTilVarselForBeløpsendringUnder10Prosent) {
+                            true -> {
+                                identifiserFeilOgLagResponse(beregnetRevurdering)
+                                    .leggTil(Varselmelding.BeløpsendringUnder10Prosent)
+                                    .right()
+                            }
+                            false -> {
+                                identifiserFeilOgLagResponse(beregnetRevurdering)
+                                    .right()
+                            }
+                        }
                     }
                     is BeregnetRevurdering.Innvilget -> {
                         utbetalingService.simulerUtbetaling(
@@ -660,9 +677,18 @@ internal class RevurderingServiceImpl(
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
                         }.map {
-                            val simulert = beregnetRevurdering.toSimulert(it.simulering)
-                            revurderingRepo.lagre(simulert)
-                            identifiserFeilOgLagResponse(simulert)
+                            beregnetRevurdering.toSimulert(it.simulering).let { simulert ->
+                                revurderingRepo.lagre(simulert)
+                                when (leggTilVarselForBeløpsendringUnder10Prosent) {
+                                    true -> {
+                                        identifiserFeilOgLagResponse(simulert)
+                                            .leggTil(Varselmelding.BeløpsendringUnder10Prosent)
+                                    }
+                                    false -> {
+                                        identifiserFeilOgLagResponse(simulert)
+                                    }
+                                }
+                            }
                         }
                     }
                     is BeregnetRevurdering.Opphørt -> {
@@ -673,9 +699,18 @@ internal class RevurderingServiceImpl(
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
                         }.map {
-                            val simulert = beregnetRevurdering.toSimulert(it.simulering)
-                            revurderingRepo.lagre(simulert)
-                            identifiserFeilOgLagResponse(simulert)
+                            beregnetRevurdering.toSimulert(it.simulering).let { simulert ->
+                                revurderingRepo.lagre(simulert)
+                                when (leggTilVarselForBeløpsendringUnder10Prosent) {
+                                    true -> {
+                                        identifiserFeilOgLagResponse(simulert)
+                                            .leggTil(Varselmelding.BeløpsendringUnder10Prosent)
+                                    }
+                                    false -> {
+                                        identifiserFeilOgLagResponse(simulert)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
