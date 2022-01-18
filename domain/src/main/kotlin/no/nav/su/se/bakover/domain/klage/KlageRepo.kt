@@ -13,5 +13,3 @@ interface KlageRepo {
     fun defaultSessionContext(): SessionContext
     fun defaultTransactionContext(): TransactionContext
 }
-
-object KlageHarAlleredeBehandling
