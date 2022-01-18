@@ -335,6 +335,7 @@ fun Application.susebakover(
             jobConfig = applicationConfig.jobConfig.konsistensavstemming,
             clock = clock,
         ).schedule()
+        KlageinstansvedtakJob(klagevedtakService = services.klagevedtakService, leaderPodLookup = clients.leaderPodLookup).schedule()
     }
 
     PersonhendelseOppgaveJob(
@@ -342,8 +343,6 @@ fun Application.susebakover(
         leaderPodLookup = clients.leaderPodLookup,
         intervall = applicationConfig.jobConfig.personhendelse.intervall,
     ).schedule()
-
-    KlageinstansvedtakJob(klagevedtakService = services.klagevedtakService, leaderPodLookup = clients.leaderPodLookup).schedule()
 }
 
 fun Route.withAccessProtectedServices(
