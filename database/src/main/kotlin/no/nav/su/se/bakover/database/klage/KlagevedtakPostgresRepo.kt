@@ -29,7 +29,7 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
         Either.catch {
             return sessionFactory.withSession { session ->
                 """
-                insert into klagevedtak(id, opprettet, type, metadata)
+                insert into klageinstansvedtak(id, opprettet, type, metadata)
                 values(:id, :opprettet, :type, to_jsonb(:metadata::jsonb))
                 """.trimIndent()
                     .insert(
@@ -55,7 +55,7 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
     override fun lagre(klagevedtak: ProsessertKlageinstansvedtak, transactionContext: TransactionContext) {
         transactionContext.withTransaction { transaction ->
             """
-                update klagevedtak
+                update klageinstansvedtak
                     set type = :type,
                     oppgaveId = :oppgaveid,
                     utlest_utfall = :utlest_utfall,
@@ -80,7 +80,7 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
     override fun hentUbehandlaKlagevedtak(): List<UprosessertFattetKlageinstansvedtak> {
         return sessionFactory.withSession { session ->
             """
-                select * from klagevedtak where type = '${KlagevedtakType.UPROSESSERT}'
+                select * from klageinstansvedtak where type = '${KlagevedtakType.UPROSESSERT}'
             """.trimIndent().hentListe(
                 emptyMap(),
                 session,
@@ -91,7 +91,7 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
     override fun markerSomFeil(id: UUID) {
         sessionFactory.withSession { session ->
             """
-            update klagevedtak set type = '${KlagevedtakType.FEIL}' where id = :id
+            update klageinstansvedtak set type = '${KlagevedtakType.FEIL}' where id = :id
             """.trimIndent().oppdatering(mapOf("id" to id), session)
         }
     }

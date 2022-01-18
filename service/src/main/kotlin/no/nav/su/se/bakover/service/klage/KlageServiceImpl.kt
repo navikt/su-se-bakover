@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.domain.klage.harEksisterendeJournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
@@ -66,6 +67,11 @@ class KlageServiceImpl(
             // TODO jah: Justere denne sjekken når vi har konseptet lukket klage.
             return KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
         }
+
+        if (sak.klager.harEksisterendeJournalpostId(request.journalpostId)) {
+            return KunneIkkeOppretteKlage.HarAlleredeEnKlageBehandling.left()
+        }
+
         val aktørId = personService.hentAktørId(sak.fnr).getOrElse {
             return KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
         }

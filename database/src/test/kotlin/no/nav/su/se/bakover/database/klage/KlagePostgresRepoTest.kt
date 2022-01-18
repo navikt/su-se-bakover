@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.klage
 
 import arrow.core.right
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -14,9 +15,25 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
+import org.postgresql.util.PSQLException
 import java.util.UUID
 
 internal class KlagePostgresRepoTest {
+
+    @Test
+    fun `kan ikke opprette klage på journalpost som allerede har en klage`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val klageRepo = testDataHelper.klagePostgresRepo
+
+            val klage = testDataHelper.nyKlage()
+            val klageMedEksisterendeJournalpostId = klage.copy(id = UUID.randomUUID())
+
+            shouldThrow<PSQLException> {
+                klageRepo.lagre(klageMedEksisterendeJournalpostId)
+            }
+        }
+    }
 
     @Test
     fun `kan opprette og hente klager`() {

@@ -217,7 +217,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
     private fun hentProsesserteKlagevedtak(klageId: UUID): List<ProsessertKlageinstansvedtak> {
         return sessionFactory.withSession { session ->
             """
-            select * from klagevedtak where utlest_klageid = :klageid AND type = :type
+            select * from klageinstansvedtak where utlest_klageid = :klageid AND type = :type
             """.trimIndent().hentListe(
                 mapOf(
                     "klageid" to klageId,
