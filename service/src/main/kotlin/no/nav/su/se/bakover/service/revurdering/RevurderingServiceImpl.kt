@@ -1147,6 +1147,11 @@ internal class RevurderingServiceImpl(
                                     vedtak = vedtakIngenEndring
                                     vedtakRepo.lagre(vedtakIngenEndring)
                                 }
+
+                                // TODO (CHM 18.01.21): Lukk attesteringsoppgave. For de andre to casene blir denne lukket i `ferdigstillVedtakEtterUtbetaling`
+                                // P.t. vil ikke IngenEndring inntreffe, pga 10%-endringen, men må testes når denne evt. blir lagt tilbake
+                                // oppgaveService.lukkOppgave(revurdering.oppgaveId)
+
                                 iverksattRevurdering
                             }
                     }
