@@ -5,7 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
+import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.toTidspunkt
@@ -155,7 +155,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            identClient = MicrosoftGraphApiClientStub,
+            identClient = IdentClientStub,
         ).let { serviceAndMocks ->
             val actual = serviceAndMocks.lukkSøknadService.lukkSøknad(
                 LukkSøknadRequest.MedBrev.TrekkSøknad(
@@ -346,7 +346,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            identClient = MicrosoftGraphApiClientStub,
+            identClient = IdentClientStub,
             søknadsbehandlingService = søknadsbehandlingServiceMock,
         ).let { serviceAndMocks ->
             val actual = serviceAndMocks.lukkSøknadService.lukkSøknad(
@@ -834,7 +834,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            identClient = MicrosoftGraphApiClientStub,
+            identClient = IdentClientStub,
         ).let { serviceAndMocks ->
             val actual = serviceAndMocks.lukkSøknadService.lukkSøknad(
                 LukkSøknadRequest.MedBrev.TrekkSøknad(
@@ -939,7 +939,7 @@ internal class LukkSøknadServiceImplTest {
             søknadService = søknadServiceMock,
             brevService = brevServiceMock,
             personService = personServiceMock,
-            identClient = MicrosoftGraphApiClientStub,
+            identClient = IdentClientStub,
             søknadsbehandlingService = søknadsbehandlingServiceMock,
         ).let { serviceAndMocks ->
             serviceAndMocks.lukkSøknadService.lukkSøknad(
@@ -978,7 +978,7 @@ internal class LukkSøknadServiceImplTest {
         val oppgaveService: OppgaveService = mock(),
         val personService: PersonService = mock(),
         val søknadsbehandlingService: SøknadsbehandlingService = mock(),
-        val identClient: IdentClient = MicrosoftGraphApiClientStub,
+        val identClient: IdentClient = IdentClientStub,
         clock: Clock = fixedClock,
         sessionFactory: SessionFactory = TestSessionFactory(),
         val lukkSøknadServiceObserver: EventObserver = mock(),

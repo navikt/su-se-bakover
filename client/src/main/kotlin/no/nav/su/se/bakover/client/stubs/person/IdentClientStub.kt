@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 
-object MicrosoftGraphApiClientStub : IdentClient {
+object IdentClientStub : IdentClient {
     override fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<KunneIkkeHenteNavnForNavIdent, String> =
         "Testbruker, Lokal".right()
 }

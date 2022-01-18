@@ -7,9 +7,9 @@ interface IdentClient {
     fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<KunneIkkeHenteNavnForNavIdent, String>
 }
 
-sealed class KunneIkkeHenteNavnForNavIdent {
-    object FeilVedHentingAvOnBehalfOfToken : KunneIkkeHenteNavnForNavIdent()
-    object KallTilMicrosoftGraphApiFeilet : KunneIkkeHenteNavnForNavIdent()
-    object DeserialiseringAvResponsFeilet : KunneIkkeHenteNavnForNavIdent()
-    object FantIkkeBrukerForNavIdent : KunneIkkeHenteNavnForNavIdent()
+sealed interface KunneIkkeHenteNavnForNavIdent {
+    object FeilVedHentingAvOnBehalfOfToken : KunneIkkeHenteNavnForNavIdent
+    object KallTilMicrosoftGraphApiFeilet : KunneIkkeHenteNavnForNavIdent
+    object DeserialiseringAvResponsFeilet : KunneIkkeHenteNavnForNavIdent
+    object FantIkkeBrukerForNavIdent : KunneIkkeHenteNavnForNavIdent
 }

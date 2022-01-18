@@ -25,7 +25,7 @@ import kotlin.reflect.KClass
 data class AvvistKlage private constructor(
     private val forrigeSteg: VilkårsvurdertKlage.Bekreftet.Avvist,
     val fritekstTilBrev: String,
-) : Klage, VilkårsvurdertKlage by forrigeSteg {
+) : VilkårsvurdertKlage by forrigeSteg {
     override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt = forrigeSteg.vilkårsvurderinger
 
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {

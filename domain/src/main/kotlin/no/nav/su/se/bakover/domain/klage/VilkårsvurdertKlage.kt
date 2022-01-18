@@ -121,7 +121,7 @@ sealed interface VilkårsvurdertKlage : Klage {
     /**
      * Denne tilstanden representerer en klage når alle vilkårsvurderingene er blitt fylt ut, og ikke har blitt bekreftet
      */
-    sealed class Utfylt : VilkårsvurdertKlage {
+    sealed interface Utfylt : VilkårsvurdertKlage {
         abstract override val id: UUID
         abstract override val opprettet: Tidspunkt
         abstract override val sakId: UUID
@@ -149,7 +149,7 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
-        ) : Utfylt() {
+        ) : Utfylt {
 
             override fun bekreftVilkårsvurderinger(
                 saksbehandler: NavIdentBruker.Saksbehandler,
@@ -217,7 +217,7 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val datoKlageMottatt: LocalDate,
             val klagevedtakshistorikk: Klagevedtakshistorikk,
             val vurderinger: VurderingerTilKlage?,
-        ) : Utfylt() {
+        ) : Utfylt {
 
             override fun bekreftVilkårsvurderinger(
                 saksbehandler: NavIdentBruker.Saksbehandler,
