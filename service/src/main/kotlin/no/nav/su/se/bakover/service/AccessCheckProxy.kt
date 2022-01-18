@@ -161,7 +161,6 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
-import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -768,14 +767,6 @@ open class AccessCheckProxy(
                 }
             },
             kontrollsamtale = object : KontrollsamtaleService {
-                override fun kallInn(
-                    sakId: UUID,
-                    kontrollsamtale: Kontrollsamtale
-                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> {
-                    assertHarTilgangTilSak(sakId)
-                    return services.kontrollsamtale.kallInn(sakId, kontrollsamtale)
-                }
-
                 override fun nyDato(
                     sakId: UUID,
                     dato: LocalDate
@@ -789,22 +780,13 @@ open class AccessCheckProxy(
                     return services.kontrollsamtale.hentNestePlanlagteKontrollsamtale(sakId)
                 }
 
-                override fun hentPlanlagteKontrollsamtaler(clock: Clock): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> {
-                    return services.kontrollsamtale.hentPlanlagteKontrollsamtaler(clock)
-                }
-
-                override fun opprettPlanlagtKontrollsamtale(vedtak: Vedtak): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> {
-                    assertHarTilgangTilSak(vedtak.behandling.sakId)
-                    return services.kontrollsamtale.opprettPlanlagtKontrollsamtale(vedtak)
-                }
-
+                override fun kallInn(sakId: UUID, kontrollsamtale: Kontrollsamtale): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> = kastKanKunKallesFraAnnenService()
+                override fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> = kastKanKunKallesFraAnnenService()
+                override fun opprettPlanlagtKontrollsamtale(vedtak: Vedtak): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> = kastKanKunKallesFraAnnenService()
                 override fun oppdaterNestePlanlagteKontrollsamtaleStatus(
                     sakId: UUID,
                     status: Kontrollsamtalestatus,
-                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> {
-                    assertHarTilgangTilSak(sakId)
-                    return services.kontrollsamtale.oppdaterNestePlanlagteKontrollsamtaleStatus(sakId, status)
-                }
+                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> = kastKanKunKallesFraAnnenService()
             },
             klageService = object : KlageService {
                 override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {

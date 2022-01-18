@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
-import no.nav.su.se.bakover.domain.kontrollsamtale.regnUtFristFraInnkallingsdato
 import no.nav.su.se.bakover.domain.kontrollsamtale.regnUtInnkallingsdato
 import no.nav.su.se.bakover.domain.kontrollsamtale.regnUtInnkallingsdatoOm4Mnd
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -35,7 +34,7 @@ interface KontrollsamtaleService {
     fun kallInn(sakId: UUID, kontrollsamtale: Kontrollsamtale): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit>
     fun nyDato(sakId: UUID, dato: LocalDate): Either<KunneIkkeSetteNyDatoForKontrollsamtale, Unit>
     fun hentNestePlanlagteKontrollsamtale(sakId: UUID): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale>
-    fun hentPlanlagteKontrollsamtaler(clock: Clock): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>>
+    fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>>
     fun opprettPlanlagtKontrollsamtale(vedtak: Vedtak): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale>
     fun oppdaterNestePlanlagteKontrollsamtaleStatus(
         sakId: UUID,
@@ -86,7 +85,7 @@ class KontrollsamtaleServiceImpl(
                     tx = tx,
                 )
                 kontrollsamtaleRepo.lagre(
-                    kontrollsamtale = kontrollsamtale.copy(
+                    kontrollsamtale = kontrollsamtale.oppdater(
                         status = Kontrollsamtalestatus.INNKALT,
                         dokumentId = dokument.id,
                     ),
@@ -107,7 +106,7 @@ class KontrollsamtaleServiceImpl(
             }
         }.fold(
             ifLeft = {
-                log.error("Klarte ikke kalle inn kontrollsamtale for sakId $sakId")
+                log.error("Klarte ikke kalle inn kontrollsamtale for sakId $sakId", it)
                 KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeKalleInn.left()
             },
             ifRight = {
@@ -124,18 +123,12 @@ class KontrollsamtaleServiceImpl(
                     sakId = sakId,
                     innkallingsdato = dato,
                     status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
-                    frist = regnUtFristFraInnkallingsdato(dato),
                     dokumentId = null,
                 )
                 kontrollsamtaleRepo.lagre(nyKontrollsamtale)
             },
             ifRight = {
-                kontrollsamtaleRepo.lagre(
-                    it.copy(
-                        innkallingsdato = dato,
-                        frist = regnUtFristFraInnkallingsdato(dato),
-                    ),
-                )
+                kontrollsamtaleRepo.lagre(it.oppdater(innkallingsdato = dato))
             },
         ).right()
 
@@ -145,7 +138,7 @@ class KontrollsamtaleServiceImpl(
             ?: KunneIkkeHenteKontrollsamtale.FantIkkeKontrollsamtale.left()
     }
 
-    override fun hentPlanlagteKontrollsamtaler(clock: Clock): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> =
+    override fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> =
         Either.catch { kontrollsamtaleRepo.hentAllePlanlagte(LocalDate.now(clock)) }.mapLeft {
             log.error("Kunne ikke hente planlagte kontrollsamtaler før ${LocalDate.now(clock)}", it)
             return KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler.left()
@@ -159,7 +152,6 @@ class KontrollsamtaleServiceImpl(
             sakId = vedtak.behandling.sakId,
             innkallingsdato = innkallingsdato,
             status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
-            frist = regnUtFristFraInnkallingsdato(innkallingsdato),
             dokumentId = null,
         )
 
@@ -183,7 +175,7 @@ class KontrollsamtaleServiceImpl(
             log.info("Fant ingen planlagt kontrollsamtale for sakId $sakId")
             KunneIkkeKalleInnTilKontrollsamtale.FantIkkeKontrollsamtale
         }.map {
-            kontrollsamtaleRepo.lagre(it.copy(status = status))
+            kontrollsamtaleRepo.lagre(it.oppdater(status = status))
         }
 
     private fun opprettPlanlagtKontrollsamtaleOmDetTrengs(
@@ -199,7 +191,6 @@ class KontrollsamtaleServiceImpl(
             sakId = sakId,
             innkallingsdato = innkallingsdato,
             status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
-            frist = regnUtFristFraInnkallingsdato(innkallingsdato),
             dokumentId = dokumentId,
         )
         lagreInnkallingTilKontrollsamtale(kontrollsamtale, tx).getOrElse {

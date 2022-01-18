@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.domain.kontrollsamtale
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.endOfMonth
+import no.nav.su.se.bakover.common.erMindreEnnEnMånedSenere
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import java.time.Clock
@@ -14,9 +16,27 @@ data class Kontrollsamtale(
     val sakId: UUID,
     val innkallingsdato: LocalDate,
     val status: Kontrollsamtalestatus,
-    val frist: LocalDate,
+    val frist: LocalDate = regnUtFristFraInnkallingsdato(innkallingsdato),
     val dokumentId: UUID?,
-)
+) {
+    fun oppdater(
+        id: UUID = this.id,
+        opprettet: Tidspunkt = this.opprettet,
+        sakId: UUID = this.sakId,
+        innkallingsdato: LocalDate = this.innkallingsdato,
+        status: Kontrollsamtalestatus = this.status,
+        frist: LocalDate = this.frist,
+        dokumentId: UUID? = this.dokumentId,
+    ): Kontrollsamtale = Kontrollsamtale(
+        id = id,
+        opprettet = opprettet,
+        sakId = sakId,
+        innkallingsdato = innkallingsdato,
+        status = status,
+        frist = frist,
+        dokumentId = dokumentId
+    )
+}
 
 enum class Kontrollsamtalestatus(val value: String) {
     PLANLAGT_INNKALLING("PLANLAGT_INNKALLING"),
@@ -27,8 +47,6 @@ enum class Kontrollsamtalestatus(val value: String) {
 
 fun regnUtFristFraInnkallingsdato(innkallingsdato: LocalDate): LocalDate = innkallingsdato.endOfMonth()
 
-private fun LocalDate.erMindreEnnEnMånedSenere(localDate: LocalDate) = this.isBefore(localDate.plusMonths(1))
-
 fun regnUtInnkallingsdato(periode: Periode, vedtaksdato: LocalDate, clock: Clock): LocalDate? {
     val stønadsstart = periode.fraOgMed
     val stønadsslutt = periode.tilOgMed
@@ -36,7 +54,7 @@ fun regnUtInnkallingsdato(periode: Periode, vedtaksdato: LocalDate, clock: Clock
     val eightMonthsDate = fourMonthsDate.plusMonths(4)
     val today = LocalDate.now(clock)
 
-    return if (eightMonthsDate.isAfter(today) && !fourMonthsDate.isAfter(today)) {
+    return if (today.between(fourMonthsDate, eightMonthsDate.plusDays(1))) {
         when {
             stønadsslutt.erMindreEnnEnMånedSenere(eightMonthsDate) -> null
             eightMonthsDate.erMindreEnnEnMånedSenere(vedtaksdato.endOfMonth()) -> {

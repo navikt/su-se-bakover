@@ -39,7 +39,7 @@ class KontrollsamtaleinnkallingJob(
         ) {
             Either.catch {
                 if (leaderPodLookup.erLeaderPod(hostname = hostName)) {
-                    kontrollsamtaleService.hentPlanlagteKontrollsamtaler(clock).map { kontrollsamtaler ->
+                    kontrollsamtaleService.hentPlanlagteKontrollsamtaler().map { kontrollsamtaler ->
                         kontrollsamtaler.forEach {
                             kontrollsamtaleService.kallInn(it.sakId, it)
                         }
