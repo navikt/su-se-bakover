@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import kotlin.math.roundToInt
 
 internal data class BrukerFradragBenyttetIBeregningsperiode(
-    private val fradragForBeregningsperiode: List<Fradrag>
+    private val fradragForBeregningsperiode: List<Fradrag>,
 ) {
     val fradrag: List<Månedsfradrag> = fradragForBeregningsperiode
         .filter { it.tilhører == FradragTilhører.BRUKER }
@@ -17,7 +17,7 @@ internal data class BrukerFradragBenyttetIBeregningsperiode(
 
 internal data class EpsFradragFraSaksbehandlerIBeregningsperiode(
     private val fradragFraSaksbehandler: List<Fradrag>,
-    private val beregningsperiode: Periode
+    private val beregningsperiode: Periode,
 ) {
     val fradrag: List<Månedsfradrag> = fradragFraSaksbehandler
         .filter { it.tilhører == FradragTilhører.EPS }
@@ -44,12 +44,12 @@ internal fun List<Fradrag>.toMånedsfradragPerType(): List<Månedsfradrag> =
                 type = fradrag[0]
                     .fradragstype
                     .toReadableTypeName(
-                        utenlandsk = fradrag[0].utenlandskInntekt != null
+                        utenlandsk = fradrag[0].utenlandskInntekt != null,
                     ),
                 beløp = fradrag
                     .sumOf { it.månedsbeløp }
                     .roundToInt(),
-                utenlandskInntekt = fradrag[0].utenlandskInntekt
+                utenlandskInntekt = fradrag[0].utenlandskInntekt,
             )
         }
         .sortedBy { it.type }
@@ -83,7 +83,7 @@ fun Fradragstype.toReadableTypeName(utenlandsk: Boolean) =
         Fradragstype.UnderMinstenivå ->
             "Beløp under minstegrense for utbetaling"
         Fradragstype.AvkortingUtenlandsopphold ->
-            "Avkorting av tidligere utenlandsopphold"
+            "Avkorting på grunn av tidligere utenlandsopphold"
     }.let { fradragsnavn ->
         if (utenlandsk) {
             "$fradragsnavn — fra utlandet"
