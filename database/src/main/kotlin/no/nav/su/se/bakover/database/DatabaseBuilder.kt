@@ -142,7 +142,7 @@ object DatabaseBuilder {
             sessionFactory = sessionFactory,
             utenlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
         )
-
+        val klageRepo = KlagePostgresRepo(sessionFactory)
         val revurderingRepo = RevurderingPostgresRepo(
             dataSource = dataSource,
             fradragsgrunnlagPostgresRepo = fradragsgrunnlag,
@@ -151,6 +151,7 @@ object DatabaseBuilder {
             utlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
             formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
             søknadsbehandlingRepo = saksbehandlingRepo,
+            klageRepo = klageRepo,
             dbMetrics = dbMetrics,
             sessionFactory = sessionFactory,
         )
@@ -158,12 +159,12 @@ object DatabaseBuilder {
             dataSource = dataSource,
             søknadsbehandlingRepo = saksbehandlingRepo,
             revurderingRepo = revurderingRepo,
+            klageRepo = klageRepo,
             dbMetrics = dbMetrics,
             sessionFactory = sessionFactory,
         )
         val hendelseRepo = PersonhendelsePostgresRepo(dataSource, clock)
         val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource, clock)
-        val klageRepo = KlagePostgresRepo(sessionFactory)
         val klageVedtakRepo = KlagevedtakPostgresRepo(sessionFactory)
         val kontrollsamtaleRepo = KontrollsamtalePostgresRepo(sessionFactory)
 

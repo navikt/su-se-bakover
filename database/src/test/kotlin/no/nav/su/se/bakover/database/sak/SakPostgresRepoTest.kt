@@ -96,7 +96,7 @@ internal class SakPostgresRepoTest {
             testDataHelper.iverksattRevurderingInnvilget()
 
             val opprettetKlage = testDataHelper.nyKlage()
-            val vurdertKlage = testDataHelper.påBegyntVurdertKlage()
+            val vurdertKlage = testDataHelper.påbegyntVurdertKlage()
             val klageTilAttestering = testDataHelper.avvistKlageTilAttestering()
             testDataHelper.iverksattAvvistKlage()
 

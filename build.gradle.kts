@@ -54,7 +54,7 @@ subprojects {
         testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
         // Embedded database brukes av modulene: web og database
         testImplementation(
-            //select version() i preprod -> PostgreSQL 11.7 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-39), 64-bit
+            // select version() i preprod -> PostgreSQL 11.7 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-39), 64-bit
             // The releases without the -1 suffix has a dyld/dylib issue on MacOs (e.g. the 11.7.0 version won't work)
             enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:11.6.0-1"),
         )

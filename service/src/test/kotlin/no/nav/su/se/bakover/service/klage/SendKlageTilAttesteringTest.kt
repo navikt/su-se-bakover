@@ -280,7 +280,7 @@ internal class SendKlageTilAttesteringTest {
                     on { hentKlage(any()) } doReturn klage
                     on { defaultTransactionContext() } doReturn transactionContext
                 },
-                vedtakRepoMock = mock {
+                vedtakServiceMock = mock {
                     on { hentForVedtakId(any()) } doReturn vedtak
                 },
                 personServiceMock = mock {
