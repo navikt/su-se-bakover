@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.vedtak
 import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -95,12 +95,21 @@ data class GjeldendeVedtaksdata(
             .mapNotNull { gjeldendeVedtakPåDato(it.fraOgMed) }
             .filterIsInstance<Vedtak.EndringIYtelse.OpphørtRevurdering>()
             .any {
-                when (it.behandling.avkortingsvarsel) {
-                    Avkortingsvarsel.Ingen -> {
+                when (it.behandling.avkorting) {
+                    is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> {
                         false
                     }
-                    is Avkortingsvarsel.Utenlandsopphold -> {
+                    AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> {
+                        false
+                    }
+                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> {
                         true
+                    }
+                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+                        true
+                    }
+                    is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> {
+                        false
                     }
                 }
             }

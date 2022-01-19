@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.grunnlag.throwIfMultiple
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
@@ -276,6 +277,59 @@ internal fun Avkortingsvarsel.toJson(): SimuleringJson? {
     }
 }
 
+internal fun AvkortingVedRevurdering.toJson(): SimuleringJson? {
+    return when (this) {
+        is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
+            null
+        }
+        is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {
+            null
+        }
+        is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
+            null
+        }
+        is AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
+            null
+        }
+        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
+            avkortingsvarsel.toJson()
+        }
+        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+            avkortingsvarsel.toJson()
+        }
+        is AvkortingVedRevurdering.Uhåndtert.IngenUtestående -> {
+            null
+        }
+        is AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting -> {
+            null
+        }
+        is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> {
+            null
+        }
+        is AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> {
+            null
+        }
+        is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> {
+            avkortingsvarsel.toJson()
+        }
+        is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+            avkortingsvarsel.toJson()
+        }
+        is AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere -> {
+            null
+        }
+        is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+            null
+        }
+        is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> {
+            null
+        }
+        is AvkortingVedRevurdering.Uhåndtert.KanIkkeHåndtere -> {
+            null
+        }
+    }
+}
+
 internal fun Revurdering.toJson(): RevurderingJson = when (this) {
     is OpprettetRevurdering -> OpprettetRevurderingJson(
         id = id.toString(),
@@ -316,7 +370,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         attesteringer = attesteringer.toJson(),
         simuleringForAvkortingsvarsel = when (this) {
             is SimulertRevurdering.Innvilget -> null
-            is SimulertRevurdering.Opphørt -> avkortingsvarsel.toJson()
+            is SimulertRevurdering.Opphørt -> avkorting.toJson()
         },
     )
     is RevurderingTilAttestering -> TilAttesteringJson(
@@ -350,7 +404,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         simuleringForAvkortingsvarsel = when (this) {
             is RevurderingTilAttestering.IngenEndring -> null
             is RevurderingTilAttestering.Innvilget -> null
-            is RevurderingTilAttestering.Opphørt -> avkortingsvarsel.toJson()
+            is RevurderingTilAttestering.Opphørt -> avkorting.toJson()
         },
     )
     is IverksattRevurdering -> IverksattRevurderingJson(
@@ -384,7 +438,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         simuleringForAvkortingsvarsel = when (this) {
             is IverksattRevurdering.IngenEndring -> null
             is IverksattRevurdering.Innvilget -> null
-            is IverksattRevurdering.Opphørt -> avkortingsvarsel.toJson()
+            is IverksattRevurdering.Opphørt -> avkorting.toJson()
         }
     )
     is UnderkjentRevurdering -> UnderkjentRevurderingJson(
@@ -418,7 +472,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         simuleringForAvkortingsvarsel = when (this) {
             is UnderkjentRevurdering.IngenEndring -> null
             is UnderkjentRevurdering.Innvilget -> null
-            is UnderkjentRevurdering.Opphørt -> avkortingsvarsel.toJson()
+            is UnderkjentRevurdering.Opphørt -> avkorting.toJson()
         }
     )
     is BeregnetRevurdering -> BeregnetRevurderingJson(

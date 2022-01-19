@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -181,6 +182,7 @@ internal class ForhåndsvarslingRouteTest {
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
             )
 
             val revurderingServiceMock = mock<RevurderingService> {
@@ -251,6 +253,7 @@ internal class ForhåndsvarslingRouteTest {
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
             )
 
             val revurderingServiceMock = mock<RevurderingService> {
@@ -321,6 +324,7 @@ internal class ForhåndsvarslingRouteTest {
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
             )
 
             val revurderingServiceMock = mock<RevurderingService> {

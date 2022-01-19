@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsplan
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -96,6 +97,7 @@ sealed class Revurdering :
     abstract val informasjonSomRevurderes: InformasjonSomRevurderes
 
     abstract val forhåndsvarsel: Forhåndsvarsel?
+    abstract val avkorting: AvkortingVedRevurdering
 
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>)
 
@@ -240,6 +242,22 @@ sealed class Revurdering :
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
+            avkorting = avkorting.let {
+                when (it) {
+                    is AvkortingVedRevurdering.DelvisHåndtert -> {
+                        it.uhåndtert()
+                    }
+                    is AvkortingVedRevurdering.Håndtert -> {
+                        it.uhåndtert()
+                    }
+                    is AvkortingVedRevurdering.Uhåndtert -> {
+                        it
+                    }
+                    is AvkortingVedRevurdering.Iverksatt -> {
+                        throw IllegalStateException("Kan ikke oppdatere vilkårsvurderinger for ferdigstilt håndtering av avkorting")
+                    }
+                }
+            },
         )
     }
 
@@ -261,6 +279,22 @@ sealed class Revurdering :
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
+            avkorting = avkorting.let {
+                when (it) {
+                    is AvkortingVedRevurdering.DelvisHåndtert -> {
+                        it.uhåndtert()
+                    }
+                    is AvkortingVedRevurdering.Håndtert -> {
+                        it.uhåndtert()
+                    }
+                    is AvkortingVedRevurdering.Uhåndtert -> {
+                        it
+                    }
+                    is AvkortingVedRevurdering.Iverksatt -> {
+                        throw IllegalStateException("Kan ikke oppdatere grunnlag for ferdigstilt håndtering av avkorting")
+                    }
+                }
+            },
         )
     }
 
@@ -283,6 +317,32 @@ sealed class Revurdering :
                 // kan ikke legge til begrunnelse for inntekt/fradrag
                 null,
             )
+        }
+
+        val håndtertAvkorting = when (midelertidigRevurderingUtenAvkorting.avkorting) {
+            /**
+             * Vi revurderer en periode hvor det ikke er noen utestående avkortinger
+             */
+            is AvkortingVedRevurdering.Uhåndtert.IngenUtestående -> {
+                midelertidigRevurderingUtenAvkorting.avkorting.håndter()
+            }
+            is AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting -> {
+                // TODO sjekk for cases etc håndter opphør -> innvilget osv
+                /**
+                 * Vi revurderer en periode hvor vi har en utestående avkorting som enda ikke er håndtert av en ny
+                 * stønadsperiode. Annuller utestående og fjern eventuelle
+                 */
+
+                // dersom noe er utestående må vi også revurdere perioden avkortingen gjelder for
+                if (!periode.inneholder(midelertidigRevurderingUtenAvkorting.avkorting.avkortingsvarsel.periode())) {
+                    throw IllegalStateException("Må revurdere perioden som inneholder utestående avkorting")
+                } else {
+                    midelertidigRevurderingUtenAvkorting.avkorting.håndter()
+                }
+            }
+            is AvkortingVedRevurdering.Uhåndtert.KanIkkeHåndtere -> {
+                throw IllegalStateException("Skal ikke kunne skje")
+            }
         }
 
         val (beregnetRevurdering, beregning) = when (avkortingsgrunnlag.isEmpty()) {
@@ -332,6 +392,7 @@ sealed class Revurdering :
                 vilkårsvurderinger = revurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
                 attesteringer = revurdering.attesteringer,
+                avkorting = håndtertAvkorting,
             )
 
         fun innvilget(revurdering: Revurdering, revurdertBeregning: Beregning): BeregnetRevurdering.Innvilget =
@@ -350,6 +411,7 @@ sealed class Revurdering :
                 vilkårsvurderinger = revurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
                 attesteringer = revurdering.attesteringer,
+                avkorting = håndtertAvkorting,
             )
 
         fun ingenEndring(revurdering: Revurdering, revurdertBeregning: Beregning): BeregnetRevurdering.IngenEndring =
@@ -368,6 +430,7 @@ sealed class Revurdering :
                 vilkårsvurderinger = revurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
                 attesteringer = revurdering.attesteringer,
+                avkorting = håndtertAvkorting,
             )
 
         // TODO jm: sjekk av vilkår og verifisering av dette bør sannsynligvis legges til et tidspunkt før selve beregningen finner sted. Snarvei inntil videre, da vi mangeler "infrastruktur" for dette pt.  Bør være en tydeligere del av modellen for revurdering.
@@ -455,6 +518,7 @@ data class OpprettetRevurdering(
     override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
     override val informasjonSomRevurderes: InformasjonSomRevurderes,
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
+    override val avkorting: AvkortingVedRevurdering.Uhåndtert,
 ) : Revurdering() {
 
     override fun accept(visitor: RevurderingVisitor) {
@@ -485,6 +549,7 @@ data class OpprettetRevurdering(
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         tilRevurdering: VedtakSomKanRevurderes,
+        avkorting: AvkortingVedRevurdering.Uhåndtert,
     ): OpprettetRevurdering = this.copy(
         periode = periode,
         revurderingsårsak = revurderingsårsak,
@@ -493,11 +558,13 @@ data class OpprettetRevurdering(
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = informasjonSomRevurderes,
         tilRevurdering = tilRevurdering,
+        avkorting = avkorting,
     )
 }
 
 sealed class BeregnetRevurdering : Revurdering() {
     abstract val beregning: Beregning
+    abstract override val avkorting: AvkortingVedRevurdering.DelvisHåndtert
 
     override fun oppdaterUføreOgMarkerSomVurdert(
         uføre: Vilkår.Uførhet.Vurdert,
@@ -523,6 +590,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         tilRevurdering: VedtakSomKanRevurderes,
+        avkorting: AvkortingVedRevurdering.Uhåndtert,
     ) = OpprettetRevurdering(
         id = id,
         periode = periode,
@@ -537,6 +605,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = attesteringer,
+        avkorting = avkorting,
     )
 
     data class Innvilget(
@@ -554,6 +623,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
+        override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
     ) : BeregnetRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -575,6 +645,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
+            avkorting = avkorting.håndter(),
         )
     }
 
@@ -593,6 +664,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
+        override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
     ) : BeregnetRevurdering() {
 
         fun tilAttestering(
@@ -616,6 +688,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
+            avkorting = avkorting.håndter(),
         )
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -638,14 +711,25 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
+        override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
     ) : BeregnetRevurdering() {
         fun toSimulert(simuler: (sakId: UUID, saksbehandler: NavIdentBruker, opphørsdato: LocalDate) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
-            val (simulertUtbetaling, avkortingsvarsel) = simuler(sakId, saksbehandler, periode.fraOgMed)
+            val (simulertUtbetaling, håndtertAvkorting) = simuler(sakId, saksbehandler, periode.fraOgMed)
                 .getOrHandle { return it.left() }
                 .let { simulering ->
                     when (val avkortingsvarsel = lagAvkortingsvarsel(simulering)) {
                         is Avkortingsvarsel.Ingen -> {
-                            simulering to avkortingsvarsel
+                            simulering to when (avkorting) {
+                                is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
+                                    avkorting.håndter()
+                                }
+                                is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {
+                                    avkorting.håndter()
+                                }
+                                is AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere -> {
+                                    throw IllegalStateException("Skal ikke kunne skje")
+                                }
+                            }
                         }
                         is Avkortingsvarsel.Utenlandsopphold -> {
                             val simuleringMedNyOpphørsdato = simuler(
@@ -664,7 +748,22 @@ sealed class BeregnetRevurdering : Revurdering() {
                                 throw IllegalStateException("Simulering med justert opphørsdato for utbetalinger pga avkorting utenlandsopphold inneholder feilutbetaling, se sikkerlogg for detaljer")
                             }
 
-                            simuleringMedNyOpphørsdato to avkortingsvarsel
+                            simuleringMedNyOpphørsdato to when (avkorting) {
+                                is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
+                                    AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
+                                        avkortingsvarsel = avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
+                                        annullerUtestående = avkorting,
+                                    )
+                                }
+                                is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {
+                                    AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
+                                        avkortingsvarsel = avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
+                                    )
+                                }
+                                is AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere -> {
+                                    throw IllegalStateException("Skal ikke kunne skje")
+                                }
+                            }
                         }
                     }
                 }
@@ -685,7 +784,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = attesteringer,
-                avkortingsvarsel = avkortingsvarsel,
+                avkorting = håndtertAvkorting,
             ).right()
         }
 
@@ -700,9 +799,11 @@ sealed class BeregnetRevurdering : Revurdering() {
                                         sakId = this.sakId,
                                         revurderingId = this.id,
                                         simulering = simulertUtbetaling.simulering,
-                                    )
+                                    ).skalAvkortes()
                                 }
-                                false -> Avkortingsvarsel.Ingen
+                                false -> {
+                                    Avkortingsvarsel.Ingen
+                                }
                             }
                         }
                         is Vilkårsvurderingsresultat.Innvilget -> {
@@ -713,7 +814,9 @@ sealed class BeregnetRevurdering : Revurdering() {
                         }
                     }
                 }
-                else -> Avkortingsvarsel.Ingen
+                else -> {
+                    Avkortingsvarsel.Ingen
+                }
             }
         }
 
@@ -779,6 +882,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
+        override val avkorting: AvkortingVedRevurdering.Håndtert,
     ) : SimulertRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -805,6 +909,7 @@ sealed class SimulertRevurdering : Revurdering() {
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
+            avkorting = avkorting,
         )
     }
 
@@ -824,7 +929,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        val avkortingsvarsel: Avkortingsvarsel,
+        override val avkorting: AvkortingVedRevurdering.Håndtert,
     ) : SimulertRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -867,7 +972,7 @@ sealed class SimulertRevurdering : Revurdering() {
                     vilkårsvurderinger = vilkårsvurderinger,
                     informasjonSomRevurderes = informasjonSomRevurderes,
                     attesteringer = attesteringer,
-                    avkortingsvarsel = avkortingsvarsel,
+                    avkorting = avkorting,
                 ).right()
             }
         }
@@ -880,6 +985,7 @@ sealed class SimulertRevurdering : Revurdering() {
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         tilRevurdering: VedtakSomKanRevurderes,
+        avkorting: AvkortingVedRevurdering.Uhåndtert,
     ) = OpprettetRevurdering(
         id = id,
         periode = periode,
@@ -894,6 +1000,7 @@ sealed class SimulertRevurdering : Revurdering() {
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = attesteringer,
+        avkorting = avkorting,
     )
 }
 
@@ -919,6 +1026,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
+        override val avkorting: AvkortingVedRevurdering.Håndtert,
     ) : RevurderingTilAttestering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -956,6 +1064,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                             Tidspunkt.now(clock),
                         ),
                     ),
+                    avkorting = avkorting.iverksett(id),
                 )
             }
         }
@@ -977,7 +1086,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        val avkortingsvarsel: Avkortingsvarsel,
+        override val avkorting: AvkortingVedRevurdering.Håndtert,
     ) : RevurderingTilAttestering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -1006,21 +1115,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
 
-            val gyldigAvkortingsvarsel = when (avkortingsvarsel) {
-                Avkortingsvarsel.Ingen -> {
-                    avkortingsvarsel
-                }
-                is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
-                    avkortingsvarsel.skalAvkortes()
-                }
-                is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
-                    throw IllegalStateException("Avkortingsvarsel:${avkortingsvarsel.id} for revurdering:$id er i ugyldig tilstand: ${avkortingsvarsel::class} for å kunne iverksettes")
-                }
-                is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
-                    throw IllegalStateException("Avkortingsvarsel:${avkortingsvarsel.id} for revurdering:$id er i ugyldig tilstand: ${avkortingsvarsel::class} for å kunne iverksettes")
-                }
-            }
-
             return utbetal(sakId, attestant, OpphørsdatoForUtbetalinger(revurdering = this).value, simulering)
                 .map {
                     IverksattRevurdering.Opphørt(
@@ -1044,7 +1138,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                                 Tidspunkt.now(clock),
                             ),
                         ),
-                        avkortingsvarsel = gyldigAvkortingsvarsel,
+                        avkorting = avkorting.iverksett(id),
                     )
                 }
         }
@@ -1066,6 +1160,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
+        override val avkorting: AvkortingVedRevurdering.Håndtert,
     ) : RevurderingTilAttestering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -1101,6 +1196,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                         Tidspunkt.now(clock),
                     ),
                 ),
+                avkorting = avkorting.iverksett(id),
             ).right()
         }
     }
@@ -1139,6 +1235,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
+                avkorting = avkorting,
             )
             is Opphørt -> UnderkjentRevurdering.Opphørt(
                 id = id,
@@ -1156,7 +1253,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
-                avkortingsvarsel = avkortingsvarsel,
+                avkorting = avkorting,
             )
             is IngenEndring -> UnderkjentRevurdering.IngenEndring(
                 id = id,
@@ -1174,6 +1271,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
+                avkorting = avkorting,
             )
         }
     }
@@ -1191,6 +1289,7 @@ sealed class IverksattRevurdering : Revurdering() {
     abstract val beregning: Beregning
     val attestering: Attestering
         get() = attesteringer.hentSisteAttestering()
+    abstract override val avkorting: AvkortingVedRevurdering.Iverksatt
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
@@ -1210,6 +1309,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
+        override val avkorting: AvkortingVedRevurdering.Iverksatt,
     ) : IverksattRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -1233,7 +1333,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        val avkortingsvarsel: Avkortingsvarsel,
+        override val avkorting: AvkortingVedRevurdering.Iverksatt,
     ) : IverksattRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -1278,6 +1378,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
+        override val avkorting: AvkortingVedRevurdering.Iverksatt,
     ) : IverksattRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -1336,6 +1437,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
+        override val avkorting: AvkortingVedRevurdering.Håndtert,
     ) : UnderkjentRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -1363,6 +1465,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
+            avkorting = avkorting,
         )
     }
 
@@ -1382,7 +1485,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        val avkortingsvarsel: Avkortingsvarsel,
+        override val avkorting: AvkortingVedRevurdering.Håndtert,
     ) : UnderkjentRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -1426,7 +1529,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
                     vilkårsvurderinger = vilkårsvurderinger,
                     informasjonSomRevurderes = informasjonSomRevurderes,
                     attesteringer = attesteringer,
-                    avkortingsvarsel = avkortingsvarsel,
+                    avkorting = avkorting,
                 ).right()
             }
         }
@@ -1448,6 +1551,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
+        override val avkorting: AvkortingVedRevurdering.Håndtert,
     ) : UnderkjentRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -1475,6 +1579,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
+            avkorting = avkorting,
         )
     }
 
@@ -1485,6 +1590,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         tilRevurdering: VedtakSomKanRevurderes,
+        avkorting: AvkortingVedRevurdering.Uhåndtert,
     ) = OpprettetRevurdering(
         id = id,
         periode = periode,
@@ -1499,6 +1605,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = attesteringer,
+        avkorting = avkorting,
     )
 }
 

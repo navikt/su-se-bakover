@@ -10,7 +10,8 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -74,7 +75,7 @@ object RevurderingRoutesTestData {
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
-            avkorting = Avkortingsvarsel.Ingen,
+            avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,
         ),
         utbetalingId = UUID30.randomUUID(),
         clock = fixedClock,
@@ -97,6 +98,7 @@ object RevurderingRoutesTestData {
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
     )
 
     internal fun formueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.createFromGrunnlag(

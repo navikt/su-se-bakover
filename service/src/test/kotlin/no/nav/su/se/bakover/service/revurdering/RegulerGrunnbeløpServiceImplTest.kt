@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -208,7 +208,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
-            avkortingsvarsel = Avkortingsvarsel.Ingen,
+            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -268,7 +268,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 on { resultat } doReturn Vilkårsvurderingsresultat.Innvilget(emptySet())
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            avkortingsvarsel = Avkortingsvarsel.Ingen,
+            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -328,6 +328,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -371,6 +372,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             vilkårsvurderinger = actual.vilkårsvurderinger,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
         )
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
@@ -408,6 +410,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 on { resultat } doReturn Vilkårsvurderingsresultat.Innvilget(emptySet())
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -451,6 +454,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             vilkårsvurderinger = actual.vilkårsvurderinger,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
         )
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
@@ -488,6 +492,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
         )
 
         val iverksattRevurdering = IverksattRevurdering.IngenEndring(
@@ -507,6 +512,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {

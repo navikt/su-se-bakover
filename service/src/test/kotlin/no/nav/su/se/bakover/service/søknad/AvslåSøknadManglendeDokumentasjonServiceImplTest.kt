@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -104,7 +104,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 stønadsperiode = uavklart.stønadsperiode!!,
                 grunnlagsdata = uavklart.grunnlagsdata,
                 vilkårsvurderinger = uavklart.vilkårsvurderinger,
-                avkorting = Avkortingsvarsel.Ingen,
+                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere
             )
 
             val expectedAvslagVilkår = Vedtak.Avslag.AvslagVilkår(
@@ -218,7 +218,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 stønadsperiode = vilkårsvurdertInnvilget.stønadsperiode,
                 grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger,
-                avkorting = Avkortingsvarsel.Ingen,
+                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere
             )
 
             val expectedAvslagVilkår = Vedtak.Avslag.AvslagVilkår(

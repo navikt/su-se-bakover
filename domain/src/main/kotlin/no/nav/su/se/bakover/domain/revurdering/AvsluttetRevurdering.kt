@@ -6,6 +6,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -33,6 +34,21 @@ data class AvsluttetRevurdering private constructor(
     override val forhåndsvarsel: Forhåndsvarsel? = underliggendeRevurdering.forhåndsvarsel
     override val oppgaveId: OppgaveId = underliggendeRevurdering.oppgaveId
     override val attesteringer: Attesteringshistorikk = underliggendeRevurdering.attesteringer
+
+    override val avkorting: AvkortingVedRevurdering = when (val avkorting = underliggendeRevurdering.avkorting) {
+        is AvkortingVedRevurdering.DelvisHåndtert -> {
+            avkorting.kanIkke()
+        }
+        is AvkortingVedRevurdering.Håndtert -> {
+            avkorting.kanIkke()
+        }
+        is AvkortingVedRevurdering.Iverksatt -> {
+            throw IllegalStateException("Kan ikke avslutte iverksatt")
+        }
+        is AvkortingVedRevurdering.Uhåndtert -> {
+            avkorting.kanIkke()
+        }
+    }
 
     val beregning = when (underliggendeRevurdering) {
         is BeregnetRevurdering -> underliggendeRevurdering.beregning

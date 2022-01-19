@@ -39,6 +39,8 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -244,7 +246,7 @@ internal class TestDataHelper(
         utenlandsoppholdgrunnlagRepo = utenlandsoppholdgrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
     )
-    internal val avkortingsvarselRepo = AvkortingsvarselPostgresRepo()
+    internal val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(sessionFactory)
     internal val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo()
     internal val formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(
         dataSource = dataSource,
@@ -487,6 +489,7 @@ internal class TestDataHelper(
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
         ).also {
             lagreVilkårOgGrunnlag(
                 behandlingId = it.id,
@@ -590,6 +593,7 @@ internal class TestDataHelper(
             oppgaveId = søknad.oppgaveId,
             behandlingsinformasjon = behandlingsinformasjon,
             fnr = sak.fnr,
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
         ).let {
             søknadsbehandlingRepo.lagreNySøknadsbehandling(it)
             (søknadsbehandlingRepo.hent(it.id)!! as Søknadsbehandling.Vilkårsvurdert.Uavklart).copy(

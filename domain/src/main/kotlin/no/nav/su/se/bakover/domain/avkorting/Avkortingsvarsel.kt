@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.avkorting
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -47,8 +48,12 @@ sealed interface Avkortingsvarsel {
         data class SkalAvkortes(
             private val objekt: Opprettet,
         ) : Utenlandsopphold by objekt {
-            fun avkortet(søknadsbehandlingId: UUID): Avkortet {
-                return Avkortet(this, søknadsbehandlingId)
+            fun avkortet(behandlingId: UUID): Avkortet {
+                return Avkortet(this, behandlingId)
+            }
+
+            fun annuller(behandlingId: UUID): Annullert {
+                return Annullert(this, behandlingId)
             }
 
             fun fullstendigAvkortetAv(beregning: Beregning): Boolean {
@@ -59,11 +64,22 @@ sealed interface Avkortingsvarsel {
                     .toInt()
                 return beløpSkalAvkortes == fradragAvkorting
             }
+
+            fun periode(): Periode = simulering.hentUtbetalteBeløp().månedbeløp.map {
+                it.periode
+            }.let {
+                Periode.create(it.minOf { it.fraOgMed }, it.maxOf { it.tilOgMed })
+            }
         }
 
         data class Avkortet(
             private val objekt: SkalAvkortes,
-            val søknadsbehandlingId: UUID,
+            val behandlingId: UUID,
+        ) : Utenlandsopphold by objekt
+
+        data class Annullert(
+            private val objekt: SkalAvkortes,
+            val behandlingId: UUID,
         ) : Utenlandsopphold by objekt
     }
 

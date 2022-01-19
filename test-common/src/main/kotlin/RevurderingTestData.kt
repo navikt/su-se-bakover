@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -110,6 +111,7 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående
     )
     return Pair(
         sakOgVedtakSomKanRevurderes.first.copy(

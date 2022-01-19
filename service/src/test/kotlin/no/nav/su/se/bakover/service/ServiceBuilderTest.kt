@@ -33,6 +33,7 @@ internal class ServiceBuilderTest {
                 sessionFactory = mock(),
                 klageRepo = mock(),
                 klageVedtakRepo = mock(),
+                avkortingsvarselRepo = mock(),
             ),
             clients = Clients(
                 oauth = mock(),

@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
@@ -27,7 +27,7 @@ internal class OpphørsdatoForUtbetalingerTest {
             revurderingsperiode = revurderingsperiode,
         ).second
         OpphørsdatoForUtbetalinger(simulert).value shouldBe revurderingsperiode.fraOgMed
-        simulert.avkortingsvarsel shouldBe Avkortingsvarsel.Ingen
+        simulert.avkorting shouldBe beOfType<AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående>()
     }
 
     @Test
@@ -37,7 +37,7 @@ internal class OpphørsdatoForUtbetalingerTest {
             vilkårSomFørerTilOpphør = utlandsoppholdAvslag(),
         ).second
         OpphørsdatoForUtbetalinger(simulert).value shouldBe tidligsteFraOgMedSomIkkeErUtbetalt
-        simulert.avkortingsvarsel shouldBe beOfType<Avkortingsvarsel.Utenlandsopphold.Opprettet>()
+        simulert.avkorting shouldBe beOfType<AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel>()
     }
 
     @Test

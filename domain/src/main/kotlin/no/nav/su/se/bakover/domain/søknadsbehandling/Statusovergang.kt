@@ -5,7 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -174,20 +174,20 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
                  * //TODO erstatt statusovergang med funksjon
                  */
                 when (søknadsbehandling.avkorting) {
-                    Avkortingsvarsel.Ingen -> {
-                        // noop
-                    }
-                    is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
-                        if (!søknadsbehandling.avkorting.fullstendigAvkortetAv(søknadsbehandling.beregning)) {
+                    is AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående -> {
+                        if (!søknadsbehandling.avkorting.avkortUtestående.avkortingsvarsel.fullstendigAvkortetAv(
+                                søknadsbehandling.beregning,
+                            )
+                        ) {
                             result = KunneIkkeIverksette.AvkortingErUfullstendig.left()
                             return
                         }
                     }
-                    is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
-                        throw IllegalStateException("Avkorting:${søknadsbehandling.avkorting.id} for søknadsbehandling:${søknadsbehandling.id} er i ugyldig tilstand:${søknadsbehandling.avkorting} for å kunne iverksettes")
+                    is AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående -> {
+                        // noop
                     }
-                    is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
-                        throw IllegalStateException("Avkorting:${søknadsbehandling.avkorting.id} for søknadsbehandling:${søknadsbehandling.id} er i ugyldig tilstand:${søknadsbehandling.avkorting} for å kunne iverksettes")
+                    is AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere -> {
+                        throw IllegalStateException("Søknadsbehandling:${søknadsbehandling.id} i tilstand ${søknadsbehandling::class} skal ha håndtert eventuell avkorting")
                     }
                 }
 

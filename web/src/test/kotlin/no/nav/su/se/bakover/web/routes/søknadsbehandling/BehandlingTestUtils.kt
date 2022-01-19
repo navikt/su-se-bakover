@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -126,6 +126,6 @@ object BehandlingTestUtils {
             ),
             utenlandsopphold = utenlandsopphold,
         ),
-        avkorting = Avkortingsvarsel.Ingen,
+        avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,
     )
 }

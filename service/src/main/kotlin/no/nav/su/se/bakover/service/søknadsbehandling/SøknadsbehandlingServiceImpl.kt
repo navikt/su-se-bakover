@@ -10,6 +10,9 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -75,6 +78,7 @@ internal class SøknadsbehandlingServiceImpl(
     private val ferdigstillVedtakService: FerdigstillVedtakService,
     private val grunnlagService: GrunnlagService,
     private val sakService: SakService,
+    private val avkortingsvarselRepo: AvkortingsvarselRepo,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -110,6 +114,8 @@ internal class SøknadsbehandlingServiceImpl(
 
         val søknadsbehandlingId = UUID.randomUUID()
 
+        val avkorting = hentUteståendeAvkorting(søknad.sakId)
+
         søknadsbehandlingRepo.lagreNySøknadsbehandling(
             NySøknadsbehandling(
                 id = søknadsbehandlingId,
@@ -119,6 +125,7 @@ internal class SøknadsbehandlingServiceImpl(
                 oppgaveId = søknad.oppgaveId,
                 fnr = søknad.søknadInnhold.personopplysninger.fnr,
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+                avkorting = avkorting,
             ),
         )
 
@@ -132,6 +139,26 @@ internal class SøknadsbehandlingServiceImpl(
                 )
             }
             it.right()
+        }
+    }
+
+    private fun hentUteståendeAvkorting(sakId: UUID): AvkortingVedSøknadsbehandling.Uhåndtert {
+        return when (val utestående = avkortingsvarselRepo.hentUtestående(sakId)) {
+            Avkortingsvarsel.Ingen -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(utestående)
+            }
         }
     }
 

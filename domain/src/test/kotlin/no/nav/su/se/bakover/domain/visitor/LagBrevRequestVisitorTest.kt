@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -842,6 +842,7 @@ internal class LagBrevRequestVisitorTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
         )
 
         val avslåttVedtak = Vedtak.from(revurdering, utbetalingId, fixedClock)
@@ -937,7 +938,7 @@ internal class LagBrevRequestVisitorTest {
                 utlandsoppholdInnvilget(periode = revurderingsperiode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            avkortingsvarsel = Avkortingsvarsel.Ingen,
+            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
         )
 
         val opphørsvedtak = Vedtak.from(revurdering, utbetalingId, fixedClock)
@@ -1169,6 +1170,7 @@ internal class LagBrevRequestVisitorTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående
         )
 
         val vedtakIngenEndring = Vedtak.from(revurdering, fixedClock)

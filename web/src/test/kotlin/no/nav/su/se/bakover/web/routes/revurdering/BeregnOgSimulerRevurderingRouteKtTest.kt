@@ -12,6 +12,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -163,6 +164,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående
         ).beregn(eksisterendeUtbetalinger = emptyList(), clock = fixedClock,).orNull()!!
 
         val simulertRevurdering = when (beregnetRevurdering) {

@@ -6,5 +6,8 @@ create table if not exists avkortingsvarsel
     revurderingId uuid not null references revurdering(id),
     simulering jsonb not null,
     status text not null,
-    søknadsbehandlingId uuid references behandling(id)
+    behandlingId uuid
 );
+
+alter table behandling add column avkorting json;
+alter table revurdering add column avkorting json;

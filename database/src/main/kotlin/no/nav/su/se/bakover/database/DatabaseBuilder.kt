@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.domain.hendelse.PersonhendelseRepo
@@ -149,7 +150,7 @@ object DatabaseBuilder {
             dbMetrics = dbMetrics,
         )
 
-        val avkortingsvarselRepo = AvkortingsvarselPostgresRepo()
+        val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(sessionFactory)
 
         val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(
             dataSource = dataSource,
@@ -222,6 +223,7 @@ object DatabaseBuilder {
             sessionFactory = sessionFactory,
             klageRepo = klageRepo,
             klageVedtakRepo = klageVedtakRepo,
+            avkortingsvarselRepo = avkortingsvarselRepo,
         )
     }
 }
@@ -245,4 +247,5 @@ data class DatabaseRepos(
     override val sessionFactory: SessionFactory,
     override val klageRepo: KlageRepo,
     val klageVedtakRepo: KlagevedtakRepo,
+    override val avkortingsvarselRepo: AvkortingsvarselRepo
 ) : no.nav.su.se.bakover.domain.database.DatabaseRepos

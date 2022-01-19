@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -292,7 +292,7 @@ internal class VedtakServiceImplTest {
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
-                avkorting = Avkortingsvarsel.Ingen,
+                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,
             ),
             UUID30.randomUUID(),
             fixedClock,

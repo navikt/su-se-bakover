@@ -6,6 +6,7 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -200,6 +201,9 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             søknadService = søknadService,
+            avkortingsvarselRepo = mock() {
+                on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
+            }
         )
 
         serviceAndMocks.søknadsbehandlingService.opprett(
@@ -221,7 +225,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
                 attesteringer = Attesteringshistorikk.empty(),
-                avkorting = Avkortingsvarsel.Ingen,
+                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
             ),
             // periode er null for Søknadsbehandling.Vilkårsvurdert.Uavklart og vil gi exception dersom man kaller get() på den.
             Søknadsbehandling.Vilkårsvurdert.Uavklart::periode,
@@ -241,6 +245,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     oppgaveId = søknad.oppgaveId,
                     behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
                     fnr = søknad.søknadInnhold.personopplysninger.fnr,
+                    avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
                 )
             },
         )
@@ -266,7 +271,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                         vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
                         attesteringer = Attesteringshistorikk.empty(),
-                        avkorting = Avkortingsvarsel.Ingen,
+                        avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
                     ),
                 )
             },

@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -105,7 +105,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
         attesteringer = Attesteringshistorikk.empty(),
-        avkorting = Avkortingsvarsel.Ingen,
+        avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
     )
 
     private val oppgaveConfig = OppgaveConfig.Søknad(
@@ -373,7 +373,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
-            avkorting = Avkortingsvarsel.Ingen,
+            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()
@@ -465,7 +465,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
-            avkorting = Avkortingsvarsel.Ingen,
+            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()

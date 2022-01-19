@@ -4,7 +4,7 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -40,7 +40,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
     grunnlagsdata: Grunnlagsdata = Grunnlagsdata.IkkeVurdert,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårUavklart,
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
-    avkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
     clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
     return nySakMedjournalførtSøknadOgOppgave(
@@ -80,7 +80,7 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    avkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Innvilget> {
     return søknadsbehandlingVilkårsvurdertUavklart(
         saksnummer = saksnummer,
@@ -138,7 +138,7 @@ fun søknadsbehandlingBeregnetInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    avkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Beregnet.Innvilget> {
     return søknadsbehandlingVilkårsvurdertInnvilget(
         saksnummer = saksnummer,
@@ -210,7 +210,7 @@ fun søknadsbehandlingSimulert(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    avkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Simulert> {
     return søknadsbehandlingBeregnetInnvilget(
         saksnummer = saksnummer,
@@ -242,7 +242,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    avkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.TilAttestering.Innvilget> {
     return søknadsbehandlingSimulert(
         saksnummer = saksnummer,
@@ -430,7 +430,7 @@ fun søknadsbehandlingIverksattInnvilget(
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     clock: Clock = fixedClock,
-    avkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Innvilget> {
     return søknadsbehandlingTilAttesteringInnvilget(
         saksnummer = saksnummer,

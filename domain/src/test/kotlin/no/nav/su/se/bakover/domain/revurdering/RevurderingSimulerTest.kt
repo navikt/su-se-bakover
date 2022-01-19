@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
@@ -23,7 +24,7 @@ class RevurderingSimulerTest {
         opprettetRevurderingAvslagSpesifiktVilkår(
             avslåttVilkår = utlandsoppholdAvslag(),
         ).let { (sak, revurdering) ->
-            revurdering.beregn(sak.utbetalinger, fixedClock,)
+            revurdering.beregn(sak.utbetalinger, fixedClock)
                 .getOrFail().let { beregnet ->
                     (beregnet as BeregnetRevurdering.Opphørt)
                         .toSimulert { sakId, _, opphørsdato ->
@@ -35,15 +36,15 @@ class RevurderingSimulerTest {
                             )
                         }.getOrFail()
                         .let { simulert ->
-                            simulert.avkortingsvarsel.let {
-                                (it as Avkortingsvarsel.Utenlandsopphold).let { avkortingsvarsel ->
-                                    avkortingsvarsel shouldBe Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                                        id = avkortingsvarsel.id,
+                            simulert.avkorting.let {
+                                (it as AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel).let { avkorting ->
+                                    avkorting.avkortingsvarsel shouldBe Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                                        id = avkorting.avkortingsvarsel.id,
                                         sakId = revurdering.sakId,
                                         revurderingId = revurdering.id,
-                                        opprettet = avkortingsvarsel.opprettet,
-                                        simulering = avkortingsvarsel.simulering,
-                                    )
+                                        opprettet = avkorting.avkortingsvarsel.opprettet,
+                                        simulering = avkorting.avkortingsvarsel.simulering,
+                                    ).skalAvkortes()
                                 }
                             }
                         }
@@ -90,7 +91,7 @@ class RevurderingSimulerTest {
                             )
                         }.getOrFail()
                         .let {
-                            it.avkortingsvarsel shouldBe Avkortingsvarsel.Ingen
+                            it.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
                         }
                 }
         }
@@ -122,7 +123,7 @@ class RevurderingSimulerTest {
                                 )
                             }.getOrFail()
                             .let {
-                                it.avkortingsvarsel shouldBe Avkortingsvarsel.Ingen
+                                it.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
                             }
                     }
             }

@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -101,7 +101,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = Avkortingsvarsel.Ingen,
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere
         ).tilAttestering(Saksbehandler("saksa"), "")
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -195,7 +195,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = Avkortingsvarsel.Ingen,
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
@@ -401,7 +401,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = Avkortingsvarsel.Ingen,
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(

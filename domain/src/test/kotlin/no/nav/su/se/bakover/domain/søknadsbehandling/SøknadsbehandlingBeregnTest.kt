@@ -5,6 +5,7 @@ import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -19,8 +20,6 @@ import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.simuleringOpphørt
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import org.mockito.kotlin.mock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -115,21 +114,23 @@ internal class SøknadsbehandlingBeregnTest {
 
         søknadsbehandlingVilkårsvurdertInnvilget().let { (_, førBeregning) ->
             førBeregning.copy(
-                avkorting = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                    id = UUID.randomUUID(),
-                    sakId = førBeregning.id,
-                    revurderingId = UUID.randomUUID(),
-                    opprettet = førBeregning.opprettet,
-                    simulering = simuleringOpphørt(
-                        opphørsdato = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
-                            .minusMonths(antallMånederMedFeilutbetaling),
-                        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-                        fnr = førBeregning.fnr,
-                        sakId = førBeregning.sakId,
-                        saksnummer = førBeregning.saksnummer,
-                        clock = fixedClock,
-                    ),
-                ).skalAvkortes(),
+                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
+                    Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                        id = UUID.randomUUID(),
+                        sakId = førBeregning.id,
+                        revurderingId = UUID.randomUUID(),
+                        opprettet = førBeregning.opprettet,
+                        simulering = simuleringOpphørt(
+                            opphørsdato = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
+                                .minusMonths(antallMånederMedFeilutbetaling),
+                            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+                            fnr = førBeregning.fnr,
+                            sakId = førBeregning.sakId,
+                            saksnummer = førBeregning.saksnummer,
+                            clock = fixedClock,
+                        ),
+                    ).skalAvkortes(),
+                ),
             ).beregn(
                 begrunnelse = "kakota",
                 clock = fixedClock,
@@ -170,21 +171,23 @@ internal class SøknadsbehandlingBeregnTest {
                     ),
                 ),
             ).getOrFail().copy(
-                avkorting = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                    id = UUID.randomUUID(),
-                    sakId = vilkårsvurdert.id,
-                    revurderingId = UUID.randomUUID(),
-                    opprettet = vilkårsvurdert.opprettet,
-                    simulering = simuleringOpphørt(
-                        opphørsdato = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
-                            .minusMonths(antallMånederMedFeilutbetaling),
-                        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-                        fnr = vilkårsvurdert.fnr,
-                        sakId = vilkårsvurdert.sakId,
-                        saksnummer = vilkårsvurdert.saksnummer,
-                        clock = fixedClock,
-                    ),
-                ).skalAvkortes(),
+                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
+                    Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                        id = UUID.randomUUID(),
+                        sakId = vilkårsvurdert.id,
+                        revurderingId = UUID.randomUUID(),
+                        opprettet = vilkårsvurdert.opprettet,
+                        simulering = simuleringOpphørt(
+                            opphørsdato = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
+                                .minusMonths(antallMånederMedFeilutbetaling),
+                            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+                            fnr = vilkårsvurdert.fnr,
+                            sakId = vilkårsvurdert.sakId,
+                            saksnummer = vilkårsvurdert.saksnummer,
+                            clock = fixedClock,
+                        ),
+                    ).skalAvkortes(),
+                ),
             ).beregn(
                 begrunnelse = "kakota",
                 clock = fixedClock,
@@ -198,31 +201,6 @@ internal class SøknadsbehandlingBeregnTest {
                 etterBeregning.grunnlagsdata.fradragsgrunnlag
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp } shouldBe expectedAvkortingBeløp.plusOrMinus(0.5)
-            }
-        }
-    }
-
-    @Test
-    fun `kaster exception hvis avkorting er i ugyldig tilstand`() {
-        assertThrows<IllegalStateException> {
-            søknadsbehandlingVilkårsvurdertInnvilget().let { (_, søknadsbehandling) ->
-                søknadsbehandling.copy(
-                    avkorting = mock<Avkortingsvarsel.Utenlandsopphold.Opprettet>(),
-                ).beregn(
-                    begrunnelse = "kakota",
-                    clock = fixedClock,
-                )
-            }
-        }
-
-        assertThrows<IllegalStateException> {
-            søknadsbehandlingVilkårsvurdertInnvilget().let { (_, søknadsbehandling) ->
-                søknadsbehandling.copy(
-                    avkorting = mock<Avkortingsvarsel.Utenlandsopphold.Avkortet>(),
-                ).beregn(
-                    begrunnelse = "kakota",
-                    clock = fixedClock,
-                )
             }
         }
     }

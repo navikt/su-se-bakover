@@ -122,6 +122,7 @@ object ServiceBuilder {
             vedtakService = vedtakService,
             sakService = sakService,
             sessionFactory = databaseRepos.sessionFactory,
+            avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo
         ).apply { addObserver(statistikkService) }
 
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
@@ -141,6 +142,7 @@ object ServiceBuilder {
             ferdigstillVedtakService = ferdigstillVedtakService,
             grunnlagService = grunnlagService,
             sakService = sakService,
+            avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
         ).apply {
             addObserver(statistikkService)
         }

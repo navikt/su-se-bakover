@@ -14,6 +14,9 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -90,6 +93,7 @@ internal class RevurderingServiceImpl(
     private val vedtakService: VedtakService,
     private val sessionFactory: SessionFactory,
     sakService: SakService,
+    private val avkortingsvarselRepo: AvkortingsvarselRepo,
 ) : RevurderingService {
     private val stansAvYtelseService = StansAvYtelseService(
         utbetalingService = utbetalingService,
@@ -172,10 +176,6 @@ internal class RevurderingServiceImpl(
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
 
-        if (gjeldendeVedtaksdata.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold()) {
-            return KunneIkkeOppretteRevurdering.RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes.left()
-        }
-
         SjekkOmGrunnlagErKonsistent(
             formuegrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.formue.grunnlag,
             uføregrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.uføre.grunnlag,
@@ -241,6 +241,7 @@ internal class RevurderingServiceImpl(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = hentUteståendeAvkorting(opprettRevurderingRequest.sakId),
             ).also {
                 revurderingRepo.lagre(it)
 
@@ -263,6 +264,26 @@ internal class RevurderingServiceImpl(
                         ),
                     )
                 }
+            }
+        }
+    }
+
+    private fun hentUteståendeAvkorting(sakId: UUID): AvkortingVedRevurdering.Uhåndtert {
+        return when (val utestående = avkortingsvarselRepo.hentUtestående(sakId)) {
+            is Avkortingsvarsel.Ingen -> {
+                AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
+                AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
+                AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(utestående)
             }
         }
     }
@@ -541,10 +562,6 @@ internal class RevurderingServiceImpl(
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
 
-        if (gjeldendeVedtaksdata.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold()) {
-            return KunneIkkeOppdatereRevurdering.RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes.left()
-        }
-
         SjekkOmGrunnlagErKonsistent(
             formuegrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.formue.grunnlag,
             uføregrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.uføre.grunnlag,
@@ -582,38 +599,44 @@ internal class RevurderingServiceImpl(
             gjeldendeVedtaksdata.gjeldendeVedtakPåDato(oppdaterRevurderingRequest.fraOgMed)
                 ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
+        val avkorting = hentUteståendeAvkorting(revurdering.sakId)
+
         return when (revurdering) {
             is OpprettetRevurdering -> revurdering.oppdater(
-                gjeldendeVedtaksdata.periode,
-                revurderingsårsak,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                informasjonSomRevurderes,
-                gjeldendeVedtakPåFraOgMedDato,
+                periode = gjeldendeVedtaksdata.periode,
+                revurderingsårsak = revurderingsårsak,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
+                avkorting = avkorting,
             ).right()
             is BeregnetRevurdering -> revurdering.oppdater(
-                gjeldendeVedtaksdata.periode,
-                revurderingsårsak,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                informasjonSomRevurderes,
-                gjeldendeVedtakPåFraOgMedDato,
+                periode = gjeldendeVedtaksdata.periode,
+                revurderingsårsak = revurderingsårsak,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
+                avkorting = avkorting,
             ).right()
             is SimulertRevurdering -> revurdering.oppdater(
-                gjeldendeVedtaksdata.periode,
-                revurderingsårsak,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                informasjonSomRevurderes,
-                gjeldendeVedtakPåFraOgMedDato,
+                periode = gjeldendeVedtaksdata.periode,
+                revurderingsårsak = revurderingsårsak,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
+                avkorting = avkorting,
             ).right()
             is UnderkjentRevurdering -> revurdering.oppdater(
-                gjeldendeVedtaksdata.periode,
-                revurderingsårsak,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                informasjonSomRevurderes,
-                gjeldendeVedtakPåFraOgMedDato,
+                periode = gjeldendeVedtaksdata.periode,
+                revurderingsårsak = revurderingsårsak,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
+                avkorting = avkorting,
             ).right()
             else -> KunneIkkeOppdatereRevurdering.UgyldigTilstand(
                 revurdering::class,
@@ -638,6 +661,12 @@ internal class RevurderingServiceImpl(
         return when (originalRevurdering) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
                 val eksisterendeUtbetalinger = utbetalingService.hentUtbetalinger(originalRevurdering.sakId)
+
+                /**
+                 * Må sende med eventuelle grunnlag for avkorting for perioden siden disse potensielt er fjernet fra
+                 * grunnlagsdataene pga bosituajson.
+                 * @see[fjernBosituasjonOgFradragHvisIkkeEntydig]
+                 */
                 val avkortingsgrunnlag = vedtakService.kopierGjeldendeVedtaksdata(
                     sakId = originalRevurdering.sakId,
                     fraOgMed = originalRevurdering.periode.fraOgMed,

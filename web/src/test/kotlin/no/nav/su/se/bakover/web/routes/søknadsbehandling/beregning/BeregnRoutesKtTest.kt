@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -246,6 +247,7 @@ internal class BeregnRoutesKtTest {
             oppgaveId = OppgaveId("1234"),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = sak.fnr,
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
         )
         repos.søknadsbehandling.lagreNySøknadsbehandling(
             nySøknadsbehandling,

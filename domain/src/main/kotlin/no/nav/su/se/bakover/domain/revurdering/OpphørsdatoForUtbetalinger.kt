@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import java.time.LocalDate
 
@@ -13,19 +14,48 @@ value class OpphørsdatoForUtbetalinger private constructor(
             revurdering: BeregnetRevurdering.Opphørt,
             avkortingsvarsel: Avkortingsvarsel,
         ): OpphørsdatoForUtbetalinger {
-            return bestem(revurdering, avkortingsvarsel)
+            return bestem(
+                revurdering = revurdering,
+                avkortingsvarsel = avkortingsvarsel,
+            )
         }
 
         operator fun invoke(
             revurdering: SimulertRevurdering.Opphørt,
         ): OpphørsdatoForUtbetalinger {
-            return bestem(revurdering, revurdering.avkortingsvarsel)
+            return bestem(
+                revurdering = revurdering,
+                avkortingsvarsel = revurdering.avkorting.avkortingsvarsel()
+            )
         }
 
         operator fun invoke(
             revurdering: RevurderingTilAttestering.Opphørt,
         ): OpphørsdatoForUtbetalinger {
-            return bestem(revurdering, revurdering.avkortingsvarsel)
+            return bestem(
+                revurdering = revurdering,
+                avkortingsvarsel = revurdering.avkorting.avkortingsvarsel()
+            )
+        }
+
+        private fun AvkortingVedRevurdering.Håndtert.avkortingsvarsel(): Avkortingsvarsel {
+            return when (this) {
+                is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
+                    Avkortingsvarsel.Ingen
+                }
+                is AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
+                    Avkortingsvarsel.Ingen
+                }
+                is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
+                    avkortingsvarsel
+                }
+                is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+                    avkortingsvarsel
+                }
+                is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+                    Avkortingsvarsel.Ingen
+                }
+            }
         }
 
         private fun bestem(
