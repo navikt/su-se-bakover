@@ -65,6 +65,10 @@ abstract class BrevInnhold {
         @Suppress("unused")
         @JsonInclude
         val harFradrag: Boolean = beregningsperioder.harFradrag()
+
+        @Suppress("unused")
+        @JsonInclude
+        val harAvkorting: Boolean = beregningsperioder.harAvkorting()
     }
 
     data class Opphørsvedtak(
@@ -80,13 +84,19 @@ abstract class BrevInnhold {
         val attestantNavn: String,
         val fritekst: String,
         val forventetInntektStørreEnn0: Boolean,
-        val halvGrunnbeløp: Int?
+        val halvGrunnbeløp: Int?,
+        val opphørsdato: String,
+        val avkortingsBeløp: Int?,
     ) : BrevInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.Opphørsvedtak
 
         @Suppress("unused")
         @JsonInclude
         val harFradrag: Boolean = beregningsperioder.harFradrag()
+
+        @Suppress("unused")
+        @JsonInclude
+        val harAvkorting: Boolean = beregningsperioder.harAvkorting()
     }
 
     data class Personalia(
@@ -116,6 +126,10 @@ abstract class BrevInnhold {
         @Suppress("unused")
         @JsonInclude
         val harFradrag: Boolean = beregningsperioder.harFradrag()
+
+        @Suppress("unused")
+        @JsonInclude
+        val harAvkorting: Boolean = beregningsperioder.harAvkorting()
     }
 
     data class VedtakIngenEndring(
@@ -139,6 +153,10 @@ abstract class BrevInnhold {
         @Suppress("unused")
         @JsonInclude
         val harFradrag: Boolean = beregningsperioder.harFradrag()
+
+        @Suppress("unused")
+        @JsonInclude
+        val harAvkorting: Boolean = beregningsperioder.harAvkorting()
     }
 
     data class Forhåndsvarsel(
@@ -179,4 +197,11 @@ abstract class BrevInnhold {
     }
 }
 
-fun List<Beregningsperiode>.harFradrag() = this.any { it.fradrag.bruker.isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty() }
+fun List<Beregningsperiode>.harFradrag() =
+    this.any {
+        it.fradrag.bruker.filterNot { fradrag -> fradrag.type == "Avkorting på grunn av tidligere utenlandsopphold" }
+            .isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty()
+    }
+
+fun List<Beregningsperiode>.harAvkorting() =
+    this.any { it.fradrag.bruker.any { fradrag -> fradrag.type == "Avkorting på grunn av tidligere utenlandsopphold" } }

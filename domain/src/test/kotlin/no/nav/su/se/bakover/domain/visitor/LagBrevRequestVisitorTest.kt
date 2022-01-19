@@ -968,6 +968,8 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             opphørsgrunner = emptyList(),
             dagensDato = fixedLocalDate,
+            opphørsdato = revurdering.periode.fraOgMed,
+            avkortingsBeløp = null,
         ).right()
 
         brevRevurdering.brevRequest.map { brevRequest ->
@@ -1004,7 +1006,7 @@ internal class LagBrevRequestVisitorTest {
         )
 
         val iverksatt = revurdering
-            .beregn(eksisterendeUtbetalinger = emptyList(), clock = fixedClock,)
+            .beregn(eksisterendeUtbetalinger = emptyList(), clock = fixedClock)
             .getOrFail().let {
                 (it as BeregnetRevurdering.Opphørt).toSimulert { sakId, _, opphørsdato ->
                     simulertUtbetalingOpphør(
@@ -1050,6 +1052,8 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             opphørsgrunner = listOf(Opphørsgrunn.UFØRHET),
             dagensDato = fixedLocalDate,
+            opphørsdato = revurdering.periode.fraOgMed,
+            avkortingsBeløp = null,
         ).right()
     }
 
@@ -1125,6 +1129,8 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             opphørsgrunner = listOf(Opphørsgrunn.FOR_HØY_INNTEKT),
             dagensDato = fixedLocalDate,
+            opphørsdato = revurdering.periode.fraOgMed,
+            avkortingsBeløp = null,
         ).right()
     }
 
