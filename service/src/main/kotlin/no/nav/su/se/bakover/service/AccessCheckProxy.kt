@@ -42,6 +42,8 @@ import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
 import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
+import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -88,7 +90,9 @@ import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
+import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeKalleInnTilKontrollsamtale
+import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -763,13 +767,26 @@ open class AccessCheckProxy(
                 }
             },
             kontrollsamtale = object : KontrollsamtaleService {
-                override fun kallInn(
+                override fun nyDato(
                     sakId: UUID,
-                    saksbehandler: NavIdentBruker
-                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> {
+                    dato: LocalDate
+                ): Either<KunneIkkeSetteNyDatoForKontrollsamtale, Unit> {
                     assertHarTilgangTilSak(sakId)
-                    return services.kontrollsamtale.kallInn(sakId, saksbehandler)
+                    return services.kontrollsamtale.nyDato(sakId, dato)
                 }
+
+                override fun hentNestePlanlagteKontrollsamtale(sakId: UUID): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.kontrollsamtale.hentNestePlanlagteKontrollsamtale(sakId)
+                }
+
+                override fun kallInn(sakId: UUID, kontrollsamtale: Kontrollsamtale): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> = kastKanKunKallesFraAnnenService()
+                override fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> = kastKanKunKallesFraAnnenService()
+                override fun opprettPlanlagtKontrollsamtale(vedtak: Vedtak): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> = kastKanKunKallesFraAnnenService()
+                override fun oppdaterNestePlanlagteKontrollsamtaleStatus(
+                    sakId: UUID,
+                    status: Kontrollsamtalestatus,
+                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> = kastKanKunKallesFraAnnenService()
             },
             klageService = object : KlageService {
                 override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {

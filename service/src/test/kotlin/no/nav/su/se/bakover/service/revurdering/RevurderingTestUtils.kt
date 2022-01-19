@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -101,6 +102,7 @@ internal object RevurderingTestUtils {
         vilkårsvurderingService: VilkårsvurderingService = mock(),
         grunnlagService: GrunnlagService = mock(),
         sakService: SakService = mock(),
+        kontrollsamtaleService: KontrollsamtaleService = mock(),
         sessionFactory: SessionFactory = TestSessionFactory(),
     ) =
         RevurderingServiceImpl(
@@ -116,6 +118,7 @@ internal object RevurderingTestUtils {
             grunnlagService = grunnlagService,
             vedtakService = vedtakService,
             sakService = sakService,
+            kontrollsamtaleService = kontrollsamtaleService,
             sessionFactory = sessionFactory
         )
 

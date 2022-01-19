@@ -81,6 +81,7 @@ import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
 import no.nav.su.se.bakover.web.services.klage.FattetKlageinstansvedtakConsumer
 import no.nav.su.se.bakover.web.services.klage.KlageinstansvedtakJob
+import no.nav.su.se.bakover.web.services.kontrollsamtale.KontrollsamtaleinnkallingJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
@@ -342,6 +343,12 @@ fun Application.susebakover(
         personhendelseService = personhendelseService,
         leaderPodLookup = clients.leaderPodLookup,
         intervall = applicationConfig.jobConfig.personhendelse.intervall,
+    ).schedule()
+
+    KontrollsamtaleinnkallingJob(
+        leaderPodLookup = clients.leaderPodLookup,
+        kontrollsamtaleService = services.kontrollsamtale,
+        clock = clock,
     ).schedule()
 }
 

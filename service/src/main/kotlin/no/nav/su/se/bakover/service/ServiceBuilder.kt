@@ -108,6 +108,16 @@ object ServiceBuilder {
             clock = clock,
         )
 
+        val kontrollsamtaleService = KontrollsamtaleServiceImpl(
+            sakService = sakService,
+            personService = personService,
+            brevService = brevService,
+            oppgaveService = oppgaveService,
+            sessionFactory = databaseRepos.sessionFactory,
+            clock = clock,
+            kontrollsamtaleRepo = databaseRepos.kontrollsamtaleRepo,
+        )
+
         val revurderingService = RevurderingServiceImpl(
             utbetalingService = utbetalingService,
             revurderingRepo = databaseRepos.revurderingRepo,
@@ -121,11 +131,11 @@ object ServiceBuilder {
             grunnlagService = grunnlagService,
             vedtakService = vedtakService,
             sakService = sakService,
+            kontrollsamtaleService = kontrollsamtaleService,
             sessionFactory = databaseRepos.sessionFactory,
         ).apply { addObserver(statistikkService) }
 
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
-
         val toggleService = ToggleServiceImpl(unleash)
 
         val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
@@ -141,6 +151,7 @@ object ServiceBuilder {
             ferdigstillVedtakService = ferdigstillVedtakService,
             grunnlagService = grunnlagService,
             sakService = sakService,
+            kontrollsamtaleService = kontrollsamtaleService
         ).apply {
             addObserver(statistikkService)
         }
@@ -206,14 +217,7 @@ object ServiceBuilder {
                 sessionFactory = databaseRepos.sessionFactory,
                 sakService = sakService,
             ),
-            kontrollsamtale = KontrollsamtaleServiceImpl(
-                sakService = sakService,
-                personService = personService,
-                brevService = brevService,
-                oppgaveService = oppgaveService,
-                sessionFactory = databaseRepos.sessionFactory,
-                clock = clock,
-            ),
+            kontrollsamtale = kontrollsamtaleService,
             klageService = klageService,
             klagevedtakService = klagevedtakService,
         )
