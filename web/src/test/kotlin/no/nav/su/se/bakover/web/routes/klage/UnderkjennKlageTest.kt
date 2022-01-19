@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.service.klage.KlageService
-import no.nav.su.se.bakover.test.underkjentKlage
+import no.nav.su.se.bakover.test.underkjentKlageTilVurdering
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -147,7 +147,7 @@ internal class UnderkjennKlageTest {
 
     @Test
     fun `kan underkjenne klage`() {
-        val underkjentKlage = underkjentKlage().second
+        val underkjentKlage = underkjentKlageTilVurdering().second
         val klageServiceMock = mock<KlageService> {
             on { underkjenn(any()) } doReturn underkjentKlage.right()
         }
@@ -201,7 +201,8 @@ internal class UnderkjennKlageTest {
                       },
                       "opprettet":"2021-01-01T01:02:03.456789Z"
                     }
-                  ]
+                  ],
+                  "klagevedtakshistorikk": []
                 }
                 """.trimIndent(),
                 response.content,

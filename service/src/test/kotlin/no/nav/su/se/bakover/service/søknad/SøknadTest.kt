@@ -467,6 +467,8 @@ class SøknadTest {
                                 journalpostId = journalpostId,
                                 søknadId = UUID.randomUUID(), // ignored
                                 aktørId = person.ident.aktørId,
+                                tilordnetRessurs = null,
+                                clock = fixedClock,
                             ),
                             OppgaveConfig.Søknad::søknadId,
                             OppgaveConfig.Søknad::saksreferanse,
@@ -584,7 +586,9 @@ class SøknadTest {
                         OppgaveConfig.Søknad(
                             journalpostId = journalpostId,
                             søknadId = UUID.randomUUID(), // ignored
-                            aktørId = person.ident.aktørId
+                            aktørId = person.ident.aktørId,
+                            tilordnetRessurs = null,
+                            clock = fixedClock,
                         ),
                         OppgaveConfig.Søknad::søknadId,
                         OppgaveConfig.Søknad::saksreferanse,

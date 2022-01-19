@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -39,7 +40,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
-class RevurderingServiceLeggTilFradragsgrunnlagTest {
+internal class RevurderingServiceLeggTilFradragsgrunnlagTest {
     @Test
     fun `lagreFradrag happy case`() {
         val revurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
@@ -75,6 +76,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
             argThat { it shouldBe revurdering.id },
             argThat { it shouldBe request.fradragsgrunnlag },
         )
+        verify(revurderingRepoMock).defaultTransactionContext()
         verify(revurderingRepoMock).lagre(
             argThat {
                 it shouldBe revurdering.copy(
@@ -91,6 +93,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                     ),
                 )
             },
+            anyOrNull()
         )
 
         verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)

@@ -33,7 +33,7 @@ import no.nav.su.se.bakover.common.JmsConfig
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.DatabaseRepos
+import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -79,7 +79,9 @@ import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
 import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
-import no.nav.su.se.bakover.web.services.klage.FattetKlagevedtakConsumer
+import no.nav.su.se.bakover.web.services.klage.FattetKlageinstansvedtakConsumer
+import no.nav.su.se.bakover.web.services.klage.KlageinstansvedtakJob
+import no.nav.su.se.bakover.web.services.kontrollsamtale.KontrollsamtaleinnkallingJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
@@ -250,11 +252,12 @@ fun Application.susebakover(
                     accessCheckProxy,
                 ) { accessProtectedServices ->
                     personRoutes(accessProtectedServices.person, clock)
-                    sakRoutes(accessProtectedServices.sak)
+                    sakRoutes(accessProtectedServices.sak, clock)
                     søknadRoutes(
                         søknadService = accessProtectedServices.søknad,
                         lukkSøknadService = accessProtectedServices.lukkSøknad,
                         avslåSøknadManglendeDokumentasjonService = accessProtectedServices.avslåSøknadManglendeDokumentasjonService,
+                        clock = clock,
                     )
                     overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling, clock)
                     avstemmingRoutes(accessProtectedServices.avstemming, clock)
@@ -273,8 +276,13 @@ fun Application.susebakover(
         ferdigstillVedtakService = services.ferdigstillVedtak,
         clock = clock,
     )
-    val personhendelseService =
-        PersonhendelseService(databaseRepos.sak, databaseRepos.personhendelseRepo, services.oppgave, services.person)
+    val personhendelseService = PersonhendelseService(
+        sakRepo = databaseRepos.sak,
+        personhendelseRepo = databaseRepos.personhendelseRepo,
+        oppgaveServiceImpl = services.oppgave,
+        personService = services.person,
+        clock = clock,
+    )
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
@@ -291,7 +299,7 @@ fun Application.susebakover(
             personhendelseService = personhendelseService,
             maxBatchSize = applicationConfig.kafkaConfig.consumerCfg.kafkaConfig[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] as? Int,
         )
-        FattetKlagevedtakConsumer(
+        FattetKlageinstansvedtakConsumer(
             consumer = KafkaConsumer(applicationConfig.kabalKafkaConfig.kafkaConfig),
             klagevedtakService = services.klagevedtakService,
             maxBatchSize = applicationConfig.kabalKafkaConfig.kafkaConfig[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] as? Int,
@@ -310,6 +318,8 @@ fun Application.susebakover(
             jobConfig = applicationConfig.jobConfig.konsistensavstemming,
             clock = clock,
         ).schedule()
+
+        KlageinstansvedtakJob(klagevedtakService = services.klagevedtakService, leaderPodLookup = clients.leaderPodLookup).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         LokalKvitteringJob(LokalKvitteringService(databaseRepos.utbetaling, utbetalingKvitteringConsumer)).schedule()
 
@@ -329,12 +339,19 @@ fun Application.susebakover(
             jobConfig = applicationConfig.jobConfig.konsistensavstemming,
             clock = clock,
         ).schedule()
+        KlageinstansvedtakJob(klagevedtakService = services.klagevedtakService, leaderPodLookup = clients.leaderPodLookup).schedule()
     }
 
     PersonhendelseOppgaveJob(
         personhendelseService = personhendelseService,
         leaderPodLookup = clients.leaderPodLookup,
         intervall = applicationConfig.jobConfig.personhendelse.intervall,
+    ).schedule()
+
+    KontrollsamtaleinnkallingJob(
+        leaderPodLookup = clients.leaderPodLookup,
+        kontrollsamtaleService = services.kontrollsamtale,
+        clock = clock,
     ).schedule()
 }
 

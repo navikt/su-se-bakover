@@ -1,8 +1,12 @@
 package no.nav.su.se.bakover.domain.klage
 
-sealed class KunneIkkeLageBrevForKlage {
-    object FantIkkePerson : KunneIkkeLageBrevForKlage()
-    object FantIkkeSaksbehandler : KunneIkkeLageBrevForKlage()
-    object FantIkkeVedtakKnyttetTilKlagen : KunneIkkeLageBrevForKlage()
-    object KunneIkkeGenererePDF : KunneIkkeLageBrevForKlage()
+import kotlin.reflect.KClass
+
+sealed interface KunneIkkeLageBrevForKlage {
+    object FantIkkePerson : KunneIkkeLageBrevForKlage
+    object FantIkkeSaksbehandler : KunneIkkeLageBrevForKlage
+    object FantIkkeVedtakKnyttetTilKlagen : KunneIkkeLageBrevForKlage
+    object KunneIkkeGenererePDF : KunneIkkeLageBrevForKlage
+    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeLageBrevForKlage
+    data class FeilVedBrevRequest(val feil: KunneIkkeLageBrevRequest) : KunneIkkeLageBrevForKlage
 }

@@ -5,7 +5,6 @@ import com.zaxxer.hikari.HikariDataSource
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.RotatingCredentials
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.StaticCredentials
-import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
@@ -21,6 +20,7 @@ import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.klage.KlagevedtakPostgresRepo
+import no.nav.su.se.bakover.database.kontrollsamtale.KontrollsamtalePostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
@@ -29,24 +29,7 @@ import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
-import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
-import no.nav.su.se.bakover.domain.dokument.DokumentRepo
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagRepo
-import no.nav.su.se.bakover.domain.hendelse.PersonhendelseRepo
-import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggRepo
-import no.nav.su.se.bakover.domain.klage.KlageRepo
-import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
-import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
-import no.nav.su.se.bakover.domain.person.PersonRepo
-import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.søknad.SøknadRepo
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.vilkår.FormueVilkårsvurderingRepo
-import no.nav.su.se.bakover.domain.vilkår.UføreVilkårsvurderingRepo
+import no.nav.su.se.bakover.domain.DatabaseRepos
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import javax.sql.DataSource
@@ -186,6 +169,7 @@ object DatabaseBuilder {
         val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource, clock)
         val klageRepo = KlagePostgresRepo(sessionFactory)
         val klageVedtakRepo = KlagevedtakPostgresRepo(sessionFactory)
+        val kontrollsamtaleRepo = KontrollsamtalePostgresRepo(sessionFactory)
 
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
@@ -223,29 +207,8 @@ object DatabaseBuilder {
             sessionFactory = sessionFactory,
             klageRepo = klageRepo,
             klageVedtakRepo = klageVedtakRepo,
+            kontrollsamtaleRepo = kontrollsamtaleRepo,
             avkortingsvarselRepo = avkortingsvarselRepo,
         )
     }
 }
-
-data class DatabaseRepos(
-    override val avstemming: AvstemmingRepo,
-    override val utbetaling: UtbetalingRepo,
-    override val søknad: SøknadRepo,
-    override val hendelseslogg: HendelsesloggRepo,
-    override val sak: SakRepo,
-    override val person: PersonRepo,
-    override val søknadsbehandling: SøknadsbehandlingRepo,
-    override val revurderingRepo: RevurderingRepo,
-    override val vedtakRepo: VedtakRepo,
-    override val grunnlagRepo: GrunnlagRepo,
-    override val uføreVilkårsvurderingRepo: UføreVilkårsvurderingRepo,
-    override val formueVilkårsvurderingRepo: FormueVilkårsvurderingRepo,
-    override val personhendelseRepo: PersonhendelseRepo,
-    override val dokumentRepo: DokumentRepo,
-    override val nøkkeltallRepo: NøkkeltallRepo,
-    override val sessionFactory: SessionFactory,
-    override val klageRepo: KlageRepo,
-    val klageVedtakRepo: KlagevedtakRepo,
-    override val avkortingsvarselRepo: AvkortingsvarselRepo
-) : no.nav.su.se.bakover.domain.database.DatabaseRepos

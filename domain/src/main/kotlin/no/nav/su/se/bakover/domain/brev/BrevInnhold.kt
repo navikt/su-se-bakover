@@ -185,15 +185,27 @@ abstract class BrevInnhold {
         override val brevTemplate = BrevTemplate.InnkallingTilKontrollsamtale
     }
 
-    data class Klage(
-        val personalia: Personalia,
-        val saksbehandlerNavn: String,
-        val fritekst: String,
-        val klageDato: String,
-        val vedtakDato: String,
-        val saksnummer: Long,
-    ) : BrevInnhold() {
-        override val brevTemplate = BrevTemplate.Klage.Oppretthold
+    sealed class Klage : BrevInnhold() {
+
+        data class Oppretthold(
+            val personalia: Personalia,
+            val saksbehandlerNavn: String,
+            val fritekst: String,
+            val klageDato: String,
+            val vedtakDato: String,
+            val saksnummer: Long,
+        ) : Klage() {
+            override val brevTemplate = BrevTemplate.Klage.Oppretthold
+        }
+
+        data class Avvist(
+            val personalia: Personalia,
+            val saksbehandlerNavn: String,
+            val fritekst: String,
+            val saksnummer: Long,
+        ) : Klage() {
+            override val brevTemplate = BrevTemplate.Klage.Avvist
+        }
     }
 }
 

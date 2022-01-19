@@ -23,15 +23,15 @@ import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
-import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
+import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.migratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
@@ -201,7 +201,7 @@ data class TestClientsBuilder(
         utbetalingPublisher = UtbetalingStub,
         dokDistFordeling = DokDistFordelingStub,
         avstemmingPublisher = AvstemmingStub,
-        microsoftGraphApiClient = MicrosoftGraphApiClientStub,
+        identClient = IdentClientStub,
         digitalKontaktinformasjon = DkifClientStub,
         leaderPodLookup = LeaderPodLookupStub,
         kafkaPublisher = KafkaPublisherStub,

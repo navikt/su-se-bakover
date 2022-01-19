@@ -5,8 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
+import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.toTidspunkt
@@ -20,6 +19,7 @@ import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
+import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
@@ -155,7 +155,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            microsoftGraphApiClient = MicrosoftGraphApiClientStub,
+            identClient = IdentClientStub,
         ).let { serviceAndMocks ->
             val actual = serviceAndMocks.lukkSøknadService.lukkSøknad(
                 LukkSøknadRequest.MedBrev.TrekkSøknad(
@@ -346,8 +346,8 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            microsoftGraphApiClient = MicrosoftGraphApiClientStub,
-            søknadsbehandlingService = søknadsbehandlingServiceMock
+            identClient = IdentClientStub,
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
         ).let { serviceAndMocks ->
             val actual = serviceAndMocks.lukkSøknadService.lukkSøknad(
                 LukkSøknadRequest.MedBrev.AvvistSøknad(
@@ -834,7 +834,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            microsoftGraphApiClient = MicrosoftGraphApiClientStub,
+            identClient = IdentClientStub,
         ).let { serviceAndMocks ->
             val actual = serviceAndMocks.lukkSøknadService.lukkSøknad(
                 LukkSøknadRequest.MedBrev.TrekkSøknad(
@@ -939,7 +939,7 @@ internal class LukkSøknadServiceImplTest {
             søknadService = søknadServiceMock,
             brevService = brevServiceMock,
             personService = personServiceMock,
-            microsoftGraphApiClient = MicrosoftGraphApiClientStub,
+            identClient = IdentClientStub,
             søknadsbehandlingService = søknadsbehandlingServiceMock,
         ).let { serviceAndMocks ->
             serviceAndMocks.lukkSøknadService.lukkSøknad(
@@ -978,7 +978,7 @@ internal class LukkSøknadServiceImplTest {
         val oppgaveService: OppgaveService = mock(),
         val personService: PersonService = mock(),
         val søknadsbehandlingService: SøknadsbehandlingService = mock(),
-        val microsoftGraphApiClient: MicrosoftGraphApiOppslag = MicrosoftGraphApiClientStub,
+        val identClient: IdentClient = IdentClientStub,
         clock: Clock = fixedClock,
         sessionFactory: SessionFactory = TestSessionFactory(),
         val lukkSøknadServiceObserver: EventObserver = mock(),
@@ -989,7 +989,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevService,
             oppgaveService = oppgaveService,
             personService = personService,
-            microsoftGraphApiClient = microsoftGraphApiClient,
+            identClient = identClient,
             clock = clock,
             sessionFactory = sessionFactory,
             søknadsbehandlingService = søknadsbehandlingService,

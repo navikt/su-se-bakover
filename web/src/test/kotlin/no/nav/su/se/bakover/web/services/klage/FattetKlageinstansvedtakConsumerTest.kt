@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.common.JAAS_PLAIN_LOGIN
 import no.nav.common.JAAS_REQUIRED
 import no.nav.common.KafkaEnvironment
-import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
 import no.nav.su.se.bakover.service.klage.KlagevedtakService
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.test.fixedClock
@@ -37,7 +37,7 @@ private const val TOPIC1 = "kafkaTopic1"
 private const val TOPIC2 = "kafkaTopic2"
 
 @Isolated
-internal class FattetKlagevedtakConsumerTest {
+internal class FattetKlageinstansvedtakConsumerTest {
 
     private val PARTITION = 0
     private val key = UUID.randomUUID().toString()
@@ -46,7 +46,7 @@ internal class FattetKlagevedtakConsumerTest {
     fun `Lagrer aktuelle og forkaster uaktuelle`() {
         val kafkaConsumer = kafkaConsumer(kafkaServer, "$TOPIC1-consumer-group")
         val klagevedtakService = mock<KlagevedtakService>()
-        FattetKlagevedtakConsumer(
+        FattetKlageinstansvedtakConsumer(
             consumer = kafkaConsumer,
             klagevedtakService = klagevedtakService,
             periode = 1,
@@ -67,7 +67,7 @@ internal class FattetKlagevedtakConsumerTest {
             // Venter til alle meldingene er sendt før vi prøver consume
             it.get()
         }
-        val hendelser = argumentCaptor<UprosessertFattetKlagevedtak>()
+        val hendelser = argumentCaptor<UprosessertFattetKlageinstansvedtak>()
         // Kunne alternativt brukt awaitility for å vente til currentOffset ble 3
         verify(klagevedtakService, timeout(20000).times(2)).lagre(any())
         currentOffset(TOPIC1) shouldBe 3 // last offset (2) + 1
@@ -83,10 +83,10 @@ internal class FattetKlagevedtakConsumerTest {
         verify(klagevedtakService, timeout(20000).times(3)).lagre(hendelser.capture())
         hendelser.allValues.size shouldBe 3
         hendelser.allValues.forEachIndexed { index, klagevedtak ->
-            UprosessertFattetKlagevedtak(
+            UprosessertFattetKlageinstansvedtak(
                 id = klagevedtak.id,
                 opprettet = fixedTidspunkt,
-                metadata = UprosessertFattetKlagevedtak.Metadata(
+                metadata = UprosessertFattetKlageinstansvedtak.Metadata(
                     hendelseId = index.toString(),
                     offset = index.toLong(),
                     partisjon = PARTITION,
@@ -112,7 +112,7 @@ internal class FattetKlagevedtakConsumerTest {
     fun `Fant ikke kilde comitter siste leste melding og kaller en rebalance`() {
         val kafkaConsumer = kafkaConsumer(kafkaServer, "$TOPIC2-consumer-group")
         val klagevedtakService = mock<KlagevedtakService>()
-        FattetKlagevedtakConsumer(
+        FattetKlageinstansvedtakConsumer(
             consumer = kafkaConsumer,
             klagevedtakService = klagevedtakService,
             periode = 1,
@@ -133,7 +133,7 @@ internal class FattetKlagevedtakConsumerTest {
             producer.send(genererFattetKlagevedtaksmelding(TOPIC2, 2)),
         ).forEach { it.get() }
         // Venter først akkurat til vi har fått et kall til klagevedtakService (som forventet)
-        verify(klagevedtakService, timeout(20000).times(1)).lagre(any())
+        verify(klagevedtakService, timeout(20000)).lagre(any())
         Thread.sleep(2000) // Venter deretter en liten stund til for å verifisere at det ikke kommer fler kall.
         verifyNoMoreInteractions(klagevedtakService)
         currentOffset(TOPIC2) shouldBe 1 // last offset (0) + 1

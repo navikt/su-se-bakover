@@ -106,12 +106,12 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         oppgaveId = oppgaveIdRevurdering,
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
-        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+        forhåndsvarsel = null,
         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
-        avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+        avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
     )
     return Pair(
         sakOgVedtakSomKanRevurderes.first.copy(
@@ -224,7 +224,7 @@ fun simulertRevurdering(
     clock: Clock = fixedClock,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
-    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
 ): Pair<Sak, SimulertRevurdering> {
     return beregnetRevurdering(
         saksnummer = saksnummer,
@@ -262,9 +262,7 @@ fun simulertRevurdering(
                     ).right()
                 }.getOrFail()
             }
-        }
-
-        simulert.forhåndsvarsel = forhåndsvarsel
+        }.prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(forhåndsvarsel)
 
         sak.copy(
             revurderinger = sak.revurderinger.filterNot { it.id == simulert.id } + simulert,
@@ -285,7 +283,7 @@ fun revurderingTilAttestering(
     clock: Clock = fixedClock,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
-    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
 ): Pair<Sak, RevurderingTilAttestering> {
     return simulertRevurdering(
         saksnummer = saksnummer,
@@ -305,15 +303,13 @@ fun revurderingTilAttestering(
                     attesteringsoppgaveId = simulert.oppgaveId,
                     saksbehandler = simulert.saksbehandler,
                     fritekstTilBrev = simulert.fritekstTilBrev,
-                    forhåndsvarsel = simulert.forhåndsvarsel ?: Forhåndsvarsel.IngenForhåndsvarsel,
-                )
+                ).getOrFail()
             }
             is SimulertRevurdering.Opphørt -> {
                 simulert.tilAttestering(
                     attesteringsoppgaveId = simulert.oppgaveId,
                     saksbehandler = simulert.saksbehandler,
                     fritekstTilBrev = simulert.fritekstTilBrev,
-                    forhåndsvarsel = simulert.forhåndsvarsel ?: Forhåndsvarsel.IngenForhåndsvarsel,
                 ).getOrFail()
             }
         }
@@ -337,7 +333,7 @@ fun iverksattRevurdering(
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
-    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     attestering: Attestering = attesteringIverksatt(clock),
 ): Triple<Sak, IverksattRevurdering, Utbetaling?> {
     return revurderingTilAttestering(
@@ -410,7 +406,7 @@ fun vedtakRevurdering(
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
-    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     attestering: Attestering = attesteringIverksatt(clock),
 ): Pair<Sak, Vedtak> {
     return iverksattRevurdering(
@@ -542,7 +538,7 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
         val innvilgetBeregnetRevurdering =
-            revurdering.beregn(sak.utbetalinger, clock,).orNull() as BeregnetRevurdering.Innvilget
+            revurdering.beregn(sak.utbetalinger, clock).orNull() as BeregnetRevurdering.Innvilget
         Pair(
             sak.copy(
                 // Erstatter den gamle versjonen av samme revurderinger.
@@ -617,7 +613,7 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
-        val innvilgetBeregnetRevurdering = revurdering.beregn(eksisterendeUtbetalinger, clock,)
+        val innvilgetBeregnetRevurdering = revurdering.beregn(eksisterendeUtbetalinger, clock)
             .orNull() as BeregnetRevurdering.IngenEndring
         Pair(
             sak.copy(
@@ -660,7 +656,7 @@ fun beregnetRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
-        val opphørtBeregnetRevurdering = revurdering.beregn(sak.utbetalinger, clock,)
+        val opphørtBeregnetRevurdering = revurdering.beregn(sak.utbetalinger, clock)
             .getOrHandle { throw IllegalStateException("Kunne ikke instansiere testdata. Underliggende feil: $it") } as BeregnetRevurdering.Opphørt
         Pair(
             sak.copy(
@@ -710,7 +706,7 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
-        val opphørtBeregnetRevurdering = revurdering.beregn(sak.utbetalinger, clock,)
+        val opphørtBeregnetRevurdering = revurdering.beregn(sak.utbetalinger, clock)
             .getOrHandle { throw IllegalStateException("Kunne ikke instansiere testdata. Underliggende feil: $it") } as BeregnetRevurdering.Opphørt
         Pair(
             sak.copy(
@@ -763,6 +759,7 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         clock = clock,
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+    forhåndsvarsel: Forhåndsvarsel? = null,
 ): Pair<Sak, SimulertRevurdering.Innvilget> {
 
     return beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
@@ -775,13 +772,15 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
         val innvilgetSimulertRevurdering = revurdering.toSimulert(
-            simuleringNy(
+            simulering = simuleringNy(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 beregning = revurdering.beregning,
                 fnr = revurdering.fnr,
                 sakId = revurdering.sakId,
                 saksnummer = revurdering.saksnummer,
             ),
+        ).prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
+            forhåndsvarsel = forhåndsvarsel,
         )
         Pair(
             sak.copy(
@@ -811,6 +810,7 @@ fun simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
         it.copy(vilkårsvurderinger = it.vilkårsvurderinger.leggTil(vilkårSomFørerTilOpphør))
     },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+    forhåndsvarsel: Forhåndsvarsel? = null,
 ): Pair<Sak, SimulertRevurdering.Opphørt> {
 
     return beregnetRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
@@ -834,6 +834,9 @@ fun simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
                 eksisterendeUtbetalinger = sak.utbetalinger,
             )
         }.getOrFail()
+            .prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
+                forhåndsvarsel = forhåndsvarsel,
+            )
         Pair(
             sak.copy(
                 // Erstatter den gamle versjonen av samme revurderinger.
@@ -842,6 +845,37 @@ fun simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
             opphørtSimulertRevurdering,
         )
     }
+}
+
+private fun <T : SimulertRevurdering> T.prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
+    forhåndsvarsel: Forhåndsvarsel?,
+): T {
+    // SimulertRevurdering er første tilstanden forhåndsvarsel kan velges og den skal initielt være null her.
+    // Den kan jo ha blitt tatt tilbake til et tidligere steg, men da bør man følge stegene for at modellen skal bli mest mulig riktig.
+    assert(this.forhåndsvarsel == null)
+    @Suppress("UNCHECKED_CAST")
+    return when (forhåndsvarsel) {
+        is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet -> {
+            this.prøvOvergangTilSendt().orNull()!!.prøvOvergangTilAvsluttet(forhåndsvarsel.begrunnelse)
+                .orNull()!!
+        }
+        is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget -> {
+            this.prøvOvergangTilSendt().orNull()!!
+                .prøvOvergangTilEndreGrunnlaget(forhåndsvarsel.begrunnelse).orNull()!!
+        }
+        is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag -> {
+            this.prøvOvergangTilSendt().orNull()!!
+                .prøvOvergangTilAvsluttet(forhåndsvarsel.begrunnelse)
+                .orNull()!!
+        }
+        Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles -> {
+            this.prøvOvergangTilSkalIkkeForhåndsvarsles().orNull()!!
+        }
+        Forhåndsvarsel.UnderBehandling.Sendt -> {
+            this.prøvOvergangTilSendt().orNull()!!
+        }
+        null -> this
+    } as T
 }
 
 fun simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
@@ -896,6 +930,7 @@ fun tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
         )
     },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+    fritekstTilBrev: String = "fritekstTilBrev",
 ): Pair<Sak, RevurderingTilAttestering.Opphørt> {
     return simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
@@ -906,11 +941,10 @@ fun tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
-        val attestert = revurdering.tilAttestering(
+        val attestert = revurdering.prøvOvergangTilSkalIkkeForhåndsvarsles().orNull()!!.tilAttestering(
             attesteringsoppgaveId = OppgaveId("attestering"),
             saksbehandler = saksbehandler,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            fritekstTilBrev = "friteskst",
+            fritekstTilBrev = fritekstTilBrev,
         ).getOrFail("Feil i oppsett av testdata")
 
         Pair(
@@ -946,6 +980,8 @@ fun iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
     },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
+    utbetalingId: UUID30 = UUID30.randomUUID(),
+    fritekstTilBrev: String = "fritekstTilBrev",
 ): Pair<Sak, IverksattRevurdering.Opphørt> {
     return tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
@@ -956,11 +992,12 @@ fun iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
         clock = clock,
+        fritekstTilBrev = fritekstTilBrev,
     ).let { (sak, revurdering) ->
         val iverksatt = revurdering.tilIverksatt(
             attestant = attestering.attestant,
             utbetal = { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering ->
-                UUID30.randomUUID().right()
+                utbetalingId.right()
             },
         ).getOrFail("Feil i oppsett av testdata")
 
@@ -992,7 +1029,7 @@ fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     fritekstTilBrev: String = "",
-    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
 ): Pair<Sak, RevurderingTilAttestering.Innvilget> {
     return simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
@@ -1003,13 +1040,13 @@ fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
+        forhåndsvarsel = forhåndsvarsel,
     ).let { (sak, revurdering) ->
         val innvilgetRevurderingTilAttestering = revurdering.tilAttestering(
             attesteringsoppgaveId = attesteringsoppgaveId,
             saksbehandler = saksbehandler,
             fritekstTilBrev = fritekstTilBrev,
-            forhåndsvarsel = forhåndsvarsel,
-        )
+        ).orNull()!!
         Pair(
             sak.copy(
                 // Erstatter den gamle versjonen av samme revurderinger.
@@ -1042,7 +1079,7 @@ fun tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
             attesteringsoppgaveId = attesteringsoppgaveId,
             saksbehandler = saksbehandler,
             fritekstTilBrev = fritekstTilBrev,
-            skalFøreTilBrevutsending = skalFøreTilBrevutsending,
+            skalFøreTilUtsendingAvVedtaksbrev = skalFøreTilBrevutsending,
         )
         Pair(
             sak.copy(
@@ -1072,7 +1109,7 @@ fun underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     fritekstTilBrev: String = "",
-    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     attestering: Attestering.Underkjent = Attestering.Underkjent(
         attestant = NavIdentBruker.Attestant(navIdent = "attestant"),
         grunn = Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT,
@@ -1126,7 +1163,7 @@ fun iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     fritekstTilBrev: String = "",
-    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("Attestant"),
     utbetal: () -> Either<RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30> = {
         UUID30.randomUUID().right()

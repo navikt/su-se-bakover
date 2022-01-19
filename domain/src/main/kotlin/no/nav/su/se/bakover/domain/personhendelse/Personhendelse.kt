@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.hendelse
+package no.nav.su.se.bakover.domain.personhendelse
 
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.domain.Fnr

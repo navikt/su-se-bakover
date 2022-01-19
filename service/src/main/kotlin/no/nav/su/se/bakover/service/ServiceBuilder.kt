@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service
 
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.database.DatabaseRepos
+import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
@@ -66,7 +66,7 @@ object ServiceBuilder {
             sakService = sakService,
             personService = personService,
             sessionFactory = databaseRepos.sessionFactory,
-            microsoftGraphApiOppslag = clients.microsoftGraphApiClient,
+            microsoftGraphApiOppslag = clients.identClient,
             utbetalingService = utbetalingService,
             clock = clock,
         )
@@ -108,12 +108,22 @@ object ServiceBuilder {
             clock = clock,
         )
 
+        val kontrollsamtaleService = KontrollsamtaleServiceImpl(
+            sakService = sakService,
+            personService = personService,
+            brevService = brevService,
+            oppgaveService = oppgaveService,
+            sessionFactory = databaseRepos.sessionFactory,
+            clock = clock,
+            kontrollsamtaleRepo = databaseRepos.kontrollsamtaleRepo,
+        )
+
         val revurderingService = RevurderingServiceImpl(
             utbetalingService = utbetalingService,
             revurderingRepo = databaseRepos.revurderingRepo,
             oppgaveService = oppgaveService,
             personService = personService,
-            microsoftGraphApiClient = clients.microsoftGraphApiClient,
+            identClient = clients.identClient,
             brevService = brevService,
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
@@ -121,12 +131,12 @@ object ServiceBuilder {
             grunnlagService = grunnlagService,
             vedtakService = vedtakService,
             sakService = sakService,
+            kontrollsamtaleService = kontrollsamtaleService,
             sessionFactory = databaseRepos.sessionFactory,
             avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo
         ).apply { addObserver(statistikkService) }
 
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
-
         val toggleService = ToggleServiceImpl(unleash)
 
         val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
@@ -142,6 +152,7 @@ object ServiceBuilder {
             ferdigstillVedtakService = ferdigstillVedtakService,
             grunnlagService = grunnlagService,
             sakService = sakService,
+            kontrollsamtaleService = kontrollsamtaleService,
             avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
         ).apply {
             addObserver(statistikkService)
@@ -152,7 +163,7 @@ object ServiceBuilder {
             vedtakRepo = databaseRepos.vedtakRepo,
             brevService = brevService,
             personService = personService,
-            microsoftGraphApiClient = clients.microsoftGraphApiClient,
+            identClient = clients.identClient,
             klageClient = clients.klageClient,
             sessionFactory = databaseRepos.sessionFactory,
             oppgaveService = oppgaveService,
@@ -160,6 +171,11 @@ object ServiceBuilder {
         )
         val klagevedtakService = KlagevedtakServiceImpl(
             klagevedtakRepo = databaseRepos.klageVedtakRepo,
+            klageRepo = databaseRepos.klageRepo,
+            oppgaveService = oppgaveService,
+            personService = personService,
+            sessionFactory = databaseRepos.sessionFactory,
+            clock = clock,
         )
         return Services(
             avstemming = AvstemmingServiceImpl(
@@ -177,7 +193,7 @@ object ServiceBuilder {
                 oppgaveService = oppgaveService,
                 personService = personService,
                 søknadsbehandlingService = søknadsbehandlingService,
-                microsoftGraphApiClient = clients.microsoftGraphApiClient,
+                identClient = clients.identClient,
                 sakService = sakService,
                 clock = clock,
                 sessionFactory = databaseRepos.sessionFactory,
@@ -203,14 +219,7 @@ object ServiceBuilder {
                 sessionFactory = databaseRepos.sessionFactory,
                 sakService = sakService,
             ),
-            kontrollsamtale = KontrollsamtaleServiceImpl(
-                sakService = sakService,
-                personService = personService,
-                brevService = brevService,
-                oppgaveService = oppgaveService,
-                sessionFactory = databaseRepos.sessionFactory,
-                clock = clock,
-            ),
+            kontrollsamtale = kontrollsamtaleService,
             klageService = klageService,
             klagevedtakService = klagevedtakService,
         )

@@ -24,7 +24,7 @@ dependencies {
         exclude(group = "junit")
     }
     implementation("io.ktor:ktor-metrics-micrometer:$ktorVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.8.1")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.8.2")
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-jackson:$ktorVersion")
     implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")

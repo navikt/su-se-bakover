@@ -9,8 +9,11 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
+import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
@@ -18,18 +21,21 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
-import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.avvistKlageTilAttestering
+import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.klageTilAttestering
+import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
-import no.nav.su.se.bakover.test.underkjentKlage
-import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.underkjentAvvistKlage
+import no.nav.su.se.bakover.test.underkjentKlageTilVurdering
+import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
+import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -63,7 +69,7 @@ internal class UnderkjennKlageTest {
 
     @Test
     fun `kunne ikke hente aktør id`() {
-        val klage = klageTilAttestering().second
+        val klage = vurdertKlageTilAttestering().second
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -89,7 +95,7 @@ internal class UnderkjennKlageTest {
 
     @Test
     fun `kunne ikke opprette oppgave`() {
-        val klage = klageTilAttestering().second
+        val klage = vurdertKlageTilAttestering().second
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -129,7 +135,7 @@ internal class UnderkjennKlageTest {
 
     @Test
     fun `Attestant og saksbehandler kan ikke være samme person`() {
-        val (_, klage) = klageTilAttestering()
+        val (_, klage) = vurdertKlageTilAttestering()
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -149,6 +155,18 @@ internal class UnderkjennKlageTest {
     }
 
     @Test
+    fun `en underkjent(Vurdert) klage er en åpen klage`() {
+        val klage = underkjentKlageTilVurdering().second
+        klage.erÅpen() shouldBe true
+    }
+
+    @Test
+    fun `en underkjent(avvist) klage er en åpen klage`() {
+        val klage = underkjentAvvistKlage().second
+        klage.erÅpen() shouldBe true
+    }
+
+    @Test
     fun `Ugyldig tilstandsovergang fra opprettet`() {
         verifiserUgyldigTilstandsovergang(
             klage = opprettetKlage().second,
@@ -165,14 +183,14 @@ internal class UnderkjennKlageTest {
     @Test
     fun `Ugyldig tilstandsovergang fra utfylt vilkårsvurdering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = utfyltVilkårsvurdertKlage().second,
+            klage = utfyltVilkårsvurdertKlageTilVurdering().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra bekreftet vilkårsvurdering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = bekreftetVilkårsvurdertKlage().second,
+            klage = bekreftetVilkårsvurdertKlageTilVurdering().second,
         )
     }
 
@@ -200,7 +218,7 @@ internal class UnderkjennKlageTest {
     @Test
     fun `Ugyldig tilstandsovergang underkjent vurdering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = underkjentKlage().second,
+            klage = underkjentKlageTilVurdering().second,
         )
     }
 
@@ -208,6 +226,13 @@ internal class UnderkjennKlageTest {
     fun `Ugyldig tilstandsovergang fra iverksatt`() {
         verifiserUgyldigTilstandsovergang(
             klage = oversendtKlage().second,
+        )
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang fra avvist`() {
+        verifiserUgyldigTilstandsovergang(
+            klage = iverksattAvvistKlage().second,
         )
     }
 
@@ -237,7 +262,7 @@ internal class UnderkjennKlageTest {
 
     @Test
     fun `Skal kunne underkjenne klage som er til attestering`() {
-        val klage = klageTilAttestering().second
+        val klage = vurdertKlageTilAttestering().second
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -283,6 +308,79 @@ internal class UnderkjennKlageTest {
                     ),
                 ),
                 datoKlageMottatt = 1.desember(2021),
+                klagevedtakshistorikk = Klagevedtakshistorikk.empty()
+            )
+            it shouldBe expectedKlage
+        }
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.klageRepoMock).defaultTransactionContext()
+        verify(mocks.klageRepoMock).lagre(argThat { it shouldBe expectedKlage }, argThat { it shouldBe TestSessionFactory.transactionContext })
+        verify(mocks.oppgaveService).opprettOppgave(
+            argThat {
+                it shouldBe OppgaveConfig.Klage.Saksbehandler(
+                    saksnummer = klage.saksnummer,
+                    aktørId = AktørId("aktørId"),
+                    journalpostId = klage.journalpostId,
+                    tilordnetRessurs = klage.saksbehandler,
+                    clock = fixedClock,
+                )
+            },
+        )
+        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
+        verify(mocks.oppgaveService).lukkOppgave(klage.oppgaveId)
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `skal kunne underkjenne en avvist klage til attestering`() {
+        val klage = avvistKlageTilAttestering().second
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            personServiceMock = mock {
+                on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
+            },
+        )
+
+        val attestant = NavIdentBruker.Attestant("s2")
+
+        var expectedKlage: AvvistKlage?
+        val request = UnderkjennKlageRequest(
+            klageId = klage.id,
+            attestant = attestant,
+            grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+            kommentar = "underkjennelseskommentar",
+        )
+        mocks.service.underkjenn(request).getOrHandle { throw RuntimeException(it.toString()) }.also {
+            expectedKlage = AvvistKlage.create(
+                forrigeSteg = VilkårsvurdertKlage.Bekreftet.Avvist.create(
+                    id = it.id,
+                    opprettet = fixedTidspunkt,
+                    sakId = klage.sakId,
+                    saksnummer = klage.saksnummer,
+                    fnr = klage.fnr,
+                    journalpostId = klage.journalpostId,
+                    oppgaveId = OppgaveId("nyOppgaveId"),
+                    saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+                    vilkårsvurderinger = klage.vilkårsvurderinger,
+                    attesteringer = Attesteringshistorikk.create(
+                        listOf(
+                            Attestering.Underkjent(
+                                attestant = attestant,
+                                opprettet = fixedTidspunkt,
+                                grunn = request.grunn,
+                                kommentar = request.kommentar,
+                            ),
+                        ),
+                    ),
+                    datoKlageMottatt = 1.desember(2021),
+                ),
+                fritekstTilBrev = "dette er en fritekst med person opplysninger",
             )
             it shouldBe expectedKlage
         }

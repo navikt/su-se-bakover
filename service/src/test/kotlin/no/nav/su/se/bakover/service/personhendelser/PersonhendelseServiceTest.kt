@@ -8,16 +8,17 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.hendelse.Personhendelse
-import no.nav.su.se.bakover.domain.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
+import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
@@ -43,6 +44,7 @@ internal class PersonhendelseServiceTest {
             personhendelseRepo = personhendelseRepoMock,
             oppgaveServiceImpl = oppgaveServiceMock,
             personService = mock(),
+            clock = fixedClock,
         )
         val nyPersonhendelse = lagNyPersonhendelse()
         personhendelseService.prosesserNyHendelse(nyPersonhendelse)
@@ -66,7 +68,8 @@ internal class PersonhendelseServiceTest {
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             oppgaveServiceImpl = oppgaveServiceMock,
-            personService = mock()
+            personService = mock(),
+            clock = fixedClock,
         )
         val nyPersonhendelse = lagNyPersonhendelse()
         personhendelseService.prosesserNyHendelse(nyPersonhendelse)
@@ -97,7 +100,8 @@ internal class PersonhendelseServiceTest {
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             oppgaveServiceImpl = oppgaveServiceMock,
-            personService = personServiceMock
+            personService = personServiceMock,
+            clock = fixedClock,
         )
         personhendelseService.opprettOppgaverForPersonhendelser()
 
@@ -110,6 +114,7 @@ internal class PersonhendelseServiceTest {
                     saksnummer = personhendelse.saksnummer,
                     personhendelsestype = personhendelse.hendelse,
                     aktørId = AktørId("aktørId"),
+                    clock = fixedClock,
                 )
             },
         )
@@ -140,7 +145,8 @@ internal class PersonhendelseServiceTest {
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             oppgaveServiceImpl = oppgaveServiceMock,
-            personService = personServiceMock
+            personService = personServiceMock,
+            clock = fixedClock,
         )
         personhendelseService.opprettOppgaverForPersonhendelser()
 
@@ -153,6 +159,7 @@ internal class PersonhendelseServiceTest {
                     saksnummer = personhendelse.saksnummer,
                     personhendelsestype = personhendelse.hendelse,
                     aktørId = AktørId("aktørId"),
+                    clock = fixedClock,
                 )
             },
         )

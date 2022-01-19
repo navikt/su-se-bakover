@@ -20,7 +20,10 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
+import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequest
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
@@ -45,9 +48,12 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSaksbehandlerEllerAttestant
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeVedtak
+import no.nav.su.se.bakover.web.routes.Feilresponser.feilVedHentingAvSaksbehandlerNavn
+import no.nav.su.se.bakover.web.routes.Feilresponser.feilVedHentingAvVedtakDato
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.tilResultat
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withKlageId
@@ -100,6 +106,10 @@ internal fun Route.klageRoutes(
                                 "Mottatt dato kan ikke være frem i tid",
                                 "ugyldig_mottatt_dato",
                             )
+                            KunneIkkeOppretteKlage.HarAlleredeEnKlageBehandling -> BadRequest.errorJson(
+                                "Finnes allerede en klagebehandling med gitt journalpostId",
+                                "finnes_allerede_en_klagebehandling",
+                            )
                         }
                     }
                     call.svar(resultat)
@@ -146,10 +156,6 @@ internal fun Route.klageRoutes(
                             KunneIkkeVilkårsvurdereKlage.FantIkkeKlage -> fantIkkeKlage
                             KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak -> fantIkkeVedtak
                             is KunneIkkeVilkårsvurdereKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
-                            KunneIkkeVilkårsvurdereKlage.NeiSvarErIkkeStøttet -> BadRequest.errorJson(
-                                "Vi har ikke støtte for å svare nei",
-                                "nei_er_ikke_støttet",
-                            )
                         }
                     }
                     call.svar(resultat)
@@ -177,28 +183,43 @@ internal fun Route.klageRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        post("$klagePath/{klageId}/brevutkast") {
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$klagePath/{klageId}/avvist/fritekstTilBrev") {
             data class Body(val fritekst: String)
             call.withKlageId { klageId ->
                 call.withBody<Body> { body ->
-                    klageService.brevutkast(
+                    klageService.leggTilAvvistFritekstTilBrev(
                         klageId = klageId,
                         saksbehandler = call.suUserContext.saksbehandler,
                         fritekst = body.fritekst,
-                    ).fold(
-                        ifLeft = {
-                            val resultat = when (it) {
-                                KunneIkkeLageBrevutkast.FantIkkeKlage -> fantIkkeKlage
-                                is KunneIkkeLageBrevutkast.GenereringAvBrevFeilet -> it.feil.toErrorJson()
-                            }
-                            call.svar(resultat)
-                        },
-                        ifRight = {
-                            call.respondBytes(it, ContentType.Application.Pdf)
-                        },
-                    )
+                    ).map {
+                        call.svar(Resultat.json(OK, serialize(it.toJson())))
+                    }.mapLeft {
+                        val error = when (it) {
+                            KunneIkkeLeggeTilFritekstForAvvist.FantIkkeKlage -> fantIkkeKlage
+                            is KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                        }
+                        call.svar(error)
+                    }
                 }
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+        post("$klagePath/{klageId}/brevutkast") {
+            call.withKlageId { klageId ->
+                klageService.brevutkast(
+                    klageId = klageId,
+                    saksbehandler = call.suUserContext.saksbehandler,
+                ).fold(
+                    ifLeft = {
+                        call.svar(it.toErrorJson())
+                    },
+                    ifRight = {
+                        call.respondBytes(it, ContentType.Application.Pdf)
+                    },
+                )
             }
         }
     }
@@ -381,8 +402,36 @@ internal fun Route.klageRoutes(
                                 "Kunne ikke oversende til klageinstans",
                                 "kunne_ikke_oversende_til_klageinstans",
                             )
+                            is KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
                         },
                     )
+                }
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Attestant) {
+        post("$klagePath/{klageId}/iverksett(AvvistKlage)") {
+            call.withKlageId { klageId ->
+                klageService.iverksettAvvistKlage(
+                    klageId = klageId,
+                    attestant = NavIdentBruker.Attestant(
+                        call.suUserContext.navIdent,
+                    ),
+                ).map {
+                    call.svar(Resultat.json(OK, serialize(it.toJson())))
+                }.mapLeft {
+                    when (it) {
+                        KunneIkkeIverksetteAvvistKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
+                        KunneIkkeIverksetteAvvistKlage.FantIkkeKlage -> fantIkkeKlage
+                        is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev -> it.feil.toErrorJson()
+                        is KunneIkkeIverksetteAvvistKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                        KunneIkkeIverksetteAvvistKlage.FeilVedLagringAvDokumentOgKlage -> InternalServerError.errorJson(
+                            "Feil ved lagrinng av brev/klagen",
+                            "feil_ved_lagring_av_brev_og_klage",
+                        )
+                        is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
+                    }
                 }
             }
         }
@@ -398,5 +447,31 @@ private fun KunneIkkeLageBrevForKlage.toErrorJson(): Resultat {
         KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler -> fantIkkeSaksbehandlerEllerAttestant.copy(httpCode = InternalServerError)
         KunneIkkeLageBrevForKlage.FantIkkeVedtakKnyttetTilKlagen -> fantIkkeVedtak.copy(httpCode = InternalServerError)
         KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF -> kunneIkkeGenerereBrev.copy(httpCode = InternalServerError)
+        is KunneIkkeLageBrevForKlage.UgyldigTilstand -> return BadRequest.errorJson(
+            "Kan ikke lagre brevutkast for tilstanden ${fra.simpleName}",
+            "genererer_brev_fra_ugyldig_tilstand",
+        )
+        is KunneIkkeLageBrevForKlage.FeilVedBrevRequest -> this.feil.toErrorJson()
+    }
+}
+
+private fun KunneIkkeLageBrevRequest.toErrorJson(): Resultat {
+    return when (this) {
+        is KunneIkkeLageBrevRequest.FeilVedHentingAvPerson -> this.personFeil.tilResultat()
+        is KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn -> feilVedHentingAvSaksbehandlerNavn
+        KunneIkkeLageBrevRequest.FeilVedHentingAvVedtakDato,
+        -> feilVedHentingAvVedtakDato
+        is KunneIkkeLageBrevRequest.UgyldigTilstand -> BadRequest.errorJson(
+            "Kan ikke gå fra tilstanden ${fra.simpleName}",
+            "ugyldig_tilstand",
+        )
+    }
+}
+
+private fun KunneIkkeLageBrevutkast.toErrorJson(): Resultat {
+    return when (this) {
+        KunneIkkeLageBrevutkast.FantIkkeKlage -> fantIkkeKlage
+        is KunneIkkeLageBrevutkast.FeilVedBrevRequest -> this.feil.toErrorJson()
+        is KunneIkkeLageBrevutkast.GenereringAvBrevFeilet -> this.feil.toErrorJson()
     }
 }

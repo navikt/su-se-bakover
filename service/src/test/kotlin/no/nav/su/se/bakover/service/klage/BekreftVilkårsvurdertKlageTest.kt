@@ -2,10 +2,12 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
@@ -13,17 +15,22 @@ import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
-import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.avvistKlage
+import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.klageTilAttestering
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
-import no.nav.su.se.bakover.test.underkjentKlage
-import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.underkjentKlageTilVurdering
+import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
+import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -35,7 +42,6 @@ internal class BekreftVilkårsvurdertKlageTest {
 
     @Test
     fun `fant ikke klage`() {
-
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn null
@@ -50,6 +56,18 @@ internal class BekreftVilkårsvurdertKlageTest {
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
         mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `en bekreftet vilkårsvurdert(tilVurdering) er en åpen klage`() {
+        val klage = bekreftetVilkårsvurdertKlageTilVurdering().second
+        klage.erÅpen() shouldBe true
+    }
+
+    @Test
+    fun `en bekreftet vilkårsvurdert(avvist) er en åpen klage`() {
+        val klage = bekreftetAvvistVilkårsvurdertKlage().second
+        klage.erÅpen() shouldBe true
     }
 
     @Test
@@ -69,7 +87,7 @@ internal class BekreftVilkårsvurdertKlageTest {
     @Test
     fun `Ugyldig tilstandsovergang fra til attestering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = klageTilAttestering().second,
+            klage = vurdertKlageTilAttestering().second,
         )
     }
 
@@ -77,6 +95,13 @@ internal class BekreftVilkårsvurdertKlageTest {
     fun `Ugyldig tilstandsovergang fra iverksatt`() {
         verifiserUgyldigTilstandsovergang(
             klage = oversendtKlage().second,
+        )
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang fra iverksattAvvist`() {
+        verifiserUgyldigTilstandsovergang(
+            klage = iverksattAvvistKlage().second,
         )
     }
 
@@ -98,8 +123,8 @@ internal class BekreftVilkårsvurdertKlageTest {
     }
 
     @Test
-    fun `Skal kunne bekrefte utfylt vilkårsvurdering`() {
-        utfyltVilkårsvurdertKlage().also {
+    fun `Skal kunne bekrefte utfylt vilkårsvurdering(tilVurdering)`() {
+        utfyltVilkårsvurdertKlageTilVurdering().also {
             verifiserGyldigStatusovergang(
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
@@ -110,8 +135,20 @@ internal class BekreftVilkårsvurdertKlageTest {
     }
 
     @Test
+    fun `Skal kunne bekrefte utfylt vilkårsvurdering(avvist)`() {
+        utfyltAvvistVilkårsvurdertKlage().also {
+            verifiserGyldigStatusovergang(
+                vedtak = it.first.vedtakListe.first(),
+                klage = it.second,
+                vilkårsvurderingerTilKlage = it.second.vilkårsvurderinger,
+                vurderingerTilKlage = null,
+            )
+        }
+    }
+
+    @Test
     fun `Skal kunne bekrefte bekreftet vilkårsvurdering`() {
-        bekreftetVilkårsvurdertKlage().also {
+        bekreftetVilkårsvurdertKlageTilVurdering().also {
             verifiserGyldigStatusovergang(
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
@@ -158,8 +195,20 @@ internal class BekreftVilkårsvurdertKlageTest {
     }
 
     @Test
+    fun `Skal kunne bekrefte påbegyntAvvist`() {
+        avvistKlage().also {
+            verifiserGyldigStatusovergang(
+                vedtak = it.first.vedtakListe.first(),
+                klage = it.second,
+                vilkårsvurderingerTilKlage = it.second.vilkårsvurderinger,
+                vurderingerTilKlage = null,
+            )
+        }
+    }
+
+    @Test
     fun `Skal kunne bekrefte underkjent klage`() {
-        underkjentKlage().also {
+        underkjentKlageTilVurdering().also {
             verifiserGyldigStatusovergang(
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
@@ -168,6 +217,15 @@ internal class BekreftVilkårsvurdertKlageTest {
                 attesteringer = it.second.attesteringer,
             )
         }
+    }
+
+    @Test
+    fun `får tilbake en bekreftet avvist vilkårsvurdert klage dersom minst et av feltene er besvart 'nei' eller false`() {
+        val forventetAvvistVilkårsvurdertKlage = utfyltAvvistVilkårsvurdertKlage().second.bekreftVilkårsvurderinger(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerensen"),
+        ).getOrFail()
+
+        forventetAvvistVilkårsvurdertKlage.shouldBeTypeOf<VilkårsvurdertKlage.Bekreftet.Avvist>()
     }
 
     private fun verifiserGyldigStatusovergang(
@@ -205,6 +263,7 @@ internal class BekreftVilkårsvurdertKlageTest {
                 vurderinger = vurderingerTilKlage,
                 attesteringer = attesteringer,
                 datoKlageMottatt = 1.desember(2021),
+                klagevedtakshistorikk = Klagevedtakshistorikk.empty()
             )
             it shouldBe expectedKlage
         }

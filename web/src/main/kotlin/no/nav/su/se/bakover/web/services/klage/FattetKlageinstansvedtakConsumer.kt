@@ -13,7 +13,7 @@ import java.time.Clock
 import java.time.Duration
 import kotlin.concurrent.timer
 
-internal class FattetKlagevedtakConsumer(
+internal class FattetKlageinstansvedtakConsumer(
     private val consumer: Consumer<String, String>,
     private val klagevedtakService: KlagevedtakService,
     periode: Long = Duration.ofSeconds(600).toMillis(),
@@ -62,7 +62,7 @@ internal class FattetKlagevedtakConsumer(
 
         run breakable@{
             messages.forEach { message ->
-                KlagevedtakMapper.map(message, clock).tap {
+                KlageinstansvedtakMapper.map(message, clock).tap {
                     klagevedtakService.lagre(it)
                     offsets[TopicPartition(message.topic(), message.partition())] =
                         OffsetAndMetadata(message.offset() + 1)

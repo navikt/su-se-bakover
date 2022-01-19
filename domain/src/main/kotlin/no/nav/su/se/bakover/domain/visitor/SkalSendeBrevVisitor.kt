@@ -50,7 +50,7 @@ internal class SkalSendeBrevVisitor : VedtakVisitor {
     }
 
     private fun Vedtak.IngenEndringIYtelse.sendBrevErValgt(): Boolean {
-        return behandling.skalFøreTilBrevutsending
+        return behandling.skalFøreTilUtsendingAvVedtaksbrev
     }
 
     /**

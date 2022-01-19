@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.hendelse
+package no.nav.su.se.bakover.domain.personhendelse
 
 interface PersonhendelseRepo {
     fun lagre(personhendelse: Personhendelse.TilknyttetSak.SendtTilOppgave)

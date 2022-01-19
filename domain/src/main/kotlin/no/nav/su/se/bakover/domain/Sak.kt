@@ -167,6 +167,9 @@ data class Sak(
         }
     }
 
+    fun hentGjeldendeStønadsperiode(clock: Clock): Periode? =
+        hentPerioderMedLøpendeYtelse().filter { it.inneholder(LocalDate.now(clock)) }.maxByOrNull { it.tilOgMed }
+
     fun harÅpenRevurderingForStansAvYtelse(): Boolean {
         return revurderinger.filterIsInstance<StansAvYtelseRevurdering.SimulertStansAvYtelse>().isNotEmpty()
     }
@@ -191,10 +194,42 @@ data class Sak(
                     .reduser()
             }.reduser()
     }
-
     fun hentÅpneKlager(): List<Klage> = klager.filter { it.erÅpen() }
 
     fun hentKlage(klageId: UUID): Klage? = klager.find { it.id == klageId }
+
+    fun kanUtbetalingerStansesEllerGjenopptas(clock: Clock): KanStansesEllerGjenopptas {
+        return utbetalingstidslinje().tidslinje.let {
+            if (it.isNotEmpty() && ingenKommendeOpphørEllerHull(it, clock)) {
+                if (it.last() is UtbetalingslinjePåTidslinje.Stans) {
+                    KanStansesEllerGjenopptas.GJENOPPTA
+                } else {
+                    KanStansesEllerGjenopptas.STANS
+                }
+            } else {
+                KanStansesEllerGjenopptas.INGEN
+            }
+        }
+    }
+
+    /**
+     * Tillater ikke stans dersom stønadsperiodene inneholder opphør eller hull frem i tid, siden det kan bli
+     * problematisk hvis man stanser og gjenopptar på tvers av disse. Ta opp igjen problemstillingen dersom
+     * fag trenger å stanse i et slikt tilfelle.
+     */
+    private fun ingenKommendeOpphørEllerHull(utbetalingslinjer: List<UtbetalingslinjePåTidslinje>, clock: Clock): Boolean {
+        val kommendeUtbetalingslinjer = utbetalingslinjer.filter { it.periode.tilOgMed.isAfter(LocalDate.now(clock)) }
+
+        if (kommendeUtbetalingslinjer.any { it is UtbetalingslinjePåTidslinje.Opphør }) {
+            return false
+        }
+
+        if (kommendeUtbetalingslinjer.map { linje -> linje.periode }.reduser().size > 1) {
+            return false
+        }
+
+        return true
+    }
 
     fun oppdaterStønadsperiodeForSøknadsbehandling(
         søknadsbehandlingId: UUID,
@@ -317,3 +352,9 @@ data class BegrensetSakinfo(
     val harÅpenSøknad: Boolean,
     val iverksattInnvilgetStønadsperiode: Periode?,
 )
+
+enum class KanStansesEllerGjenopptas {
+    STANS,
+    GJENOPPTA,
+    INGEN;
+}

@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.periode2021
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.util.UUID
@@ -91,6 +92,7 @@ internal class RevurderingBeregnTest {
     }
 
     @Test
+    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `beregningen gir ikke opphør dersom beløpet er under minstegrense, men endringen er mindre enn 10 prosent`() {
         opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().let { (_, revurdering) ->
             revurdering.oppdaterFradragOgMarkerSomVurdert(
@@ -138,6 +140,7 @@ internal class RevurderingBeregnTest {
     }
 
     @Test
+    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `beregning med beløpsendring mindre enn 10 prosent fører ikke til endring`() {
         opprettetRevurdering(
             grunnlagsdataOverrides = listOf(

@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
 data class AvsluttetRevurdering private constructor(
-    private val underliggendeRevurdering: Revurdering,
+    val underliggendeRevurdering: Revurdering,
     val begrunnelse: String,
     val fritekst: String?,
     val tidspunktAvsluttet: Tidspunkt,
@@ -85,8 +85,9 @@ data class AvsluttetRevurdering private constructor(
         visitor.visit(this)
     }
 
-    fun skalSendeBrev(): Boolean {
-        return this.forhåndsvarsel is Forhåndsvarsel.SkalForhåndsvarsles
+    fun skalSendeAvslutningsbrev(): Boolean {
+        // Dersom vi har sendt et forhåndsvarsel, må vi sende et nytt brev som sier at de kan se bort fra forhåndsvarslingen siden revurderingen er avsluttet.
+        return this.forhåndsvarsel.harSendtForhåndsvarsel()
     }
 
     companion object {
@@ -108,23 +109,16 @@ data class AvsluttetRevurdering private constructor(
                 is SimulertRevurdering,
                 is UnderkjentRevurdering,
                 -> {
-                    if (fritekst != null) {
-                        return when (underliggendeRevurdering.forhåndsvarsel) {
-                            null,
-                            Forhåndsvarsel.IngenForhåndsvarsel,
-                            -> KunneIkkeLageAvsluttetRevurdering.FritekstErFylltUtUtenForhåndsvarsel.left()
-
-                            is Forhåndsvarsel.SkalForhåndsvarsles -> AvsluttetRevurdering(
-                                underliggendeRevurdering, begrunnelse, fritekst, tidspunktAvsluttet,
-                            ).right()
-                        }
+                    if (fritekst != null && !underliggendeRevurdering.forhåndsvarsel.harSendtForhåndsvarsel()) {
+                        KunneIkkeLageAvsluttetRevurdering.FritekstErFylltUtUtenForhåndsvarsel.left()
+                    } else {
+                        AvsluttetRevurdering(
+                            underliggendeRevurdering,
+                            begrunnelse,
+                            fritekst,
+                            tidspunktAvsluttet,
+                        ).right()
                     }
-                    return AvsluttetRevurdering(
-                        underliggendeRevurdering,
-                        begrunnelse,
-                        fritekst,
-                        tidspunktAvsluttet,
-                    ).right()
                 }
             }
         }

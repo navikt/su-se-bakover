@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -81,7 +80,9 @@ import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -218,7 +219,7 @@ internal class OppdaterRevurderingServiceTest {
     fun `Kan ikke oppdatere sendt forhåndsvarslet revurdering`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
-                forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
+                forhåndsvarsel = Forhåndsvarsel.UnderBehandling.Sendt,
             )
         }
         val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
@@ -241,10 +242,7 @@ internal class OppdaterRevurderingServiceTest {
     fun `Kan ikke oppdatere besluttet forhåndsvarslet revurdering`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
-                forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                    valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
-                    begrunnelse = "besluttetForhåndsvarslingBegrunnelse",
-                ),
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag("begrunnelse"),
             )
         }
         val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
@@ -294,7 +292,7 @@ internal class OppdaterRevurderingServiceTest {
                         ),
                     ),
                     simulering = mock(),
-                    forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                    forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
                     grunnlagsdata = Grunnlagsdata.create(
                         bosituasjon = listOf(
                             Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -417,7 +415,8 @@ internal class OppdaterRevurderingServiceTest {
                 },
             )
             verify(mocks.avkortingsvarselRepo).hentUtestående(any())
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual }, anyOrNull())
             verify(vilkårsvurderingServiceMock).lagre(
                 behandlingId = argThat { it shouldBe actual.id },
                 vilkårsvurderinger = argThat { it shouldBe actual.vilkårsvurderinger },
@@ -510,7 +509,8 @@ internal class OppdaterRevurderingServiceTest {
                 opprettetRevurdering.periode.fraOgMed,
             )
             verify(mocks.avkortingsvarselRepo).hentUtestående(any())
-            verify(revurderingRepoMock).lagre(actual)
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(revurderingRepoMock).lagre(eq(actual), anyOrNull())
             verify(vilkårsvurderingServiceMock).lagre(actual.id, actual.vilkårsvurderinger)
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(actual.id, actual.grunnlagsdata.fradragsgrunnlag)
             verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)

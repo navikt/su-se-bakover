@@ -45,15 +45,17 @@ import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import java.time.LocalDate
 import java.util.UUID
 
-class GjenopptakAvYtelseServiceTest {
+internal class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom sak ikke har noen vedtak`() {
@@ -304,8 +306,13 @@ class GjenopptakAvYtelseServiceTest {
                 sakId = sakId,
                 saksbehandler = saksbehandler,
             )
-            verify(it.revurderingRepo).lagre(response)
-            verify(observerMock).handle(argThat { event -> event shouldBe Event.Statistikk.RevurderingStatistikk.Gjenoppta(response) })
+            verify(it.revurderingRepo).defaultTransactionContext()
+            verify(it.revurderingRepo).lagre(eq(response), anyOrNull())
+            verify(observerMock).handle(
+                argThat { event ->
+                    event shouldBe Event.Statistikk.RevurderingStatistikk.Gjenoppta(response)
+                },
+            )
             it.verifyNoMoreInteractions()
         }
     }
@@ -451,7 +458,8 @@ class GjenopptakAvYtelseServiceTest {
                 saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
             )
             verify(it.revurderingRepo).hent(eksisterende.second.id)
-            verify(it.revurderingRepo).lagre(response)
+            verify(it.revurderingRepo).defaultTransactionContext()
+            verify(it.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
             it.verifyNoMoreInteractions()
         }
     }
@@ -580,7 +588,9 @@ class GjenopptakAvYtelseServiceTest {
                 attestant = NavIdentBruker.Attestant(simulertGjenopptak.saksbehandler.navIdent),
                 simulering = simulertGjenopptak.simulering,
             )
-            verify(it.revurderingRepo).lagre(response)
+
+            verify(it.revurderingRepo).defaultTransactionContext()
+            verify(it.revurderingRepo).lagre(eq(response), anyOrNull())
             val expectedVedtak = Vedtak.from(
                 revurdering = response,
                 utbetalingId = utbetaling.id,

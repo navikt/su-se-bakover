@@ -234,6 +234,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         verify(søknadsbehandlingRepoMock).hentForSøknad(argThat { it shouldBe søknad.id })
         verify(søknadsbehandlingRepoMock).defaultSessionContext()
         verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe søknad.sakId }, anyOrNull())
+        verify(serviceAndMocks.avkortingsvarselRepo).hentUtestående(søknad.sakId)
 
         verify(søknadsbehandlingRepoMock).lagreNySøknadsbehandling(
             argThat {

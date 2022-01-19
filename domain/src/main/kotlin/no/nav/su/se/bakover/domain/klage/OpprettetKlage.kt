@@ -22,7 +22,7 @@ data class OpprettetKlage private constructor(
     override val oppgaveId: OppgaveId,
     override val datoKlageMottatt: LocalDate,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
-) : Klage() {
+) : Klage {
 
     companion object {
         fun create(
@@ -58,7 +58,7 @@ data class OpprettetKlage private constructor(
         }.right()
     }
 
-    fun vilkårsvurder(
+    private fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
     ): VilkårsvurdertKlage.Påbegynt {
@@ -72,13 +72,12 @@ data class OpprettetKlage private constructor(
             oppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
             vilkårsvurderinger = vilkårsvurderinger,
-            vurderinger = null,
             attesteringer = Attesteringshistorikk.empty(),
-            datoKlageMottatt = datoKlageMottatt
+            datoKlageMottatt = datoKlageMottatt,
         )
     }
 
-    fun vilkårsvurder(
+    private fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
     ): VilkårsvurdertKlage.Utfylt {
@@ -93,14 +92,17 @@ data class OpprettetKlage private constructor(
             saksbehandler = saksbehandler,
             vilkårsvurderinger = vilkårsvurderinger,
             vurderinger = null,
-            attesteringer = Attesteringshistorikk.empty(), datoKlageMottatt = datoKlageMottatt
+            attesteringer = Attesteringshistorikk.empty(),
+            datoKlageMottatt = datoKlageMottatt,
+            klagevedtakshistorikk = Klagevedtakshistorikk.empty()
         )
     }
 }
 
-sealed class KunneIkkeOppretteKlage {
-    object FantIkkeSak : KunneIkkeOppretteKlage()
-    object FinnesAlleredeEnÅpenKlage : KunneIkkeOppretteKlage()
-    object KunneIkkeOppretteOppgave : KunneIkkeOppretteKlage()
-    object UgyldigMottattDato : KunneIkkeOppretteKlage()
+sealed interface KunneIkkeOppretteKlage {
+    object FantIkkeSak : KunneIkkeOppretteKlage
+    object FinnesAlleredeEnÅpenKlage : KunneIkkeOppretteKlage
+    object KunneIkkeOppretteOppgave : KunneIkkeOppretteKlage
+    object UgyldigMottattDato : KunneIkkeOppretteKlage
+    object HarAlleredeEnKlageBehandling : KunneIkkeOppretteKlage
 }

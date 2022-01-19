@@ -23,6 +23,8 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.periodeJanuar2021
+import no.nav.su.se.bakover.test.periodeMars2021
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -37,6 +39,8 @@ import no.nav.su.se.bakover.test.vedtakRevurderingOpphørtUføreFraInnvilgetSøk
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.Clock
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -249,6 +253,90 @@ internal class SakTest {
                 gjenopptak,
                 revurdering,
             )
+        }
+
+        @Test
+        fun `slår sammen stønadsperioder som kommer etter hverandre`() {
+            val (sakStønadsperiode1, stønadsperiode1) = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = stønadsperiode2021,
+            )
+
+            val stønadsperiode2022 = Stønadsperiode.create(
+                periode = Periode.create(1.januar(2022), 31.desember(2022)),
+                begrunnelse = "ny periode da vett",
+            )
+
+            val (sakStønadsperiode2, stønadsperiode2) = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = stønadsperiode2022,
+            )
+
+            sakStønadsperiode1.copy(
+                søknadsbehandlinger = sakStønadsperiode1.søknadsbehandlinger + sakStønadsperiode2.søknadsbehandlinger,
+                revurderinger = sakStønadsperiode1.revurderinger + sakStønadsperiode2.revurderinger,
+                vedtakListe = sakStønadsperiode1.vedtakListe + sakStønadsperiode2.vedtakListe,
+                utbetalinger = sakStønadsperiode1.utbetalinger + sakStønadsperiode2.utbetalinger,
+            ).let {
+                it.hentPerioderMedLøpendeYtelse() shouldBe listOf(
+                    Periode.create(1.januar(2021), 31.desember(2022)),
+                )
+                it.vedtakListe shouldContainAll listOf(
+                    stønadsperiode1,
+                    stønadsperiode2,
+                )
+            }
+        }
+    }
+
+    @Nested
+    inner class KanUtbetalingerStansesEllerGjenopptas {
+        @Test
+        fun `utbetalinger kan stanses på en sak med en standard stønadsperiode`() {
+            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
+
+            sak.kanUtbetalingerStansesEllerGjenopptas(fixedClock) shouldBe KanStansesEllerGjenopptas.STANS
+        }
+
+        @Test
+        fun `utbetalinger kan ikke stanses dersom det er fremtidig hull i stønadsperiodene`() {
+            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(
+                    periode = periodeJanuar2021,
+                ),
+            )
+
+            val (sak2, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(
+                    periode = periodeMars2021,
+                ),
+            )
+
+            sak.copy(
+                utbetalinger = sak.utbetalinger + sak2.utbetalinger
+            ).let {
+                it.kanUtbetalingerStansesEllerGjenopptas(fixedClock) shouldBe KanStansesEllerGjenopptas.INGEN
+            }
+        }
+
+        @Test
+        fun `utbetalinger kan stanses dersom det er et historisk hull i stønadsperiodene`() {
+            val juni2021 = Clock.fixed(1.juni(2021).atTime(0, 0).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(
+                    periode = periodeJanuar2021,
+                ),
+            )
+
+            val (sak2, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(
+                    periode = periodeMars2021,
+                ),
+            )
+
+            sak.copy(
+                utbetalinger = sak.utbetalinger + sak2.utbetalinger
+            ).let {
+                it.kanUtbetalingerStansesEllerGjenopptas(juni2021) shouldBe KanStansesEllerGjenopptas.STANS
+            }
         }
     }
 

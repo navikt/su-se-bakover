@@ -266,7 +266,7 @@ sealed class Grunnlag {
 
                         when (val bosituasjon = it.first()) {
                             is Fullstendig -> bosituasjon.oppdaterBosituasjonsperiode(periode)
-                            is Ufullstendig -> throw java.lang.IllegalStateException("Kan ikke ha ufullstendige bosituasjoner")
+                            is Ufullstendig -> throw IllegalStateException("Kan ikke ha ufullstendige bosituasjoner")
                         }
                     }
             }

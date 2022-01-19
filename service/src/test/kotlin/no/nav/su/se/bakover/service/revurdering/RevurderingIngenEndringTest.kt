@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksbehandler
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.attestant
@@ -29,13 +30,16 @@ import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 
-class RevurderingIngenEndringTest {
+@Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
+internal class RevurderingIngenEndringTest {
 
     @Test
     fun `ingen endring dersom forskjell mellom eksisterende utbetalt beløp og nytt beløp er mindre enn 10 prosent`() {
@@ -78,12 +82,13 @@ class RevurderingIngenEndringTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
+                verify(it.revurderingRepo).defaultTransactionContext()
                 verify(it.utbetalingService).hentUtbetalinger(argThat { it shouldBe revurdering.sakId })
                 verify(it.vedtakService).kopierGjeldendeVedtaksdata(
                     argThat { it shouldBe revurdering.sakId },
                     argThat { it shouldBe revurdering.periode.fraOgMed },
                 )
-                verify(it.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering })
+                verify(it.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
                 verify(it.grunnlagService).lagreFradragsgrunnlag(
                     argThat { it shouldBe revurderingId },
                     argThat { it shouldBe actual.revurdering.grunnlagsdata.fradragsgrunnlag },
@@ -102,7 +107,6 @@ class RevurderingIngenEndringTest {
         RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn beregnetRevurdering
-                on { hentEventuellTidligereAttestering(any()) } doReturn null
             },
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
@@ -129,12 +133,13 @@ class RevurderingIngenEndringTest {
 
                     verify(serviceAndMocks.revurderingRepo).hent(argThat { it shouldBe beregnetRevurdering.id })
                     verify(serviceAndMocks.personService).hentAktørId(argThat { it shouldBe fnr })
-                    verify(serviceAndMocks.revurderingRepo).hentEventuellTidligereAttestering(argThat { it shouldBe beregnetRevurdering.id })
                     verify(serviceAndMocks.oppgaveService).opprettOppgave(
                         argThat {
                             it shouldBe OppgaveConfig.AttesterRevurdering(
-                                saksnummer = beregnetRevurdering.saksnummer,
+                                saksnummer = saksnummer,
                                 aktørId = aktørId,
+                                tilordnetRessurs = null,
+                                clock = fixedClock,
                             )
                         },
                     )
@@ -182,10 +187,12 @@ class RevurderingIngenEndringTest {
                                 saksnummer = saksnummer,
                                 aktørId = aktørId,
                                 tilordnetRessurs = no.nav.su.se.bakover.test.saksbehandler,
+                                clock = fixedClock,
                             )
                         },
                     )
-                    verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual })
+                    verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
+                    verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
                     verify(serviceAndMocks.oppgaveService).lukkOppgave(argThat { it shouldBe OppgaveId("oppgaveid") })
                 }
                 serviceAndMocks.verifyNoMoreInteractions()
@@ -245,7 +252,8 @@ class RevurderingIngenEndringTest {
                         it.metadata.bestillBrev shouldBe true
                     },
                 )
-                verify(it.revurderingRepo).lagre(iverksattRevurdering)
+                verify(it.revurderingRepo).defaultTransactionContext()
+                verify(it.revurderingRepo).lagre(argThat { it shouldBe iverksattRevurdering }, anyOrNull())
 
                 it.verifyNoMoreInteractions()
             }
@@ -279,12 +287,14 @@ class RevurderingIngenEndringTest {
         ) {
             verify(revurderingRepoMock).hent(revurderingTilAttestering.id)
             verify(serviceAndMocks.vedtakRepo).lagre(argThat { it shouldBe vedtak.copy(id = it.id) })
-            verify(revurderingRepoMock).lagre(any())
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(revurderingRepoMock).lagre(any(), anyOrNull())
             verifyNoMoreInteractions()
         }
     }
 
     @Test
+    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `iverksetter revurdering som ikke fører til endring i ytelse svarer med feil hvis vi ikke kan hente person`() {
         val (_, revurderingTilAttestering) = tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
             skalFøreTilBrevutsending = true,
@@ -315,6 +325,7 @@ class RevurderingIngenEndringTest {
     }
 
     @Test
+    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `iverksetter revurdering som ikke fører til endring i ytelse svarer med feil hvis vi ikke kan hente gjeldende utbetaling`() {
         val (_, revurderingTilAttestering) = tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
             skalFøreTilBrevutsending = true,

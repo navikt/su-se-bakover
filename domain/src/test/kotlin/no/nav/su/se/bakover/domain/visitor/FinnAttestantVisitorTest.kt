@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
@@ -18,7 +17,6 @@ import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
-import no.nav.su.se.bakover.test.tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import org.junit.jupiter.api.Test
 
 internal class FinnAttestantVisitorTest {
@@ -83,10 +81,11 @@ internal class FinnAttestantVisitorTest {
             it.attestant shouldBe null
         }
 
-        FinnAttestantVisitor().let {
-            tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second.accept(it)
-            it.attestant shouldBe null
-        }
+        // @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
+        // FinnAttestantVisitor().let {
+        //     tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second.accept(it)
+        //     it.attestant shouldBe null
+        // }
 
         FinnAttestantVisitor().let {
             søknadsbehandlingTilAttesteringInnvilget().second
@@ -111,9 +110,10 @@ internal class FinnAttestantVisitorTest {
             it.attestant shouldBe attestant
         }
 
-        FinnAttestantVisitor().let { visitor ->
-            iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second.accept(visitor)
-            visitor.attestant shouldBe attestant
-        }
+        // @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
+        // FinnAttestantVisitor().let { visitor ->
+        //     iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second.accept(visitor)
+        //     visitor.attestant shouldBe attestant
+        // }
     }
 }

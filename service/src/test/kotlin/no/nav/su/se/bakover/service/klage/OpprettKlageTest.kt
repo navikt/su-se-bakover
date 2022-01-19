@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.opprettetKlage
+import no.nav.su.se.bakover.test.oversendtKlage
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -44,6 +45,32 @@ internal class OpprettKlageTest {
             datoKlageMottatt = 1.desember(2021),
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.FantIkkeSak.left()
+
+        verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe request.sakId })
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `har allerede en klagebehandling`() {
+        val sakId = UUID.randomUUID()
+        val alleredeEksisterendeKlagebehandling = oversendtKlage(sakId = sakId).second
+        val sak = nySakMedjournalførtSøknadOgOppgave(
+            sakId = sakId,
+            klager = listOf(alleredeEksisterendeKlagebehandling),
+        ).first
+        val mocks = KlageServiceMocks(
+            sakRepoMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak
+            }
+        )
+
+        val request = NyKlageRequest(
+            sakId = UUID.randomUUID(),
+            journalpostId = alleredeEksisterendeKlagebehandling.journalpostId,
+            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
+            datoKlageMottatt = 1.desember(2021),
+        )
+        mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.HarAlleredeEnKlageBehandling.left()
 
         verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe request.sakId })
         mocks.verifyNoMoreInteractions()
@@ -103,6 +130,12 @@ internal class OpprettKlageTest {
         verify(mocks.sakRepoMock).hentSak(sakId)
         verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
         mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `en opprettetKlage er en åpen klage`() {
+        val klage = opprettetKlage().second
+        klage.erÅpen() shouldBe true
     }
 
     @Test

@@ -1,13 +1,14 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
+import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -24,13 +25,14 @@ internal data class RevurderingServiceMocks(
     val revurderingRepo: RevurderingRepo = mock(),
     val oppgaveService: OppgaveService = mock(),
     val personService: PersonService = mock(),
-    val microsoftGraphApiClient: MicrosoftGraphApiOppslag = mock(),
+    val identClient: IdentClient = mock(),
     val brevService: BrevService = mock(),
     val vedtakRepo: VedtakRepo = mock(),
     val ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     val grunnlagService: GrunnlagService = mock(),
     val vilkårsvurderingService: VilkårsvurderingService = mock(),
     val sakService: SakService = mock(),
+    val kontrollsamtaleService: KontrollsamtaleService = mock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
 ) {
@@ -39,7 +41,7 @@ internal data class RevurderingServiceMocks(
         revurderingRepo = revurderingRepo,
         oppgaveService = oppgaveService,
         personService = personService,
-        microsoftGraphApiClient = microsoftGraphApiClient,
+        identClient = identClient,
         brevService = brevService,
         clock = fixedClock,
         vedtakRepo = vedtakRepo,
@@ -47,6 +49,7 @@ internal data class RevurderingServiceMocks(
         grunnlagService = grunnlagService,
         vedtakService = vedtakService,
         sakService = sakService,
+        kontrollsamtaleService = kontrollsamtaleService,
         sessionFactory = sessionFactory,
         avkortingsvarselRepo = avkortingsvarselRepo,
     )
@@ -57,7 +60,7 @@ internal data class RevurderingServiceMocks(
         revurderingRepo,
         oppgaveService,
         personService,
-        microsoftGraphApiClient,
+        identClient,
         brevService,
         vedtakRepo,
         ferdigstillVedtakService,

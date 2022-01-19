@@ -22,8 +22,14 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.klage.AvvistKlage
+import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
+import no.nav.su.se.bakover.domain.klage.KanIkkeTolkeKlagevedtak
+import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
+import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
@@ -32,9 +38,12 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
-import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
+import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -81,7 +90,9 @@ import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
+import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeKalleInnTilKontrollsamtale
+import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -756,13 +767,26 @@ open class AccessCheckProxy(
                 }
             },
             kontrollsamtale = object : KontrollsamtaleService {
-                override fun kallInn(
+                override fun nyDato(
                     sakId: UUID,
-                    saksbehandler: NavIdentBruker
-                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> {
+                    dato: LocalDate
+                ): Either<KunneIkkeSetteNyDatoForKontrollsamtale, Unit> {
                     assertHarTilgangTilSak(sakId)
-                    return services.kontrollsamtale.kallInn(sakId, saksbehandler)
+                    return services.kontrollsamtale.nyDato(sakId, dato)
                 }
+
+                override fun hentNestePlanlagteKontrollsamtale(sakId: UUID): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.kontrollsamtale.hentNestePlanlagteKontrollsamtale(sakId)
+                }
+
+                override fun kallInn(sakId: UUID, kontrollsamtale: Kontrollsamtale): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> = kastKanKunKallesFraAnnenService()
+                override fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> = kastKanKunKallesFraAnnenService()
+                override fun opprettPlanlagtKontrollsamtale(vedtak: Vedtak): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> = kastKanKunKallesFraAnnenService()
+                override fun oppdaterNestePlanlagteKontrollsamtaleStatus(
+                    sakId: UUID,
+                    status: Kontrollsamtalestatus,
+                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> = kastKanKunKallesFraAnnenService()
             },
             klageService = object : KlageService {
                 override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
@@ -796,6 +820,15 @@ open class AccessCheckProxy(
                     return services.klageService.bekreftVurderinger(klageId, saksbehandler)
                 }
 
+                override fun leggTilAvvistFritekstTilBrev(
+                    klageId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    fritekst: String,
+                ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.leggTilAvvistFritekstTilBrev(klageId, saksbehandler, fritekst)
+                }
+
                 override fun sendTilAttestering(
                     klageId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
@@ -804,7 +837,7 @@ open class AccessCheckProxy(
                     return services.klageService.sendTilAttestering(klageId, saksbehandler)
                 }
 
-                override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet> {
+                override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, Klage> {
                     assertHarTilgangTilKlage(request.klageId)
                     return services.klageService.underkjenn(request)
                 }
@@ -817,17 +850,27 @@ open class AccessCheckProxy(
                     return services.klageService.oversend(klageId, attestant)
                 }
 
+                override fun iverksettAvvistKlage(
+                    klageId: UUID,
+                    attestant: NavIdentBruker.Attestant,
+                ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.iverksettAvvistKlage(klageId, attestant)
+                }
+
                 override fun brevutkast(
                     klageId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                    fritekst: String,
                 ): Either<KunneIkkeLageBrevutkast, ByteArray> {
                     assertHarTilgangTilKlage(klageId)
-                    return services.klageService.brevutkast(klageId, saksbehandler, fritekst)
+                    return services.klageService.brevutkast(klageId, saksbehandler)
                 }
             },
             klagevedtakService = object : KlagevedtakService {
-                override fun lagre(klageVedtak: UprosessertFattetKlagevedtak) = kastKanKunKallesFraAnnenService()
+                override fun lagre(klageVedtak: UprosessertFattetKlageinstansvedtak) = kastKanKunKallesFraAnnenService()
+                override fun håndterUtfallFraKlageinstans(deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KanIkkeTolkeKlagevedtak, UprosessertKlageinstansvedtak>) {
+                    kastKanKunKallesFraAnnenService()
+                }
             },
         )
     }

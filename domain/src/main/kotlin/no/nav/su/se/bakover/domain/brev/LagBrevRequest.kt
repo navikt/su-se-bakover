@@ -328,7 +328,7 @@ interface LagBrevRequest {
             val vedtakDato: LocalDate,
             val saksnummer: Saksnummer,
         ) : Klage() {
-            override val brevInnhold: BrevInnhold = BrevInnhold.Klage(
+            override val brevInnhold: BrevInnhold = BrevInnhold.Klage.Oppretthold(
                 personalia = lagPersonalia(),
                 saksbehandlerNavn = saksbehandlerNavn,
                 fritekst = fritekst,
@@ -340,6 +340,33 @@ interface LagBrevRequest {
             override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
                 return genererDokument(genererPdf).map {
                     Dokument.UtenMetadata.Informasjon(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(),
+                        tittel = it.first,
+                        generertDokument = it.second,
+                        generertDokumentJson = it.third,
+                    )
+                }
+            }
+        }
+
+        data class Avvist(
+            override val person: Person,
+            override val dagensDato: LocalDate,
+            val saksbehandlerNavn: String,
+            val fritekst: String,
+            val saksnummer: Saksnummer,
+        ) : Klage() {
+            override val brevInnhold: BrevInnhold = BrevInnhold.Klage.Avvist(
+                personalia = lagPersonalia(),
+                saksbehandlerNavn = saksbehandlerNavn,
+                fritekst = fritekst,
+                saksnummer = saksnummer.nummer,
+            )
+
+            override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
+                return genererDokument(genererPdf).map {
+                    Dokument.UtenMetadata.Vedtak(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(),
                         tittel = it.first,

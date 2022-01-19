@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.service.klage.KlageService
-import no.nav.su.se.bakover.test.klageTilAttestering
+import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -117,7 +117,7 @@ internal class SendKlageTilAttesteringTest {
 
     @Test
     fun `kan sende klage til attestering`() {
-        val klageTilAttestering = klageTilAttestering().second
+        val klageTilAttestering = vurdertKlageTilAttestering().second
         val klageServiceMock = mock<KlageService> {
             on { sendTilAttestering(any(), any()) } doReturn klageTilAttestering.right()
         }
@@ -142,7 +142,7 @@ internal class SendKlageTilAttesteringTest {
                   "journalpostId":"klageJournalpostId",
                   "saksbehandler":"saksbehandler",
                   "datoKlageMottatt":"2021-12-01",
-                  "status":"TIL_ATTESTERING",
+                  "status":"TIL_ATTESTERING_TIL_VURDERING",
                   "vedtakId":"${klageTilAttestering.vilkårsvurderinger.vedtakId}",
                   "innenforFristen":"JA",
                   "klagesDetPåKonkreteElementerIVedtaket":true,
@@ -159,7 +159,8 @@ internal class SendKlageTilAttesteringTest {
                       ]
                     }
                   },
-                  "attesteringer":[]
+                  "attesteringer":[],
+                  "klagevedtakshistorikk":[]
                 }
                     """.trimIndent(),
                     response.content,

@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service
 
 import io.kotest.matchers.collections.shouldContain
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.database.DatabaseRepos
+import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
@@ -33,6 +33,7 @@ internal class ServiceBuilderTest {
                 sessionFactory = mock(),
                 klageRepo = mock(),
                 klageVedtakRepo = mock(),
+                kontrollsamtaleRepo = mock(),
                 avkortingsvarselRepo = mock(),
             ),
             clients = Clients(
@@ -47,7 +48,7 @@ internal class ServiceBuilderTest {
                 utbetalingPublisher = mock(),
                 dokDistFordeling = mock(),
                 avstemmingPublisher = mock(),
-                microsoftGraphApiClient = mock(),
+                identClient = mock(),
                 digitalKontaktinformasjon = mock(),
                 leaderPodLookup = mock(),
                 kafkaPublisher = mock(),

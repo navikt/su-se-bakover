@@ -1,13 +1,14 @@
 package no.nav.su.se.bakover.service.personhendelser
 
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.hendelse.Personhendelse
-import no.nav.su.se.bakover.domain.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
+import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.util.UUID
 
 class PersonhendelseService(
@@ -15,6 +16,7 @@ class PersonhendelseService(
     private val personhendelseRepo: PersonhendelseRepo,
     private val oppgaveServiceImpl: OppgaveService,
     private val personService: PersonService,
+    private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -51,6 +53,7 @@ class PersonhendelseService(
                             saksnummer = personhendelse.saksnummer,
                             personhendelsestype = personhendelse.hendelse,
                             aktørId = aktørId,
+                            clock = clock,
                         ),
                     ).map { oppgaveId ->
                         log.info("Opprettet oppgave for personhendelse med id: ${personhendelse.id}")

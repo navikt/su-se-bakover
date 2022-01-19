@@ -8,8 +8,10 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 internal class AvsluttetRevurderingTest {
@@ -48,7 +50,7 @@ internal class AvsluttetRevurderingTest {
     fun `kan legge til fritekst dersom underliggende revurdering er forhåndsvarslet`() {
         AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
-                forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
+                forhåndsvarsel = Forhåndsvarsel.UnderBehandling.Sendt,
             ),
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             fritekst = "en god, og fri tekst",
@@ -67,6 +69,7 @@ internal class AvsluttetRevurderingTest {
     }
 
     @Test
+    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `får feil dersom man prøver å lage en avsluttet revurdering med iverksatt som underliggende`() {
         AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second,
@@ -89,11 +92,11 @@ internal class AvsluttetRevurderingTest {
     }
 
     @Test
-    fun `får feil dersom underliggende revurdering ikke er forhåndsvarslet (null), men fritekst er fyllt ut`() {
+    fun `får feil dersom underliggende revurdering ikke er forhåndsvarslet (null), men fritekst er fylt ut`() {
         AvsluttetRevurdering.tryCreate(
-            underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
-                forhåndsvarsel = null,
-            ),
+            underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second.also {
+                assert(it.forhåndsvarsel == null)
+            },
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             fritekst = "forhåndsvarsel er null, men jeg er fyllt ut. dette skal ikke være lov",
             tidspunktAvsluttet = fixedTidspunkt,
@@ -101,9 +104,13 @@ internal class AvsluttetRevurderingTest {
     }
 
     @Test
-    fun `får feil dersom underliggende revurdering ikke er forhåndsvarslet (ingen forhåndsvarsel), men fritekst er fyllt ut`() {
+    fun `får feil dersom underliggende revurdering ikke er forhåndsvarslet (ingen forhåndsvarsel), men fritekst er fylt ut`() {
         AvsluttetRevurdering.tryCreate(
-            underliggendeRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second,
+            underliggendeRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
+            ).second.also {
+                assert(it.forhåndsvarsel == Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles)
+            },
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             fritekst = "forhåndsvarsel er ingen forhåndsvarsel, men jeg er fyllt ut. dette skal ikke være lov",
             tidspunktAvsluttet = fixedTidspunkt,

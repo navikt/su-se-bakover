@@ -6,6 +6,7 @@ import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.web.Resultat
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeLageBrevutkas
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.feilVedGenereringAvDokument
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.fantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
 
@@ -96,14 +96,17 @@ internal object Revurderingsfeilresponser {
     }
 
     fun KunneIkkeForhåndsvarsle.tilResultat() = when (this) {
-        is KunneIkkeForhåndsvarsle.AlleredeForhåndsvarslet -> HttpStatusCode.Conflict.errorJson(
+        is KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling -> HttpStatusCode.Conflict.errorJson(
             "Allerede forhåndsvarslet",
             "allerede_forhåndsvarslet",
         )
         is KunneIkkeForhåndsvarsle.FantIkkePerson -> fantIkkePerson
-        is KunneIkkeForhåndsvarsle.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+        is KunneIkkeForhåndsvarsle.KunneIkkeOppdatereOppgave -> kunneIkkeOppretteOppgave
         is KunneIkkeForhåndsvarsle.FantIkkeRevurdering -> fantIkkeRevurdering
-        is KunneIkkeForhåndsvarsle.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
+        is KunneIkkeForhåndsvarsle.MåVæreITilstandenSimulert -> BadRequest.errorJson(
+            "Må være i tilstanden ${SimulertRevurdering::class.simpleName} for å kunne forhåndsvarsle. Nåværende tilstand: ${fra.simpleName} ",
+            "ugyldig_tilstand",
+        )
         is KunneIkkeForhåndsvarsle.Attestering -> this.subError.tilResultat()
         is KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler -> navneoppslagSaksbehandlerAttesttantFeilet
         KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument -> feilVedGenereringAvDokument

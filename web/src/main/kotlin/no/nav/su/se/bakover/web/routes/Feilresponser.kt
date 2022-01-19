@@ -133,6 +133,22 @@ internal object Feilresponser {
         "Fant ikke saksbehandler eller attestant",
         "fant_ikke_saksbehandler_eller_attestant",
     )
+
+    val kunneIkkeEndreDato = InternalServerError.errorJson(
+        "Kunne ikke endre dato",
+        "kunne_ikke_endre_dato"
+    )
+
+    val kunneIkkeHenteNesteKontrollsamtale = InternalServerError.errorJson(
+        "Kunne ikke hente neste kontrollsamtale",
+        "kunne_ikke_hente_neste_kontrollsamtale"
+    )
+
+    val fantIkkePlanlagtKontrollsamtale = NotFound.errorJson(
+        "Fant ikke planlagt kontrollsamtale",
+        "fant_ikke_planlagt_kontrollsamtale"
+    )
+
     val fantIkkeGjeldendeUtbetaling = NotFound.errorJson(
         "Fant ikke gjeldende utbetaling",
         "fant_ikke_gjeldende_utbetaling",
@@ -141,6 +157,16 @@ internal object Feilresponser {
     val attestantOgSaksbehandlerKanIkkeVæreSammePerson = Forbidden.errorJson(
         "Attestant og saksbehandler kan ikke være samme person",
         "attestant_og_saksbehandler_kan_ikke_være_samme_person",
+    )
+
+    val feilVedHentingAvSaksbehandlerNavn = InternalServerError.errorJson(
+        "Feil ved henting av saksbehandler navn",
+        "feil_ved_henting_av_saksbehandler_navn",
+    )
+
+    val feilVedHentingAvVedtakDato = InternalServerError.errorJson(
+        "Feil ved henting av vedtak dato",
+        "feil_ved_henting_av_vedtak_dato",
     )
 
     val kunneIkkeSimulere = InternalServerError.errorJson(

@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -41,11 +42,12 @@ internal fun createSøknadsbehandlingService(
     behandlingMetrics: BehandlingMetrics = mock(),
     observer: EventObserver = mock(),
     brevService: BrevService = mock(),
-    clock: Clock = Clock.systemUTC(),
+    clock: Clock = fixedClock,
     vedtakRepo: VedtakRepo = mock(),
     ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     grunnlagService: GrunnlagService = mock(),
     sakService: SakService = mock(),
+    kontrollsamtaleService: KontrollsamtaleService = mock(),
     avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadService,
@@ -60,7 +62,8 @@ internal fun createSøknadsbehandlingService(
     ferdigstillVedtakService,
     grunnlagService,
     sakService,
-    avkortingsvarselRepo,
+    kontrollsamtaleService,
+    avkortingsvarselRepo
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
@@ -78,6 +81,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val vilkårsvurderingService: VilkårsvurderingService = mock(),
     val grunnlagService: GrunnlagService = mock(),
     val sakService: SakService = mock(),
+    val kontrollsamtaleService: KontrollsamtaleService = mock(),
     val avkortingsvarselRepo: AvkortingsvarselRepo = mock()
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
@@ -93,6 +97,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
         ferdigstillVedtakService = ferdigstillVedtakService,
         grunnlagService = grunnlagService,
         sakService = sakService,
+        kontrollsamtaleService = kontrollsamtaleService,
         avkortingsvarselRepo = avkortingsvarselRepo,
     ).apply { addObserver(observer) }
 
@@ -111,7 +116,8 @@ internal data class SøknadsbehandlingServiceAndMocks(
             vilkårsvurderingService,
             grunnlagService,
             sakService,
-            avkortingsvarselRepo,
+            kontrollsamtaleService,
+            avkortingsvarselRepo
         ).toTypedArray()
     }
 
@@ -130,6 +136,8 @@ internal data class SøknadsbehandlingServiceAndMocks(
             vilkårsvurderingService,
             grunnlagService,
             sakService,
+            kontrollsamtaleService,
+            avkortingsvarselRepo
         )
     }
 }

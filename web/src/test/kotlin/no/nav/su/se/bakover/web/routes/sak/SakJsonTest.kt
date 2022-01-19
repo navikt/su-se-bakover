@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.UtbetalingJson
@@ -60,12 +61,12 @@ internal class SakJsonTest {
 
     @Test
     fun `should serialize to json string`() {
-        JSONAssert.assertEquals(sakJsonString, serialize(sak.toJson()), true)
+        JSONAssert.assertEquals(sakJsonString, serialize(sak.toJson(fixedClock)), true)
     }
 
     @Test
     fun `should deserialize json string`() {
-        deserialize<SakJson>(sakJsonString) shouldBe sak.toJson()
+        deserialize<SakJson>(sakJsonString) shouldBe sak.toJson(fixedClock)
     }
 
     @Nested
@@ -121,7 +122,7 @@ internal class SakJsonTest {
 
             val sak = sak.copy(utbetalinger = listOf(utbetaling1, utbetaling2, utbetaling3, utbetaling4))
 
-            val (actual1, actual2, actual3, actual4) = sak.toJson().utbetalinger
+            val (actual1, actual2, actual3, actual4) = sak.toJson(fixedClock).utbetalinger
             actual1 shouldBe UtbetalingJson(
                 fraOgMed = nyUtbetaling.fraOgMed,
                 tilOgMed = midlertidigStans.virkningstidspunkt.minusDays(1),

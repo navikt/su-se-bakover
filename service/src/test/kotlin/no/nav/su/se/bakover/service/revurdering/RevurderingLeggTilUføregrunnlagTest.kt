@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -116,10 +117,12 @@ internal class RevurderingLeggTilUføregrunnlagTest {
         actual.feilmeldinger.shouldContain(RevurderingsutfallSomIkkeStøttes.OpphørAvFlereVilkår)
 
         verify(revurderingRepoMock).hent(revurderingId)
+        verify(revurderingRepoMock).defaultTransactionContext()
         verify(revurderingRepoMock).lagre(
             argThat {
                 it shouldBe actual.revurdering
             },
+            anyOrNull()
         )
         verifyNoMoreInteractions(revurderingRepoMock)
     }
