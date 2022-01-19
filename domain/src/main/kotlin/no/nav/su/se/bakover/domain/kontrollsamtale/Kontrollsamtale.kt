@@ -31,7 +31,7 @@ data class Kontrollsamtale(
         return this.copy(status = Kontrollsamtalestatus.INNKALT).right()
     }
 
-    fun annuler(): Either<UgyldigStatusovergang, Kontrollsamtale> {
+    fun annuller(): Either<UgyldigStatusovergang, Kontrollsamtale> {
         if (this.status !== Kontrollsamtalestatus.PLANLAGT_INNKALLING || this.status !== Kontrollsamtalestatus.INNKALT) return UgyldigStatusovergang.left()
         return this.copy(status = Kontrollsamtalestatus.ANNULLERT).right()
     }

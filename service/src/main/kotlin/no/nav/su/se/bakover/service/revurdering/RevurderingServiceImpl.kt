@@ -1202,7 +1202,7 @@ internal class RevurderingServiceImpl(
                         }.map {
                             val opphørtVedtak = VedtakSomKanRevurderes.from(it, utbetaling!!.id, clock)
                             vedtakRepo.lagre(opphørtVedtak)
-                            kontrollsamtaleService.annulerKontrollsamtale(opphørtVedtak.behandling.sakId)
+                            kontrollsamtaleService.annullerKontrollsamtale(opphørtVedtak.behandling.sakId)
                             vedtak = opphørtVedtak
                             it
                         }
