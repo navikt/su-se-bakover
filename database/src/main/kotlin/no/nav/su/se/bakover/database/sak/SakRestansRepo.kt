@@ -4,11 +4,13 @@ import kotliquery.Row
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hentListe
+import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.tidspunktOrNull
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 import java.util.UUID
 
 internal class SakRestansRepo(
@@ -38,6 +40,12 @@ internal class SakRestansRepo(
                               join revurdering r on r.vedtaksomrevurderesid = bv.vedtakid
                      where r.revurderingstype not like ('IVERKSATT%') and r.avsluttet is null
                  ),
+                 klage as (
+                     select sak.sakId, sak.saksnummer, k.id, k.opprettet, k.type as status, 'KLAGE' as type
+                     from sak
+                              join klage k on sak.sakId = k.sakid
+                     where k.type not like ('iverksatt%') and k.type not like 'oversendt'
+                 ),
                  søknader as (
                      select 
                         sak.sakId, 
@@ -60,6 +68,9 @@ internal class SakRestansRepo(
                      union
                      select *
                      from revurderinger
+                     union
+                     select *
+                     from klage
                  )
             select *
             from slåttSammen
@@ -76,6 +87,7 @@ internal class SakRestansRepo(
             -> SakRestans.RestansType.SØKNADSBEHANDLING
             RestansTypeDB.REVURDERING,
             -> SakRestans.RestansType.REVURDERING
+            RestansTypeDB.KLAGE -> SakRestans.RestansType.KLAGE
         }
 
         return SakRestans(
@@ -86,6 +98,7 @@ internal class SakRestansRepo(
                 RestansTypeDB.SØKNADSBEHANDLING -> behandlingStatusTilRestansStatus(BehandlingsStatus.valueOf(string("status")))
                 RestansTypeDB.REVURDERING -> revurderingTypeTilRestansStatus(RevurderingsType.valueOf(string("status")))
                 RestansTypeDB.SØKNAD -> SakRestans.RestansStatus.NY_SØKNAD
+                RestansTypeDB.KLAGE -> KlagePostgresRepo.Tilstand.valueOf(string("status").toUpperCaseAsciiOnly()).tilRestansStatus()
             },
             behandlingStartet = tidspunktOrNull("opprettet"),
         )
@@ -144,9 +157,32 @@ internal class SakRestansRepo(
         }
     }
 
+    private fun KlagePostgresRepo.Tilstand.tilRestansStatus(): SakRestans.RestansStatus {
+        return when (this) {
+            KlagePostgresRepo.Tilstand.OPPRETTET,
+            KlagePostgresRepo.Tilstand.VILKÅRSVURDERT_PÅBEGYNT,
+            KlagePostgresRepo.Tilstand.VILKÅRSVURDERT_UTFYLT_TIL_VURDERING,
+            KlagePostgresRepo.Tilstand.VILKÅRSVURDERT_UTFYLT_AVVIST,
+            KlagePostgresRepo.Tilstand.VILKÅRSVURDERT_BEKREFTET_TIL_VURDERING,
+            KlagePostgresRepo.Tilstand.VILKÅRSVURDERT_BEKREFTET_AVVIST,
+            KlagePostgresRepo.Tilstand.VURDERT_PÅBEGYNT,
+            KlagePostgresRepo.Tilstand.VURDERT_UTFYLT,
+            KlagePostgresRepo.Tilstand.VURDERT_BEKREFTET,
+            KlagePostgresRepo.Tilstand.AVVIST,
+            -> SakRestans.RestansStatus.UNDER_BEHANDLING
+
+            KlagePostgresRepo.Tilstand.TIL_ATTESTERING_TIL_VURDERING,
+            KlagePostgresRepo.Tilstand.TIL_ATTESTERING_AVVIST,
+            -> SakRestans.RestansStatus.TIL_ATTESTERING
+
+            else -> throw IllegalStateException("Iverksatte, og oversendte klager er ikke en restans")
+        }
+    }
+
     private enum class RestansTypeDB {
         SØKNAD,
         SØKNADSBEHANDLING,
-        REVURDERING
+        REVURDERING,
+        KLAGE,
     }
 }

@@ -13,7 +13,8 @@ data class SakRestans(
 ) {
     enum class RestansType {
         SØKNADSBEHANDLING,
-        REVURDERING
+        REVURDERING,
+        KLAGE;
     }
 
     enum class RestansStatus {
