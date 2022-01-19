@@ -150,7 +150,6 @@ sealed interface Klage {
     }
     sealed interface KunneIkkeLeggeTilNyttKlageinstansVedtak {
         data class MåVæreEnOversendtKlage(val menVar: KClass<out Klage>) : KunneIkkeLeggeTilNyttKlageinstansVedtak
-        object IkkeStøttetUtfall : KunneIkkeLeggeTilNyttKlageinstansVedtak
         object KunneIkkeHenteAktørId : KunneIkkeLeggeTilNyttKlageinstansVedtak
         data class KunneIkkeLageOppgave(val feil: OppgaveFeil) : KunneIkkeLeggeTilNyttKlageinstansVedtak
     }

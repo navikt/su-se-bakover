@@ -100,25 +100,19 @@ data class OversendtKlage private constructor(
         uprosessertKlageinstansVedtak: UprosessertKlageinstansvedtak,
         lagOppgaveCallback: () -> Either<Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId>,
     ): Either<Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak, Klage> {
-        return when (uprosessertKlageinstansVedtak.utfall) {
-            KlagevedtakUtfall.AVVIST,
-            KlagevedtakUtfall.TRUKKET,
-            KlagevedtakUtfall.STADFESTELSE,
-            -> lagOppgaveCallback().map { oppgaveId ->
-                leggTilKlagevedtakshistorikk(uprosessertKlageinstansVedtak.tilProsessert(oppgaveId))
+        return lagOppgaveCallback().map { oppgaveId ->
+            val oppdatertKlage = leggTilKlagevedtakshistorikk(uprosessertKlageinstansVedtak.tilProsessert(oppgaveId))
+
+            when (uprosessertKlageinstansVedtak.utfall) {
+                KlagevedtakUtfall.TRUKKET,
+                KlagevedtakUtfall.OPPHEVET,
+                KlagevedtakUtfall.MEDHOLD,
+                KlagevedtakUtfall.DELVIS_MEDHOLD,
+                KlagevedtakUtfall.STADFESTELSE,
+                KlagevedtakUtfall.UGUNST,
+                KlagevedtakUtfall.AVVIST -> oppdatertKlage
+                KlagevedtakUtfall.RETUR -> oppdatertKlage.toBekreftet(oppgaveId)
             }
-            KlagevedtakUtfall.RETUR -> {
-                lagOppgaveCallback().map { oppgaveId ->
-                    leggTilKlagevedtakshistorikk(uprosessertKlageinstansVedtak.tilProsessert(oppgaveId)).toBekreftet(
-                        oppgaveId,
-                    )
-                }
-            }
-            KlagevedtakUtfall.OPPHEVET,
-            KlagevedtakUtfall.MEDHOLD,
-            KlagevedtakUtfall.DELVIS_MEDHOLD,
-            KlagevedtakUtfall.UGUNST,
-            -> Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.IkkeStøttetUtfall.left()
         }
     }
 
