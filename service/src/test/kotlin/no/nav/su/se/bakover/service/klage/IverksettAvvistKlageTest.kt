@@ -53,7 +53,10 @@ internal class IverksettAvvistKlageTest {
         val klageId = UUID.randomUUID()
         val attestant = NavIdentBruker.Attestant("attestantensen")
 
-        mocks.service.iverksettAvvistKlage(klageId, attestant) shouldBe KunneIkkeIverksetteAvvistKlage.FantIkkeKlage.left()
+        mocks.service.iverksettAvvistKlage(
+            klageId,
+            attestant,
+        ) shouldBe KunneIkkeIverksetteAvvistKlage.FantIkkeKlage.left()
         Mockito.verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
         mocks.verifyNoMoreInteractions()
     }
@@ -290,7 +293,7 @@ internal class IverksettAvvistKlageTest {
                         opprettet = it.opprettet,
                         tittel = "Avvist klage",
                         generertDokument = dokument,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${klage.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\"},\"saksbehandlerNavn\":\"Johnny\",\"fritekst\":\"dette er min fritekst\",\"saksnummer\":${klage.saksnummer}}"
+                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${klage.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":${klage.saksnummer}},\"saksbehandlerNavn\":\"Johnny\",\"fritekst\":\"dette er min fritekst\",\"saksnummer\":${klage.saksnummer}}",
                     ),
                     metadata = Dokument.Metadata(
                         sakId = klage.sakId,

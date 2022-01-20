@@ -25,6 +25,7 @@ interface LagBrevRequest {
     val person: Person
     val brevInnhold: BrevInnhold
     val dagensDato: LocalDate
+    val saksnummer: Saksnummer
 
     fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata>
 
@@ -48,9 +49,10 @@ interface LagBrevRequest {
         private val attestantNavn: String,
         private val fritekst: String,
         override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.InnvilgetVedtak(
-            personalia = lagPersonalia(),
+            personalia = lagPersonalia(saksnummer),
             fradato = beregning.periode.fraOgMed.formatMonthYear(),
             tildato = beregning.periode.tilOgMed.formatMonthYear(),
             // TODO CHM 05.05.2021: Wrap sats-tingene i et eget objekt, hent fra beregning?
@@ -89,9 +91,10 @@ interface LagBrevRequest {
         private val fritekst: String,
         private val forventetInntektStørreEnn0: Boolean,
         override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.AvslagsBrevInnhold(
-            personalia = lagPersonalia(),
+            personalia = lagPersonalia(saksnummer),
             avslagsgrunner = avslag.avslagsgrunner,
             harEktefelle = avslag.harEktefelle,
             halvGrunnbeløp = avslag.halvGrunnbeløp.toInt(),
@@ -129,9 +132,10 @@ interface LagBrevRequest {
         private val fritekst: String,
         private val opphørsgrunner: List<Opphørsgrunn>,
         override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.Opphørsvedtak(
-            personalia = lagPersonalia(),
+            personalia = lagPersonalia(saksnummer),
             sats = beregning.getSats().toString().lowercase(),
             satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
             satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed)
@@ -173,9 +177,10 @@ interface LagBrevRequest {
         private val forventetInntektStørreEnn0: Boolean,
         private val gjeldendeMånedsutbetaling: Int,
         override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.VedtakIngenEndring(
-            personalia = lagPersonalia(),
+            personalia = lagPersonalia(saksnummer),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
@@ -206,9 +211,10 @@ interface LagBrevRequest {
         private val saksbehandlerNavn: String,
         private val fritekst: String,
         override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.Forhåndsvarsel(
-            personalia = lagPersonalia(),
+            personalia = lagPersonalia(saksnummer),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = fritekst,
         )
@@ -235,9 +241,10 @@ interface LagBrevRequest {
         private val saksbehandlerNavn: String,
         private val fritekst: String?,
         override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
         override val brevInnhold: BrevInnhold = BrevInnhold.AvsluttRevurdering(
-            personalia = lagPersonalia(),
+            personalia = lagPersonalia(saksnummer),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = fritekst,
         )
@@ -265,9 +272,10 @@ interface LagBrevRequest {
             private val harEktefelle: Boolean,
             private val forventetInntektStørreEnn0: Boolean,
             override val dagensDato: LocalDate,
+            override val saksnummer: Saksnummer,
         ) : Revurdering() {
             override val brevInnhold = BrevInnhold.RevurderingAvInntekt(
-                personalia = lagPersonalia(),
+                personalia = lagPersonalia(saksnummer),
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
                 beregningsperioder = LagBrevinnholdForBeregning(revurdertBeregning).brevInnhold,
@@ -296,9 +304,10 @@ interface LagBrevRequest {
     data class InnkallingTilKontrollsamtale(
         override val person: Person,
         override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.InnkallingTilKontrollsamtale(
-            personalia = lagPersonalia(),
+            personalia = lagPersonalia(saksnummer),
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
@@ -322,10 +331,10 @@ interface LagBrevRequest {
             val fritekst: String,
             val klageDato: LocalDate,
             val vedtakDato: LocalDate,
-            val saksnummer: Saksnummer,
+            override val saksnummer: Saksnummer,
         ) : Klage() {
             override val brevInnhold: BrevInnhold = BrevInnhold.Klage.Oppretthold(
-                personalia = lagPersonalia(),
+                personalia = lagPersonalia(saksnummer),
                 saksbehandlerNavn = saksbehandlerNavn,
                 fritekst = fritekst,
                 klageDato = klageDato.ddMMyyyy(),
@@ -351,10 +360,10 @@ interface LagBrevRequest {
             override val dagensDato: LocalDate,
             val saksbehandlerNavn: String,
             val fritekst: String,
-            val saksnummer: Saksnummer,
+            override val saksnummer: Saksnummer,
         ) : Klage() {
             override val brevInnhold: BrevInnhold = BrevInnhold.Klage.Avvist(
-                personalia = lagPersonalia(),
+                personalia = lagPersonalia(saksnummer),
                 saksbehandlerNavn = saksbehandlerNavn,
                 fritekst = fritekst,
                 saksnummer = saksnummer.nummer,
@@ -375,12 +384,13 @@ interface LagBrevRequest {
     }
 }
 
-fun LagBrevRequest.lagPersonalia() = this.person.let {
+fun LagBrevRequest.lagPersonalia(saksnummer: Saksnummer) = this.person.let {
     BrevInnhold.Personalia(
         dato = dagensDato.ddMMyyyy(),
         fødselsnummer = it.ident.fnr,
         fornavn = it.navn.fornavn,
         etternavn = it.navn.etternavn,
+        saksnummer = saksnummer.nummer,
     )
 }
 

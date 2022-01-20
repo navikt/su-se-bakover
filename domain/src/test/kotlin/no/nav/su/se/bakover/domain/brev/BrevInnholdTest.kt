@@ -20,6 +20,7 @@ internal class BrevInnholdTest {
         fødselsnummer = Fnr("12345678901"),
         fornavn = "Tore",
         etternavn = "Strømøy",
+        saksnummer = 2021,
     )
 
     private val trukketSøknad = TrukketSøknadBrevInnhold(
@@ -35,7 +36,8 @@ internal class BrevInnholdTest {
               "dato":"01.01.2020",
               "fødselsnummer": "12345678901",
               "fornavn": "Tore",
-              "etternavn": "Strømøy"
+              "etternavn": "Strømøy",
+              "saksnummer": 2021
             }
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, actualJson, true)
@@ -76,7 +78,8 @@ internal class BrevInnholdTest {
                     "dato": "01.01.2020",
                     "fødselsnummer": "12345678901",
                     "fornavn": "Tore",
-                    "etternavn": "Strømøy"
+                    "etternavn": "Strømøy",
+                    "saksnummer": 2021
                 },
                 "fradato": "01.01.2020",
                 "tildato": "01.01.2020",
@@ -121,7 +124,8 @@ internal class BrevInnholdTest {
                   "dato":"01.01.2020",
                   "fødselsnummer": "12345678901",
                   "fornavn": "Tore",
-                  "etternavn": "Strømøy"
+                  "etternavn": "Strømøy",
+                  "saksnummer": 2021
               },
               "datoSøknadOpprettet": "01.01.2020",
               "trukketDato": "01.02.2020",
@@ -154,7 +158,7 @@ internal class BrevInnholdTest {
             avslagsparagrafer = listOf(1),
             satsGjeldendeFraDato = "01.01.2020",
             forventetInntektStørreEnn0 = false,
-            halvGrunnbeløp = 50000
+            halvGrunnbeløp = 50000,
         )
 
         //language=JSON
@@ -164,7 +168,8 @@ internal class BrevInnholdTest {
                     "dato": "01.01.2020",
                     "fødselsnummer": "12345678901",
                     "fornavn": "Tore",
-                    "etternavn": "Strømøy"
+                    "etternavn": "Strømøy",
+                    "saksnummer": 2021
                 },
                 "sats": "HØY",
                 "satsBeløp": 100,

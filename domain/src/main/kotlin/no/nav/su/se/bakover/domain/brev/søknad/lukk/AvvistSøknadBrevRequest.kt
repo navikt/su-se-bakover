@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.brev.søknad.lukk
 import arrow.core.Either
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.BrevConfig
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.lagPersonalia
@@ -15,15 +16,16 @@ data class AvvistSøknadBrevRequest(
     private val brevConfig: BrevConfig,
     private val saksbehandlerNavn: String,
     override val dagensDato: LocalDate,
+    override val saksnummer: Saksnummer,
 ) : LagBrevRequest {
     override val brevInnhold = when (brevConfig) {
         is BrevConfig.Vedtak -> AvvistSøknadVedtakBrevInnhold(
-            personalia = lagPersonalia(),
+            personalia = lagPersonalia(saksnummer),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = brevConfig.getFritekst(),
         )
         is BrevConfig.Fritekst -> AvvistSøknadFritekstBrevInnhold(
-            personalia = lagPersonalia(),
+            personalia = lagPersonalia(saksnummer),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = brevConfig.getFritekst(),
         )

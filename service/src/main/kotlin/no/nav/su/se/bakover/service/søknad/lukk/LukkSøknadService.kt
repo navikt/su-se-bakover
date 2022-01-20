@@ -11,6 +11,7 @@ interface LukkSøknadService {
 }
 
 sealed class KunneIkkeLukkeSøknad {
+    object FantIkkeSak : KunneIkkeLukkeSøknad()
     object FantIkkeSøknad : KunneIkkeLukkeSøknad()
     object FantIkkePerson : KunneIkkeLukkeSøknad()
     object SøknadErAlleredeLukket : KunneIkkeLukkeSøknad()
@@ -24,6 +25,7 @@ sealed class KunneIkkeLukkeSøknad {
 }
 
 sealed class KunneIkkeLageBrevutkast {
+    object FantIkkeSak : KunneIkkeLageBrevutkast()
     object FantIkkeSøknad : KunneIkkeLageBrevutkast()
     object FantIkkePerson : KunneIkkeLageBrevutkast()
     object KunneIkkeLageBrev : KunneIkkeLageBrevutkast()

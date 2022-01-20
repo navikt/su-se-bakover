@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.lagPersonalia
@@ -17,9 +18,10 @@ data class TrukketSøknadBrevRequest(
     private val trukketDato: LocalDate,
     private val saksbehandlerNavn: String,
     override val dagensDato: LocalDate,
+    override val saksnummer: Saksnummer,
 ) : LagBrevRequest {
     override val brevInnhold = TrukketSøknadBrevInnhold(
-        personalia = lagPersonalia(),
+        personalia = lagPersonalia(saksnummer),
         datoSøknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo),
         trukketDato = trukketDato,
         saksbehandlerNavn = saksbehandlerNavn,

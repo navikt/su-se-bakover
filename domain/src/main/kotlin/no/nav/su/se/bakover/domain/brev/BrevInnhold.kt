@@ -80,7 +80,7 @@ abstract class BrevInnhold {
         val attestantNavn: String,
         val fritekst: String,
         val forventetInntektStørreEnn0: Boolean,
-        val halvGrunnbeløp: Int?
+        val halvGrunnbeløp: Int?,
     ) : BrevInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.Opphørsvedtak
 
@@ -94,6 +94,7 @@ abstract class BrevInnhold {
         val fødselsnummer: Fnr,
         val fornavn: String,
         val etternavn: String,
+        val saksnummer: Long,
     )
 
     data class RevurderingAvInntekt(
@@ -191,4 +192,5 @@ abstract class BrevInnhold {
     }
 }
 
-fun List<Beregningsperiode>.harFradrag() = this.any { it.fradrag.bruker.isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty() }
+fun List<Beregningsperiode>.harFradrag() =
+    this.any { it.fradrag.bruker.isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty() }

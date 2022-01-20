@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -780,6 +781,7 @@ internal class RevurderingServiceImpl(
                                 saksbehandler = simulertRevurdering.saksbehandler,
                                 fritekst = fritekst,
                                 transactionContext = transactionContext,
+                                saksnummer = simulertRevurdering.saksnummer,
                             ).map {
                                 revurderingRepo.lagre(simulertRevurdering, transactionContext)
                                 prøvÅOppdatereOppgaveEtterViHarSendtForhåndsvarsel(
@@ -813,6 +815,7 @@ internal class RevurderingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekst: String,
         transactionContext: TransactionContext,
+        saksnummer: Saksnummer,
     ): Either<KunneIkkeForhåndsvarsle, Unit> {
         val personOgSaksbehandlerNavn =
             hentPersonOgSaksbehandlerNavn(fnr, saksbehandler).getOrHandle {
@@ -827,6 +830,7 @@ internal class RevurderingServiceImpl(
             saksbehandlerNavn = personOgSaksbehandlerNavn.second,
             fritekst = fritekst,
             dagensDato = LocalDate.now(clock),
+            saksnummer = saksnummer,
         ).tilDokument {
             brevService.lagBrev(it).mapLeft { LagBrevRequest.KunneIkkeGenererePdf }
         }.map {
@@ -877,6 +881,7 @@ internal class RevurderingServiceImpl(
             fritekst = fritekst,
             saksbehandlerNavn = personOgSaksbehandlerNavn.second,
             dagensDato = LocalDate.now(clock),
+            saksnummer = revurdering.saksnummer,
         )
 
         return brevService.lagBrev(brevRequest)
@@ -1198,7 +1203,10 @@ internal class RevurderingServiceImpl(
                         }.map {
                             val opphørtVedtak = Vedtak.from(it, utbetaling!!.id, clock)
                             vedtakRepo.lagre(opphørtVedtak)
-                            kontrollsamtaleService.oppdaterNestePlanlagteKontrollsamtaleStatus(opphørtVedtak.behandling.sakId, Kontrollsamtalestatus.ANNULLERT)
+                            kontrollsamtaleService.oppdaterNestePlanlagteKontrollsamtaleStatus(
+                                opphørtVedtak.behandling.sakId,
+                                Kontrollsamtalestatus.ANNULLERT,
+                            )
                             vedtak = opphørtVedtak
                             it
                         }
