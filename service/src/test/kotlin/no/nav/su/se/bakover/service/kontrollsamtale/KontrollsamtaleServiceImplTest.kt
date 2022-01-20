@@ -35,6 +35,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.Clock
 import java.util.UUID
 
@@ -249,31 +250,34 @@ internal class KontrollsamtaleServiceImplTest {
 
     @Test
     fun `endre dato skal returnere left om det ikke finnes en sak`() {
-        val kontrollsamtaleRepoMock = mock<KontrollsamtaleRepo> {
-            on { lagre(any(), anyOrNull()) } doThrow Error("Should not be called")
-        }
         val services = ServiceOgMocks(
-            kontrollsamtaleRepo = kontrollsamtaleRepoMock,
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
-            }
+            },
         )
-        services.kontrollsamtaleService.nyDato(sak.id, fixedLocalDate.plusMonths(2)) shouldBe KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeSak.left()
+        services.kontrollsamtaleService.nyDato(
+            sak.id,
+            fixedLocalDate.plusMonths(2),
+        ) shouldBe KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeSak.left()
+
+        verify(services.sakService).hentSak(any<UUID>())
+        verifyNoMoreInteractions(services.sakService, services.kontrollsamtaleRepo)
     }
 
     @Test
     fun `endre dato skal returnere left om det ikke er noen gjeldende stønadsperioder`() {
-        val kontrollsamtaleRepoMock = mock<KontrollsamtaleRepo> {
-            on { hentForSakId(any()) } doReturn listOf(kontrollsamtale())
-            on { lagre(any(), anyOrNull()) } doThrow Error("Should not be called")
-        }
         val services = ServiceOgMocks(
-            kontrollsamtaleRepo = kontrollsamtaleRepoMock,
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn søknadsbehandlingIverksattInnvilget().first.right()
-            }
+            },
         )
-        services.kontrollsamtaleService.nyDato(sak.id, fixedLocalDate.plusMonths(2)) shouldBe KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left()
+        services.kontrollsamtaleService.nyDato(
+            sak.id,
+            fixedLocalDate.plusMonths(2),
+        ) shouldBe KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left()
+
+        verify(services.sakService).hentSak(any<UUID>())
+        verifyNoMoreInteractions(services.sakService, services.kontrollsamtaleRepo)
     }
 
     @Test
@@ -281,13 +285,20 @@ internal class KontrollsamtaleServiceImplTest {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
                 on { hentForSakId(any()) } doReturn listOf(kontrollsamtale())
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn vedtakSøknadsbehandlingIverksattInnvilget().first.right()
             },
-            clock = fixedClock
+            clock = fixedClock,
         )
         services.kontrollsamtaleService.nyDato(sak.id, fixedLocalDate.plusMonths(2)) shouldBe Unit.right()
+
+        verify(services.sakService).hentSak(any<UUID>())
+        verify(services.kontrollsamtaleRepo).hentForSakId(any())
+        verify(services.kontrollsamtaleRepo).defaultTransactionContext()
+        verify(services.kontrollsamtaleRepo).lagre(any(), anyOrNull())
+        verifyNoMoreInteractions(services.sakService, services.kontrollsamtaleRepo)
     }
 
     private data class ServiceOgMocks(
