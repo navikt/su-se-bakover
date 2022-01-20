@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -71,12 +71,12 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
             clock = clock,
         ).getOrHandle { return KunneIkkeAvslåSøknad.SøknadsbehandlingIUgyldigTilstandForAvslag.left() }
 
-        val vedtak = Vedtak.Avslag.fromAvslagManglendeDokumentasjon(
+        val avslagsvedtak: Avslagsvedtak.AvslagVilkår = Avslagsvedtak.fromAvslagManglendeDokumentasjon(
             avslag = avslag,
             clock = clock,
         )
 
-        val dokument = brevService.lagDokument(vedtak).getOrHandle {
+        val dokument = brevService.lagDokument(avslagsvedtak).getOrHandle {
             return when (it) {
                 KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeAvslåSøknad.KunneIkkeFinneGjeldendeUtbetaling
                 KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeAvslåSøknad.KunneIkkeGenererePDF
@@ -85,16 +85,16 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
             }.left()
         }.leggTilMetadata(
             metadata = Dokument.Metadata(
-                sakId = vedtak.behandling.sakId,
-                søknadId = vedtak.behandling.søknad.id,
-                vedtakId = vedtak.id,
+                sakId = avslagsvedtak.behandling.sakId,
+                søknadId = avslagsvedtak.behandling.søknad.id,
+                vedtakId = avslagsvedtak.id,
                 bestillBrev = true,
             ),
         )
 
         sessionFactory.withTransactionContext { tx ->
             søknadsbehandlingService.lagre(avslag, tx)
-            vedtakService.lagre(vedtak, tx)
+            vedtakService.lagre(avslagsvedtak, tx)
             brevService.lagreDokument(dokument, tx)
         }
 
@@ -103,7 +103,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
                 log.warn("Klarte ikke å lukke oppgave for søknadsbehandling: ${avslag.søknadsbehandling.id}, feil:$it")
             }
 
-        return sakService.hentSak(vedtak.behandling.sakId)
+        return sakService.hentSak(avslagsvedtak.behandling.sakId)
             .mapLeft { KunneIkkeAvslåSøknad.FantIkkeSak }
     }
 }

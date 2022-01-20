@@ -3,12 +3,12 @@ package no.nav.su.se.bakover.domain.vedtak
 import no.nav.su.se.bakover.domain.visitor.Visitor
 
 interface VedtakVisitor : Visitor {
-    fun visit(vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling)
-    fun visit(vedtak: Vedtak.EndringIYtelse.InnvilgetRevurdering)
-    fun visit(vedtak: Vedtak.EndringIYtelse.OpphørtRevurdering)
-    fun visit(vedtak: Vedtak.Avslag.AvslagVilkår)
-    fun visit(vedtak: Vedtak.Avslag.AvslagBeregning)
-    fun visit(vedtak: Vedtak.IngenEndringIYtelse)
-    fun visit(vedtak: Vedtak.EndringIYtelse.StansAvYtelse)
-    fun visit(vedtak: Vedtak.EndringIYtelse.GjenopptakAvYtelse)
+    fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling)
+    fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering)
+    fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering)
+    fun visit(vedtak: Avslagsvedtak.AvslagVilkår)
+    fun visit(vedtak: Avslagsvedtak.AvslagBeregning)
+    fun visit(vedtak: VedtakSomKanRevurderes.IngenEndringIYtelse)
+    fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse)
+    fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse)
 }

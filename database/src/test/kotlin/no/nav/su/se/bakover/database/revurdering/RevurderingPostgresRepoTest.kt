@@ -30,7 +30,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
@@ -64,7 +64,7 @@ internal class RevurderingPostgresRepoTest {
         ),
     )
 
-    private fun opprettet(vedtak: Vedtak.EndringIYtelse) = OpprettetRevurdering(
+    private fun opprettet(vedtak: VedtakSomKanRevurderes.EndringIYtelse) = OpprettetRevurdering(
         id = UUID.randomUUID(),
         periode = periode,
         opprettet = fixedTidspunkt,
@@ -82,7 +82,7 @@ internal class RevurderingPostgresRepoTest {
 
     private fun beregnetIngenEndring(
         opprettet: OpprettetRevurdering,
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
     ) = BeregnetRevurdering.IngenEndring(
         id = opprettet.id,
         periode = opprettet.periode,
@@ -102,7 +102,7 @@ internal class RevurderingPostgresRepoTest {
 
     private fun beregnetInnvilget(
         opprettet: OpprettetRevurdering,
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
     ) = BeregnetRevurdering.Innvilget(
         id = opprettet.id,
         periode = opprettet.periode,
@@ -122,7 +122,7 @@ internal class RevurderingPostgresRepoTest {
 
     private fun beregnetOpphørt(
         opprettet: OpprettetRevurdering,
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
     ) = BeregnetRevurdering.Opphørt(
         id = opprettet.id,
         periode = opprettet.periode,

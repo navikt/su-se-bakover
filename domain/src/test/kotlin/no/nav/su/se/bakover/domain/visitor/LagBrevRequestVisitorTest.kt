@@ -53,7 +53,8 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -628,7 +629,7 @@ internal class LagBrevRequestVisitorTest {
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
-        val innvilgetVedtak = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock)
+        val innvilgetVedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock)
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -670,7 +671,7 @@ internal class LagBrevRequestVisitorTest {
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
-        val avslåttVedtak = Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
+        val avslåttVedtak = Avslagsvedtak.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -713,7 +714,7 @@ internal class LagBrevRequestVisitorTest {
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
-        val avslåttVedtak = Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(
+        val avslåttVedtak = Avslagsvedtak.fromSøknadsbehandlingUtenBeregning(
             avslag = søknadsbehandling,
             clock = fixedClock,
         )
@@ -767,7 +768,7 @@ internal class LagBrevRequestVisitorTest {
             id = UUID.randomUUID(),
             periode = revurderingsperiode,
             opprettet = fixedTidspunkt,
-            tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
+            tilRevurdering = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
             grunnlagsdata = Grunnlagsdata.create(
@@ -794,7 +795,7 @@ internal class LagBrevRequestVisitorTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
-        val avslåttVedtak = Vedtak.from(revurdering, utbetalingId, fixedClock)
+        val avslåttVedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -848,7 +849,7 @@ internal class LagBrevRequestVisitorTest {
             id = UUID.randomUUID(),
             periode = revurderingsperiode,
             opprettet = fixedTidspunkt,
-            tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
+            tilRevurdering = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
             beregning = innvilgetBeregning,
@@ -889,7 +890,7 @@ internal class LagBrevRequestVisitorTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
-        val opphørsvedtak = Vedtak.from(revurdering, utbetalingId, fixedClock)
+        val opphørsvedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -934,7 +935,7 @@ internal class LagBrevRequestVisitorTest {
             utbetalingId = utbetalingId,
             fritekstTilBrev = "FRITEKST REVURDERING",
         )
-        val opphørsvedtak = Vedtak.from(revurdering, utbetalingId, fixedClock)
+        val opphørsvedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
@@ -1000,7 +1001,7 @@ internal class LagBrevRequestVisitorTest {
             .tilIverksatt(attestant) { utbetalingId.right() }
             .getOrHandle { fail(it.toString()) }
 
-        val opphørsvedtak = Vedtak.from(attestert, utbetalingId, fixedClock)
+        val opphørsvedtak = VedtakSomKanRevurderes.from(attestert, utbetalingId, fixedClock)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -1048,7 +1049,7 @@ internal class LagBrevRequestVisitorTest {
             id = UUID.randomUUID(),
             periode = revurderingsperiode,
             opprettet = fixedTidspunkt,
-            tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
+            tilRevurdering = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
             beregning = innvilgetBeregning,
@@ -1075,7 +1076,7 @@ internal class LagBrevRequestVisitorTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
-        val vedtakIngenEndring = Vedtak.from(revurdering, fixedClock)
+        val vedtakIngenEndring = VedtakSomKanRevurderes.from(revurdering, fixedClock)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },

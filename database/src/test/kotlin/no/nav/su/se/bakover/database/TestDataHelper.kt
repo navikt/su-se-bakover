@@ -88,7 +88,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -425,23 +425,23 @@ internal class TestDataHelper(
         søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
         utbetalingId: UUID30,
     ) =
-        Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock).also {
+        VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock).also {
             vedtakRepo.lagre(it)
         }
 
     fun vedtakMedInnvilgetSøknadsbehandling(
         utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
-    ): Pair<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling, Utbetaling> {
+    ): Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, Utbetaling> {
         val (søknadsbehandling, utbetaling) = nyOversendtUtbetalingMedKvittering(utbetalingslinjer = utbetalingslinjer)
         return Pair(
-            Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock).also {
+            VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock).also {
                 vedtakRepo.lagre(it)
             },
             utbetaling,
         )
     }
 
-    fun vedtakForRevurdering(revurdering: RevurderingTilAttestering.Innvilget): Pair<Vedtak.EndringIYtelse, Utbetaling> {
+    fun vedtakForRevurdering(revurdering: RevurderingTilAttestering.Innvilget): Pair<VedtakSomKanRevurderes.EndringIYtelse, Utbetaling> {
         val utbetalingId = UUID30.randomUUID()
 
         val utbetaling = oversendtUtbetalingUtenKvittering(
@@ -453,7 +453,7 @@ internal class TestDataHelper(
         utbetalingRepo.opprettUtbetaling(utbetaling)
 
         return Pair(
-            Vedtak.from(
+            VedtakSomKanRevurderes.from(
                 revurdering = revurdering.tilIverksatt(
                     attestant = attestant,
                 ) { utbetaling.id.right() }.orNull()!!,
@@ -467,7 +467,7 @@ internal class TestDataHelper(
     }
 
     fun nyRevurdering(
-        innvilget: Vedtak.EndringIYtelse = vedtakMedInnvilgetSøknadsbehandling().first,
+        innvilget: VedtakSomKanRevurderes.EndringIYtelse = vedtakMedInnvilgetSøknadsbehandling().first,
         periode: Periode = stønadsperiode.periode,
         epsFnr: Fnr? = null,
         grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataRevurdering(epsFnr),
@@ -960,7 +960,7 @@ internal class TestDataHelper(
         ).copy(id = utbetalingId)
         utbetalingRepo.opprettUtbetaling(utbetaling)
         søknadsbehandlingRepo.lagre(innvilget)
-        vedtakRepo.lagre(Vedtak.fromSøknadsbehandling(innvilget, utbetalingId, fixedClock))
+        vedtakRepo.lagre(VedtakSomKanRevurderes.fromSøknadsbehandling(innvilget, utbetalingId, fixedClock))
         return innvilget to utbetaling
     }
 
@@ -999,7 +999,7 @@ internal class TestDataHelper(
     }
 
     fun nyKlage(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
     ): OpprettetKlage {
         return Klage.ny(
             sakId = vedtak.behandling.sakId,
@@ -1016,7 +1016,7 @@ internal class TestDataHelper(
     }
 
     fun utfyltVilkårsvurdertKlageTilVurdering(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
     ): VilkårsvurdertKlage.Utfylt.TilVurdering {
         return nyKlage(vedtak = vedtak).vilkårsvurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVilkårsvurdertKlage"),
@@ -1036,7 +1036,7 @@ internal class TestDataHelper(
     }
 
     fun utfyltAvvistVilkårsvurdertKlage(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
     ): VilkårsvurdertKlage.Utfylt.Avvist {
         return nyKlage(vedtak).vilkårsvurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltAvvistVilkårsvurdertKlage"),
@@ -1056,7 +1056,7 @@ internal class TestDataHelper(
     }
 
     fun bekreftetVilkårsvurdertKlageTilVurdering(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
     ): VilkårsvurdertKlage.Bekreftet.TilVurdering {
         return utfyltVilkårsvurdertKlageTilVurdering(vedtak = vedtak).bekreftVilkårsvurderinger(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVilkårsvurdertKlage"),
@@ -1069,7 +1069,7 @@ internal class TestDataHelper(
     }
 
     fun bekreftetAvvistVilkårsvurdertKlage(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
     ): VilkårsvurdertKlage.Bekreftet.Avvist {
         return utfyltAvvistVilkårsvurdertKlage(vedtak).bekreftVilkårsvurderinger(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetAvvistVilkårsvurdertKlage"),
@@ -1099,7 +1099,7 @@ internal class TestDataHelper(
     }
 
     fun utfyltVurdertKlage(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
     ): VurdertKlage.Utfylt {
         return påBegyntVurdertKlage(vedtak = vedtak).vurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
@@ -1120,7 +1120,7 @@ internal class TestDataHelper(
     }
 
     fun bekreftetVurdertKlage(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
     ): VurdertKlage.Bekreftet {
         return utfyltVurdertKlage(vedtak = vedtak).bekreftVurderinger(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVurdertKlage"),
@@ -1130,7 +1130,7 @@ internal class TestDataHelper(
     }
 
     fun avvistKlage(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
         saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerAvvistKlage"),
         fritekstTilBrev: String = "en god, og lang fritekst",
     ): AvvistKlage {
@@ -1143,7 +1143,7 @@ internal class TestDataHelper(
     }
 
     fun klageTilAttesteringTilVurdering(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
         oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     ): KlageTilAttestering.Vurdert {
         return bekreftetVurdertKlage(vedtak = vedtak).sendTilAttestering(
@@ -1158,7 +1158,7 @@ internal class TestDataHelper(
     }
 
     fun avvistKlageTilAttestering(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
         oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
         saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerAvvistKlageTilAttestering"),
         fritekstTilBrev: String = "en god, og lang fritekst",
@@ -1172,7 +1172,7 @@ internal class TestDataHelper(
     }
 
     fun underkjentKlageTilVurdering(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
         oppgaveId: OppgaveId = OppgaveId("underkjentKlageOppgaveId"),
     ): VurdertKlage.Bekreftet {
         return klageTilAttesteringTilVurdering(vedtak = vedtak, oppgaveId = oppgaveId).underkjenn(
@@ -1191,7 +1191,7 @@ internal class TestDataHelper(
     }
 
     fun underkjentAvvistKlage(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
         oppgaveId: OppgaveId = OppgaveId("underkjentKlageOppgaveId"),
     ): AvvistKlage {
         return avvistKlageTilAttestering(vedtak, oppgaveId).underkjenn(
@@ -1207,7 +1207,7 @@ internal class TestDataHelper(
     }
 
     fun oversendtKlage(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
         oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     ): OversendtKlage {
         return klageTilAttesteringTilVurdering(vedtak = vedtak, oppgaveId = oppgaveId).oversend(
@@ -1221,7 +1221,7 @@ internal class TestDataHelper(
     }
 
     fun iverksattAvvistKlage(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
         oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     ): IverksattAvvistKlage {
         return avvistKlageTilAttestering(vedtak, oppgaveId).iverksett(

@@ -32,7 +32,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.FinnSaksbehandlerVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingVisitor
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakVisitor
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -220,27 +221,27 @@ class LagBrevRequestVisitor(
         brevRequest = revurderingIngenEndring(revurdering, revurdering.beregning)
     }
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling) {
         brevRequest = innvilgetVedtakSøknadsbehandling(vedtak)
     }
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse.InnvilgetRevurdering) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering) {
         brevRequest = innvilgetVedtakRevurdering(vedtak)
     }
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse.OpphørtRevurdering) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering) {
         brevRequest = opphørsvedtak(vedtak)
     }
 
-    override fun visit(vedtak: Vedtak.Avslag.AvslagVilkår) {
+    override fun visit(vedtak: Avslagsvedtak.AvslagVilkår) {
         brevRequest = avslåttVedtakSøknadsbehandling(vedtak)
     }
 
-    override fun visit(vedtak: Vedtak.Avslag.AvslagBeregning) {
+    override fun visit(vedtak: Avslagsvedtak.AvslagBeregning) {
         brevRequest = avslåttVedtakSøknadsbehandling(vedtak)
     }
 
-    override fun visit(vedtak: Vedtak.IngenEndringIYtelse) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.IngenEndringIYtelse) {
         brevRequest = vedtakIngenEndringIYtelse(vedtak)
     }
 
@@ -258,11 +259,11 @@ class LagBrevRequestVisitor(
         }
     }
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse.StansAvYtelse) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
         throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
     }
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse.GjenopptakAvYtelse) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse) {
         throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
     }
 
@@ -445,7 +446,7 @@ class LagBrevRequestVisitor(
         ) : RuntimeException(msg)
     }
 
-    private fun innvilgetVedtakSøknadsbehandling(vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling) =
+    private fun innvilgetVedtakSøknadsbehandling(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling) =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
             saksbehandler = vedtak.saksbehandler,
@@ -460,7 +461,7 @@ class LagBrevRequestVisitor(
             )
         }
 
-    private fun innvilgetVedtakRevurdering(vedtak: Vedtak.EndringIYtelse.InnvilgetRevurdering) =
+    private fun innvilgetVedtakRevurdering(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering) =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
             saksbehandler = vedtak.saksbehandler,
@@ -478,7 +479,7 @@ class LagBrevRequestVisitor(
             )
         }
 
-    private fun opphørsvedtak(vedtak: Vedtak.EndringIYtelse.OpphørtRevurdering) =
+    private fun opphørsvedtak(vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering) =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
             saksbehandler = vedtak.saksbehandler,
@@ -498,7 +499,7 @@ class LagBrevRequestVisitor(
         }
 
     private fun avslåttVedtakSøknadsbehandling(
-        vedtak: Vedtak.Avslag,
+        vedtak: Avslagsvedtak,
     ) =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
@@ -510,12 +511,12 @@ class LagBrevRequestVisitor(
                 avslagsgrunner = vedtak.avslagsgrunner,
                 harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.ifNotEmpty { harEktefelle() } ?: false,
                 beregning = when (vedtak) {
-                    is Vedtak.Avslag.AvslagBeregning -> vedtak.beregning
-                    is Vedtak.Avslag.AvslagVilkår -> null
+                    is Avslagsvedtak.AvslagBeregning -> vedtak.beregning
+                    is Avslagsvedtak.AvslagVilkår -> null
                 },
                 fritekst = when (vedtak) {
-                    is Vedtak.Avslag.AvslagBeregning -> vedtak.behandling.fritekstTilBrev
-                    is Vedtak.Avslag.AvslagVilkår -> vedtak.behandling.fritekstTilBrev
+                    is Avslagsvedtak.AvslagBeregning -> vedtak.behandling.fritekstTilBrev
+                    is Avslagsvedtak.AvslagVilkår -> vedtak.behandling.fritekstTilBrev
                 },
                 uføregrunnlag = vedtak.behandling.vilkårsvurderinger.hentUføregrunnlag(),
             )
@@ -542,7 +543,7 @@ class LagBrevRequestVisitor(
                 )
             }
 
-    private fun vedtakIngenEndringIYtelse(vedtak: Vedtak.IngenEndringIYtelse): Either<KunneIkkeLageBrevRequest, LagBrevRequest.VedtakIngenEndring> =
+    private fun vedtakIngenEndringIYtelse(vedtak: VedtakSomKanRevurderes.IngenEndringIYtelse): Either<KunneIkkeLageBrevRequest, LagBrevRequest.VedtakIngenEndring> =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
             saksbehandler = vedtak.saksbehandler,

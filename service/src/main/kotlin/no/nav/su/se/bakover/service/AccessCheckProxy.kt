@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -73,6 +74,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
@@ -543,7 +545,7 @@ open class AccessCheckProxy(
                 override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak, Unit> =
                     kastKanKunKallesFraAnnenService()
 
-                override fun lukkOppgaveMedBruker(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> =
+                override fun lukkOppgaveMedBruker(behandling: Behandling): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit> =
                     kastKanKunKallesFraAnnenService()
             },
             revurdering = object : RevurderingService {
@@ -782,7 +784,7 @@ open class AccessCheckProxy(
 
                 override fun kallInn(sakId: UUID, kontrollsamtale: Kontrollsamtale): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> = kastKanKunKallesFraAnnenService()
                 override fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> = kastKanKunKallesFraAnnenService()
-                override fun opprettPlanlagtKontrollsamtale(vedtak: Vedtak): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> = kastKanKunKallesFraAnnenService()
+                override fun opprettPlanlagtKontrollsamtale(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> = kastKanKunKallesFraAnnenService()
                 override fun oppdaterNestePlanlagteKontrollsamtaleStatus(
                     sakId: UUID,
                     status: Kontrollsamtalestatus,

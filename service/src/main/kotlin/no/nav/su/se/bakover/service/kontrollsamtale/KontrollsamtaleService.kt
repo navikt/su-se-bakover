@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -32,7 +32,7 @@ interface KontrollsamtaleService {
     fun nyDato(sakId: UUID, dato: LocalDate): Either<KunneIkkeSetteNyDatoForKontrollsamtale, Unit>
     fun hentNestePlanlagteKontrollsamtale(sakId: UUID): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale>
     fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>>
-    fun opprettPlanlagtKontrollsamtale(vedtak: Vedtak): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale>
+    fun opprettPlanlagtKontrollsamtale(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale>
     fun oppdaterNestePlanlagteKontrollsamtaleStatus(
         sakId: UUID,
         status: Kontrollsamtalestatus,
@@ -141,7 +141,7 @@ class KontrollsamtaleServiceImpl(
             return KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler.left()
         }
 
-    override fun opprettPlanlagtKontrollsamtale(vedtak: Vedtak): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> {
+    override fun opprettPlanlagtKontrollsamtale(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> {
         val planlagtKontrollsamtaleEksisterer = hentNestePlanlagteKontrollsamtale(vedtak.behandling.sakId).isRight()
 
         return if (planlagtKontrollsamtaleEksisterer) {

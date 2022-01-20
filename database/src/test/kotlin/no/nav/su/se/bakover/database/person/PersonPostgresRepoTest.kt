@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import javax.sql.DataSource
@@ -277,7 +277,7 @@ internal class PersonPostgresRepoTest {
     private data class VedtakCtx(
         val dataSource: DataSource,
         val repo: PersonPostgresRepo,
-        val søknadsbehandlingVedtak: Vedtak,
-        val revurderingVedtak: Vedtak,
+        val søknadsbehandlingVedtak: VedtakSomKanRevurderes,
+        val revurderingVedtak: VedtakSomKanRevurderes,
     )
 }

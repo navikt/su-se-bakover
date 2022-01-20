@@ -104,7 +104,7 @@ internal class GjeldendeVedtaksdataTest {
         data.tidslinjeForVedtakErSammenhengende() shouldBe true
     }
 
-    private fun førstegangsvedtak(periode: Periode) = Vedtak.fromSøknadsbehandling(
+    private fun førstegangsvedtak(periode: Periode) = VedtakSomKanRevurderes.fromSøknadsbehandling(
         søknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -191,7 +191,7 @@ internal class GjeldendeVedtaksdataTest {
         clock = fixedClock,
     )
 
-    private fun revurdering(periode: Periode, førstegangsvedtak: Vedtak.EndringIYtelse) = Vedtak.from(
+    private fun revurdering(periode: Periode, førstegangsvedtak: VedtakSomKanRevurderes.EndringIYtelse) = VedtakSomKanRevurderes.from(
         revurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = periode,

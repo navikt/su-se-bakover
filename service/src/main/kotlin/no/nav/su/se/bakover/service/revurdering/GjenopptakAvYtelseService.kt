@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
@@ -50,7 +49,7 @@ class GjenopptakAvYtelseService(
                 ),
             ).tidslinje.lastOrNull()?.originaltVedtak ?: return KunneIkkeGjenopptaYtelse.FantIngenVedtak.left()
 
-        if (sisteVedtak !is Vedtak.EndringIYtelse.StansAvYtelse) {
+        if (sisteVedtak !is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
             return KunneIkkeGjenopptaYtelse.SisteVedtakErIkkeStans.left()
         } else {
             val simulertRevurdering = when (request) {
@@ -138,7 +137,7 @@ class GjenopptakAvYtelseService(
                     simulering = revurdering.simulering,
                 ).getOrHandle { return KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(it).left() }
 
-                val vedtak = Vedtak.from(iverksattRevurdering, stansUtbetaling.id, clock)
+                val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.id, clock)
 
                 revurderingRepo.lagre(iverksattRevurdering)
                 vedtakRepo.lagre(vedtak)

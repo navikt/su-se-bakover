@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
@@ -40,7 +40,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
     beregning: Beregning = beregning(periode = stønadsperiode.periode),
     utbetalingId: UUID30 = UUID30.randomUUID(),
     clock: Clock = fixedClock,
-): Pair<Sak, Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling> {
+): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling> {
     return søknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -58,7 +58,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
         )
-        val vedtak = Vedtak.fromSøknadsbehandling(
+        val vedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(
             søknadsbehandling = søknadsbehandling,
             utbetalingId = utbetalingId,
             clock = clock,
@@ -84,7 +84,7 @@ fun vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregningAvslagForHøyInntekt(),
     clock: Clock = fixedClock,
-): Pair<Sak, Vedtak.Avslag.AvslagBeregning> {
+): Pair<Sak, Avslagsvedtak.AvslagBeregning> {
     return søknadsbehandlingIverksattAvslagMedBeregning(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -93,7 +93,7 @@ fun vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
         vilkårsvurderinger = vilkårsvurderinger,
         beregning = beregning,
     ).let { (sak, søknadsbehandling) ->
-        val vedtak = Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(
+        val vedtak = Avslagsvedtak.fromSøknadsbehandlingMedBeregning(
             avslag = søknadsbehandling,
             clock = clock,
         )
@@ -120,7 +120,7 @@ fun vedtakRevurderingIverksattInnvilget(
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes>,
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     clock: Clock = fixedClock,
-): Pair<Sak, Vedtak.EndringIYtelse> {
+): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> {
     return iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
@@ -136,7 +136,7 @@ fun vedtakRevurderingIverksattInnvilget(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
         )
-        val vedtak = Vedtak.from(
+        val vedtak = VedtakSomKanRevurderes.from(
             revurdering = revurdering,
             utbetalingId = utbetalingId,
             clock = clock,
@@ -165,7 +165,7 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         clock = clock,
     ),
     attestering: Attestering = attesteringIverksatt(clock = clock),
-): Pair<Sak, Vedtak.EndringIYtelse.StansAvYtelse> {
+): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse> {
     return iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
@@ -181,7 +181,7 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             clock = clock.plus(1, ChronoUnit.SECONDS),
         )
 
-        val vedtak = Vedtak.from(
+        val vedtak = VedtakSomKanRevurderes.from(
             revurdering = revurdering,
             utbetalingId = utbetaling.id,
             clock = clock.plus(1, ChronoUnit.SECONDS),
@@ -207,7 +207,7 @@ fun vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
         clock = clock,
     ),
     attestering: Attestering = attesteringIverksatt(clock = clock),
-): Pair<Sak, Vedtak.EndringIYtelse.GjenopptakAvYtelse> {
+): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse> {
     return iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
         periode = periode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
@@ -223,7 +223,7 @@ fun vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
             clock = clock,
         )
 
-        val vedtak = Vedtak.from(
+        val vedtak = VedtakSomKanRevurderes.from(
             revurdering = revurdering,
             utbetalingId = utbetaling.id,
             clock = clock,
@@ -260,7 +260,7 @@ fun vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
     },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock = clock),
-): Pair<Sak, Vedtak.EndringIYtelse.OpphørtRevurdering> {
+): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering> {
     return iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -282,7 +282,7 @@ fun vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
             clock = clock,
         )
 
-        val vedtak = Vedtak.from(
+        val vedtak = VedtakSomKanRevurderes.from(
             revurdering = revurdering,
             utbetalingId = utbetaling.id,
             clock = clock,
