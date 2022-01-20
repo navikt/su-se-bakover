@@ -1082,7 +1082,7 @@ internal class TestDataHelper(
     }
 
     fun påBegyntVurdertKlage(
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
     ): VurdertKlage.Påbegynt {
         return bekreftetVilkårsvurdertKlageTilVurdering(vedtak = vedtak).vurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
