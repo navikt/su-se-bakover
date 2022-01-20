@@ -96,12 +96,13 @@ internal class SakPostgresRepoTest {
             testDataHelper.iverksattRevurderingInnvilget()
 
             val opprettetKlage = testDataHelper.nyKlage()
+            val vurdertKlage = testDataHelper.påBegyntVurdertKlage()
             val klageTilAttestering = testDataHelper.avvistKlageTilAttestering()
             testDataHelper.iverksattAvvistKlage()
 
             val alleRestanser = repo.hentSakRestanser()
 
-            alleRestanser.size shouldBe 9
+            alleRestanser.size shouldBe 10
 
             alleRestanser shouldContainExactlyInAnyOrder listOf(
                 SakRestans(
@@ -164,6 +165,13 @@ internal class SakPostgresRepoTest {
                 ),
                 SakRestans(
                     saksnummer = Saksnummer(nummer = 2031),
+                    behandlingsId = vurdertKlage.id,
+                    restansType = SakRestans.RestansType.KLAGE,
+                    status = SakRestans.RestansStatus.UNDER_BEHANDLING,
+                    behandlingStartet = vurdertKlage.opprettet,
+                ),
+                SakRestans(
+                    saksnummer = Saksnummer(nummer = 2032),
                     behandlingsId = klageTilAttestering.id,
                     restansType = SakRestans.RestansType.KLAGE,
                     status = SakRestans.RestansStatus.TIL_ATTESTERING,

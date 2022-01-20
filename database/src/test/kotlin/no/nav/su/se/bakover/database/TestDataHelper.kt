@@ -1081,10 +1081,27 @@ internal class TestDataHelper(
         }
     }
 
+    fun påBegyntVurdertKlage(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VurdertKlage.Påbegynt {
+        return bekreftetVilkårsvurdertKlageTilVurdering(vedtak = vedtak).vurder(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
+            vurderinger = VurderingerTilKlage.Påbegynt.create(
+                fritekstTilBrev = "Friteksten til brevet er som følge: ",
+                vedtaksvurdering = null,
+            ),
+        ).getOrFail().let {
+            if (it !is VurdertKlage.Påbegynt) throw IllegalStateException("Forventet en Påbegynt vurdert klage. fikk ${it::class} ved opprettelse av test data")
+            it
+        }.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
     fun utfyltVurdertKlage(
         vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
     ): VurdertKlage.Utfylt {
-        return bekreftetVilkårsvurdertKlageTilVurdering(vedtak = vedtak).vurder(
+        return påBegyntVurdertKlage(vedtak = vedtak).vurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
             vurderinger = VurderingerTilKlage.Utfylt(
                 fritekstTilBrev = "Friteksten til brevet er som følge: ",
@@ -1094,7 +1111,10 @@ internal class TestDataHelper(
                     ),
                 ),
             ),
-        ).also {
+        ).getOrFail().let {
+            if (it !is VurdertKlage.Utfylt) throw IllegalStateException("Forventet en Påbegynt vurdert klage. fikk ${it::class} ved opprettelse av test data")
+            it
+        }.also {
             klagePostgresRepo.lagre(it)
         }
     }

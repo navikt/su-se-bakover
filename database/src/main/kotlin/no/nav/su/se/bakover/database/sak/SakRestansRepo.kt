@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.database.tidspunktOrNull
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 import java.util.UUID
 
 internal class SakRestansRepo(
@@ -98,7 +97,7 @@ internal class SakRestansRepo(
                 RestansTypeDB.SØKNADSBEHANDLING -> behandlingStatusTilRestansStatus(BehandlingsStatus.valueOf(string("status")))
                 RestansTypeDB.REVURDERING -> revurderingTypeTilRestansStatus(RevurderingsType.valueOf(string("status")))
                 RestansTypeDB.SØKNAD -> SakRestans.RestansStatus.NY_SØKNAD
-                RestansTypeDB.KLAGE -> KlagePostgresRepo.Tilstand.valueOf(string("status").toUpperCaseAsciiOnly()).tilRestansStatus()
+                RestansTypeDB.KLAGE -> KlagePostgresRepo.Tilstand.fromString(string("status")).tilRestansStatus()
             },
             behandlingStartet = tidspunktOrNull("opprettet"),
         )
