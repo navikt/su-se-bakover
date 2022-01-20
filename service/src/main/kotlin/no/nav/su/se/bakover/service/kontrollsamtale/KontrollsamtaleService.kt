@@ -63,7 +63,7 @@ class KontrollsamtaleServiceImpl(
             return KunneIkkeKalleInnTilKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left()
         }
 
-        val person = personService.hentPerson(sak.fnr).getOrElse {
+        val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
             log.error("Fant ikke person for fnr: ${sak.fnr}")
             return KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
         }
@@ -88,7 +88,7 @@ class KontrollsamtaleServiceImpl(
                         throw RuntimeException("Fikk ikke opprettet ny innkalling til neste kontrollsamtale")
                     }
                 }
-                oppgaveService.opprettOppgave(
+                oppgaveService.opprettOppgaveMedSystembruker(
                     config = OppgaveConfig.Kontrollsamtale(
                         saksnummer = sak.saksnummer,
                         aktørId = person.ident.aktørId,
