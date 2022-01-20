@@ -95,9 +95,13 @@ internal class SakPostgresRepoTest {
             val underkjentRevurdering = testDataHelper.underkjentRevurderingFraInnvilget()
             testDataHelper.iverksattRevurderingInnvilget()
 
+            val opprettetKlage = testDataHelper.nyKlage()
+            val klageTilAttestering = testDataHelper.avvistKlageTilAttestering()
+            testDataHelper.iverksattAvvistKlage()
+
             val alleRestanser = repo.hentSakRestanser()
 
-            alleRestanser.size shouldBe 7
+            alleRestanser.size shouldBe 9
 
             alleRestanser shouldContainExactlyInAnyOrder listOf(
                 SakRestans(
@@ -150,6 +154,20 @@ internal class SakPostgresRepoTest {
                     restansType = SakRestans.RestansType.REVURDERING,
                     status = SakRestans.RestansStatus.UNDERKJENT,
                     behandlingStartet = underkjentRevurdering.opprettet,
+                ),
+                SakRestans(
+                    saksnummer = Saksnummer(nummer = 2030),
+                    behandlingsId = opprettetKlage.id,
+                    restansType = SakRestans.RestansType.KLAGE,
+                    status = SakRestans.RestansStatus.UNDER_BEHANDLING,
+                    behandlingStartet = opprettetKlage.opprettet,
+                ),
+                SakRestans(
+                    saksnummer = Saksnummer(nummer = 2031),
+                    behandlingsId = klageTilAttestering.id,
+                    restansType = SakRestans.RestansType.KLAGE,
+                    status = SakRestans.RestansStatus.TIL_ATTESTERING,
+                    behandlingStartet = klageTilAttestering.opprettet,
                 ),
             )
         }
