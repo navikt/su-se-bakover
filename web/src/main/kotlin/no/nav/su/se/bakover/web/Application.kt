@@ -346,6 +346,7 @@ fun Application.susebakover(
     ).schedule()
 
     KontrollsamtaleinnkallingJob(
+        isProd = applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod,
         leaderPodLookup = clients.leaderPodLookup,
         kontrollsamtaleService = services.kontrollsamtale,
         clock = clock,
