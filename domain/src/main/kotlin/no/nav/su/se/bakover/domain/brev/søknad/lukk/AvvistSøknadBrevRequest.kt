@@ -20,12 +20,12 @@ data class AvvistSøknadBrevRequest(
 ) : LagBrevRequest {
     override val brevInnhold = when (brevConfig) {
         is BrevConfig.Vedtak -> AvvistSøknadVedtakBrevInnhold(
-            personalia = lagPersonalia(saksnummer),
+            personalia = lagPersonalia(),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = brevConfig.getFritekst(),
         )
         is BrevConfig.Fritekst -> AvvistSøknadFritekstBrevInnhold(
-            personalia = lagPersonalia(saksnummer),
+            personalia = lagPersonalia(),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = brevConfig.getFritekst(),
         )

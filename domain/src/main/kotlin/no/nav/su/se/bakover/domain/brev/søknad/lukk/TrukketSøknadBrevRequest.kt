@@ -21,7 +21,7 @@ data class TrukketSøknadBrevRequest(
     override val saksnummer: Saksnummer,
 ) : LagBrevRequest {
     override val brevInnhold = TrukketSøknadBrevInnhold(
-        personalia = lagPersonalia(saksnummer),
+        personalia = lagPersonalia(),
         datoSøknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo),
         trukketDato = trukketDato,
         saksbehandlerNavn = saksbehandlerNavn,

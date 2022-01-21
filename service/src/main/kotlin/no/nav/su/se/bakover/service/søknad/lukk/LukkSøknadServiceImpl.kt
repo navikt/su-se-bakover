@@ -138,7 +138,7 @@ internal class LukkSøknadServiceImpl(
                     log.error("Kunne ikke lage brevutkast siden vi ikke fant personen for søknad ${request.søknadId}")
                     KunneIkkeLageBrevutkast.FantIkkePerson
                 }.flatMap { person ->
-                    val sak = sakService.hentSak(fnr = person.ident.fnr)
+                    val sak = sakService.hentSakidOgSaksnummer(fnr = person.ident.fnr)
                         .getOrHandle { return KunneIkkeLageBrevutkast.FantIkkeSak.left() }
                     val brevRequest = when (request) {
                         is LukkSøknadRequest.MedBrev -> lagBrevRequest(person, søknad, request, sak.saksnummer)
@@ -204,7 +204,7 @@ internal class LukkSøknadServiceImpl(
         søknad: Søknad.Journalført.MedOppgave.IkkeLukket,
         lukketSøknadsbehandling: LukketSøknadsbehandling?,
     ): Either<KunneIkkeLukkeSøknad, Søknad.Journalført.MedOppgave.Lukket> {
-        val sak = sakService.hentSak(fnr = person.ident.fnr)
+        val sak = sakService.hentSakidOgSaksnummer(fnr = person.ident.fnr)
             .getOrHandle { return KunneIkkeLukkeSøknad.FantIkkeSak.left() }
         val dokument = lagBrevRequest(person, søknad, request, sak.saksnummer)
             .tilDokument {
