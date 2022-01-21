@@ -195,7 +195,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
@@ -401,7 +401,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(

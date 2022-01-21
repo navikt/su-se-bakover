@@ -194,29 +194,38 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
 
-        return søknadsbehandling.beregn(
-            begrunnelse = request.begrunnelse,
+        /**
+         * Må "friske opp" eventuelle utestående avkortinger før beregning gjennomføres for å kunne støtte alle
+         * varianter av navigering fram og tilbake mellom tilstander.
+         */
+        return søknadsbehandling.leggTilUteståendeAvkorting(
+            avkorting = hentUteståendeAvkorting(søknadsbehandling.sakId),
             clock = clock,
-        ).getOrHandle {
-            return when (it) {
-                is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand -> {
-                    KunneIkkeBeregne.UgyldigTilstand(it.fra, it.til)
-                }
-                is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
-                    KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it.feil.toService())
-                }
-                Søknadsbehandling.KunneIkkeBeregne.AvkortingErUfullstendig -> {
-                    KunneIkkeBeregne.AvkortingErUfullstendig
-                }
-            }.left()
-        }.let {
-            // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
-            grunnlagService.lagreFradragsgrunnlag(
-                behandlingId = it.id,
-                fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-            )
-            søknadsbehandlingRepo.lagre(it)
-            it.right()
+        ).let { vilkårsvurdert ->
+            vilkårsvurdert.beregn(
+                begrunnelse = request.begrunnelse,
+                clock = clock,
+            ).getOrHandle { feil ->
+                return when (feil) {
+                    is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand -> {
+                        KunneIkkeBeregne.UgyldigTilstand(feil.fra, feil.til)
+                    }
+                    is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
+                        KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(feil.feil.toService())
+                    }
+                    Søknadsbehandling.KunneIkkeBeregne.AvkortingErUfullstendig -> {
+                        KunneIkkeBeregne.AvkortingErUfullstendig
+                    }
+                }.left()
+            }.let {
+                // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
+                grunnlagService.lagreFradragsgrunnlag(
+                    behandlingId = it.id,
+                    fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
+                )
+                søknadsbehandlingRepo.lagre(it)
+                it.right()
+            }
         }
     }
 

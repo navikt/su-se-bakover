@@ -40,7 +40,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
     grunnlagsdata: Grunnlagsdata = Grunnlagsdata.IkkeVurdert,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårUavklart,
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
-    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
     clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
     return nySakMedjournalførtSøknadOgOppgave(

@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -32,7 +33,6 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -44,8 +44,6 @@ internal class StatusovergangTest {
     private val sakOgUavklart = søknadsbehandlingVilkårsvurdertUavklart(
         stønadsperiode = stønadsperiode,
     )
-
-    private val sak = sakOgUavklart.first
 
     private val opprettet = sakOgUavklart.second
 
@@ -401,14 +399,21 @@ internal class StatusovergangTest {
             ).getOrFail() shouldBe beregnetInnvilget
         }
 
-        // TODO avkorting
         @Test
-        @Disabled
-        fun `kan beregne på nytt for beregnet avslag`() {
-            beregnetAvslag.beregn(
-                begrunnelse = null,
-                clock = fixedClock,
-            ).getOrFail() shouldBe beregnetAvslag
+        fun `kan ikke beregne beregnet avslag før eventuelle avkortinger er oppfrisket`() {
+            assertThrows<IllegalStateException> {
+                beregnetAvslag.beregn(
+                    begrunnelse = null,
+                    clock = fixedClock,
+                ).getOrFail() shouldBe beregnetAvslag
+            }
+
+            beregnetAvslag
+                .leggTilUteståendeAvkorting(AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående, fixedClock)
+                .beregn(
+                    begrunnelse = null,
+                    clock = fixedClock,
+                ).getOrFail() shouldBe beregnetAvslag
         }
 
         @Test
@@ -419,14 +424,23 @@ internal class StatusovergangTest {
             ).getOrFail() shouldBe beregnetInnvilget
         }
 
-        // TODO avkorting
         @Test
-        @Disabled
-        fun `kan beregne på nytt underkjent avslag med beregning`() {
-            underkjentAvslagBeregning.beregn(
-                begrunnelse = null,
-                clock = fixedClock,
-            ).getOrFail() shouldBe beregnetAvslag
+        fun `kan ikke beregne underkjent avslag med beregning på nytt før avkortinger er oppfrisket`() {
+            assertThrows<IllegalStateException> {
+                underkjentAvslagBeregning.beregn(
+                    begrunnelse = null,
+                    clock = fixedClock,
+                ).getOrFail() shouldBe beregnetAvslag
+                    .medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
+                    .copy(attesteringer = Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
+            }
+
+            underkjentAvslagBeregning
+                .leggTilUteståendeAvkorting(AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående, fixedClock)
+                .beregn(
+                    begrunnelse = null,
+                    clock = fixedClock,
+                ).getOrFail() shouldBe beregnetAvslag
                 .medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
                 .copy(attesteringer = Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
         }
@@ -629,8 +643,8 @@ internal class StatusovergangTest {
             val simulertMedFeilutbetaling = søknadsbehandlingSimulert().let { (_, søknadsbehandling) ->
                 søknadsbehandling.copy(
                     simulering = simuleringFeilutbetaling(
-                        søknadsbehandling.beregning.getMånedsberegninger().first().periode
-                    )
+                        søknadsbehandling.beregning.getMånedsberegninger().first().periode,
+                    ),
                 )
             }
             assertThrows<IllegalStateException> {
@@ -640,13 +654,14 @@ internal class StatusovergangTest {
                 )
             }
 
-            val underkjentInnvilgetMedFeilutbetaling = søknadsbehandlingUnderkjentInnvilget().let { (_, søknadsbehandling) ->
-                søknadsbehandling.copy(
-                    simulering = simuleringFeilutbetaling(
-                        søknadsbehandling.beregning.getMånedsberegninger().first().periode
+            val underkjentInnvilgetMedFeilutbetaling =
+                søknadsbehandlingUnderkjentInnvilget().let { (_, søknadsbehandling) ->
+                    søknadsbehandling.copy(
+                        simulering = simuleringFeilutbetaling(
+                            søknadsbehandling.beregning.getMånedsberegninger().first().periode,
+                        ),
                     )
-                )
-            }
+                }
             assertThrows<IllegalStateException> {
                 statusovergang(
                     underkjentInnvilgetMedFeilutbetaling,
@@ -844,8 +859,8 @@ internal class StatusovergangTest {
             val medFeilutbetaling = søknadsbehandlingTilAttesteringInnvilget().let { (_, tilAttestering) ->
                 tilAttestering.copy(
                     simulering = simuleringFeilutbetaling(
-                        tilAttestering.beregning.getMånedsberegninger().first().periode
-                    )
+                        tilAttestering.beregning.getMånedsberegninger().first().periode,
+                    ),
                 )
             }
             assertThrows<IllegalStateException> {
