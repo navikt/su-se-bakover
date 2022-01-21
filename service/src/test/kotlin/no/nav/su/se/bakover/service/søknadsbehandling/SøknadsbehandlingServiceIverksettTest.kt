@@ -51,7 +51,6 @@ import no.nav.su.se.bakover.test.simuleringNy
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -97,8 +96,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
     }
 
-    @Test // TODO avkorting
-    @Disabled
+    @Test
     fun `feiler hvis utestående avkortinger ikke kunne avkortes fullstendig`() {
         val tilAttestering = søknadsbehandlingVilkårsvurdertInnvilget().let { (_, vilkårsvurdert) ->
             vilkårsvurdert.leggTilFradragsgrunnlag(
@@ -146,80 +144,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
             verify(it.søknadsbehandlingRepo).hent(tilAttestering.id)
             it.verifyNoMoreInteractions()
-        }
-    }
-
-    // TODO avkorting
-    @Test
-    @Disabled
-    fun `markerer avkortinger som ferdigstilt hvis fullstendig`() {
-        val uteståendeAvkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-            Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                sakId = sakId,
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(
-                    desember(2020),
-                ),
-            ).skalAvkortes(),
-        )
-
-        val tilAttestering = søknadsbehandlingVilkårsvurdertInnvilget(
-            avkorting = uteståendeAvkorting,
-        ).let { (_, vilkårsvurdert) ->
-            vilkårsvurdert.leggTilFradragsgrunnlag(
-                fradragsgrunnlag = listOf(
-                    fradragsgrunnlagArbeidsinntekt(
-                        arbeidsinntekt = 17500.0,
-                    ),
-                ),
-            ).getOrFail().beregn(
-                begrunnelse = null,
-                clock = fixedClock,
-            ).getOrFail().let {
-                it.tilSimulert(simuleringNy(it.beregning))
-            }.tilAttestering(
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = "njet",
-            )
-        }
-
-        SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = mock {
-                on { hent(any()) } doReturn tilAttestering
-            },
-            utbetalingService = mock {
-                on { utbetal(any(), any(), any(), any(), any()) } doReturn utbetaling.right()
-            },
-        ).let { serviceAndMocks ->
-            val response = serviceAndMocks.søknadsbehandlingService.iverksett(
-                SøknadsbehandlingService.IverksettRequest(
-                    tilAttestering.id,
-                    Attestering.Iverksatt(attestant, fixedTidspunkt),
-                ),
-            ).getOrFail()
-
-            response shouldBe tilAttestering.tilIverksatt(
-                Attestering.Iverksatt(attestant, fixedTidspunkt),
-            )
-
-            verify(serviceAndMocks.søknadsbehandlingRepo).hent(tilAttestering.id)
-            verify(serviceAndMocks.utbetalingService).utbetal(any(), any(), any(), any(), any())
-            verify(serviceAndMocks.søknadsbehandlingRepo).defaultTransactionContext()
-            verify(serviceAndMocks.søknadsbehandlingRepo).lagre(
-                argThat {
-                    it shouldBe response
-                    (it.avkorting as AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående).let {
-                        it.avkortUtestående shouldBe uteståendeAvkorting.avkortingsvarsel.avkortet(response.id)
-                    }
-                },
-                anyOrNull(),
-            )
-            verify(serviceAndMocks.vedtakRepo).lagre(any())
-            verify(serviceAndMocks.behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
-            verify(serviceAndMocks.observer, times(2)).handle(any())
-            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 

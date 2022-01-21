@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
@@ -50,7 +49,6 @@ import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøkn
 import no.nav.su.se.bakover.test.utlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -427,14 +425,8 @@ internal class RevurderingBeregnOgSimulerTest {
         }
     }
 
-    // TODO avkorting
     @Test
-    @Disabled
     fun `tar med gjeldende grunnlag for avkorting for revurderingsperioden ved beregning`() {
-        /**
-         * default beløp satt av [no.nav.su.se.bakover.test.utbetalingslinje]
-         * avkorting som følge av revurderingsperiode forut for [no.nav.su.se.bakover.test.nåtidForSimuleringStub] (fører til feilutbetaling)
-         * */
         val expectedAvkorting = 2 * 21989
 
         val tikkendeKlokke = TikkendeKlokke()
@@ -458,7 +450,6 @@ internal class RevurderingBeregnOgSimulerTest {
             clock = tikkendeKlokke,
         )
 
-        // TODO avkorting
         val stønadsperiode2 = Stønadsperiode.create(Periode.create(1.juli(2021), 31.desember(2021)), "baluba")
         val uteståendeAvkorting = (((revurdering1 as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering).behandling.avkorting) as AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel).avkortingsvarsel
         val (sakEtterInnvilgelse2, innvilget2) = vedtakSøknadsbehandlingIverksattInnvilget(
@@ -503,7 +494,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 saksbehandler = saksbehandler,
             ).getOrFail().revurdering
 
-            (actual as BeregnetRevurdering.IngenEndring).let { simulert ->
+            (actual as SimulertRevurdering.Innvilget).let { simulert ->
                 simulert.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp } shouldBe expectedAvkorting
                 simulert.beregning.getFradrag().filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }

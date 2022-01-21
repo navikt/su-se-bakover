@@ -670,7 +670,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         // noop
                     }
                     is AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere -> {
-                        throw IllegalStateException("Innvilget søknadsbehandling:${søknadsbehandling.id}} bør håndtere avkorting")
+                        throw IllegalStateException("Innvilget søknadsbehandling:${søknadsbehandling.id} bør håndtere avkorting")
                     }
                 }
             }
