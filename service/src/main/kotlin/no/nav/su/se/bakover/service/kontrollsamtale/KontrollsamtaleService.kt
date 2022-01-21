@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
@@ -68,7 +69,7 @@ class KontrollsamtaleServiceImpl(
             return KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
         }
 
-        val dokument = lagDokument(person, sakId).getOrElse {
+        val dokument = lagDokument(person, sakId, sak.saksnummer).getOrElse {
             log.error("Klarte ikke lage dokument for innkalling til kontrollsamtale på sakId $sakId")
             return KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument.left()
         }
@@ -187,10 +188,12 @@ class KontrollsamtaleServiceImpl(
     private fun lagDokument(
         person: Person,
         sakId: UUID,
+        saksnummer: Saksnummer,
     ): Either<KunneIkkeLageBrev, Dokument.MedMetadata.Informasjon> {
         val brevRequest = LagBrevRequest.InnkallingTilKontrollsamtale(
             person = person,
             dagensDato = LocalDate.now(clock),
+            saksnummer = saksnummer,
         )
         return brevService.lagBrev(brevRequest).map {
             Dokument.UtenMetadata.Informasjon(

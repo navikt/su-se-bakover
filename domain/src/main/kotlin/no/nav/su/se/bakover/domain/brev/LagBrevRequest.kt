@@ -25,6 +25,7 @@ interface LagBrevRequest {
     val person: Person
     val brevInnhold: BrevInnhold
     val dagensDato: LocalDate
+    val saksnummer: Saksnummer
 
     fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata>
 
@@ -48,6 +49,7 @@ interface LagBrevRequest {
         private val attestantNavn: String,
         private val fritekst: String,
         override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.InnvilgetVedtak(
             personalia = lagPersonalia(),
@@ -89,6 +91,7 @@ interface LagBrevRequest {
         private val fritekst: String,
         private val forventetInntektStørreEnn0: Boolean,
         override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.AvslagsBrevInnhold(
             personalia = lagPersonalia(),
@@ -129,6 +132,7 @@ interface LagBrevRequest {
         private val fritekst: String,
         private val opphørsgrunner: List<Opphørsgrunn>,
         override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.Opphørsvedtak(
             personalia = lagPersonalia(),
@@ -173,6 +177,7 @@ interface LagBrevRequest {
         private val forventetInntektStørreEnn0: Boolean,
         private val gjeldendeMånedsutbetaling: Int,
         override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.VedtakIngenEndring(
             personalia = lagPersonalia(),
@@ -206,6 +211,7 @@ interface LagBrevRequest {
         private val saksbehandlerNavn: String,
         private val fritekst: String,
         override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.Forhåndsvarsel(
             personalia = lagPersonalia(),
@@ -235,6 +241,7 @@ interface LagBrevRequest {
         private val saksbehandlerNavn: String,
         private val fritekst: String?,
         override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
         override val brevInnhold: BrevInnhold = BrevInnhold.AvsluttRevurdering(
             personalia = lagPersonalia(),
@@ -265,6 +272,7 @@ interface LagBrevRequest {
             private val harEktefelle: Boolean,
             private val forventetInntektStørreEnn0: Boolean,
             override val dagensDato: LocalDate,
+            override val saksnummer: Saksnummer,
         ) : Revurdering() {
             override val brevInnhold = BrevInnhold.RevurderingAvInntekt(
                 personalia = lagPersonalia(),
@@ -296,6 +304,7 @@ interface LagBrevRequest {
     data class InnkallingTilKontrollsamtale(
         override val person: Person,
         override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.InnkallingTilKontrollsamtale(
             personalia = lagPersonalia(),
@@ -322,7 +331,7 @@ interface LagBrevRequest {
             val fritekst: String,
             val klageDato: LocalDate,
             val vedtakDato: LocalDate,
-            val saksnummer: Saksnummer,
+            override val saksnummer: Saksnummer,
         ) : Klage() {
             override val brevInnhold: BrevInnhold = BrevInnhold.Klage.Oppretthold(
                 personalia = lagPersonalia(),
@@ -351,7 +360,7 @@ interface LagBrevRequest {
             override val dagensDato: LocalDate,
             val saksbehandlerNavn: String,
             val fritekst: String,
-            val saksnummer: Saksnummer,
+            override val saksnummer: Saksnummer,
         ) : Klage() {
             override val brevInnhold: BrevInnhold = BrevInnhold.Klage.Avvist(
                 personalia = lagPersonalia(),
@@ -381,6 +390,7 @@ fun LagBrevRequest.lagPersonalia() = this.person.let {
         fødselsnummer = it.ident.fnr,
         fornavn = it.navn.fornavn,
         etternavn = it.navn.etternavn,
+        saksnummer = saksnummer.nummer,
     )
 }
 

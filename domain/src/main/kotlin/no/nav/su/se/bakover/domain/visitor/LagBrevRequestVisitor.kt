@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -248,13 +249,14 @@ class LagBrevRequestVisitor(
     override fun visit(revurdering: AvsluttetRevurdering) {
         brevRequest = hentPersonOgNavn(
             // siden avslutt-brevet er et informasjons-brev, trengs ikke attestant
-            fnr = revurdering.fnr, saksbehandler = revurdering.saksbehandler, attestant = null
+            fnr = revurdering.fnr, saksbehandler = revurdering.saksbehandler, attestant = null,
         ).map {
             LagBrevRequest.AvsluttRevurdering(
                 person = it.person,
                 fritekst = revurdering.fritekst,
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 dagensDato = LocalDate.now(clock),
+                saksnummer = revurdering.saksnummer,
             )
         }
     }
@@ -315,6 +317,7 @@ class LagBrevRequestVisitor(
                 beregning = beregning,
                 fritekst = fritekst,
                 uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføre.grunnlag,
+                saksnummer = søknadsbehandling.saksnummer,
             )
         }
 
@@ -336,6 +339,7 @@ class LagBrevRequestVisitor(
                 beregning = beregning,
                 fritekst = søknadsbehandling.fritekstTilBrev,
                 uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføre.grunnlag,
+                saksnummer = søknadsbehandling.saksnummer,
             )
         }
 
@@ -355,8 +359,10 @@ class LagBrevRequestVisitor(
                 revurdertBeregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
-                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag().harForventetInntektStørreEnn0(),
+                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag()
+                    .harForventetInntektStørreEnn0(),
                 dagensDato = LocalDate.now(clock),
+                saksnummer = revurdering.saksnummer,
             )
         }
 
@@ -383,9 +389,11 @@ class LagBrevRequestVisitor(
                 fritekst = revurdering.fritekstTilBrev,
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
-                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag().harForventetInntektStørreEnn0(),
+                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag()
+                    .harForventetInntektStørreEnn0(),
                 opphørsgrunner = opphørsgrunner,
                 dagensDato = LocalDate.now(clock),
+                saksnummer = revurdering.saksnummer,
             )
         }
 
@@ -396,6 +404,7 @@ class LagBrevRequestVisitor(
         beregning: Beregning?,
         fritekst: String,
         uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        saksnummer: Saksnummer,
     ) = LagBrevRequest.AvslagBrevRequest(
         person = personOgNavn.person,
         avslag = Avslag(
@@ -409,6 +418,7 @@ class LagBrevRequestVisitor(
         fritekst = fritekst,
         forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
         dagensDato = LocalDate.now(clock),
+        saksnummer = saksnummer,
     )
 
     private fun requestForInnvilgelse(
@@ -417,6 +427,7 @@ class LagBrevRequestVisitor(
         uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
         beregning: Beregning,
         fritekst: String,
+        saksnummer: Saksnummer,
     ): LagBrevRequest.InnvilgetVedtak = LagBrevRequest.InnvilgetVedtak(
         person = personOgNavn.person,
         beregning = beregning,
@@ -427,6 +438,7 @@ class LagBrevRequestVisitor(
         fritekst = fritekst,
         forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
         dagensDato = LocalDate.now(clock),
+        saksnummer = saksnummer,
     )
 
     private data class PersonOgNavn(
@@ -458,6 +470,7 @@ class LagBrevRequestVisitor(
                 beregning = vedtak.beregning,
                 fritekst = vedtak.behandling.fritekstTilBrev,
                 uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
+                saksnummer = vedtak.behandling.saksnummer,
             )
         }
 
@@ -476,6 +489,7 @@ class LagBrevRequestVisitor(
                 harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
                 dagensDato = LocalDate.now(clock),
+                saksnummer = vedtak.behandling.saksnummer,
             )
         }
 
@@ -495,6 +509,7 @@ class LagBrevRequestVisitor(
                 forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
                 opphørsgrunner = vedtak.utledOpphørsgrunner(),
                 dagensDato = LocalDate.now(clock),
+                saksnummer = vedtak.behandling.saksnummer,
             )
         }
 
@@ -519,6 +534,7 @@ class LagBrevRequestVisitor(
                     is Avslagsvedtak.AvslagVilkår -> vedtak.behandling.fritekstTilBrev
                 },
                 uføregrunnlag = vedtak.behandling.vilkårsvurderinger.hentUføregrunnlag(),
+                saksnummer = vedtak.behandling.saksnummer,
             )
         }
 
@@ -540,6 +556,7 @@ class LagBrevRequestVisitor(
                     harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
                     uføregrunnlag = revurdering.vilkårsvurderinger.hentUføregrunnlag(),
                     gjeldendeMånedsutbetaling = gjeldendeUtbetaling,
+                    saksnummer = revurdering.saksnummer,
                 )
             }
 
@@ -558,6 +575,7 @@ class LagBrevRequestVisitor(
                     harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                     uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
                     gjeldendeMånedsutbetaling = gjeldendeUtbetaling,
+                    saksnummer = vedtak.behandling.saksnummer,
                 )
             }
 
@@ -568,6 +586,7 @@ class LagBrevRequestVisitor(
         fritekst: String,
         harEktefelle: Boolean,
         gjeldendeMånedsutbetaling: Int,
+        saksnummer: Saksnummer,
     ) = LagBrevRequest.VedtakIngenEndring(
         person = personOgNavn.person,
         saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
@@ -578,5 +597,6 @@ class LagBrevRequestVisitor(
         forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
         gjeldendeMånedsutbetaling = gjeldendeMånedsutbetaling,
         dagensDato = LocalDate.now(clock),
+        saksnummer = saksnummer,
     )
 }

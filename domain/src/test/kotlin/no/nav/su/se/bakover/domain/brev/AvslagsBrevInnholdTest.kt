@@ -14,6 +14,7 @@ class AvslagsBrevInnholdTest {
         fødselsnummer = Fnr("12345678901"),
         fornavn = "Tore",
         etternavn = "Strømøy",
+        saksnummer = 2021,
     )
 
     private val avslagsvedtak = BrevInnhold.AvslagsBrevInnhold(
@@ -27,7 +28,7 @@ class AvslagsBrevInnholdTest {
         sats = "lav",
         fritekst = "Fritekst til brevet",
         satsGjeldendeFraDato = "01.01.2020",
-        forventetInntektStørreEnn0 = false
+        forventetInntektStørreEnn0 = false,
     )
 
     @Test
@@ -40,7 +41,8 @@ class AvslagsBrevInnholdTest {
                   "dato":"01.01.2020",
                   "fødselsnummer": "12345678901",
                   "fornavn": "Tore",
-                  "etternavn": "Strømøy"
+                  "etternavn": "Strømøy",
+                  "saksnummer": 2021
               },
               "avslagsgrunner": ["FLYKTNING"],
               "harFlereAvslagsgrunner": false,
@@ -73,7 +75,7 @@ class AvslagsBrevInnholdTest {
             Avslagsgrunn.SU_UNDER_MINSTEGRENSE to listOf(5, 6, 9),
             Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER to listOf(1, 2, 4),
             Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON to listOf(12),
-            Avslagsgrunn.MANGLENDE_DOKUMENTASJON to listOf(18)
+            Avslagsgrunn.MANGLENDE_DOKUMENTASJON to listOf(18),
         ).forEach { (avslagsgrunn, paragrafer) -> avslagsgrunn.getParagrafer() shouldBe paragrafer }
     }
 
@@ -82,13 +84,13 @@ class AvslagsBrevInnholdTest {
         listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FLYKTNING).getDistinkteParagrafer() shouldBe listOf(1, 2)
         listOf(
             Avslagsgrunn.UFØRHET,
-            Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
+            Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE,
         ).getDistinkteParagrafer() shouldBe listOf(1, 2, 3, 4)
 
         listOf(
             Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON,
             Avslagsgrunn.FORMUE,
-            Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
+            Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER,
         ).getDistinkteParagrafer() shouldBe listOf(1, 2, 4, 8, 12)
     }
 }

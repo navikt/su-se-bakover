@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.sak
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Fnr
@@ -9,6 +10,7 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -34,6 +36,11 @@ internal class SakServiceImpl(
 
     override fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak> {
         return sakRepo.hentSak(saksnummer)?.right() ?: FantIkkeSak.left()
+    }
+
+    override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakIdOgNummer> {
+        return sakRepo.hentSakIdOgNummerForIdenter(personidenter = nonEmptyListOf(fnr.toString()))?.right()
+            ?: FantIkkeSak.left()
     }
 
     override fun opprettSak(sak: NySak) {
