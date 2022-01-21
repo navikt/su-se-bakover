@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtale
+import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
@@ -31,7 +32,14 @@ internal fun Route.kontrollsamtaleRoutes(
             call.withBody<Body> { body ->
                 kontrollsamtaleService.nyDato(body.sakId, body.nyDato).fold(
                     {
-                        call.svar(Feilresponser.kunneIkkeEndreDato)
+                        call.svar(
+                            when (it) {
+                                KunneIkkeSetteNyDatoForKontrollsamtale.KunneIkkeEndreDato -> Feilresponser.kunneIkkeEndreDato
+                                KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeGjeldendeStønadsperiode -> Feilresponser.fantIkkeGjeldendeStønadsperiode
+                                KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeSak -> Feilresponser.fantIkkeSak
+                                KunneIkkeSetteNyDatoForKontrollsamtale.UgyldigStatusovergang -> Feilresponser.ugyldigStatusovergangKontrollsamtale
+                            }
+                        )
                     },
                     {
                         call.svar(Resultat.okJson(HttpStatusCode.OK))

@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.kontrollsamtale
 
 import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import arrow.core.rightIfNotNull
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.between
@@ -23,23 +25,21 @@ data class Kontrollsamtale(
     val frist: LocalDate = regnUtFristFraInnkallingsdato(innkallingsdato),
     val dokumentId: UUID?,
 ) {
-    fun oppdater(
-        id: UUID = this.id,
-        opprettet: Tidspunkt = this.opprettet,
-        sakId: UUID = this.sakId,
-        innkallingsdato: LocalDate = this.innkallingsdato,
-        status: Kontrollsamtalestatus = this.status,
-        frist: LocalDate = this.frist,
-        dokumentId: UUID? = this.dokumentId,
-    ): Kontrollsamtale = Kontrollsamtale(
-        id = id,
-        opprettet = opprettet,
-        sakId = sakId,
-        innkallingsdato = innkallingsdato,
-        status = status,
-        frist = frist,
-        dokumentId = dokumentId
-    )
+
+    fun settInnkalt(): Either<UgyldigStatusovergang, Kontrollsamtale> {
+        if (this.status !== Kontrollsamtalestatus.PLANLAGT_INNKALLING) return UgyldigStatusovergang.left()
+        return this.copy(status = Kontrollsamtalestatus.INNKALT).right()
+    }
+
+    fun annuller(): Either<UgyldigStatusovergang, Kontrollsamtale> {
+        if (this.status !== Kontrollsamtalestatus.PLANLAGT_INNKALLING || this.status !== Kontrollsamtalestatus.INNKALT) return UgyldigStatusovergang.left()
+        return this.copy(status = Kontrollsamtalestatus.ANNULLERT).right()
+    }
+
+    fun endreDato(innkallingsdato: LocalDate): Either<UgyldigStatusovergang, Kontrollsamtale> {
+        if (this.status !== Kontrollsamtalestatus.PLANLAGT_INNKALLING) return UgyldigStatusovergang.left()
+        return this.copy(innkallingsdato = innkallingsdato).right()
+    }
 
     companion object {
         fun opprettNyKontrollsamtaleFraVedtak(
@@ -53,14 +53,24 @@ data class Kontrollsamtale(
                     sakId = vedtak.behandling.sakId,
                     innkallingsdato = it,
                     status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
-                    dokumentId = null
+                    dokumentId = null,
                 )
             }
 
         fun opprettNyKontrollsamtale(
+            sakId: UUID,
+            innkallingsdato: LocalDate,
+        ) = Kontrollsamtale(
+            sakId = sakId,
+            innkallingsdato = innkallingsdato,
+            status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
+            dokumentId = null,
+        )
+
+        fun opprettNyKontrollsamtale(
             gjeldendeStønadsperiode: Periode,
             sakId: UUID,
-            clock: Clock
+            clock: Clock,
         ): Either<SkalIkkeOppretteKontrollsamtale, Kontrollsamtale> =
             regnUtInnkallingsdatoOm4Mnd(gjeldendeStønadsperiode.tilOgMed, LocalDate.now(clock)).rightIfNotNull {
                 SkalIkkeOppretteKontrollsamtale
@@ -69,7 +79,7 @@ data class Kontrollsamtale(
                     sakId = sakId,
                     innkallingsdato = it,
                     status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
-                    dokumentId = null
+                    dokumentId = null,
                 )
             }
     }
@@ -117,4 +127,5 @@ fun regnUtInnkallingsdatoOm4Mnd(stønadsslutt: LocalDate, fraDato: LocalDate): L
     return if (stønadsslutt.erMindreEnnEnMånedSenere(innkallingsdato.endOfMonth())) null else innkallingsdato
 }
 
+object UgyldigStatusovergang
 object SkalIkkeOppretteKontrollsamtale

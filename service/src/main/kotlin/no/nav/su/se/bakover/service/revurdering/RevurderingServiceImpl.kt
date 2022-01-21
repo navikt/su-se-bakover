@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
-import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
@@ -1203,10 +1202,7 @@ internal class RevurderingServiceImpl(
                         }.map {
                             val opphørtVedtak = VedtakSomKanRevurderes.from(it, utbetaling!!.id, clock)
                             vedtakRepo.lagre(opphørtVedtak)
-                            kontrollsamtaleService.oppdaterNestePlanlagteKontrollsamtaleStatus(
-                                opphørtVedtak.behandling.sakId,
-                                Kontrollsamtalestatus.ANNULLERT,
-                            )
+                            kontrollsamtaleService.annullerKontrollsamtale(opphørtVedtak.behandling.sakId)
                             vedtak = opphørtVedtak
                             it
                         }
