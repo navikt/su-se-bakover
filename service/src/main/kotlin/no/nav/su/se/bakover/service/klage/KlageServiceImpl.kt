@@ -310,6 +310,7 @@ class KlageServiceImpl(
             return it.left()
         }
 
+        val vedtak = Klagevedtak.Avvist.fromIverksattAvvistKlage(avvistKlage, clock)
         val dokument = klage.lagBrevRequest(
             hentNavnForNavIdent = { identClient.hentNavnForNavIdent(klage.saksbehandler) },
             hentVedtakDato = { klageRepo.hentKnyttetVedtaksdato(klage.id) },
@@ -329,6 +330,7 @@ class KlageServiceImpl(
                     Dokument.Metadata(
                         klageId = klage.id,
                         sakId = klage.sakId,
+                        vedtakId = vedtak.id,
                         bestillBrev = true,
                     ),
                 )
@@ -339,9 +341,9 @@ class KlageServiceImpl(
 
         try {
             sessionFactory.withTransactionContext {
-                brevService.lagreDokument(dokument, it)
                 klageRepo.lagre(avvistKlage, it)
-                vedtakService.lagre(Klagevedtak.Avvist.fromIverksattAvvistKlage(avvistKlage, clock))
+                vedtakService.lagre(vedtak)
+                brevService.lagreDokument(dokument, it)
             }
         } catch (_: Exception) {
             return KunneIkkeIverksetteAvvistKlage.FeilVedLagringAvDokumentOgKlage.left()
