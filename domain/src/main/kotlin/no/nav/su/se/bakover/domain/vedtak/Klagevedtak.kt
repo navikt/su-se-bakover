@@ -9,7 +9,7 @@ import java.time.Clock
 import java.util.UUID
 
 sealed interface Klagevedtak : Vedtak {
-    abstract val klage: Klage
+    val klage: Klage
 
     data class Avvist(
         override val id: UUID,
