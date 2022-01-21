@@ -187,7 +187,7 @@ internal class OversendKlageTest {
             brevServiceMock = mock {
                 on { lagBrev(any()) } doReturn "brevbytes".toByteArray().right()
             },
-            vedtakRepoMock = mock {
+            vedtakServiceMock = mock {
                 on { hentJournalpostId(any()) } doReturn null
             },
         )
@@ -214,7 +214,7 @@ internal class OversendKlageTest {
                 )
             },
         )
-        verify(mocks.vedtakRepoMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
+        verify(mocks.vedtakServiceMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
         mocks.verifyNoMoreInteractions()
     }
 
@@ -238,7 +238,7 @@ internal class OversendKlageTest {
             brevServiceMock = mock {
                 on { lagBrev(any()) } doReturn pdfAsBytes.right()
             },
-            vedtakRepoMock = mock {
+            vedtakServiceMock = mock {
                 on { hentJournalpostId(any()) } doReturn journalpostIdKnyttetTilVedtakDetKlagePå
             },
             klageClient = mock {
@@ -268,7 +268,7 @@ internal class OversendKlageTest {
                 )
             },
         )
-        verify(mocks.vedtakRepoMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
+        verify(mocks.vedtakServiceMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
         val expectedKlage = OversendtKlage.create(
             id = klage.id,
             opprettet = klage.opprettet,
@@ -467,7 +467,7 @@ internal class OversendKlageTest {
                 on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
-            vedtakRepoMock = mock {
+            vedtakServiceMock = mock {
                 on { hentJournalpostId(any()) } doReturn journalpostIdForVedtak
             },
             identClient = mock {
@@ -532,7 +532,7 @@ internal class OversendKlageTest {
                 )
             },
         )
-        verify(mocks.vedtakRepoMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
+        verify(mocks.vedtakServiceMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
         verify(mocks.klageClient).sendTilKlageinstans(
             klage = argThat { it shouldBe expectedKlage },
             journalpostIdForVedtak = argThat { it shouldBe journalpostIdForVedtak },

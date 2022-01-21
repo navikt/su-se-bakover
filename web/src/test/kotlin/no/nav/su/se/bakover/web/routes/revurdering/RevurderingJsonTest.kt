@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -58,7 +58,7 @@ internal class RevurderingJsonTest {
         Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
     )
-    private val vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = RevurderingRoutesTestData.vedtak
+    private val vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = RevurderingRoutesTestData.vedtak
 
     @Test
     fun `should serialize and deserialize OpprettetRevurdering`() {

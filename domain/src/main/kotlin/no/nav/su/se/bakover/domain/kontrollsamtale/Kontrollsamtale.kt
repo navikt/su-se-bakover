@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.erMindreEnnEnMånedSenere
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -43,8 +43,8 @@ data class Kontrollsamtale(
 
     companion object {
         fun opprettNyKontrollsamtaleFraVedtak(
-            vedtak: Vedtak,
-            clock: Clock
+            vedtak: VedtakSomKanRevurderes.EndringIYtelse,
+            clock: Clock,
         ): Either<SkalIkkeOppretteKontrollsamtale, Kontrollsamtale> =
             regnUtInnkallingsdato(vedtak.periode, vedtak.opprettet.toLocalDate(zoneIdOslo), clock).rightIfNotNull {
                 SkalIkkeOppretteKontrollsamtale

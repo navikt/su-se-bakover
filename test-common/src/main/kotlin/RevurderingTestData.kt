@@ -39,8 +39,6 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakFelles
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import java.time.Clock
@@ -84,9 +82,7 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
 ): Pair<Sak, OpprettetRevurdering> {
-    // Får kompileringsfeil i denne versjonen av Kotlin/Java hvis vi tar vekk type arguments: '<VedtakFelles>'.
-    @Suppress("RemoveExplicitTypeArguments")
-    require(sakOgVedtakSomKanRevurderes.first.vedtakListe.contains<VedtakFelles>(sakOgVedtakSomKanRevurderes.second)) {
+    require(sakOgVedtakSomKanRevurderes.first.vedtakListe.contains(sakOgVedtakSomKanRevurderes.second)) {
         "Dersom man sender inn vedtak som skal revurderes, må man også sende inn en sak som inneholder nevnt vedtak."
     }
     require(
@@ -408,7 +404,7 @@ fun vedtakRevurdering(
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     attestering: Attestering = attesteringIverksatt(clock),
-): Pair<Sak, Vedtak> {
+): Pair<Sak, VedtakSomKanRevurderes> {
     return iverksattRevurdering(
         clock = clock,
         saksnummer = saksnummer,
@@ -424,13 +420,13 @@ fun vedtakRevurdering(
     ).let { (sak, iverksatt, utbetaling) ->
         val vedtak = when (iverksatt) {
             is IverksattRevurdering.IngenEndring -> {
-                Vedtak.from(iverksatt, clock)
+                VedtakSomKanRevurderes.from(iverksatt, clock)
             }
             is IverksattRevurdering.Innvilget -> {
-                Vedtak.from(iverksatt, utbetaling!!.id, clock)
+                VedtakSomKanRevurderes.from(iverksatt, utbetaling!!.id, clock)
             }
             is IverksattRevurdering.Opphørt -> {
-                Vedtak.from(iverksatt, utbetaling!!.id, clock)
+                VedtakSomKanRevurderes.from(iverksatt, utbetaling!!.id, clock)
             }
         }
 

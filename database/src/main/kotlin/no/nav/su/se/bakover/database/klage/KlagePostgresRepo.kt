@@ -565,7 +565,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         }
     }
 
-    private enum class Tilstand(val verdi: String) {
+    internal enum class Tilstand(val verdi: String) {
         OPPRETTET("opprettet"),
 
         VILKÅRSVURDERT_PÅBEGYNT("vilkårsvurdert_påbegynt"),

@@ -146,7 +146,7 @@ internal class VedtakTest {
         ).tidslinje.let { tidslinje ->
             tidslinje.size shouldBe 1
             tidslinje[0].shouldBeEqualToExceptId(
-                Vedtak.VedtakPåTidslinje(
+                VedtakSomKanRevurderes.VedtakPåTidslinje(
                     opprettet = vedtak.opprettet,
                     periode = vedtak.periode,
                     grunnlagsdata = vedtak.behandling.grunnlagsdata,
@@ -202,7 +202,7 @@ internal class VedtakTest {
         ).tidslinje.let {
             it.size shouldBe 2
             it.first().shouldBeEqualToExceptId(
-                expected = Vedtak.VedtakPåTidslinje(
+                expected = VedtakSomKanRevurderes.VedtakPåTidslinje(
                     opprettet = Tidspunkt.now(fixedClockWithRekkefølge(1)),
                     periode = Periode.create(1.januar(2021), 30.april(2021)),
                     grunnlagsdata = Grunnlagsdata.create(
@@ -224,7 +224,7 @@ internal class VedtakTest {
             )
 
             it.last().shouldBeEqualToExceptId(
-                expected = Vedtak.VedtakPåTidslinje(
+                expected = VedtakSomKanRevurderes.VedtakPåTidslinje(
                     opprettet = Tidspunkt.now(fixedClockWithRekkefølge(2)),
                     periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     grunnlagsdata = b.behandling.grunnlagsdata,
@@ -281,7 +281,7 @@ internal class VedtakTest {
             val firstPeriode = Periode.create(1.januar(2021), 30.april(2021))
             val firstBosituasjon = lagFullstendigBostiuasjon(firstPeriode)
             tidslinje.first().shouldBeEqualToExceptId(
-                Vedtak.VedtakPåTidslinje(
+                VedtakSomKanRevurderes.VedtakPåTidslinje(
                     periode = firstPeriode,
                     opprettet = a.opprettet,
                     grunnlagsdata = Grunnlagsdata.create(
@@ -299,7 +299,7 @@ internal class VedtakTest {
             val lastPeriode = Periode.create(1.mai(2021), 31.desember(2021))
             val lastBostiuasjon = lagFullstendigBostiuasjon(lastPeriode)
             tidslinje.last().shouldBeEqualToExceptId(
-                Vedtak.VedtakPåTidslinje(
+                VedtakSomKanRevurderes.VedtakPåTidslinje(
                     periode = lastPeriode,
                     opprettet = b.opprettet,
                     grunnlagsdata = Grunnlagsdata.create(
@@ -374,7 +374,7 @@ internal class VedtakTest {
             }
 
         actual.shouldBeEqualToExceptId(
-            Vedtak.VedtakPåTidslinje(
+            VedtakSomKanRevurderes.VedtakPåTidslinje(
                 opprettet = b.opprettet,
                 periode = b.periode,
                 grunnlagsdata = Grunnlagsdata.create(
@@ -403,9 +403,9 @@ internal class VedtakTest {
         tilDato: LocalDate,
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-    ): Vedtak.EndringIYtelse {
+    ): VedtakSomKanRevurderes.EndringIYtelse {
         val clock = fixedClockWithRekkefølge(rekkefølge)
-        return Vedtak.fromSøknadsbehandling(
+        return VedtakSomKanRevurderes.fromSøknadsbehandling(
             søknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(
                 id = mock(),
                 opprettet = Tidspunkt.now(clock),

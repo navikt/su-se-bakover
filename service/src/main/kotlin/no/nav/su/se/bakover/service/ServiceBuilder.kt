@@ -160,7 +160,7 @@ object ServiceBuilder {
         val klageService = KlageServiceImpl(
             sakRepo = databaseRepos.sak,
             klageRepo = databaseRepos.klageRepo,
-            vedtakRepo = databaseRepos.vedtakRepo,
+            vedtakService = vedtakService,
             brevService = brevService,
             personService = personService,
             identClient = clients.identClient,

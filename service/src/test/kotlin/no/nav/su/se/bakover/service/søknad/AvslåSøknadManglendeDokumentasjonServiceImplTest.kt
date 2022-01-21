@@ -14,7 +14,9 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
@@ -48,7 +50,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { opprett(any()) } doReturn uavklart.right()
         }
-        val oppgaveServiceMock = mock<OppgaveService>() {
+        val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
@@ -59,7 +61,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             generertDokumentJson = "",
         )
 
-        val brevServiceMock = mock<BrevService>() {
+        val brevServiceMock = mock<BrevService> {
             on { lagDokument(any()) } doReturn dokument.right()
         }
 
@@ -107,7 +109,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere
             )
 
-            val expectedAvslagVilkår = Vedtak.Avslag.AvslagVilkår(
+            val expectedAvslagVilkår = Avslagsvedtak.AvslagVilkår(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 behandling = expectedSøknadsbehandling,
@@ -130,7 +132,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             ).also {
                 actualVedtak.firstValue.shouldBeEqualToIgnoringFields(
                     expectedAvslagVilkår,
-                    Vedtak::id,
+                    VedtakSomKanRevurderes::id,
                 )
             }
             verify(serviceAndMocks.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
@@ -162,7 +164,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { hentForSøknad(søknadId) } doReturn vilkårsvurdertInnvilget
         }
-        val oppgaveServiceMock = mock<OppgaveService>() {
+        val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
@@ -173,7 +175,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             generertDokumentJson = "",
         )
 
-        val brevServiceMock = mock<BrevService>() {
+        val brevServiceMock = mock<BrevService> {
             on { lagDokument(any()) } doReturn dokument.right()
         }
 
@@ -221,7 +223,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere
             )
 
-            val expectedAvslagVilkår = Vedtak.Avslag.AvslagVilkår(
+            val expectedAvslagVilkår = Avslagsvedtak.AvslagVilkår(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 behandling = expectedSøknadsbehandling,
@@ -243,7 +245,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             ).also {
                 actualVedtak.firstValue.shouldBeEqualToIgnoringFields(
                     expectedAvslagVilkår,
-                    Vedtak::id,
+                    VedtakSomKanRevurderes::id,
                 )
             }
             verify(serviceAndMocks.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
@@ -251,7 +253,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 argThat {
                     it.shouldBeEqualToIgnoringFields(
                         expectedAvslagVilkår,
-                        Vedtak::id,
+                        VedtakSomKanRevurderes::id,
                     )
                 },
             )
@@ -329,10 +331,10 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { opprett(any()) } doReturn uavklart.right()
         }
-        val oppgaveServiceMock = mock<OppgaveService>() {
+        val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgave(any()) } doReturn OppgaveFeil.KunneIkkeLukkeOppgave.left()
         }
-        val sakServiceMock = mock<SakService>() {
+        val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
 
@@ -343,7 +345,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             generertDokumentJson = "",
         )
 
-        val brevServiceMock = mock<BrevService>() {
+        val brevServiceMock = mock<BrevService> {
             on { lagDokument(any()) } doReturn dokument.right()
         }
 
@@ -390,11 +392,11 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { opprett(any()) } doReturn uavklart.right()
         }
-        val oppgaveServiceMock = mock<OppgaveService>() {
+        val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
-        val brevServiceMock = mock<BrevService>() {
+        val brevServiceMock = mock<BrevService> {
             on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
         }
 

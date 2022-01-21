@@ -65,7 +65,7 @@ internal class VilkårsvurderKlageTest {
     @Test
     fun `fant ikke vedtak`() {
         val mocks = KlageServiceMocks(
-            vedtakRepoMock = mock {
+            vedtakServiceMock = mock {
                 on { hentForVedtakId(any()) } doReturn null
             },
         )
@@ -81,7 +81,7 @@ internal class VilkårsvurderKlageTest {
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
 
-        verify(mocks.vedtakRepoMock).hentForVedtakId(vedtakId)
+        verify(mocks.vedtakServiceMock).hentForVedtakId(vedtakId)
         mocks.verifyNoMoreInteractions()
     }
 
@@ -328,7 +328,7 @@ internal class VilkårsvurderKlageTest {
                 on { hentKlage(any()) } doReturn klage
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
-            vedtakRepoMock = mock {
+            vedtakServiceMock = mock {
                 on { hentForVedtakId(any()) } doReturn vedtak
             },
         )
@@ -385,7 +385,7 @@ internal class VilkårsvurderKlageTest {
                 on { hentKlage(any()) } doReturn klage
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
-            vedtakRepoMock = mock {
+            vedtakServiceMock = mock {
                 on { hentForVedtakId(any()) } doReturn vedtak
             },
         )
@@ -424,7 +424,7 @@ internal class VilkårsvurderKlageTest {
             it shouldBe expectedKlage
         }
 
-        verify(mocks.vedtakRepoMock).hentForVedtakId(vedtak.id)
+        verify(mocks.vedtakServiceMock).hentForVedtakId(vedtak.id)
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(

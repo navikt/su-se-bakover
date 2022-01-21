@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -41,7 +40,6 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
@@ -663,7 +661,7 @@ internal class OppdaterRevurderingServiceTest {
                 vedtakSøknadsbehandlingIverksattInnvilget().second.copy(
                     beregning = lagBeregning(periodeNesteMånedOgTreMånederFram),
                 ),
-                Vedtak.from(revurdering, UUID30.randomUUID(), fixedClock),
+                VedtakSomKanRevurderes.from(revurdering, UUID30.randomUUID(), fixedClock),
             ),
             clock = fixedClock,
         )
@@ -778,7 +776,6 @@ internal class OppdaterRevurderingServiceTest {
     }
 
     @Test
-    @Suppress("UNCHECKED_CAST")
     fun `får lov til å oppdatere revurdering dersom periode overlapper opphørsvedtak for utenlandsopphold som ikke førte til avkorting`() {
         val tikkendeKlokke = TikkendeKlokke()
 
@@ -800,7 +797,7 @@ internal class OppdaterRevurderingServiceTest {
             ),
         )
         val (sak3, opprettetRevurdering) = opprettetRevurdering(
-            sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtakOgRevurderingsvedtak as Pair<Sak, VedtakSomKanRevurderes>,
+            sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtakOgRevurderingsvedtak,
         )
 
         RevurderingServiceMocks(

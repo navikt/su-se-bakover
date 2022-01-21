@@ -138,7 +138,7 @@ data class Sak(
     /**
      * Brukes for å hente den seneste gjeldenden/brukte månedsberegningen for en gitt måned i saken.
      *
-     * Per nå så er det kun Vedtak i form av [Vedtak.EndringIYtelse] som bidrar til dette, bortsett fra [Vedtak.IngenEndringIYtelse] som har
+     * Per nå så er det kun Vedtak i form av [VedtakSomKanRevurderes.EndringIYtelse] som bidrar til dette, bortsett fra [VedtakSomKanRevurderes.IngenEndringIYtelse] som har
      * andre beregnings-beløp som ikke skal ha en påverkan på saken.
      * */
     fun hentGjeldendeMånedsberegningForMåned(månedsperiode: Periode, clock: Clock): Månedsberegning? {
@@ -147,20 +147,19 @@ data class Sak(
             periode = månedsperiode,
             vedtakListe = NonEmptyList.fromListUnsafe(
                 vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-                    .filterNot { it is Vedtak.EndringIYtelse.GjenopptakAvYtelse || it is Vedtak.EndringIYtelse.StansAvYtelse || it is Vedtak.IngenEndringIYtelse }
-                    .ifEmpty {
+                    .filterNot { it is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse || it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse || it is VedtakSomKanRevurderes.IngenEndringIYtelse }.ifEmpty {
                         return null
                     },
             ),
             clock = clock,
         ).gjeldendeVedtakPåDato(månedsperiode.fraOgMed)?.let {
             when (it) {
-                is Vedtak.EndringIYtelse.InnvilgetRevurdering -> it.beregning
-                is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> it.beregning
-                is Vedtak.EndringIYtelse.OpphørtRevurdering -> it.beregning
-                is Vedtak.IngenEndringIYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.IngenEndring")
-                is Vedtak.EndringIYtelse.StansAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.StansAvYtelse")
-                is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.GjenopptakAvYtelse")
+                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> it.beregning
+                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> it.beregning
+                is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> it.beregning
+                is VedtakSomKanRevurderes.IngenEndringIYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.IngenEndring")
+                is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.StansAvYtelse")
+                is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.GjenopptakAvYtelse")
             }
         }?.let { beregning ->
             beregning.getMånedsberegninger().associateBy { it.periode }[månedsperiode]
@@ -182,7 +181,7 @@ data class Sak(
      * Identifiser alle perioder hvor ytelsen har vært eller vil være løpende.
      */
     fun hentPerioderMedLøpendeYtelse(): List<Periode> {
-        return vedtakListe.filterIsInstance<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling>()
+        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>()
             .map { it.periode }
             .flatMap { innvilgetStønadsperiode ->
                 vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()

@@ -35,7 +35,6 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
@@ -99,7 +98,7 @@ internal class OpprettRevurderingServiceTest {
     ).second
 
     private fun createSøknadsbehandlingVedtak() =
-        Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID(), fixedClock)
+        VedtakSomKanRevurderes.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID(), fixedClock)
 
     @Test
     fun `oppretter en revurdering`() {
@@ -150,7 +149,7 @@ internal class OpprettRevurderingServiceTest {
         ).orNull()!!
 
         val tilRevurdering =
-            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(periodeNesteMånedOgTreMånederFram.fraOgMed) as Vedtak.EndringIYtelse
+            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(periodeNesteMånedOgTreMånederFram.fraOgMed) as VedtakSomKanRevurderes.EndringIYtelse
         actual.let { opprettetRevurdering ->
             opprettetRevurdering.periode shouldBe periodeNesteMånedOgTreMånederFram
             opprettetRevurdering.tilRevurdering shouldBe tilRevurdering
@@ -243,7 +242,7 @@ internal class OpprettRevurderingServiceTest {
         }
 
         val tilRevurdering =
-            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(periodeNesteMånedOgTreMånederFram.fraOgMed) as Vedtak.EndringIYtelse
+            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(periodeNesteMånedOgTreMånederFram.fraOgMed) as VedtakSomKanRevurderes.EndringIYtelse
         val periode =
             Periode.create(periodeNesteMånedOgTreMånederFram.fraOgMed, periodeNesteMånedOgTreMånederFram.tilOgMed)
         actual.let { opprettetRevurdering ->
@@ -346,7 +345,7 @@ internal class OpprettRevurderingServiceTest {
         ).getOrHandle {
             throw RuntimeException("$it")
         }
-        val tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(periode.fraOgMed) as Vedtak.EndringIYtelse
+        val tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(periode.fraOgMed) as VedtakSomKanRevurderes.EndringIYtelse
         actual.let { opprettetRevurdering ->
             opprettetRevurdering.periode shouldBe periode
             opprettetRevurdering.tilRevurdering shouldBe tilRevurdering
@@ -478,21 +477,21 @@ internal class OpprettRevurderingServiceTest {
                 utlandsoppholdInnvilget(periode = periodeNesteMånedOgTreMånederFram),
             )
         }
-        val vedtakForFørsteJanuarLagetNå = mock<Vedtak.EndringIYtelse.InnvilgetRevurdering> {
+        val vedtakForFørsteJanuarLagetNå = mock<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
             on { id } doReturn UUID.randomUUID()
             on { opprettet } doReturn fixedTidspunkt
             on { periode } doReturn vedtaksperiode
             on { behandling } doReturn behandlingMock
             on { beregning } doReturn testBeregning
         }
-        val vedtakForFørsteMarsLagetNå = mock<Vedtak.EndringIYtelse.InnvilgetRevurdering> {
+        val vedtakForFørsteMarsLagetNå = mock<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
             on { id } doReturn UUID.randomUUID()
             on { opprettet } doReturn fixedTidspunkt.plus(1, ChronoUnit.SECONDS)
             on { periode } doReturn Periode.create(1.mars(2021), 31.desember(2021))
             on { behandling } doReturn behandlingMock
             on { beregning } doReturn testBeregning
         }
-        val vedtakForFørsteJanuarLagetForLengeSiden = mock<Vedtak.EndringIYtelse.InnvilgetRevurdering> {
+        val vedtakForFørsteJanuarLagetForLengeSiden = mock<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
             on { id } doReturn UUID.randomUUID()
             on { opprettet } doReturn fixedTidspunkt.instant.minus(2, ChronoUnit.HALF_DAYS).toTidspunkt()
             on { periode } doReturn vedtaksperiode
@@ -570,8 +569,7 @@ internal class OpprettRevurderingServiceTest {
     fun `kan revurdere en periode med eksisterende revurdering`() {
         val (sak, iverksattRevurdering) = iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak()
         val søknadsbehandlingVedtak = sak.vedtakListe.first() as VedtakSomKanRevurderes
-        val revurderingVedtak =
-            Vedtak.from(iverksattRevurdering, UUID30.randomUUID(), fixedClock.plus(1, ChronoUnit.SECONDS))
+        val revurderingVedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, UUID30.randomUUID(), fixedClock.plus(1, ChronoUnit.SECONDS))
 
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = periodeNesteMånedOgTreMånederFram,
@@ -911,7 +909,7 @@ internal class OpprettRevurderingServiceTest {
             periode = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(
                 createSøknadsbehandlingVedtak(),
-                Vedtak.from(revurdering, UUID30.randomUUID(), fixedClock),
+                VedtakSomKanRevurderes.from(revurdering, UUID30.randomUUID(), fixedClock),
             ),
             clock = fixedClock,
         )

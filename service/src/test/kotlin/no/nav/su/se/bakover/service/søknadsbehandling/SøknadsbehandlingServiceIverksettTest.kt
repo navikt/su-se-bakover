@@ -28,8 +28,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
@@ -418,12 +419,12 @@ internal class SøknadsbehandlingServiceIverksettTest {
             )
             verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
-            var vedtak: Vedtak? = null
+            var vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling? = null
             verify(vedtakRepoMock).lagre(
                 argThat {
-                    vedtak = it
+                    it should beOfType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>()
+                    vedtak = it as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling
                     it.behandling shouldBe expected
-                    it should beOfType<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling>()
                 },
             )
             verify(kontrollsamtaleServiceMock).opprettPlanlagtKontrollsamtale(vedtak!!)
@@ -442,9 +443,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn avslagTilAttestering
             },
-            ferdigstillVedtakService = mock() { mock ->
+            ferdigstillVedtakService = mock { mock ->
                 doAnswer {
-                    (it.arguments[0] as Vedtak.Avslag.AvslagBeregning).right()
+                    (it.arguments[0]).right()
                 }.whenever(mock).lukkOppgaveMedBruker(any())
             },
             brevService = mock {
@@ -468,10 +469,10 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 *it.allMocks(),
             ) {
                 verify(it.søknadsbehandlingRepo).hent(avslagTilAttestering.id)
-                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<Vedtak.Avslag.AvslagBeregning>() })
+                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<Avslagsvedtak.AvslagBeregning>() })
                 verify(it.søknadsbehandlingRepo).defaultTransactionContext()
                 verify(it.søknadsbehandlingRepo).lagre(eq(expectedAvslag), anyOrNull())
-                verify(it.vedtakRepo).lagre(argThat { it is Vedtak.Avslag.AvslagBeregning })
+                verify(it.vedtakRepo).lagre(argThat { it is Avslagsvedtak.AvslagBeregning })
                 verify(it.brevService).lagreDokument(
                     argThat {
                         it.metadata.sakId shouldBe avslagTilAttestering.sakId

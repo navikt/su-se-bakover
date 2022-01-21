@@ -28,8 +28,8 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
@@ -533,7 +533,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(vedtakRepoMock).lagre(
                 argThat {
-                    it should beOfType<Vedtak.IngenEndringIYtelse>()
+                    it should beOfType<VedtakSomKanRevurderes.IngenEndringIYtelse>()
                 },
             )
             verify(revurderingRepoMock).defaultTransactionContext()

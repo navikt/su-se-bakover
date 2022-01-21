@@ -29,8 +29,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
@@ -155,7 +155,7 @@ internal class VedtakServiceImplTest {
 
     @Test
     fun `kopier gjeldende vedtaksdata - ugyldig periode`() {
-        val vedtakMock = mock<Vedtak.EndringIYtelse> {
+        val vedtakMock = mock<VedtakSomKanRevurderes.EndringIYtelse> {
             on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
         }
         val sakServiceMock = mock<SakService> {
@@ -266,7 +266,7 @@ internal class VedtakServiceImplTest {
     )
 
     private fun innvilgetVedtak(fnr: Fnr) =
-        Vedtak.fromSøknadsbehandling(
+        VedtakSomKanRevurderes.fromSøknadsbehandling(
             Søknadsbehandling.Iverksatt.Innvilget(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,

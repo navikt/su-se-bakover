@@ -45,8 +45,8 @@ internal class GjeldendeVedtaksdataTest {
         val data = GjeldendeVedtaksdata(
             periode = Periode.create(1.januar(2021), 31.desember(2021)),
             vedtakListe = nonEmptyListOf(
-                førstegangsvedtak as VedtakSomKanRevurderes,
-                revurderingsVedtak as VedtakSomKanRevurderes,
+                førstegangsvedtak,
+                revurderingsVedtak,
             ),
             clock = fixedClock,
         )
