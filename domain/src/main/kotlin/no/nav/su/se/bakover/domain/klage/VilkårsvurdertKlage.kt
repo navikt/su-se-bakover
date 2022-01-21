@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
@@ -41,6 +42,10 @@ sealed interface VilkårsvurdertKlage : Klage {
 
             is Bekreftet.TilVurdering -> this.klagevedtakshistorikk
             is Utfylt.TilVurdering -> this.klagevedtakshistorikk
+        }
+
+        if (klagevedtakshistorikk.isNotEmpty() && vilkårsvurderinger.erAvvist()) {
+            return KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
         }
 
         return when (vilkårsvurderinger) {
@@ -600,5 +605,6 @@ sealed interface VilkårsvurdertKlage : Klage {
 sealed class KunneIkkeVilkårsvurdereKlage {
     object FantIkkeKlage : KunneIkkeVilkårsvurdereKlage()
     object FantIkkeVedtak : KunneIkkeVilkårsvurdereKlage()
+    object KanIkkeAvviseEnKlageSomHarVærtOversendt : KunneIkkeVilkårsvurdereKlage()
     data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeVilkårsvurdereKlage()
 }
