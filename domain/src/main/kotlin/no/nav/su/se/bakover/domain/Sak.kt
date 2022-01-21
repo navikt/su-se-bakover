@@ -129,6 +129,11 @@ data class Sak(
     fun hentGjeldendeStønadsperiode(clock: Clock): Periode? =
         hentPerioderMedLøpendeYtelse().filter { it.inneholder(LocalDate.now(clock)) }.maxByOrNull { it.tilOgMed }
 
+    fun harGjeldendeEllerFremtidigStønadsperiode(clock: Clock): Boolean {
+        val now = LocalDate.now(clock)
+        return hentPerioderMedLøpendeYtelse().any { it.inneholder(now) || it.starterEtter(now) }
+    }
+
     fun harÅpenRevurderingForStansAvYtelse(): Boolean {
         return revurderinger.filterIsInstance<StansAvYtelseRevurdering.SimulertStansAvYtelse>().isNotEmpty()
     }
