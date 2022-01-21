@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
@@ -23,8 +23,8 @@ import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService.KunneIkkeFer
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
-import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -205,19 +205,19 @@ internal class FerdigstillVedtakServiceImplTest {
 
     @Test
     fun `svarer med feil dersom lukking av oppgave feiler`() {
-        val vedtak = avslagsVedtak()
+        val behandling = søknadsbehandlingIverksattInnvilget().second
 
         FerdigstillVedtakServiceMocks(
             oppgaveService = mock {
                 on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
             },
         ) {
-            service.lukkOppgaveMedBruker(vedtak) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
+            service.lukkOppgaveMedBruker(behandling) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
 
             inOrder(
                 *all(),
             ) {
-                verify(oppgaveService).lukkOppgave(vedtak.behandling.oppgaveId)
+                verify(oppgaveService).lukkOppgave(behandling.oppgaveId)
             }
         }
     }
@@ -258,10 +258,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
     }
 
-    private fun avslagsVedtak(): Vedtak.Avslag.AvslagBeregning =
-        vedtakSøknadsbehandlingIverksattAvslagMedBeregning().second
-
-    private fun innvilgetSøknadsbehandlingVedtak(): Pair<Sak, Vedtak.EndringIYtelse> {
+    private fun innvilgetSøknadsbehandlingVedtak(): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> {
         return vedtakSøknadsbehandlingIverksattInnvilget()
     }
 }

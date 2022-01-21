@@ -18,8 +18,8 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -136,7 +136,7 @@ internal class IverksettRevurderingTest {
             verify(utbetalingMock, times(2)).id
             verify(vedtakRepoMock).lagre(
                 argThat {
-                    it should beOfType<Vedtak.EndringIYtelse.InnvilgetRevurdering>()
+                    it should beOfType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>()
                 },
             )
             verify(revurderingRepoMock).defaultTransactionContext()
@@ -177,7 +177,7 @@ internal class IverksettRevurderingTest {
         )
         verify(mocks.vedtakRepo).lagre(
             argThat {
-                it should beOfType<Vedtak.EndringIYtelse.OpphørtRevurdering>()
+                it should beOfType<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
             },
         )
         verify(mocks.revurderingRepo).defaultTransactionContext()

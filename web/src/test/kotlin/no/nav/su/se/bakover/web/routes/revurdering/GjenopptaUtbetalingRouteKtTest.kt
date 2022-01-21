@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeGjenopptaYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
@@ -136,7 +137,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
     fun `svarer med 200 ved oppdatering av eksisterende revurdering`() {
         val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
         val simulertRevurdering = eksisterende.second
-        val sisteVedtak = eksisterende.first.vedtakListe.last()
+        val sisteVedtak = eksisterende.first.vedtakListe.last() as VedtakSomKanRevurderes
 
         withTestApplication(
             {

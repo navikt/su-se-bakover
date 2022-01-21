@@ -36,8 +36,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
@@ -354,7 +355,8 @@ internal class SøknadsbehandlingServiceImpl(
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
 
                     søknadsbehandlingRepo.lagre(iverksattBehandling)
-                    val vedtak = Vedtak.fromSøknadsbehandling(iverksattBehandling, utbetaling!!.id, clock)
+                    val vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling =
+                        VedtakSomKanRevurderes.fromSøknadsbehandling(iverksattBehandling, utbetaling!!.id, clock)
                     vedtakRepo.lagre(vedtak)
                     kontrollsamtaleService.opprettPlanlagtKontrollsamtale(vedtak)
 
@@ -374,7 +376,7 @@ internal class SøknadsbehandlingServiceImpl(
                     }
                 }
                 is Søknadsbehandling.Iverksatt.Avslag -> {
-                    val vedtak = opprettAvslagsvedtak(iverksattBehandling)
+                    val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling)
 
                     val dokument = brevService.lagDokument(vedtak)
                         .getOrHandle { return KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev.left() }
@@ -398,12 +400,10 @@ internal class SøknadsbehandlingServiceImpl(
 
                     behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
 
-                    if (vedtak.behandling is BehandlingMedOppgave) {
-                        ferdigstillVedtakService.lukkOppgaveMedBruker(vedtak)
-                            .mapLeft {
-                                log.error("Lukking av oppgave for behandlingId: ${(vedtak.behandling as BehandlingMedOppgave).oppgaveId} feilet. Må ryddes opp manuelt.")
-                            }
-                    }
+                    ferdigstillVedtakService.lukkOppgaveMedBruker(vedtak.behandling)
+                        .mapLeft {
+                            log.error("Lukking av oppgave for behandlingId: ${(vedtak.behandling as BehandlingMedOppgave).oppgaveId} feilet. Må ryddes opp manuelt.")
+                        }
 
                     iverksattBehandling.also {
                         observers.forEach { observer ->
@@ -419,16 +419,16 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    private fun opprettAvslagsvedtak(iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag): Vedtak.Avslag =
+    private fun opprettAvslagsvedtak(iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag): Avslagsvedtak =
         when (iverksattBehandling) {
             is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
-                Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(
+                Avslagsvedtak.fromSøknadsbehandlingMedBeregning(
                     avslag = iverksattBehandling,
                     clock = clock,
                 )
             }
             is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
-                Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(
+                Avslagsvedtak.fromSøknadsbehandlingUtenBeregning(
                     avslag = iverksattBehandling,
                     clock = clock,
                 )

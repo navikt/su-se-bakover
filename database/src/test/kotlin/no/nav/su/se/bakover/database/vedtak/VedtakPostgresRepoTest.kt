@@ -27,7 +27,8 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -60,7 +61,7 @@ internal class VedtakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo
             val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning()
-            val vedtak = Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
+            val vedtak = Avslagsvedtak.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
 
             vedtakRepo.lagre(vedtak)
 
@@ -119,7 +120,7 @@ internal class VedtakPostgresRepoTest {
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
-            val revurderingVedtak = Vedtak.from(iverksattRevurdering, søknadsbehandlingVedtak.utbetalingId, fixedClock)
+            val revurderingVedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, søknadsbehandlingVedtak.utbetalingId, fixedClock)
 
             vedtakRepo.lagre(revurderingVedtak)
 
@@ -141,9 +142,9 @@ internal class VedtakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo
             val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
-            val vedtakSomErAktivt = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock)
+            val vedtakSomErAktivt = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock)
                 .copy(periode = Periode.create(1.januar(2021), 31.mars(2021)))
-            val vedtakUtenforAktivPeriode = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock)
+            val vedtakUtenforAktivPeriode = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock)
                 .copy(periode = Periode.create(1.januar(2020), 31.desember(2020)))
             vedtakRepo.lagre(vedtakSomErAktivt)
             vedtakRepo.lagre(vedtakUtenforAktivPeriode)
@@ -159,7 +160,7 @@ internal class VedtakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo
             val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning()
-            val vedtak = Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
+            val vedtak = Avslagsvedtak.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
 
             vedtakRepo.lagre(vedtak)
 
@@ -227,7 +228,7 @@ internal class VedtakPostgresRepoTest {
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
-            val revurderingVedtak = Vedtak.from(iverksattRevurdering, fixedClock)
+            val revurderingVedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, fixedClock)
 
             vedtakRepo.lagre(revurderingVedtak)
 
@@ -276,7 +277,7 @@ internal class VedtakPostgresRepoTest {
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
             val utbetaling = testDataHelper.nyOversendtUtbetalingMedKvittering().second
-            val vedtak = Vedtak.from(iverksattRevurdering, utbetaling.id, fixedClock)
+            val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, fixedClock)
 
             testDataHelper.vedtakRepo.lagre(vedtak)
             testDataHelper.dataSource.withSession {
@@ -314,7 +315,7 @@ internal class VedtakPostgresRepoTest {
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
             val utbetaling = testDataHelper.nyOversendtUtbetalingMedKvittering().second
-            val vedtak = Vedtak.from(iverksattRevurdering, utbetaling.id, fixedClock)
+            val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, fixedClock)
 
             testDataHelper.vedtakRepo.lagre(vedtak)
             testDataHelper.dataSource.withSession {

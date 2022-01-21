@@ -36,10 +36,11 @@ import no.nav.su.se.bakover.domain.klage.harEksisterendeJournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -48,7 +49,7 @@ import java.util.UUID
 class KlageServiceImpl(
     private val sakRepo: SakRepo,
     private val klageRepo: KlageRepo,
-    private val vedtakRepo: VedtakRepo,
+    private val vedtakService: VedtakService,
     private val brevService: BrevService,
     private val personService: PersonService,
     private val identClient: IdentClient,
@@ -101,7 +102,7 @@ class KlageServiceImpl(
     override fun vilkårsvurder(request: VurderKlagevilkårRequest): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
         return request.toDomain().flatMap {
             it.vilkårsvurderinger.vedtakId?.let { vedtakId ->
-                if (vedtakRepo.hentForVedtakId(vedtakId) == null) {
+                if (vedtakService.hentForVedtakId(vedtakId) == null) {
                     return KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
                 }
             }
@@ -266,7 +267,7 @@ class KlageServiceImpl(
             return KunneIkkeOversendeKlage.KunneIkkeLageBrev(it).left()
         }
 
-        val journalpostIdForVedtak = vedtakRepo.hentJournalpostId(oversendtKlage.vilkårsvurderinger.vedtakId)
+        val journalpostIdForVedtak = vedtakService.hentJournalpostId(oversendtKlage.vilkårsvurderinger.vedtakId)
             ?: return KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left().tapLeft {
                 log.error("Kunne ikke iverksette klage ${oversendtKlage.id} fordi vi ikke fant journalpostId til vedtak ${oversendtKlage.vilkårsvurderinger.vedtakId} (kan tyde på at klagen er knyttet til et vedtak vi ikke har laget brev for eller at databasen er i en ugyldig tilstand.)")
             }
@@ -338,9 +339,9 @@ class KlageServiceImpl(
 
         try {
             sessionFactory.withTransactionContext {
-                // TODO: Her må vi også lagre vedtaket som kommer
                 brevService.lagreDokument(dokument, it)
                 klageRepo.lagre(avvistKlage, it)
+                vedtakService.lagre(Klagevedtak.Avvist.fromIverksattAvvistKlage(avvistKlage, clock))
             }
         } catch (_: Exception) {
             return KunneIkkeIverksetteAvvistKlage.FeilVedLagringAvDokumentOgKlage.left()

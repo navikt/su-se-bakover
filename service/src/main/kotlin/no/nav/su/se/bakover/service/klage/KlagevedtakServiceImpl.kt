@@ -82,7 +82,6 @@ class KlagevedtakServiceImpl(
             )
         }.tapLeft {
             when (it) {
-                Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.IkkeStøttetUtfall -> log.error("Utfall: ${klagevedtak.utfall} fra Klageinstans er ikke håndtert.")
                 Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.KunneIkkeHenteAktørId -> log.error("Feil skjedde i prosessering av vedtak fra Klageinstans. Kunne ikke hente aktørId for klagevedtak: ${klagevedtak.id}")
                 is Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.KunneIkkeLageOppgave -> log.error("Feil skjedde i prosessering av vedtak fra Klageinstans. Kall mot oppgave feilet for klagevedtak: ${klagevedtak.id}")
                 is Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.MåVæreEnOversendtKlage -> log.error("Feil skjedde i prosessering av vedtak fra Klageinstans. Må være i tilstand ${OversendtKlage::class.java.name} men var ${it.menVar.java.name} for klagevedtak: ${klagevedtak.id}")

@@ -2,54 +2,55 @@ package no.nav.su.se.bakover.domain.visitor
 
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakVisitor
 import kotlin.properties.Delegates
 
 internal class SkalSendeBrevVisitor : VedtakVisitor {
     var sendBrev by Delegates.notNull<Boolean>()
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling) {
         sendBrev = !vedtak.innvilgetGRegulering()
     }
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse.InnvilgetRevurdering) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering) {
         sendBrev = !vedtak.innvilgetGRegulering()
     }
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse.OpphørtRevurdering) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering) {
         sendBrev = !vedtak.innvilgetGRegulering()
     }
 
-    override fun visit(vedtak: Vedtak.Avslag.AvslagVilkår) {
+    override fun visit(vedtak: Avslagsvedtak.AvslagVilkår) {
         sendBrev = true
     }
 
-    override fun visit(vedtak: Vedtak.Avslag.AvslagBeregning) {
+    override fun visit(vedtak: Avslagsvedtak.AvslagBeregning) {
         sendBrev = true
     }
 
-    override fun visit(vedtak: Vedtak.IngenEndringIYtelse) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.IngenEndringIYtelse) {
         sendBrev = !vedtak.årsakErGRegulering() && vedtak.sendBrevErValgt()
     }
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse.StansAvYtelse) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
         sendBrev = false
     }
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse.GjenopptakAvYtelse) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse) {
         sendBrev = false
     }
 
-    private fun Vedtak.årsakErGRegulering(): Boolean {
+    private fun VedtakSomKanRevurderes.årsakErGRegulering(): Boolean {
         return (behandling as IverksattRevurdering).revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
     }
 
-    private fun Vedtak.EndringIYtelse.innvilgetGRegulering(): Boolean {
+    private fun VedtakSomKanRevurderes.EndringIYtelse.innvilgetGRegulering(): Boolean {
         return behandling is IverksattRevurdering.Innvilget && årsakErGRegulering()
     }
 
-    private fun Vedtak.IngenEndringIYtelse.sendBrevErValgt(): Boolean {
+    private fun VedtakSomKanRevurderes.IngenEndringIYtelse.sendBrevErValgt(): Boolean {
         return behandling.skalFøreTilUtsendingAvVedtaksbrev
     }
 

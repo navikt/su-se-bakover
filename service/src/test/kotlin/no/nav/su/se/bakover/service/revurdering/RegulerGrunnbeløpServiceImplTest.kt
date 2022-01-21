@@ -41,8 +41,8 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -262,7 +262,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             oppgaveId = opprettetRevurdering.oppgaveId,
             fritekstTilBrev = opprettetRevurdering.fritekstTilBrev,
             revurderingsårsak = opprettetRevurdering.revurderingsårsak,
-            beregning = (opprettetRevurdering.tilRevurdering as Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling).beregning,
+            beregning = (opprettetRevurdering.tilRevurdering as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).beregning,
             forhåndsvarsel = null,
             grunnlagsdata = opprettetRevurdering.grunnlagsdata,
             vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
@@ -651,7 +651,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(vedtakRepoMock).lagre(
                 argThat {
-                    it should beOfType<Vedtak.IngenEndringIYtelse>()
+                    it should beOfType<VedtakSomKanRevurderes.IngenEndringIYtelse>()
                 },
             )
             verify(revurderingRepoMock).defaultTransactionContext()

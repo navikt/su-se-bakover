@@ -38,7 +38,7 @@ internal class VedtakPåTidslinjeTest {
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - full kopi`() {
-        val originaltVedtak = mock<Vedtak.EndringIYtelse>()
+        val originaltVedtak = mock<VedtakSomKanRevurderes.EndringIYtelse>()
 
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
@@ -83,7 +83,7 @@ internal class VedtakPåTidslinjeTest {
         )
 
         val formuevilkår = innvilgetFormueVilkår(periode)
-        val original = Vedtak.VedtakPåTidslinje(
+        val original = VedtakSomKanRevurderes.VedtakPåTidslinje(
             opprettet = fixedTidspunkt,
             periode = periode,
             grunnlagsdata = Grunnlagsdata.create(
@@ -183,7 +183,7 @@ internal class VedtakPåTidslinjeTest {
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - ny periode`() {
-        val originaltVedtak = mock<Vedtak.EndringIYtelse>()
+        val originaltVedtak = mock<VedtakSomKanRevurderes.EndringIYtelse>()
 
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
@@ -234,7 +234,7 @@ internal class VedtakPåTidslinjeTest {
         )
 
         val formuevilkår = innvilgetFormueVilkår(periode)
-        val original = Vedtak.VedtakPåTidslinje(
+        val original = VedtakSomKanRevurderes.VedtakPåTidslinje(
             opprettet = fixedTidspunkt,
             periode = periode,
             grunnlagsdata = Grunnlagsdata.create(

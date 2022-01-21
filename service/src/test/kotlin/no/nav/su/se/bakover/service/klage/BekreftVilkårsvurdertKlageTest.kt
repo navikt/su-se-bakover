@@ -240,7 +240,7 @@ internal class BekreftVilkårsvurdertKlageTest {
                 on { hentKlage(any()) } doReturn klage
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
-            vedtakRepoMock = mock {
+            vedtakServiceMock = mock {
                 on { hentForVedtakId(any()) } doReturn vedtak
             },
         )

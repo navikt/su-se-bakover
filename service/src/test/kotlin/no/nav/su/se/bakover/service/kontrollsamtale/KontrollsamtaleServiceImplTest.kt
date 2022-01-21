@@ -70,7 +70,7 @@ internal class KontrollsamtaleServiceImplTest {
     @Test
     fun `feiler hvis vi ikke finner person`() {
         val personService = mock<PersonService> {
-            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
         ServiceOgMocks(
@@ -96,7 +96,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn person.right()
+                on { hentPersonMedSystembruker(any()) } doReturn person.right()
             },
             brevService = brevService,
             clock = fixedClock,
@@ -117,7 +117,7 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn person.right()
+                on { hentPersonMedSystembruker(any()) } doReturn person.right()
             },
             brevService = mock {
                 on { lagBrev(any()) } doReturn ByteArray(1).right()
@@ -138,13 +138,13 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn person.right()
+                on { hentPersonMedSystembruker(any()) } doReturn person.right()
             },
             brevService = mock {
                 on { lagBrev(any()) } doReturn pdf.right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+                on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("oppgaveId").right()
             },
             kontrollsamtaleRepo = mock {
                 on { lagre(any(), any()) } doThrow RuntimeException("Fikk ikke lagret kontrollsamtale")
@@ -164,13 +164,13 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn person.right()
+                on { hentPersonMedSystembruker(any()) } doReturn person.right()
             },
             brevService = mock {
                 on { lagBrev(any()) } doReturn pdf.right()
             },
             oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+                on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("oppgaveId").right()
             },
             sessionFactory = TestSessionFactory(),
             clock = fixedClock,
@@ -186,7 +186,7 @@ internal class KontrollsamtaleServiceImplTest {
         dokumentCaptor.value.opprettet shouldBe Tidspunkt.now(fixedClock)
         dokumentCaptor.value.generertDokument shouldBe pdf
 
-        verify(services.oppgaveService).opprettOppgave(
+        verify(services.oppgaveService).opprettOppgaveMedSystembruker(
             argThat {
                 it shouldBe OppgaveConfig.Kontrollsamtale(
                     saksnummer = sak.saksnummer,

@@ -22,10 +22,10 @@ data class GjeldendeVedtaksdata(
     val grunnlagsdata: Grunnlagsdata
     val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
 
-    private val tidslinje: Tidslinje<Vedtak.VedtakPåTidslinje> = vedtakListe
+    private val tidslinje: Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> = vedtakListe
         .lagTidslinje(periode)
 
-    private val vedtakPåTidslinje: List<Vedtak.VedtakPåTidslinje> = tidslinje.tidslinje
+    private val vedtakPåTidslinje: List<VedtakSomKanRevurderes.VedtakPåTidslinje> = tidslinje.tidslinje
 
     private val vilkårsvurderingerFraTidslinje: Vilkårsvurderinger = vedtakPåTidslinje.vilkårsvurderinger()
 
@@ -94,7 +94,7 @@ data class GjeldendeVedtaksdata(
         .all { it }
 }
 
-private fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger.Revurdering {
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger.Revurdering {
     return Vilkårsvurderinger.Revurdering(
         uføre = Vilkår.Uførhet.Vurdert.tryCreate(
             this.map { it.vilkårsvurderinger.uføreVilkår() }

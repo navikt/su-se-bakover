@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
+import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.avvistKlageTilAttestering
@@ -308,6 +309,18 @@ internal class IverksettAvvistKlageTest {
             argThat { it shouldBe expected },
             argThat { it shouldBe TestSessionFactory.transactionContext },
         )
+        verify(mocks.vedtakServiceMock).lagre(
+            argThat {
+                it shouldBe Klagevedtak.Avvist(
+                    id = it.id,
+                    opprettet = fixedTidspunkt,
+                    saksbehandler = expected.saksbehandler,
+                    attestant = expected.attesteringer.first().attestant,
+                    klage = expected,
+                )
+            },
+        )
         verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe expected.oppgaveId })
+        mocks.verifyNoMoreInteractions()
     }
 }

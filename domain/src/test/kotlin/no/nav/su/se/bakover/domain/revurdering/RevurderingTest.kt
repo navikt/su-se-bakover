@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -482,7 +482,7 @@ internal class RevurderingTest {
     }
 
     private fun lagRevurdering(
-        tilRevurdering: Vedtak.EndringIYtelse = mock(),
+        tilRevurdering: VedtakSomKanRevurderes.EndringIYtelse = mock(),
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         fradrag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
         bosituasjon: List<Grunnlag.Bosituasjon>,

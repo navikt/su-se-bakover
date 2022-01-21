@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -33,7 +33,7 @@ interface KontrollsamtaleService {
     fun nyDato(sakId: UUID, dato: LocalDate): Either<KunneIkkeSetteNyDatoForKontrollsamtale, Unit>
     fun hentNestePlanlagteKontrollsamtale(sakId: UUID): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale>
     fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>>
-    fun opprettPlanlagtKontrollsamtale(vedtak: Vedtak): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale>
+    fun opprettPlanlagtKontrollsamtale(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale>
     fun oppdaterNestePlanlagteKontrollsamtaleStatus(
         sakId: UUID,
         status: Kontrollsamtalestatus,
@@ -64,7 +64,7 @@ class KontrollsamtaleServiceImpl(
             return KunneIkkeKalleInnTilKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left()
         }
 
-        val person = personService.hentPerson(sak.fnr).getOrElse {
+        val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
             log.error("Fant ikke person for fnr: ${sak.fnr}")
             return KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
         }
@@ -89,7 +89,7 @@ class KontrollsamtaleServiceImpl(
                         throw RuntimeException("Fikk ikke opprettet ny innkalling til neste kontrollsamtale")
                     }
                 }
-                oppgaveService.opprettOppgave(
+                oppgaveService.opprettOppgaveMedSystembruker(
                     config = OppgaveConfig.Kontrollsamtale(
                         saksnummer = sak.saksnummer,
                         aktørId = person.ident.aktørId,
@@ -142,7 +142,7 @@ class KontrollsamtaleServiceImpl(
             return KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler.left()
         }
 
-    override fun opprettPlanlagtKontrollsamtale(vedtak: Vedtak): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> {
+    override fun opprettPlanlagtKontrollsamtale(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> {
         val planlagtKontrollsamtaleEksisterer = hentNestePlanlagteKontrollsamtale(vedtak.behandling.sakId).isRight()
 
         return if (planlagtKontrollsamtaleEksisterer) {

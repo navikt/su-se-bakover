@@ -64,7 +64,7 @@ sealed class VurderingerTilKlage {
              *
              * @param vedtaksvurdering En [VurderingerTilKlage.Påbegynt] kan inneholde enten en [Vedtaksvurdering.Påbegynt] eller [Vedtaksvurdering.Utfylt]
              * */
-            internal fun create(
+            fun create(
                 fritekstTilBrev: String?,
                 vedtaksvurdering: Vedtaksvurdering?,
             ): VurderingerTilKlage {

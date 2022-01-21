@@ -18,26 +18,28 @@ import kotlin.concurrent.fixedRateTimer
 class KontrollsamtaleinnkallingJob(
     private val leaderPodLookup: LeaderPodLookup,
     private val kontrollsamtaleService: KontrollsamtaleService,
+    private val isProd: Boolean,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Utsendelse av kontrollsamtaleinnkallelser"
-    private val periode = Duration.of(1, ChronoUnit.DAYS).toMillis()
+    private val periode = if (isProd) Duration.of(1, ChronoUnit.DAYS).toMillis() else Duration.of(5, ChronoUnit.MINUTES).toMillis()
 
     private val nå = LocalDateTime.now(clock)
     private val iMorgenKlokka7 = nå.plusDays(1).withHour(7).withMinute(0).withSecond(0)
-    private val tidTilKlokka7IMorgen = ChronoUnit.MILLIS.between(nå, iMorgenKlokka7)
+    private val initialDelay = if (isProd) ChronoUnit.MILLIS.between(nå, iMorgenKlokka7) else 0
 
     fun schedule() {
-        log.info("Starter skeduleringsjobb '$jobName' med intervall: $periode ms og initialDelay: $tidTilKlokka7IMorgen ms. Mitt hostnavn er $hostName. Jeg er ${if (leaderPodLookup.erLeaderPod(hostname = hostName)) "" else "ikke "}leder.")
+        log.info("Starter skeduleringsjobb '$jobName' med intervall: $periode ms og initialDelay: $initialDelay ms. Mitt hostnavn er $hostName. Jeg er ${if (leaderPodLookup.erLeaderPod(hostname = hostName)) "" else "ikke "}leder.")
 
         fixedRateTimer(
             name = jobName,
             daemon = true,
             period = periode,
-            initialDelay = tidTilKlokka7IMorgen
+            initialDelay = initialDelay,
         ) {
             Either.catch {
+                log.debug("Kjører skeduleringsjobb '$jobName'")
                 if (leaderPodLookup.erLeaderPod(hostname = hostName)) {
                     kontrollsamtaleService.hentPlanlagteKontrollsamtaler().map { kontrollsamtaler ->
                         kontrollsamtaler.forEach {
@@ -45,6 +47,7 @@ class KontrollsamtaleinnkallingJob(
                         }
                     }
                 }
+                log.debug("Fullførte skeduleringsjobb '$jobName'")
             }.mapLeft {
                 log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
             }
