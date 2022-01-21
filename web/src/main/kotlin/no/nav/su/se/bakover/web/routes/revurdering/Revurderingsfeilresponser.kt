@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
@@ -70,9 +71,9 @@ internal object Revurderingsfeilresponser {
             "eps_formue_med_flere_perioder_må_revurderes",
         )
 
-        val revurderingsperiodeInneholderUtbetalingerSomSkalAvkortes = InternalServerError.errorJson(
-            "Revurderingsperioden inneholder utbetalinger som skal avkortes pga utenlandsopphold.Dette støttes ikke.",
-            "revurderingsperiode_inneholder_avkorting_utenlandsopphold"
+        fun uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(periode: Periode) = InternalServerError.errorJson(
+            "Saken har en utestående avkorting som enten må avkortes i ny stønadsperiode eller revurderes i sin helhet. Vennligst inkluder ${periode.fraOgMed}-${periode.tilOgMed} i revurderingsperioden eller avkort i ny stønadsperiode.",
+            "utestående_avkorting_må_revurderes_eller_avkortes_i_ny_periode",
         )
     }
 

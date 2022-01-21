@@ -12,9 +12,11 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
@@ -55,6 +57,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.stønadsper
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -313,7 +316,7 @@ internal class OppdaterRevurderingServiceTest {
             revurderingRepo = revurderingRepoMock,
             avkortingsvarselRepo = mock() {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
-            }
+            },
         )
         val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
@@ -363,7 +366,7 @@ internal class OppdaterRevurderingServiceTest {
             vilkårsvurderingService = vilkårsvurderingServiceMock,
             avkortingsvarselRepo = mock() {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
-            }
+            },
         )
         val oppdatertPeriode = Periode.create(
             periodeNesteMånedOgTreMånederFram.fraOgMed.plus(1, ChronoUnit.MONTHS),
@@ -403,7 +406,7 @@ internal class OppdaterRevurderingServiceTest {
         }
 
         inOrder(
-            *mocks.all()
+            *mocks.all(),
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(
@@ -480,7 +483,7 @@ internal class OppdaterRevurderingServiceTest {
             vilkårsvurderingService = vilkårsvurderingServiceMock,
             avkortingsvarselRepo = mock() {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
-            }
+            },
         )
 
         val actual = mocks.revurderingService.oppdaterRevurdering(
@@ -499,7 +502,7 @@ internal class OppdaterRevurderingServiceTest {
         actual.revurderingsårsak.begrunnelse.toString() shouldBe "g-regulering"
 
         inOrder(
-            *mocks.all()
+            *mocks.all(),
         ) {
             verify(revurderingRepoMock).hent(revurderingId)
             verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(
@@ -813,7 +816,7 @@ internal class OppdaterRevurderingServiceTest {
             },
             avkortingsvarselRepo = mock() {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
-            }
+            },
         ).let {
             it.revurderingService.oppdaterRevurdering(
                 oppdaterRevurderingRequest = OppdaterRevurderingRequest(
@@ -825,6 +828,59 @@ internal class OppdaterRevurderingServiceTest {
                     informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
                 ),
             ).getOrFail() shouldBe beOfType<OpprettetRevurdering>()
+        }
+    }
+
+    @Test
+    fun `får feilmelding dersom saken har utestående avkorting, men revurderingsperioden inneholder ikke perioden for avkortingen`() {
+        val clock = TikkendeKlokke(fixedClock)
+        val (sak, opphørUtenlandsopphold) = vedtakRevurdering(
+            clock = clock,
+            revurderingsperiode = Periode.create(1.juni(2021), 31.desember(2021)),
+            vilkårOverrides = listOf(
+                utlandsoppholdAvslag(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    periode = Periode.create(1.juni(2021), 31.desember(2021)),
+                ),
+            ),
+        )
+        val nyRevurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
+        val uteståendeAvkorting =
+            (opphørUtenlandsopphold as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering).behandling.avkorting.let {
+                (it as AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel).avkortingsvarsel
+            }
+
+        val opprettetRevurdering = opprettetRevurdering().second
+
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn opprettetRevurdering
+            },
+            vedtakService = mock {
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
+                    fraOgMed = nyRevurderingsperiode.fraOgMed,
+                    clock = clock,
+                ).getOrFail().right()
+            },
+            personService = mock {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+            },
+            avkortingsvarselRepo = mock {
+                on { hentUtestående(any()) } doReturn uteståendeAvkorting
+            },
+        ).let {
+            it.revurderingService.oppdaterRevurdering(
+                OppdaterRevurderingRequest(
+                    revurderingId = sakId,
+                    fraOgMed = nyRevurderingsperiode.fraOgMed,
+                    årsak = "MELDING_FRA_BRUKER",
+                    begrunnelse = "Ny informasjon",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
+                ),
+            ) shouldBe KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(juni(2021))
+                .left()
         }
     }
 }

@@ -226,6 +226,11 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
+        val uteståendeAvkorting = hentUteståendeAvkorting(opprettRevurderingRequest.sakId).let {
+            kontrollerPeriodeForUteståendeAvkorting(gjeldendeVedtaksdata.periode, it)
+                .getOrHandle { feil -> return feil.left() }
+        }
+
         // Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
         return oppgaveService.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
@@ -250,7 +255,7 @@ internal class RevurderingServiceImpl(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
-                avkorting = hentUteståendeAvkorting(opprettRevurderingRequest.sakId),
+                avkorting = uteståendeAvkorting,
             ).also {
                 revurderingRepo.lagre(it)
 
@@ -293,6 +298,29 @@ internal class RevurderingServiceImpl(
             }
             is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
                 AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(utestående)
+            }
+        }
+    }
+
+    private fun kontrollerPeriodeForUteståendeAvkorting(
+        revurderingsperiode: Periode,
+        avkorting: AvkortingVedRevurdering.Uhåndtert,
+    ): Either<KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode, AvkortingVedRevurdering.Uhåndtert> {
+        return when (avkorting) {
+            is AvkortingVedRevurdering.Uhåndtert.IngenUtestående -> {
+                avkorting.right()
+            }
+            is AvkortingVedRevurdering.Uhåndtert.KanIkkeHåndtere -> {
+                throw IllegalStateException("Denne situasjone kan ikke oppstå")
+            }
+            is AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting -> {
+                if (!revurderingsperiode.inneholder(avkorting.avkortingsvarsel.periode())) {
+                    return KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                        periode = avkorting.avkortingsvarsel.periode(),
+                    ).left()
+                } else {
+                    avkorting.right()
+                }
             }
         }
     }
@@ -609,7 +637,14 @@ internal class RevurderingServiceImpl(
             gjeldendeVedtaksdata.gjeldendeVedtakPåDato(oppdaterRevurderingRequest.fraOgMed)
                 ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
-        val avkorting = hentUteståendeAvkorting(revurdering.sakId)
+        val avkorting = hentUteståendeAvkorting(revurdering.sakId).let {
+            kontrollerPeriodeForUteståendeAvkorting(gjeldendeVedtaksdata.periode, it)
+                .getOrHandle {
+                    return KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                        periode = it.periode,
+                    ).left()
+                }
+        }
 
         return when (revurdering) {
             is OpprettetRevurdering -> revurdering.oppdater(
@@ -1272,7 +1307,10 @@ internal class RevurderingServiceImpl(
                         }.map {
                             val opphørtVedtak = VedtakSomKanRevurderes.from(it, utbetaling!!.id, clock)
                             vedtakRepo.lagre(opphørtVedtak)
-                            kontrollsamtaleService.oppdaterNestePlanlagteKontrollsamtaleStatus(opphørtVedtak.behandling.sakId, Kontrollsamtalestatus.ANNULLERT)
+                            kontrollsamtaleService.oppdaterNestePlanlagteKontrollsamtaleStatus(
+                                opphørtVedtak.behandling.sakId,
+                                Kontrollsamtalestatus.ANNULLERT,
+                            )
                             vedtak = opphørtVedtak
                             it
                         }
