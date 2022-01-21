@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KanIkkeTolkeKlagevedtak
@@ -721,6 +722,14 @@ open class AccessCheckProxy(
                 }
 
                 override fun lagre(vedtak: Vedtak, sessionContext: TransactionContext) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentForVedtakId(vedtakId: UUID): Vedtak? {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentJournalpostId(vedtakId: UUID): JournalpostId? {
                     kastKanKunKallesFraAnnenService()
                 }
 

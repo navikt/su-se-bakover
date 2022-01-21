@@ -88,6 +88,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -268,6 +269,7 @@ internal class TestDataHelper(
         sessionFactory = sessionFactory,
         utenlandsoppholdVilkårsvurderingRepo = utenlandsoppholdVilkårsvurderingRepo,
     )
+    internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory)
     internal val revurderingRepo = RevurderingPostgresRepo(
         dataSource = dataSource,
         fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
@@ -276,6 +278,7 @@ internal class TestDataHelper(
         utlandsoppholdVilkårsvurderingRepo = utenlandsoppholdVilkårsvurderingRepo,
         formueVilkårsvurderingRepo = formueVilkårsvurderingPostgresRepo,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
+        klageRepo = klagePostgresRepo,
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
     )
@@ -283,6 +286,7 @@ internal class TestDataHelper(
         dataSource = dataSource,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         revurderingRepo = revurderingRepo,
+        klageRepo = klagePostgresRepo,
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
     )
@@ -293,7 +297,7 @@ internal class TestDataHelper(
     internal val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource = dataSource, fixedClock)
     internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
     internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource, fixedClock)
-    internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory)
+
     internal val klagevedtakPostgresRepo = KlagevedtakPostgresRepo(sessionFactory)
 
     internal val sakRepo = SakPostgresRepo(
@@ -464,6 +468,12 @@ internal class TestDataHelper(
             },
             utbetaling,
         )
+    }
+
+    fun vedtakForIverksattAvvistKlage(klage: IverksattAvvistKlage = iverksattAvvistKlage()): Klagevedtak.Avvist {
+        return Klagevedtak.Avvist.fromIverksattAvvistKlage(klage, fixedClock).also {
+            vedtakRepo.lagre(it)
+        }
     }
 
     fun nyRevurdering(
@@ -1081,7 +1091,7 @@ internal class TestDataHelper(
         }
     }
 
-    fun påBegyntVurdertKlage(
+    fun påbegyntVurdertKlage(
         vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
     ): VurdertKlage.Påbegynt {
         return bekreftetVilkårsvurdertKlageTilVurdering(vedtak = vedtak).vurder(
@@ -1101,7 +1111,7 @@ internal class TestDataHelper(
     fun utfyltVurdertKlage(
         vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
     ): VurdertKlage.Utfylt {
-        return påBegyntVurdertKlage(vedtak = vedtak).vurder(
+        return påbegyntVurdertKlage(vedtak = vedtak).vurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
             vurderinger = VurderingerTilKlage.Utfylt(
                 fritekstTilBrev = "Friteksten til brevet er som følge: ",

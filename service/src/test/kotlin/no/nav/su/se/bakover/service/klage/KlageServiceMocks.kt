@@ -5,10 +5,10 @@ import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
@@ -17,7 +17,7 @@ import java.time.Clock
 internal data class KlageServiceMocks(
     val sakRepoMock: SakRepo = mock(),
     val klageRepoMock: KlageRepo = mock(),
-    val vedtakRepoMock: VedtakRepo = mock(),
+    val vedtakServiceMock: VedtakService = mock(),
     val brevServiceMock: BrevService = mock(),
     val personServiceMock: PersonService = mock(),
     val identClient: IdentClient = mock(),
@@ -29,7 +29,7 @@ internal data class KlageServiceMocks(
     val service = KlageServiceImpl(
         sakRepo = sakRepoMock,
         klageRepo = klageRepoMock,
-        vedtakRepo = vedtakRepoMock,
+        vedtakService = vedtakServiceMock,
         brevService = brevServiceMock,
         personService = personServiceMock,
         identClient = identClient,
@@ -42,7 +42,7 @@ internal data class KlageServiceMocks(
     private fun all() = listOf(
         sakRepoMock,
         klageRepoMock,
-        vedtakRepoMock,
+        vedtakServiceMock,
         brevServiceMock,
         personServiceMock,
         identClient,

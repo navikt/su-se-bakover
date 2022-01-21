@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingP
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
+import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType.Companion.toRevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
@@ -110,10 +111,12 @@ internal class RevurderingPostgresRepo(
     private val utlandsoppholdVilkårsvurderingRepo: UtenlandsoppholdVilkårsvurderingPostgresRepo,
     private val formueVilkårsvurderingRepo: FormueVilkårsvurderingPostgresRepo,
     søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
+    klageRepo: KlagePostgresRepo,
     private val dbMetrics: DbMetrics,
     private val sessionFactory: PostgresSessionFactory,
 ) : RevurderingRepo {
-    private val vedtakRepo = VedtakPostgresRepo(dataSource, søknadsbehandlingRepo, this, dbMetrics, sessionFactory)
+    private val vedtakRepo =
+        VedtakPostgresRepo(dataSource, søknadsbehandlingRepo, this, klageRepo, dbMetrics, sessionFactory)
 
     private val stansAvYtelseRepo = StansAvYtelsePostgresRepo(
         fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,

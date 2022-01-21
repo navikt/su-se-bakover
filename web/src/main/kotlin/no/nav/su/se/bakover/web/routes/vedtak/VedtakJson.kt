@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.vedtak
 
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
@@ -24,7 +25,7 @@ internal data class VedtakJson(
     val sakId: UUID,
     val saksnummer: String,
     val fnr: String,
-    val periode: PeriodeJson,
+    val periode: PeriodeJson?,
     val type: String,
 )
 
@@ -35,7 +36,8 @@ internal enum class VedtakTypeJson(private val beskrivelse: String) {
     INGEN_ENDRING("INGEN_ENDRING"),
     OPPHØR("OPPHØR"),
     STANS_AV_YTELSE("STANS_AV_YTELSE"),
-    GJENOPPTAK_AV_YTELSE("GJENOPPTAK_AV_YTELSE"), ;
+    GJENOPPTAK_AV_YTELSE("GJENOPPTAK_AV_YTELSE"),
+    AVVIST_KLAGE("AVVIST_KLAGE");
 
     override fun toString(): String {
         return beskrivelse
@@ -48,6 +50,7 @@ internal fun Vedtak.toJson(): VedtakJson {
         is Avslagsvedtak.AvslagVilkår -> this.toJson()
         is VedtakSomKanRevurderes.EndringIYtelse -> this.toJson()
         is VedtakSomKanRevurderes.IngenEndringIYtelse -> this.toJson()
+        is Klagevedtak.Avvist -> this.toJson()
     }
 }
 
@@ -125,6 +128,22 @@ internal fun VedtakSomKanRevurderes.IngenEndringIYtelse.toJson(): VedtakJson = V
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
     type = VedtakTypeJson.INGEN_ENDRING.toString()
+)
+
+internal fun Klagevedtak.toJson(): VedtakJson = VedtakJson(
+    id = id.toString(),
+    opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+    beregning = null,
+    simulering = null,
+    attestant = attestant.navIdent,
+    saksbehandler = saksbehandler.navIdent,
+    utbetalingId = null,
+    behandlingId = klage.id,
+    sakId = klage.sakId,
+    saksnummer = klage.saksnummer.toString(),
+    fnr = klage.fnr.toString(),
+    periode = null,
+    type = VedtakTypeJson.AVVIST_KLAGE.toString()
 )
 
 internal fun VedtakSomKanRevurderes.toJson(): VedtakJson = when (this) {

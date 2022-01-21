@@ -17,7 +17,6 @@ dependencies {
     }
 }
 
-
 task<JavaExec>("nySøknad") {
     classpath = project(":web-regresjonstest").sourceSets["test"].runtimeClasspath
     mainClass.set("no.nav.su.se.bakover.web.søknad.ny.OpprettNySakMedSøknadLokaltKt")
