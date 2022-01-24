@@ -326,7 +326,7 @@ internal sealed class AvkortingVedRevurderingDb {
             val avkortingsvarsel: AvkortingsvarselDb,
         ) : Håndtert()
 
-        @JsonTypeName("HÅNDTRERT_ANNULLERT_UTESTÅENDE")
+        @JsonTypeName("HÅNDTERT_ANNULLERT_UTESTÅENDE")
         data class AnnullerUtestående(
             val avkortingsvarselId: UUID,
         ) : Håndtert()

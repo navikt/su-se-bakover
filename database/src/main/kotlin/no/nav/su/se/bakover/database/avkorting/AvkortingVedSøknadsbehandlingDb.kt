@@ -184,10 +184,10 @@ internal sealed class AvkortingVedSøknadsbehandlingDb {
     )
     sealed class Håndtert : AvkortingVedSøknadsbehandlingDb() {
 
-        @JsonTypeName("HÅNDTRERT_INGEN_UTESTÅENDE")
+        @JsonTypeName("HÅNDTERT_INGEN_UTESTÅENDE")
         object IngenUtestående : Håndtert()
 
-        @JsonTypeName("HÅNDTRERT_AVKORTET_UTESTÅENDE")
+        @JsonTypeName("HÅNDTERT_AVKORTET_UTESTÅENDE")
         data class AvkortUtestående(
             val avkortingsvarselId: UUID,
         ) : Håndtert()
