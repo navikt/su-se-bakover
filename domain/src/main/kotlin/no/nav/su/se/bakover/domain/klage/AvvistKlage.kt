@@ -28,6 +28,42 @@ data class AvvistKlage private constructor(
 ) : VilkårsvurdertKlage by forrigeSteg {
     override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt = forrigeSteg.vilkårsvurderinger
 
+    override fun vilkårsvurder(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        vilkårsvurderinger: VilkårsvurderingerTilKlage,
+    ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+        return when (vilkårsvurderinger) {
+            is VilkårsvurderingerTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+                attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
+                vurderinger = null,
+                klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
+            )
+            is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+                attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
+            )
+        }.right()
+    }
+
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
         return fritekstTilBrev.right()
     }

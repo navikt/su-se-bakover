@@ -156,6 +156,10 @@ internal fun Route.klageRoutes(
                             KunneIkkeVilkårsvurdereKlage.FantIkkeKlage -> fantIkkeKlage
                             KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak -> fantIkkeVedtak
                             is KunneIkkeVilkårsvurdereKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt -> BadRequest.errorJson(
+                                "Kan ikke avvise en klage som har tidligere vært oversendt",
+                                "kan_ikke_avvise_klage_som_har_vært_oversendt",
+                            )
                         }
                     }
                     call.svar(resultat)

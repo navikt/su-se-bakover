@@ -1,17 +1,22 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
+import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
+import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -104,6 +109,79 @@ internal class VilkårsvurderKlageTest {
         verifiserUgyldigTilstandsovergang(
             klage = iverksattAvvistKlage().second,
         )
+    }
+
+    @Test
+    fun `kan ikke vilkårsvurdere fra vurdert, som er tidligere oversendt, til avvist`() {
+        val klage = oversendtKlage().second.leggTilNyttKlagevedtak(
+            UprosessertKlageinstansvedtak(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                klageId = UUID.randomUUID(),
+                utfall = KlagevedtakUtfall.RETUR,
+                vedtaksbrevReferanse = "",
+            ),
+            lagOppgaveCallback = { OppgaveId("o").right() },
+        ).getOrFail()
+
+        klage.shouldBeTypeOf<VurdertKlage.Bekreftet>()
+
+        klage.vilkårsvurder(
+            NavIdentBruker.Saksbehandler("sa"),
+            VilkårsvurderingerTilKlage.Utfylt(
+                vedtakId = UUID.randomUUID(),
+                innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
+                klagesDetPåKonkreteElementerIVedtaket = false,
+                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
+                begrunnelse = "b",
+            ),
+        ) shouldBe KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
+    }
+
+    @Test
+    fun `kan ikke vilkårsvurdere fra bekreftet vilkårsvurdert(TilVurdering), som er tidligere oversendt, til avvist`() {
+        val klage = oversendtKlage().second.leggTilNyttKlagevedtak(
+            UprosessertKlageinstansvedtak(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                klageId = UUID.randomUUID(),
+                utfall = KlagevedtakUtfall.RETUR,
+                vedtaksbrevReferanse = "",
+            ),
+            lagOppgaveCallback = { OppgaveId("o").right() },
+        ).getOrFail()
+
+        klage.shouldBeTypeOf<VurdertKlage.Bekreftet>()
+
+        val klageSomHarEndretSvarMenFortsattTilVurdering = klage.vilkårsvurder(
+            NavIdentBruker.Saksbehandler("sa"),
+            VilkårsvurderingerTilKlage.Utfylt(
+                vedtakId = UUID.randomUUID(),
+                innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES,
+                klagesDetPåKonkreteElementerIVedtaket = true,
+                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
+                begrunnelse = "b",
+            ),
+        ).getOrFail()
+
+        klageSomHarEndretSvarMenFortsattTilVurdering.shouldBeTypeOf<VilkårsvurdertKlage.Utfylt.TilVurdering>()
+
+        val bekreftet =
+            klageSomHarEndretSvarMenFortsattTilVurdering.bekreftVilkårsvurderinger(NavIdentBruker.Saksbehandler("sa"))
+                .getOrFail()
+
+        bekreftet.shouldBeTypeOf<VilkårsvurdertKlage.Bekreftet.TilVurdering>()
+
+        bekreftet.vilkårsvurder(
+            NavIdentBruker.Saksbehandler("sa"),
+            VilkårsvurderingerTilKlage.Utfylt(
+                vedtakId = UUID.randomUUID(),
+                innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
+                klagesDetPåKonkreteElementerIVedtaket = true,
+                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
+                begrunnelse = "b",
+            ),
+        ) shouldBe KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
     }
 
     private fun verifiserUgyldigTilstandsovergang(
