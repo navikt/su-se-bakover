@@ -213,8 +213,13 @@ internal class RevurderingServiceImpl(
                 if (!informasjonSomRevurderes.harValgtFormue() && r.opphørsgrunner.contains(Opphørsgrunn.FORMUE)) {
                     return KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes.left()
                 }
+                if (!informasjonSomRevurderes.harValgtUtenlandsopphold() && r.opphørsgrunner.contains(Opphørsgrunn.UTENLANDSOPPHOLD)) {
+                    return KunneIkkeOppretteRevurdering.UtenlandsoppholdSomFørerTilOpphørMåRevurderes.left()
+                }
             }
-            is OpphørVedRevurdering.Nei -> Unit
+            is OpphørVedRevurdering.Nei -> {
+                // noop
+            }
         }
 
         val gjeldendeVedtakPåFraOgMedDato =
@@ -629,8 +634,13 @@ internal class RevurderingServiceImpl(
                 if (!informasjonSomRevurderes.harValgtFormue() && r.opphørsgrunner.contains(Opphørsgrunn.FORMUE)) {
                     return KunneIkkeOppdatereRevurdering.FormueSomFørerTilOpphørMåRevurderes.left()
                 }
+                if (!informasjonSomRevurderes.harValgtUtenlandsopphold() && r.opphørsgrunner.contains(Opphørsgrunn.UTENLANDSOPPHOLD)) {
+                    return KunneIkkeOppdatereRevurdering.UtenlandsoppholdSomFørerTilOpphørMåRevurderes.left()
+                }
             }
-            is OpphørVedRevurdering.Nei -> Unit
+            is OpphørVedRevurdering.Nei -> {
+                // noop
+            }
         }
 
         val gjeldendeVedtakPåFraOgMedDato =

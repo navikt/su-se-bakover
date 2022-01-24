@@ -995,7 +995,7 @@ internal class OpprettRevurderingServiceTest {
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
+                    informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
                 ),
             ) shouldBe KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(juni(2021))
                 .left()

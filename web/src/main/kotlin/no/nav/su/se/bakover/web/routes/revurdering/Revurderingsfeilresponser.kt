@@ -65,6 +65,10 @@ internal object Revurderingsfeilresponser {
             "Formue som fører til opphør må revurderes",
             "formue_som_fører_til_opphør_må_revurderes",
         )
+        val utenlandsoppholdSomFørerTilOpphørMåRevurderes = BadRequest.errorJson(
+            "Utenlandsopphold som fører til opphør må revurderes",
+            "utenlandsopphold_som_fører_til_opphør_må_revurderes"
+        )
 
         val epsFormueMedFlereBosituasjonsperioderMåRevurderes = BadRequest.errorJson(
             "Formue må revurderes siden det finnes EPS formue og flere bosituasjonsperioder",

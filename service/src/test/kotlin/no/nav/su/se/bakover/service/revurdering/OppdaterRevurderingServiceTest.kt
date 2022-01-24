@@ -825,7 +825,7 @@ internal class OppdaterRevurderingServiceTest {
                     årsak = Revurderingsårsak.Årsak.ANDRE_KILDER.toString(),
                     begrunnelse = "lol",
                     saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
+                    informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
                 ),
             ).getOrFail() shouldBe beOfType<OpprettetRevurdering>()
         }
@@ -877,7 +877,7 @@ internal class OppdaterRevurderingServiceTest {
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
+                    informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
                 ),
             ) shouldBe KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(juni(2021))
                 .left()

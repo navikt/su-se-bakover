@@ -187,6 +187,7 @@ sealed class KunneIkkeOppretteRevurdering {
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
     object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppretteRevurdering()
     data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) : KunneIkkeOppretteRevurdering()
+    object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
 }
 
 sealed class KunneIkkeOppdatereRevurdering {
@@ -206,6 +207,7 @@ sealed class KunneIkkeOppdatereRevurdering {
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
     object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppdatereRevurdering()
     data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) : KunneIkkeOppdatereRevurdering()
+    object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {
