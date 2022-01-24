@@ -1,6 +1,8 @@
-package no.nav.su.se.bakover.database
+package no.nav.su.se.bakover.database.avkorting
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
