@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
+import org.jetbrains.kotlin.utils.addToStdlib.ifFalse
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -115,7 +116,7 @@ class KontrollsamtaleServiceImpl(
             log.error("Fant ikke sak for sakId $sakId")
             return KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeSak.left()
         }
-        sak.hentGjeldendeStønadsperiode(clock).rightIfNotNull { }.getOrElse {
+        sak.harGjeldendeEllerFremtidigStønadsperiode(clock).ifFalse {
             log.error("Fant ingen gjeldende stønadsperiode på sakId $sakId")
             return KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left()
         }

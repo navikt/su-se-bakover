@@ -265,11 +265,12 @@ internal class KontrollsamtaleServiceImplTest {
     }
 
     @Test
-    fun `endre dato skal returnere left om det ikke er noen gjeldende stønadsperioder`() {
+    fun `endre dato skal returnere left om det ikke er noen stønadsperioder fremover`() {
         val services = ServiceOgMocks(
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn søknadsbehandlingIverksattInnvilget().first.right()
             },
+            clock = fixedClock
         )
         services.kontrollsamtaleService.nyDato(
             sak.id,
