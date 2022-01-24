@@ -32,7 +32,7 @@ sealed class VurderOpphørVedRevurdering {
     data class VilkårsvurderingerOgBeregning(
         private val vilkårsvurderinger: no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger,
         private val beregning: Beregning,
-        private val clock: Clock = Clock.systemUTC(),
+        private val clock: Clock,
     ) : VurderOpphørVedRevurdering() {
         val resultat = when (
             val opphør = setOf(
@@ -71,7 +71,7 @@ data class VurderOmVilkårGirOpphørVedRevurdering(
 
 data class VurderOmBeregningGirOpphørVedRevurdering(
     private val beregning: Beregning,
-    private val clock: Clock = Clock.systemUTC(),
+    private val clock: Clock,
 ) {
     val resultat = beregningGirOpphør()
 

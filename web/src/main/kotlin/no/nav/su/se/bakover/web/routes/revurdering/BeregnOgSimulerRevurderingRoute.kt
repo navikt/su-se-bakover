@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErUfullstendig
+import no.nav.su.se.bakover.web.routes.Feilresponser.opphørAvYtelseSomSkalAvkortes
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
@@ -133,6 +134,9 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
         }
         KunneIkkeBeregneOgSimulereRevurdering.AvkortingErUfullstendig -> {
             avkortingErUfullstendig
+        }
+        KunneIkkeBeregneOgSimulereRevurdering.OpphørAvYtelseSomSkalAvkortes -> {
+            opphørAvYtelseSomSkalAvkortes
         }
     }
 }

@@ -179,6 +179,11 @@ internal object Feilresponser {
         "avkorting_er_ufullstendig"
     )
 
+    val opphørAvYtelseSomSkalAvkortes = InternalServerError.errorJson(
+        "Opphør av ytelse som skal avkortes støttes ikke.",
+        "opphør_av_ytelse_som_skal_avkortes"
+    )
+
     fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {
         return BadRequest.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName} til tilstanden ${til.simpleName}",

@@ -76,7 +76,7 @@ internal class RevurderingTest {
             .orNull()!!
             .let {
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
-                (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.UFØRHET)
+                (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner(fixedClock) shouldBe listOf(Opphørsgrunn.UFØRHET)
             }
     }
 
@@ -370,7 +370,7 @@ internal class RevurderingTest {
             clock = fixedClock,
         ).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
-            (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
+            (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner(fixedClock) shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
         }
     }
 
@@ -420,7 +420,7 @@ internal class RevurderingTest {
         ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode))), fixedClock)
             .orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
-            (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
+            (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner(fixedClock) shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
         }
     }
 
@@ -478,7 +478,7 @@ internal class RevurderingTest {
         ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode))), fixedClock)
             .orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
-            (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
+            (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner(fixedClock) shouldBe listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
         }
     }
 

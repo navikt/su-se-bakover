@@ -222,6 +222,7 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
 
     data class KunneIkkeSimulere(val simuleringFeilet: SimuleringFeilet) : KunneIkkeBeregneOgSimulereRevurdering()
     object AvkortingErUfullstendig : KunneIkkeBeregneOgSimulereRevurdering()
+    object OpphørAvYtelseSomSkalAvkortes : KunneIkkeBeregneOgSimulereRevurdering()
 }
 
 sealed class KunneIkkeForhåndsvarsle {

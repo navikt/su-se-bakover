@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.NonEmptyList
+import arrow.core.left
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -11,11 +12,13 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.august
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.avslåttFormueVilkår
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -65,7 +68,7 @@ internal class RevurderingBeregnTest {
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
-                (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.UFØRHET)
+                (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner(fixedClock) shouldBe listOf(Opphørsgrunn.UFØRHET)
             }
         }
     }
@@ -223,7 +226,7 @@ internal class RevurderingBeregnTest {
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
-                (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
+                (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner(fixedClock) shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
             }
         }
     }
@@ -245,7 +248,7 @@ internal class RevurderingBeregnTest {
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
-                (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
+                (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner(fixedClock) shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
             }
         }
     }
@@ -272,7 +275,7 @@ internal class RevurderingBeregnTest {
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
-                (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
+                (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner(fixedClock) shouldBe listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
             }
         }
     }
@@ -473,6 +476,64 @@ internal class RevurderingBeregnTest {
                     ),
                 )
             }
+        }
+    }
+
+    @Test
+    fun `får ikke lov til å opphøre pga andre vilkår dersom revurdering inneholder fremtidige fradrag for avkorting`() {
+        opprettetRevurdering(
+            vilkårOverrides = listOf(
+                avslåttFormueVilkår(periode = periode2021),
+            ),
+        ).let { (sak, revurdering) ->
+            revurdering.beregn(
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = fixedClock,
+                avkortingsgrunnlag = listOf(
+                    Grunnlag.Fradragsgrunnlag.create(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        fradrag = FradragFactory.ny(
+                            type = Fradragstype.AvkortingUtenlandsopphold,
+                            månedsbeløp = 15000.0,
+                            periode = juni(2021),
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                ),
+            ) shouldBe Revurdering.KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes.left()
+        }
+    }
+
+    @Test
+    fun `får ikke lov til å opphøre pga høy inntekt dersom revurdering inneholder fremtidige fradrag for avkorting`() {
+        opprettetRevurdering(
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = januar(2021),
+                    arbeidsinntekt = 25000.0,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+        ).let { (sak, revurdering) ->
+            revurdering.beregn(
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = fixedClock,
+                avkortingsgrunnlag = listOf(
+                    Grunnlag.Fradragsgrunnlag.create(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        fradrag = FradragFactory.ny(
+                            type = Fradragstype.AvkortingUtenlandsopphold,
+                            månedsbeløp = 15000.0,
+                            periode = juni(2021),
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                ),
+            ) shouldBe Revurdering.KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes.left()
         }
     }
 

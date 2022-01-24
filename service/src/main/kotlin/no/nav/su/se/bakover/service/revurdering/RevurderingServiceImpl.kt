@@ -738,6 +738,9 @@ internal class RevurderingServiceImpl(
                         Revurdering.KunneIkkeBeregneRevurdering.AvkortingErUfullstendig -> {
                             KunneIkkeBeregneOgSimulereRevurdering.AvkortingErUfullstendig
                         }
+                        Revurdering.KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes -> {
+                            KunneIkkeBeregneOgSimulereRevurdering.OpphørAvYtelseSomSkalAvkortes
+                        }
                     }.left()
                 }
 

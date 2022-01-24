@@ -183,7 +183,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: SimulertRevurdering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner(clock))
     }
 
     override fun visit(revurdering: RevurderingTilAttestering.Innvilget) {
@@ -191,7 +191,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: RevurderingTilAttestering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner(clock))
     }
 
     override fun visit(revurdering: RevurderingTilAttestering.IngenEndring) {
@@ -203,7 +203,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: IverksattRevurdering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner(clock))
     }
 
     override fun visit(revurdering: IverksattRevurdering.IngenEndring) {
@@ -215,7 +215,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: UnderkjentRevurdering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner(clock))
     }
 
     override fun visit(revurdering: UnderkjentRevurdering.IngenEndring) {
@@ -594,7 +594,7 @@ class LagBrevRequestVisitor(
                 fritekst = vedtak.behandling.fritekstTilBrev,
                 harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
-                opphørsgrunner = vedtak.utledOpphørsgrunner(),
+                opphørsgrunner = vedtak.utledOpphørsgrunner(clock),
                 dagensDato = LocalDate.now(clock),
                 opphørsdato = vedtak.periode.fraOgMed,
                 avkortingsBeløp = null, // todo finne avkortingsbeløp

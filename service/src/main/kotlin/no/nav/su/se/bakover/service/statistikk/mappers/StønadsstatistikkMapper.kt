@@ -62,11 +62,11 @@ class StønadsstatistikkMapper(
             },
             versjon = nå.toEpochMilli(),
             opphorsgrunn = when (vedtak) {
-                is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> vedtak.behandling.utledOpphørsgrunner().joinToString()
+                is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> vedtak.behandling.utledOpphørsgrunner(clock).joinToString()
                 else -> null
             },
             opphorsdato = when (vedtak) {
-                is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> vedtak.behandling.utledOpphørsdato()
+                is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> vedtak.behandling.utledOpphørsdato(clock)
                 else -> null
             },
         )
