@@ -104,6 +104,7 @@ abstract class BrevInnhold {
         val fødselsnummer: Fnr,
         val fornavn: String,
         val etternavn: String,
+        val saksnummer: Long,
     )
 
     data class RevurderingAvInntekt(

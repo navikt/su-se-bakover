@@ -54,7 +54,10 @@ internal class IverksettAvvistKlageTest {
         val klageId = UUID.randomUUID()
         val attestant = NavIdentBruker.Attestant("attestantensen")
 
-        mocks.service.iverksettAvvistKlage(klageId, attestant) shouldBe KunneIkkeIverksetteAvvistKlage.FantIkkeKlage.left()
+        mocks.service.iverksettAvvistKlage(
+            klageId,
+            attestant,
+        ) shouldBe KunneIkkeIverksetteAvvistKlage.FantIkkeKlage.left()
         Mockito.verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
         mocks.verifyNoMoreInteractions()
     }
@@ -283,6 +286,19 @@ internal class IverksettAvvistKlageTest {
                 )
             },
         )
+        var expectedVedtak: Klagevedtak.Avvist? = null
+        verify(mocks.vedtakServiceMock).lagre(
+            argThat {
+                expectedVedtak = Klagevedtak.Avvist(
+                    id = it.id,
+                    opprettet = fixedTidspunkt,
+                    saksbehandler = expected.saksbehandler,
+                    attestant = expected.attesteringer.first().attestant,
+                    klage = expected,
+                )
+                it shouldBe expectedVedtak!!
+            },
+        )
         verify(mocks.brevServiceMock).lagreDokument(
             argThat {
                 it shouldBe Dokument.MedMetadata.Vedtak(
@@ -291,11 +307,12 @@ internal class IverksettAvvistKlageTest {
                         opprettet = it.opprettet,
                         tittel = "Avvist klage",
                         generertDokument = dokument,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${klage.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\"},\"saksbehandlerNavn\":\"Johnny\",\"fritekst\":\"dette er min fritekst\",\"saksnummer\":${klage.saksnummer}}"
+                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${klage.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":${klage.saksnummer}},\"saksbehandlerNavn\":\"Johnny\",\"fritekst\":\"dette er min fritekst\",\"saksnummer\":${klage.saksnummer}}",
                     ),
                     metadata = Dokument.Metadata(
                         sakId = klage.sakId,
                         klageId = klage.id,
+                        vedtakId = expectedVedtak!!.id,
                         bestillBrev = true,
                     ),
                 )
@@ -305,17 +322,6 @@ internal class IverksettAvvistKlageTest {
         verify(mocks.klageRepoMock).lagre(
             argThat { it shouldBe expected },
             argThat { it shouldBe TestSessionFactory.transactionContext },
-        )
-        verify(mocks.vedtakServiceMock).lagre(
-            argThat {
-                it shouldBe Klagevedtak.Avvist(
-                    id = it.id,
-                    opprettet = fixedTidspunkt,
-                    saksbehandler = expected.saksbehandler,
-                    attestant = expected.attesteringer.first().attestant,
-                    klage = expected,
-                )
-            },
         )
         verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe expected.oppgaveId })
         mocks.verifyNoMoreInteractions()

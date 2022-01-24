@@ -45,7 +45,6 @@ import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
-import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -68,6 +67,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
@@ -315,6 +315,10 @@ open class AccessCheckProxy(
                         .also {
                             it.map { sak -> assertHarTilgangTilSak(sak.id) }
                         }
+                }
+
+                override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakIdOgNummer> {
+                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun opprettSak(sak: NySak) {
@@ -780,7 +784,7 @@ open class AccessCheckProxy(
             kontrollsamtale = object : KontrollsamtaleService {
                 override fun nyDato(
                     sakId: UUID,
-                    dato: LocalDate
+                    dato: LocalDate,
                 ): Either<KunneIkkeSetteNyDatoForKontrollsamtale, Unit> {
                     assertHarTilgangTilSak(sakId)
                     return services.kontrollsamtale.nyDato(sakId, dato)
@@ -791,13 +795,17 @@ open class AccessCheckProxy(
                     return services.kontrollsamtale.hentNestePlanlagteKontrollsamtale(sakId)
                 }
 
-                override fun kallInn(sakId: UUID, kontrollsamtale: Kontrollsamtale): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> = kastKanKunKallesFraAnnenService()
-                override fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> = kastKanKunKallesFraAnnenService()
-                override fun opprettPlanlagtKontrollsamtale(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> = kastKanKunKallesFraAnnenService()
-                override fun oppdaterNestePlanlagteKontrollsamtaleStatus(
+                override fun kallInn(
                     sakId: UUID,
-                    status: Kontrollsamtalestatus,
+                    kontrollsamtale: Kontrollsamtale,
                 ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> = kastKanKunKallesFraAnnenService()
+
+                override fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> =
+                    kastKanKunKallesFraAnnenService()
+
+                override fun opprettPlanlagtKontrollsamtale(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> =
+                    kastKanKunKallesFraAnnenService()
+                override fun annullerKontrollsamtale(sakId: UUID): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> = kastKanKunKallesFraAnnenService()
             },
             klageService = object : KlageService {
                 override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {

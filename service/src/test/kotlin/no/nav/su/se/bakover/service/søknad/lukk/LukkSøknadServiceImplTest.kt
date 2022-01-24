@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -137,6 +138,10 @@ internal class LukkSøknadServiceImplTest {
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
+            on { hentSakidOgSaksnummer(any()) } doReturn SakIdOgNummer(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            ).right()
         }
         val brevServiceMock = mock<BrevService> {
             on { lagBrev(any()) } doReturn generertPdf.right()
@@ -173,12 +178,14 @@ internal class LukkSøknadServiceImplTest {
                 verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
                 verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(argThat { it shouldBe søknad.id })
                 verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
+                verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe sak.fnr })
                 val expectedRequest = TrukketSøknadBrevRequest(
                     person = person(fnr = sak.fnr),
                     søknad = søknad,
                     trukketDato = 1.januar(2021),
                     saksbehandlerNavn = "Testbruker, Lokal",
                     dagensDato = fixedLocalDate,
+                    saksnummer = sak.saksnummer,
                 )
                 verify(brevServiceMock).lagBrev(expectedRequest)
                 verify(søknadServiceMock).lukkSøknad(
@@ -305,9 +312,9 @@ internal class LukkSøknadServiceImplTest {
                 verify(serviceAndMocks.lukkSøknadServiceObserver).handle(
                     argThat {
                         it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingLukket(
-                            søknadsbehandling = søknadsbehandling.lukkSøknadsbehandling().getOrFail()
+                            søknadsbehandling = søknadsbehandling.lukkSøknadsbehandling().getOrFail(),
                         )
-                    }
+                    },
                 )
                 serviceAndMocks.verifyNoMoreInteractions()
             }
@@ -326,6 +333,10 @@ internal class LukkSøknadServiceImplTest {
 
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
+            on { hentSakidOgSaksnummer(any()) } doReturn SakIdOgNummer(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            ).right()
         }
 
         val brevServiceMock = mock<BrevService> {
@@ -365,6 +376,7 @@ internal class LukkSøknadServiceImplTest {
                 verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
                 verify(søknadsbehandlingServiceMock).hentForSøknad(argThat { it shouldBe søknad.id })
                 verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
+                verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe sak.fnr })
                 val expectedRequest = AvvistSøknadBrevRequest(
                     person = person(fnr = sak.fnr),
                     brevConfig = BrevConfig.Fritekst(
@@ -372,6 +384,7 @@ internal class LukkSøknadServiceImplTest {
                     ),
                     saksbehandlerNavn = "Testbruker, Lokal",
                     dagensDato = fixedLocalDate,
+                    saksnummer = sak.saksnummer,
                 )
                 verify(brevServiceMock).lagBrev(expectedRequest)
                 verify(søknadServiceMock).lukkSøknad(
@@ -583,10 +596,18 @@ internal class LukkSøknadServiceImplTest {
             on { hentPerson(any()) } doReturn person(sak.fnr).right()
         }
 
+        val sakServiceMock = mock<SakService> {
+            on { hentSakidOgSaksnummer(any()) } doReturn SakIdOgNummer(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            ).right()
+        }
+
         ServiceOgMocks(
             søknadService = søknadServiceMock,
             brevService = brevServiceMock,
             personService = personServiceMock,
+            sakService = sakServiceMock,
         ).let { serviceAndMocks ->
             serviceAndMocks.lukkSøknadService.lagBrevutkast(
                 LukkSøknadRequest.MedBrev.TrekkSøknad(
@@ -601,6 +622,8 @@ internal class LukkSøknadServiceImplTest {
             ) {
                 verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
                 verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
+                verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe sak.fnr })
+
                 verify(brevServiceMock).lagBrev(
                     argThat {
                         it shouldBe TrukketSøknadBrevRequest(
@@ -609,6 +632,7 @@ internal class LukkSøknadServiceImplTest {
                             trukketDato = 1.januar(2021),
                             saksbehandlerNavn = "Testbruker, Lokal",
                             dagensDato = fixedLocalDate,
+                            saksnummer = sak.saksnummer,
                         )
                     },
                 )
@@ -684,10 +708,17 @@ internal class LukkSøknadServiceImplTest {
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person(sak.fnr).right()
         }
+        val sakServiceMock = mock<SakService> {
+            on { hentSakidOgSaksnummer(any()) } doReturn SakIdOgNummer(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            ).right()
+        }
         ServiceOgMocks(
             søknadService = søknadServiceMock,
             brevService = brevServiceMock,
             personService = personServiceMock,
+            sakService = sakServiceMock,
         ).let { serviceAndMocks ->
             serviceAndMocks.lukkSøknadService.lagBrevutkast(
                 LukkSøknadRequest.MedBrev.TrekkSøknad(
@@ -702,6 +733,7 @@ internal class LukkSøknadServiceImplTest {
             ) {
                 verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
                 verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
+                verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe sak.fnr })
                 verify(brevServiceMock).lagBrev(
                     argThat {
                         it shouldBe TrukketSøknadBrevRequest(
@@ -710,6 +742,7 @@ internal class LukkSøknadServiceImplTest {
                             1.januar(2021),
                             "Testbruker, Lokal",
                             dagensDato = fixedLocalDate,
+                            saksnummer = sak.saksnummer,
                         )
                     },
                 )
@@ -727,10 +760,17 @@ internal class LukkSøknadServiceImplTest {
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person(sak.fnr).right()
         }
-
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn sak.right()
+            on { hentSakidOgSaksnummer(any()) } doReturn SakIdOgNummer(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            ).right()
+        }
         ServiceOgMocks(
             søknadService = søknadServiceMock,
             personService = personServiceMock,
+            sakService = sakServiceMock,
         ).let { serviceAndMocks ->
             serviceAndMocks.lukkSøknadService.lagBrevutkast(
                 LukkSøknadRequest.UtenBrev.BortfaltSøknad(
@@ -742,9 +782,11 @@ internal class LukkSøknadServiceImplTest {
             inOrder(
                 søknadServiceMock,
                 personServiceMock,
+                sakServiceMock,
             ) {
                 verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
                 verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
+                verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe sak.fnr })
                 serviceAndMocks.verifyNoMoreInteractions()
             }
         }
@@ -816,6 +858,10 @@ internal class LukkSøknadServiceImplTest {
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
+            on { hentSakidOgSaksnummer(any()) } doReturn SakIdOgNummer(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            ).right()
         }
         val brevServiceMock = mock<BrevService> {
             on { lagBrev(any()) } doReturn generertPdf.right()
@@ -854,12 +900,14 @@ internal class LukkSøknadServiceImplTest {
                 verify(søknadsbehandlingServiceMock).hentForSøknad(argThat { it shouldBe søknad.id })
 
                 verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
+                verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe sak.fnr })
                 val expectedRequest = TrukketSøknadBrevRequest(
                     person = person(fnr = sak.fnr),
                     søknad = søknad,
                     trukketDato = 1.januar(2021),
                     saksbehandlerNavn = "Testbruker, Lokal",
                     dagensDato = fixedLocalDate,
+                    saksnummer = sak.saksnummer,
                 )
                 verify(brevServiceMock).lagBrev(expectedRequest)
                 verify(søknadServiceMock).lukkSøknad(
@@ -934,13 +982,20 @@ internal class LukkSøknadServiceImplTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { hentForSøknad(any()) } doReturn søknadsbehandling
         }
-
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn sak.right()
+            on { hentSakidOgSaksnummer(any()) } doReturn SakIdOgNummer(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            ).right()
+        }
         ServiceOgMocks(
             søknadService = søknadServiceMock,
             brevService = brevServiceMock,
             personService = personServiceMock,
             identClient = IdentClientStub,
             søknadsbehandlingService = søknadsbehandlingServiceMock,
+            sakService = sakServiceMock,
         ).let { serviceAndMocks ->
             serviceAndMocks.lukkSøknadService.lukkSøknad(
                 LukkSøknadRequest.MedBrev.TrekkSøknad(
@@ -957,6 +1012,7 @@ internal class LukkSøknadServiceImplTest {
                 verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(argThat { it shouldBe søknad.id })
 
                 verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
+                verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe sak.fnr })
                 verify(brevServiceMock).lagBrev(
                     TrukketSøknadBrevRequest(
                         person = person(fnr = sak.fnr),
@@ -964,6 +1020,7 @@ internal class LukkSøknadServiceImplTest {
                         trukketDato = 1.januar(2021),
                         saksbehandlerNavn = "Testbruker, Lokal",
                         dagensDato = fixedLocalDate,
+                        saksnummer = sak.saksnummer,
                     ),
                 )
                 serviceAndMocks.verifyNoMoreInteractions()

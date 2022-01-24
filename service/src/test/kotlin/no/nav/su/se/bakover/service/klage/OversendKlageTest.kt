@@ -116,7 +116,11 @@ internal class OversendKlageTest {
             klageId = klage.id,
             attestant = attestant,
         ) shouldBe
-            KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent)).left()
+            KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(
+                KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(
+                    KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent,
+                ),
+            ).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe klage.fnr })
@@ -162,7 +166,7 @@ internal class OversendKlageTest {
                     fritekst = klage.vurderinger.fritekstTilBrev,
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
-                    saksnummer = Saksnummer(12345676)
+                    saksnummer = Saksnummer(12345676),
                 )
             },
         )
@@ -210,7 +214,7 @@ internal class OversendKlageTest {
                     fritekst = klage.vurderinger.fritekstTilBrev,
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
-                    saksnummer = Saksnummer(12345676)
+                    saksnummer = Saksnummer(12345676),
                 )
             },
         )
@@ -264,7 +268,7 @@ internal class OversendKlageTest {
                     fritekst = klage.vurderinger.fritekstTilBrev,
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
-                    saksnummer = Saksnummer(12345676)
+                    saksnummer = sak.saksnummer,
                 )
             },
         )
@@ -289,7 +293,7 @@ internal class OversendKlageTest {
                 ),
             ),
             datoKlageMottatt = 1.desember(2021),
-            klagevedtakshistorikk = Klagevedtakshistorikk.empty()
+            klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
         )
         verify(mocks.klageClient).sendTilKlageinstans(
             klage = argThat { it shouldBe expectedKlage },
@@ -304,7 +308,7 @@ internal class OversendKlageTest {
                         opprettet = it.opprettet,
                         tittel = "Oversendelsesbrev til klager",
                         generertDokument = pdfAsBytes,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\"},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"01.12.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676}",
+                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"01.12.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676}",
                     ),
                     metadata = Dokument.Metadata(
                         sakId = sak.id,
@@ -510,7 +514,7 @@ internal class OversendKlageTest {
                     ),
                 ),
                 datoKlageMottatt = 1.desember(2021),
-                klagevedtakshistorikk = Klagevedtakshistorikk.empty()
+                klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
             )
             it shouldBe expectedKlage
         }
@@ -528,7 +532,7 @@ internal class OversendKlageTest {
                     fritekst = klage.vurderinger.fritekstTilBrev,
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
-                    saksnummer = Saksnummer(12345676)
+                    saksnummer = klage.saksnummer,
                 )
             },
         )
@@ -545,7 +549,7 @@ internal class OversendKlageTest {
                         opprettet = it.opprettet,
                         tittel = "Oversendelsesbrev til klager",
                         generertDokument = pdfAsBytes,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\"},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"01.12.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676}",
+                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"01.12.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676}",
                     ),
                     metadata = Dokument.Metadata(
                         sakId = sak.id,

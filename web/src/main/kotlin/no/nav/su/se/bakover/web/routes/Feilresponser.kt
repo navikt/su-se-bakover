@@ -144,9 +144,14 @@ internal object Feilresponser {
         "kunne_ikke_hente_neste_kontrollsamtale"
     )
 
-    val fantIkkePlanlagtKontrollsamtale = NotFound.errorJson(
-        "Fant ikke planlagt kontrollsamtale",
-        "fant_ikke_planlagt_kontrollsamtale"
+    val fantIkkeGjeldendeStønadsperiode = NotFound.errorJson(
+        "Fant ikke gjeldende stønadsperiode",
+        "fant_ikke_gjeldende_stønadsperiode"
+    )
+
+    val ugyldigStatusovergangKontrollsamtale = NotFound.errorJson(
+        "Kontrollsamtalen som forsøkes å endre er i feil tilstand",
+        "ugyldig_statusovergang_kontrollsamtale"
     )
 
     val fantIkkeGjeldendeUtbetaling = NotFound.errorJson(

@@ -21,33 +21,34 @@ internal object LukkSøknadErrorHandler {
         return when (error) {
             is SøknadErAlleredeLukket -> BadRequest.errorJson(
                 "Søknad med id $søknadId er allerede lukket",
-                "søknad_allerede_lukket"
+                "søknad_allerede_lukket",
             )
             is FantIkkeSøknad -> NotFound.errorJson("Fant ikke søknad med id $søknadId", "fant_ikke_søknad")
             is UgyldigTrukketDato -> BadRequest.errorJson(
                 "Ugyldig lukket dato. Dato må være etter opprettet og kan ikke være frem i tid",
-                "ugyldig_dato"
+                "ugyldig_dato",
             )
             is FantIkkePerson -> Feilresponser.fantIkkePerson
             is KunneIkkeLukkeSøknad.SøknadManglerOppgave -> InternalServerError.errorJson(
                 "Søknad med id $søknadId mangler oppgave",
-                "søknad_mangler_oppgave"
+                "søknad_mangler_oppgave",
             )
             KunneIkkeLukkeSøknad.KunneIkkeGenerereDokument -> feilVedGenereringAvDokument
             is KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand -> when (error.feil) {
                 Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnAlleredeLukketSøknadsbehandling -> BadRequest.errorJson(
                     "Behandlingen tilknyttet søknad med id $søknadId er allerede lukket og kan derfor ikke lukkes",
-                    "kan_ikke_lukke_en_allerede_lukket_søknadsbehandling"
+                    "kan_ikke_lukke_en_allerede_lukket_søknadsbehandling",
                 )
                 Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnIverksattSøknadsbehandling -> BadRequest.errorJson(
                     "Behandlingen tilknyttet søknad med id $søknadId er iverksatt og kan derfor ikke lukkes",
-                    "kan_ikke_lukke_en_iverksatt_søknadsbehandling"
+                    "kan_ikke_lukke_en_iverksatt_søknadsbehandling",
                 )
                 Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering -> BadRequest.errorJson(
                     "Behandlingen tilknyttet søknad med id $søknadId er til attestering og kan derfor ikke lukkes",
-                    "kan_ikke_lukke_en_søknadsbehandling_til_attestering"
+                    "kan_ikke_lukke_en_søknadsbehandling_til_attestering",
                 )
             }
+            KunneIkkeLukkeSøknad.FantIkkeSak -> NotFound.errorJson("Fant ikke sak", "fant_ikke_sak")
         }
     }
 }

@@ -175,6 +175,7 @@ internal class LagBrevRequestVisitorTest {
                     fritekst = "",
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
+                    saksnummer = vilkårsvurdertInnvilget.saksnummer,
                 ).right()
 
                 it.brevRequest.map { brevRequest ->
@@ -210,6 +211,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -253,6 +255,7 @@ internal class LagBrevRequestVisitorTest {
                     fritekst = "",
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
+                    saksnummer = vilkårsvurdertInnvilget.saksnummer,
                 ).right()
             }
         }
@@ -281,6 +284,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
 
                     it.brevRequest.map { brevRequest ->
@@ -321,6 +325,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -368,6 +373,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -398,6 +404,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -439,6 +446,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -495,6 +503,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -533,6 +542,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -569,6 +579,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -620,6 +631,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -651,6 +663,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -695,6 +708,7 @@ internal class LagBrevRequestVisitorTest {
             fritekst = "Fritekst!",
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
+            saksnummer = søknadsbehandling.saksnummer,
         ).right()
     }
 
@@ -752,6 +766,7 @@ internal class LagBrevRequestVisitorTest {
             fritekst = "Fritekst!",
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
+            saksnummer = søknadsbehandling.saksnummer,
         ).right()
     }
 
@@ -798,6 +813,7 @@ internal class LagBrevRequestVisitorTest {
             fritekst = "Fritekst!",
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
+            saksnummer = søknadsbehandling.saksnummer,
         ).right()
     }
 
@@ -872,6 +888,7 @@ internal class LagBrevRequestVisitorTest {
             harEktefelle = false,
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
+            saksnummer = revurdering.saksnummer,
         ).right()
 
         brevRevurdering.brevRequest.map { brevRequest ->
@@ -969,6 +986,7 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             opphørsgrunner = emptyList(),
             dagensDato = fixedLocalDate,
+            saksnummer = revurdering.saksnummer,
             opphørsdato = revurdering.periode.fraOgMed,
             avkortingsBeløp = null,
         ).right()
@@ -1015,6 +1033,7 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             opphørsgrunner = listOf(Opphørsgrunn.UFØRHET),
             dagensDato = fixedLocalDate,
+            saksnummer = revurdering.saksnummer,
             opphørsdato = revurdering.periode.fraOgMed,
             avkortingsBeløp = null,
         ).right()
@@ -1089,6 +1108,7 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             opphørsgrunner = listOf(Opphørsgrunn.FOR_HØY_INNTEKT),
             dagensDato = fixedLocalDate,
+            saksnummer = revurdering.saksnummer,
             opphørsdato = revurdering.periode.fraOgMed,
             avkortingsBeløp = null,
         ).right()
@@ -1167,6 +1187,7 @@ internal class LagBrevRequestVisitorTest {
                 forventetInntektStørreEnn0 = false,
                 gjeldendeMånedsutbetaling = 120,
                 dagensDato = fixedLocalDate,
+                saksnummer = revurdering.saksnummer,
             )
 
             it.brevInnhold should beOfType<BrevInnhold.VedtakIngenEndring>()

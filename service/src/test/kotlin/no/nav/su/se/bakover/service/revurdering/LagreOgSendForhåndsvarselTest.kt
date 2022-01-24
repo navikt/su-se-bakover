@@ -96,6 +96,7 @@ internal class LagreOgSendForhåndsvarselTest {
                     saksbehandlerNavn = saksbehandlerNavn,
                     fritekst = "",
                     dagensDato = fixedLocalDate,
+                    saksnummer = simulertRevurdering.saksnummer,
                 )
             },
         )

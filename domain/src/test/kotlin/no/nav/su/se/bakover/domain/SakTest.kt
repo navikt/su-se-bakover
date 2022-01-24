@@ -338,6 +338,37 @@ internal class SakTest {
                 it.kanUtbetalingerStansesEllerGjenopptas(juni2021) shouldBe KanStansesEllerGjenopptas.STANS
             }
         }
+
+        @Test
+        fun `harGjeldendeEllerFremtidigStønadsperiode skal returnere true om det man er i en stønadsperiode`() {
+            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(
+                    periode = periodeJanuar2021,
+                ),
+            )
+            sak.harGjeldendeEllerFremtidigStønadsperiode(fixedClock) shouldBe true
+        }
+
+        @Test
+        fun `harGjeldendeEllerFremtidigStønadsperiode skal returnere true om det er en stønadsperiode i fremtiden`() {
+            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(
+                    periode = periodeMars2021,
+                ),
+            )
+            sak.harGjeldendeEllerFremtidigStønadsperiode(fixedClock) shouldBe true
+        }
+
+        @Test
+        fun `harGjeldendeEllerFremtidigStønadsperiode skal returnere false om det ikke er noen fremtidige stønadsperioder`() {
+            val juni2021 = Clock.fixed(1.juni(2021).atTime(0, 0).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(
+                    periode = periodeJanuar2021,
+                ),
+            )
+            sak.harGjeldendeEllerFremtidigStønadsperiode(juni2021) shouldBe false
+        }
     }
 
     @Nested
