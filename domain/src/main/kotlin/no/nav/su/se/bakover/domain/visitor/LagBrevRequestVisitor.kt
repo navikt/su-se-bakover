@@ -614,9 +614,11 @@ class LagBrevRequestVisitor(
                     is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> null
                     AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> null
                     AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> null
-                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
-                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
-                }
+                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> avkorting.avkortingsvarsel.hentUtbetalteBeløp()
+                        .sum()
+                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> avkorting.avkortingsvarsel.hentUtbetalteBeløp()
+                        .sum()
+                },
             )
         }
 
