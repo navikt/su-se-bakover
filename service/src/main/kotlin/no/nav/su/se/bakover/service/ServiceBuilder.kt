@@ -151,7 +151,8 @@ object ServiceBuilder {
             ferdigstillVedtakService = ferdigstillVedtakService,
             grunnlagService = grunnlagService,
             sakService = sakService,
-            kontrollsamtaleService = kontrollsamtaleService
+            kontrollsamtaleService = kontrollsamtaleService,
+            sessionFactory = databaseRepos.sessionFactory,
         ).apply {
             addObserver(statistikkService)
         }

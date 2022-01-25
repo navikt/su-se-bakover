@@ -51,6 +51,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.util.UUID
 
@@ -326,32 +327,28 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ),
             ) shouldBe expectedAvslag.right()
 
-            inOrder(
-                *it.allMocks(),
-            ) {
-                verify(it.søknadsbehandlingRepo).hent(avslagTilAttestering.id)
-                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<Avslagsvedtak.AvslagBeregning>() })
-                verify(it.søknadsbehandlingRepo).defaultTransactionContext()
-                verify(it.søknadsbehandlingRepo).lagre(eq(expectedAvslag), anyOrNull())
-                verify(it.vedtakRepo).lagre(argThat { it is Avslagsvedtak.AvslagBeregning })
-                verify(it.brevService).lagreDokument(
-                    argThat {
-                        it.metadata.sakId shouldBe avslagTilAttestering.sakId
-                        it.metadata.vedtakId shouldNotBe null
-                        it.metadata.bestillBrev shouldBe true
-                    },
-                )
-                verify(it.behandlingMetrics).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
-                verify(it.ferdigstillVedtakService).lukkOppgaveMedBruker(any())
-                verify(it.observer).handle(
-                    argThat {
-                        it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
-                            expectedAvslag,
-                        )
-                    },
-                )
-                it.verifyNoMoreInteractions()
-            }
+            verify(it.søknadsbehandlingRepo).hent(avslagTilAttestering.id)
+            verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<Avslagsvedtak.AvslagBeregning>() })
+            verify(it.søknadsbehandlingRepo).lagre(eq(expectedAvslag), anyOrNull())
+            verify(it.vedtakRepo).lagre(argThat { it is Avslagsvedtak.AvslagBeregning }, anyOrNull())
+            verify(it.brevService).lagreDokument(
+                argThat {
+                    it.metadata.sakId shouldBe avslagTilAttestering.sakId
+                    it.metadata.vedtakId shouldNotBe null
+                    it.metadata.bestillBrev shouldBe true
+                },
+                anyOrNull()
+            )
+            verify(it.behandlingMetrics).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
+            verify(it.ferdigstillVedtakService).lukkOppgaveMedBruker(any())
+            verify(it.observer).handle(
+                argThat {
+                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
+                        expectedAvslag,
+                    )
+                },
+            )
+            it.verifyNoMoreInteractions()
         }
     }
 

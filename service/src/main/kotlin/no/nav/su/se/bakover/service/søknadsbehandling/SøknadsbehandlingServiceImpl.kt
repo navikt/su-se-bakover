@@ -7,6 +7,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
@@ -80,6 +81,7 @@ internal class SøknadsbehandlingServiceImpl(
     private val grunnlagService: GrunnlagService,
     private val sakService: SakService,
     private val kontrollsamtaleService: KontrollsamtaleService,
+    private val sessionFactory: SessionFactory,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -390,11 +392,11 @@ internal class SøknadsbehandlingServiceImpl(
                             ),
                         )
 
-                    // TODO jm: skriker etter en transaksjon
-                    // TODO jm: sjekk om vi allerede har distribuert?
-                    søknadsbehandlingRepo.lagre(iverksattBehandling)
-                    vedtakRepo.lagre(vedtak)
-                    brevService.lagreDokument(dokument)
+                    sessionFactory.withTransactionContext {
+                        søknadsbehandlingRepo.lagre(iverksattBehandling, it)
+                        vedtakRepo.lagre(vedtak, it)
+                        brevService.lagreDokument(dokument, it)
+                    }
 
                     log.info("Iverksatt avslag for behandling: ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
 
