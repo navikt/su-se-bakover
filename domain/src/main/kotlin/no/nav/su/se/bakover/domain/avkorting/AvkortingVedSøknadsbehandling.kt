@@ -77,7 +77,7 @@ sealed class AvkortingVedSøknadsbehandling {
 
     sealed class Iverksatt : AvkortingVedSøknadsbehandling() {
         data class AvkortUtestående(
-            val avkortUtestående: Avkortingsvarsel.Utenlandsopphold,
+            val avkortUtestående: Avkortingsvarsel.Utenlandsopphold.Avkortet,
         ) : Iverksatt()
 
         object IngenUtestående : Iverksatt()

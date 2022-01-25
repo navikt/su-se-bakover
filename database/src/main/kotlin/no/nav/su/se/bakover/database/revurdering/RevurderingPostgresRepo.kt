@@ -8,13 +8,13 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.database.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.avkorting.AvkortingVedRevurderingDb
+import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avkorting.toDb
 import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
@@ -37,7 +37,6 @@ import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -245,7 +244,7 @@ internal class RevurderingPostgresRepo(
         )
 
         val avkorting = stringOrNull("avkorting")?.let {
-            objectMapper.readValue<AvkortingVedRevurderingDb>(it).toDomain(avkortingsvarselRepo, session)
+            objectMapper.readValue<AvkortingVedRevurderingDb>(it).toDomain()
         }
 
         val revurdering = lagRevurdering(
@@ -542,13 +541,13 @@ internal class RevurderingPostgresRepo(
             }
             is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> {
                 avkortingsvarselRepo.lagre(
-                    avkortingsvarsel = iverksatt.avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
+                    avkortingsvarsel = iverksatt.avkortingsvarsel,
                     tx = tx,
                 )
             }
             is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
                 avkortingsvarselRepo.lagre(
-                    avkortingsvarsel = iverksatt.avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
+                    avkortingsvarsel = iverksatt.avkortingsvarsel,
                     tx = tx,
                 )
                 avkortingsvarselRepo.lagre(

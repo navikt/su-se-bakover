@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.avkorting
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
@@ -13,6 +14,93 @@ import java.util.UUID
 internal class AvkortingsvarselPostgresRepoTest {
     @Test
     fun `avkortingsvarsel for utenlandsopphold`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val revurdering = testDataHelper.nyRevurdering(innvilget = vedtak, vedtak.periode)
+
+            testDataHelper.sessionFactory.withTransaction { tx ->
+
+                val avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                    id = UUID.randomUUID(),
+                    sakId = sak.id,
+                    revurderingId = revurdering.id,
+                    opprettet = fixedTidspunkt,
+                    simulering = simuleringFeilutbetaling(),
+                ).skalAvkortes()
+
+                testDataHelper.avkortingsvarselRepo.lagre(
+                    avkortingsvarsel = avkortingsvarsel,
+                    tx = tx,
+                )
+
+                testDataHelper.avkortingsvarselRepo.hent(
+                    id = avkortingsvarsel.id,
+                    session = tx,
+                ) shouldBe avkortingsvarsel
+
+                val annullert = avkortingsvarsel.annuller(revurdering.id)
+
+                testDataHelper.avkortingsvarselRepo.lagre(
+                    avkortingsvarsel = annullert,
+                    tx = tx,
+                )
+
+                testDataHelper.avkortingsvarselRepo.hent(
+                    id = avkortingsvarsel.id,
+                    session = tx,
+                ) shouldBe annullert
+            }
+        }
+    }
+
+    @Test
+    fun `avkorting for utenlandsopphold`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val revurdering = testDataHelper.nyRevurdering(innvilget = vedtak, vedtak.periode)
+            val nySøknadsbehandling = testDataHelper.nySøknadsbehandling(sak = sak)
+
+            testDataHelper.sessionFactory.withTransaction { tx ->
+
+                val avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                    id = UUID.randomUUID(),
+                    sakId = sak.id,
+                    revurderingId = revurdering.id,
+                    opprettet = fixedTidspunkt,
+                    simulering = simuleringFeilutbetaling(),
+                ).skalAvkortes()
+
+                testDataHelper.avkortingsvarselRepo.lagre(
+                    avkortingsvarsel = avkortingsvarsel,
+                    tx = tx,
+                )
+
+                testDataHelper.avkortingsvarselRepo.hent(
+                    id = avkortingsvarsel.id,
+                    session = tx,
+                ) shouldBe avkortingsvarsel
+
+                val avkortet = avkortingsvarsel.avkortet(nySøknadsbehandling.id)
+
+                testDataHelper.avkortingsvarselRepo.lagre(
+                    avkortingsvarsel = avkortet,
+                    tx = tx,
+                )
+
+                testDataHelper.avkortingsvarselRepo.hent(
+                    id = avkortingsvarsel.id,
+                    session = tx,
+                ) shouldBe avkortet
+            }
+        }
+    }
+
+    @Test
+    fun `ikke lov å avkorte etter at det er annullert for utenlandsopphold`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
@@ -54,15 +142,12 @@ internal class AvkortingsvarselPostgresRepoTest {
 
                 val avkortet = avkortingsvarsel.avkortet(nySøknadsbehandling.id)
 
-                testDataHelper.avkortingsvarselRepo.lagre(
-                    avkortingsvarsel = avkortet,
-                    tx = tx,
-                )
-
-                testDataHelper.avkortingsvarselRepo.hent(
-                    id = avkortingsvarsel.id,
-                    session = tx,
-                ) shouldBe avkortet
+                shouldThrow<RuntimeException> {
+                    testDataHelper.avkortingsvarselRepo.lagre(
+                        avkortingsvarsel = avkortet,
+                        tx = tx,
+                    )
+                }
             }
         }
     }

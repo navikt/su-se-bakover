@@ -65,83 +65,115 @@ sealed class AvkortingsvarselDb {
 internal fun Avkortingsvarsel.Utenlandsopphold.toDb(): AvkortingsvarselDb {
     return when (this) {
         is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
-            AvkortingsvarselDb.Annullert(
-                id = id,
-                sakId = sakId,
-                revurderingId = revurderingId,
-                opprettet = opprettet,
-                simulering = simulering,
-                behandlingId = behandlingId,
-            )
+            toDb()
         }
         is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
-            AvkortingsvarselDb.Avkortet(
-                id = id,
-                sakId = sakId,
-                revurderingId = revurderingId,
-                opprettet = opprettet,
-                simulering = simulering,
-                behandlingId = behandlingId,
-            )
+            toDb()
         }
         is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
-            AvkortingsvarselDb.Opprettet(
-                id = id,
-                sakId = sakId,
-                revurderingId = revurderingId,
-                opprettet = opprettet,
-                simulering = simulering,
-            )
+            toDb()
         }
         is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
-            AvkortingsvarselDb.SkalAvkortes(
-                id = id,
-                sakId = sakId,
-                revurderingId = revurderingId,
-                opprettet = opprettet,
-                simulering = simulering,
-            )
+            toDb()
         }
     }
+}
+
+internal fun Avkortingsvarsel.Utenlandsopphold.SkalAvkortes.toDb(): AvkortingsvarselDb.SkalAvkortes {
+    return AvkortingsvarselDb.SkalAvkortes(
+        id = id,
+        sakId = sakId,
+        revurderingId = revurderingId,
+        opprettet = opprettet,
+        simulering = simulering,
+    )
+}
+
+internal fun Avkortingsvarsel.Utenlandsopphold.Avkortet.toDb(): AvkortingsvarselDb.Avkortet {
+    return AvkortingsvarselDb.Avkortet(
+        id = id,
+        sakId = sakId,
+        revurderingId = revurderingId,
+        opprettet = opprettet,
+        simulering = simulering,
+        behandlingId = behandlingId,
+    )
+}
+
+internal fun Avkortingsvarsel.Utenlandsopphold.Opprettet.toDb(): AvkortingsvarselDb.Opprettet {
+    return AvkortingsvarselDb.Opprettet(
+        id = id,
+        sakId = sakId,
+        revurderingId = revurderingId,
+        opprettet = opprettet,
+        simulering = simulering,
+    )
+}
+
+internal fun Avkortingsvarsel.Utenlandsopphold.Annullert.toDb(): AvkortingsvarselDb.Annullert {
+    return AvkortingsvarselDb.Annullert(
+        id = id,
+        sakId = sakId,
+        revurderingId = revurderingId,
+        opprettet = opprettet,
+        simulering = simulering,
+        behandlingId = behandlingId,
+    )
 }
 
 internal fun AvkortingsvarselDb.toDomain(): Avkortingsvarsel {
     return when (this) {
         is AvkortingsvarselDb.Annullert -> {
-            Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                id = id,
-                sakId = sakId,
-                revurderingId = revurderingId,
-                opprettet = opprettet,
-                simulering = simulering,
-            ).skalAvkortes().annuller(behandlingId)
+            toDomain()
         }
         is AvkortingsvarselDb.Avkortet -> {
-            Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                id = id,
-                sakId = sakId,
-                revurderingId = revurderingId,
-                opprettet = opprettet,
-                simulering = simulering,
-            ).skalAvkortes().avkortet(behandlingId)
+            toDomain()
         }
         is AvkortingsvarselDb.Opprettet -> {
-            Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                id = id,
-                sakId = sakId,
-                revurderingId = revurderingId,
-                opprettet = opprettet,
-                simulering = simulering,
-            )
+            toDomain()
         }
         is AvkortingsvarselDb.SkalAvkortes -> {
-            Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                id = id,
-                sakId = sakId,
-                revurderingId = revurderingId,
-                opprettet = opprettet,
-                simulering = simulering,
-            ).skalAvkortes()
+            toDomain()
         }
     }
+}
+
+internal fun AvkortingsvarselDb.SkalAvkortes.toDomain(): Avkortingsvarsel.Utenlandsopphold.SkalAvkortes {
+    return Avkortingsvarsel.Utenlandsopphold.Opprettet(
+        id = id,
+        sakId = sakId,
+        revurderingId = revurderingId,
+        opprettet = opprettet,
+        simulering = simulering,
+    ).skalAvkortes()
+}
+
+internal fun AvkortingsvarselDb.Opprettet.toDomain(): Avkortingsvarsel.Utenlandsopphold.Opprettet {
+    return Avkortingsvarsel.Utenlandsopphold.Opprettet(
+        id = id,
+        sakId = sakId,
+        revurderingId = revurderingId,
+        opprettet = opprettet,
+        simulering = simulering,
+    )
+}
+
+internal fun AvkortingsvarselDb.Annullert.toDomain(): Avkortingsvarsel.Utenlandsopphold.Annullert {
+    return Avkortingsvarsel.Utenlandsopphold.Opprettet(
+        id = id,
+        sakId = sakId,
+        revurderingId = revurderingId,
+        opprettet = opprettet,
+        simulering = simulering,
+    ).skalAvkortes().annuller(behandlingId)
+}
+
+internal fun AvkortingsvarselDb.Avkortet.toDomain(): Avkortingsvarsel.Utenlandsopphold.Avkortet {
+    return Avkortingsvarsel.Utenlandsopphold.Opprettet(
+        id = id,
+        sakId = sakId,
+        revurderingId = revurderingId,
+        opprettet = opprettet,
+        simulering = simulering,
+    ).skalAvkortes().avkortet(behandlingId)
 }

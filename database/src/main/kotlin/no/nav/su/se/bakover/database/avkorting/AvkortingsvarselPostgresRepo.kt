@@ -1,9 +1,18 @@
-package no.nav.su.se.bakover.database
+package no.nav.su.se.bakover.database.avkorting
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.PostgresSessionFactory
+import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.TransactionalSession
+import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.hentListe
+import no.nav.su.se.bakover.database.insert
+import no.nav.su.se.bakover.database.oppdatering
+import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -31,6 +40,9 @@ internal class AvkortingsvarselPostgresRepo(
     }
 
     internal fun lagre(avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.Avkortet, tx: TransactionalSession) {
+        hent(id = avkortingsvarsel.id, session = tx).also {
+            check(it is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes) { "Avkortingsvarsel ${avkortingsvarsel.id} er i ugyldig tilstand for å kunne oppdateres" }
+        }
         oppdater(
             id = avkortingsvarsel.id,
             status = Status.AVKORTET,
@@ -40,6 +52,9 @@ internal class AvkortingsvarselPostgresRepo(
     }
 
     internal fun lagre(avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.Annullert, tx: TransactionalSession) {
+        hent(id = avkortingsvarsel.id, session = tx).also {
+            check(it is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes) { "Avkortingsvarsel ${avkortingsvarsel.id} er i ugyldig tilstand for å kunne oppdateres" }
+        }
         oppdater(
             id = avkortingsvarsel.id,
             status = Status.ANNULLERT,

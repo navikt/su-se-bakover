@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -125,7 +124,7 @@ internal class RevurderingBeregnOgSimulerTest {
                     revurdering.periode.fraOgMed,
                     fixedClock,
                 ).getOrFail().right()
-            }
+            },
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
@@ -143,7 +142,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 fradragsgrunnlagArbeidsinntekt(
                     periode = periode2021,
                     arbeidsinntekt = 5000.0,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
             ),
         )
@@ -214,8 +213,8 @@ internal class RevurderingBeregnOgSimulerTest {
                     periode = periode2021,
                     arbeidsinntekt = 5000.0,
                     tilhører = FradragTilhører.BRUKER,
-                )
-            )
+                ),
+            ),
         )
 
         RevurderingServiceMocks(
@@ -245,8 +244,8 @@ internal class RevurderingBeregnOgSimulerTest {
                     periode = periode2021,
                     arbeidsinntekt = 5000.0,
                     tilhører = FradragTilhører.BRUKER,
-                )
-            )
+                ),
+            ),
         )
 
         RevurderingServiceMocks(
@@ -451,10 +450,11 @@ internal class RevurderingBeregnOgSimulerTest {
         )
 
         val stønadsperiode2 = Stønadsperiode.create(Periode.create(1.juli(2021), 31.desember(2021)), "baluba")
-        val uteståendeAvkorting = (((revurdering1 as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering).behandling.avkorting) as AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel).avkortingsvarsel
+        val uteståendeAvkorting =
+            (((revurdering1 as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering).behandling.avkorting) as AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel).avkortingsvarsel
         val (sakEtterInnvilgelse2, innvilget2) = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = stønadsperiode2,
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(uteståendeAvkorting as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes),
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(uteståendeAvkorting),
             clock = tikkendeKlokke,
         ).let { (sak, ny) ->
             // legg til ny søknadsbehandling på eksisterende sak

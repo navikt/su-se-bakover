@@ -3,11 +3,7 @@ package no.nav.su.se.bakover.database.avkorting
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
-import no.nav.su.se.bakover.database.AvkortingsvarselPostgresRepo
-import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import java.util.UUID
 
 internal fun AvkortingVedSøknadsbehandling.toDb(): AvkortingVedSøknadsbehandlingDb {
     return when (this) {
@@ -23,35 +19,26 @@ internal fun AvkortingVedSøknadsbehandling.toDb(): AvkortingVedSøknadsbehandli
     }
 }
 
-internal fun AvkortingVedSøknadsbehandlingDb.toDomain(
-    avkortingsvarselPostgresRepo: AvkortingsvarselPostgresRepo,
-    session: Session,
-): AvkortingVedSøknadsbehandling {
+internal fun AvkortingVedSøknadsbehandlingDb.toDomain(): AvkortingVedSøknadsbehandling {
     return when (this) {
         is AvkortingVedSøknadsbehandlingDb.Håndtert -> {
-            toDomain(avkortingsvarselPostgresRepo, session)
+            toDomain()
         }
         is AvkortingVedSøknadsbehandlingDb.Iverksatt -> {
-            toDomain(avkortingsvarselPostgresRepo, session)
+            toDomain()
         }
         is AvkortingVedSøknadsbehandlingDb.Uhåndtert -> {
-            toDomain(avkortingsvarselPostgresRepo, session)
+            toDomain()
         }
     }
 }
 
-internal fun AvkortingVedSøknadsbehandlingDb.Håndtert.toDomain(
-    avkortingsvarselPostgresRepo: AvkortingsvarselPostgresRepo,
-    session: Session,
-): AvkortingVedSøknadsbehandling.Håndtert {
+internal fun AvkortingVedSøknadsbehandlingDb.Håndtert.toDomain(): AvkortingVedSøknadsbehandling.Håndtert {
     return when (this) {
         is AvkortingVedSøknadsbehandlingDb.Håndtert.AvkortUtestående -> {
             AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
                 AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                    avkortingsvarsel = avkortingsvarselPostgresRepo.hent(
-                        id = avkortingsvarselId,
-                        session = session,
-                    ) as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
+                    avkortingsvarsel = avkortingsvarsel.toDomain(),
                 ),
             )
         }
@@ -64,17 +51,11 @@ internal fun AvkortingVedSøknadsbehandlingDb.Håndtert.toDomain(
     }
 }
 
-internal fun AvkortingVedSøknadsbehandlingDb.Iverksatt.toDomain(
-    avkortingsvarselPostgresRepo: AvkortingsvarselPostgresRepo,
-    session: Session,
-): AvkortingVedSøknadsbehandling.Iverksatt {
+internal fun AvkortingVedSøknadsbehandlingDb.Iverksatt.toDomain(): AvkortingVedSøknadsbehandling.Iverksatt {
     return when (this) {
         is AvkortingVedSøknadsbehandlingDb.Iverksatt.AvkortUtestående -> {
             AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående(
-                avkortUtestående = avkortingsvarselPostgresRepo.hent(
-                    id = avkortingsvarselId,
-                    session = session,
-                ) as Avkortingsvarsel.Utenlandsopphold.Avkortet,
+                avkortUtestående = avkortingsvarsel.toDomain(),
             )
         }
         is AvkortingVedSøknadsbehandlingDb.Iverksatt.IngenUtestående -> {
@@ -86,20 +67,14 @@ internal fun AvkortingVedSøknadsbehandlingDb.Iverksatt.toDomain(
     }
 }
 
-internal fun AvkortingVedSøknadsbehandlingDb.Uhåndtert.toDomain(
-    avkortingsvarselPostgresRepo: AvkortingsvarselPostgresRepo,
-    session: Session,
-): AvkortingVedSøknadsbehandling.Uhåndtert {
+internal fun AvkortingVedSøknadsbehandlingDb.Uhåndtert.toDomain(): AvkortingVedSøknadsbehandling.Uhåndtert {
     return when (this) {
         is AvkortingVedSøknadsbehandlingDb.Uhåndtert.IngenUtestående -> {
             AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
         }
         is AvkortingVedSøknadsbehandlingDb.Uhåndtert.UteståendeAvkorting -> {
             AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                avkortingsvarsel = avkortingsvarselPostgresRepo.hent(
-                    id = avkortingsvarselId,
-                    session = session,
-                ) as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
+                avkortingsvarsel = avkortingsvarsel.toDomain(),
             )
         }
         is AvkortingVedSøknadsbehandlingDb.Uhåndtert.KanIkkeHåndtere -> {
@@ -115,7 +90,7 @@ internal fun AvkortingVedSøknadsbehandling.Uhåndtert.toDb(): AvkortingVedSøkn
         }
         is AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting -> {
             AvkortingVedSøknadsbehandlingDb.Uhåndtert.UteståendeAvkorting(
-                avkortingsvarselId = avkortingsvarsel.id,
+                avkortingsvarsel = avkortingsvarsel.toDb(),
             )
         }
         is AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere -> {
@@ -128,7 +103,7 @@ internal fun AvkortingVedSøknadsbehandling.Håndtert.toDb(): AvkortingVedSøkna
     return when (this) {
         is AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående -> {
             AvkortingVedSøknadsbehandlingDb.Håndtert.AvkortUtestående(
-                avkortingsvarselId = avkortUtestående.avkortingsvarsel.id,
+                avkortingsvarsel = avkortUtestående.avkortingsvarsel.toDb(),
             )
         }
         is AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående -> {
@@ -144,7 +119,7 @@ internal fun AvkortingVedSøknadsbehandling.Iverksatt.toDb(): AvkortingVedSøkna
     return when (this) {
         is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående -> {
             AvkortingVedSøknadsbehandlingDb.Iverksatt.AvkortUtestående(
-                avkortingsvarselId = avkortUtestående.id,
+                avkortingsvarsel = avkortUtestående.toDb(),
             )
         }
         is AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående -> {
@@ -170,7 +145,7 @@ internal sealed class AvkortingVedSøknadsbehandlingDb {
 
         @JsonTypeName("UHÅNDTERT_UTESTÅENDE")
         data class UteståendeAvkorting(
-            val avkortingsvarselId: UUID,
+            val avkortingsvarsel: AvkortingsvarselDb.SkalAvkortes,
         ) : Uhåndtert()
 
         @JsonTypeName("UHÅNDTERT_KAN_IKKE")
@@ -189,7 +164,7 @@ internal sealed class AvkortingVedSøknadsbehandlingDb {
 
         @JsonTypeName("HÅNDTERT_AVKORTET_UTESTÅENDE")
         data class AvkortUtestående(
-            val avkortingsvarselId: UUID,
+            val avkortingsvarsel: AvkortingsvarselDb.SkalAvkortes,
         ) : Håndtert()
 
         @JsonTypeName("HÅNDTERT_KAN_IKKE")
@@ -207,7 +182,7 @@ internal sealed class AvkortingVedSøknadsbehandlingDb {
 
         @JsonTypeName("IVERKSATT_AVKORTET_UTESTÅENDE")
         data class AvkortUtestående(
-            val avkortingsvarselId: UUID,
+            val avkortingsvarsel: AvkortingsvarselDb.Avkortet,
         ) : Iverksatt()
 
         @JsonTypeName("IVERKSATT_KAN_IKKE")

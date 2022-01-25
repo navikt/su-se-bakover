@@ -28,6 +28,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.config.SaslConfigs
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
 import org.mockito.kotlin.any
@@ -51,6 +52,7 @@ internal class PersonhendelseConsumerTest {
     private val ident = fnr.toString() + "00"
     private val key = "HEADER$ident"
 
+    @Disabled
     @Test
     fun `Mottar alle personhendelsene`() {
         val kafkaConsumer = kafkaConsumer(kafkaServer, "$TOPIC1-consumer-group")

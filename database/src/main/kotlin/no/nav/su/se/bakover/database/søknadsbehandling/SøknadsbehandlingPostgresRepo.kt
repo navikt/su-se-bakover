@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.database.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
@@ -14,6 +13,7 @@ import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTr
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.avkorting.AvkortingVedSøknadsbehandlingDb
+import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avkorting.toDb
 import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -254,7 +253,7 @@ internal class SøknadsbehandlingPostgresRepo(
         }
 
         val avkorting = stringOrNull("avkorting")?.let {
-            objectMapper.readValue<AvkortingVedSøknadsbehandlingDb>(it).toDomain(avkortingsvarselRepo, session)
+            objectMapper.readValue<AvkortingVedSøknadsbehandlingDb>(it).toDomain()
         }
 
         val søknadsbehandling = when (status) {
@@ -662,7 +661,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 when (val avkort = søknadsbehandling.avkorting) {
                     is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående -> {
                         avkortingsvarselRepo.lagre(
-                            avkortingsvarsel = avkort.avkortUtestående as Avkortingsvarsel.Utenlandsopphold.Avkortet,
+                            avkortingsvarsel = avkort.avkortUtestående,
                             tx = tx,
                         )
                     }

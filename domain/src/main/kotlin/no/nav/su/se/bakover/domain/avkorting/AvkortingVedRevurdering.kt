@@ -148,12 +148,12 @@ sealed class AvkortingVedRevurdering {
 
     sealed class Iverksatt : AvkortingVedRevurdering() {
         data class OpprettNyttAvkortingsvarselOgAnnullerUtestående(
-            val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold,
+            val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
             val annullerUtestående: Avkortingsvarsel.Utenlandsopphold.Annullert,
         ) : Iverksatt()
 
         data class OpprettNyttAvkortingsvarsel(
-            val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold,
+            val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
         ) : Iverksatt()
 
         data class AnnullerUtestående(

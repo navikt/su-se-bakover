@@ -9,9 +9,6 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
@@ -31,9 +28,12 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
             simulering = simuleringFeilutbetaling(juni(2021)),
         ),
     )
+
+    val behandlingId = UUID.randomUUID()
+    val varselAvkortet = varsel.avkortet(behandlingId)
     val utestående1 = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(avkortingsvarsel = varsel)
     val utestående2 = utestående1.håndter()
-    val utestående3 = utestående2.iverksett(UUID.randomUUID())
+    val utestående3 = utestående2.iverksett(behandlingId)
 
     @Test
     fun `ingen utestående`() {
@@ -43,10 +43,8 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
             }
         """.trimIndent()
         JSONAssert.assertEquals(exp1, objectMapper.writeValueAsString(ingen1.toDb()), true)
-        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Uhåndtert.IngenUtestående>(exp1).toDomain(
-            mock(),
-            mock(),
-        ) shouldBe beOfType<AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående>()
+        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Uhåndtert.IngenUtestående>(exp1)
+            .toDomain() shouldBe beOfType<AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående>()
 
         val exp2 = """
             {
@@ -54,10 +52,8 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
             }
         """.trimIndent()
         JSONAssert.assertEquals(exp2, objectMapper.writeValueAsString(ingen2.toDb()), true)
-        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Håndtert.IngenUtestående>(exp2).toDomain(
-            mock(),
-            mock(),
-        ) shouldBe beOfType<AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående>()
+        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Håndtert.IngenUtestående>(exp2)
+            .toDomain() shouldBe beOfType<AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående>()
 
         val exp3 = """
             {
@@ -65,10 +61,8 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
             }
         """.trimIndent()
         JSONAssert.assertEquals(exp3, objectMapper.writeValueAsString(ingen3.toDb()), true)
-        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Iverksatt.IngenUtestående>(exp3).toDomain(
-            mock(),
-            mock(),
-        ) shouldBe beOfType<AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående>()
+        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Iverksatt.IngenUtestående>(exp3)
+            .toDomain() shouldBe beOfType<AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående>()
     }
 
     @Test
@@ -79,10 +73,8 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
             }
         """.trimIndent()
         JSONAssert.assertEquals(exp4, objectMapper.writeValueAsString(kanIkke1.toDb()), true)
-        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Uhåndtert.KanIkkeHåndtere>(exp4).toDomain(
-            mock(),
-            mock(),
-        ) shouldBe beOfType<AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere>()
+        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Uhåndtert.KanIkkeHåndtere>(exp4)
+            .toDomain() shouldBe beOfType<AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere>()
 
         val exp5 = """
             {
@@ -90,10 +82,8 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
             }
         """.trimIndent()
         JSONAssert.assertEquals(exp5, objectMapper.writeValueAsString(kanIkke2.toDb()), true)
-        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Håndtert.KanIkkeHåndtere>(exp5).toDomain(
-            mock(),
-            mock(),
-        ) shouldBe beOfType<AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere>()
+        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Håndtert.KanIkkeHåndtere>(exp5)
+            .toDomain() shouldBe beOfType<AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere>()
     }
 
     @Test
@@ -101,37 +91,31 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
         val exp6 = """
             {
                 "@type":"UHÅNDTERT_UTESTÅENDE",
-                "avkortingsvarselId":"${varsel.id}"
+                "avkortingsvarsel":${objectMapper.writeValueAsString(varsel.toDb())}
             }
         """.trimIndent()
         JSONAssert.assertEquals(exp6, objectMapper.writeValueAsString(utestående1.toDb()), true)
-        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Uhåndtert.UteståendeAvkorting>(exp6).toDomain(
-            mock { on { hent(any(), any()) } doReturn varsel },
-            mock(),
-        ) shouldBe beOfType<AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting>()
+        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Uhåndtert.UteståendeAvkorting>(exp6)
+            .toDomain() shouldBe beOfType<AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting>()
 
         val exp7 = """
             {
                 "@type":"HÅNDTERT_AVKORTET_UTESTÅENDE",
-                "avkortingsvarselId":"${varsel.id}"
+                "avkortingsvarsel":${objectMapper.writeValueAsString(varsel.toDb())}
             }
         """.trimIndent()
         JSONAssert.assertEquals(exp7, objectMapper.writeValueAsString(utestående2.toDb()), true)
-        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Håndtert.AvkortUtestående>(exp7).toDomain(
-            mock { on { hent(any(), any()) } doReturn varsel },
-            mock(),
-        ) shouldBe beOfType<AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående>()
+        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Håndtert.AvkortUtestående>(exp7)
+            .toDomain() shouldBe beOfType<AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående>()
 
         val exp8 = """
             {
                 "@type":"IVERKSATT_AVKORTET_UTESTÅENDE",
-                "avkortingsvarselId":"${varsel.id}"
+                "avkortingsvarsel":${objectMapper.writeValueAsString(varselAvkortet.toDb())}
             }
         """.trimIndent()
         JSONAssert.assertEquals(exp8, objectMapper.writeValueAsString(utestående3.toDb()), true)
-        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Iverksatt.AvkortUtestående>(exp8).toDomain(
-            mock { on { hent(any(), any()) } doReturn varsel.avkortet(UUID.randomUUID()) },
-            mock(),
-        ) shouldBe beOfType<AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>()
+        objectMapper.readValue<AvkortingVedSøknadsbehandlingDb.Iverksatt.AvkortUtestående>(exp8)
+            .toDomain() shouldBe beOfType<AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående>()
     }
 }

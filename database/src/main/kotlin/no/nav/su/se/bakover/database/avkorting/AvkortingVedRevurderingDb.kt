@@ -3,11 +3,7 @@ package no.nav.su.se.bakover.database.avkorting
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
-import no.nav.su.se.bakover.database.AvkortingsvarselPostgresRepo
-import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import java.util.UUID
 
 internal fun AvkortingVedRevurdering.toDb(): AvkortingVedRevurderingDb {
     return when (this) {
@@ -26,38 +22,29 @@ internal fun AvkortingVedRevurdering.toDb(): AvkortingVedRevurderingDb {
     }
 }
 
-internal fun AvkortingVedRevurderingDb.toDomain(
-    avkortingsvarselPostgresRepo: AvkortingsvarselPostgresRepo,
-    session: Session,
-): AvkortingVedRevurdering {
+internal fun AvkortingVedRevurderingDb.toDomain(): AvkortingVedRevurdering {
     return when (this) {
         is AvkortingVedRevurderingDb.DelvisHåndtert -> {
-            toDomain(avkortingsvarselPostgresRepo, session)
+            toDomain()
         }
         is AvkortingVedRevurderingDb.Håndtert -> {
-            toDomain(avkortingsvarselPostgresRepo, session)
+            toDomain()
         }
         is AvkortingVedRevurderingDb.Iverksatt -> {
-            toDomain(avkortingsvarselPostgresRepo, session)
+            toDomain()
         }
         is AvkortingVedRevurderingDb.Uhåndtert -> {
-            toDomain(avkortingsvarselPostgresRepo, session)
+            toDomain()
         }
     }
 }
 
-internal fun AvkortingVedRevurderingDb.DelvisHåndtert.toDomain(
-    avkortingsvarselPostgresRepo: AvkortingsvarselPostgresRepo,
-    session: Session,
-): AvkortingVedRevurdering.DelvisHåndtert {
+internal fun AvkortingVedRevurderingDb.DelvisHåndtert.toDomain(): AvkortingVedRevurdering.DelvisHåndtert {
     return when (this) {
         is AvkortingVedRevurderingDb.DelvisHåndtert.AnnullerUtestående -> {
             AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående(
                 AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-                    avkortingsvarsel = avkortingsvarselPostgresRepo.hent(
-                        id = avkortingsvarselId,
-                        session = session,
-                    ) as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
+                    avkortingsvarsel = avkortingsvarsel.toDomain(),
                 ),
             )
         }
@@ -70,19 +57,13 @@ internal fun AvkortingVedRevurderingDb.DelvisHåndtert.toDomain(
     }
 }
 
-internal fun AvkortingVedRevurderingDb.Håndtert.toDomain(
-    avkortingsvarselPostgresRepo: AvkortingsvarselPostgresRepo,
-    session: Session,
-): AvkortingVedRevurdering.Håndtert {
+internal fun AvkortingVedRevurderingDb.Håndtert.toDomain(): AvkortingVedRevurdering.Håndtert {
     return when (this) {
         is AvkortingVedRevurderingDb.Håndtert.AnnullerUtestående -> {
             AvkortingVedRevurdering.Håndtert.AnnullerUtestående(
                 AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående(
                     AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-                        avkortingsvarsel = avkortingsvarselPostgresRepo.hent(
-                            id = avkortingsvarselId,
-                            session = session,
-                        ) as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
+                        avkortingsvarsel = avkortingsvarsel.toDomain(),
                     ),
                 ),
             )
@@ -92,20 +73,17 @@ internal fun AvkortingVedRevurderingDb.Håndtert.toDomain(
         }
         is AvkortingVedRevurderingDb.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
             AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
-                avkortingsvarsel = avkortingsvarsel.toDomain() as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
+                avkortingsvarsel = avkortingsvarsel.toDomain(),
                 annullerUtestående = AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående(
                     AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-                        avkortingsvarsel = avkortingsvarselPostgresRepo.hent(
-                            id = avkortingsvarselId,
-                            session = session,
-                        ) as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
+                        avkortingsvarsel = uteståendeAvkortingsvarsel.toDomain(),
                     ),
                 ),
             )
         }
         is AvkortingVedRevurderingDb.Håndtert.OpprettNyttAvkortingsvarsel -> {
             AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
-                avkortingsvarsel = avkortingsvarsel.toDomain() as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
+                avkortingsvarsel = avkortingsvarsel.toDomain(),
             )
         }
         is AvkortingVedRevurderingDb.Håndtert.KanIkkeHåndteres -> {
@@ -114,17 +92,11 @@ internal fun AvkortingVedRevurderingDb.Håndtert.toDomain(
     }
 }
 
-internal fun AvkortingVedRevurderingDb.Iverksatt.toDomain(
-    avkortingsvarselPostgresRepo: AvkortingsvarselPostgresRepo,
-    session: Session,
-): AvkortingVedRevurdering.Iverksatt {
+internal fun AvkortingVedRevurderingDb.Iverksatt.toDomain(): AvkortingVedRevurdering.Iverksatt {
     return when (this) {
         is AvkortingVedRevurderingDb.Iverksatt.AnnullerUtestående -> {
             AvkortingVedRevurdering.Iverksatt.AnnullerUtestående(
-                annullerUtestående = avkortingsvarselPostgresRepo.hent(
-                    id = avkortingsvarselId,
-                    session = session,
-                ) as Avkortingsvarsel.Utenlandsopphold.Annullert,
+                annullerUtestående = avkortingsvarsel.toDomain(),
             )
         }
         is AvkortingVedRevurderingDb.Iverksatt.IngenNyEllerUtestående -> {
@@ -132,22 +104,13 @@ internal fun AvkortingVedRevurderingDb.Iverksatt.toDomain(
         }
         is AvkortingVedRevurderingDb.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
             AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
-                avkortingsvarsel = avkortingsvarselPostgresRepo.hent(
-                    id = avkortingsvarsel.id,
-                    session = session,
-                ) as Avkortingsvarsel.Utenlandsopphold,
-                annullerUtestående = avkortingsvarselPostgresRepo.hent(
-                    id = avkortingsvarselId,
-                    session = session,
-                ) as Avkortingsvarsel.Utenlandsopphold.Annullert,
+                avkortingsvarsel = avkortingsvarsel.toDomain(),
+                annullerUtestående = uteståendeAvkortingsvarsel.toDomain(),
             )
         }
         is AvkortingVedRevurderingDb.Iverksatt.OpprettNyttAvkortingsvarsel -> {
             AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel(
-                avkortingsvarsel = avkortingsvarselPostgresRepo.hent(
-                    id = avkortingsvarsel.id,
-                    session = session,
-                ) as Avkortingsvarsel.Utenlandsopphold,
+                avkortingsvarsel = avkortingsvarsel.toDomain(),
             )
         }
         is AvkortingVedRevurderingDb.Iverksatt.KanIkkeHåndteres -> {
@@ -156,20 +119,14 @@ internal fun AvkortingVedRevurderingDb.Iverksatt.toDomain(
     }
 }
 
-internal fun AvkortingVedRevurderingDb.Uhåndtert.toDomain(
-    avkortingsvarselPostgresRepo: AvkortingsvarselPostgresRepo,
-    session: Session,
-): AvkortingVedRevurdering.Uhåndtert {
+internal fun AvkortingVedRevurderingDb.Uhåndtert.toDomain(): AvkortingVedRevurdering.Uhåndtert {
     return when (this) {
         is AvkortingVedRevurderingDb.Uhåndtert.IngenUtestående -> {
             AvkortingVedRevurdering.Uhåndtert.IngenUtestående
         }
         is AvkortingVedRevurderingDb.Uhåndtert.UteståendeAvkorting -> {
             AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-                avkortingsvarsel = avkortingsvarselPostgresRepo.hent(
-                    id = avkortingsvarselId,
-                    session = session,
-                ) as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
+                avkortingsvarsel = avkortingsvarsel.toDomain(),
             )
         }
         is AvkortingVedRevurderingDb.Uhåndtert.KanIkkeHåndteres -> {
@@ -185,7 +142,7 @@ internal fun AvkortingVedRevurdering.Uhåndtert.toDb(): AvkortingVedRevurderingD
         }
         is AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting -> {
             AvkortingVedRevurderingDb.Uhåndtert.UteståendeAvkorting(
-                avkortingsvarselId = avkortingsvarsel.id,
+                avkortingsvarsel = avkortingsvarsel.toDb(),
             )
         }
         is AvkortingVedRevurdering.Uhåndtert.KanIkkeHåndtere -> {
@@ -198,7 +155,7 @@ internal fun AvkortingVedRevurdering.DelvisHåndtert.toDb(): AvkortingVedRevurde
     return when (this) {
         is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
             AvkortingVedRevurderingDb.DelvisHåndtert.AnnullerUtestående(
-                avkortingsvarselId = uteståendeAvkorting.avkortingsvarsel.id,
+                avkortingsvarsel = uteståendeAvkorting.avkortingsvarsel.toDb(),
             )
         }
         is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {
@@ -214,7 +171,7 @@ internal fun AvkortingVedRevurdering.Håndtert.toDb(): AvkortingVedRevurderingDb
     return when (this) {
         is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
             AvkortingVedRevurderingDb.Håndtert.AnnullerUtestående(
-                avkortingsvarselId = annullerUtestående.uteståendeAvkorting.avkortingsvarsel.id,
+                avkortingsvarsel = annullerUtestående.uteståendeAvkorting.avkortingsvarsel.toDb(),
             )
         }
         is AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
@@ -223,7 +180,7 @@ internal fun AvkortingVedRevurdering.Håndtert.toDb(): AvkortingVedRevurderingDb
         is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
             AvkortingVedRevurderingDb.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
                 avkortingsvarsel = avkortingsvarsel.toDb(),
-                avkortingsvarselId = annullerUtestående.uteståendeAvkorting.avkortingsvarsel.id,
+                uteståendeAvkortingsvarsel = annullerUtestående.uteståendeAvkorting.avkortingsvarsel.toDb(),
             )
         }
         is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
@@ -241,7 +198,7 @@ internal fun AvkortingVedRevurdering.Iverksatt.toDb(): AvkortingVedRevurderingDb
     return when (this) {
         is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> {
             AvkortingVedRevurderingDb.Iverksatt.AnnullerUtestående(
-                avkortingsvarselId = annullerUtestående.id,
+                avkortingsvarsel = annullerUtestående.toDb(),
             )
         }
         is AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> {
@@ -250,7 +207,7 @@ internal fun AvkortingVedRevurdering.Iverksatt.toDb(): AvkortingVedRevurderingDb
         is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
             AvkortingVedRevurderingDb.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
                 avkortingsvarsel = avkortingsvarsel.toDb(),
-                avkortingsvarselId = annullerUtestående.id,
+                uteståendeAvkortingsvarsel = annullerUtestående.toDb(),
             )
         }
         is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> {
@@ -278,7 +235,7 @@ internal sealed class AvkortingVedRevurderingDb {
 
         @JsonTypeName("UHÅNDTERT_UTESTÅENDE")
         data class UteståendeAvkorting(
-            val avkortingsvarselId: UUID,
+            val avkortingsvarsel: AvkortingsvarselDb.SkalAvkortes,
         ) : Uhåndtert()
 
         @JsonTypeName("UHÅNDTERT_KAN_IKKE")
@@ -296,7 +253,7 @@ internal sealed class AvkortingVedRevurderingDb {
 
         @JsonTypeName("DELVIS_HÅNDTERT_ANNULLERT_UTESTÅENDE")
         data class AnnullerUtestående(
-            val avkortingsvarselId: UUID,
+            val avkortingsvarsel: AvkortingsvarselDb.SkalAvkortes,
         ) : DelvisHåndtert()
 
         @JsonTypeName("DELVIS_KAN_IKKE")
@@ -317,18 +274,18 @@ internal sealed class AvkortingVedRevurderingDb {
 
         @JsonTypeName("HÅNDTERT_NY_OG_ANNULLERT_UTESTÅENDE")
         data class OpprettNyttAvkortingsvarselOgAnnullerUtestående(
-            val avkortingsvarsel: AvkortingsvarselDb,
-            val avkortingsvarselId: UUID,
+            val avkortingsvarsel: AvkortingsvarselDb.SkalAvkortes,
+            val uteståendeAvkortingsvarsel: AvkortingsvarselDb.SkalAvkortes,
         ) : Håndtert()
 
         @JsonTypeName("HÅNDTERT_NY")
         data class OpprettNyttAvkortingsvarsel(
-            val avkortingsvarsel: AvkortingsvarselDb,
+            val avkortingsvarsel: AvkortingsvarselDb.SkalAvkortes,
         ) : Håndtert()
 
         @JsonTypeName("HÅNDTERT_ANNULLERT_UTESTÅENDE")
         data class AnnullerUtestående(
-            val avkortingsvarselId: UUID,
+            val avkortingsvarsel: AvkortingsvarselDb.SkalAvkortes,
         ) : Håndtert()
 
         @JsonTypeName("HÅNDTERT_KAN_IKKE")
@@ -348,18 +305,18 @@ internal sealed class AvkortingVedRevurderingDb {
 
         @JsonTypeName("IVERKSATT_NY_OG_ANNULLERT_UTESTÅENDE")
         data class OpprettNyttAvkortingsvarselOgAnnullerUtestående(
-            val avkortingsvarsel: AvkortingsvarselDb,
-            val avkortingsvarselId: UUID,
+            val avkortingsvarsel: AvkortingsvarselDb.SkalAvkortes,
+            val uteståendeAvkortingsvarsel: AvkortingsvarselDb.Annullert,
         ) : Iverksatt()
 
         @JsonTypeName("IVERKSATT_NY")
         data class OpprettNyttAvkortingsvarsel(
-            val avkortingsvarsel: AvkortingsvarselDb,
+            val avkortingsvarsel: AvkortingsvarselDb.SkalAvkortes,
         ) : Iverksatt()
 
         @JsonTypeName("IVERKSATT_ANNULLERT_UTESTÅENDE")
         data class AnnullerUtestående(
-            val avkortingsvarselId: UUID,
+            val avkortingsvarsel: AvkortingsvarselDb.Annullert,
         ) : Iverksatt()
 
         @JsonTypeName("IVERKSATT_KAN_IKKE")
