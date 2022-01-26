@@ -7,7 +7,7 @@ sealed class AvkortingVedRevurdering {
     sealed class Uhåndtert : AvkortingVedRevurdering() {
 
         abstract fun håndter(): DelvisHåndtert
-        abstract fun uhåndter(): Uhåndtert
+        abstract fun uhåndtert(): Uhåndtert
         abstract fun kanIkke(): KanIkkeHåndtere
 
         data class UteståendeAvkorting(
@@ -17,7 +17,7 @@ sealed class AvkortingVedRevurdering {
                 return DelvisHåndtert.AnnullerUtestående(avkortingsvarsel)
             }
 
-            override fun uhåndter(): Uhåndtert {
+            override fun uhåndtert(): Uhåndtert {
                 return this
             }
 
@@ -31,7 +31,7 @@ sealed class AvkortingVedRevurdering {
                 return DelvisHåndtert.IngenUtestående
             }
 
-            override fun uhåndter(): Uhåndtert {
+            override fun uhåndtert(): Uhåndtert {
                 return this
             }
 
@@ -47,8 +47,8 @@ sealed class AvkortingVedRevurdering {
                 return DelvisHåndtert.KanIkkeHåndtere(uhåndtert.håndter())
             }
 
-            override fun uhåndter(): Uhåndtert {
-                return uhåndtert.uhåndter()
+            override fun uhåndtert(): Uhåndtert {
+                return uhåndtert.uhåndtert()
             }
 
             override fun kanIkke(): KanIkkeHåndtere {
