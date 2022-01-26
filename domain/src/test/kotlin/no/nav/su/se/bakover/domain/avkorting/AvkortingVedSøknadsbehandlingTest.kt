@@ -9,6 +9,13 @@ import java.util.UUID
 internal class AvkortingVedSøknadsbehandlingTest {
 
     val id = UUID.randomUUID()
+    val avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+        objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+            sakId = UUID.randomUUID(),
+            revurderingId = UUID.randomUUID(),
+            simulering = simuleringFeilutbetaling(juni(2021)),
+        ),
+    )
 
     @Test
     fun `normalflyt uhåndtert ingen utestående`() {
@@ -48,19 +55,12 @@ internal class AvkortingVedSøknadsbehandlingTest {
 
     @Test
     fun `normalflyt uhåndtert utesteående`() {
-        val utestående = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(juni(2021)),
-            ),
-        )
         val original = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-            utestående,
+            avkortingsvarsel,
         )
         original.uhåndtert() shouldBe original
         original.håndter() shouldBe AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-            utestående,
+            avkortingsvarsel,
         )
         original.kanIkke() shouldBe AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(
             original,
@@ -69,22 +69,15 @@ internal class AvkortingVedSøknadsbehandlingTest {
 
     @Test
     fun `flyt kan ikke håndtere uhåndtert utestående`() {
-        val utestående = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(juni(2021)),
-            ),
-        )
         val original = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-            utestående,
+            avkortingsvarsel,
         ).kanIkke()
         original.uhåndtert() shouldBe AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-            utestående,
+            avkortingsvarsel,
         )
         original.håndter() shouldBe AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(
             AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-                utestående,
+                avkortingsvarsel,
             ),
         )
         original.kanIkke() shouldBe original
@@ -92,21 +85,14 @@ internal class AvkortingVedSøknadsbehandlingTest {
 
     @Test
     fun `normalflyt håndtert utesteående`() {
-        val utestående = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(juni(2021)),
-            ),
-        )
         val original = AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-            utestående,
+            avkortingsvarsel,
         )
         original.uhåndtert() shouldBe AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-            utestående,
+            avkortingsvarsel,
         )
         original.iverksett(id) shouldBe AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående(
-            utestående.avkortet(id),
+            avkortingsvarsel.avkortet(id),
         )
         original.kanIkke() shouldBe AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(
             original,
@@ -115,22 +101,15 @@ internal class AvkortingVedSøknadsbehandlingTest {
 
     @Test
     fun `flyt kan ikke håndtere håndtert utestående`() {
-        val utestående = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(juni(2021)),
-            ),
-        )
         val original = AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-            utestående,
+            avkortingsvarsel,
         ).kanIkke()
         original.uhåndtert() shouldBe AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-            utestående,
+            avkortingsvarsel,
         )
         original.iverksett(UUID.randomUUID()) shouldBe AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
             AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-                utestående,
+                avkortingsvarsel,
             ),
         )
         original.kanIkke() shouldBe original
@@ -138,26 +117,19 @@ internal class AvkortingVedSøknadsbehandlingTest {
 
     @Test
     fun `potpurri`() {
-        val utestående = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(juni(2021)),
-            ),
-        )
         val start = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-            utestående,
+            avkortingsvarsel,
         )
 
         start.kanIkke().håndter().uhåndtert() shouldBe start
         start.håndter().kanIkke().uhåndtert() shouldBe start
         start.kanIkke().håndter().iverksett(id) shouldBe AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
             AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-                utestående,
+                avkortingsvarsel,
             ),
         )
         start.håndter().iverksett(id) shouldBe AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående(
-            utestående.avkortet(id),
+            avkortingsvarsel.avkortet(id),
         )
         start.kanIkke().håndter().uhåndtert().uhåndtert() shouldBe start
     }

@@ -8,6 +8,13 @@ import java.util.UUID
 
 internal class AvkortingVedRevurderingTest {
     val id = UUID.randomUUID()
+    val avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+        objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+            sakId = UUID.randomUUID(),
+            revurderingId = UUID.randomUUID(),
+            simulering = simuleringFeilutbetaling(juni(2021)),
+        ),
+    )
 
     @Test
     fun `normalflyt uhåndtert ingen utestående`() {
@@ -32,6 +39,9 @@ internal class AvkortingVedRevurderingTest {
         val original = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
         original.uhåndtert() shouldBe AvkortingVedRevurdering.Uhåndtert.IngenUtestående
         original.håndter() shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+        original.håndter(avkortingsvarsel) shouldBe AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
+            avkortingsvarsel
+        )
         original.kanIkke() shouldBe AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
             original,
         )
@@ -49,19 +59,12 @@ internal class AvkortingVedRevurderingTest {
 
     @Test
     fun `normalflyt uhåndtert utesteående`() {
-        val utestående = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(juni(2021)),
-            ),
-        )
         val original = AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-            utestående,
+            avkortingsvarsel,
         )
         original.uhåndtert() shouldBe original
         original.håndter() shouldBe AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående(
-            utestående,
+            avkortingsvarsel,
         )
         original.kanIkke() shouldBe AvkortingVedRevurdering.Uhåndtert.KanIkkeHåndtere(
             original,
@@ -70,22 +73,15 @@ internal class AvkortingVedRevurderingTest {
 
     @Test
     fun `flyt kan ikke håndtere uhåndtert utestående`() {
-        val utestående = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(juni(2021)),
-            ),
-        )
         val original = AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-            utestående,
+            avkortingsvarsel,
         ).kanIkke()
         original.uhåndtert() shouldBe AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-            utestående,
+            avkortingsvarsel,
         )
         original.håndter() shouldBe AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
             AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående(
-                utestående,
+                avkortingsvarsel,
             ),
         )
         original.kanIkke() shouldBe original
@@ -93,21 +89,18 @@ internal class AvkortingVedRevurderingTest {
 
     @Test
     fun `normalflyt delvis håndtert utesteående`() {
-        val utestående = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(juni(2021)),
-            ),
-        )
         val original = AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående(
-            utestående,
+            avkortingsvarsel,
         )
         original.uhåndtert() shouldBe AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-            utestående,
+            avkortingsvarsel,
         )
         original.håndter() shouldBe AvkortingVedRevurdering.Håndtert.AnnullerUtestående(
-            utestående,
+            avkortingsvarsel,
+        )
+        original.håndter(avkortingsvarsel) shouldBe AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
+            avkortingsvarsel,
+            avkortingsvarsel
         )
         original.kanIkke() shouldBe AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
             original,
@@ -116,22 +109,15 @@ internal class AvkortingVedRevurderingTest {
 
     @Test
     fun `flyt kan ikke håndtere delvis håndtert utestående`() {
-        val utestående = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(juni(2021)),
-            ),
-        )
         val original = AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående(
-            utestående,
+            avkortingsvarsel,
         ).kanIkke()
         original.uhåndtert() shouldBe AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-            utestående,
+            avkortingsvarsel,
         )
         original.håndter() shouldBe AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
             AvkortingVedRevurdering.Håndtert.AnnullerUtestående(
-                utestående,
+                avkortingsvarsel,
             ),
         )
         original.kanIkke() shouldBe original
@@ -139,46 +125,56 @@ internal class AvkortingVedRevurderingTest {
 
     @Test
     fun `normalflyt håndtert utesteående`() {
-        val utestående = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(juni(2021)),
-            ),
-        )
         val original = AvkortingVedRevurdering.Håndtert.AnnullerUtestående(
-            utestående,
+            avkortingsvarsel,
         )
         original.uhåndtert() shouldBe AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-            utestående,
+            avkortingsvarsel,
         )
         original.iverksett(id) shouldBe AvkortingVedRevurdering.Iverksatt.AnnullerUtestående(
-            utestående.annuller(id),
+            avkortingsvarsel.annuller(id),
         )
         original.kanIkke() shouldBe AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
             original,
+        )
+        val nyttVarsel = AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
+            avkortingsvarsel
+        )
+        nyttVarsel.uhåndtert() shouldBe AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+        nyttVarsel.iverksett(id) shouldBe AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel(
+            avkortingsvarsel,
+        )
+        nyttVarsel.kanIkke() shouldBe AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
+            nyttVarsel
+        )
+
+        val nyttOgEksisterende = AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
+            avkortingsvarsel,
+            avkortingsvarsel
+        )
+        nyttOgEksisterende.uhåndtert() shouldBe AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
+            avkortingsvarsel
+        )
+        nyttOgEksisterende.iverksett(id) shouldBe AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
+            avkortingsvarsel,
+            avkortingsvarsel.annuller(id),
+        )
+        nyttOgEksisterende.kanIkke() shouldBe AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
+            nyttOgEksisterende
         )
     }
 
     @Test
     fun `flyt kan ikke håndtere håndtert utestående`() {
-        val utestående = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(juni(2021)),
-            ),
-        )
         val original = AvkortingVedRevurdering.Håndtert.AnnullerUtestående(
-            utestående,
+            avkortingsvarsel,
         ).kanIkke()
         original.uhåndtert() shouldBe AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-            utestående,
+            avkortingsvarsel,
         )
-
         original.iverksett(id) shouldBe AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres(
             AvkortingVedRevurdering.Håndtert.AnnullerUtestående(
-                utestående,
+                avkortingsvarsel,
             ),
         )
         original.kanIkke() shouldBe original
@@ -186,22 +182,15 @@ internal class AvkortingVedRevurderingTest {
 
     @Test
     fun `potpurri`() {
-        val utestående = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
-            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                sakId = UUID.randomUUID(),
-                revurderingId = UUID.randomUUID(),
-                simulering = simuleringFeilutbetaling(juni(2021)),
-            ),
-        )
         val start = AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-            utestående,
+            avkortingsvarsel,
         )
 
         start.kanIkke().håndter().uhåndtert() shouldBe start
         start.håndter().kanIkke().uhåndtert() shouldBe start
         start.kanIkke().håndter().håndter().iverksett(id) shouldBe AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres(
             AvkortingVedRevurdering.Håndtert.AnnullerUtestående(
-                utestående,
+                avkortingsvarsel,
             ),
         )
         start.kanIkke().håndter().uhåndtert().uhåndtert() shouldBe start

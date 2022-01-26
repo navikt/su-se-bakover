@@ -70,6 +70,13 @@ sealed class AvkortingVedRevurdering {
                 return Håndtert.AnnullerUtestående(avkortingsvarsel)
             }
 
+            fun håndter(nyttAvkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes): Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående {
+                return Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
+                    avkortingsvarsel = nyttAvkortingsvarsel,
+                    annullerUtestående = avkortingsvarsel,
+                )
+            }
+
             override fun uhåndtert(): Uhåndtert {
                 return Uhåndtert.UteståendeAvkorting(avkortingsvarsel)
             }
@@ -82,6 +89,10 @@ sealed class AvkortingVedRevurdering {
         object IngenUtestående : DelvisHåndtert() {
             override fun håndter(): Håndtert.IngenNyEllerUtestående {
                 return Håndtert.IngenNyEllerUtestående
+            }
+
+            fun håndter(nyttAvkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes): Håndtert.OpprettNyttAvkortingsvarsel {
+                return Håndtert.OpprettNyttAvkortingsvarsel(nyttAvkortingsvarsel)
             }
 
             override fun uhåndtert(): Uhåndtert {

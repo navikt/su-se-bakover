@@ -755,15 +755,10 @@ sealed class BeregnetRevurdering : Revurdering() {
 
                             simuleringMedNyOpphørsdato to when (avkorting) {
                                 is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
-                                    AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
-                                        avkortingsvarsel = avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
-                                        annullerUtestående = avkorting.avkortingsvarsel,
-                                    )
+                                    avkorting.håndter(avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes)
                                 }
                                 is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {
-                                    AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
-                                        avkortingsvarsel = avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
-                                    )
+                                    avkorting.håndter(avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes)
                                 }
                                 is AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere -> {
                                     throw IllegalStateException("Skal ikke kunne skje")
