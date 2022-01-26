@@ -36,7 +36,7 @@ internal class AvkortingVedRevurderingDbTest {
     val utestående3 = utestående2.håndter()
     val utestående4 = AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
         avkortingsvarsel = varsel,
-        annullerUtestående = utestående2,
+        annullerUtestående = utestående2.avkortingsvarsel,
     )
     val utestående5 = AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
         avkortingsvarsel = varsel,
@@ -85,7 +85,8 @@ internal class AvkortingVedRevurderingDbTest {
     fun `kan ikke`() {
         val exp4 = """
             {
-                "@type":"UHÅNDTERT_KAN_IKKE"
+                "@type":"UHÅNDTERT_KAN_IKKE",
+                "uhåndtert": {"@type":"UHÅNDTERT_INGEN_UTESTÅENDE"}
             }
         """.trimIndent()
         JSONAssert.assertEquals(exp4, objectMapper.writeValueAsString(kanIkke1.toDb()), true)
@@ -94,7 +95,8 @@ internal class AvkortingVedRevurderingDbTest {
 
         val exp5 = """
             {
-                "@type":"DELVIS_KAN_IKKE"
+                "@type":"DELVIS_KAN_IKKE",
+                "delvisHåndtert": {"@type":"DELVIS_HÅNDTERT_INGEN_UTESTÅENDE"}
             }
         """.trimIndent()
         JSONAssert.assertEquals(exp5, objectMapper.writeValueAsString(kanIkke2.toDb()), true)
@@ -103,7 +105,8 @@ internal class AvkortingVedRevurderingDbTest {
 
         val exp6 = """
             {
-                "@type":"HÅNDTERT_KAN_IKKE"
+                "@type":"HÅNDTERT_KAN_IKKE",
+                "håndtert": {"@type":"HÅNDTERT_INGEN_NY_ELLER_UTESTÅENDE"}
             }
         """.trimIndent()
         JSONAssert.assertEquals(exp6, objectMapper.writeValueAsString(kanIkke3.toDb()), true)

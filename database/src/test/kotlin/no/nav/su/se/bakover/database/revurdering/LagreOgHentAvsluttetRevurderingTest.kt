@@ -37,7 +37,9 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             repo.lagre(avsluttetRevurdering)
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
                 underliggendeRevurdering = revurdering.copy(
-                    avkorting = AvkortingVedRevurdering.Uhåndtert.KanIkkeHåndtere
+                    avkorting = AvkortingVedRevurdering.Uhåndtert.KanIkkeHåndtere(
+                        uhåndtert = AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+                    )
                 )
             )
         }
@@ -61,7 +63,9 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             repo.lagre(avsluttetRevurdering)
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
                 underliggendeRevurdering = revurdering.copy(
-                    avkorting = AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere
+                    avkorting = AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
+                        delvisHåndtert = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
+                    )
                 )
             )
         }
@@ -85,7 +89,9 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             repo.lagre(avsluttetRevurdering)
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
                 underliggendeRevurdering = revurdering.copy(
-                    avkorting = AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere
+                    avkorting = AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
+                        delvisHåndtert = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
+                    )
                 )
             )
         }
@@ -110,7 +116,9 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             repo.lagre(avsluttetRevurdering)
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
                 underliggendeRevurdering = revurdering.copy(
-                    avkorting = AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere
+                    avkorting = AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
+                        delvisHåndtert = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
+                    )
                 )
             )
         }
@@ -134,7 +142,9 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             repo.lagre(avsluttetRevurdering)
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
                 underliggendeRevurdering = revurdering.copy(
-                    avkorting = AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres
+                    avkorting = AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
+                        håndtert = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+                    )
                 )
             )
         }
@@ -200,7 +210,9 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             repo.lagre(avsluttetRevurdering)
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
                 underliggendeRevurdering = revurdering.copy(
-                    avkorting = AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres
+                    avkorting = AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
+                        håndtert = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+                    )
                 )
             )
         }
@@ -224,7 +236,9 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             repo.lagre(avsluttetRevurdering)
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
                 underliggendeRevurdering = revurdering.copy(
-                    avkorting = AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres
+                    avkorting = AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
+                        håndtert = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+                    )
                 )
             )
         }

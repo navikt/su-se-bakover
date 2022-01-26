@@ -757,7 +757,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                                 is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
                                     AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
                                         avkortingsvarsel = avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
-                                        annullerUtestående = avkorting,
+                                        annullerUtestående = avkorting.avkortingsvarsel,
                                     )
                                 }
                                 is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {

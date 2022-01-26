@@ -7,15 +7,22 @@ sealed class AvkortingVedRevurdering {
     sealed class Uhåndtert : AvkortingVedRevurdering() {
 
         abstract fun håndter(): DelvisHåndtert
-        fun kanIkke(): Uhåndtert {
-            return KanIkkeHåndtere
-        }
+        abstract fun uhåndter(): Uhåndtert
+        abstract fun kanIkke(): KanIkkeHåndtere
 
         data class UteståendeAvkorting(
             val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
         ) : Uhåndtert() {
             override fun håndter(): DelvisHåndtert.AnnullerUtestående {
-                return DelvisHåndtert.AnnullerUtestående(this)
+                return DelvisHåndtert.AnnullerUtestående(avkortingsvarsel)
+            }
+
+            override fun uhåndter(): Uhåndtert {
+                return this
+            }
+
+            override fun kanIkke(): KanIkkeHåndtere {
+                return KanIkkeHåndtere(this)
             }
         }
 
@@ -23,11 +30,29 @@ sealed class AvkortingVedRevurdering {
             override fun håndter(): DelvisHåndtert.IngenUtestående {
                 return DelvisHåndtert.IngenUtestående
             }
+
+            override fun uhåndter(): Uhåndtert {
+                return this
+            }
+
+            override fun kanIkke(): KanIkkeHåndtere {
+                return KanIkkeHåndtere(this)
+            }
         }
 
-        object KanIkkeHåndtere : Uhåndtert() {
+        data class KanIkkeHåndtere(
+            val uhåndtert: Uhåndtert,
+        ) : Uhåndtert() {
             override fun håndter(): DelvisHåndtert {
-                return DelvisHåndtert.KanIkkeHåndtere
+                return DelvisHåndtert.KanIkkeHåndtere(uhåndtert.håndter())
+            }
+
+            override fun uhåndter(): Uhåndtert {
+                return uhåndtert.uhåndter()
+            }
+
+            override fun kanIkke(): KanIkkeHåndtere {
+                return this
             }
         }
     }
@@ -36,19 +61,21 @@ sealed class AvkortingVedRevurdering {
 
         abstract fun håndter(): Håndtert
         abstract fun uhåndtert(): Uhåndtert
-        fun kanIkke(): DelvisHåndtert {
-            return KanIkkeHåndtere
-        }
+        abstract fun kanIkke(): KanIkkeHåndtere
 
         data class AnnullerUtestående(
-            val uteståendeAvkorting: Uhåndtert.UteståendeAvkorting,
+            val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
         ) : DelvisHåndtert() {
             override fun håndter(): Håndtert.AnnullerUtestående {
-                return Håndtert.AnnullerUtestående(this)
+                return Håndtert.AnnullerUtestående(avkortingsvarsel)
             }
 
             override fun uhåndtert(): Uhåndtert {
-                return Uhåndtert.UteståendeAvkorting(uteståendeAvkorting.avkortingsvarsel)
+                return Uhåndtert.UteståendeAvkorting(avkortingsvarsel)
+            }
+
+            override fun kanIkke(): KanIkkeHåndtere {
+                return KanIkkeHåndtere(this)
             }
         }
 
@@ -60,15 +87,25 @@ sealed class AvkortingVedRevurdering {
             override fun uhåndtert(): Uhåndtert {
                 return Uhåndtert.IngenUtestående
             }
+
+            override fun kanIkke(): KanIkkeHåndtere {
+                return KanIkkeHåndtere(this)
+            }
         }
 
-        object KanIkkeHåndtere : DelvisHåndtert() {
+        data class KanIkkeHåndtere(
+            val delvisHåndtert: DelvisHåndtert,
+        ) : DelvisHåndtert() {
             override fun håndter(): Håndtert {
-                return Håndtert.KanIkkeHåndteres
+                return Håndtert.KanIkkeHåndteres(delvisHåndtert.håndter())
             }
 
             override fun uhåndtert(): Uhåndtert {
-                return Uhåndtert.KanIkkeHåndtere
+                return delvisHåndtert.uhåndtert()
+            }
+
+            override fun kanIkke(): KanIkkeHåndtere {
+                return this
             }
         }
     }
@@ -77,23 +114,25 @@ sealed class AvkortingVedRevurdering {
 
         abstract fun uhåndtert(): Uhåndtert
         abstract fun iverksett(behandlingId: UUID): Iverksatt
-        fun kanIkke(): Håndtert {
-            return KanIkkeHåndteres
-        }
+        abstract fun kanIkke(): KanIkkeHåndteres
 
         data class OpprettNyttAvkortingsvarselOgAnnullerUtestående(
             val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
-            val annullerUtestående: DelvisHåndtert.AnnullerUtestående,
+            val annullerUtestående: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
         ) : Håndtert() {
             override fun uhåndtert(): Uhåndtert {
-                return annullerUtestående.uhåndtert()
+                return Uhåndtert.UteståendeAvkorting(annullerUtestående)
             }
 
             override fun iverksett(behandlingId: UUID): Iverksatt {
                 return Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
                     avkortingsvarsel,
-                    annullerUtestående.uteståendeAvkorting.avkortingsvarsel.annuller(behandlingId),
+                    annullerUtestående.annuller(behandlingId),
                 )
+            }
+
+            override fun kanIkke(): KanIkkeHåndteres {
+                return KanIkkeHåndteres(this)
             }
         }
 
@@ -107,21 +146,25 @@ sealed class AvkortingVedRevurdering {
             override fun iverksett(behandlingId: UUID): Iverksatt {
                 return Iverksatt.OpprettNyttAvkortingsvarsel(avkortingsvarsel)
             }
+
+            override fun kanIkke(): KanIkkeHåndteres {
+                return KanIkkeHåndteres(this)
+            }
         }
 
         data class AnnullerUtestående(
-            val annullerUtestående: DelvisHåndtert.AnnullerUtestående,
+            val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
         ) : Håndtert() {
             override fun uhåndtert(): Uhåndtert {
-                return annullerUtestående.uhåndtert()
+                return Uhåndtert.UteståendeAvkorting(avkortingsvarsel)
             }
 
             override fun iverksett(behandlingId: UUID): Iverksatt {
-                return Iverksatt.AnnullerUtestående(
-                    annullerUtestående.uteståendeAvkorting.avkortingsvarsel.annuller(
-                        behandlingId,
-                    ),
-                )
+                return Iverksatt.AnnullerUtestående(avkortingsvarsel.annuller(behandlingId))
+            }
+
+            override fun kanIkke(): KanIkkeHåndteres {
+                return KanIkkeHåndteres(this)
             }
         }
 
@@ -133,15 +176,25 @@ sealed class AvkortingVedRevurdering {
             override fun iverksett(behandlingId: UUID): Iverksatt {
                 return Iverksatt.IngenNyEllerUtestående
             }
+
+            override fun kanIkke(): KanIkkeHåndteres {
+                return KanIkkeHåndteres(this)
+            }
         }
 
-        object KanIkkeHåndteres : Håndtert() {
+        data class KanIkkeHåndteres(
+            val håndtert: Håndtert,
+        ) : Håndtert() {
             override fun uhåndtert(): Uhåndtert {
-                return Uhåndtert.KanIkkeHåndtere
+                return håndtert.uhåndtert()
             }
 
             override fun iverksett(behandlingId: UUID): Iverksatt {
-                return Iverksatt.KanIkkeHåndteres
+                return Iverksatt.KanIkkeHåndteres(håndtert)
+            }
+
+            override fun kanIkke(): KanIkkeHåndteres {
+                return this
             }
         }
     }
@@ -162,6 +215,8 @@ sealed class AvkortingVedRevurdering {
 
         object IngenNyEllerUtestående : Iverksatt()
 
-        object KanIkkeHåndteres : Iverksatt()
+        data class KanIkkeHåndteres(
+            val håndtert: Håndtert,
+        ) : Iverksatt()
     }
 }

@@ -612,8 +612,8 @@ class LagBrevRequestVisitor(
                 opphørsdato = vedtak.periode.fraOgMed,
                 avkortingsBeløp = when (val avkorting = vedtak.behandling.avkorting) {
                     is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> null
-                    AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> null
-                    AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> null
+                    is AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> null
+                    is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> null
                     is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> avkorting.avkortingsvarsel.hentUtbetalteBeløp()
                         .sum()
                     is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> avkorting.avkortingsvarsel.hentUtbetalteBeløp()

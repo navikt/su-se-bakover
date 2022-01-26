@@ -43,16 +43,16 @@ internal fun AvkortingVedRevurderingDb.DelvisHåndtert.toDomain(): AvkortingVedR
     return when (this) {
         is AvkortingVedRevurderingDb.DelvisHåndtert.AnnullerUtestående -> {
             AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående(
-                AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-                    avkortingsvarsel = avkortingsvarsel.toDomain(),
-                ),
+                avkortingsvarsel = avkortingsvarsel.toDomain(),
             )
         }
         is AvkortingVedRevurderingDb.DelvisHåndtert.IngenUtestående -> {
             AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
         }
         is AvkortingVedRevurderingDb.DelvisHåndtert.KanIkkeHåndteres -> {
-            AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere
+            AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
+                delvisHåndtert = delvisHåndtert.toDomain()
+            )
         }
     }
 }
@@ -61,11 +61,7 @@ internal fun AvkortingVedRevurderingDb.Håndtert.toDomain(): AvkortingVedRevurde
     return when (this) {
         is AvkortingVedRevurderingDb.Håndtert.AnnullerUtestående -> {
             AvkortingVedRevurdering.Håndtert.AnnullerUtestående(
-                AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående(
-                    AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-                        avkortingsvarsel = avkortingsvarsel.toDomain(),
-                    ),
-                ),
+                avkortingsvarsel = avkortingsvarsel.toDomain(),
             )
         }
         is AvkortingVedRevurderingDb.Håndtert.IngenNyEllerUtestående -> {
@@ -74,11 +70,7 @@ internal fun AvkortingVedRevurderingDb.Håndtert.toDomain(): AvkortingVedRevurde
         is AvkortingVedRevurderingDb.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
             AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
                 avkortingsvarsel = avkortingsvarsel.toDomain(),
-                annullerUtestående = AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående(
-                    AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-                        avkortingsvarsel = uteståendeAvkortingsvarsel.toDomain(),
-                    ),
-                ),
+                annullerUtestående = uteståendeAvkortingsvarsel.toDomain()
             )
         }
         is AvkortingVedRevurderingDb.Håndtert.OpprettNyttAvkortingsvarsel -> {
@@ -87,7 +79,9 @@ internal fun AvkortingVedRevurderingDb.Håndtert.toDomain(): AvkortingVedRevurde
             )
         }
         is AvkortingVedRevurderingDb.Håndtert.KanIkkeHåndteres -> {
-            AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres
+            AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
+                håndtert = håndtert.toDomain()
+            )
         }
     }
 }
@@ -114,7 +108,9 @@ internal fun AvkortingVedRevurderingDb.Iverksatt.toDomain(): AvkortingVedRevurde
             )
         }
         is AvkortingVedRevurderingDb.Iverksatt.KanIkkeHåndteres -> {
-            AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres
+            AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres(
+                håndtert = håndtert.toDomain()
+            )
         }
     }
 }
@@ -130,7 +126,9 @@ internal fun AvkortingVedRevurderingDb.Uhåndtert.toDomain(): AvkortingVedRevurd
             )
         }
         is AvkortingVedRevurderingDb.Uhåndtert.KanIkkeHåndteres -> {
-            AvkortingVedRevurdering.Uhåndtert.KanIkkeHåndtere
+            AvkortingVedRevurdering.Uhåndtert.KanIkkeHåndtere(
+                uhåndtert = uhåndtert.toDomain()
+            )
         }
     }
 }
@@ -146,7 +144,9 @@ internal fun AvkortingVedRevurdering.Uhåndtert.toDb(): AvkortingVedRevurderingD
             )
         }
         is AvkortingVedRevurdering.Uhåndtert.KanIkkeHåndtere -> {
-            AvkortingVedRevurderingDb.Uhåndtert.KanIkkeHåndteres
+            AvkortingVedRevurderingDb.Uhåndtert.KanIkkeHåndteres(
+                uhåndtert = uhåndtert.toDb()
+            )
         }
     }
 }
@@ -155,14 +155,16 @@ internal fun AvkortingVedRevurdering.DelvisHåndtert.toDb(): AvkortingVedRevurde
     return when (this) {
         is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
             AvkortingVedRevurderingDb.DelvisHåndtert.AnnullerUtestående(
-                avkortingsvarsel = uteståendeAvkorting.avkortingsvarsel.toDb(),
+                avkortingsvarsel = avkortingsvarsel.toDb(),
             )
         }
         is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {
             AvkortingVedRevurderingDb.DelvisHåndtert.IngenUtestående
         }
         is AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere -> {
-            AvkortingVedRevurderingDb.DelvisHåndtert.KanIkkeHåndteres
+            AvkortingVedRevurderingDb.DelvisHåndtert.KanIkkeHåndteres(
+                delvisHåndtert = delvisHåndtert.toDb()
+            )
         }
     }
 }
@@ -171,7 +173,7 @@ internal fun AvkortingVedRevurdering.Håndtert.toDb(): AvkortingVedRevurderingDb
     return when (this) {
         is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
             AvkortingVedRevurderingDb.Håndtert.AnnullerUtestående(
-                avkortingsvarsel = annullerUtestående.uteståendeAvkorting.avkortingsvarsel.toDb(),
+                avkortingsvarsel = avkortingsvarsel.toDb(),
             )
         }
         is AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
@@ -180,7 +182,7 @@ internal fun AvkortingVedRevurdering.Håndtert.toDb(): AvkortingVedRevurderingDb
         is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
             AvkortingVedRevurderingDb.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
                 avkortingsvarsel = avkortingsvarsel.toDb(),
-                uteståendeAvkortingsvarsel = annullerUtestående.uteståendeAvkorting.avkortingsvarsel.toDb(),
+                uteståendeAvkortingsvarsel = annullerUtestående.toDb(),
             )
         }
         is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
@@ -189,7 +191,9 @@ internal fun AvkortingVedRevurdering.Håndtert.toDb(): AvkortingVedRevurderingDb
             )
         }
         is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
-            AvkortingVedRevurderingDb.Håndtert.KanIkkeHåndteres
+            AvkortingVedRevurderingDb.Håndtert.KanIkkeHåndteres(
+                håndtert = håndtert.toDb()
+            )
         }
     }
 }
@@ -216,7 +220,9 @@ internal fun AvkortingVedRevurdering.Iverksatt.toDb(): AvkortingVedRevurderingDb
             )
         }
         is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> {
-            AvkortingVedRevurderingDb.Iverksatt.KanIkkeHåndteres
+            AvkortingVedRevurderingDb.Iverksatt.KanIkkeHåndteres(
+                håndtert = håndtert.toDb()
+            )
         }
     }
 }
@@ -239,7 +245,13 @@ internal sealed class AvkortingVedRevurderingDb {
         ) : Uhåndtert()
 
         @JsonTypeName("UHÅNDTERT_KAN_IKKE")
-        object KanIkkeHåndteres : Uhåndtert()
+        data class KanIkkeHåndteres(
+            val uhåndtert: Uhåndtert
+        ) : Uhåndtert() {
+            init {
+                require(uhåndtert !is KanIkkeHåndteres)
+            }
+        }
     }
 
     @JsonSubTypes(
@@ -257,7 +269,13 @@ internal sealed class AvkortingVedRevurderingDb {
         ) : DelvisHåndtert()
 
         @JsonTypeName("DELVIS_KAN_IKKE")
-        object KanIkkeHåndteres : DelvisHåndtert()
+        data class KanIkkeHåndteres(
+            val delvisHåndtert: DelvisHåndtert
+        ) : DelvisHåndtert() {
+            init {
+                require(delvisHåndtert !is KanIkkeHåndteres)
+            }
+        }
     }
 
     @JsonSubTypes(
@@ -289,7 +307,13 @@ internal sealed class AvkortingVedRevurderingDb {
         ) : Håndtert()
 
         @JsonTypeName("HÅNDTERT_KAN_IKKE")
-        object KanIkkeHåndteres : Håndtert()
+        data class KanIkkeHåndteres(
+            val håndtert: Håndtert
+        ) : Håndtert() {
+            init {
+                require(håndtert !is KanIkkeHåndteres)
+            }
+        }
     }
 
     @JsonSubTypes(
@@ -320,6 +344,8 @@ internal sealed class AvkortingVedRevurderingDb {
         ) : Iverksatt()
 
         @JsonTypeName("IVERKSATT_KAN_IKKE")
-        object KanIkkeHåndteres : Iverksatt()
+        data class KanIkkeHåndteres(
+            val håndtert: Håndtert
+        ) : Iverksatt()
     }
 }

@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.toJson
 
 internal fun AvkortingVedSøknadsbehandling.toJson(): SimuleringJson? {
