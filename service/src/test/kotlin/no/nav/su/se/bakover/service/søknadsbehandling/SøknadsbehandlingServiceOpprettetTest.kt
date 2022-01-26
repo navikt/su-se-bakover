@@ -225,7 +225,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
                 attesteringer = Attesteringshistorikk.empty(),
-                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke()
             ),
             // periode er null for Søknadsbehandling.Vilkårsvurdert.Uavklart og vil gi exception dersom man kaller get() på den.
             Søknadsbehandling.Vilkårsvurdert.Uavklart::periode,
@@ -246,7 +246,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     oppgaveId = søknad.oppgaveId,
                     behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
                     fnr = søknad.søknadInnhold.personopplysninger.fnr,
-                    avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+                    avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke()
                 )
             },
         )
@@ -272,7 +272,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                         vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
                         attesteringer = Attesteringshistorikk.empty(),
-                        avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+                        avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke()
                     ),
                 )
             },

@@ -106,7 +106,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 stønadsperiode = uavklart.stønadsperiode!!,
                 grunnlagsdata = uavklart.grunnlagsdata,
                 vilkårsvurderinger = uavklart.vilkårsvurderinger,
-                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere
+                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+                )
             )
 
             val expectedAvslagVilkår = Avslagsvedtak.AvslagVilkår(
@@ -220,7 +222,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 stønadsperiode = vilkårsvurdertInnvilget.stønadsperiode,
                 grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger,
-                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere
+                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+                )
             )
 
             val expectedAvslagVilkår = Avslagsvedtak.AvslagVilkår(

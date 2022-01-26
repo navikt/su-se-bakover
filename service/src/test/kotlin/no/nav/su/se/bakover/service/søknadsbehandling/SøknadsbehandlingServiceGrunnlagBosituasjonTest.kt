@@ -101,7 +101,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående)
         ).tilAttestering(Saksbehandler("saksa"), "")
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -195,7 +195,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående)
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
@@ -401,7 +401,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående)
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(

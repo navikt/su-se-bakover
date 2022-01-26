@@ -86,7 +86,6 @@ class SøknadsbehandlingServiceBeregningTest {
             }
 
             verify(it.søknadsbehandlingRepo).hent(vilkårsvurdert.id)
-            verify(it.avkortingsvarselRepo).hentUtestående(vilkårsvurdert.sakId)
             verify(it.grunnlagService).lagreFradragsgrunnlag(
                 vilkårsvurdert.id,
                 vilkårsvurdert.grunnlagsdata.fradragsgrunnlag,
@@ -118,7 +117,6 @@ class SøknadsbehandlingServiceBeregningTest {
 
     @Test
     fun `håndtering av utestående avkorting for innvilget beregning`() {
-        val (_, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget()
         val uteståendeAvkorting = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
             objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
                 sakId = UUID.randomUUID(),
@@ -129,15 +127,18 @@ class SøknadsbehandlingServiceBeregningTest {
             ),
         )
 
+        val (_, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget(
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
+                avkortingsvarsel = uteståendeAvkorting,
+            ).kanIkke(),
+        )
+
         SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn vilkårsvurdert
             },
-            avkortingsvarselRepo = mock {
-                on { hentUtestående(any()) } doReturn uteståendeAvkorting
-            },
         ).let {
-            vilkårsvurdert.avkorting shouldBe AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            vilkårsvurdert.avkorting shouldBe beOfType<AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting>()
 
             val beregnet = it.søknadsbehandlingService.beregn(
                 request = SøknadsbehandlingService.BeregnRequest(
@@ -148,9 +149,7 @@ class SøknadsbehandlingServiceBeregningTest {
 
             beregnet shouldBe beOfType<Søknadsbehandling.Beregnet.Innvilget>()
             beregnet.avkorting shouldBe AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-                avkortUtestående = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                    avkortingsvarsel = uteståendeAvkorting,
-                ),
+                avkortingsvarsel = uteståendeAvkorting,
             )
             beregnet.grunnlagsdata shouldNotBe vilkårsvurdert.grunnlagsdata
             beregnet.grunnlagsdata.fradragsgrunnlag
@@ -159,7 +158,6 @@ class SøknadsbehandlingServiceBeregningTest {
                 .any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldBe true
 
             verify(it.søknadsbehandlingRepo).hent(vilkårsvurdert.id)
-            verify(it.avkortingsvarselRepo).hentUtestående(vilkårsvurdert.sakId)
             verify(it.grunnlagService).lagreFradragsgrunnlag(beregnet.id, beregnet.grunnlagsdata.fradragsgrunnlag)
             verify(it.søknadsbehandlingRepo).defaultTransactionContext()
             verify(it.søknadsbehandlingRepo).lagre(eq(beregnet), anyOrNull())
@@ -169,17 +167,6 @@ class SøknadsbehandlingServiceBeregningTest {
 
     @Test
     fun `håndtering av utestående avkorting for avslag beregning`() {
-        val (_, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget().let { (sak, vilkårsvurdert) ->
-            sak to vilkårsvurdert.leggTilFradragsgrunnlag(
-                fradragsgrunnlag = listOf(
-                    fradragsgrunnlagArbeidsinntekt(
-                        periode = vilkårsvurdert.periode.tilMånedsperioder().first(),
-                        arbeidsinntekt = 25000.0,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ),
-            ).getOrFail()
-        }
         val uteståendeAvkorting = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
             objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
                 sakId = UUID.randomUUID(),
@@ -190,15 +177,28 @@ class SøknadsbehandlingServiceBeregningTest {
             ),
         )
 
+        val (_, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget(
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
+                uteståendeAvkorting,
+            ),
+        ).let { (sak, vilkårsvurdert) ->
+            sak to vilkårsvurdert.leggTilFradragsgrunnlag(
+                fradragsgrunnlag = listOf(
+                    fradragsgrunnlagArbeidsinntekt(
+                        periode = vilkårsvurdert.periode.tilMånedsperioder().first(),
+                        arbeidsinntekt = 25000.0,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+            ).getOrFail()
+        }
+
         SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn vilkårsvurdert
             },
-            avkortingsvarselRepo = mock {
-                on { hentUtestående(any()) } doReturn uteståendeAvkorting
-            },
         ).let {
-            vilkårsvurdert.avkorting shouldBe AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            vilkårsvurdert.avkorting shouldBe beOfType<AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting>()
 
             val beregnet = it.søknadsbehandlingService.beregn(
                 request = SøknadsbehandlingService.BeregnRequest(
@@ -208,7 +208,11 @@ class SøknadsbehandlingServiceBeregningTest {
             ).getOrFail()
 
             beregnet shouldBe beOfType<Søknadsbehandling.Beregnet.Avslag>()
-            beregnet.avkorting shouldBe AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere
+            beregnet.avkorting shouldBe AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(
+                håndtert = AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
+                    avkortingsvarsel = uteståendeAvkorting,
+                ),
+            )
             beregnet.grunnlagsdata shouldNotBe vilkårsvurdert.grunnlagsdata
             beregnet.grunnlagsdata.fradragsgrunnlag
                 .any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldBe true
@@ -216,7 +220,6 @@ class SøknadsbehandlingServiceBeregningTest {
                 .any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldBe true
 
             verify(it.søknadsbehandlingRepo).hent(vilkårsvurdert.id)
-            verify(it.avkortingsvarselRepo).hentUtestående(vilkårsvurdert.sakId)
             verify(it.grunnlagService).lagreFradragsgrunnlag(beregnet.id, beregnet.grunnlagsdata.fradragsgrunnlag)
             verify(it.søknadsbehandlingRepo).defaultTransactionContext()
             verify(it.søknadsbehandlingRepo).lagre(eq(beregnet), anyOrNull())

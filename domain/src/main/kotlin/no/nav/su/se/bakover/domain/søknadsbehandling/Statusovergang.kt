@@ -175,7 +175,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
                  */
                 when (søknadsbehandling.avkorting) {
                     is AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående -> {
-                        if (!søknadsbehandling.avkorting.avkortUtestående.avkortingsvarsel.fullstendigAvkortetAv(
+                        if (!søknadsbehandling.avkorting.avkortingsvarsel.fullstendigAvkortetAv(
                                 søknadsbehandling.beregning,
                             )
                         ) {

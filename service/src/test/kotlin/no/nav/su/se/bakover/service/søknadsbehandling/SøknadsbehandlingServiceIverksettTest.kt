@@ -120,17 +120,15 @@ internal class SøknadsbehandlingServiceIverksettTest {
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn tilAttestering.copy(
                     avkorting = AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-                        AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                            Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                                id = UUID.randomUUID(),
-                                opprettet = fixedTidspunkt,
-                                sakId = sakId,
-                                revurderingId = UUID.randomUUID(),
-                                simulering = simuleringFeilutbetaling(
-                                    oktober(2020), november(2020), desember(2020),
-                                ),
-                            ).skalAvkortes(),
-                        ),
+                        avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            sakId = sakId,
+                            revurderingId = UUID.randomUUID(),
+                            simulering = simuleringFeilutbetaling(
+                                oktober(2020), november(2020), desember(2020),
+                            ),
+                        ).skalAvkortes(),
                     ),
                 )
             },
@@ -325,7 +323,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             stønadsperiode = behandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
-            avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående
+            avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,
         )
 
         response shouldBe expected.right()
@@ -428,7 +426,10 @@ internal class SøknadsbehandlingServiceIverksettTest {
             it.søknadsbehandlingService.iverksett(
                 SøknadsbehandlingService.IverksettRequest(
                     behandlingId = avslagTilAttestering.id,
-                    attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(avslagTilAttestering.saksbehandler.navIdent), fixedTidspunkt),
+                    attestering = Attestering.Iverksatt(
+                        NavIdentBruker.Attestant(avslagTilAttestering.saksbehandler.navIdent),
+                        fixedTidspunkt,
+                    ),
                 ),
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 
@@ -485,7 +486,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
                 attesteringer = Attesteringshistorikk.empty(),
-                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
             )
         }
 
@@ -532,6 +533,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
         simulering = simulering,
         vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-        grunnlagsdata = Grunnlagsdata.IkkeVurdert
+        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
     )
 }

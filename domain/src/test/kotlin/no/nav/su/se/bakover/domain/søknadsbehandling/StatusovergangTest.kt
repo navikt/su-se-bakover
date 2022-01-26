@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -400,20 +399,11 @@ internal class StatusovergangTest {
         }
 
         @Test
-        fun `kan ikke beregne beregnet avslag før eventuelle avkortinger er oppfrisket`() {
-            assertThrows<IllegalStateException> {
-                beregnetAvslag.beregn(
-                    begrunnelse = null,
-                    clock = fixedClock,
-                ).getOrFail() shouldBe beregnetAvslag
-            }
-
-            beregnetAvslag
-                .leggTilUteståendeAvkorting(AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående, fixedClock)
-                .beregn(
-                    begrunnelse = null,
-                    clock = fixedClock,
-                ).getOrFail() shouldBe beregnetAvslag
+        fun `kan beregne på nytt for beregnet avslag`() {
+            beregnetAvslag.beregn(
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail() shouldBe beregnetAvslag
         }
 
         @Test
@@ -425,22 +415,11 @@ internal class StatusovergangTest {
         }
 
         @Test
-        fun `kan ikke beregne underkjent avslag med beregning på nytt før avkortinger er oppfrisket`() {
-            assertThrows<IllegalStateException> {
-                underkjentAvslagBeregning.beregn(
-                    begrunnelse = null,
-                    clock = fixedClock,
-                ).getOrFail() shouldBe beregnetAvslag
-                    .medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
-                    .copy(attesteringer = Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
-            }
-
-            underkjentAvslagBeregning
-                .leggTilUteståendeAvkorting(AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående, fixedClock)
-                .beregn(
-                    begrunnelse = null,
-                    clock = fixedClock,
-                ).getOrFail() shouldBe beregnetAvslag
+        fun `kan beregne på nytt underkjent avslag med beregning`() {
+            underkjentAvslagBeregning.beregn(
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail() shouldBe beregnetAvslag
                 .medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
                 .copy(attesteringer = Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
         }

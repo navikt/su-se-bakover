@@ -271,7 +271,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
-                avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert,
+                avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
             )
             BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Søknadsbehandling.Vilkårsvurdert.Innvilget(
                 id = behandlingId,
@@ -661,7 +661,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 when (val avkort = søknadsbehandling.avkorting) {
                     is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående -> {
                         avkortingsvarselRepo.lagre(
-                            avkortingsvarsel = avkort.avkortUtestående,
+                            avkortingsvarsel = avkort.avkortingsvarsel,
                             tx = tx,
                         )
                     }

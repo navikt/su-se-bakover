@@ -16,5 +16,5 @@ data class NySøknadsbehandling(
     val oppgaveId: OppgaveId,
     val behandlingsinformasjon: Behandlingsinformasjon,
     val fnr: Fnr,
-    val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
+    val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere
 )

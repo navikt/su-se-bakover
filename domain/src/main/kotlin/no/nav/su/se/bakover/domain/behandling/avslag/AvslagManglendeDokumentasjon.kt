@@ -69,7 +69,9 @@ data class AvslagManglendeDokumentasjon private constructor(
                             ),
                             grunnlagsdata = søknadsbehandling.grunnlagsdata,
                             vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger,
-                            avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
+                            avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                                håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
+                            ),
                         ),
                     ).right()
                 }

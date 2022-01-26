@@ -69,7 +69,8 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
     fun `kan ikke`() {
         val exp4 = """
             {
-                "@type":"UHÅNDTERT_KAN_IKKE"
+                "@type":"UHÅNDTERT_KAN_IKKE",
+                "uhåndtert": {"@type":"UHÅNDTERT_INGEN_UTESTÅENDE"}
             }
         """.trimIndent()
         JSONAssert.assertEquals(exp4, objectMapper.writeValueAsString(kanIkke1.toDb()), true)
@@ -78,7 +79,8 @@ internal class AvkortingVedSøknadsbehandlingDbKtTest {
 
         val exp5 = """
             {
-                "@type":"HÅNDTERT_KAN_IKKE"
+                "@type":"HÅNDTERT_KAN_IKKE",
+                "håndtert": {"@type":"HÅNDTERT_INGEN_UTESTÅENDE"}
             }
         """.trimIndent()
         JSONAssert.assertEquals(exp5, objectMapper.writeValueAsString(kanIkke2.toDb()), true)

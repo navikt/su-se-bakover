@@ -741,7 +741,6 @@ internal class TestDataHelper(
         behandlingsinformasjon: Behandlingsinformasjon = tomBehandlingsinformasjon,
         stønadsperiode: Stønadsperiode? = no.nav.su.se.bakover.database.stønadsperiode,
     ): Søknadsbehandling.Vilkårsvurdert.Uavklart {
-
         return NySøknadsbehandling(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -750,7 +749,7 @@ internal class TestDataHelper(
             oppgaveId = søknad.oppgaveId,
             behandlingsinformasjon = behandlingsinformasjon,
             fnr = sak.fnr,
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
         ).let {
             søknadsbehandlingRepo.lagreNySøknadsbehandling(it)
             (søknadsbehandlingRepo.hent(it.id)!! as Søknadsbehandling.Vilkårsvurdert.Uavklart).copy(

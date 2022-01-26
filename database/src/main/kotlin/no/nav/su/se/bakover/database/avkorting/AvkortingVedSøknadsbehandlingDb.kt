@@ -37,16 +37,16 @@ internal fun AvkortingVedSøknadsbehandlingDb.Håndtert.toDomain(): AvkortingVed
     return when (this) {
         is AvkortingVedSøknadsbehandlingDb.Håndtert.AvkortUtestående -> {
             AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-                AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                    avkortingsvarsel = avkortingsvarsel.toDomain(),
-                ),
+                avkortingsvarsel = avkortingsvarsel.toDomain(),
             )
         }
         is AvkortingVedSøknadsbehandlingDb.Håndtert.IngenUtestående -> {
             AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
         }
         is AvkortingVedSøknadsbehandlingDb.Håndtert.KanIkkeHåndtere -> {
-            AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere
+            AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(
+                håndtert = håndtert.toDomain(),
+            )
         }
     }
 }
@@ -55,14 +55,16 @@ internal fun AvkortingVedSøknadsbehandlingDb.Iverksatt.toDomain(): AvkortingVed
     return when (this) {
         is AvkortingVedSøknadsbehandlingDb.Iverksatt.AvkortUtestående -> {
             AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående(
-                avkortUtestående = avkortingsvarsel.toDomain(),
+                avkortingsvarsel = avkortingsvarsel.toDomain(),
             )
         }
         is AvkortingVedSøknadsbehandlingDb.Iverksatt.IngenUtestående -> {
             AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående
         }
         is AvkortingVedSøknadsbehandlingDb.Iverksatt.KanIkkeHåndtere -> {
-            AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere
+            AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                håndtert = håndtert.toDomain(),
+            )
         }
     }
 }
@@ -78,7 +80,9 @@ internal fun AvkortingVedSøknadsbehandlingDb.Uhåndtert.toDomain(): AvkortingVe
             )
         }
         is AvkortingVedSøknadsbehandlingDb.Uhåndtert.KanIkkeHåndtere -> {
-            AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere
+            AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(
+                uhåndtert = uhåndtert.toDomain(),
+            )
         }
     }
 }
@@ -94,7 +98,9 @@ internal fun AvkortingVedSøknadsbehandling.Uhåndtert.toDb(): AvkortingVedSøkn
             )
         }
         is AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere -> {
-            AvkortingVedSøknadsbehandlingDb.Uhåndtert.KanIkkeHåndtere
+            AvkortingVedSøknadsbehandlingDb.Uhåndtert.KanIkkeHåndtere(
+                uhåndtert = uhåndtert.toDb(),
+            )
         }
     }
 }
@@ -103,14 +109,16 @@ internal fun AvkortingVedSøknadsbehandling.Håndtert.toDb(): AvkortingVedSøkna
     return when (this) {
         is AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående -> {
             AvkortingVedSøknadsbehandlingDb.Håndtert.AvkortUtestående(
-                avkortingsvarsel = avkortUtestående.avkortingsvarsel.toDb(),
+                avkortingsvarsel = avkortingsvarsel.toDb(),
             )
         }
         is AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående -> {
             AvkortingVedSøknadsbehandlingDb.Håndtert.IngenUtestående
         }
         is AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere -> {
-            AvkortingVedSøknadsbehandlingDb.Håndtert.KanIkkeHåndtere
+            AvkortingVedSøknadsbehandlingDb.Håndtert.KanIkkeHåndtere(
+                håndtert = håndtert.toDb(),
+            )
         }
     }
 }
@@ -119,14 +127,16 @@ internal fun AvkortingVedSøknadsbehandling.Iverksatt.toDb(): AvkortingVedSøkna
     return when (this) {
         is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående -> {
             AvkortingVedSøknadsbehandlingDb.Iverksatt.AvkortUtestående(
-                avkortingsvarsel = avkortUtestående.toDb(),
+                avkortingsvarsel = avkortingsvarsel.toDb(),
             )
         }
         is AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående -> {
             AvkortingVedSøknadsbehandlingDb.Iverksatt.IngenUtestående
         }
         is AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere -> {
-            AvkortingVedSøknadsbehandlingDb.Iverksatt.KanIkkeHåndtere
+            AvkortingVedSøknadsbehandlingDb.Iverksatt.KanIkkeHåndtere(
+                håndtert = håndtert.toDb(),
+            )
         }
     }
 }
@@ -149,7 +159,13 @@ internal sealed class AvkortingVedSøknadsbehandlingDb {
         ) : Uhåndtert()
 
         @JsonTypeName("UHÅNDTERT_KAN_IKKE")
-        object KanIkkeHåndtere : Uhåndtert()
+        data class KanIkkeHåndtere(
+            val uhåndtert: Uhåndtert,
+        ) : Uhåndtert() {
+            init {
+                require(uhåndtert !is KanIkkeHåndtere)
+            }
+        }
     }
 
     @JsonSubTypes(
@@ -168,7 +184,13 @@ internal sealed class AvkortingVedSøknadsbehandlingDb {
         ) : Håndtert()
 
         @JsonTypeName("HÅNDTERT_KAN_IKKE")
-        object KanIkkeHåndtere : Håndtert()
+        data class KanIkkeHåndtere(
+            val håndtert: Håndtert,
+        ) : Håndtert() {
+            init {
+                require(håndtert !is KanIkkeHåndtere)
+            }
+        }
     }
 
     @JsonSubTypes(
@@ -186,6 +208,8 @@ internal sealed class AvkortingVedSøknadsbehandlingDb {
         ) : Iverksatt()
 
         @JsonTypeName("IVERKSATT_KAN_IKKE")
-        object KanIkkeHåndtere : Iverksatt()
+        data class KanIkkeHåndtere(
+            val håndtert: Håndtert,
+        ) : Iverksatt()
     }
 }

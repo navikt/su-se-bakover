@@ -128,7 +128,7 @@ internal class SøknadsbehandlingServiceImpl(
                 oppgaveId = søknad.oppgaveId,
                 fnr = søknad.søknadInnhold.personopplysninger.fnr,
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-                avkorting = avkorting,
+                avkorting = avkorting.kanIkke(),
             ),
         )
 
@@ -199,34 +199,29 @@ internal class SøknadsbehandlingServiceImpl(
          * Må "friske opp" eventuelle utestående avkortinger før beregning gjennomføres for å kunne støtte alle
          * varianter av navigering fram og tilbake mellom tilstander.
          */
-        return søknadsbehandling.leggTilUteståendeAvkorting(
-            avkorting = hentUteståendeAvkorting(søknadsbehandling.sakId),
+        return søknadsbehandling.beregn(
+            begrunnelse = request.begrunnelse,
             clock = clock,
-        ).let { vilkårsvurdert ->
-            vilkårsvurdert.beregn(
-                begrunnelse = request.begrunnelse,
-                clock = clock,
-            ).getOrHandle { feil ->
-                return when (feil) {
-                    is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand -> {
-                        KunneIkkeBeregne.UgyldigTilstand(feil.fra, feil.til)
-                    }
-                    is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
-                        KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(feil.feil.toService())
-                    }
-                    Søknadsbehandling.KunneIkkeBeregne.AvkortingErUfullstendig -> {
-                        KunneIkkeBeregne.AvkortingErUfullstendig
-                    }
-                }.left()
-            }.let {
-                // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
-                grunnlagService.lagreFradragsgrunnlag(
-                    behandlingId = it.id,
-                    fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                )
-                søknadsbehandlingRepo.lagre(it)
-                it.right()
-            }
+        ).getOrHandle { feil ->
+            return when (feil) {
+                is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand -> {
+                    KunneIkkeBeregne.UgyldigTilstand(feil.fra, feil.til)
+                }
+                is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
+                    KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(feil.feil.toService())
+                }
+                Søknadsbehandling.KunneIkkeBeregne.AvkortingErUfullstendig -> {
+                    KunneIkkeBeregne.AvkortingErUfullstendig
+                }
+            }.left()
+        }.let {
+            // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
+            grunnlagService.lagreFradragsgrunnlag(
+                behandlingId = it.id,
+                fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
+            )
+            søknadsbehandlingRepo.lagre(it)
+            it.right()
         }
     }
 

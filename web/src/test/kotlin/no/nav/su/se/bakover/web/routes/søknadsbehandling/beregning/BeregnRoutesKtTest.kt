@@ -247,7 +247,7 @@ internal class BeregnRoutesKtTest {
             oppgaveId = OppgaveId("1234"),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = sak.fnr,
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
         )
         repos.søknadsbehandling.lagreNySøknadsbehandling(
             nySøknadsbehandling,

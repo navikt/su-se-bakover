@@ -241,13 +241,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUførevilkår()
     }
 
-    open fun leggTilUteståendeAvkorting(
-        avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
-        clock: Clock,
-    ): Vilkårsvurdert {
-        throw IllegalStateException("Ugyldig tilstand for å kunne legge til utestående avkorting")
-    }
-
     protected fun beregnInternal(
         søknadsbehandling: Vilkårsvurdert,
         begrunnelse: String?,
@@ -385,11 +378,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     sealed class Vilkårsvurdert : Søknadsbehandling() {
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
 
-        abstract override fun leggTilUteståendeAvkorting(
-            avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
-            clock: Clock,
-        ): Vilkårsvurdert
-
         fun tilVilkårsvurdert(
             behandlingsinformasjon: Behandlingsinformasjon,
             grunnlagsdata: Grunnlagsdata = this.grunnlagsdata,
@@ -471,7 +459,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             grunnlagsdata,
                             oppdaterteVilkårsvurderinger,
                             attesteringer,
-                            avkorting,
+                            avkorting.uhåndtert(),
                         )
                     }
                     is Vilkårsvurderingsresultat.Uavklart -> {
@@ -605,13 +593,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     clock = clock,
                 ).right()
             }
-
-            override fun leggTilUteståendeAvkorting(
-                avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
-                clock: Clock,
-            ): Vilkårsvurdert {
-                return copy(avkorting = avkorting).vilkårsvurder(vilkårsvurderinger, clock)
-            }
         }
 
         data class Avslag(
@@ -628,7 +609,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
-            override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
+            override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
         ) : Vilkårsvurdert(), ErAvslag {
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
@@ -712,13 +693,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     clock = clock,
                 ).right()
             }
-
-            override fun leggTilUteståendeAvkorting(
-                avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
-                clock: Clock,
-            ): Vilkårsvurdert {
-                return copy(avkorting = avkorting).vilkårsvurder(vilkårsvurderinger, clock)
-            }
         }
 
         data class Uavklart(
@@ -735,7 +709,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
-            override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
+            override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
         ) : Vilkårsvurdert() {
 
             override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
@@ -792,13 +766,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 ).right()
             }
 
-            override fun leggTilUteståendeAvkorting(
-                avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
-                clock: Clock,
-            ): Vilkårsvurdert {
-                return copy(avkorting = avkorting).vilkårsvurder(vilkårsvurderinger, clock)
-            }
-
             data class StønadsperiodeIkkeDefinertException(
                 val id: UUID,
             ) : RuntimeException("Sønadsperiode er ikke definert for søknadsbehandling:$id")
@@ -838,11 +805,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             begrunnelse: String?,
             clock: Clock,
         ): Either<KunneIkkeBeregne, Beregnet>
-
-        abstract override fun leggTilUteståendeAvkorting(
-            avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
-            clock: Clock,
-        ): Vilkårsvurdert
 
         fun tilSimulert(simulering: Simulering): Simulert =
             Simulert(
@@ -971,13 +933,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     ),
                     clock = clock,
                 ).right()
-            }
-
-            override fun leggTilUteståendeAvkorting(
-                avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
-                clock: Clock,
-            ): Vilkårsvurdert {
-                return vilkårsvurder(vilkårsvurderinger, clock).leggTilUteståendeAvkorting(avkorting, clock)
             }
         }
 
@@ -1124,13 +1079,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     ),
                     clock = clock,
                 ).right()
-            }
-
-            override fun leggTilUteståendeAvkorting(
-                avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
-                clock: Clock,
-            ): Vilkårsvurdert {
-                return vilkårsvurder(vilkårsvurderinger, clock).leggTilUteståendeAvkorting(avkorting, clock)
             }
         }
     }
@@ -1315,13 +1263,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 ),
                 clock = clock,
             ).right()
-        }
-
-        override fun leggTilUteståendeAvkorting(
-            avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
-            clock: Clock,
-        ): Vilkårsvurdert {
-            return vilkårsvurder(vilkårsvurderinger, clock).leggTilUteståendeAvkorting(avkorting, clock)
         }
     }
 
@@ -1594,10 +1535,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
 
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): Underkjent
-        abstract override fun leggTilUteståendeAvkorting(
-            avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
-            clock: Clock,
-        ): Vilkårsvurdert
 
         fun tilVilkårsvurdert(
             behandlingsinformasjon: Behandlingsinformasjon,
@@ -1785,13 +1722,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     clock = clock,
                 ).right()
             }
-
-            override fun leggTilUteståendeAvkorting(
-                avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
-                clock: Clock,
-            ): Vilkårsvurdert {
-                return vilkårsvurder(vilkårsvurderinger, clock).leggTilUteståendeAvkorting(avkorting, clock)
-            }
         }
 
         sealed class Avslag : Underkjent(), ErAvslag {
@@ -1941,13 +1871,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         clock = clock,
                     ).right()
                 }
-
-                override fun leggTilUteståendeAvkorting(
-                    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
-                    clock: Clock,
-                ): Vilkårsvurdert {
-                    return vilkårsvurder(vilkårsvurderinger, clock).leggTilUteståendeAvkorting(avkorting, clock)
-                }
             }
 
             data class UtenBeregning(
@@ -2048,13 +1971,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         ),
                         clock = clock,
                     ).right()
-                }
-
-                override fun leggTilUteståendeAvkorting(
-                    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
-                    clock: Clock,
-                ): Vilkårsvurdert {
-                    return vilkårsvurder(vilkårsvurderinger, clock).leggTilUteståendeAvkorting(avkorting, clock)
                 }
             }
         }

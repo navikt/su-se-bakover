@@ -7,13 +7,13 @@ import no.nav.su.se.bakover.web.routes.toJson
 internal fun AvkortingVedSøknadsbehandling.toJson(): SimuleringJson? {
     return when (this) {
         is AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående -> {
-            avkortUtestående.avkortingsvarsel.toJson()
+            avkortingsvarsel.toJson()
         }
         is AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående -> {
             null
         }
         is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående -> {
-            avkortUtestående.toJson()
+            avkortingsvarsel.toJson()
         }
         is AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående -> {
             null

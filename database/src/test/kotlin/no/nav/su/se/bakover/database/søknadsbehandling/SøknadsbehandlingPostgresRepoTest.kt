@@ -294,7 +294,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         grunnlagsdata = tilAttestering.grunnlagsdata,
                         vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
                         attesteringer = Attesteringshistorikk.empty(),
-                        avkorting = AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
+                        avkorting = AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående),
                     )
                 }
             }
@@ -326,7 +326,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     grunnlagsdata = tilAttestering.grunnlagsdata,
                     vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
                     attesteringer = Attesteringshistorikk.empty(),
-                    avkorting = AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
+                    avkorting = AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående),
                 ).persistertVariant()
             }
         }
@@ -392,7 +392,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         stønadsperiode = stønadsperiode,
                         grunnlagsdata = tilAttestering.grunnlagsdata,
                         vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
-                        avkorting = AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
+                        avkorting = AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående),
                     )
                 }
             }
@@ -424,7 +424,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     stønadsperiode = stønadsperiode,
                     grunnlagsdata = tilAttestering.grunnlagsdata,
                     vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
-                    avkorting = AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
+                    avkorting = AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående),
                 ).persistertVariant()
             }
         }
@@ -465,7 +465,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 stønadsperiode = stønadsperiode,
                 grunnlagsdata = iverksatt.grunnlagsdata,
                 vilkårsvurderinger = iverksatt.vilkårsvurderinger,
-                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
+                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+                ),
             )
             repo.hent(iverksatt.id).also {
                 it shouldBe expected
@@ -495,7 +497,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 stønadsperiode = stønadsperiode,
                 grunnlagsdata = iverksatt.grunnlagsdata,
                 vilkårsvurderinger = iverksatt.vilkårsvurderinger,
-                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
+                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+                ),
             )
         }
     }
@@ -549,7 +553,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     vilkårsvurderinger = iverksatt.vilkårsvurderinger.copy(
                         uføre = vurderingUførhet,
                     ),
-                    avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
+                    avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                        håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+                    ),
                 )
             }
         }
@@ -621,7 +627,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 ),
                 grunnlagsdata = opprettet.grunnlagsdata,
                 vilkårsvurderinger = opprettet.vilkårsvurderinger,
-                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
+                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+                ),
             )
         }
     }
@@ -658,13 +666,17 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 søknadsbehandling = iverksattAvslagMedBeregning,
                 sessionContext = sessionFactory.newTransactionContext(),
             )
-            iverksattAvslagMedBeregning.avkorting shouldBe AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere
+            iverksattAvslagMedBeregning.avkorting shouldBe AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+            )
 
             repo.lagre(
                 søknadsbehandling = iverksattAvslagUtenBeregning,
                 sessionContext = sessionFactory.newTransactionContext(),
             )
-            iverksattAvslagUtenBeregning.avkorting shouldBe AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere
+            iverksattAvslagUtenBeregning.avkorting shouldBe AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+            )
 
             verifyNoInteractions(avkortingsvarselRepoMock)
         }
@@ -708,7 +720,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             )
 
             verify(avkortingsvarselRepoMock).lagre(
-                avkortingsvarsel = argThat<Avkortingsvarsel.Utenlandsopphold.Avkortet> { it shouldBe avkorting.avkortUtestående },
+                avkortingsvarsel = argThat<Avkortingsvarsel.Utenlandsopphold.Avkortet> { it shouldBe avkorting.avkortingsvarsel },
                 tx = anyOrNull(),
             )
             verifyNoMoreInteractions(avkortingsvarselRepoMock)
