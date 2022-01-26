@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.saf.SafClient
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.klage.KlageClient
@@ -39,4 +40,5 @@ data class Clients(
     val leaderPodLookup: LeaderPodLookup,
     val kafkaPublisher: KafkaPublisher,
     val klageClient: KlageClient,
+    val safClient: SafClient,
 )

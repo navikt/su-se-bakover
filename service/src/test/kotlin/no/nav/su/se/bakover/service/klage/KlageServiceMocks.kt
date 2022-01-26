@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.klage
 
+import no.nav.su.se.bakover.client.saf.SafClient
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
@@ -24,6 +25,7 @@ internal data class KlageServiceMocks(
     val klageClient: KlageClient = mock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val oppgaveService: OppgaveService = mock(),
+    val safClient: SafClient = mock(),
     val clock: Clock = fixedClock,
 ) {
     val service = KlageServiceImpl(
@@ -36,6 +38,7 @@ internal data class KlageServiceMocks(
         klageClient = klageClient,
         sessionFactory = sessionFactory,
         oppgaveService = oppgaveService,
+        safClient = safClient,
         clock = clock,
     )
 

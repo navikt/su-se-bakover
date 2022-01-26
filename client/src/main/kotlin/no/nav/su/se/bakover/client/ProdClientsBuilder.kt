@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PdlClientConfig
 import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.person.PersonClientConfig
+import no.nav.su.se.bakover.client.saf.SafHttpClient
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.ApplicationConfig
@@ -58,6 +59,7 @@ data class ProdClientsBuilder(
             ),
         )
         val klageClient = KabalHttpClient(applicationConfig.clientsConfig.kabalConfig, oAuth)
+        val safClient = SafHttpClient(applicationConfig.clientsConfig, tokenOppslag)
 
         return Clients(
             oauth = oAuth,
@@ -105,7 +107,8 @@ data class ProdClientsBuilder(
             digitalKontaktinformasjon = dkif,
             leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
             kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),
-            klageClient = klageClient
+            klageClient = klageClient,
+            safClient = safClient
         )
     }
 }

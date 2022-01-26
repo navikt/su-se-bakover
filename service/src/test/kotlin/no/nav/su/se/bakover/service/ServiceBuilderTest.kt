@@ -52,7 +52,8 @@ internal class ServiceBuilderTest {
                 digitalKontaktinformasjon = mock(),
                 leaderPodLookup = mock(),
                 kafkaPublisher = mock(),
-                klageClient = mock()
+                klageClient = mock(),
+                safClient = mock()
             ),
             behandlingMetrics = mock(),
             søknadMetrics = mock(),

@@ -76,7 +76,8 @@ internal class ApplicationConfigTest {
             kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
                 url = "kabalUrl",
                 clientId = "kabalClientId"
-            )
+            ),
+            safUrl = "https://saf.dev.intern.nav.no/graphql"
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -250,7 +251,8 @@ internal class ApplicationConfigTest {
                     stsUrl = "mocked",
                     skjermingUrl = "mocked",
                     dkifUrl = "mocked",
-                    kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("mocked", "mocked")
+                    kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("mocked", "mocked"),
+                    safUrl = "mocked"
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.saf.SafClientStub
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
@@ -48,7 +49,8 @@ class StubClientsBuilder(
             oauth = AzureClient(
                 applicationConfig.azure.clientId,
                 applicationConfig.azure.clientSecret,
-                applicationConfig.azure.wellKnownUrl,
+                applicationConfig.azure.wellKnownUrl
+            ,
             ),
             personOppslag = PersonOppslagStub.also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
             tokenOppslag = if (applicationConfig.frikort.useStubForSts) {
@@ -57,7 +59,8 @@ class StubClientsBuilder(
                 StsClient(
                     applicationConfig.clientsConfig.stsUrl,
                     applicationConfig.serviceUser.username,
-                    applicationConfig.serviceUser.password,
+                    applicationConfig.serviceUser.password
+                ,
                 )
             },
             pdfGenerator = if (applicationConfig.pdfgenLocal) {
@@ -80,6 +83,7 @@ class StubClientsBuilder(
             leaderPodLookup = LeaderPodLookupStub.also { log.warn("********** Using stub for ${LeaderPodLookup::class.java} **********") },
             kafkaPublisher = KafkaPublisherStub.also { log.warn("********** Using stub for ${KafkaPublisher::class.java} **********") },
             klageClient = KlageClientStub.also { log.warn("********** Using stub for ${KlageClientStub::class.java} **********") },
+            safClient = SafClientStub.also { log.warn("********** Using stub for ${SafClientStub::class.java} **********") },
         )
     }
 }

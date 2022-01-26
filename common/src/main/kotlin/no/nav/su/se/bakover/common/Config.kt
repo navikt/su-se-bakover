@@ -303,6 +303,7 @@ data class ApplicationConfig(
         val skjermingUrl: String,
         val dkifUrl: String,
         val kabalConfig: KabalConfig,
+        val safUrl: String,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
@@ -319,6 +320,7 @@ data class ApplicationConfig(
                 skjermingUrl = getEnvironmentVariableOrThrow("SKJERMING_URL"),
                 dkifUrl = getEnvironmentVariableOrDefault("DKIF_URL", "http://dkif.default.svc.nais.local"),
                 kabalConfig = KabalConfig.createFromEnvironmentVariables(),
+                safUrl = getEnvironmentVariableOrDefault("SAF_URL", "https://saf.dev.intern.nav.no/graphql"),
             )
 
             fun createLocalConfig() = ClientsConfig(
@@ -334,7 +336,8 @@ data class ApplicationConfig(
                 ),
                 skjermingUrl = "mocked",
                 dkifUrl = "mocked",
-                kabalConfig = KabalConfig.createLocalConfig()
+                kabalConfig = KabalConfig.createLocalConfig(),
+                safUrl = "mocked",
             )
         }
 

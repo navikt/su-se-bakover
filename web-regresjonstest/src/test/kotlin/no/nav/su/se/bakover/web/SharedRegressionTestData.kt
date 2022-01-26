@@ -12,6 +12,7 @@ import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.kabal.KlageClientStub
+import no.nav.su.se.bakover.client.saf.SafClientStub
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
@@ -112,6 +113,7 @@ object SharedRegressionTestData {
             skjermingUrl = "skjermingUrl",
             dkifUrl = "dkifUrl",
             kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(url = "kabalUrl", clientId = "KabalClientId"),
+            safUrl = "safUrl"
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),
@@ -205,7 +207,8 @@ data class TestClientsBuilder(
         digitalKontaktinformasjon = DkifClientStub,
         leaderPodLookup = LeaderPodLookupStub,
         kafkaPublisher = KafkaPublisherStub,
-        klageClient = KlageClientStub
+        klageClient = KlageClientStub,
+        safClient = SafClientStub
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients
