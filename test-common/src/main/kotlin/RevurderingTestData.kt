@@ -365,19 +365,19 @@ fun iverksattRevurdering(
                     hentOpprinneligAvkorting = {
                         when (val opprinnelig = tilAttestering.avkorting) {
                             is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
-                                opprinnelig.annullerUtestående.uteståendeAvkorting.avkortingsvarsel
+                                opprinnelig.avkortingsvarsel
                             }
                             AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
                                 null
                             }
-                            AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+                            is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
                                 null
                             }
                             is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
                                 null
                             }
                             is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-                                opprinnelig.annullerUtestående.uteståendeAvkorting.avkortingsvarsel
+                                opprinnelig.annullerUtestående
                             }
                         }
                     },
@@ -396,19 +396,19 @@ fun iverksattRevurdering(
                     hentOpprinneligAvkorting = {
                         when (val opprinnelig = tilAttestering.avkorting) {
                             is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
-                                opprinnelig.annullerUtestående.uteståendeAvkorting.avkortingsvarsel
+                                opprinnelig.avkortingsvarsel
                             }
                             AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
                                 null
                             }
-                            AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+                            is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
                                 null
                             }
                             is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
                                 null
                             }
                             is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-                                opprinnelig.annullerUtestående.uteståendeAvkorting.avkortingsvarsel
+                                opprinnelig.annullerUtestående
                             }
                         }
                     },

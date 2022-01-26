@@ -1141,19 +1141,19 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
             val avkortingId = when (avkorting) {
                 is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
-                    avkorting.annullerUtestående.uteståendeAvkorting.avkortingsvarsel.id
+                    avkorting.avkortingsvarsel.id
                 }
                 AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
                     null
                 }
-                AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+                is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
                     null
                 }
                 is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
                     null
                 }
                 is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-                    avkorting.annullerUtestående.uteståendeAvkorting.avkortingsvarsel.id
+                    avkorting.annullerUtestående.id
                 }
             }
 
@@ -1261,19 +1261,19 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
             val avkortingId = when (avkorting) {
                 is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
-                    avkorting.annullerUtestående.uteståendeAvkorting.avkortingsvarsel.id
+                    avkorting.avkortingsvarsel.id
                 }
                 AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
                     null
                 }
-                AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+                is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
                     null
                 }
                 is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
                     null
                 }
                 is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-                    avkorting.annullerUtestående.uteståendeAvkorting.avkortingsvarsel.id
+                    avkorting.annullerUtestående.id
                 }
             }
 
