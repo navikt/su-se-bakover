@@ -856,6 +856,7 @@ internal class RevurderingPostgresRepoTest {
                 attestant = attestant,
                 clock = fixedClock,
                 utbetal = { UUID30.randomUUID().right() },
+                hentOpprinneligAvkorting = { null },
             ).getOrFail()
             repo.lagre(iverksatt)
             (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående
@@ -912,6 +913,9 @@ internal class RevurderingPostgresRepoTest {
                 attestant = attestant,
                 clock = fixedClock,
                 utbetal = { UUID30.randomUUID().right() },
+                hentOpprinneligAvkorting = { avkortingsvarselId ->
+                    testDataHelper.avkortingsvarselRepo.hent(avkortingsvarselId)
+                },
             ).getOrFail()
             repo.lagre(iverksatt)
             (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel(

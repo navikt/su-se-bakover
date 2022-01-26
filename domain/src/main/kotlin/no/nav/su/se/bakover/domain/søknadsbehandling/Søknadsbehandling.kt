@@ -2115,6 +2115,8 @@ sealed class KunneIkkeIverksette {
     object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeIverksette()
     object KunneIkkeGenerereVedtaksbrev : KunneIkkeIverksette()
     object AvkortingErUfullstendig : KunneIkkeIverksette()
+    object HarBlittAnnullertAvEnAnnen : KunneIkkeIverksette()
+    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksette()
 }
 
 // Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.

@@ -4,4 +4,5 @@ import java.util.UUID
 
 interface AvkortingsvarselRepo {
     fun hentUtestående(sakId: UUID): Avkortingsvarsel
+    fun hent(id: UUID): Avkortingsvarsel?
 }

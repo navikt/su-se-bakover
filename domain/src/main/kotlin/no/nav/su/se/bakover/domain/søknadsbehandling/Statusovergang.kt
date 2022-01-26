@@ -6,12 +6,14 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.Clock
+import java.util.UUID
 
 abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
@@ -146,7 +148,8 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     class TilIverksatt(
         private val attestering: Attestering,
-        private val innvilget: (søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) -> Either<KunneIkkeIverksette, UUID30>,
+        private val utbetal: (søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) -> Either<KunneIkkeIverksette, UUID30>,
+        private val hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
     ) : Statusovergang<KunneIkkeIverksette, Søknadsbehandling.Iverksatt>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
@@ -175,6 +178,30 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
                  */
                 when (søknadsbehandling.avkorting) {
                     is AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående -> {
+                        hentOpprinneligAvkorting(søknadsbehandling.avkorting.avkortingsvarsel.id).also { avkortingsvarsel ->
+                            when (avkortingsvarsel) {
+                                Avkortingsvarsel.Ingen -> {
+                                    throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
+                                }
+                                is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
+                                    result = KunneIkkeIverksette.HarBlittAnnullertAvEnAnnen.left()
+                                    return
+                                }
+                                is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                                    result = KunneIkkeIverksette.HarAlleredeBlittAvkortetAvEnAnnen.left()
+                                    return
+                                }
+                                is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                                    throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
+                                }
+                                is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
+                                    // Dette er den eneste som er gyldig
+                                }
+                                null -> {
+                                    throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
+                                }
+                            }
+                        }
                         if (!søknadsbehandling.avkorting.avkortingsvarsel.fullstendigAvkortetAv(
                                 søknadsbehandling.beregning,
                             )
@@ -199,7 +226,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
                     throw IllegalStateException("Simulering inneholder feilutbetalinger")
                 }
 
-                innvilget(søknadsbehandling)
+                utbetal(søknadsbehandling)
                     .mapLeft { it }
                     .map { søknadsbehandling.tilIverksatt(attestering) }
             } else {

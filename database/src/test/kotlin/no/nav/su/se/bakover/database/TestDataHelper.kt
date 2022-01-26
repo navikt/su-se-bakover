@@ -480,7 +480,11 @@ internal class TestDataHelper(
             VedtakSomKanRevurderes.from(
                 revurdering = revurdering.tilIverksatt(
                     attestant = attestant,
-                ) { utbetaling.id.right() }.orNull()!!,
+                    utbetal = { utbetaling.id.right() },
+                    hentOpprinneligAvkorting = { avkortingid ->
+                        avkortingsvarselRepo.hent(id = avkortingid)
+                    },
+                ).orNull()!!,
                 utbetalingId = utbetaling.id,
                 fixedClock,
             ).also {
@@ -581,16 +585,18 @@ internal class TestDataHelper(
             }
             is RevurderingTilAttestering.Innvilget -> tilAttestering.tilIverksatt(
                 attestant = attestant,
-            ) {
-                UUID30.randomUUID().right()
-            }.getOrHandle {
+                utbetal = { UUID30.randomUUID().right() },
+                hentOpprinneligAvkorting = { null },
+            ).getOrHandle {
                 throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
             }
             is RevurderingTilAttestering.Opphørt -> tilAttestering.tilIverksatt(
-                attestant,
-            ) { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering ->
-                UUID30.randomUUID().right()
-            }.getOrHandle {
+                attestant = attestant,
+                utbetal = { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering ->
+                    UUID30.randomUUID().right()
+                },
+                hentOpprinneligAvkorting = { null },
+            ).getOrHandle {
                 throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
             }
         }.also {
@@ -708,9 +714,9 @@ internal class TestDataHelper(
     fun iverksattRevurderingInnvilget(): IverksattRevurdering.Innvilget {
         return revurderingTilAttesteringInnvilget().tilIverksatt(
             attestant = attestant,
-        ) {
-            UUID30.randomUUID().right()
-        }.getOrHandle {
+            utbetal = { UUID30.randomUUID().right() },
+            hentOpprinneligAvkorting = { null },
+        ).getOrHandle {
             throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
         }.also {
             revurderingRepo.lagre(it)

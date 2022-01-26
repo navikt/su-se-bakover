@@ -151,6 +151,15 @@ internal class AvkortingsvarselPostgresRepo(
         }
     }
 
+    override fun hent(id: UUID): Avkortingsvarsel? {
+        return sessionFactory.withSession { session ->
+            hent(
+                id = id,
+                session = session,
+            )
+        }
+    }
+
     fun hent(id: UUID, session: Session): Avkortingsvarsel? {
         return """select * from avkortingsvarsel where id = :id""".hent(
             mapOf(

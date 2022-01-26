@@ -1282,21 +1282,28 @@ internal class RevurderingServiceImpl(
                             }
                     }
                     is RevurderingTilAttestering.Innvilget -> {
-                        revurdering.tilIverksatt(attestant, clock) {
-                            utbetalingService.utbetal(
-                                sakId = revurdering.sakId,
-                                beregning = revurdering.beregning,
-                                simulering = revurdering.simulering,
-                                attestant = attestant,
-                                uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
-                            ).mapLeft {
-                                RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
-                            }.map {
-                                // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
-                                utbetaling = it
-                                it.id
-                            }
-                        }.map { iverksattRevurdering ->
+                        revurdering.tilIverksatt(
+                            attestant = attestant,
+                            clock = clock,
+                            utbetal = {
+                                utbetalingService.utbetal(
+                                    sakId = revurdering.sakId,
+                                    beregning = revurdering.beregning,
+                                    simulering = revurdering.simulering,
+                                    attestant = attestant,
+                                    uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
+                                ).mapLeft {
+                                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
+                                }.map {
+                                    // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
+                                    utbetaling = it
+                                    it.id
+                                }
+                            },
+                            hentOpprinneligAvkorting = { avkortingid ->
+                                avkortingsvarselRepo.hent(id = avkortingid)
+                            },
+                        ).map { iverksattRevurdering ->
                             vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling!!.id, clock).let {
                                 vedtakRepo.lagre(it)
                                 it
@@ -1306,22 +1313,26 @@ internal class RevurderingServiceImpl(
                     }
                     is RevurderingTilAttestering.Opphørt -> {
                         revurdering.tilIverksatt(
-                            attestant,
-                            clock,
-                        ) { sakId: UUID, _: NavIdentBruker.Attestant, opphørsdato: LocalDate, simulering: Simulering ->
-                            utbetalingService.opphør(
-                                sakId = sakId,
-                                attestant = attestant,
-                                opphørsdato = opphørsdato,
-                                simulering = simulering,
-                            ).mapLeft {
-                                RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
-                            }.map {
-                                // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
-                                utbetaling = it
-                                it.id
-                            }
-                        }.map {
+                            attestant = attestant,
+                            clock = clock,
+                            utbetal = { sakId: UUID, _: NavIdentBruker.Attestant, opphørsdato: LocalDate, simulering: Simulering ->
+                                utbetalingService.opphør(
+                                    sakId = sakId,
+                                    attestant = attestant,
+                                    opphørsdato = opphørsdato,
+                                    simulering = simulering,
+                                ).mapLeft {
+                                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
+                                }.map {
+                                    // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
+                                    utbetaling = it
+                                    it.id
+                                }
+                            },
+                            hentOpprinneligAvkorting = { avkortingid ->
+                                avkortingsvarselRepo.hent(id = avkortingid)
+                            },
+                        ).map {
                             val opphørtVedtak = VedtakSomKanRevurderes.from(it, utbetaling!!.id, clock)
                             vedtakRepo.lagre(opphørtVedtak)
                             kontrollsamtaleService.annullerKontrollsamtale(opphørtVedtak.behandling.sakId)
@@ -1335,6 +1346,8 @@ internal class RevurderingServiceImpl(
                         is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(
                             it.utbetalingFeilet,
                         )
+                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> TODO()
+                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> TODO()
                     }.left()
                 }
 

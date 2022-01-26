@@ -1078,7 +1078,11 @@ internal class LagBrevRequestVisitorTest {
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "FRITEKST REVURDERING",
             ).getOrFail()
-            .tilIverksatt(attestant) { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering -> utbetalingId.right() }
+            .tilIverksatt(
+                attestant = attestant,
+                utbetal = { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering -> utbetalingId.right() },
+                hentOpprinneligAvkorting = { null },
+            )
             .getOrFail()
 
         val opphørsvedtak = VedtakSomKanRevurderes.from(attestert, utbetalingId, fixedClock)
@@ -1156,7 +1160,7 @@ internal class LagBrevRequestVisitorTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående
+            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
         )
 
         val vedtakIngenEndring = VedtakSomKanRevurderes.from(revurdering, fixedClock)

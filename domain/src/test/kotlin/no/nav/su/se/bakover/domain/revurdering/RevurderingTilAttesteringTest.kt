@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import org.junit.jupiter.api.Test
@@ -26,9 +25,12 @@ internal class RevurderingTilAttesteringTest {
                 attestant = NavIdentBruker.Attestant(revurdering.saksbehandler.navIdent),
                 clock = fixedClock,
                 utbetal = utbetalingsfunksjon,
+                hentOpprinneligAvkorting = { null },
             ) shouldBe RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
 
         verifyNoInteractions(utbetalingsfunksjon)
     }
+
+    // TODO flere tester på tiliverksatt avkorting (husk søknadsbehandling også)
 }

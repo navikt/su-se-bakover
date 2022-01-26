@@ -372,22 +372,27 @@ internal class SøknadsbehandlingServiceImpl(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilIverksatt(
                 attestering = request.attestering,
-            ) { tilAttestering ->
-                utbetalingService.utbetal(
-                    sakId = tilAttestering.sakId,
-                    attestant = request.attestering.attestant,
-                    beregning = tilAttestering.beregning,
-                    simulering = tilAttestering.simulering,
-                    uføregrunnlag = tilAttestering.vilkårsvurderinger.uføre.grunnlag,
-                ).mapLeft { kunneIkkeUtbetale ->
-                    log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $kunneIkkeUtbetale")
-                    KunneIkkeIverksette.KunneIkkeUtbetale(kunneIkkeUtbetale)
-                }.map { utbetalingUtenKvittering ->
-                    // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
-                    utbetaling = utbetalingUtenKvittering
-                    utbetalingUtenKvittering.id
-                }
-            },
+                utbetal = { tilAttestering ->
+                    utbetalingService.utbetal(
+                        sakId = tilAttestering.sakId,
+                        attestant = request.attestering.attestant,
+                        beregning = tilAttestering.beregning,
+                        simulering = tilAttestering.simulering,
+                        uføregrunnlag = tilAttestering.vilkårsvurderinger.uføre.grunnlag,
+                    ).mapLeft { kunneIkkeUtbetale ->
+                        log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $kunneIkkeUtbetale")
+                        KunneIkkeIverksette.KunneIkkeUtbetale(kunneIkkeUtbetale)
+                    }.map { utbetalingUtenKvittering ->
+                        // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
+                        utbetaling = utbetalingUtenKvittering
+                        utbetalingUtenKvittering.id
+                    }
+                },
+                hentOpprinneligAvkorting = { avkortingid ->
+                    avkortingsvarselRepo.hent(id = avkortingid)
+                },
+            ),
+
         ).map { iverksattBehandling ->
             when (iverksattBehandling) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {

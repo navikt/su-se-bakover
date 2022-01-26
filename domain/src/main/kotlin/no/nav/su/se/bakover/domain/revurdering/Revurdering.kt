@@ -1132,11 +1132,56 @@ sealed class RevurderingTilAttestering : Revurdering() {
             attestant: NavIdentBruker.Attestant,
             clock: Clock = Clock.systemUTC(),
             utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>,
+            hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
         ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Innvilget> {
 
             if (saksbehandler.navIdent == attestant.navIdent) {
                 return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
+
+            val avkortingId = when (avkorting) {
+                is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
+                    avkorting.annullerUtestående.uteståendeAvkorting.avkortingsvarsel.id
+                }
+                AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
+                    null
+                }
+                AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+                    null
+                }
+                is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
+                    null
+                }
+                is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+                    avkorting.annullerUtestående.uteståendeAvkorting.avkortingsvarsel.id
+                }
+            }
+
+            if (avkortingId != null) {
+                hentOpprinneligAvkorting(avkortingId).also { avkortingsvarsel ->
+                    when (avkortingsvarsel) {
+                        Avkortingsvarsel.Ingen -> {
+                            throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
+                        }
+                        is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
+                            return KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen.left()
+                        }
+                        is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                            return KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen.left()
+                        }
+                        is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                            throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
+                        }
+                        is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
+                            // Dette er den eneste som er gyldig
+                        }
+                        null -> {
+                            throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
+                        }
+                    }
+                }
+            }
+
             return utbetal().map {
                 IverksattRevurdering.Innvilget(
                     id = id,
@@ -1207,10 +1252,54 @@ sealed class RevurderingTilAttestering : Revurdering() {
             attestant: NavIdentBruker.Attestant,
             clock: Clock = Clock.systemUTC(),
             utbetal: (sakId: UUID, attestant: NavIdentBruker.Attestant, opphørsdato: LocalDate, simulering: Simulering) -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>,
+            hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
         ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Opphørt> {
 
             if (saksbehandler.navIdent == attestant.navIdent) {
                 return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+            }
+
+            val avkortingId = when (avkorting) {
+                is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
+                    avkorting.annullerUtestående.uteståendeAvkorting.avkortingsvarsel.id
+                }
+                AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
+                    null
+                }
+                AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+                    null
+                }
+                is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
+                    null
+                }
+                is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+                    avkorting.annullerUtestående.uteståendeAvkorting.avkortingsvarsel.id
+                }
+            }
+
+            if (avkortingId != null) {
+                hentOpprinneligAvkorting(avkortingId).also { avkortingsvarsel ->
+                    when (avkortingsvarsel) {
+                        Avkortingsvarsel.Ingen -> {
+                            throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
+                        }
+                        is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
+                            return KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen.left()
+                        }
+                        is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                            return KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen.left()
+                        }
+                        is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                            throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
+                        }
+                        is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
+                            // Dette er den eneste som er gyldig
+                        }
+                        null -> {
+                            throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
+                        }
+                    }
+                }
             }
 
             return utbetal(sakId, attestant, OpphørsdatoForUtbetalinger(revurdering = this).value, simulering)
@@ -1309,6 +1398,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
     sealed class KunneIkkeIverksetteRevurdering {
         object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
+        object HarBlittAnnullertAvEnAnnen : KunneIkkeIverksetteRevurdering()
+        object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksetteRevurdering()
         data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteRevurdering()
     }
 

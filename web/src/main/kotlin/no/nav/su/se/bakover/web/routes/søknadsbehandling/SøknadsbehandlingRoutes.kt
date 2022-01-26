@@ -437,6 +437,8 @@ internal fun Route.søknadsbehandlingRoutes(
                 is KunneIkkeIverksette.FantIkkePerson -> fantIkkePerson
                 is KunneIkkeIverksette.FikkIkkeHentetSaksbehandlerEllerAttestant -> feilVedHentingAvSaksbehandlerEllerAttestant
                 KunneIkkeIverksette.AvkortingErUfullstendig -> avkortingErUfullstendig
+                KunneIkkeIverksette.HarAlleredeBlittAvkortetAvEnAnnen -> TODO() //TODO avkorting lag feilmelding
+                KunneIkkeIverksette.HarBlittAnnullertAvEnAnnen -> TODO() //TODO avkorting lag feilmelding
             }
         }
 

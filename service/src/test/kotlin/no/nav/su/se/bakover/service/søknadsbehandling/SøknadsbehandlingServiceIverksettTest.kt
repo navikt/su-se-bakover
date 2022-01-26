@@ -116,22 +116,28 @@ internal class SøknadsbehandlingServiceIverksettTest {
             )
         }
 
+        val avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            sakId = sakId,
+            revurderingId = UUID.randomUUID(),
+            simulering = simuleringFeilutbetaling(
+                oktober(2020), november(2020), desember(2020),
+            ),
+        ).skalAvkortes()
+
         SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn tilAttestering.copy(
                     avkorting = AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-                        avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            sakId = sakId,
-                            revurderingId = UUID.randomUUID(),
-                            simulering = simuleringFeilutbetaling(
-                                oktober(2020), november(2020), desember(2020),
-                            ),
-                        ).skalAvkortes(),
+                        avkortingsvarsel = avkortingsvarsel,
                     ),
                 )
             },
+            avkortingsvarselRepo = mock {
+                on { hent(any()) } doReturn avkortingsvarsel
+            },
+
         ).let {
             it.søknadsbehandlingService.iverksett(
                 SøknadsbehandlingService.IverksettRequest(
@@ -141,6 +147,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ) shouldBe KunneIkkeIverksette.AvkortingErUfullstendig.left()
 
             verify(it.søknadsbehandlingRepo).hent(tilAttestering.id)
+            verify(it.avkortingsvarselRepo).hent(avkortingsvarsel.id)
             it.verifyNoMoreInteractions()
         }
     }
