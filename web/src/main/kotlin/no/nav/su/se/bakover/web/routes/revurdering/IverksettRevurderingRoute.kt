@@ -20,6 +20,8 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
+import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAnnullert
+import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAvkortet
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
@@ -62,4 +64,6 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
     KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> Revurderingsfeilresponser.Brev.fantIkkeGjeldendeUtbetaling
     KunneIkkeIverksetteRevurdering.KunneIkkeGenerereBrev -> kunneIkkeGenerereBrev
     KunneIkkeIverksetteRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
+    KunneIkkeIverksetteRevurdering.HarAlleredeBlittAnnullertAvEnAnnen -> avkortingErAlleredeAnnullert
+    KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> avkortingErAlleredeAvkortet
 }

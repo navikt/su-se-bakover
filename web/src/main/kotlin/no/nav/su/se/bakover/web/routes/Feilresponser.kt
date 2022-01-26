@@ -184,6 +184,16 @@ internal object Feilresponser {
         "avkorting_er_ufullstendig"
     )
 
+    val avkortingErAlleredeAvkortet = InternalServerError.errorJson(
+        "Avkortingen er allerede avkortet",
+        "avkorting_er_allerede_avkortet"
+    )
+
+    val avkortingErAlleredeAnnullert = InternalServerError.errorJson(
+        "Avkortingen er allerede annullert",
+        "avkorting_er_allerede_annullert"
+    )
+
     val opphørAvYtelseSomSkalAvkortes = InternalServerError.errorJson(
         "Opphør av ytelse som skal avkortes støttes ikke.",
         "opphør_av_ytelse_som_skal_avkortes"
