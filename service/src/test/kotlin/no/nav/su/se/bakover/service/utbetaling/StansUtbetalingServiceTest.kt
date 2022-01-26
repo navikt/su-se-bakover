@@ -34,12 +34,14 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -133,7 +135,9 @@ internal class StansUtbetalingServiceTest {
             on { simulerUtbetaling(any()) } doReturn simulering.right()
         }
 
-        val utbetalingRepoMock = mock<UtbetalingRepo>()
+        val utbetalingRepoMock = mock<UtbetalingRepo> {
+            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+        }
 
         val utbetalingPublisherMock = mock<UtbetalingPublisher> {
             on {
@@ -195,6 +199,8 @@ internal class StansUtbetalingServiceTest {
                 },
             )
 
+            verify(utbetalingRepoMock).defaultTransactionContext()
+
             verify(utbetalingRepoMock).opprettUtbetaling(
                 argThat {
                     it shouldBe utbetalingForSimulering.copy(
@@ -206,6 +212,7 @@ internal class StansUtbetalingServiceTest {
                         ),
                     ).toSimulertUtbetaling(simulering).toOversendtUtbetaling(oppdragsmelding)
                 },
+                anyOrNull()
             )
         }
         verifyNoMoreInteractions(
@@ -441,7 +448,7 @@ internal class StansUtbetalingServiceTest {
         ) shouldBe UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.KontrollAvSimuleringFeilet).left()
 
         verify(utbetalingPublisherMock, never()).publish(any())
-        verify(utbetalingRepoMock, never()).opprettUtbetaling(any())
+        verify(utbetalingRepoMock, never()).opprettUtbetaling(any(), anyOrNull())
     }
 
     @Test
@@ -483,6 +490,6 @@ internal class StansUtbetalingServiceTest {
             .left()
 
         verify(utbetalingPublisherMock, never()).publish(any())
-        verify(utbetalingRepoMock, never()).opprettUtbetaling(any())
+        verify(utbetalingRepoMock, never()).opprettUtbetaling(any(), anyOrNull())
     }
 }

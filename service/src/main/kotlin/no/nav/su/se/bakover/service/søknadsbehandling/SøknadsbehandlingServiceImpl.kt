@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -331,36 +331,39 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeIverksette.FantIkkeBehandling.left()
 
-        var utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering? = null
         return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilIverksatt(
                 attestering = request.attestering,
-            ) {
-                utbetalingService.utbetal(
-                    sakId = it.sakId,
-                    attestant = request.attestering.attestant,
-                    beregning = it.beregning,
-                    simulering = it.simulering,
-                    uføregrunnlag = it.vilkårsvurderinger.uføre.grunnlag,
-                ).mapLeft { kunneIkkeUtbetale ->
-                    log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $kunneIkkeUtbetale")
-                    KunneIkkeIverksette.KunneIkkeUtbetale(kunneIkkeUtbetale)
-                }.map { utbetalingUtenKvittering ->
-                    // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
-                    utbetaling = utbetalingUtenKvittering
-                    utbetalingUtenKvittering.id
-                }
-            },
+            ),
         ).map { iverksattBehandling ->
             when (iverksattBehandling) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
 
-                    søknadsbehandlingRepo.lagre(iverksattBehandling)
-                    val vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling =
-                        VedtakSomKanRevurderes.fromSøknadsbehandling(iverksattBehandling, utbetaling!!.id, clock)
-                    vedtakRepo.lagre(vedtak)
-                    kontrollsamtaleService.opprettPlanlagtKontrollsamtale(vedtak)
+                    val utbetaling = utbetalingService.genererUtbetalingsRequest(
+                        sakId = iverksattBehandling.sakId,
+                        attestant = request.attestering.attestant,
+                        beregning = iverksattBehandling.beregning,
+                        simulering = iverksattBehandling.simulering,
+                        uføregrunnlag = iverksattBehandling.vilkårsvurderinger.uføre.grunnlag,
+                    ).getOrHandle { kunneIkkeUtbetale ->
+                        log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $kunneIkkeUtbetale")
+                        return KunneIkkeIverksette.KunneIkkeUtbetale(kunneIkkeUtbetale).left()
+                    }
+
+                    val vedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(iverksattBehandling, utbetaling.id, clock)
+                    Either.catch {
+                        sessionFactory.withTransactionContext {
+                            søknadsbehandlingRepo.lagre(iverksattBehandling, it)
+                            utbetalingService.lagreUtbetaling(utbetaling, it)
+                            vedtakRepo.lagre(vedtak, it)
+                            kontrollsamtaleService.opprettPlanlagtKontrollsamtale(vedtak, it)
+                            utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
+                                log.error("Kunne ikke publisere utbetaling på køen. Ruller tilbake. SakId: ${iverksattBehandling.sakId}", feil)
+                                throw RuntimeException("Publisering av utbetaling på køen feilet. $feil")
+                            }
+                        }
+                    }.mapLeft { return KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left() }
 
                     log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
 

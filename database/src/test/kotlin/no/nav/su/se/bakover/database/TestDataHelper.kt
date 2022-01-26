@@ -224,6 +224,7 @@ internal class TestDataHelper(
     internal val utbetalingRepo = UtbetalingPostgresRepo(
         dataSource = dataSource,
         dbMetrics = dbMetrics,
+        sessionFactory = sessionFactory
     )
     internal val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     internal val søknadRepo = SøknadPostgresRepo(
@@ -454,7 +455,7 @@ internal class TestDataHelper(
             utbetalingslinjer = nonEmptyListOf(utbetalingslinje()),
         ).copy(id = utbetalingId)
 
-        utbetalingRepo.opprettUtbetaling(utbetaling)
+        utbetalingRepo.opprettUtbetaling(utbetaling, sessionFactory.newTransactionContext())
 
         return Pair(
             VedtakSomKanRevurderes.from(
@@ -968,7 +969,7 @@ internal class TestDataHelper(
             avstemmingsnøkkel = avstemmingsnøkkel,
             utbetalingslinjer = utbetalingslinjer,
         ).copy(id = utbetalingId)
-        utbetalingRepo.opprettUtbetaling(utbetaling)
+        utbetalingRepo.opprettUtbetaling(utbetaling, sessionFactory.newTransactionContext())
         søknadsbehandlingRepo.lagre(innvilget)
         vedtakRepo.lagre(VedtakSomKanRevurderes.fromSøknadsbehandling(innvilget, utbetalingId, fixedClock))
         return innvilget to utbetaling
@@ -984,7 +985,7 @@ internal class TestDataHelper(
             utbetalingslinjer = nonEmptyListOf(utbetalingslinje()),
         ).copy(id = UUID30.randomUUID())
 
-        utbetalingRepo.opprettUtbetaling(utbetaling)
+        utbetalingRepo.opprettUtbetaling(utbetaling, sessionFactory.newTransactionContext())
         return utbetaling
     }
 

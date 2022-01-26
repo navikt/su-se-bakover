@@ -14,4 +14,12 @@ object UtbetalingStub : UtbetalingPublisher {
     ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> = Utbetalingsrequest(
         value = XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling))
     ).right()
+
+    override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
+        utbetalingsrequest.right()
+
+    override fun generateRequest(utbetaling: Utbetaling.SimulertUtbetaling): Utbetalingsrequest =
+        Utbetalingsrequest(
+            value = XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling))
+        )
 }

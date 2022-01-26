@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -177,7 +176,6 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     class TilIverksatt(
         private val attestering: Attestering,
-        private val innvilget: (søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) -> Either<KunneIkkeIverksette, UUID30>,
     ) : Statusovergang<KunneIkkeIverksette, Søknadsbehandling.Iverksatt>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
@@ -198,9 +196,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
             result = if (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
-                innvilget(søknadsbehandling)
-                    .mapLeft { it }
-                    .map { søknadsbehandling.tilIverksatt(attestering) }
+                søknadsbehandling.tilIverksatt(attestering).right()
             } else {
                 KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
