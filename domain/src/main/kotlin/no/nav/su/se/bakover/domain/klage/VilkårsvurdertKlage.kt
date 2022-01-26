@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
@@ -18,63 +19,6 @@ sealed interface VilkårsvurdertKlage : Klage {
     val vilkårsvurderinger: VilkårsvurderingerTilKlage
     val attesteringer: Attesteringshistorikk
 
-    override fun vilkårsvurder(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        vilkårsvurderinger: VilkårsvurderingerTilKlage,
-    ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
-        val vurderinger = when (this) {
-            is Påbegynt -> null
-            is Bekreftet.Avvist -> null
-            is Utfylt.Avvist -> null
-            is AvvistKlage -> null
-
-            is Bekreftet.TilVurdering -> this.vurderinger
-            is Utfylt.TilVurdering -> this.vurderinger
-        }
-
-        val klagevedtakshistorikk = when (this) {
-            is Påbegynt,
-            is Utfylt.Avvist,
-            is Bekreftet.Avvist,
-            is AvvistKlage,
-            -> Klagevedtakshistorikk.empty()
-
-            is Bekreftet.TilVurdering -> this.klagevedtakshistorikk
-            is Utfylt.TilVurdering -> this.klagevedtakshistorikk
-        }
-
-        return when (vilkårsvurderinger) {
-            is VilkårsvurderingerTilKlage.Utfylt -> Utfylt.create(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                journalpostId = journalpostId,
-                oppgaveId = oppgaveId,
-                saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderinger,
-                vurderinger = vurderinger,
-                attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk,
-            )
-            is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                journalpostId = journalpostId,
-                oppgaveId = oppgaveId,
-                saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderinger,
-                attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt,
-            )
-        }.right()
-    }
-
     data class Påbegynt private constructor(
         override val id: UUID,
         override val opprettet: Tidspunkt,
@@ -88,6 +32,42 @@ sealed interface VilkårsvurdertKlage : Klage {
         override val attesteringer: Attesteringshistorikk,
         override val datoKlageMottatt: LocalDate,
     ) : VilkårsvurdertKlage {
+
+        override fun vilkårsvurder(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            vilkårsvurderinger: VilkårsvurderingerTilKlage,
+        ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+            return when (vilkårsvurderinger) {
+                is VilkårsvurderingerTilKlage.Utfylt -> Utfylt.create(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    journalpostId = journalpostId,
+                    oppgaveId = oppgaveId,
+                    saksbehandler = saksbehandler,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    vurderinger = null,
+                    attesteringer = attesteringer,
+                    datoKlageMottatt = datoKlageMottatt,
+                    klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
+                )
+                is VilkårsvurderingerTilKlage.Påbegynt -> create(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    journalpostId = journalpostId,
+                    oppgaveId = oppgaveId,
+                    saksbehandler = saksbehandler,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    attesteringer = attesteringer,
+                    datoKlageMottatt = datoKlageMottatt,
+                )
+            }.right()
+        }
 
         companion object {
             fun create(
@@ -150,6 +130,42 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
         ) : Utfylt {
+
+            override fun vilkårsvurder(
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                vilkårsvurderinger: VilkårsvurderingerTilKlage,
+            ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+                return when (vilkårsvurderinger) {
+                    is VilkårsvurderingerTilKlage.Utfylt -> create(
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        journalpostId = journalpostId,
+                        oppgaveId = oppgaveId,
+                        saksbehandler = saksbehandler,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        datoKlageMottatt = datoKlageMottatt,
+                        vurderinger = null,
+                        klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
+                    )
+                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        journalpostId = journalpostId,
+                        oppgaveId = oppgaveId,
+                        saksbehandler = saksbehandler,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        datoKlageMottatt = datoKlageMottatt,
+                    )
+                }.right()
+            }
 
             override fun bekreftVilkårsvurderinger(
                 saksbehandler: NavIdentBruker.Saksbehandler,
@@ -215,9 +231,50 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
-            val klagevedtakshistorikk: Klagevedtakshistorikk,
             val vurderinger: VurderingerTilKlage?,
+            val klagevedtakshistorikk: Klagevedtakshistorikk,
         ) : Utfylt {
+
+            override fun vilkårsvurder(
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                vilkårsvurderinger: VilkårsvurderingerTilKlage,
+            ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+
+                if (klagevedtakshistorikk.isNotEmpty() && vilkårsvurderinger.erAvvist()) {
+                    return KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
+                }
+
+                return when (vilkårsvurderinger) {
+                    is VilkårsvurderingerTilKlage.Utfylt -> create(
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        journalpostId = journalpostId,
+                        oppgaveId = oppgaveId,
+                        saksbehandler = saksbehandler,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        datoKlageMottatt = datoKlageMottatt,
+                        klagevedtakshistorikk = klagevedtakshistorikk,
+                        vurderinger = vurderinger,
+                    )
+                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        journalpostId = journalpostId,
+                        oppgaveId = oppgaveId,
+                        saksbehandler = saksbehandler,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        datoKlageMottatt = datoKlageMottatt,
+                    )
+                }.right()
+            }
 
             override fun bekreftVilkårsvurderinger(
                 saksbehandler: NavIdentBruker.Saksbehandler,
@@ -355,6 +412,43 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
         ) : Bekreftet() {
+
+            override fun vilkårsvurder(
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                vilkårsvurderinger: VilkårsvurderingerTilKlage,
+            ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+                return when (vilkårsvurderinger) {
+                    is VilkårsvurderingerTilKlage.Utfylt -> Utfylt.create(
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        journalpostId = journalpostId,
+                        oppgaveId = oppgaveId,
+                        saksbehandler = saksbehandler,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        datoKlageMottatt = datoKlageMottatt,
+                        vurderinger = null,
+                        klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
+                    )
+                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        journalpostId = journalpostId,
+                        oppgaveId = oppgaveId,
+                        saksbehandler = saksbehandler,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        datoKlageMottatt = datoKlageMottatt,
+                    )
+                }.right()
+            }
+
             override fun leggTilAvvistFritekstTilBrev(
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 fritekst: String,
@@ -429,6 +523,46 @@ sealed interface VilkårsvurdertKlage : Klage {
             val vurderinger: VurderingerTilKlage?,
             val klagevedtakshistorikk: Klagevedtakshistorikk,
         ) : Bekreftet() {
+
+            override fun vilkårsvurder(
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                vilkårsvurderinger: VilkårsvurderingerTilKlage,
+            ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+                if (klagevedtakshistorikk.isNotEmpty() && vilkårsvurderinger.erAvvist()) {
+                    return KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
+                }
+
+                return when (vilkårsvurderinger) {
+                    is VilkårsvurderingerTilKlage.Utfylt -> Utfylt.create(
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        journalpostId = journalpostId,
+                        oppgaveId = oppgaveId,
+                        saksbehandler = saksbehandler,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        datoKlageMottatt = datoKlageMottatt,
+                        vurderinger = vurderinger,
+                        klagevedtakshistorikk = klagevedtakshistorikk,
+                    )
+                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        journalpostId = journalpostId,
+                        oppgaveId = oppgaveId,
+                        saksbehandler = saksbehandler,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        datoKlageMottatt = datoKlageMottatt,
+                    )
+                }.right()
+            }
 
             override fun vurder(
                 saksbehandler: NavIdentBruker.Saksbehandler,
@@ -597,8 +731,9 @@ sealed interface VilkårsvurdertKlage : Klage {
     }
 }
 
-sealed class KunneIkkeVilkårsvurdereKlage {
-    object FantIkkeKlage : KunneIkkeVilkårsvurdereKlage()
-    object FantIkkeVedtak : KunneIkkeVilkårsvurdereKlage()
-    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeVilkårsvurdereKlage()
+sealed interface KunneIkkeVilkårsvurdereKlage {
+    object FantIkkeKlage : KunneIkkeVilkårsvurdereKlage
+    object FantIkkeVedtak : KunneIkkeVilkårsvurdereKlage
+    object KanIkkeAvviseEnKlageSomHarVærtOversendt : KunneIkkeVilkårsvurdereKlage
+    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeVilkårsvurdereKlage
 }

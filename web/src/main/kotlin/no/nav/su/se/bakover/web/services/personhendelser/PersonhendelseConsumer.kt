@@ -89,7 +89,8 @@ class PersonhendelseConsumer(
                     },
                     ifRight = {
                         val hendelse = it.hendelse
-                        if (hendelse is Personhendelse.Hendelse.UtflyttingFraNorge && hendelse.utflyttingsdato == null) {
+                        if (hendelse is Personhendelse.Hendelse.UtflyttingFraNorge && hendelse.utflyttingsdato == null && it.endringstype != Personhendelse.Endringstype.ANNULLERT) {
+                            // Har observert flere annulerte utflyttingshendelser som ikke har utflyttingsdato i produksjon.
                             // TODO jah: Finn ut hvorfor disse ikke kommer med når vi legger inn datoen i Dolly.
                             log.info("Personhendelse: Mottok en utflytting fra norge hendelse ${it.metadata.hendelseId} uten utflyttingsdato. Se sikkerlogg for mer informasjon.")
                             sikkerLogg.info("Personhendelse: Mottok en utflytting fra norge hendelse key=${message.key()}, value=${message.value()}, offset ${message.offset()}, partisjon ${message.partition()}.")
@@ -105,7 +106,7 @@ class PersonhendelseConsumer(
         }
         log.debug(
             "Personhendelse: Prosessert ferdig meldingene. Siste var til og med: ${
-            messages.last().value().getOpprettet()
+            messages.last().value().opprettet
             })",
         )
     }

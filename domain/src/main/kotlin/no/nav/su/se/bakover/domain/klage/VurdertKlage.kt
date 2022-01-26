@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage.Companion.erAvvist
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -57,6 +58,9 @@ sealed class VurdertKlage : Klage {
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkårsvurderinger: VilkårsvurderingerTilKlage,
     ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+        if (klagevedtakshistorikk.isNotEmpty() && vilkårsvurderinger.erAvvist()) {
+            return KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
+        }
         return when (vilkårsvurderinger) {
             is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt.create(
                 id = id,
