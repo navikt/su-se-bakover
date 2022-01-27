@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -716,24 +715,13 @@ internal class RevurderingServiceImpl(
         return when (originalRevurdering) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
                 val eksisterendeUtbetalinger = utbetalingService.hentUtbetalinger(originalRevurdering.sakId)
-
-                /**
-                 * Må sende med eventuelle grunnlag for avkorting for perioden siden disse potensielt er fjernet fra
-                 * grunnlagsdataene pga bosituajson.
-                 * @see[fjernBosituasjonOgFradragHvisIkkeEntydig]
-                 */
-                val avkortingsgrunnlag = vedtakService.kopierGjeldendeVedtaksdata(
-                    sakId = originalRevurdering.sakId,
-                    fraOgMed = originalRevurdering.periode.fraOgMed,
-                ).getOrHandle { return KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering.left() }
-                    .let { gjeldendeVedtaksdata ->
-                        gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
-                    }
-
                 val beregnetRevurdering = originalRevurdering.beregn(
                     eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                     clock = clock,
-                    avkortingsgrunnlag = avkortingsgrunnlag,
+                    gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
+                        sakId = originalRevurdering.sakId,
+                        fraOgMed = originalRevurdering.periode.fraOgMed,
+                    ).getOrHandle { throw IllegalStateException("Fant ikke gjeldende vedtaksdata for sak:${originalRevurdering.sakId}") },
                 ).getOrHandle {
                     return when (it) {
                         is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> {

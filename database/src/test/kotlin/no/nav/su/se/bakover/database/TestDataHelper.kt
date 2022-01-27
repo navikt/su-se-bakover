@@ -545,7 +545,11 @@ internal class TestDataHelper(
         ).beregn(
             eksisterendeUtbetalinger = listOf(vedtak.second),
             clock = clock,
-            avkortingsgrunnlag = emptyList(),
+            gjeldendeVedtaksdata = GjeldendeVedtaksdata(
+                periode = stønadsperiode.periode,
+                vedtakListe = nonEmptyListOf(vedtak.first),
+                clock = clock,
+            )
         ).getOrFail().let {
             revurderingRepo.lagre(it)
             it as BeregnetRevurdering.Innvilget
@@ -619,6 +623,11 @@ internal class TestDataHelper(
         ).beregn(
             eksisterendeUtbetalinger = listOf(vedtak.second),
             clock = clock,
+            gjeldendeVedtaksdata = GjeldendeVedtaksdata(
+                periode = stønadsperiode.periode,
+                vedtakListe = nonEmptyListOf(vedtak.first),
+                clock = clock,
+            ),
         ).getOrHandle {
             throw IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -638,6 +647,11 @@ internal class TestDataHelper(
         ).beregn(
             eksisterendeUtbetalinger = listOf(vedtak.second),
             clock = clock,
+            gjeldendeVedtaksdata = GjeldendeVedtaksdata(
+                periode = stønadsperiode.periode,
+                vedtakListe = nonEmptyListOf(vedtak.first),
+                clock = clock,
+            ),
         ).getOrHandle {
             throw IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -663,6 +677,7 @@ internal class TestDataHelper(
         ).beregn(
             eksisterendeUtbetalinger = listOf(vedtak.second),
             clock = clock,
+            gjeldendeVedtaksdata = gjeldende,
         ).getOrHandle {
             throw IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {

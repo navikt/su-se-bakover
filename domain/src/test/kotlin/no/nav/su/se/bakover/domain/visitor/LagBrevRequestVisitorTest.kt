@@ -1064,20 +1064,26 @@ internal class LagBrevRequestVisitorTest {
             ),
         )
 
-        val attestert = revurdering.beregn(eksisterendeUtbetalinger = sak.utbetalinger, clock = fixedClock)
-            .getOrFail().let {
-                (it as BeregnetRevurdering.Opphørt).toSimulert { sakId, _, opphørsdato ->
-                    simulertUtbetalingOpphør(
-                        sakId = sakId,
-                        opphørsdato = opphørsdato,
-                        eksisterendeUtbetalinger = sak.utbetalinger,
-                    )
-                }.getOrFail()
-            }.prøvOvergangTilSkalIkkeForhåndsvarsles().getOrFail().tilAttestering(
-                attesteringsoppgaveId = oppgaveIdRevurdering,
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = "FRITEKST REVURDERING",
+        val attestert = revurdering.beregn(
+            eksisterendeUtbetalinger = sak.utbetalinger,
+            clock = fixedClock,
+            gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                fraOgMed = revurdering.periode.fraOgMed,
+                clock = fixedClock,
             ).getOrFail()
+        ).getOrFail().let {
+            (it as BeregnetRevurdering.Opphørt).toSimulert { sakId, _, opphørsdato ->
+                simulertUtbetalingOpphør(
+                    sakId = sakId,
+                    opphørsdato = opphørsdato,
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                )
+            }.getOrFail()
+        }.prøvOvergangTilSkalIkkeForhåndsvarsles().getOrFail().tilAttestering(
+            attesteringsoppgaveId = oppgaveIdRevurdering,
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = "FRITEKST REVURDERING",
+        ).getOrFail()
             .tilIverksatt(
                 attestant = attestant,
                 utbetal = { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering -> utbetalingId.right() },

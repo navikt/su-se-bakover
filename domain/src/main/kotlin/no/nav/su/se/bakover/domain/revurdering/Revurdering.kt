@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsplan
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -22,11 +21,9 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -34,6 +31,8 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.beregning.BeregnRevurderingStrategyDecider
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
@@ -45,7 +44,6 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
-import kotlin.math.roundToInt
 import kotlin.reflect.KClass
 
 sealed class AbstraktRevurdering : Behandling {
@@ -71,6 +69,10 @@ sealed class Revurdering :
 
     abstract val forhåndsvarsel: Forhåndsvarsel?
     abstract val avkorting: AvkortingVedRevurdering
+
+    fun vilkårsvurderingsResultat(): Vilkårsvurderingsresultat {
+        return vilkårsvurderinger.resultat
+    }
 
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>)
 
@@ -274,87 +276,15 @@ sealed class Revurdering :
     open fun beregn(
         eksisterendeUtbetalinger: List<Utbetaling>,
         clock: Clock,
-        avkortingsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
+        gjeldendeVedtaksdata: GjeldendeVedtaksdata,
     ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
-        val (midlertidigRevurderingUtenAvkorting, midlertidigBeregningUtenAvkorting) = this.oppdaterFradragOgMarkerSomVurdert(
-            fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
-        ).getOrHandle {
-            throw IllegalStateException(KunneIkkeLeggeTilFradrag.UgyldigTilstand(this::class).toString())
-        }.let {
-            it to BeregningStrategyFactory(clock).beregn(
-                GrunnlagsdataOgVilkårsvurderinger(
-                    grunnlagsdata = it.grunnlagsdata,
-                    vilkårsvurderinger = it.vilkårsvurderinger,
-                ),
-                beregningsPeriode = it.periode,
-                // kan ikke legge til begrunnelse for inntekt/fradrag
-                null,
-            )
-        }
+        val (revurdering, beregning) = BeregnRevurderingStrategyDecider(
+            revurdering = this,
+            gjeldendeVedtaksdata = gjeldendeVedtaksdata,
+            clock = clock,
+        ).decide().beregn().getOrHandle { return it.left() }
 
-        val håndtertAvkorting = when (midlertidigRevurderingUtenAvkorting.avkorting) {
-            /**
-             * Vi revurderer en periode hvor det ikke er noen utestående avkortinger
-             */
-            is AvkortingVedRevurdering.Uhåndtert.IngenUtestående -> {
-                midlertidigRevurderingUtenAvkorting.avkorting.håndter()
-            }
-            is AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting -> {
-                /**
-                 * Vi revurderer en sak med utestående avkorting som enda ikke er håndtert av en ny stønadsperiode.
-                 * Sjekk at vi revurderer hele perioden avkortingen gjelder for, slik at vi kan annullere den som en enhet.
-                 */
-                if (!periode.inneholder(midlertidigRevurderingUtenAvkorting.avkorting.avkortingsvarsel.periode())) {
-                    throw IllegalStateException("Må revurdere perioden som inneholder utestående avkorting")
-                } else {
-                    midlertidigRevurderingUtenAvkorting.avkorting.håndter()
-                }
-            }
-            is AvkortingVedRevurdering.Uhåndtert.KanIkkeHåndtere -> {
-                throw IllegalStateException("Skal ikke kunne skje")
-            }
-        }
-
-        /**
-         * Revurdering av en periode som inneholder fradrag for avkorting. I praksis betyr dette at vi revurderer
-         * noe som inneholder fradrag for avkorting som satammer fra at et [no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel]
-         * har blitt håndtert ved innvilgelse av en ny stønadsperiode.
-         */
-        val (beregnetRevurdering, beregning) = when (avkortingsgrunnlag.isEmpty()) {
-            true -> {
-                midlertidigRevurderingUtenAvkorting to midlertidigBeregningUtenAvkorting
-            }
-            false -> {
-                val fradragForAvkorting = Avkortingsplan(
-                    feilutbetaltBeløp = avkortingsgrunnlag
-                        .sumOf { it.periode.getAntallMåneder() * it.månedsbeløp }
-                        .roundToInt(),
-                    beregning = midlertidigBeregningUtenAvkorting,
-                    clock = clock,
-                ).lagFradrag().getOrHandle {
-                    return KunneIkkeBeregneRevurdering.AvkortingErUfullstendig.left()
-                }
-
-                val revurderingMedFradragForAvkorting =
-                    midlertidigRevurderingUtenAvkorting.oppdaterFradragOgMarkerSomVurdert(
-                        fradragsgrunnlag = midlertidigRevurderingUtenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
-                    ).getOrHandle {
-                        throw IllegalStateException(KunneIkkeLeggeTilFradrag.UgyldigTilstand(this::class).toString())
-                    }
-
-                revurderingMedFradragForAvkorting to BeregningStrategyFactory(clock).beregn(
-                    GrunnlagsdataOgVilkårsvurderinger(
-                        grunnlagsdata = revurderingMedFradragForAvkorting.grunnlagsdata,
-                        vilkårsvurderinger = revurderingMedFradragForAvkorting.vilkårsvurderinger,
-                    ),
-                    beregningsPeriode = revurderingMedFradragForAvkorting.periode,
-                    // kan ikke legge til begrunnelse for inntekt/fradrag
-                    begrunnelse = null,
-                )
-            }
-        }
-
-        fun opphør(revurdering: Revurdering, revurdertBeregning: Beregning): BeregnetRevurdering.Opphørt =
+        fun opphør(revurdering: OpprettetRevurdering, revurdertBeregning: Beregning): BeregnetRevurdering.Opphørt =
             BeregnetRevurdering.Opphørt(
                 tilRevurdering = revurdering.tilRevurdering,
                 id = revurdering.id,
@@ -370,10 +300,10 @@ sealed class Revurdering :
                 vilkårsvurderinger = revurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
                 attesteringer = revurdering.attesteringer,
-                avkorting = håndtertAvkorting,
+                avkorting = revurdering.avkorting.håndter(),
             )
 
-        fun innvilget(revurdering: Revurdering, revurdertBeregning: Beregning): BeregnetRevurdering.Innvilget =
+        fun innvilget(revurdering: OpprettetRevurdering, revurdertBeregning: Beregning): BeregnetRevurdering.Innvilget =
             BeregnetRevurdering.Innvilget(
                 tilRevurdering = revurdering.tilRevurdering,
                 id = revurdering.id,
@@ -389,10 +319,13 @@ sealed class Revurdering :
                 vilkårsvurderinger = revurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
                 attesteringer = revurdering.attesteringer,
-                avkorting = håndtertAvkorting,
+                avkorting = revurdering.avkorting.håndter(),
             )
 
-        fun ingenEndring(revurdering: Revurdering, revurdertBeregning: Beregning): BeregnetRevurdering.IngenEndring =
+        fun ingenEndring(
+            revurdering: OpprettetRevurdering,
+            revurdertBeregning: Beregning,
+        ): BeregnetRevurdering.IngenEndring =
             BeregnetRevurdering.IngenEndring(
                 tilRevurdering = revurdering.tilRevurdering,
                 id = revurdering.id,
@@ -408,7 +341,7 @@ sealed class Revurdering :
                 vilkårsvurderinger = revurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
                 attesteringer = revurdering.attesteringer,
-                avkorting = håndtertAvkorting,
+                avkorting = revurdering.avkorting.håndter(),
             )
 
         fun kontrollerOpphørAvFremtidigAvkorting(): Either<KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes, Unit> {
@@ -437,14 +370,14 @@ sealed class Revurdering :
         }
 
         // TODO jm: sjekk av vilkår og verifisering av dette bør sannsynligvis legges til et tidspunkt før selve beregningen finner sted. Snarvei inntil videre, da vi mangeler "infrastruktur" for dette pt.  Bør være en tydeligere del av modellen for revurdering.
-        if (VurderOmVilkårGirOpphørVedRevurdering(beregnetRevurdering.vilkårsvurderinger).resultat is OpphørVedRevurdering.Ja) {
+        if (VurderOmVilkårGirOpphørVedRevurdering(revurdering.vilkårsvurderinger).resultat is OpphørVedRevurdering.Ja) {
             kontrollerOpphørAvFremtidigAvkorting().getOrHandle {
                 return it.left()
             }
-            return opphør(beregnetRevurdering, beregning).right()
+            return opphør(revurdering, beregning).right()
         }
 
-        return when (beregnetRevurdering.revurderingsårsak.årsak) {
+        return when (revurdering.revurderingsårsak.årsak) {
             Revurderingsårsak.Årsak.REGULER_GRUNNBELØP -> {
                 when (
                     VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
@@ -463,14 +396,14 @@ sealed class Revurdering :
                                 kontrollerOpphørAvFremtidigAvkorting().getOrHandle {
                                     return it.left()
                                 }
-                                opphør(beregnetRevurdering, beregning)
+                                opphør(revurdering, beregning)
                             }
                             is OpphørVedRevurdering.Nei -> {
-                                innvilget(beregnetRevurdering, beregning)
+                                innvilget(revurdering, beregning)
                             }
                         }
                     }
-                    false -> ingenEndring(beregnetRevurdering, beregning)
+                    false -> ingenEndring(revurdering, beregning)
                 }
             }
             else -> {
@@ -484,10 +417,10 @@ sealed class Revurdering :
                         kontrollerOpphørAvFremtidigAvkorting().getOrHandle {
                             return it.left()
                         }
-                        opphør(beregnetRevurdering, beregning)
+                        opphør(revurdering, beregning)
                     }
                     is OpphørVedRevurdering.Nei -> {
-                        innvilget(beregnetRevurdering, beregning)
+                        innvilget(revurdering, beregning)
                     }
                 }
             }
@@ -1391,7 +1324,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
     override fun beregn(
         eksisterendeUtbetalinger: List<Utbetaling>,
         clock: Clock,
-        avkortingsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+        gjeldendeVedtaksdata: GjeldendeVedtaksdata,
     ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }
@@ -1580,7 +1513,7 @@ sealed class IverksattRevurdering : Revurdering() {
     override fun beregn(
         eksisterendeUtbetalinger: List<Utbetaling>,
         clock: Clock,
-        avkortingsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+        gjeldendeVedtaksdata: GjeldendeVedtaksdata,
     ) =
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
 }

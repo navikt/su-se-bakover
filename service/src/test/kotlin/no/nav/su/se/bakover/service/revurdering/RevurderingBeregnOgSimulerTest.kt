@@ -157,7 +157,10 @@ internal class RevurderingBeregnOgSimulerTest {
                     beregning = opprettetRevurdering.beregn(
                         eksisterendeUtbetalinger = sak.utbetalinger,
                         clock = fixedClock,
-                        avkortingsgrunnlag = emptyList(),
+                        gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                            fraOgMed = opprettetRevurdering.periode.fraOgMed,
+                            clock = fixedClock,
+                        ).getOrFail()
                     ).getOrFail().beregning,
                     clock = fixedClock,
                 ).right()

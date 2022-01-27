@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.avkorting
 
+import no.nav.su.se.bakover.common.periode.Periode
 import java.util.UUID
 
 sealed class AvkortingVedRevurdering {
@@ -211,14 +212,36 @@ sealed class AvkortingVedRevurdering {
     }
 
     sealed class Iverksatt : AvkortingVedRevurdering() {
+
+        interface HarProdusertNyttAvkortingsvarsel {
+            fun avkortingsvarsel(): Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
+            fun periode(): Periode
+        }
+
         data class OpprettNyttAvkortingsvarselOgAnnullerUtestående(
             val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
             val annullerUtestående: Avkortingsvarsel.Utenlandsopphold.Annullert,
-        ) : Iverksatt()
+        ) : Iverksatt(), HarProdusertNyttAvkortingsvarsel {
+            override fun avkortingsvarsel(): Avkortingsvarsel.Utenlandsopphold.SkalAvkortes {
+                return avkortingsvarsel
+            }
+
+            override fun periode(): Periode {
+                return avkortingsvarsel.periode()
+            }
+        }
 
         data class OpprettNyttAvkortingsvarsel(
             val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
-        ) : Iverksatt()
+        ) : Iverksatt(), HarProdusertNyttAvkortingsvarsel {
+            override fun avkortingsvarsel(): Avkortingsvarsel.Utenlandsopphold.SkalAvkortes {
+                return avkortingsvarsel
+            }
+
+            override fun periode(): Periode {
+                return avkortingsvarsel.periode()
+            }
+        }
 
         data class AnnullerUtestående(
             val annullerUtestående: Avkortingsvarsel.Utenlandsopphold.Annullert,

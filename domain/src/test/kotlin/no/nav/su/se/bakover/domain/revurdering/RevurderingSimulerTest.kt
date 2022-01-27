@@ -24,31 +24,37 @@ class RevurderingSimulerTest {
         opprettetRevurderingAvslagSpesifiktVilkår(
             avslåttVilkår = utlandsoppholdAvslag(),
         ).let { (sak, revurdering) ->
-            revurdering.beregn(sak.utbetalinger, fixedClock)
-                .getOrFail().let { beregnet ->
-                    (beregnet as BeregnetRevurdering.Opphørt)
-                        .toSimulert { sakId, _, opphørsdato ->
-                            simulertUtbetalingOpphør(
-                                sakId = sakId,
-                                periode = beregnet.periode,
-                                opphørsdato = opphørsdato,
-                                eksisterendeUtbetalinger = sak.utbetalinger,
-                            )
-                        }.getOrFail()
-                        .let { simulert ->
-                            simulert.avkorting.let {
-                                (it as AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel).let { avkorting ->
-                                    avkorting.avkortingsvarsel shouldBe Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                                        id = avkorting.avkortingsvarsel.id,
-                                        sakId = revurdering.sakId,
-                                        revurderingId = revurdering.id,
-                                        opprettet = avkorting.avkortingsvarsel.opprettet,
-                                        simulering = avkorting.avkortingsvarsel.simulering,
-                                    ).skalAvkortes()
-                                }
+            revurdering.beregn(
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = fixedClock,
+                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                    fraOgMed = revurdering.periode.fraOgMed,
+                    clock = fixedClock,
+                ).getOrFail()
+            ).getOrFail().let { beregnet ->
+                (beregnet as BeregnetRevurdering.Opphørt)
+                    .toSimulert { sakId, _, opphørsdato ->
+                        simulertUtbetalingOpphør(
+                            sakId = sakId,
+                            periode = beregnet.periode,
+                            opphørsdato = opphørsdato,
+                            eksisterendeUtbetalinger = sak.utbetalinger,
+                        )
+                    }.getOrFail()
+                    .let { simulert ->
+                        simulert.avkorting.let {
+                            (it as AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel).let { avkorting ->
+                                avkorting.avkortingsvarsel shouldBe Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                                    id = avkorting.avkortingsvarsel.id,
+                                    sakId = revurdering.sakId,
+                                    revurderingId = revurdering.id,
+                                    opprettet = avkorting.avkortingsvarsel.opprettet,
+                                    simulering = avkorting.avkortingsvarsel.simulering,
+                                ).skalAvkortes()
                             }
                         }
-                }
+                    }
+            }
         }
     }
 
@@ -58,18 +64,24 @@ class RevurderingSimulerTest {
             opprettetRevurderingAvslagSpesifiktVilkår(
                 avslåttVilkår = utlandsoppholdAvslag(),
             ).let { (sak, revurdering) ->
-                revurdering.beregn(sak.utbetalinger, fixedClock,)
-                    .getOrFail().let { beregnet ->
-                        (beregnet as BeregnetRevurdering.Opphørt)
-                            .toSimulert { sakId, _, _ ->
-                                simulertUtbetalingOpphør(
-                                    sakId = sakId,
-                                    periode = beregnet.periode,
-                                    opphørsdato = beregnet.periode.fraOgMed,
-                                    eksisterendeUtbetalinger = sak.utbetalinger,
-                                )
-                            }.getOrFail()
-                    }
+                revurdering.beregn(
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                    clock = fixedClock,
+                    gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                        fraOgMed = revurdering.periode.fraOgMed,
+                        clock = fixedClock,
+                    ).getOrFail(),
+                ).getOrFail().let { beregnet ->
+                    (beregnet as BeregnetRevurdering.Opphørt)
+                        .toSimulert { sakId, _, _ ->
+                            simulertUtbetalingOpphør(
+                                sakId = sakId,
+                                periode = beregnet.periode,
+                                opphørsdato = beregnet.periode.fraOgMed,
+                                eksisterendeUtbetalinger = sak.utbetalinger,
+                            )
+                        }.getOrFail()
+                }
             }
         }
     }
@@ -79,21 +91,27 @@ class RevurderingSimulerTest {
         opprettetRevurderingAvslagSpesifiktVilkår(
             avslåttVilkår = avslåttUførevilkårUtenGrunnlag(),
         ).let { (sak, revurdering) ->
-            revurdering.beregn(sak.utbetalinger, fixedClock,)
-                .getOrFail().let {
-                    (it as BeregnetRevurdering.Opphørt)
-                        .toSimulert { sakId, _, opphørsdato ->
-                            simulertUtbetalingOpphør(
-                                sakId = sakId,
-                                periode = it.periode,
-                                opphørsdato = opphørsdato,
-                                eksisterendeUtbetalinger = sak.utbetalinger,
-                            )
-                        }.getOrFail()
-                        .let {
-                            it.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
-                        }
-                }
+            revurdering.beregn(
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = fixedClock,
+                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                    fraOgMed = revurdering.periode.fraOgMed,
+                    clock = fixedClock,
+                ).getOrFail(),
+            ).getOrFail().let {
+                (it as BeregnetRevurdering.Opphørt)
+                    .toSimulert { sakId, _, opphørsdato ->
+                        simulertUtbetalingOpphør(
+                            sakId = sakId,
+                            periode = it.periode,
+                            opphørsdato = opphørsdato,
+                            eksisterendeUtbetalinger = sak.utbetalinger,
+                        )
+                    }.getOrFail()
+                    .let {
+                        it.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+                    }
+            }
         }
     }
 
@@ -111,21 +129,27 @@ class RevurderingSimulerTest {
                     ),
                 ),
             ).getOrFail().let {
-                it.beregn(sak.utbetalinger, fixedClock,)
-                    .getOrFail().let {
-                        (it as BeregnetRevurdering.Opphørt)
-                            .toSimulert { sakId, _, opphørsdato ->
-                                simulertUtbetalingOpphør(
-                                    sakId = sakId,
-                                    periode = it.periode,
-                                    opphørsdato = opphørsdato,
-                                    eksisterendeUtbetalinger = sak.utbetalinger,
-                                )
-                            }.getOrFail()
-                            .let {
-                                it.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
-                            }
-                    }
+                it.beregn(
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                    clock = fixedClock,
+                    gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                        fraOgMed = revurdering.periode.fraOgMed,
+                        clock = fixedClock,
+                    ).getOrFail(),
+                ).getOrFail().let {
+                    (it as BeregnetRevurdering.Opphørt)
+                        .toSimulert { sakId, _, opphørsdato ->
+                            simulertUtbetalingOpphør(
+                                sakId = sakId,
+                                periode = it.periode,
+                                opphørsdato = opphørsdato,
+                                eksisterendeUtbetalinger = sak.utbetalinger,
+                            )
+                        }.getOrFail()
+                        .let {
+                            it.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+                        }
+                }
             }
         }
     }
