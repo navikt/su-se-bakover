@@ -12,7 +12,7 @@ import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.kabal.KlageClientStub
-import no.nav.su.se.bakover.client.saf.SafClientStub
+import no.nav.su.se.bakover.client.saf.JournalpostClientStub
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
@@ -208,7 +208,7 @@ data class TestClientsBuilder(
         leaderPodLookup = LeaderPodLookupStub,
         kafkaPublisher = KafkaPublisherStub,
         klageClient = KlageClientStub,
-        safClient = SafClientStub
+        journalpostClient = JournalpostClientStub
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

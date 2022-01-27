@@ -168,7 +168,7 @@ object ServiceBuilder {
             klageClient = clients.klageClient,
             sessionFactory = databaseRepos.sessionFactory,
             oppgaveService = oppgaveService,
-            safClient = clients.safClient,
+            journalpostClient = clients.journalpostClient,
             clock = clock,
         )
         val klagevedtakService = KlagevedtakServiceImpl(

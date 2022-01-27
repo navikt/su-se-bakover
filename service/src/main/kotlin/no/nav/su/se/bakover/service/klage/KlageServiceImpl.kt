@@ -6,13 +6,13 @@ import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.client.saf.SafClient
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
@@ -57,7 +57,7 @@ class KlageServiceImpl(
     private val klageClient: KlageClient,
     private val sessionFactory: SessionFactory,
     private val oppgaveService: OppgaveService,
-    private val safClient: SafClient,
+    private val journalpostClient: JournalpostClient,
     val clock: Clock,
 ) : KlageService {
 
@@ -74,6 +74,14 @@ class KlageServiceImpl(
 
         if (sak.klager.harEksisterendeJournalpostId(request.journalpostId)) {
             return KunneIkkeOppretteKlage.HarAlleredeEnKlageBehandling.left()
+        }
+
+        journalpostClient.hentJournalpost(request.journalpostId).mapLeft {
+            return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(it).left()
+        }.map {
+            if (!it.erJournalpostKnyttetTilSak(sak.saksnummer)) {
+                return KunneIkkeOppretteKlage.JournalpostErIkkeKnyttetTilSak.left()
+            }
         }
 
         val aktørId = personService.hentAktørId(sak.fnr).getOrElse {
