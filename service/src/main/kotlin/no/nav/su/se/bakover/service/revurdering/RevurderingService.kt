@@ -261,6 +261,8 @@ sealed class KunneIkkeIverksetteRevurdering {
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeIverksetteRevurdering()
     object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeIverksetteRevurdering()
     object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
+    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksetteRevurdering()
+    object HarAlleredeBlittAnnullertAvEnAnnen : KunneIkkeIverksetteRevurdering()
     data class UgyldigTilstand(
         val fra: KClass<out AbstraktRevurdering>,
         val til: KClass<out AbstraktRevurdering>,

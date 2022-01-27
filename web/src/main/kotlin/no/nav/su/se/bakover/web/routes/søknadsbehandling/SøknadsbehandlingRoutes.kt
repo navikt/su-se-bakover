@@ -51,6 +51,8 @@ import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
+import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAnnullert
+import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAvkortet
 import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErUfullstendig
 import no.nav.su.se.bakover.web.routes.Feilresponser.depositumErHøyereEnnInnskudd
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
@@ -437,8 +439,8 @@ internal fun Route.søknadsbehandlingRoutes(
                 is KunneIkkeIverksette.FantIkkePerson -> fantIkkePerson
                 is KunneIkkeIverksette.FikkIkkeHentetSaksbehandlerEllerAttestant -> feilVedHentingAvSaksbehandlerEllerAttestant
                 KunneIkkeIverksette.AvkortingErUfullstendig -> avkortingErUfullstendig
-                KunneIkkeIverksette.HarAlleredeBlittAvkortetAvEnAnnen -> TODO() // TODO avkorting lag feilmelding
-                KunneIkkeIverksette.HarBlittAnnullertAvEnAnnen -> TODO() // TODO avkorting lag feilmelding
+                KunneIkkeIverksette.HarAlleredeBlittAvkortetAvEnAnnen -> avkortingErAlleredeAvkortet
+                KunneIkkeIverksette.HarBlittAnnullertAvEnAnnen -> avkortingErAlleredeAnnullert
             }
         }
 
