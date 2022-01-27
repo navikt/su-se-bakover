@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -78,7 +79,7 @@ interface UtbetalingService {
     ): Either<UtbetalStansFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun simulerGjenopptak(
-        sakId: UUID,
+        sak: Sak,
         saksbehandler: NavIdentBruker,
     ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling>
 

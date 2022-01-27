@@ -207,7 +207,7 @@ internal class GjenopptakAvYtelseServiceTest {
         ).let {
             it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Opprett(
-                    sakId = sakId,
+                    sakId = sak.id,
                     saksbehandler = saksbehandler,
                     revurderingsårsak = Revurderingsårsak.create(
                         årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
@@ -220,14 +220,14 @@ internal class GjenopptakAvYtelseServiceTest {
                 ),
             ).left()
 
-            verify(it.vedtakRepo).hentForSakId(sakId)
-            verify(it.sakService).hentSak(sakId)
+            verify(it.vedtakRepo).hentForSakId(sak.id)
+            verify(it.sakService).hentSak(sak.id)
             verify(it.vedtakService).kopierGjeldendeVedtaksdata(
-                sakId = sakId,
+                sakId = sak.id,
                 fraOgMed = periode.fraOgMed,
             )
             verify(it.utbetalingService).simulerGjenopptak(
-                sakId = sakId,
+                sak = sak,
                 saksbehandler = saksbehandler,
             )
             it.verifyNoMoreInteractions()
@@ -278,7 +278,7 @@ internal class GjenopptakAvYtelseServiceTest {
             it.revurderingService.addObserver(observerMock)
             val response = it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Opprett(
-                    sakId = sakId,
+                    sakId = sak.id,
                     saksbehandler = saksbehandler,
                     revurderingsårsak = Revurderingsårsak.create(
                         årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
@@ -295,14 +295,14 @@ internal class GjenopptakAvYtelseServiceTest {
                 begrunnelse = "begrunnelse",
             )
 
-            verify(it.vedtakRepo).hentForSakId(sakId)
-            verify(it.sakService).hentSak(sakId)
+            verify(it.vedtakRepo).hentForSakId(sak.id)
+            verify(it.sakService).hentSak(sak.id)
             verify(it.vedtakService).kopierGjeldendeVedtaksdata(
-                sakId = sakId,
+                sakId = sak.id,
                 fraOgMed = periode.fraOgMed,
             )
             verify(it.utbetalingService).simulerGjenopptak(
-                sakId = sakId,
+                sak = sak,
                 saksbehandler = saksbehandler,
             )
             verify(it.revurderingRepo).defaultTransactionContext()
@@ -391,13 +391,13 @@ internal class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = LocalDate.now(fixedClock).plusMonths(2).endOfMonth(),
         )
-        val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+        val (sak, revurdering) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
             periodeForStans = periode,
             clock = fixedClock
         )
 
         val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForSakId(any()) } doReturn eksisterende.first.vedtakListe
+            on { hentForSakId(any()) } doReturn sak.vedtakListe
         }
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -408,9 +408,13 @@ internal class GjenopptakAvYtelseServiceTest {
                 )
             } doReturn GjeldendeVedtaksdata(
                 periode = periode,
-                vedtakListe = nonEmptyListOf(eksisterende.second.tilRevurdering),
+                vedtakListe = nonEmptyListOf(revurdering.tilRevurdering),
                 clock = fixedClock,
             ).right()
+        }
+
+        val sakService = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn sak.right()
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
@@ -418,7 +422,7 @@ internal class GjenopptakAvYtelseServiceTest {
         }
 
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn eksisterende.second
+            on { hent(any()) } doReturn revurdering
         }
 
         RevurderingServiceMocks(
@@ -426,11 +430,12 @@ internal class GjenopptakAvYtelseServiceTest {
             vedtakRepo = vedtakRepoMock,
             vedtakService = vedtakServiceMock,
             utbetalingService = utbetalingServiceMock,
+            sakService = sakService
         ).let {
             val response = it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Oppdater(
-                    sakId = sakId,
-                    revurderingId = eksisterende.second.id,
+                    sakId = sak.id,
+                    revurderingId = revurdering.id,
                     saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
                     revurderingsårsak = Revurderingsårsak.create(
                         årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
@@ -441,22 +446,23 @@ internal class GjenopptakAvYtelseServiceTest {
 
             response.saksbehandler shouldBe NavIdentBruker.Saksbehandler("jossi")
             response.periode shouldBe periode
-            response.tilRevurdering shouldBe eksisterende.second.tilRevurdering
+            response.tilRevurdering shouldBe revurdering.tilRevurdering
             response.revurderingsårsak shouldBe Revurderingsårsak.create(
                 årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
                 begrunnelse = "ny begrunnelse",
             )
 
-            verify(vedtakRepoMock).hentForSakId(sakId)
+            verify(sakService).hentSak(sak.id)
+            verify(vedtakRepoMock).hentForSakId(sak.id)
             verify(it.vedtakService).kopierGjeldendeVedtaksdata(
-                sakId = sakId,
+                sakId = sak.id,
                 fraOgMed = periode.fraOgMed,
             )
             verify(it.utbetalingService).simulerGjenopptak(
-                sakId = sakId,
+                sak = sak,
                 saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
             )
-            verify(it.revurderingRepo).hent(eksisterende.second.id)
+            verify(it.revurderingRepo).hent(revurdering.id)
             verify(it.revurderingRepo).defaultTransactionContext()
             verify(it.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
             it.verifyNoMoreInteractions()

@@ -316,12 +316,10 @@ internal class UtbetalingServiceImpl(
     }
 
     override fun simulerGjenopptak(
-        sakId: UUID,
+        sak: Sak,
         saksbehandler: NavIdentBruker,
-    ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
-        val sak: Sak = sakService.hentSak(sakId).orNull()!!
-
-        return Utbetalingsstrategi.Gjenoppta(
+    ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> =
+        Utbetalingsstrategi.Gjenoppta(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
@@ -337,7 +335,6 @@ internal class UtbetalingServiceImpl(
                         SimulerGjenopptakFeil.KunneIkkeSimulere(it)
                     }
             }
-    }
 
     override fun gjenopptaUtbetalinger(
         sakId: UUID,
@@ -348,7 +345,7 @@ internal class UtbetalingServiceImpl(
             return UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.FantIkkeSak).left()
         }
         return simulerGjenopptak(
-            sakId = sakId,
+            sak = sak,
             saksbehandler = attestant,
         ).mapLeft {
             UtbetalGjenopptakFeil.KunneIkkeSimulere(it)

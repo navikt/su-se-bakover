@@ -199,7 +199,6 @@ open class AccessCheckProxy(
             utbetaling = object : UtbetalingService {
                 override fun hentUtbetaling(utbetalingId: UUID30): Either<FantIkkeUtbetaling, Utbetaling> {
                     assertHarTilgangTilUtbetaling(utbetalingId)
-
                     return services.utbetaling.hentUtbetaling(utbetalingId)
                 }
 
@@ -279,7 +278,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun simulerGjenopptak(
-                    sakId: UUID,
+                    sak: Sak,
                     saksbehandler: NavIdentBruker,
                 ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
                     kastKanKunKallesFraAnnenService()

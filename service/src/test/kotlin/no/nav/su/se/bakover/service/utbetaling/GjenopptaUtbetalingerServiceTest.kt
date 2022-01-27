@@ -106,7 +106,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             attestant = saksbehandler,
             simulering = simulering,
         ).getOrFail("skulle gått bra").let {
-            verify(sakServiceMock, times(2)).hentSak(
+            verify(sakServiceMock).hentSak(
                 sakId = argThat { it shouldBe sak.id },
             )
             verify(simuleringClientMock).simulerUtbetaling(
@@ -195,7 +195,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                 .left()
 
             inOrder(sakServiceMock, simuleringClientMock) {
-                verify(sakServiceMock, times(2)).hentSak(sak.id)
+                verify(sakServiceMock).hentSak(sak.id)
                 verify(simuleringClientMock).simulerUtbetaling(
                     argThat { it shouldBe beOfType<Utbetaling.UtbetalingForSimulering>() },
                 )
@@ -249,7 +249,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             it shouldBe UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
 
             inOrder(sakServiceMock, simuleringClientMock, utbetalingPublisherMock) {
-                verify(sakServiceMock, times(2)).hentSak(sakId = argThat { sak.id })
+                verify(sakServiceMock).hentSak(sakId = argThat { sak.id })
                 verify(simuleringClientMock).simulerUtbetaling(argThat { gjenopptakUtbetalingForSimulering() })
                 verify(utbetalingPublisherMock).publish(argThat { simulertGjenopptakUtbetaling() })
             }

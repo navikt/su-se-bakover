@@ -333,9 +333,7 @@ internal class SøknadsbehandlingServiceImpl(
 
         return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.TilIverksatt(
-                attestering = request.attestering,
-            ),
+            statusovergang = Statusovergang.TilIverksatt(request.attestering),
         ).map { iverksattBehandling ->
             when (iverksattBehandling) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
