@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.domain.journalpost
 
-import no.nav.su.se.bakover.domain.Saksnummer
-
 /**
  * Representerer en journalpost som er hentet fra SAF
  *
@@ -9,32 +7,22 @@ import no.nav.su.se.bakover.domain.Saksnummer
  */
 data class HentetJournalpost private constructor(
     private val tema: String,
-    private val sak: Fagsak,
+
 ) {
 
-    fun erJournalpostKnyttetTilSak(saksnummer: Saksnummer): Boolean {
-        return erTemaSup() && erfagSakIdLikSaksnummer(saksnummer)
+    fun erJournalpostKnyttetTilSak(): Boolean {
+        return erTemaSup()
     }
 
     private fun erTemaSup(): Boolean {
         return tema == "SUP"
     }
 
-    private fun erfagSakIdLikSaksnummer(saksnummer: Saksnummer): Boolean {
-        return sak.fagsakId == saksnummer.toString()
-    }
-
     companion object {
-        fun create(tema: String, sak: Fagsak): HentetJournalpost {
-            return HentetJournalpost(tema, sak)
+        fun create(
+            tema: String,
+        ): HentetJournalpost {
+            return HentetJournalpost(tema)
         }
     }
 }
-
-data class Fagsak(
-    val fagsakId: String,
-    val fagsaksystem: String,
-    val sakstype: String,
-    val tema: String,
-    val datoOpprettet: String,
-)

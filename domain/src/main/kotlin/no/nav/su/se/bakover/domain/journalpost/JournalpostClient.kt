@@ -12,4 +12,5 @@ sealed interface KunneIkkeHenteJournalpost {
     object FantIkkeJournalpost : KunneIkkeHenteJournalpost
     object IkkeTilgang : KunneIkkeHenteJournalpost
     object TekniskFeil : KunneIkkeHenteJournalpost
+    object UgyldigInput : KunneIkkeHenteJournalpost
 }

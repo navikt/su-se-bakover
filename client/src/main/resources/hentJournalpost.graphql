@@ -1,26 +1,5 @@
-query($journalpostId: ID!){
+query($journalpostId: String!){
     journalpost(journalpostId: $journalpostId){
         tema
-        sak {
-            fagsakId
-            fagsaksystem
-            sakstype
-            tema
-            datoOpprettet
-        }
     }
-}
-
-
-type SafResponse {
-    tema: String,
-    sak: Sak
-}
-
-type Sak{
-    fagsakId: ID
-    fagsaksystem: String,
-    sakstype: String,
-    tema: String,
-    datoOpprettet: String
 }

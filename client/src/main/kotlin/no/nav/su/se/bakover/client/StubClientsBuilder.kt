@@ -49,8 +49,7 @@ class StubClientsBuilder(
             oauth = AzureClient(
                 applicationConfig.azure.clientId,
                 applicationConfig.azure.clientSecret,
-                applicationConfig.azure.wellKnownUrl
-            ,
+                applicationConfig.azure.wellKnownUrl,
             ),
             personOppslag = PersonOppslagStub.also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
             tokenOppslag = if (applicationConfig.frikort.useStubForSts) {
@@ -59,8 +58,7 @@ class StubClientsBuilder(
                 StsClient(
                     applicationConfig.clientsConfig.stsUrl,
                     applicationConfig.serviceUser.username,
-                    applicationConfig.serviceUser.password
-                ,
+                    applicationConfig.serviceUser.password,
                 )
             },
             pdfGenerator = if (applicationConfig.pdfgenLocal) {

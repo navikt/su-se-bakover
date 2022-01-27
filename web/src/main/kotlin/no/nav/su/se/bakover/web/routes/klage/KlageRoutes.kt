@@ -502,5 +502,9 @@ private fun KunneIkkeHenteJournalpost.toErrorJson(): Resultat {
             "Ukjent feil ved henting av journalpost",
             "ukjent_feil_ved_henting_av_journalpost",
         )
+        KunneIkkeHenteJournalpost.UgyldigInput -> BadRequest.errorJson(
+            "Ugyldig journalpostId",
+            "ugyldig_journalpostId",
+        )
     }
 }
