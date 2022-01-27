@@ -71,7 +71,7 @@ internal class OversendKlageTest {
     }
 
     @Test
-    fun `en oversendtKlage er en lukket klage`() {
+    fun `en oversendtKlage er ikke en åpen klage`() {
         val klage = oversendtKlage().second
         klage.erÅpen() shouldBe false
     }
@@ -486,6 +486,9 @@ internal class OversendKlageTest {
             klageClient = mock {
                 on { sendTilKlageinstans(any(), any()) } doReturn Unit.right()
             },
+            oppgaveService = mock {
+                on { lukkOppgave(any()) } doReturn Unit.right()
+            }
         )
         val attestant = NavIdentBruker.Attestant("s2")
 

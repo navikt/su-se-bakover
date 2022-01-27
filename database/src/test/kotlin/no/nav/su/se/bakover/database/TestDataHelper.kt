@@ -55,6 +55,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
@@ -240,7 +241,7 @@ internal class TestDataHelper(
     internal val utbetalingRepo = UtbetalingPostgresRepo(
         dataSource = dataSource,
         dbMetrics = dbMetrics,
-        sessionFactory = sessionFactory
+        sessionFactory = sessionFactory,
     )
     internal val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     internal val søknadRepo = SøknadPostgresRepo(
@@ -555,7 +556,7 @@ internal class TestDataHelper(
                 periode = stønadsperiode.periode,
                 vedtakListe = nonEmptyListOf(vedtak.first),
                 clock = clock,
-            )
+            ),
         ).getOrFail().let {
             revurderingRepo.lagre(it)
             it as BeregnetRevurdering.Innvilget
@@ -1187,6 +1188,20 @@ internal class TestDataHelper(
     ): VurdertKlage.Bekreftet {
         return utfyltVurdertKlage(vedtak = vedtak).bekreftVurderinger(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVurdertKlage"),
+        ).orNull()!!.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun avsluttetKlage(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        begrunnelse: String = "Begrunnelse for å avslutte klagen.",
+        tidspunktAvsluttet: Tidspunkt = fixedTidspunkt,
+    ): AvsluttetKlage {
+        return bekreftetVurdertKlage(vedtak = vedtak).avslutt(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerSomAvsluttetKlagen"),
+            begrunnelse = begrunnelse,
+            tidspunktAvsluttet = tidspunktAvsluttet,
         ).orNull()!!.also {
             klagePostgresRepo.lagre(it)
         }

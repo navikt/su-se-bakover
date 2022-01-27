@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.klage
 
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
@@ -11,8 +12,8 @@ import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstansvedtak
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.web.routes.klage.KlageJson.Avsluttet.Companion.utledAvsluttet
 import no.nav.su.se.bakover.web.routes.klage.KlageJson.VedtaksvurderingJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.klage.Typer.Companion.frontendStatus
 import no.nav.su.se.bakover.web.routes.klage.UtfallJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.klage.ÅrsakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson
@@ -35,7 +36,22 @@ internal data class KlageJson(
     val vedtaksvurdering: VedtaksvurderingJson?,
     val attesteringer: List<AttesteringJson>,
     val klagevedtakshistorikk: List<VedtattUtfallJson>,
+    val avsluttet: Avsluttet,
 ) {
+    enum class Avsluttet {
+        KAN_AVSLUTTES,
+        ER_AVSLUTTET,
+        KAN_IKKE_AVSLUTTES;
+
+        companion object {
+            internal fun Klage.utledAvsluttet(): Avsluttet = when {
+                this is AvsluttetKlage -> ER_AVSLUTTET
+                kanAvsluttes() -> KAN_AVSLUTTES
+                else -> KAN_IKKE_AVSLUTTES
+            }
+        }
+    }
+
     data class VedtaksvurderingJson(
         val type: String,
         val omgjør: OmgjørJson?,
@@ -101,6 +117,7 @@ internal data class KlageJson(
 }
 
 internal fun Klage.toJson(): KlageJson {
+    val avsluttet = utledAvsluttet()
     return when (this) {
         is OpprettetKlage -> KlageJson(
             id = this.id.toString(),
@@ -109,7 +126,7 @@ internal fun Klage.toJson(): KlageJson {
             journalpostId = this.journalpostId.toString(),
             saksbehandler = this.saksbehandler.navIdent,
             datoKlageMottatt = this.datoKlageMottatt.toString(),
-            status = this.frontendStatus(),
+            status = Typer.OPPRETTET.toString(),
             vedtakId = null,
             innenforFristen = null,
             klagesDetPåKonkreteElementerIVedtaket = null,
@@ -119,6 +136,7 @@ internal fun Klage.toJson(): KlageJson {
             vedtaksvurdering = null,
             attesteringer = emptyList(),
             klagevedtakshistorikk = emptyList(),
+            avsluttet = avsluttet,
         )
         is VilkårsvurdertKlage.Påbegynt -> KlageJson(
             id = this.id.toString(),
@@ -127,7 +145,7 @@ internal fun Klage.toJson(): KlageJson {
             journalpostId = this.journalpostId.toString(),
             saksbehandler = this.saksbehandler.navIdent,
             datoKlageMottatt = this.datoKlageMottatt.toString(),
-            status = this.frontendStatus(),
+            status = Typer.VILKÅRSVURDERT_PÅBEGYNT.toString(),
             vedtakId = this.vilkårsvurderinger.vedtakId?.toString(),
             innenforFristen = this.vilkårsvurderinger.innenforFristen?.toString(),
             klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
@@ -137,11 +155,28 @@ internal fun Klage.toJson(): KlageJson {
             vedtaksvurdering = null,
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = emptyList(),
+            avsluttet = avsluttet,
         )
-        is VilkårsvurdertKlage.Utfylt.TilVurdering -> this.mapUtfyltOgBekreftetTilKlageJson()
-        is VilkårsvurdertKlage.Utfylt.Avvist -> this.mapUtfyltOgBekreftetTilKlageJson()
-        is VilkårsvurdertKlage.Bekreftet.TilVurdering -> this.mapUtfyltOgBekreftetTilKlageJson()
-        is VilkårsvurdertKlage.Bekreftet.Avvist -> this.mapUtfyltOgBekreftetTilKlageJson()
+        is VilkårsvurdertKlage.Utfylt.TilVurdering -> this.mapUtfyltOgBekreftetTilKlageJson(
+            status = Typer.VILKÅRSVURDERT_UTFYLT_TIL_VURDERING.toString(),
+            klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },
+            avsluttet = avsluttet,
+        )
+        is VilkårsvurdertKlage.Utfylt.Avvist -> this.mapUtfyltOgBekreftetTilKlageJson(
+            status = Typer.VILKÅRSVURDERT_UTFYLT_AVVIST.toString(),
+            klagevedtakshistorikk = emptyList(),
+            avsluttet = avsluttet,
+        )
+        is VilkårsvurdertKlage.Bekreftet.TilVurdering -> this.mapUtfyltOgBekreftetTilKlageJson(
+            status = Typer.VILKÅRSVURDERT_BEKREFTET_TIL_VURDERING.toString(),
+            klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },
+            avsluttet = avsluttet,
+        )
+        is VilkårsvurdertKlage.Bekreftet.Avvist -> this.mapUtfyltOgBekreftetTilKlageJson(
+            status = Typer.VILKÅRSVURDERT_BEKREFTET_AVVIST.toString(),
+            klagevedtakshistorikk = emptyList(),
+            avsluttet = avsluttet,
+        )
         is VurdertKlage.Påbegynt -> KlageJson(
             id = this.id.toString(),
             sakid = this.sakId.toString(),
@@ -149,7 +184,7 @@ internal fun Klage.toJson(): KlageJson {
             journalpostId = this.journalpostId.toString(),
             saksbehandler = this.saksbehandler.navIdent,
             datoKlageMottatt = this.datoKlageMottatt.toString(),
-            status = this.frontendStatus(),
+            status = Typer.VURDERT_PÅBEGYNT.toString(),
             vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
             innenforFristen = this.vilkårsvurderinger.innenforFristen.toString(),
             klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
@@ -159,10 +194,14 @@ internal fun Klage.toJson(): KlageJson {
             vedtaksvurdering = this.vurderinger.vedtaksvurdering?.toJson(),
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },
+            avsluttet = avsluttet,
         )
-        is VurdertKlage.Utfylt -> this.mapUtfyltOgBekreftetTilKlageJson()
-        is VurdertKlage.Bekreftet -> this.mapUtfyltOgBekreftetTilKlageJson()
-        is AvvistKlage -> this.mapPåbegyntOgBekreftetTilKlageJson()
+        is VurdertKlage.Utfylt -> this.mapUtfyltOgBekreftetTilKlageJson(Typer.VURDERT_UTFYLT.toString(), avsluttet)
+        is VurdertKlage.Bekreftet -> this.mapUtfyltOgBekreftetTilKlageJson(
+            status = Typer.VURDERT_BEKREFTET.toString(),
+            avsluttet = avsluttet,
+        )
+        is AvvistKlage -> this.mapPåbegyntOgBekreftetTilKlageJson(Typer.AVVIST.toString(), avsluttet)
         is KlageTilAttestering.Vurdert -> KlageJson(
             id = this.id.toString(),
             sakid = this.sakId.toString(),
@@ -170,7 +209,7 @@ internal fun Klage.toJson(): KlageJson {
             journalpostId = this.journalpostId.toString(),
             saksbehandler = this.saksbehandler.navIdent,
             datoKlageMottatt = this.datoKlageMottatt.toString(),
-            status = this.frontendStatus(),
+            status = Typer.TIL_ATTESTERING_TIL_VURDERING.toString(),
             vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
             innenforFristen = this.vilkårsvurderinger.innenforFristen?.toString(),
             klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
@@ -180,6 +219,7 @@ internal fun Klage.toJson(): KlageJson {
             vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },
+            avsluttet = avsluttet,
         )
         is KlageTilAttestering.Avvist -> KlageJson(
             id = this.id.toString(),
@@ -188,7 +228,7 @@ internal fun Klage.toJson(): KlageJson {
             journalpostId = this.journalpostId.toString(),
             saksbehandler = this.saksbehandler.navIdent,
             datoKlageMottatt = this.datoKlageMottatt.toString(),
-            status = this.frontendStatus(),
+            status = Typer.TIL_ATTESTERING_AVVIST.toString(),
             vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
             innenforFristen = this.vilkårsvurderinger.innenforFristen?.toString(),
             klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
@@ -198,6 +238,7 @@ internal fun Klage.toJson(): KlageJson {
             vedtaksvurdering = null,
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = emptyList(),
+            avsluttet = avsluttet,
         )
         is OversendtKlage -> KlageJson(
             id = this.id.toString(),
@@ -206,7 +247,7 @@ internal fun Klage.toJson(): KlageJson {
             journalpostId = this.journalpostId.toString(),
             saksbehandler = this.saksbehandler.navIdent,
             datoKlageMottatt = this.datoKlageMottatt.toString(),
-            status = this.frontendStatus(),
+            status = Typer.OVERSENDT.toString(),
             vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
             innenforFristen = this.vilkårsvurderinger.innenforFristen?.toString(),
             klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
@@ -216,6 +257,7 @@ internal fun Klage.toJson(): KlageJson {
             vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },
+            avsluttet = avsluttet,
         )
         is IverksattAvvistKlage -> KlageJson(
             id = this.id.toString(),
@@ -224,7 +266,7 @@ internal fun Klage.toJson(): KlageJson {
             journalpostId = this.journalpostId.toString(),
             saksbehandler = this.saksbehandler.navIdent,
             datoKlageMottatt = this.datoKlageMottatt.toString(),
-            status = this.frontendStatus(),
+            status = Typer.IVERKSATT_AVVIST.toString(),
             vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
             innenforFristen = this.vilkårsvurderinger.innenforFristen?.toString(),
             klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
@@ -234,6 +276,10 @@ internal fun Klage.toJson(): KlageJson {
             vedtaksvurdering = null,
             attesteringer = this.attesteringer.toJson(),
             klagevedtakshistorikk = emptyList(),
+            avsluttet = avsluttet,
+        )
+        is AvsluttetKlage -> this.forrigeSteg.toJson().copy(
+            avsluttet = KlageJson.Avsluttet.ER_AVSLUTTET,
         )
     }
 }
@@ -342,33 +388,6 @@ private enum class Typer(val verdi: String) {
      */
     IVERKSATT_AVVIST("IVERKSATT_AVVIST");
 
-    companion object {
-        fun Klage.frontendStatus(): String {
-            return when (this) {
-                is OpprettetKlage -> OPPRETTET
-
-                is VilkårsvurdertKlage.Påbegynt -> VILKÅRSVURDERT_PÅBEGYNT
-                is VilkårsvurdertKlage.Utfylt.TilVurdering -> VILKÅRSVURDERT_UTFYLT_TIL_VURDERING
-                is VilkårsvurdertKlage.Utfylt.Avvist -> VILKÅRSVURDERT_UTFYLT_AVVIST
-                is VilkårsvurdertKlage.Bekreftet.TilVurdering -> VILKÅRSVURDERT_BEKREFTET_TIL_VURDERING
-                is VilkårsvurdertKlage.Bekreftet.Avvist -> VILKÅRSVURDERT_BEKREFTET_AVVIST
-
-                is VurdertKlage.Påbegynt -> VURDERT_PÅBEGYNT
-                is VurdertKlage.Utfylt -> VURDERT_UTFYLT
-                is VurdertKlage.Bekreftet -> VURDERT_BEKREFTET
-
-                is AvvistKlage -> AVVIST
-
-                is KlageTilAttestering.Vurdert -> TIL_ATTESTERING_TIL_VURDERING
-                is KlageTilAttestering.Avvist -> TIL_ATTESTERING_AVVIST
-
-                is OversendtKlage -> OVERSENDT
-
-                is IverksattAvvistKlage -> IVERKSATT_AVVIST
-            }.toString()
-        }
-    }
-
     override fun toString() = verdi
 }
 
@@ -404,7 +423,11 @@ enum class UtfallJson {
     }
 }
 
-private fun VilkårsvurdertKlage.mapUtfyltOgBekreftetTilKlageJson(): KlageJson {
+private fun VilkårsvurdertKlage.mapUtfyltOgBekreftetTilKlageJson(
+    status: String,
+    klagevedtakshistorikk: List<KlageJson.VedtattUtfallJson>,
+    avsluttet: KlageJson.Avsluttet,
+): KlageJson {
     if (this !is VilkårsvurdertKlage.Utfylt && this !is VilkårsvurdertKlage.Bekreftet) {
         throw IllegalCallerException("Prøver å mappe til klageJson i feil tilstand. Id: $id. tilstand: ${this::class}")
     }
@@ -415,7 +438,7 @@ private fun VilkårsvurdertKlage.mapUtfyltOgBekreftetTilKlageJson(): KlageJson {
         journalpostId = this.journalpostId.toString(),
         saksbehandler = this.saksbehandler.navIdent,
         datoKlageMottatt = this.datoKlageMottatt.toString(),
-        status = this.frontendStatus(),
+        status = status,
         vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
         innenforFristen = this.vilkårsvurderinger.innenforFristen.toString(),
         klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
@@ -424,18 +447,15 @@ private fun VilkårsvurdertKlage.mapUtfyltOgBekreftetTilKlageJson(): KlageJson {
         fritekstTilBrev = null,
         vedtaksvurdering = null,
         attesteringer = this.attesteringer.toJson(),
-        klagevedtakshistorikk = when (this) {
-            is AvvistKlage -> emptyList()
-            is VilkårsvurdertKlage.Bekreftet.Avvist -> emptyList()
-            is VilkårsvurdertKlage.Bekreftet.TilVurdering -> klagevedtakshistorikk.map { it.toJson() }
-            is VilkårsvurdertKlage.Påbegynt -> emptyList()
-            is VilkårsvurdertKlage.Utfylt.Avvist -> emptyList()
-            is VilkårsvurdertKlage.Utfylt.TilVurdering -> klagevedtakshistorikk.map { it.toJson() }
-        },
+        klagevedtakshistorikk = klagevedtakshistorikk,
+        avsluttet = avsluttet,
     )
 }
 
-private fun VurdertKlage.mapUtfyltOgBekreftetTilKlageJson(): KlageJson {
+private fun VurdertKlage.mapUtfyltOgBekreftetTilKlageJson(
+    status: String,
+    avsluttet: KlageJson.Avsluttet,
+): KlageJson {
     if (this !is VurdertKlage.Utfylt && this !is VurdertKlage.Bekreftet) {
         throw IllegalCallerException("Prøver å mappe til klageJson i feil tilstand. Id: $id. tilstand: ${this::class}")
     }
@@ -446,7 +466,7 @@ private fun VurdertKlage.mapUtfyltOgBekreftetTilKlageJson(): KlageJson {
         journalpostId = this.journalpostId.toString(),
         saksbehandler = this.saksbehandler.navIdent,
         datoKlageMottatt = this.datoKlageMottatt.toString(),
-        status = this.frontendStatus(),
+        status = status,
         vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
         innenforFristen = this.vilkårsvurderinger.innenforFristen.toString(),
         klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
@@ -457,10 +477,14 @@ private fun VurdertKlage.mapUtfyltOgBekreftetTilKlageJson(): KlageJson {
         vedtaksvurdering = this.vurderinger.vedtaksvurdering!!.toJson(),
         attesteringer = this.attesteringer.toJson(),
         klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },
+        avsluttet = avsluttet,
     )
 }
 
-private fun AvvistKlage.mapPåbegyntOgBekreftetTilKlageJson(): KlageJson {
+private fun AvvistKlage.mapPåbegyntOgBekreftetTilKlageJson(
+    status: String,
+    avsluttet: KlageJson.Avsluttet,
+): KlageJson {
     return KlageJson(
         id = this.id.toString(),
         sakid = this.sakId.toString(),
@@ -468,7 +492,7 @@ private fun AvvistKlage.mapPåbegyntOgBekreftetTilKlageJson(): KlageJson {
         journalpostId = this.journalpostId.toString(),
         saksbehandler = this.saksbehandler.navIdent,
         datoKlageMottatt = this.datoKlageMottatt.toString(),
-        status = this.frontendStatus(),
+        status = status,
         vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
         innenforFristen = this.vilkårsvurderinger.innenforFristen.toString(),
         klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
@@ -478,6 +502,7 @@ private fun AvvistKlage.mapPåbegyntOgBekreftetTilKlageJson(): KlageJson {
         vedtaksvurdering = null,
         attesteringer = this.attesteringer.toJson(),
         klagevedtakshistorikk = emptyList(),
+        avsluttet = avsluttet,
     )
 }
 
@@ -493,6 +518,6 @@ internal fun ProsessertKlageinstansvedtak.toJson(): KlageJson.VedtattUtfallJson 
             KlagevedtakUtfall.UGUNST -> "UGUNST"
             KlagevedtakUtfall.AVVIST -> "AVVIST"
         },
-        opprettet = this.opprettet.toString()
+        opprettet = this.opprettet.toString(),
     )
 }

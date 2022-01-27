@@ -49,6 +49,21 @@ data class OpprettetKlage private constructor(
         )
     }
 
+    override fun erÅpen() = true
+
+    override fun kanAvsluttes() = true
+
+    override fun avslutt(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        begrunnelse: String,
+        tidspunktAvsluttet: Tidspunkt,
+    ) = AvsluttetKlage(
+        forrigeSteg = this,
+        saksbehandler = saksbehandler,
+        begrunnelse = begrunnelse,
+        tidspunktAvsluttet = tidspunktAvsluttet,
+    ).right()
+
     override fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkårsvurderinger: VilkårsvurderingerTilKlage,
@@ -95,7 +110,7 @@ data class OpprettetKlage private constructor(
             vurderinger = null,
             attesteringer = Attesteringshistorikk.empty(),
             datoKlageMottatt = datoKlageMottatt,
-            klagevedtakshistorikk = Klagevedtakshistorikk.empty()
+            klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
         )
     }
 }

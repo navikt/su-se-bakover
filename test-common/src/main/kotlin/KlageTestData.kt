@@ -5,10 +5,12 @@ package no.nav.su.se.bakover.test
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.mapSecond
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
@@ -454,6 +456,23 @@ fun avvistKlage(
             it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
             klage,
         )
+    }
+}
+
+/**
+ * Underliggende klage som ble avsluttet er [VurdertKlage.Bekreftet]
+ */
+fun avsluttetKlage(
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    begrunnelse: String = "Begrunnelse for avsluttet klage.",
+    tidspunktAvsluttet: Tidspunkt = fixedTidspunkt,
+): Pair<Sak, AvsluttetKlage> {
+    return bekreftetVurdertKlage().mapSecond {
+        it.avslutt(
+            saksbehandler = saksbehandler,
+            begrunnelse = begrunnelse,
+            tidspunktAvsluttet = tidspunktAvsluttet,
+        ).orNull()!!
     }
 }
 

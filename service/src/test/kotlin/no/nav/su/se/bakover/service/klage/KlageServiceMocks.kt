@@ -11,21 +11,21 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
-import org.mockito.kotlin.mock
 import java.time.Clock
 
 internal data class KlageServiceMocks(
-    val sakRepoMock: SakRepo = mock(),
-    val klageRepoMock: KlageRepo = mock(),
-    val vedtakServiceMock: VedtakService = mock(),
-    val brevServiceMock: BrevService = mock(),
-    val personServiceMock: PersonService = mock(),
-    val identClient: IdentClient = mock(),
-    val klageClient: KlageClient = mock(),
+    val sakRepoMock: SakRepo = defaultMock(),
+    val klageRepoMock: KlageRepo = defaultMock(),
+    val vedtakServiceMock: VedtakService = defaultMock(),
+    val brevServiceMock: BrevService = defaultMock(),
+    val personServiceMock: PersonService = defaultMock(),
+    val identClient: IdentClient = defaultMock(),
+    val klageClient: KlageClient = defaultMock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
-    val oppgaveService: OppgaveService = mock(),
-    val journalpostClient: JournalpostClient = mock(),
+    val oppgaveService: OppgaveService = defaultMock(),
+    val journalpostClient: JournalpostClient = defaultMock(),
     val clock: Clock = fixedClock,
 ) {
     val service = KlageServiceImpl(

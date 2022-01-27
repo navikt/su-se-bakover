@@ -35,6 +35,8 @@ data class IverksattAvvistKlage private constructor(
     val fritekstTilBrev: String,
 ) : Klage {
 
+    override fun erÅpen() = false
+
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
         return fritekstTilBrev.right()
     }
@@ -57,6 +59,13 @@ data class IverksattAvvistKlage private constructor(
             saksnummer = this.saksnummer,
         ).right()
     }
+
+    override fun kanAvsluttes() = false
+    override fun avslutt(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        begrunnelse: String,
+        tidspunktAvsluttet: Tidspunkt,
+    ) = KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
 
     companion object {
         fun create(

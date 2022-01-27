@@ -200,7 +200,8 @@ internal class VurderKlageTest {
                   "fritekstTilBrev":null,
                   "vedtaksvurdering":null,
                   "attesteringer":[],
-                  "klagevedtakshistorikk": []
+                  "klagevedtakshistorikk": [],
+                  "avsluttet": "KAN_AVSLUTTES"
                 }
                 """.trimIndent(),
                 response.content,

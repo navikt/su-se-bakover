@@ -160,7 +160,8 @@ internal class SendKlageTilAttesteringTest {
                     }
                   },
                   "attesteringer":[],
-                  "klagevedtakshistorikk":[]
+                  "klagevedtakshistorikk":[],
+                  "avsluttet": "KAN_IKKE_AVSLUTTES"
                 }
                     """.trimIndent(),
                     response.content,

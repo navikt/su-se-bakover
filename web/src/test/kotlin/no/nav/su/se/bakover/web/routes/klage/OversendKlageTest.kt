@@ -240,7 +240,8 @@ internal class OversendKlageTest {
                       "opprettet":"2021-01-01T01:02:03.456789Z"
                     }
                   ],
-                  "klagevedtakshistorikk": []
+                  "klagevedtakshistorikk": [],
+                  "avsluttet": "KAN_IKKE_AVSLUTTES"
                 }
                     """.trimIndent(),
                     response.content,

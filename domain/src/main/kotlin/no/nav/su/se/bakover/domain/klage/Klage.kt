@@ -26,17 +26,16 @@ import kotlin.reflect.KClass
  * - [VilkårsvurdertKlage.Påbegynt] -> [VilkårsvurdertKlage.Påbegynt] og [VilkårsvurdertKlage.Utfylt]
  * - [VilkårsvurdertKlage.Utfylt] -> [VilkårsvurdertKlage.Bekreftet]
  * - [VilkårsvurdertKlage.Bekreftet.TilVurdering] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage.Utfylt]
- * - [VilkårsvurdertKlage.Bekreftet.Avvist] -> [VilkårsvurdertKlage] og [AvvistKlage.Påbegynt]
+ * - [VilkårsvurdertKlage.Bekreftet.Avvist] -> [VilkårsvurdertKlage] og [AvvistKlage]
  *
  * - [VurdertKlage.Påbegynt] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage.Utfylt]
  * - [VurdertKlage.Utfylt] -> [VilkårsvurdertKlage] og [VurdertKlage]
  * - [VurdertKlage.Bekreftet] -> [VilkårsvurdertKlage] og [VurdertKlage] og [KlageTilAttestering]
  *
- * - [AvvistKlage.Påbegynt] -> [AvvistKlage.Bekreftet] og [VilkårsvurdertKlage]
- * - [AvvistKlage.Bekreftet] -> [KlageTilAttestering.Avvist] og [VilkårsvurdertKlage]
+ * - [AvvistKlage] -> [KlageTilAttestering.Avvist] og [VilkårsvurdertKlage.Bekreftet.Avvist]
  *
  * - [KlageTilAttestering.Vurdert] -> [OversendtKlage] og [VurdertKlage.Bekreftet]
- * - [KlageTilAttestering.Avvist] -> [IverksattAvvistKlage] og [AvvistKlage.Bekreftet]
+ * - [KlageTilAttestering.Avvist] -> [IverksattAvvistKlage] og [AvvistKlage]
  *
  * - [OversendtKlage] -> ingen
  * - [IverksattAvvistKlage] -> ingen
@@ -52,20 +51,7 @@ sealed interface Klage {
     val datoKlageMottatt: LocalDate
     val saksbehandler: NavIdentBruker.Saksbehandler
 
-    fun erÅpen(): Boolean {
-        return when (this) {
-            is OpprettetKlage,
-            is VilkårsvurdertKlage,
-            is VurdertKlage,
-            is AvvistKlage,
-            is KlageTilAttestering,
-            -> true
-
-            is IverksattAvvistKlage,
-            is OversendtKlage,
-            -> false
-        }
-    }
+    fun erÅpen(): Boolean
 
     fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
         return KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
@@ -148,6 +134,7 @@ sealed interface Klage {
     ): Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, Klage> {
         return KunneIkkeLeggeTilNyttKlageinstansVedtak.MåVæreEnOversendtKlage(menVar = this::class).left()
     }
+
     sealed interface KunneIkkeLeggeTilNyttKlageinstansVedtak {
         data class MåVæreEnOversendtKlage(val menVar: KClass<out Klage>) : KunneIkkeLeggeTilNyttKlageinstansVedtak
         object KunneIkkeHenteAktørId : KunneIkkeLeggeTilNyttKlageinstansVedtak
@@ -178,6 +165,17 @@ sealed interface Klage {
             )
         }
     }
+
+    /**
+     * Brukes av frontend for å vite om en klage kan avsluttes eller ikke.
+     * Det holder ikke å kun vurdere statusen derfor ligger denne nærmere domenet.
+     */
+    fun kanAvsluttes(): Boolean
+    fun avslutt(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        begrunnelse: String,
+        tidspunktAvsluttet: Tidspunkt,
+    ): Either<KunneIkkeAvslutteKlage, AvsluttetKlage>
 }
 
 sealed interface KunneIkkeLageBrevRequest {
@@ -197,4 +195,12 @@ sealed class KunneIkkeBekrefteKlagesteg {
         KunneIkkeBekrefteKlagesteg()
 }
 
-fun List<Klage>.harEksisterendeJournalpostId(journalpostId: JournalpostId) = this.any { it.journalpostId == journalpostId }
+sealed interface KunneIkkeAvslutteKlage {
+    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeAvslutteKlage {
+        val til: KClass<AvsluttetKlage> = AvsluttetKlage::class
+    }
+    object FantIkkeKlage : KunneIkkeAvslutteKlage
+}
+
+fun List<Klage>.harEksisterendeJournalpostId(journalpostId: JournalpostId) =
+    this.any { it.journalpostId == journalpostId }

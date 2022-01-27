@@ -160,7 +160,8 @@ internal class BekreftVurderingerForKlageTest {
                     }
                   },
                   "attesteringer":[],
-                  "klagevedtakshistorikk": []
+                  "klagevedtakshistorikk": [],
+                  "avsluttet": "KAN_AVSLUTTES"
                 }
                     """.trimIndent(),
                     response.content,
