@@ -117,7 +117,7 @@ internal class UtbetalingPostgresRepoTest {
                 utbetalingslinjer = nonEmptyListOf(endretUtbetalingslinje),
             )
 
-            repo.opprettUtbetaling(opphør)
+            repo.opprettUtbetaling(opphør, repo.defaultTransactionContext())
 
             repo.hentUtbetaling(opphør.id)!!.utbetalingslinjer shouldBe nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(

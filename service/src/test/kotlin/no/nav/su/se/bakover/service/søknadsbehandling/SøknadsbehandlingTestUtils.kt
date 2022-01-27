@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -47,6 +49,7 @@ internal fun createSøknadsbehandlingService(
     grunnlagService: GrunnlagService = mock(),
     sakService: SakService = mock(),
     kontrollsamtaleService: KontrollsamtaleService = mock(),
+    sessionFactory: SessionFactory = TestSessionFactory(),
 ) = SøknadsbehandlingServiceImpl(
     søknadService = søknadService,
     søknadsbehandlingRepo = søknadsbehandlingRepo,
@@ -60,7 +63,8 @@ internal fun createSøknadsbehandlingService(
     ferdigstillVedtakService = ferdigstillVedtakService,
     grunnlagService = grunnlagService,
     sakService = sakService,
-    kontrollsamtaleService,
+    kontrollsamtaleService = kontrollsamtaleService,
+    sessionFactory = sessionFactory
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
@@ -79,6 +83,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val grunnlagService: GrunnlagService = mock(),
     val sakService: SakService = mock(),
     val kontrollsamtaleService: KontrollsamtaleService = mock(),
+    val sessionFactory: SessionFactory = TestSessionFactory(),
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadService = søknadService,
@@ -94,6 +99,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
         grunnlagService = grunnlagService,
         sakService = sakService,
         kontrollsamtaleService = kontrollsamtaleService,
+        sessionFactory = sessionFactory
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> = listOf(

@@ -9,6 +9,12 @@ interface UtbetalingPublisher {
         utbetaling: Utbetaling.SimulertUtbetaling
     ): Either<KunneIkkeSendeUtbetaling, Utbetalingsrequest>
 
+    fun publishRequest(
+        utbetalingsrequest: Utbetalingsrequest
+    ): Either<KunneIkkeSendeUtbetaling, Utbetalingsrequest>
+
+    fun generateRequest(utbetaling: Utbetaling.SimulertUtbetaling): Utbetalingsrequest
+
     data class KunneIkkeSendeUtbetaling(
         val oppdragsmelding: Utbetalingsrequest
     )

@@ -5,7 +5,6 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
@@ -70,7 +69,6 @@ internal class StatusovergangTest {
     private val simulering = no.nav.su.se.bakover.test.simuleringNy()
 
     private val attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), fixedTidspunkt)
-    private val utbetalingId = UUID30.randomUUID()
 
     private val fritekstTilBrev: String = "Fritekst til brev"
 
@@ -795,7 +793,7 @@ internal class StatusovergangTest {
                 tilAttesteringAvslagVilkår,
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
-                ) { throw IllegalStateException() },
+                ),
             ) shouldBe iverksattAvslagVilkår.right()
         }
 
@@ -805,7 +803,7 @@ internal class StatusovergangTest {
                 tilAttesteringAvslagBeregning,
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
-                ) { throw IllegalStateException() },
+                ),
             ) shouldBe iverksattAvslagBeregning.right()
         }
 
@@ -815,7 +813,7 @@ internal class StatusovergangTest {
                 tilAttesteringInnvilget,
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
-                ) { utbetalingId.right() },
+                ),
             ) shouldBe iverksattInnvilget.right()
         }
 
@@ -825,7 +823,7 @@ internal class StatusovergangTest {
                 tilAttesteringAvslagVilkår.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
-                ) { throw IllegalStateException() },
+                ),
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
 
@@ -835,7 +833,7 @@ internal class StatusovergangTest {
                 tilAttesteringAvslagBeregning.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
-                ) { throw IllegalStateException() },
+                ),
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
 
@@ -845,7 +843,7 @@ internal class StatusovergangTest {
                 tilAttesteringInnvilget.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
-                ) { UUID30.randomUUID().right() },
+                ),
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
 
