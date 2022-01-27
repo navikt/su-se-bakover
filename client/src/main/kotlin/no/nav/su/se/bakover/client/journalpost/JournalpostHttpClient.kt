@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.saf
+package no.nav.su.se.bakover.client.journalpost
 
 import arrow.core.Either
 import arrow.core.left

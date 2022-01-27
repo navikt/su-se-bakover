@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.saf
+package no.nav.su.se.bakover.client.journalpost
 
 import no.nav.su.se.bakover.domain.journalpost.HentetJournalpost
 

@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dkif.DkifClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
+import no.nav.su.se.bakover.client.journalpost.JournalpostHttpClient
 import no.nav.su.se.bakover.client.kabal.KabalHttpClient
 import no.nav.su.se.bakover.client.kafka.KafkaPublisherClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
@@ -21,7 +22,6 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PdlClientConfig
 import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.person.PersonClientConfig
-import no.nav.su.se.bakover.client.saf.JournalpostHttpClient
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.ApplicationConfig
@@ -59,7 +59,7 @@ data class ProdClientsBuilder(
             ),
         )
         val klageClient = KabalHttpClient(applicationConfig.clientsConfig.kabalConfig, oAuth)
-        val safClient = JournalpostHttpClient(applicationConfig.clientsConfig, tokenOppslag)
+        val journalpostClient = JournalpostHttpClient(applicationConfig.clientsConfig, tokenOppslag)
 
         return Clients(
             oauth = oAuth,
@@ -108,7 +108,7 @@ data class ProdClientsBuilder(
             leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
             kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),
             klageClient = klageClient,
-            journalpostClient = safClient
+            journalpostClient = journalpostClient
         )
     }
 }
