@@ -31,12 +31,14 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -335,7 +337,9 @@ internal class UtbetalingServiceImplTest {
             on { simulerUtbetaling(any()) } doReturn simulering.right()
         }
 
-        val utbetalingRepoMock = mock<UtbetalingRepo>()
+        val utbetalingRepoMock = mock<UtbetalingRepo> {
+            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+        }
         val utbetalingPublisherMock = mock<UtbetalingPublisher> {
             on { publish(any()) } doReturn oppdragsmelding.right()
         }
@@ -371,81 +375,76 @@ internal class UtbetalingServiceImplTest {
             ),
         ).toSimulertUtbetaling(simulering).toOversendtUtbetaling(oppdragsmelding)
 
-        inOrder(
+        verify(sakServiceMock).hentSak(sakId)
+
+        verify(simuleringClientMock).simulerUtbetaling(
+            argThat {
+                it shouldBe utbetalingForSimulering.copy(
+                    id = it.id,
+                    opprettet = it.opprettet,
+                    avstemmingsnøkkel = it.avstemmingsnøkkel,
+                    utbetalingslinjer = nonEmptyListOf(
+                        Utbetalingslinje.Ny(
+                            id = it.utbetalingslinjer[0].id,
+                            opprettet = it.utbetalingslinjer[0].opprettet,
+                            fraOgMed = 1.januar(2020),
+                            tilOgMed = 31.januar(2020),
+                            forrigeUtbetalingslinjeId = null,
+                            beløp = 8637,
+                            uføregrad = Uføregrad.parse(50),
+                        ),
+                    ),
+                )
+            },
+        )
+        verify(utbetalingPublisherMock).publish(
+            argThat {
+                it shouldBe utbetalingForSimulering.copy(
+                    id = it.id,
+                    opprettet = it.opprettet,
+                    avstemmingsnøkkel = it.avstemmingsnøkkel,
+                    utbetalingslinjer = nonEmptyListOf(
+                        Utbetalingslinje.Ny(
+                            id = it.utbetalingslinjer[0].id,
+                            opprettet = it.utbetalingslinjer[0].opprettet,
+                            fraOgMed = 1.januar(2020),
+                            tilOgMed = 31.januar(2020),
+                            forrigeUtbetalingslinjeId = null,
+                            beløp = 8637,
+                            uføregrad = Uføregrad.parse(50),
+                        ),
+                    ),
+                ).toSimulertUtbetaling(simulering)
+            },
+        )
+        verify(utbetalingRepoMock).defaultTransactionContext()
+        verify(utbetalingRepoMock).opprettUtbetaling(
+            argThat {
+                it shouldBe utbetalingForSimulering.copy(
+                    id = it.id,
+                    opprettet = it.opprettet,
+                    avstemmingsnøkkel = it.avstemmingsnøkkel,
+                    utbetalingslinjer = nonEmptyListOf(
+                        Utbetalingslinje.Ny(
+                            id = it.utbetalingslinjer[0].id,
+                            opprettet = it.utbetalingslinjer[0].opprettet,
+                            fraOgMed = 1.januar(2020),
+                            tilOgMed = 31.januar(2020),
+                            forrigeUtbetalingslinjeId = null,
+                            beløp = 8637,
+                            uføregrad = Uføregrad.parse(50),
+                        ),
+                    ),
+                ).toSimulertUtbetaling(simulering).toOversendtUtbetaling(oppdragsmelding)
+            },
+            anyOrNull()
+        )
+        verifyNoMoreInteractions(
             sakServiceMock,
             simuleringClientMock,
-            utbetalingPublisherMock,
             utbetalingRepoMock,
-        ) {
-            verify(sakServiceMock).hentSak(sakId)
-
-            verify(simuleringClientMock).simulerUtbetaling(
-                argThat {
-                    it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
-                        utbetalingslinjer = nonEmptyListOf(
-                            Utbetalingslinje.Ny(
-                                id = it.utbetalingslinjer[0].id,
-                                opprettet = it.utbetalingslinjer[0].opprettet,
-                                fraOgMed = 1.januar(2020),
-                                tilOgMed = 31.januar(2020),
-                                forrigeUtbetalingslinjeId = null,
-                                beløp = 8637,
-                                uføregrad = Uføregrad.parse(50),
-                            ),
-                        ),
-                    )
-                },
-            )
-            verify(utbetalingPublisherMock).publish(
-                argThat {
-                    it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
-                        utbetalingslinjer = nonEmptyListOf(
-                            Utbetalingslinje.Ny(
-                                id = it.utbetalingslinjer[0].id,
-                                opprettet = it.utbetalingslinjer[0].opprettet,
-                                fraOgMed = 1.januar(2020),
-                                tilOgMed = 31.januar(2020),
-                                forrigeUtbetalingslinjeId = null,
-                                beløp = 8637,
-                                uføregrad = Uføregrad.parse(50),
-                            ),
-                        ),
-                    ).toSimulertUtbetaling(simulering)
-                },
-            )
-            verify(utbetalingRepoMock).opprettUtbetaling(
-                argThat {
-                    it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
-                        utbetalingslinjer = nonEmptyListOf(
-                            Utbetalingslinje.Ny(
-                                id = it.utbetalingslinjer[0].id,
-                                opprettet = it.utbetalingslinjer[0].opprettet,
-                                fraOgMed = 1.januar(2020),
-                                tilOgMed = 31.januar(2020),
-                                forrigeUtbetalingslinjeId = null,
-                                beløp = 8637,
-                                uføregrad = Uføregrad.parse(50),
-                            ),
-                        ),
-                    ).toSimulertUtbetaling(simulering).toOversendtUtbetaling(oppdragsmelding)
-                },
-            )
-            verifyNoMoreInteractions(
-                sakServiceMock,
-                simuleringClientMock,
-                utbetalingRepoMock,
-                utbetalingPublisherMock,
-            )
-        }
+            utbetalingPublisherMock,
+        )
     }
 
     @Test

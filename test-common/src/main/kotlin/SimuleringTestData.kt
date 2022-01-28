@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -42,11 +43,18 @@ private data class UtbetalingRepoMock(
         TODO("Not yet implemented")
     }
 
-    override fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering) {
+    override fun opprettUtbetaling(
+        utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering,
+        transactionContext: TransactionContext,
+    ) {
         TODO("Not yet implemented")
     }
 
     override fun hentUkvitterteUtbetalinger(): List<Utbetaling.OversendtUtbetaling.UtenKvittering> {
+        TODO("Not yet implemented")
+    }
+
+    override fun defaultTransactionContext(): TransactionContext {
         TODO("Not yet implemented")
     }
 }

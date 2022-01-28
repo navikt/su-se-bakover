@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -19,6 +20,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -48,21 +50,23 @@ internal fun createSøknadsbehandlingService(
     grunnlagService: GrunnlagService = mock(),
     sakService: SakService = mock(),
     kontrollsamtaleService: KontrollsamtaleService = mock(),
+    sessionFactory: SessionFactory = TestSessionFactory(),
     avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
 ) = SøknadsbehandlingServiceImpl(
-    søknadService,
-    søknadsbehandlingRepo,
-    utbetalingService,
-    personService,
-    oppgaveService,
-    behandlingMetrics,
-    brevService,
-    clock,
-    vedtakRepo,
-    ferdigstillVedtakService,
-    grunnlagService,
-    sakService,
-    kontrollsamtaleService,
+    søknadService = søknadService,
+    søknadsbehandlingRepo = søknadsbehandlingRepo,
+    utbetalingService = utbetalingService,
+    personService = personService,
+    oppgaveService = oppgaveService,
+    behandlingMetrics = behandlingMetrics,
+    brevService = brevService,
+    clock = clock,
+    vedtakRepo = vedtakRepo,
+    ferdigstillVedtakService = ferdigstillVedtakService,
+    grunnlagService = grunnlagService,
+    sakService = sakService,
+    kontrollsamtaleService = kontrollsamtaleService,
+    sessionFactory = sessionFactory,
     avkortingsvarselRepo
 ).apply { addObserver(observer) }
 
@@ -82,7 +86,8 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val grunnlagService: GrunnlagService = mock(),
     val sakService: SakService = mock(),
     val kontrollsamtaleService: KontrollsamtaleService = mock(),
-    val avkortingsvarselRepo: AvkortingsvarselRepo = mock()
+    val sessionFactory: SessionFactory = TestSessionFactory(),
+    val avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadService = søknadService,
@@ -98,6 +103,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
         grunnlagService = grunnlagService,
         sakService = sakService,
         kontrollsamtaleService = kontrollsamtaleService,
+        sessionFactory = sessionFactory,
         avkortingsvarselRepo = avkortingsvarselRepo,
     ).apply { addObserver(observer) }
 

@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -49,7 +48,6 @@ internal class StatusovergangTest {
     private val simulering = no.nav.su.se.bakover.test.simuleringNy()
 
     private val attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), fixedTidspunkt)
-    private val utbetalingId = UUID30.randomUUID()
 
     private val fritekstTilBrev: String = "Fritekst til brev"
 
@@ -779,7 +777,6 @@ internal class StatusovergangTest {
                 tilAttesteringAvslagVilkår,
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
-                    utbetal = { throw IllegalStateException() },
                     hentOpprinneligAvkorting = { null },
                 )
             ) shouldBe iverksattAvslagVilkår.right()
@@ -791,7 +788,6 @@ internal class StatusovergangTest {
                 tilAttesteringAvslagBeregning,
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
-                    utbetal = { throw IllegalStateException() },
                     hentOpprinneligAvkorting = { null },
                 )
             ) shouldBe iverksattAvslagBeregning.right()
@@ -803,7 +799,6 @@ internal class StatusovergangTest {
                 tilAttesteringInnvilget,
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
-                    utbetal = { utbetalingId.right() },
                     hentOpprinneligAvkorting = { null },
                 )
             ) shouldBe iverksattInnvilget.right()
@@ -815,7 +810,6 @@ internal class StatusovergangTest {
                 tilAttesteringAvslagVilkår.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
-                    utbetal = { throw IllegalStateException() },
                     hentOpprinneligAvkorting = { null },
                 )
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -827,7 +821,6 @@ internal class StatusovergangTest {
                 tilAttesteringAvslagBeregning.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
-                    utbetal = { throw IllegalStateException() },
                     hentOpprinneligAvkorting = { null },
                 )
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -839,7 +832,6 @@ internal class StatusovergangTest {
                 tilAttesteringInnvilget.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
-                    utbetal = { UUID30.randomUUID().right() },
                     hentOpprinneligAvkorting = { null },
                 )
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -859,7 +851,6 @@ internal class StatusovergangTest {
                     medFeilutbetaling,
                     Statusovergang.TilIverksatt(
                         attestering = attestering,
-                        utbetal = { UUID30.randomUUID().right() },
                         hentOpprinneligAvkorting = { null },
                     )
                 )

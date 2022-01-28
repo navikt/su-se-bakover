@@ -17,13 +17,20 @@ class UtbetalingMqPublisher(
     ): Either<KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
         val xml = XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling))
         return mqPublisher.publish(xml)
-            .mapLeft {
-                KunneIkkeSendeUtbetaling(
-                    Utbetalingsrequest(xml),
-                )
-            }
-            .map {
-                Utbetalingsrequest(value = xml)
-            }
+            .mapLeft { KunneIkkeSendeUtbetaling(Utbetalingsrequest(xml),) }
+            .map { Utbetalingsrequest(value = xml) }
+    }
+
+    override fun publishRequest(
+        utbetalingsrequest: Utbetalingsrequest
+    ): Either<KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
+        return mqPublisher.publish(utbetalingsrequest.value)
+            .mapLeft { KunneIkkeSendeUtbetaling(utbetalingsrequest) }
+            .map { utbetalingsrequest }
+    }
+
+    override fun generateRequest(utbetaling: Utbetaling.SimulertUtbetaling): Utbetalingsrequest {
+        val xml = XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling))
+        return Utbetalingsrequest(xml)
     }
 }

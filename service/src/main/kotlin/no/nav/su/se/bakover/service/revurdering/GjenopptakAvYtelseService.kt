@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -52,6 +53,7 @@ class GjenopptakAvYtelseService(
         if (sisteVedtak !is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
             return KunneIkkeGjenopptaYtelse.SisteVedtakErIkkeStans.left()
         } else {
+            val sak = sakService.hentSak(request.sakId).getOrHandle { return KunneIkkeGjenopptaYtelse.FantIkkeSak.left() }
             val simulertRevurdering = when (request) {
                 is GjenopptaYtelseRequest.Oppdater -> {
                     val update = revurderingRepo.hent(request.revurderingId)
@@ -62,7 +64,7 @@ class GjenopptakAvYtelseService(
                         fraOgMed = sisteVedtak.periode.fraOgMed,
                     ).getOrHandle { return it.left() }
 
-                    val simulering = simuler(request).getOrHandle { return it.left() }
+                    val simulering = simuler(sak, request).getOrHandle { return it.left() }
 
                     when (update) {
                         is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
@@ -82,17 +84,14 @@ class GjenopptakAvYtelseService(
                     }
                 }
                 is GjenopptaYtelseRequest.Opprett -> {
-                    if (sakService.hentSak(request.sakId)
-                        .getOrHandle { return KunneIkkeGjenopptaYtelse.FantIkkeSak.left() }
-                        .harÅpenRevurderingForGjenopptakAvYtelse()
-                    ) return KunneIkkeGjenopptaYtelse.SakHarÅpenRevurderingForGjenopptakAvYtelse.left()
+                    if (sak.harÅpenRevurderingForGjenopptakAvYtelse()) return KunneIkkeGjenopptaYtelse.SakHarÅpenRevurderingForGjenopptakAvYtelse.left()
 
                     val gjeldendeVedtaksdata: GjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                         sakId = request.sakId,
                         fraOgMed = sisteVedtak.periode.fraOgMed,
                     ).getOrHandle { return it.left() }
 
-                    val simulering = simuler(request).getOrHandle { return it.left() }
+                    val simulering = simuler(sak, request).getOrHandle { return it.left() }
 
                     GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
                         id = UUID.randomUUID(),
@@ -172,13 +171,12 @@ class GjenopptakAvYtelseService(
         }.right()
     }
 
-    private fun simuler(request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, Utbetaling.SimulertUtbetaling> {
-        return utbetalingService.simulerGjenopptak(
-            sakId = request.sakId,
+    private fun simuler(sak: Sak, request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, Utbetaling.SimulertUtbetaling> =
+        utbetalingService.simulerGjenopptak(
+            sak = sak,
             saksbehandler = request.saksbehandler,
         ).getOrHandle {
             log.warn("Kunne ikke opprette revurdering for gjenopptak av ytelse, årsak: $it")
             return KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(it).left()
         }.right()
-    }
 }

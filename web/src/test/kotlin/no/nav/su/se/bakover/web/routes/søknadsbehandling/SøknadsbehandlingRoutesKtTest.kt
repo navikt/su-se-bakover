@@ -766,6 +766,12 @@ internal class SøknadsbehandlingRoutesKtTest {
                                         UtbetalingPublisher.KunneIkkeSendeUtbetaling(
                                             Utbetalingsrequest(""),
                                         ).left()
+
+                                    override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
+                                        utbetalingsrequest.right()
+
+                                    override fun generateRequest(utbetaling: Utbetaling.SimulertUtbetaling): Utbetalingsrequest =
+                                        Utbetalingsrequest("")
                                 },
                             ),
                         )

@@ -153,6 +153,7 @@ object ServiceBuilder {
             grunnlagService = grunnlagService,
             sakService = sakService,
             kontrollsamtaleService = kontrollsamtaleService,
+            sessionFactory = databaseRepos.sessionFactory,
             avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
         ).apply {
             addObserver(statistikkService)

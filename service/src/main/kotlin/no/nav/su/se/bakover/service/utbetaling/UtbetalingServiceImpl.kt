@@ -10,6 +10,7 @@ import arrow.core.rightIfNotNull
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -19,6 +20,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollerSimulering
@@ -114,6 +116,30 @@ internal class UtbetalingServiceImpl(
         }
     }
 
+    override fun genererUtbetalingsRequest(
+        sakId: UUID,
+        attestant: NavIdentBruker,
+        beregning: Beregning,
+        simulering: Simulering,
+        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+    ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
+        return simulerUtbetaling(
+            sakId = sakId,
+            saksbehandler = attestant,
+            beregning = beregning,
+            uføregrunnlag = uføregrunnlag,
+        ).mapLeft {
+            UtbetalingFeilet.KunneIkkeSimulere(it)
+        }.flatMap { simulertUtbetaling ->
+            if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
+                    simulering,
+                    simulertUtbetaling,
+                )
+            ) return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+            simulertUtbetaling.right()
+        }
+    }
+
     override fun opphør(
         sakId: UUID,
         attestant: NavIdentBruker,
@@ -202,6 +228,21 @@ internal class UtbetalingServiceImpl(
             .map { utbetaling.toSimulertUtbetaling(it) }
     }
 
+    override fun lagreUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling, transactionContext: TransactionContext?): Utbetaling.OversendtUtbetaling.UtenKvittering {
+        val oppdragsmelding = utbetalingPublisher.generateRequest(utbetaling)
+        val oversendtUtbetaling = utbetaling.toOversendtUtbetaling(oppdragsmelding)
+        val context = transactionContext ?: utbetalingRepo.defaultTransactionContext()
+        utbetalingRepo.opprettUtbetaling(oversendtUtbetaling, context)
+        return oversendtUtbetaling
+    }
+
+    override fun publiserUtbetaling(
+        utbetaling: Utbetaling.SimulertUtbetaling
+    ): Either<UtbetalingFeilet, Utbetalingsrequest> =
+        utbetalingPublisher.publish(utbetaling).mapLeft {
+            UtbetalingFeilet.Protokollfeil
+        }
+
     private fun utbetal(utbetaling: Utbetaling.SimulertUtbetaling): Either<UtbetalingFeilet.Protokollfeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         return utbetalingPublisher.publish(utbetaling = utbetaling)
             .mapLeft {
@@ -276,12 +317,10 @@ internal class UtbetalingServiceImpl(
     }
 
     override fun simulerGjenopptak(
-        sakId: UUID,
+        sak: Sak,
         saksbehandler: NavIdentBruker,
-    ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
-        val sak: Sak = sakService.hentSak(sakId).orNull()!!
-
-        return Utbetalingsstrategi.Gjenoppta(
+    ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> =
+        Utbetalingsstrategi.Gjenoppta(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
@@ -297,7 +336,6 @@ internal class UtbetalingServiceImpl(
                         SimulerGjenopptakFeil.KunneIkkeSimulere(it)
                     }
             }
-    }
 
     override fun gjenopptaUtbetalinger(
         sakId: UUID,
@@ -308,7 +346,7 @@ internal class UtbetalingServiceImpl(
             return UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.FantIkkeSak).left()
         }
         return simulerGjenopptak(
-            sakId = sakId,
+            sak = sak,
             saksbehandler = attestant,
         ).mapLeft {
             UtbetalGjenopptakFeil.KunneIkkeSimulere(it)

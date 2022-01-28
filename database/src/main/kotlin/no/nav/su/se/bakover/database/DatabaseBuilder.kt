@@ -178,6 +178,7 @@ object DatabaseBuilder {
             utbetaling = UtbetalingPostgresRepo(
                 dataSource = dataSource,
                 dbMetrics = dbMetrics,
+                sessionFactory = sessionFactory
             ),
             søknad = SøknadPostgresRepo(
                 dataSource = dataSource,

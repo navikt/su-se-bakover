@@ -34,7 +34,7 @@ interface KontrollsamtaleService {
     fun nyDato(sakId: UUID, dato: LocalDate): Either<KunneIkkeSetteNyDatoForKontrollsamtale, Unit>
     fun hentNestePlanlagteKontrollsamtale(sakId: UUID): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale>
     fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>>
-    fun opprettPlanlagtKontrollsamtale(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale>
+    fun opprettPlanlagtKontrollsamtale(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, transactionContext: TransactionContext): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale>
     fun annullerKontrollsamtale(sakId: UUID): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit>
 }
 
@@ -82,9 +82,7 @@ class KontrollsamtaleServiceImpl(
                     transactionContext = tx,
                 )
                 Kontrollsamtale.opprettNyKontrollsamtale(gjeldendeStønadsperiode, sakId, clock).map {
-                    lagreInnkallingTilKontrollsamtale(it, tx).getOrElse {
-                        throw RuntimeException("Fikk ikke opprettet ny innkalling til neste kontrollsamtale")
-                    }
+                    kontrollsamtaleRepo.lagre(it, tx)
                 }
                 oppgaveService.opprettOppgaveMedSystembruker(
                     config = OppgaveConfig.Kontrollsamtale(
@@ -152,16 +150,15 @@ class KontrollsamtaleServiceImpl(
             return KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler.left()
         }
 
-    override fun opprettPlanlagtKontrollsamtale(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> {
+    override fun opprettPlanlagtKontrollsamtale(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, transactionContext: TransactionContext): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> {
         val planlagtKontrollsamtaleEksisterer = hentNestePlanlagteKontrollsamtale(vedtak.behandling.sakId).isRight()
 
         return if (planlagtKontrollsamtaleEksisterer) {
             KunneIkkeKalleInnTilKontrollsamtale.PlanlagtKontrollsamtaleFinnesAllerede.left()
         } else
-            Kontrollsamtale.opprettNyKontrollsamtaleFraVedtak(vedtak, clock).flatMap { kontrollsamtale ->
-                sessionFactory.withTransactionContext {
-                    lagreInnkallingTilKontrollsamtale(kontrollsamtale, it)
-                }
+            Kontrollsamtale.opprettNyKontrollsamtaleFraVedtak(vedtak, clock).map {
+                kontrollsamtaleRepo.lagre(it, transactionContext)
+                it
             }.mapLeft {
                 KunneIkkeKalleInnTilKontrollsamtale.SkalIkkePlanleggeKontrollsamtale
             }

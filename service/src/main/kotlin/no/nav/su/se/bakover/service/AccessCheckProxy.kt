@@ -50,6 +50,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -198,7 +199,6 @@ open class AccessCheckProxy(
             utbetaling = object : UtbetalingService {
                 override fun hentUtbetaling(utbetalingId: UUID30): Either<FantIkkeUtbetaling, Utbetaling> {
                     assertHarTilgangTilUtbetaling(utbetalingId)
-
                     return services.utbetaling.hentUtbetaling(utbetalingId)
                 }
 
@@ -245,6 +245,21 @@ open class AccessCheckProxy(
                     return services.utbetaling.utbetal(sakId, attestant, beregning, simulering, uføregrunnlag)
                 }
 
+                override fun publiserUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling): Either<UtbetalingFeilet, Utbetalingsrequest> = kastKanKunKallesFraAnnenService()
+
+                override fun lagreUtbetaling(
+                    utbetaling: Utbetaling.SimulertUtbetaling,
+                    transactionContext: TransactionContext?,
+                ): Utbetaling.OversendtUtbetaling.UtenKvittering = kastKanKunKallesFraAnnenService()
+
+                override fun genererUtbetalingsRequest(
+                    sakId: UUID,
+                    attestant: NavIdentBruker,
+                    beregning: Beregning,
+                    simulering: Simulering,
+                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+                ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> = kastKanKunKallesFraAnnenService()
+
                 override fun simulerStans(
                     sakId: UUID,
                     saksbehandler: NavIdentBruker,
@@ -263,7 +278,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun simulerGjenopptak(
-                    sakId: UUID,
+                    sak: Sak,
                     saksbehandler: NavIdentBruker,
                 ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
                     kastKanKunKallesFraAnnenService()
@@ -803,8 +818,11 @@ open class AccessCheckProxy(
                 override fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> =
                     kastKanKunKallesFraAnnenService()
 
-                override fun opprettPlanlagtKontrollsamtale(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> =
-                    kastKanKunKallesFraAnnenService()
+                override fun opprettPlanlagtKontrollsamtale(
+                    vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
+                    transactionContext: TransactionContext,
+                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> = kastKanKunKallesFraAnnenService()
+
                 override fun annullerKontrollsamtale(sakId: UUID): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> = kastKanKunKallesFraAnnenService()
             },
             klageService = object : KlageService {

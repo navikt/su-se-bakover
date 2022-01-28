@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
@@ -148,7 +147,6 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     class TilIverksatt(
         private val attestering: Attestering,
-        private val utbetal: (søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) -> Either<KunneIkkeIverksette, UUID30>,
         private val hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
     ) : Statusovergang<KunneIkkeIverksette, Søknadsbehandling.Iverksatt>() {
 
@@ -226,9 +224,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
                     throw IllegalStateException("Simulering inneholder feilutbetalinger")
                 }
 
-                utbetal(søknadsbehandling)
-                    .mapLeft { it }
-                    .map { søknadsbehandling.tilIverksatt(attestering) }
+                søknadsbehandling.tilIverksatt(attestering).right()
             } else {
                 KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
