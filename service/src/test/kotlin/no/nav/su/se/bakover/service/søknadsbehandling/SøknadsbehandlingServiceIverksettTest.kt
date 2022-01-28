@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.kontrollsamtale
+import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simuleringNy
@@ -42,6 +43,7 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
@@ -201,14 +203,19 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn innvilgetTilAttestering
+                doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
                 on { genererUtbetalingsRequest(any(), any(), any(), any(), any()) } doReturn simulertUtbetaling.right()
                 on { publiserUtbetaling(any()) } doReturn utbetalingsRequest.right()
+                on { lagreUtbetaling(any(), anyOrNull()) } doReturn oversendtUtbetalingUtenKvittering()
             },
             kontrollsamtaleService = mock {
                 on { opprettPlanlagtKontrollsamtale(any(), any()) } doReturn kontrollsamtale().right()
             },
+            vedtakRepo = mock {
+                doNothing().whenever(it).lagre(any(), anyOrNull())
+            }
         )
 
         val response = serviceAndMocks.søknadsbehandlingService.iverksett(
@@ -227,14 +234,14 @@ internal class SøknadsbehandlingServiceIverksettTest {
         verify(serviceAndMocks.søknadsbehandlingRepo).lagre(argThat { it shouldBe expected }, anyOrNull())
         verify(serviceAndMocks.vedtakRepo).lagre(
             argThat {
-                it shouldBe vedtakSøknadsbehandlingIverksattInnvilget(utbetalingId = simulertUtbetaling.id).second.copy(id = it.id, behandling = expected)
+                it shouldBe vedtakSøknadsbehandlingIverksattInnvilget().second.copy(id = it.id, behandling = expected, utbetalingId = simulertUtbetaling.id)
             },
             anyOrNull()
         )
         verify(serviceAndMocks.utbetalingService).lagreUtbetaling(any(), anyOrNull())
         verify(serviceAndMocks.kontrollsamtaleService).opprettPlanlagtKontrollsamtale(
             argThat {
-                it shouldBe vedtakSøknadsbehandlingIverksattInnvilget(utbetalingId = simulertUtbetaling.id).second.copy(id = it.id, behandling = expected)
+                it shouldBe vedtakSøknadsbehandlingIverksattInnvilget().second.copy(id = it.id, behandling = expected, utbetalingId = simulertUtbetaling.id)
             },
             anyOrNull()
         )
@@ -252,6 +259,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn avslagTilAttestering
+                doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             ferdigstillVedtakService = mock { mock ->
                 doAnswer {
@@ -267,6 +275,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     generertDokumentJson = "",
                 ).right()
             },
+            vedtakRepo = mock {
+                doNothing().whenever(it).lagre(any(), anyOrNull())
+            }
         )
 
         serviceAndMocks.søknadsbehandlingService.iverksett(
@@ -363,6 +374,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn innvilgetTilAttestering
+                doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
                 on { genererUtbetalingsRequest(any(), any(), any(), any(), any()) } doReturn simulertUtbetaling().right()
@@ -371,6 +383,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
             kontrollsamtaleService = mock {
                 on { opprettPlanlagtKontrollsamtale(any(), any()) } doReturn kontrollsamtale().right()
             },
+            vedtakRepo = mock {
+                doNothing().whenever(it).lagre(any(), anyOrNull())
+            }
         )
 
         serviceAndMocks.søknadsbehandlingService.iverksett(
