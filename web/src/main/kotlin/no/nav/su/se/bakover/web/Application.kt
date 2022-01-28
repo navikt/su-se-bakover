@@ -116,7 +116,10 @@ fun Application.susebakover(
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients =
         if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais)
-            StubClientsBuilder(clock).build(applicationConfig)
+            StubClientsBuilder(
+                clock = clock,
+                databaseRepos = databaseRepos,
+            ).build(applicationConfig)
         else
             ProdClientsBuilder(
                 jmsConfig,

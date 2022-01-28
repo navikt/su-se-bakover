@@ -6,6 +6,8 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -199,6 +201,9 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             søknadService = søknadService,
+            avkortingsvarselRepo = mock() {
+                on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
+            }
         )
 
         serviceAndMocks.søknadsbehandlingService.opprett(
@@ -220,6 +225,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke()
             ),
             // periode er null for Søknadsbehandling.Vilkårsvurdert.Uavklart og vil gi exception dersom man kaller get() på den.
             Søknadsbehandling.Vilkårsvurdert.Uavklart::periode,
@@ -228,6 +234,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         verify(søknadsbehandlingRepoMock).hentForSøknad(argThat { it shouldBe søknad.id })
         verify(søknadsbehandlingRepoMock).defaultSessionContext()
         verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe søknad.sakId }, anyOrNull())
+        verify(serviceAndMocks.avkortingsvarselRepo).hentUtestående(søknad.sakId)
 
         verify(søknadsbehandlingRepoMock).lagreNySøknadsbehandling(
             argThat {
@@ -239,6 +246,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     oppgaveId = søknad.oppgaveId,
                     behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
                     fnr = søknad.søknadInnhold.personopplysninger.fnr,
+                    avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke()
                 )
             },
         )
@@ -264,6 +272,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                         vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
                         attesteringer = Attesteringshistorikk.empty(),
+                        avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke()
                     ),
                 )
             },

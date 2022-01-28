@@ -32,7 +32,7 @@ sealed class VurderOpphørVedRevurdering {
     data class VilkårsvurderingerOgBeregning(
         private val vilkårsvurderinger: no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger,
         private val beregning: Beregning,
-        private val clock: Clock = Clock.systemUTC(),
+        private val clock: Clock,
     ) : VurderOpphørVedRevurdering() {
         val resultat = when (
             val opphør = setOf(
@@ -71,7 +71,7 @@ data class VurderOmVilkårGirOpphørVedRevurdering(
 
 data class VurderOmBeregningGirOpphørVedRevurdering(
     private val beregning: Beregning,
-    private val clock: Clock = Clock.systemUTC(),
+    private val clock: Clock,
 ) {
     val resultat = beregningGirOpphør()
 
@@ -101,8 +101,8 @@ data class VurderOmBeregningGirOpphørVedRevurdering(
 
     fun Merknad.Beregning.tilOpphørsgrunn(): Opphørsgrunn {
         return when (this) {
-            is Merknad.Beregning.BeløpErNull -> Opphørsgrunn.FOR_HØY_INNTEKT
-            is Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats -> Opphørsgrunn.SU_UNDER_MINSTEGRENSE
+            is Merknad.Beregning.Avslag.BeløpErNull -> Opphørsgrunn.FOR_HØY_INNTEKT
+            is Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats -> Opphørsgrunn.SU_UNDER_MINSTEGRENSE
             else -> throw IllegalStateException("Merknad av type: ${this::class} skal ikke gi opphør.")
         }
     }

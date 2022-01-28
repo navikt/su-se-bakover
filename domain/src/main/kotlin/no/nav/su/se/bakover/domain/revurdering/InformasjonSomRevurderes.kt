@@ -25,6 +25,7 @@ data class InformasjonSomRevurderes private constructor(
     fun harValgtBosituasjon(): Boolean = this.containsKey(Revurderingsteg.Bosituasjon)
     fun harValgtInntekt(): Boolean = this.containsKey(Revurderingsteg.Inntekt)
     fun harValgtFormue(): Boolean = this.containsKey(Revurderingsteg.Formue)
+    fun harValgtUtenlandsopphold(): Boolean = this.containsKey(Revurderingsteg.Utenlandsopphold)
 
     companion object {
         fun create(revurderingsteg: List<Revurderingsteg>): InformasjonSomRevurderes {

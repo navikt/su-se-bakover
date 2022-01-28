@@ -16,11 +16,17 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalUnit
 
 /** Fixed UTC Clock at 2021-01-01T01:02:03.456789000Z */
 val fixedClock: Clock =
     Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+
+/**
+ * Tilsvarer 2021-07-01T01:02:03.456789000Z
+ */
+val nåtidForSimuleringStub = fixedClock.plus(181, ChronoUnit.DAYS)
 
 /** Fixed UTC Clock */
 fun Clock.plus(amountToAdd: Long, unit: TemporalUnit): Clock =
@@ -45,6 +51,7 @@ const val saksbehandlerNavn = "Sak S. Behandler"
 val saksnummer = Saksnummer(nummer = 12345676)
 
 val fnr = Fnr.generer()
+val epsFnr = Fnr.generer()
 
 val aktørId = AktørId("aktørId")
 

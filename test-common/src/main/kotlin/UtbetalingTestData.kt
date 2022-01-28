@@ -1,13 +1,17 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -16,8 +20,10 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -36,6 +42,142 @@ fun utbetalingslinje(
     beløp = 15000,
     uføregrad = Uføregrad.parse(50),
 )
+
+fun nyUtbetalingForSimulering(
+    sakOgBehandling: Pair<Sak, Behandling>,
+    beregning: Beregning,
+    clock: Clock,
+): Utbetaling.UtbetalingForSimulering {
+    return sakOgBehandling.let { (sak, behandling) ->
+        Utbetalingsstrategi.Ny(
+            sakId = behandling.sakId,
+            saksnummer = behandling.saksnummer,
+            fnr = behandling.fnr,
+            utbetalinger = sak.utbetalinger,
+            behandler = saksbehandler,
+            beregning = beregning,
+            clock = clock,
+            uføregrunnlag = when (val vilkår = behandling.vilkårsvurderinger) {
+                is Vilkårsvurderinger.Revurdering -> {
+                    vilkår.uføre.grunnlag
+                }
+                is Vilkårsvurderinger.Søknadsbehandling -> {
+                    vilkår.uføre.grunnlag
+                }
+            },
+        ).generate()
+    }
+}
+
+fun nyUtbetalingSimulert(
+    sakOgBehandling: Pair<Sak, Behandling>,
+    beregning: Beregning,
+    clock: Clock,
+): Utbetaling.SimulertUtbetaling {
+    return sakOgBehandling.let { (sak, behandling) ->
+        nyUtbetalingForSimulering(
+            sakOgBehandling = sakOgBehandling,
+            beregning = beregning,
+            clock = clock,
+        ).toSimulertUtbetaling(
+            simuleringNy(
+                beregning = beregning,
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                fnr = behandling.fnr,
+                sakId = behandling.sakId,
+                saksnummer = behandling.saksnummer,
+                clock = clock,
+            ),
+        )
+    }
+}
+
+fun nyUtbetalingOversendtMedKvittering(
+    sakOgBehandling: Pair<Sak, Behandling>,
+    beregning: Beregning,
+    clock: Clock,
+): Utbetaling.OversendtUtbetaling.MedKvittering {
+    return sakOgBehandling.let { (_, _) ->
+        nyUtbetalingOversendUtenKvittering(
+            sakOgBehandling = sakOgBehandling,
+            beregning = beregning,
+            clock = clock,
+        ).toKvittertUtbetaling(kvittering())
+    }
+}
+
+fun nyUtbetalingOversendUtenKvittering(
+    sakOgBehandling: Pair<Sak, Behandling>,
+    beregning: Beregning,
+    clock: Clock,
+): Utbetaling.OversendtUtbetaling.UtenKvittering {
+    return sakOgBehandling.let { (_, _) ->
+        nyUtbetalingSimulert(
+            sakOgBehandling = sakOgBehandling,
+            beregning = beregning,
+            clock = clock,
+        ).toOversendtUtbetaling(
+            oppdragsmelding = Utbetalingsrequest("<xml></xml>"),
+        )
+    }
+}
+
+fun opphørUtbetalingForSimulering(
+    sakOgBehandling: Pair<Sak, Behandling>,
+    opphørsdato: LocalDate,
+    clock: Clock,
+): Utbetaling.UtbetalingForSimulering {
+    return sakOgBehandling.let { (sak, behandling) ->
+        Utbetalingsstrategi.Opphør(
+            sakId = behandling.sakId,
+            saksnummer = behandling.saksnummer,
+            fnr = behandling.fnr,
+            utbetalinger = sak.utbetalinger,
+            behandler = saksbehandler,
+            opphørsDato = opphørsdato,
+            clock = clock,
+        ).generate()
+    }
+}
+
+fun opphørUtbetalingSimulert(
+    sakOgBehandling: Pair<Sak, Behandling>,
+    opphørsdato: LocalDate,
+    clock: Clock,
+): Utbetaling.SimulertUtbetaling {
+    return sakOgBehandling.let { (sak, behandling) ->
+        opphørUtbetalingForSimulering(
+            sakOgBehandling = sakOgBehandling,
+            opphørsdato = opphørsdato,
+            clock = clock,
+        ).toSimulertUtbetaling(
+            simuleringOpphørt(
+                opphørsdato = opphørsdato,
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                fnr = behandling.fnr,
+                sakId = behandling.sakId,
+                saksnummer = behandling.saksnummer,
+                clock = clock,
+            ),
+        )
+    }
+}
+
+fun opphørUtbetalingOversendUtenKvittering(
+    sakOgBehandling: Pair<Sak, Behandling>,
+    opphørsdato: LocalDate,
+    clock: Clock,
+): Utbetaling.OversendtUtbetaling.UtenKvittering {
+    return sakOgBehandling.let { (_, _) ->
+        opphørUtbetalingSimulert(
+            sakOgBehandling = sakOgBehandling,
+            opphørsdato = opphørsdato,
+            clock = clock,
+        ).toOversendtUtbetaling(
+            oppdragsmelding = utbetalingsRequest,
+        )
+    }
+}
 
 @Suppress("unused")
 fun oversendtUtbetalingUtenKvittering(
@@ -151,6 +293,43 @@ fun simulertUtbetaling(
     simulering = simuleringNy(fnr = fnr, eksisterendeUtbetalinger = eksisterendeUtbetalinger, clock = clock),
 )
 
+fun simulertUtbetalingOpphør(
+    id: UUID30 = UUID30.randomUUID(),
+    periode: Periode = periode2021,
+    opphørsdato: LocalDate = periode.fraOgMed,
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    clock: Clock = fixedClock,
+    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
+    eksisterendeUtbetalinger: List<Utbetaling>,
+): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+    return Utbetaling.SimulertUtbetaling(
+        id = id,
+        opprettet = Tidspunkt.now(clock),
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        utbetalingslinjer = nonEmptyListOf(
+            Utbetalingslinje.Endring.Opphør(
+                utbetalingslinje = eksisterendeUtbetalinger.last().sisteUtbetalingslinje(),
+                virkningstidspunkt = opphørsdato,
+                clock = clock,
+            ),
+        ),
+        type = Utbetaling.UtbetalingsType.OPPHØR,
+        behandler = attestant,
+        avstemmingsnøkkel = avstemmingsnøkkel,
+        simulering = simuleringOpphørt(
+            opphørsdato = opphørsdato,
+            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+            fnr = fnr,
+            sakId = sakId,
+            saksnummer = saksnummer,
+        ),
+    ).right()
+}
+
 /**
  * Defaultverdier:
  * - id: arbitrær
@@ -177,8 +356,7 @@ fun oversendtUtbetalingMedKvittering(
         saksnummer = saksnummer,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         clock = clock,
-    )
-        .toKvittertUtbetaling(kvittering(utbetalingsstatus = utbetalingsstatus, clock = clock))
+    ).toKvittertUtbetaling(kvittering(utbetalingsstatus = utbetalingsstatus, clock = clock))
 }
 
 fun stansUtbetalingForSimulering(
@@ -197,7 +375,7 @@ fun stansUtbetalingForSimulering(
         behandler = saksbehandler,
         clock = clock,
         stansDato = stansDato,
-    ).generer().getOrFail("Skal kunne lage utbetaling for stans")
+    ).generer().getOrFail()
 }
 
 fun simulertStansUtbetaling(

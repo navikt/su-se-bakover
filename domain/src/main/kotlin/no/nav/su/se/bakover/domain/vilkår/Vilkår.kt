@@ -359,6 +359,10 @@ sealed class Vilkårsvurderingsresultat {
                 Inngangsvilkår.Uførhet -> Avslagsgrunn.UFØRHET
             }
         }
+
+        fun erNøyaktigÅrsak(inngangsvilkår: Inngangsvilkår): Boolean {
+            return vilkår.singleOrNull { it.vilkår == inngangsvilkår }?.let { true } ?: if (vilkår.size == 1) false else throw IllegalStateException("Opphør av flere vilkår er ikke støttet, opphørte vilkår:$vilkår")
+        }
     }
 
     data class Innvilget(

@@ -49,9 +49,9 @@ internal class AvsluttetRevurderingTest {
     @Test
     fun `kan legge til fritekst dersom underliggende revurdering er forhåndsvarslet`() {
         AvsluttetRevurdering.tryCreate(
-            underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+            underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
                 forhåndsvarsel = Forhåndsvarsel.UnderBehandling.Sendt,
-            ).second,
+            ),
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             fritekst = "en god, og fri tekst",
             tidspunktAvsluttet = fixedTidspunkt,

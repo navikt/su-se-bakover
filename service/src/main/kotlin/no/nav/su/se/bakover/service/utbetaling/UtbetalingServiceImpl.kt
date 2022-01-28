@@ -72,7 +72,8 @@ internal class UtbetalingServiceImpl(
                         }
                     }
                 }.right()
-            } ?: FantIkkeUtbetaling.left().also { log.warn("Fant ikke utbetaling for avstemmingsnøkkel $avstemmingsnøkkel") }
+            } ?: FantIkkeUtbetaling.left()
+            .also { log.warn("Fant ikke utbetaling for avstemmingsnøkkel $avstemmingsnøkkel") }
     }
 
     override fun hentGjeldendeUtbetaling(

@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.database.revurdering
 
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.withMigratedDb
@@ -13,6 +15,8 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -32,18 +36,18 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class RevurderingPostgresRepoTest {
 
-    private val periode = Periode.create(
-        fraOgMed = 1.januar(2020),
-        tilOgMed = 31.desember(2020),
-    )
     private val revurderingsårsak = Revurderingsårsak(
         Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
@@ -66,7 +70,7 @@ internal class RevurderingPostgresRepoTest {
 
     private fun opprettet(vedtak: VedtakSomKanRevurderes.EndringIYtelse) = OpprettetRevurdering(
         id = UUID.randomUUID(),
-        periode = periode,
+        periode = periode2021,
         opprettet = fixedTidspunkt,
         tilRevurdering = vedtak,
         saksbehandler = saksbehandler,
@@ -78,6 +82,7 @@ internal class RevurderingPostgresRepoTest {
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
     )
 
     private fun beregnetIngenEndring(
@@ -98,6 +103,7 @@ internal class RevurderingPostgresRepoTest {
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = opprettet.avkorting.håndter(),
     )
 
     private fun beregnetInnvilget(
@@ -118,6 +124,7 @@ internal class RevurderingPostgresRepoTest {
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = opprettet.avkorting.håndter(),
     )
 
     private fun beregnetOpphørt(
@@ -138,6 +145,7 @@ internal class RevurderingPostgresRepoTest {
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = opprettet.avkorting.håndter(),
     )
 
     private fun simulertInnvilget(beregnet: BeregnetRevurdering.Innvilget) = SimulertRevurdering.Innvilget(
@@ -156,6 +164,7 @@ internal class RevurderingPostgresRepoTest {
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = beregnet.avkorting.håndter(),
     )
 
     private fun simulertOpphørt(beregnet: BeregnetRevurdering.Opphørt) = SimulertRevurdering.Opphørt(
@@ -174,6 +183,7 @@ internal class RevurderingPostgresRepoTest {
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = beregnet.avkorting.håndter(),
     )
 
     @Test
@@ -219,6 +229,7 @@ internal class RevurderingPostgresRepoTest {
                 vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 tilRevurdering = etAnnetVedtak,
+                avkorting = innvilgetBeregning.avkorting.uhåndtert(),
             )
 
             repo.lagre(oppdatertRevurdering)
@@ -462,6 +473,7 @@ internal class RevurderingPostgresRepoTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             )
 
             repo.lagre(underkjent)
@@ -497,6 +509,7 @@ internal class RevurderingPostgresRepoTest {
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             )
 
             repo.lagre(underkjent)
@@ -546,6 +559,7 @@ internal class RevurderingPostgresRepoTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
+                avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             )
 
             repo.lagre(underkjent)
@@ -581,6 +595,7 @@ internal class RevurderingPostgresRepoTest {
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             )
             repo.lagre(underkjentTilAttestering)
             val underkjent = UnderkjentRevurdering.IngenEndring(
@@ -606,6 +621,7 @@ internal class RevurderingPostgresRepoTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             )
 
             repo.lagre(underkjent)
@@ -640,6 +656,7 @@ internal class RevurderingPostgresRepoTest {
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             )
 
             repo.lagre(underkjent)
@@ -674,6 +691,7 @@ internal class RevurderingPostgresRepoTest {
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             )
             repo.lagre(revurderingTilAttestering)
             val underkjent = IverksattRevurdering.IngenEndring(
@@ -697,6 +715,7 @@ internal class RevurderingPostgresRepoTest {
                 grunnlagsdata = opprettet.grunnlagsdata,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
+                avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             )
 
             repo.lagre(underkjent)
@@ -745,7 +764,7 @@ internal class RevurderingPostgresRepoTest {
                     .tilAttestering(
                         attesteringsoppgaveId = OppgaveId(value = "attesteringsoppgaveId"),
                         saksbehandler = Saksbehandler(navIdent = "nySaksbehandler"),
-                        fritekstTilBrev = "Fortsetter etter forhåndsvarsel"
+                        fritekstTilBrev = "Fortsetter etter forhåndsvarsel",
                     ).orNull()!!
                     .also {
                         repo.lagre(it)
@@ -803,6 +822,108 @@ internal class RevurderingPostgresRepoTest {
                 simulertInnvilget(nyBeregnetRevurdering.copy(forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles))
             repo.lagre(nySimulertRevurdering)
             (repo.hent(nySimulertRevurdering.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
+        }
+    }
+
+    @Test
+    fun `oppdaterer verdier for avkorting ved lagring uten avkorting`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.revurderingRepo
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val opprettet = opprettet(vedtak)
+            repo.lagre(opprettet)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+
+            val beregnet = beregnetInnvilget(opprettet, vedtak)
+            repo.lagre(beregnet)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
+
+            val simulert = simulertInnvilget(beregnet)
+            repo.lagre(simulert)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+
+            val tilAttestering = simulert.tilAttestering(
+                attesteringsoppgaveId = simulert.oppgaveId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "nei",
+            ).getOrFail()
+            repo.lagre(tilAttestering)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+
+            val iverksatt = tilAttestering.tilIverksatt(
+                attestant = attestant,
+                clock = fixedClock,
+                utbetal = { UUID30.randomUUID().right() },
+                hentOpprinneligAvkorting = { null },
+            ).getOrFail()
+            repo.lagre(iverksatt)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående
+        }
+    }
+
+    @Test
+    fun `oppdaterer verdier for avkorting ved lagring med avkorting`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.revurderingRepo
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val opprettet = opprettet(vedtak)
+            repo.lagre(opprettet)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+
+            val beregnet = beregnetInnvilget(opprettet, vedtak)
+            repo.lagre(beregnet)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
+
+            val avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+                objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                    sakId = beregnet.sakId,
+                    revurderingId = beregnet.id,
+                    simulering = simuleringFeilutbetaling(juni(2021)),
+                ),
+            )
+
+            val simulert = simulertInnvilget(beregnet).copy(
+                avkorting = AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
+                    avkortingsvarsel = avkortingsvarsel,
+                ),
+            )
+            repo.lagre(simulert)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
+                avkortingsvarsel = avkortingsvarsel,
+            )
+
+            val tilAttestering = simulert.tilAttestering(
+                attesteringsoppgaveId = simulert.oppgaveId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "nei",
+            ).getOrFail()
+            repo.lagre(tilAttestering)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
+                avkortingsvarsel = avkortingsvarsel,
+            )
+            testDataHelper.sessionFactory.withSession {
+                testDataHelper.avkortingsvarselRepo.hent(avkortingsvarsel.id, it) shouldBe null
+            }
+
+            val iverksatt = tilAttestering.tilIverksatt(
+                attestant = attestant,
+                clock = fixedClock,
+                utbetal = { UUID30.randomUUID().right() },
+                hentOpprinneligAvkorting = { avkortingsvarselId ->
+                    testDataHelper.avkortingsvarselRepo.hent(avkortingsvarselId)
+                },
+            ).getOrFail()
+            repo.lagre(iverksatt)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel(
+                avkortingsvarsel = avkortingsvarsel,
+            )
+            testDataHelper.sessionFactory.withSession {
+                testDataHelper.avkortingsvarselRepo.hent(avkortingsvarsel.id, it) shouldBe avkortingsvarsel
+            }
         }
     }
 }

@@ -7,7 +7,12 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.november
+import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -28,7 +33,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -37,12 +41,18 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.kontrollsamtale
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.simuleringFeilutbetaling
+import no.nav.su.se.bakover.test.simuleringNy
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.utbetalingsRequest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -90,6 +100,62 @@ internal class SøknadsbehandlingServiceIverksettTest {
     }
 
     @Test
+    fun `feiler hvis utestående avkortinger ikke kunne avkortes fullstendig`() {
+        val tilAttestering = søknadsbehandlingVilkårsvurdertInnvilget().let { (_, vilkårsvurdert) ->
+            vilkårsvurdert.leggTilFradragsgrunnlag(
+                fradragsgrunnlag = listOf(
+                    fradragsgrunnlagArbeidsinntekt(
+                        arbeidsinntekt = 20000.0,
+                    ),
+                ),
+            ).getOrFail().beregn(
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail().let {
+                it.tilSimulert(simuleringNy(it.beregning))
+            }.tilAttestering(
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "njet",
+            )
+        }
+
+        val avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            sakId = sakId,
+            revurderingId = UUID.randomUUID(),
+            simulering = simuleringFeilutbetaling(
+                oktober(2020), november(2020), desember(2020),
+            ),
+        ).skalAvkortes()
+
+        SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock {
+                on { hent(any()) } doReturn tilAttestering.copy(
+                    avkorting = AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
+                        avkortingsvarsel = avkortingsvarsel,
+                    ),
+                )
+            },
+            avkortingsvarselRepo = mock {
+                on { hent(any()) } doReturn avkortingsvarsel
+            },
+
+        ).let {
+            it.søknadsbehandlingService.iverksett(
+                SøknadsbehandlingService.IverksettRequest(
+                    tilAttestering.id,
+                    Attestering.Iverksatt(attestant, fixedTidspunkt),
+                ),
+            ) shouldBe KunneIkkeIverksette.AvkortingErUfullstendig.left()
+
+            verify(it.søknadsbehandlingRepo).hent(tilAttestering.id)
+            verify(it.avkortingsvarselRepo).hent(avkortingsvarsel.id)
+            it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
     fun `svarer med feil dersom vi ikke kunne simulere`() {
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn behandling
@@ -118,7 +184,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         verify(utbetalingServiceMock).genererUtbetalingsRequest(
             sakId = argThat { it shouldBe sakId },
             attestant = argThat { it shouldBe attestant },
-            beregning = argThat { it shouldBe TestBeregning },
+            beregning = argThat { it shouldBe behandling.beregning },
             simulering = argThat { it shouldBe simulering },
             uføregrunnlag = argThat { it shouldBe emptyList() },
         )
@@ -154,7 +220,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         verify(utbetalingServiceMock).genererUtbetalingsRequest(
             sakId = argThat { it shouldBe sakId },
             attestant = argThat { it shouldBe attestant },
-            beregning = argThat { it shouldBe TestBeregning },
+            beregning = argThat { it shouldBe behandling.beregning },
             simulering = argThat { it shouldBe simulering },
             uføregrunnlag = argThat { it shouldBe emptyList() },
         )
@@ -196,7 +262,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         verify(utbetalingServiceMock).genererUtbetalingsRequest(
             sakId = argThat { it shouldBe sakId },
             attestant = argThat { it shouldBe attestant },
-            beregning = argThat { it shouldBe TestBeregning },
+            beregning = argThat { it shouldBe behandling.beregning },
             simulering = argThat { it shouldBe simulering },
             uføregrunnlag = argThat { it shouldBe emptyList() },
         )
@@ -261,6 +327,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             stønadsperiode = behandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
+            avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,
         )
 
         response shouldBe expected.right()
@@ -269,7 +336,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         verify(utbetalingServiceMock).genererUtbetalingsRequest(
             sakId = argThat { it shouldBe sakId },
             attestant = argThat { it shouldBe attestant },
-            beregning = argThat { it shouldBe TestBeregning },
+            beregning = argThat { it shouldBe expected.beregning },
             simulering = argThat { it shouldBe simulering },
             uføregrunnlag = argThat { it shouldBe emptyList() },
         )
@@ -357,7 +424,10 @@ internal class SøknadsbehandlingServiceIverksettTest {
             it.søknadsbehandlingService.iverksett(
                 SøknadsbehandlingService.IverksettRequest(
                     behandlingId = avslagTilAttestering.id,
-                    attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(avslagTilAttestering.saksbehandler.navIdent), fixedTidspunkt),
+                    attestering = Attestering.Iverksatt(
+                        NavIdentBruker.Attestant(avslagTilAttestering.saksbehandler.navIdent),
+                        fixedTidspunkt,
+                    ),
                 ),
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 
@@ -414,6 +484,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
             )
         }
 
@@ -455,13 +526,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
         periodeList = listOf(),
     )
 
-    private val behandling = søknadsbehandlingTilAttesteringInnvilget(
-        beregning = testBeregning,
-    ).second.copy(
+    private val behandling = søknadsbehandlingTilAttesteringInnvilget().second.copy(
         sakId = sakId,
         simulering = simulering,
         vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-        grunnlagsdata = Grunnlagsdata.IkkeVurdert
+        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
     )
 }

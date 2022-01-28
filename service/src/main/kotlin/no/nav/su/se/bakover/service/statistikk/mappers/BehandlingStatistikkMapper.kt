@@ -159,7 +159,7 @@ class BehandlingStatistikkMapper(
                 is OpprettetRevurdering -> this
                 is RevurderingTilAttestering -> this
                 is IverksattRevurdering -> {
-                    val resultatOgBegrunnelse = RevurderingResultatOgBegrunnelseMapper.map(revurdering)
+                    val resultatOgBegrunnelse = RevurderingResultatOgBegrunnelseMapper.map(revurdering, clock)
 
                     copy(
                         resultat = resultatOgBegrunnelse.resultat,
@@ -175,7 +175,7 @@ class BehandlingStatistikkMapper(
                     )
                 }
                 is AvsluttetRevurdering -> {
-                    val resultatOgBegrunnelse = RevurderingResultatOgBegrunnelseMapper.map(revurdering)
+                    val resultatOgBegrunnelse = RevurderingResultatOgBegrunnelseMapper.map(revurdering, clock)
                     copy(
                         avsluttet = true,
                         resultat = resultatOgBegrunnelse.resultat,
@@ -411,11 +411,11 @@ class BehandlingStatistikkMapper(
         private const val stans = "Stanset"
         private const val gjenopptak = "Gjenopptatt"
 
-        internal fun map(revurdering: Revurdering): ResultatOgBegrunnelse = when (revurdering) {
+        internal fun map(revurdering: Revurdering, clock: Clock): ResultatOgBegrunnelse = when (revurdering) {
             is IverksattRevurdering.Innvilget -> ResultatOgBegrunnelse(innvilget, null)
             is IverksattRevurdering.Opphørt -> ResultatOgBegrunnelse(
                 opphørt,
-                listUtOpphørsgrunner(revurdering.utledOpphørsgrunner()),
+                listUtOpphørsgrunner(revurdering.utledOpphørsgrunner(clock)),
             )
             is IverksattRevurdering.IngenEndring -> ResultatOgBegrunnelse(ingenEndring, ingenEndringBegrunnelse)
             is AvsluttetRevurdering -> ResultatOgBegrunnelse(lukket, null)

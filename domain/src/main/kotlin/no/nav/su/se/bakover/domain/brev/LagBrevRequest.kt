@@ -133,6 +133,8 @@ interface LagBrevRequest {
         private val opphørsgrunner: List<Opphørsgrunn>,
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
+        private val opphørsdato: LocalDate,
+        private val avkortingsBeløp: Int?,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.Opphørsvedtak(
             personalia = lagPersonalia(),
@@ -152,6 +154,8 @@ interface LagBrevRequest {
             opphørsgrunner = opphørsgrunner,
             avslagsparagrafer = opphørsgrunner.getDistinkteParagrafer(),
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
+            opphørsdato = opphørsdato.ddMMyyyy(),
+            avkortingsBeløp = avkortingsBeløp,
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {

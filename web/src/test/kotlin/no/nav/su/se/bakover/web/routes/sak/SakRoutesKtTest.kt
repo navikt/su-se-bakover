@@ -50,7 +50,7 @@ internal class SakRoutesKtTest {
     )
     private fun services(reps: DatabaseRepos) = ServiceBuilder.build(
         databaseRepos = reps,
-        clients = TestClientsBuilder.build(applicationConfig),
+        clients = TestClientsBuilder(fixedClock, reps).build(applicationConfig),
         behandlingMetrics = mock(),
         søknadMetrics = mock(),
         clock = fixedClock,

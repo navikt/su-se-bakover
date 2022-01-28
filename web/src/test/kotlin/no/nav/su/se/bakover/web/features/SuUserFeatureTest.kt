@@ -4,7 +4,6 @@ import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
@@ -16,7 +15,7 @@ internal class SuUserFeatureTest {
     @Test
     fun `should run in the application pipeline`() {
         withTestApplication({
-            testSusebakover(clients = testClients)
+            testSusebakover()
         }) {
             defaultRequest(
                 HttpMethod.Get,

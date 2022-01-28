@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.person.IdentClient
@@ -104,6 +105,7 @@ internal object RevurderingTestUtils {
         sakService: SakService = mock(),
         kontrollsamtaleService: KontrollsamtaleService = mock(),
         sessionFactory: SessionFactory = TestSessionFactory(),
+        avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
     ) =
         RevurderingServiceImpl(
             utbetalingService = utbetalingService,
@@ -119,7 +121,8 @@ internal object RevurderingTestUtils {
             vedtakService = vedtakService,
             sakService = sakService,
             kontrollsamtaleService = kontrollsamtaleService,
-            sessionFactory = sessionFactory
+            sessionFactory = sessionFactory,
+            avkortingsvarselRepo = avkortingsvarselRepo,
         )
 
     /**

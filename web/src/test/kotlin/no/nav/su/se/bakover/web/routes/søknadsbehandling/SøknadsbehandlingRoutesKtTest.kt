@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -68,7 +69,6 @@ import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
-import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
@@ -99,7 +99,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         clock = fixedClock,
     )
 
-    private fun services(databaseRepos: DatabaseRepos, clients: Clients = TestClientsBuilder.build(applicationConfig)) =
+    private fun services(databaseRepos: DatabaseRepos, clients: Clients = TestClientsBuilder(fixedClock, databaseRepos).build(applicationConfig)) =
         ServiceBuilder.build(
             databaseRepos = databaseRepos,
             clients = clients,
@@ -201,7 +201,7 @@ internal class SøknadsbehandlingRoutesKtTest {
     fun `Opprette en oppgave til attestering feiler mot oppgave`() {
         withMigratedDb { dataSource ->
             val repos = repos(dataSource)
-            val clients = testClients.copy(
+            val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
                 oppgaveClient = object : OppgaveClient {
                     override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
                         return Either.Left(KunneIkkeOppretteOppgave)
@@ -758,7 +758,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         testSusebakover(
                             services = services,
                             databaseRepos = repos,
-                            clients = testClients.copy(
+                            clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
                                 utbetalingPublisher = object : UtbetalingPublisher {
                                     override fun publish(
                                         utbetaling: Utbetaling.SimulertUtbetaling,
@@ -840,6 +840,7 @@ internal class SøknadsbehandlingRoutesKtTest {
             oppgaveId = OppgaveId("1234"),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = sak.fnr,
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
         )
         repos.søknadsbehandling.lagreNySøknadsbehandling(
             nySøknadsbehandling,
@@ -849,6 +850,7 @@ internal class SøknadsbehandlingRoutesKtTest {
             SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
                 behandlingId = nySøknadsbehandling.id,
                 stønadsperiode = stønadsperiode,
+                sakId = sak.id,
             ),
         )
 
@@ -986,7 +988,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         withTestApplication(
             {
                 testSusebakover(
-                    clients = testClients,
+                    clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig),
                     services = services,
                     databaseRepos = repos,
                 )

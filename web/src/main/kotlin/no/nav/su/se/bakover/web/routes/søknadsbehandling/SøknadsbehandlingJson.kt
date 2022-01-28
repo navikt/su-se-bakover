@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson.Companion.create
+import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
@@ -35,6 +36,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
             grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
             fritekstTilBrev = fritekstTilBrev,
             erLukket = false,
+            simuleringForAvkortingsvarsel = avkorting.toJson(),
         )
         is Søknadsbehandling.Beregnet -> {
             BehandlingJson(
@@ -52,6 +54,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.Simulert -> {
@@ -70,6 +73,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.TilAttestering.Innvilget -> {
@@ -88,6 +92,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
@@ -106,6 +111,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
@@ -124,6 +130,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.Underkjent.Innvilget -> {
@@ -158,6 +165,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> {
@@ -176,6 +184,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> {
@@ -194,6 +203,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
@@ -212,6 +222,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
@@ -230,6 +241,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.Iverksatt.Innvilget -> {
@@ -248,6 +260,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is LukketSøknadsbehandling -> {

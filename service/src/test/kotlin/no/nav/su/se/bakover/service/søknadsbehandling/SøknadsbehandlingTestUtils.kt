@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -50,6 +51,7 @@ internal fun createSøknadsbehandlingService(
     sakService: SakService = mock(),
     kontrollsamtaleService: KontrollsamtaleService = mock(),
     sessionFactory: SessionFactory = TestSessionFactory(),
+    avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadService = søknadService,
     søknadsbehandlingRepo = søknadsbehandlingRepo,
@@ -64,7 +66,8 @@ internal fun createSøknadsbehandlingService(
     grunnlagService = grunnlagService,
     sakService = sakService,
     kontrollsamtaleService = kontrollsamtaleService,
-    sessionFactory = sessionFactory
+    sessionFactory = sessionFactory,
+    avkortingsvarselRepo
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
@@ -84,6 +87,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val sakService: SakService = mock(),
     val kontrollsamtaleService: KontrollsamtaleService = mock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
+    val avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadService = søknadService,
@@ -99,25 +103,29 @@ internal data class SøknadsbehandlingServiceAndMocks(
         grunnlagService = grunnlagService,
         sakService = sakService,
         kontrollsamtaleService = kontrollsamtaleService,
-        sessionFactory = sessionFactory
+        sessionFactory = sessionFactory,
+        avkortingsvarselRepo = avkortingsvarselRepo,
     ).apply { addObserver(observer) }
 
-    fun allMocks(): Array<Any> = listOf(
-        søknadsbehandlingRepo,
-        utbetalingService,
-        oppgaveService,
-        søknadService,
-        personService,
-        behandlingMetrics,
-        observer,
-        brevService,
-        vedtakRepo,
-        ferdigstillVedtakService,
-        vilkårsvurderingService,
-        grunnlagService,
-        sakService,
-        kontrollsamtaleService,
-    ).toTypedArray()
+    fun allMocks(): Array<Any> {
+        return listOf(
+            søknadsbehandlingRepo,
+            utbetalingService,
+            oppgaveService,
+            søknadService,
+            personService,
+            behandlingMetrics,
+            observer,
+            brevService,
+            vedtakRepo,
+            ferdigstillVedtakService,
+            vilkårsvurderingService,
+            grunnlagService,
+            sakService,
+            kontrollsamtaleService,
+            avkortingsvarselRepo
+        ).toTypedArray()
+    }
 
     fun verifyNoMoreInteractions() {
         org.mockito.kotlin.verifyNoMoreInteractions(
@@ -135,6 +143,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
             grunnlagService,
             sakService,
             kontrollsamtaleService,
+            avkortingsvarselRepo
         )
     }
 }

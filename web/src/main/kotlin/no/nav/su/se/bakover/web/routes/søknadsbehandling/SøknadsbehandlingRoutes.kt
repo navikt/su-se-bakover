@@ -20,9 +20,9 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
-import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BrevRequest
@@ -51,12 +51,17 @@ import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
+import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAnnullert
+import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAvkortet
+import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErUfullstendig
 import no.nav.su.se.bakover.web.routes.Feilresponser.depositumErHøyereEnnInnskudd
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.Feilresponser.harIkkeEktefelle
+import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeSimulere
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
+import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -143,59 +148,76 @@ internal fun Route.søknadsbehandlingRoutes(
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/stønadsperiode") {
-
-            call.withBehandlingId { behandlingId ->
-                call.withBody<StønadsperiodeJson> { body ->
-                    body.toStønadsperiode()
-                        .mapLeft {
-                            call.svar(it)
-                        }
-                        .flatMap { stønadsperiode ->
-                            søknadsbehandlingService.oppdaterStønadsperiode(
-                                SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
-                                    behandlingId,
-                                    stønadsperiode,
-                                ),
-                            )
-                                .mapLeft { error ->
-                                    call.svar(
-                                        when (error) {
-                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
-                                                fantIkkeBehandling
-                                            }
-                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak -> {
-                                                fantIkkeSak
-                                            }
-                                            is SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode -> {
-                                                when (val feil = error.feil) {
-                                                    is Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
-                                                        log.error("Feil ved oppdatering av stønadsperiode: ${feil.feil}")
-                                                        InternalServerError.errorJson(
-                                                            "Feil ved oppdatering av stønadsperiode",
-                                                            "oppdatering_av_stønadsperiode",
-                                                        )
-                                                    }
-                                                    Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer -> {
-                                                        BadRequest.errorJson(
-                                                            "Kan ikke legge til ny stønadsperiode forut for eksisterende stønadsperioder",
-                                                            "senere_stønadsperioder_eksisterer",
-                                                        )
-                                                    }
-                                                    Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode -> {
-                                                        BadRequest.errorJson(
-                                                            "Stønadsperioden overlapper med eksisterende stønadsperiode",
-                                                            "stønadsperioden_overlapper_med_eksisterende_søknadsbehandling",
-                                                        )
+            call.withSakId { sakId ->
+                call.withBehandlingId { behandlingId ->
+                    call.withBody<StønadsperiodeJson> { body ->
+                        body.toStønadsperiode()
+                            .mapLeft {
+                                call.svar(it)
+                            }
+                            .flatMap { stønadsperiode ->
+                                søknadsbehandlingService.oppdaterStønadsperiode(
+                                    SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
+                                        behandlingId = behandlingId,
+                                        stønadsperiode = stønadsperiode,
+                                        sakId = sakId,
+                                    ),
+                                )
+                                    .mapLeft { error ->
+                                        call.svar(
+                                            when (error) {
+                                                SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
+                                                    fantIkkeBehandling
+                                                }
+                                                SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak -> {
+                                                    fantIkkeSak
+                                                }
+                                                is SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode -> {
+                                                    when (val feil = error.feil) {
+                                                        Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
+                                                            fantIkkeBehandling
+                                                        }
+                                                        is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
+                                                            log.error("Feil ved oppdatering av stønadsperiode: ${feil.feil}")
+                                                            InternalServerError.errorJson(
+                                                                "Feil ved oppdatering av stønadsperiode",
+                                                                "oppdatering_av_stønadsperiode",
+                                                            )
+                                                        }
+                                                        Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer -> {
+                                                            BadRequest.errorJson(
+                                                                "Kan ikke legge til ny stønadsperiode forut for eksisterende stønadsperioder",
+                                                                "senere_stønadsperioder_eksisterer",
+                                                            )
+                                                        }
+                                                        Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode -> {
+                                                            BadRequest.errorJson(
+                                                                "Stønadsperioden overlapper med eksisterende stønadsperiode",
+                                                                "stønadsperioden_overlapper_med_eksisterende_søknadsbehandling",
+                                                            )
+                                                        }
+                                                        is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeHenteGjeldendeVedtaksdata -> {
+                                                            InternalServerError.errorJson(
+                                                                "Kunne ikke hente gjeldende vedtaksdata",
+                                                                "kunne_ikke_hente_gjeldende_vedtaksdata",
+                                                            )
+                                                        }
+                                                        Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold -> {
+                                                            BadRequest.errorJson(
+                                                                "Stønadsperioden inneholder utbetalinger som skal avkortes pga utenlandsopphold. Dette støttes ikke.",
+                                                                "stønadsperiode_inneholder_avkorting_utenlandsopphold",
+                                                            )
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        },
-                                    )
-                                }
-                                .map {
-                                    call.svar(Created.jsonBody(it))
-                                }
-                        }
+                                            },
+                                        )
+                                    }
+                                    .map {
+                                        call.svar(Created.jsonBody(it))
+                                    }
+                            }
+                    }
                 }
             }
         }
@@ -205,7 +227,12 @@ internal fun Route.søknadsbehandlingRoutes(
         get("$behandlingPath/{behandlingId}") {
             call.withBehandlingId { behandlingId ->
                 søknadsbehandlingService.hent(HentRequest(behandlingId)).mapLeft {
-                    call.svar(NotFound.errorJson("Fant ikke behandling med id $behandlingId", "fant_ikke_behandling"))
+                    call.svar(
+                        NotFound.errorJson(
+                            "Fant ikke behandling med id $behandlingId",
+                            "fant_ikke_behandling",
+                        ),
+                    )
                 }.map {
                     call.sikkerlogg("Hentet behandling med id $behandlingId")
                     call.audit(it.fnr, AuditLogEvent.Action.ACCESS, it.id)
@@ -266,7 +293,21 @@ internal fun Route.søknadsbehandlingRoutes(
                             søknadsbehandlingService.beregn(serviceCommand)
                                 .mapLeft { kunneIkkeBeregne ->
                                     val resultat = when (kunneIkkeBeregne) {
-                                        KunneIkkeBeregne.FantIkkeBehandling -> fantIkkeBehandling
+                                        KunneIkkeBeregne.FantIkkeBehandling -> {
+                                            fantIkkeBehandling
+                                        }
+                                        KunneIkkeBeregne.KunneIkkeSimulereUtbetaling -> {
+                                            kunneIkkeSimulere
+                                        }
+                                        is KunneIkkeBeregne.UgyldigTilstand -> {
+                                            ugyldigTilstand(fra = kunneIkkeBeregne.fra, til = kunneIkkeBeregne.til)
+                                        }
+                                        is KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
+                                            kunneIkkeBeregne.feil.tilResultat()
+                                        }
+                                        KunneIkkeBeregne.AvkortingErUfullstendig -> {
+                                            avkortingErUfullstendig
+                                        }
                                     }
                                     call.svar(resultat)
                                 }.map { behandling ->
@@ -397,6 +438,9 @@ internal fun Route.søknadsbehandlingRoutes(
                 is KunneIkkeIverksette.FantIkkeBehandling -> fantIkkeBehandling
                 is KunneIkkeIverksette.FantIkkePerson -> fantIkkePerson
                 is KunneIkkeIverksette.FikkIkkeHentetSaksbehandlerEllerAttestant -> feilVedHentingAvSaksbehandlerEllerAttestant
+                KunneIkkeIverksette.AvkortingErUfullstendig -> avkortingErUfullstendig
+                KunneIkkeIverksette.HarAlleredeBlittAvkortetAvEnAnnen -> avkortingErAlleredeAvkortet
+                KunneIkkeIverksette.HarBlittAnnullertAvEnAnnen -> avkortingErAlleredeAnnullert
             }
         }
 

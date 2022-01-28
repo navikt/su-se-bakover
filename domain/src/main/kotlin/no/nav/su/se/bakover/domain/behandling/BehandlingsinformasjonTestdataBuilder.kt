@@ -97,14 +97,3 @@ fun Behandlingsinformasjon.withAvslåttFlyktning(): Behandlingsinformasjon {
         ),
     )
 }
-
-@TestOnly
-fun withVilkårIkkeVurdert() =
-    Behandlingsinformasjon(
-        flyktning = null,
-        lovligOpphold = null,
-        fastOppholdINorge = null,
-        institusjonsopphold = null,
-        formue = null,
-        personligOppmøte = null,
-    )

@@ -16,6 +16,9 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -28,6 +31,7 @@ import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -96,6 +100,7 @@ internal class RevurderingServiceImpl(
     private val kontrollsamtaleService: KontrollsamtaleService,
     private val sessionFactory: SessionFactory,
     sakService: SakService,
+    private val avkortingsvarselRepo: AvkortingsvarselRepo,
 ) : RevurderingService {
     private val stansAvYtelseService = StansAvYtelseService(
         utbetalingService = utbetalingService,
@@ -207,8 +212,13 @@ internal class RevurderingServiceImpl(
                 if (!informasjonSomRevurderes.harValgtFormue() && r.opphørsgrunner.contains(Opphørsgrunn.FORMUE)) {
                     return KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes.left()
                 }
+                if (!informasjonSomRevurderes.harValgtUtenlandsopphold() && r.opphørsgrunner.contains(Opphørsgrunn.UTENLANDSOPPHOLD)) {
+                    return KunneIkkeOppretteRevurdering.UtenlandsoppholdSomFørerTilOpphørMåRevurderes.left()
+                }
             }
-            is OpphørVedRevurdering.Nei -> Unit
+            is OpphørVedRevurdering.Nei -> {
+                // noop
+            }
         }
 
         val gjeldendeVedtakPåFraOgMedDato =
@@ -218,6 +228,11 @@ internal class RevurderingServiceImpl(
         val aktørId = personService.hentAktørId(gjeldendeVedtakPåFraOgMedDato.behandling.fnr).getOrElse {
             log.error("Fant ikke aktør-id")
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
+        }
+
+        val uteståendeAvkorting = hentUteståendeAvkorting(opprettRevurderingRequest.sakId).let {
+            kontrollerPeriodeForUteståendeAvkorting(gjeldendeVedtaksdata.periode, it)
+                .getOrHandle { feil -> return feil.left() }
         }
 
         // Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
@@ -244,6 +259,7 @@ internal class RevurderingServiceImpl(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = uteståendeAvkorting,
             ).also {
                 revurderingRepo.lagre(it)
 
@@ -265,6 +281,49 @@ internal class RevurderingServiceImpl(
                             it,
                         ),
                     )
+                }
+            }
+        }
+    }
+
+    private fun hentUteståendeAvkorting(sakId: UUID): AvkortingVedRevurdering.Uhåndtert {
+        return when (val utestående = avkortingsvarselRepo.hentUtestående(sakId)) {
+            is Avkortingsvarsel.Ingen -> {
+                AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
+                AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
+                AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(utestående)
+            }
+        }
+    }
+
+    private fun kontrollerPeriodeForUteståendeAvkorting(
+        revurderingsperiode: Periode,
+        avkorting: AvkortingVedRevurdering.Uhåndtert,
+    ): Either<KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode, AvkortingVedRevurdering.Uhåndtert> {
+        return when (avkorting) {
+            is AvkortingVedRevurdering.Uhåndtert.IngenUtestående -> {
+                avkorting.right()
+            }
+            is AvkortingVedRevurdering.Uhåndtert.KanIkkeHåndtere -> {
+                throw IllegalStateException("Denne situasjone kan ikke oppstå")
+            }
+            is AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting -> {
+                if (!revurderingsperiode.inneholder(avkorting.avkortingsvarsel.periode())) {
+                    return KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                        periode = avkorting.avkortingsvarsel.periode(),
+                    ).left()
+                } else {
+                    avkorting.right()
                 }
             }
         }
@@ -574,46 +633,64 @@ internal class RevurderingServiceImpl(
                 if (!informasjonSomRevurderes.harValgtFormue() && r.opphørsgrunner.contains(Opphørsgrunn.FORMUE)) {
                     return KunneIkkeOppdatereRevurdering.FormueSomFørerTilOpphørMåRevurderes.left()
                 }
+                if (!informasjonSomRevurderes.harValgtUtenlandsopphold() && r.opphørsgrunner.contains(Opphørsgrunn.UTENLANDSOPPHOLD)) {
+                    return KunneIkkeOppdatereRevurdering.UtenlandsoppholdSomFørerTilOpphørMåRevurderes.left()
+                }
             }
-            is OpphørVedRevurdering.Nei -> Unit
+            is OpphørVedRevurdering.Nei -> {
+                // noop
+            }
         }
 
         val gjeldendeVedtakPåFraOgMedDato =
             gjeldendeVedtaksdata.gjeldendeVedtakPåDato(oppdaterRevurderingRequest.fraOgMed)
                 ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
+        val avkorting = hentUteståendeAvkorting(revurdering.sakId).let {
+            kontrollerPeriodeForUteståendeAvkorting(gjeldendeVedtaksdata.periode, it)
+                .getOrHandle {
+                    return KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                        periode = it.periode,
+                    ).left()
+                }
+        }
+
         return when (revurdering) {
             is OpprettetRevurdering -> revurdering.oppdater(
-                gjeldendeVedtaksdata.periode,
-                revurderingsårsak,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                informasjonSomRevurderes,
-                gjeldendeVedtakPåFraOgMedDato,
+                periode = gjeldendeVedtaksdata.periode,
+                revurderingsårsak = revurderingsårsak,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
+                avkorting = avkorting,
             ).right()
             is BeregnetRevurdering -> revurdering.oppdater(
-                gjeldendeVedtaksdata.periode,
-                revurderingsårsak,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                informasjonSomRevurderes,
-                gjeldendeVedtakPåFraOgMedDato,
+                periode = gjeldendeVedtaksdata.periode,
+                revurderingsårsak = revurderingsårsak,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
+                avkorting = avkorting,
             ).right()
             is SimulertRevurdering -> revurdering.oppdater(
-                gjeldendeVedtaksdata.periode,
-                revurderingsårsak,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                informasjonSomRevurderes,
-                gjeldendeVedtakPåFraOgMedDato,
+                periode = gjeldendeVedtaksdata.periode,
+                revurderingsårsak = revurderingsårsak,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
+                avkorting = avkorting,
             ).right()
             is UnderkjentRevurdering -> revurdering.oppdater(
-                gjeldendeVedtaksdata.periode,
-                revurderingsårsak,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                informasjonSomRevurderes,
-                gjeldendeVedtakPåFraOgMedDato,
+                periode = gjeldendeVedtaksdata.periode,
+                revurderingsårsak = revurderingsårsak,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
+                avkorting = avkorting,
             ).right()
             else -> KunneIkkeOppdatereRevurdering.UgyldigTilstand(
                 revurdering::class,
@@ -638,17 +715,32 @@ internal class RevurderingServiceImpl(
         return when (originalRevurdering) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
                 val eksisterendeUtbetalinger = utbetalingService.hentUtbetalinger(originalRevurdering.sakId)
-
-                val beregnetRevurdering =
-                    originalRevurdering.beregn(eksisterendeUtbetalinger, clock).getOrHandle {
-                        return when (it) {
-                            is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
-                            is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(
-                                it.reason,
-                            )
-                            Revurdering.KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps
-                        }.left()
-                    }
+                val beregnetRevurdering = originalRevurdering.beregn(
+                    eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+                    clock = clock,
+                    gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
+                        sakId = originalRevurdering.sakId,
+                        fraOgMed = originalRevurdering.periode.fraOgMed,
+                    ).getOrHandle { throw IllegalStateException("Fant ikke gjeldende vedtaksdata for sak:${originalRevurdering.sakId}") },
+                ).getOrHandle {
+                    return when (it) {
+                        is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> {
+                            KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
+                        }
+                        is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> {
+                            KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(it.reason)
+                        }
+                        Revurdering.KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> {
+                            KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps
+                        }
+                        Revurdering.KunneIkkeBeregneRevurdering.AvkortingErUfullstendig -> {
+                            KunneIkkeBeregneOgSimulereRevurdering.AvkortingErUfullstendig
+                        }
+                        Revurdering.KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes -> {
+                            KunneIkkeBeregneOgSimulereRevurdering.OpphørAvYtelseSomSkalAvkortes
+                        }
+                    }.left()
+                }
 
                 val leggTilVarselForBeløpsendringUnder10Prosent =
                     !VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
@@ -659,6 +751,11 @@ internal class RevurderingServiceImpl(
                 when (beregnetRevurdering) {
                     is BeregnetRevurdering.IngenEndring -> {
                         revurderingRepo.lagre(beregnetRevurdering)
+                        // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
+                        grunnlagService.lagreFradragsgrunnlag(
+                            behandlingId = revurderingId,
+                            fradragsgrunnlag = beregnetRevurdering.grunnlagsdata.fradragsgrunnlag,
+                        )
                         when (leggTilVarselForBeløpsendringUnder10Prosent) {
                             true -> {
                                 identifiserFeilOgLagResponse(beregnetRevurdering)
@@ -682,6 +779,11 @@ internal class RevurderingServiceImpl(
                         }.map {
                             beregnetRevurdering.toSimulert(it.simulering).let { simulert ->
                                 revurderingRepo.lagre(simulert)
+                                // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
+                                grunnlagService.lagreFradragsgrunnlag(
+                                    behandlingId = revurderingId,
+                                    fradragsgrunnlag = beregnetRevurdering.grunnlagsdata.fradragsgrunnlag,
+                                )
                                 when (leggTilVarselForBeløpsendringUnder10Prosent) {
                                     true -> {
                                         identifiserFeilOgLagResponse(simulert)
@@ -695,15 +797,21 @@ internal class RevurderingServiceImpl(
                         }
                     }
                     is BeregnetRevurdering.Opphørt -> {
-                        utbetalingService.simulerOpphør(
-                            sakId = beregnetRevurdering.sakId,
-                            saksbehandler = saksbehandler,
-                            opphørsdato = beregnetRevurdering.periode.fraOgMed,
-                        ).mapLeft {
-                            KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
-                        }.map {
-                            beregnetRevurdering.toSimulert(it.simulering).let { simulert ->
+                        // TODO er tanken at vi skal oppdatere saksbehandler her? Det kan se ut som vi har tenkt det, men aldri fullført.
+                        beregnetRevurdering.toSimulert { sakId, _, opphørsdato ->
+                            utbetalingService.simulerOpphør(
+                                sakId = sakId,
+                                saksbehandler = saksbehandler,
+                                opphørsdato = opphørsdato,
+                            )
+                        }.mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }
+                            .map { simulert ->
                                 revurderingRepo.lagre(simulert)
+                                // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
+                                grunnlagService.lagreFradragsgrunnlag(
+                                    behandlingId = revurderingId,
+                                    fradragsgrunnlag = beregnetRevurdering.grunnlagsdata.fradragsgrunnlag,
+                                )
                                 when (leggTilVarselForBeløpsendringUnder10Prosent) {
                                     true -> {
                                         identifiserFeilOgLagResponse(simulert)
@@ -714,7 +822,6 @@ internal class RevurderingServiceImpl(
                                     }
                                 }
                             }
-                        }
                     }
                 }
             }
@@ -1163,21 +1270,28 @@ internal class RevurderingServiceImpl(
                             }
                     }
                     is RevurderingTilAttestering.Innvilget -> {
-                        revurdering.tilIverksatt(attestant, clock) {
-                            utbetalingService.utbetal(
-                                sakId = revurdering.sakId,
-                                beregning = revurdering.beregning,
-                                simulering = revurdering.simulering,
-                                attestant = attestant,
-                                uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
-                            ).mapLeft {
-                                RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
-                            }.map {
-                                // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
-                                utbetaling = it
-                                it.id
-                            }
-                        }.map { iverksattRevurdering ->
+                        revurdering.tilIverksatt(
+                            attestant = attestant,
+                            clock = clock,
+                            utbetal = {
+                                utbetalingService.utbetal(
+                                    sakId = revurdering.sakId,
+                                    beregning = revurdering.beregning,
+                                    simulering = revurdering.simulering,
+                                    attestant = attestant,
+                                    uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
+                                ).mapLeft {
+                                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
+                                }.map {
+                                    // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
+                                    utbetaling = it
+                                    it.id
+                                }
+                            },
+                            hentOpprinneligAvkorting = { avkortingid ->
+                                avkortingsvarselRepo.hent(id = avkortingid)
+                            },
+                        ).map { iverksattRevurdering ->
                             vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling!!.id, clock).let {
                                 vedtakRepo.lagre(it)
                                 it
@@ -1186,20 +1300,27 @@ internal class RevurderingServiceImpl(
                         }
                     }
                     is RevurderingTilAttestering.Opphørt -> {
-                        revurdering.tilIverksatt(attestant, clock) {
-                            utbetalingService.opphør(
-                                sakId = revurdering.sakId,
-                                attestant = attestant,
-                                opphørsdato = revurdering.periode.fraOgMed,
-                                simulering = revurdering.simulering,
-                            ).mapLeft {
-                                RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
-                            }.map {
-                                // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
-                                utbetaling = it
-                                it.id
-                            }
-                        }.map {
+                        revurdering.tilIverksatt(
+                            attestant = attestant,
+                            clock = clock,
+                            utbetal = { sakId: UUID, _: NavIdentBruker.Attestant, opphørsdato: LocalDate, simulering: Simulering ->
+                                utbetalingService.opphør(
+                                    sakId = sakId,
+                                    attestant = attestant,
+                                    opphørsdato = opphørsdato,
+                                    simulering = simulering,
+                                ).mapLeft {
+                                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
+                                }.map {
+                                    // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
+                                    utbetaling = it
+                                    it.id
+                                }
+                            },
+                            hentOpprinneligAvkorting = { avkortingid ->
+                                avkortingsvarselRepo.hent(id = avkortingid)
+                            },
+                        ).map {
                             val opphørtVedtak = VedtakSomKanRevurderes.from(it, utbetaling!!.id, clock)
                             vedtakRepo.lagre(opphørtVedtak)
                             kontrollsamtaleService.annullerKontrollsamtale(opphørtVedtak.behandling.sakId)
@@ -1213,6 +1334,8 @@ internal class RevurderingServiceImpl(
                         is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(
                             it.utbetalingFeilet,
                         )
+                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAnnullertAvEnAnnen
                     }.left()
                 }
 

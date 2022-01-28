@@ -108,7 +108,8 @@ internal class BrevInnholdTest {
                 }],
                 "saksbehandlerNavn": "Hei",
                 "attestantNavn": "Hopp",
-                "fritekst": ""
+                "fritekst": "",
+                "harAvkorting": false
             }
             """.trimIndent()
         JSONAssert.assertEquals(expectedJson, actualJson, true)
@@ -159,6 +160,8 @@ internal class BrevInnholdTest {
             satsGjeldendeFraDato = "01.01.2020",
             forventetInntektStørreEnn0 = false,
             halvGrunnbeløp = 50000,
+            opphørsdato = "01.01.2020",
+            avkortingsBeløp = null,
         )
 
         //language=JSON
@@ -198,7 +201,10 @@ internal class BrevInnholdTest {
                 "opphørsgrunner" : ["FOR_HØY_INNTEKT"],
                 "avslagsparagrafer" : [1],
                 "forventetInntektStørreEnn0" : false,
-                "halvGrunnbeløp": 50000
+                "halvGrunnbeløp": 50000,
+                "opphørsdato": "01.01.2020",            
+                "avkortingsBeløp": null,
+                "harAvkorting": false
             }
         """.trimIndent()
 

@@ -6,6 +6,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -24,7 +25,9 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
@@ -171,6 +174,7 @@ internal class LagBrevutkastForRevurderingTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående
         )
 
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
@@ -222,12 +226,12 @@ internal class LagBrevutkastForRevurderingTest {
             on { simulering } doReturn mock()
         }
 
-        val revurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, revurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
                 grunnlagsdata = grunnlagsdataEnsligMedFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(),
             ),
-        ).second
+        )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn revurdering
         }
@@ -251,6 +255,9 @@ internal class LagBrevutkastForRevurderingTest {
         val actual = RevurderingTestUtils.createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             utbetalingService = utbetalingServiceMock,
+            vedtakService = mock {
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail().right()
+            }
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = NavIdentBruker.Saksbehandler("s1"),
@@ -277,9 +284,9 @@ internal class LagBrevutkastForRevurderingTest {
 
     @Test
     fun `uavklarte vilkår kaster exception`() {
-        val revurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, revurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.IkkeVurdert,
-        ).second
+        )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn revurdering
         }
@@ -304,6 +311,9 @@ internal class LagBrevutkastForRevurderingTest {
             RevurderingTestUtils.createRevurderingService(
                 revurderingRepo = revurderingRepoMock,
                 utbetalingService = utbetalingServiceMock,
+                vedtakService = mock {
+                    on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail().right()
+                }
             ).beregnOgSimuler(
                 revurderingId = revurderingId,
                 saksbehandler = NavIdentBruker.Saksbehandler("s1"),

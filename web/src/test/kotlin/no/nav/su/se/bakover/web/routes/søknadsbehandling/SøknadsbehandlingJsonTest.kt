@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -123,7 +124,8 @@ internal class SøknadsbehandlingJsonTest {
               "utenlandsopphold": $expectedUtenlandsoppholdVurdert
           },
           "fritekstTilBrev": "",
-          "erLukket": false
+          "erLukket": false,
+          "simuleringForAvkortingsvarsel": null
         }
             """.trimIndent()
     }
@@ -154,6 +156,7 @@ internal class SøknadsbehandlingJsonTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
 
@@ -201,7 +204,8 @@ internal class SøknadsbehandlingJsonTest {
             "utenlandsopphold": null
           },
           "fritekstTilBrev": "",
-          "erLukket": false
+          "erLukket": false,
+          "simuleringForAvkortingsvarsel": null
         }
         """
 

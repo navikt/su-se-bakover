@@ -206,7 +206,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
 
-            fun utledOpphørsgrunner() = behandling.utledOpphørsgrunner()
+            fun utledOpphørsgrunner(clock: Clock) = behandling.utledOpphørsgrunner(clock)
 
             override fun erOpphør() = true
 

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -183,7 +184,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: SimulertRevurdering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner(clock))
     }
 
     override fun visit(revurdering: RevurderingTilAttestering.Innvilget) {
@@ -191,7 +192,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: RevurderingTilAttestering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner(clock))
     }
 
     override fun visit(revurdering: RevurderingTilAttestering.IngenEndring) {
@@ -203,7 +204,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: IverksattRevurdering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner(clock))
     }
 
     override fun visit(revurdering: IverksattRevurdering.IngenEndring) {
@@ -215,7 +216,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: UnderkjentRevurdering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner(clock))
     }
 
     override fun visit(revurdering: UnderkjentRevurdering.IngenEndring) {
@@ -382,6 +383,102 @@ class LagBrevRequestVisitor(
                 it.attestant
             },
         ).map {
+            // TODO avkorting refaktorer dette?
+            val avkortingsbeløp = when (revurdering) {
+                is BeregnetRevurdering.Opphørt -> {
+                    when (revurdering.avkorting) {
+                        is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere -> {
+                            null
+                        }
+                    }
+                }
+                is IverksattRevurdering.Opphørt -> {
+                    when (revurdering.avkorting) {
+                        is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                        is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                    }
+                }
+                is RevurderingTilAttestering.Opphørt -> {
+                    when (revurdering.avkorting) {
+                        is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                    }
+                }
+                is SimulertRevurdering.Opphørt -> {
+                    when (revurdering.avkorting) {
+                        is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                    }
+                }
+                is UnderkjentRevurdering.Opphørt -> {
+                    when (revurdering.avkorting) {
+                        is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                    }
+                }
+                else -> {
+                    null
+                }
+            }
+
             LagBrevRequest.Opphørsvedtak(
                 person = it.person,
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
@@ -394,6 +491,8 @@ class LagBrevRequestVisitor(
                 opphørsgrunner = opphørsgrunner,
                 dagensDato = LocalDate.now(clock),
                 saksnummer = revurdering.saksnummer,
+                opphørsdato = revurdering.periode.fraOgMed,
+                avkortingsBeløp = avkortingsbeløp,
             )
         }
 
@@ -507,9 +606,19 @@ class LagBrevRequestVisitor(
                 fritekst = vedtak.behandling.fritekstTilBrev,
                 harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
-                opphørsgrunner = vedtak.utledOpphørsgrunner(),
+                opphørsgrunner = vedtak.utledOpphørsgrunner(clock),
                 dagensDato = LocalDate.now(clock),
                 saksnummer = vedtak.behandling.saksnummer,
+                opphørsdato = vedtak.periode.fraOgMed,
+                avkortingsBeløp = when (val avkorting = vedtak.behandling.avkorting) {
+                    is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> null
+                    is AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> null
+                    is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> null
+                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> avkorting.avkortingsvarsel.hentUtbetalteBeløp()
+                        .sum()
+                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> avkorting.avkortingsvarsel.hentUtbetalteBeløp()
+                        .sum()
+                },
             )
         }
 

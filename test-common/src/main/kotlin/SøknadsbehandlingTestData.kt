@@ -1,14 +1,15 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -39,6 +40,8 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
     grunnlagsdata: Grunnlagsdata = Grunnlagsdata.IkkeVurdert,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårUavklart,
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
+    clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
     return nySakMedjournalførtSøknadOgOppgave(
         sakId = sakId,
@@ -48,7 +51,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
     ).let { (sak, journalførtSøknadMedOppgave) ->
         val søknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(clock),
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             søknad = journalførtSøknadMedOppgave,
@@ -60,6 +63,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = avkorting,
         )
         Pair(
             sak.copy(
@@ -76,10 +80,12 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Innvilget> {
     return søknadsbehandlingVilkårsvurdertUavklart(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        avkorting = avkorting.kanIkke(),
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling
             .copy(
@@ -132,7 +138,7 @@ fun søknadsbehandlingBeregnetInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregning(),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Beregnet.Innvilget> {
     return søknadsbehandlingVilkårsvurdertInnvilget(
         saksnummer = saksnummer,
@@ -140,9 +146,12 @@ fun søknadsbehandlingBeregnetInnvilget(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
+        avkorting = avkorting.kanIkke(),
     ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling =
-            søknadsbehandling.tilBeregnet(beregning) as Søknadsbehandling.Beregnet.Innvilget
+        val oppdatertSøknadsbehandling = søknadsbehandling.beregn(
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail() as Søknadsbehandling.Beregnet.Innvilget
         Pair(
             sak.copy(
                 søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
@@ -163,8 +172,17 @@ fun søknadsbehandlingBeregnetAvslag(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregningAvslagForHøyInntekt(),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(
+        periode = stønadsperiode.periode,
+        uføre = innvilgetUførevilkårForventetInntekt0(
+            id = UUID.randomUUID(),
+            periode = stønadsperiode.periode,
+            uføregrunnlag = uføregrunnlagForventetInntekt(
+                periode = stønadsperiode.periode,
+                forventetInntekt = 1_000_000,
+            ),
+        ),
+    ),
 ): Pair<Sak, Søknadsbehandling.Beregnet.Avslag> {
     return søknadsbehandlingVilkårsvurdertInnvilget(
         saksnummer = saksnummer,
@@ -173,7 +191,10 @@ fun søknadsbehandlingBeregnetAvslag(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
     ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling = søknadsbehandling.tilBeregnet(beregning) as Søknadsbehandling.Beregnet.Avslag
+        val oppdatertSøknadsbehandling = søknadsbehandling.beregn(
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
         Pair(
             sak.copy(
                 søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
@@ -189,7 +210,7 @@ fun søknadsbehandlingSimulert(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregning(),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Simulert> {
     return søknadsbehandlingBeregnetInnvilget(
         saksnummer = saksnummer,
@@ -197,13 +218,13 @@ fun søknadsbehandlingSimulert(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        beregning = beregning,
+        avkorting = avkorting,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling =
             søknadsbehandling.tilSimulert(
                 simulering = simuleringNy(
                     eksisterendeUtbetalinger = sak.utbetalinger,
-                    beregning = beregning,
+                    beregning = søknadsbehandling.beregning,
                 ),
             )
         Pair(
@@ -221,7 +242,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregning(),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.TilAttestering.Innvilget> {
     return søknadsbehandlingSimulert(
         saksnummer = saksnummer,
@@ -229,7 +250,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        beregning = beregning,
+        avkorting = avkorting,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilAttestering(
             saksbehandler = saksbehandler,
@@ -249,8 +270,17 @@ fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregningAvslagForHøyInntekt(),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(
+        periode = stønadsperiode.periode,
+        uføre = innvilgetUførevilkårForventetInntekt0(
+            id = UUID.randomUUID(),
+            periode = stønadsperiode.periode,
+            uføregrunnlag = uføregrunnlagForventetInntekt(
+                periode = stønadsperiode.periode,
+                forventetInntekt = 1_000_000,
+            ),
+        ),
+    ),
 ): Pair<Sak, Søknadsbehandling.TilAttestering.Avslag.MedBeregning> {
     return søknadsbehandlingBeregnetAvslag(
         saksnummer = saksnummer,
@@ -258,7 +288,6 @@ fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        beregning = beregning,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilAttestering(
             saksbehandler = saksbehandler,
@@ -306,7 +335,6 @@ fun søknadsbehandlingUnderkjentInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregning(),
     clock: Clock = fixedClock,
     attestering: Attestering = attesteringUnderkjent(clock = clock),
 ): Pair<Sak, Søknadsbehandling.Underkjent.Innvilget> {
@@ -316,7 +344,6 @@ fun søknadsbehandlingUnderkjentInnvilget(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        beregning = beregning,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilUnderkjent(
             attestering = attestering,
@@ -363,8 +390,17 @@ fun søknadsbehandlingUnderkjentAvslagMedBeregning(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregningAvslagForHøyInntekt(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(
+        periode = stønadsperiode.periode,
+        uføre = innvilgetUførevilkårForventetInntekt0(
+            id = UUID.randomUUID(),
+            periode = stønadsperiode.periode,
+            uføregrunnlag = uføregrunnlagForventetInntekt(
+                periode = stønadsperiode.periode,
+                forventetInntekt = 1_000_000,
+            ),
+        ),
+    ),
     clock: Clock = fixedClock,
     attestering: Attestering = attesteringUnderkjent(clock = clock),
 ): Pair<Sak, Søknadsbehandling.Underkjent.Avslag.MedBeregning> {
@@ -374,7 +410,6 @@ fun søknadsbehandlingUnderkjentAvslagMedBeregning(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        beregning = beregning,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilUnderkjent(
             attestering = attestering,
@@ -394,8 +429,8 @@ fun søknadsbehandlingIverksattInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregning(periode = stønadsperiode.periode),
     clock: Clock = fixedClock,
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Innvilget> {
     return søknadsbehandlingTilAttesteringInnvilget(
         saksnummer = saksnummer,
@@ -403,7 +438,7 @@ fun søknadsbehandlingIverksattInnvilget(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        beregning = beregning,
+        avkorting = avkorting,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilIverksatt(
             attestering = attesteringIverksatt(clock),
@@ -422,8 +457,17 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregningAvslagForHøyInntekt(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(
+        periode = stønadsperiode.periode,
+        uføre = innvilgetUførevilkårForventetInntekt0(
+            id = UUID.randomUUID(),
+            periode = stønadsperiode.periode,
+            uføregrunnlag = uføregrunnlagForventetInntekt(
+                periode = stønadsperiode.periode,
+                forventetInntekt = 1_000_000,
+            ),
+        ),
+    ),
     clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Avslag.MedBeregning> {
     return søknadsbehandlingTilAttesteringAvslagMedBeregning(
@@ -432,7 +476,6 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        beregning = beregning,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilIverksatt(
             attestering = attesteringIverksatt(clock),

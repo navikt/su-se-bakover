@@ -6,9 +6,11 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
@@ -20,15 +22,26 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
+            val revurdering = testDataHelper.nyRevurdering(
+                innvilget = testDataHelper.vedtakMedInnvilgetSøknadsbehandling(periode2021).first,
+                periode = periode2021,
+            ).persistertVariant()
+
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
-                underliggendeRevurdering = testDataHelper.nyRevurdering().persistertVariant(),
+                underliggendeRevurdering = revurdering,
                 begrunnelse = "avslutter denne revurderingen",
                 fritekst = null,
                 tidspunktAvsluttet = fixedTidspunkt,
             ).getOrHandle { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
-            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering
+            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
+                underliggendeRevurdering = revurdering.copy(
+                    avkorting = AvkortingVedRevurdering.Uhåndtert.KanIkkeHåndtere(
+                        uhåndtert = AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+                    )
+                )
+            )
         }
     }
 
@@ -38,15 +51,23 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
+            val revurdering = testDataHelper.beregnetInnvilgetRevurdering().persistertVariant()
+
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
-                underliggendeRevurdering = testDataHelper.beregnetInnvilgetRevurdering().persistertVariant(),
+                underliggendeRevurdering = revurdering,
                 begrunnelse = "avslutter denne revurderingen",
                 fritekst = null,
                 tidspunktAvsluttet = fixedTidspunkt,
             ).getOrHandle { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
-            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering
+            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
+                underliggendeRevurdering = revurdering.copy(
+                    avkorting = AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
+                        delvisHåndtert = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
+                    )
+                )
+            )
         }
     }
 
@@ -56,15 +77,23 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
+            val revurdering = testDataHelper.beregnetOpphørtRevurdering().persistertVariant()
+
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
-                underliggendeRevurdering = testDataHelper.beregnetOpphørtRevurdering().persistertVariant(),
+                underliggendeRevurdering = revurdering,
                 begrunnelse = "avslutter denne revurderingen",
                 fritekst = null,
                 tidspunktAvsluttet = fixedTidspunkt,
             ).getOrHandle { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
-            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering
+            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
+                underliggendeRevurdering = revurdering.copy(
+                    avkorting = AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
+                        delvisHåndtert = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
+                    )
+                )
+            )
         }
     }
 
@@ -75,15 +104,23 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
+            val revurdering = testDataHelper.beregnetIngenEndringRevurdering().persistertVariant()
+
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
-                underliggendeRevurdering = testDataHelper.beregnetIngenEndringRevurdering().persistertVariant(),
+                underliggendeRevurdering = revurdering,
                 begrunnelse = "avslutter denne revurderingen",
                 fritekst = null,
                 tidspunktAvsluttet = fixedTidspunkt,
             ).getOrHandle { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
-            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering
+            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
+                underliggendeRevurdering = revurdering.copy(
+                    avkorting = AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
+                        delvisHåndtert = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
+                    )
+                )
+            )
         }
     }
 
@@ -93,15 +130,23 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
+            val revurdering = testDataHelper.simulertInnvilgetRevurdering().persistertVariant()
+
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
-                underliggendeRevurdering = testDataHelper.simulertInnvilgetRevurdering().persistertVariant(),
+                underliggendeRevurdering = revurdering,
                 begrunnelse = "avslutter denne revurderingen",
                 fritekst = null,
                 tidspunktAvsluttet = fixedTidspunkt,
             ).getOrHandle { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
-            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering
+            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
+                underliggendeRevurdering = revurdering.copy(
+                    avkorting = AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
+                        håndtert = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+                    )
+                )
+            )
         }
     }
 
@@ -153,15 +198,23 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
+            val revurdering = testDataHelper.simulertInnvilgetRevurdering().persistertVariant()
+
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
-                underliggendeRevurdering = testDataHelper.simulertInnvilgetRevurdering().persistertVariant(),
+                underliggendeRevurdering = revurdering,
                 begrunnelse = "avslutter denne revurderingen",
                 fritekst = null,
                 tidspunktAvsluttet = fixedTidspunkt,
             ).getOrHandle { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
-            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering
+            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
+                underliggendeRevurdering = revurdering.copy(
+                    avkorting = AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
+                        håndtert = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+                    )
+                )
+            )
         }
     }
 
@@ -171,15 +224,23 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
+            val revurdering = testDataHelper.underkjentRevurderingFraInnvilget().persistertVariant()
+
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
-                underliggendeRevurdering = testDataHelper.underkjentRevurderingFraInnvilget().persistertVariant(),
+                underliggendeRevurdering = revurdering,
                 begrunnelse = "avslutter denne revurderingen",
                 fritekst = null,
                 tidspunktAvsluttet = fixedTidspunkt,
             ).getOrHandle { fail("$it") }
 
             repo.lagre(avsluttetRevurdering)
-            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering
+            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
+                underliggendeRevurdering = revurdering.copy(
+                    avkorting = AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
+                        håndtert = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+                    )
+                )
+            )
         }
     }
 }

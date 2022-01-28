@@ -6,28 +6,21 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.statistikk.mappers.BehandlingStatistikkMapper
 import no.nav.su.se.bakover.service.statistikk.mappers.ManglendeStatistikkMappingException
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
@@ -622,24 +615,14 @@ internal class BehandlingStatistikkMapperTest {
     )
 
     val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
-    private val uavklartSøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
-        id = UUID.randomUUID(),
-        opprettet = fixedTidspunkt,
-        sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(2021),
-        søknad = søknad,
-        oppgaveId = OppgaveId(""),
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-        fnr = Fnr.generer(),
-        fritekstTilBrev = "",
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty(),
-    )
 
-    private val beregning = TestBeregning
-    private val beregnetSøknadsbehandling = uavklartSøknadsbehandling.tilBeregnet(beregning)
+    private val uavklartSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
+
+    private val vilkårsvurdertInnvilgetSøknadsbehandling = søknadsbehandlingVilkårsvurdertInnvilget().second
+    private val beregnetSøknadsbehandling = vilkårsvurdertInnvilgetSøknadsbehandling.beregn(
+        begrunnelse = null,
+        clock = fixedClock,
+    ).getOrFail()
     private val simulertSøknadsbehandling = beregnetSøknadsbehandling.tilSimulert(mock())
     private val tilAttesteringSøknadsbehandling =
         simulertSøknadsbehandling.tilAttestering(NavIdentBruker.Saksbehandler("saks"), "")

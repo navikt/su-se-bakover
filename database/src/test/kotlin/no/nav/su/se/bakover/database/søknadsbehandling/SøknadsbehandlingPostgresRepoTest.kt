@@ -8,9 +8,12 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøknadMedOppgave
 import no.nav.su.se.bakover.database.antall
+import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
 import no.nav.su.se.bakover.database.beregning.toSnapshot
@@ -27,13 +30,12 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
@@ -41,16 +43,23 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
-import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
+import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.innvilgetUførevilkår
+import no.nav.su.se.bakover.test.simuleringFeilutbetaling
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
 internal class SøknadsbehandlingPostgresRepoTest {
@@ -164,7 +173,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
-            val uavklartVilkårsvurdering = testDataHelper.nySøknadsbehandling().also {
+            val innvilgetVilkårsvurdering = testDataHelper.nyInnvilgetVilkårsvurdering().also {
                 val behandlingId = it.id
                 repo.hent(behandlingId) shouldBe it
                 dataSource.withSession { session ->
@@ -175,29 +184,17 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 }
             }
 
-            val innvilgetVilkårsvurdering = uavklartVilkårsvurdering.copy(
-                grunnlagsdata = Grunnlagsdata.create(
-                    bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = uavklartVilkårsvurdering.periode)),
-                ),
-                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                    uføre = innvilgetUførevilkår(periode = uavklartVilkårsvurdering.periode),
-                ),
-            ).tilVilkårsvurdert(
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                clock = fixedClock,
-            ).also {
-                testDataHelper.lagreVilkårOgGrunnlag(it.id, it.vilkårsvurderinger, it.grunnlagsdata)
-                repo.lagre(it)
-            }
-
             val beregnet = innvilgetVilkårsvurdering
-                .tilBeregnet(beregning = innvilgetBeregning())
+                .beregn(
+                    begrunnelse = null,
+                    clock = fixedClock,
+                ).getOrFail()
                 .also {
                     repo.lagre(it)
                     repo.hent(it.id) shouldBe it.persistertVariant()
                     dataSource.withSession { session ->
                         "select * from behandling where id = :id".hent(
-                            mapOf("id" to uavklartVilkårsvurdering.id),
+                            mapOf("id" to innvilgetVilkårsvurdering.id),
                             session,
                         ) { row ->
                             row.stringOrNull("beregning") shouldNotBe null
@@ -206,11 +203,14 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     }
                 }
             val simulert = beregnet.tilSimulert(simulering(beregnet.fnr))
-                .also {
-                    repo.lagre(it)
-                    repo.hent(it.id) shouldBe it.persistertVariant()
+                .also { simulert ->
+                    repo.lagre(simulert)
+                    repo.hent(simulert.id) shouldBe simulert.persistertVariant()
                     dataSource.withSession {
-                        "select * from behandling where id = :id".hent(mapOf("id" to uavklartVilkårsvurdering.id), it) {
+                        "select * from behandling where id = :id".hent(
+                            mapOf("id" to innvilgetVilkårsvurdering.id),
+                            it,
+                        ) {
                             it.stringOrNull("beregning") shouldNotBe null
                             it.stringOrNull("simulering") shouldNotBe null
                         }
@@ -218,11 +218,14 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 }
             // Tilbake til vilkårsvurdert
             simulert.tilVilkårsvurdert(behandlingsinformasjonMedAlleVilkårOppfylt, clock = fixedClock)
-                .also {
-                    repo.lagre(it)
-                    repo.hent(it.id) shouldBe it.persistertVariant()
+                .also { vilkårsvurdert ->
+                    repo.lagre(vilkårsvurdert)
+                    repo.hent(vilkårsvurdert.id) shouldBe vilkårsvurdert.persistertVariant()
                     dataSource.withSession {
-                        "select * from behandling where id = :id".hent(mapOf("id" to uavklartVilkårsvurdering.id), it) {
+                        "select * from behandling where id = :id".hent(
+                            mapOf("id" to innvilgetVilkårsvurdering.id),
+                            it,
+                        ) {
                             it.stringOrNull("beregning") shouldBe null
                             it.stringOrNull("simulering") shouldBe null
                         }
@@ -259,6 +262,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         grunnlagsdata = tilAttestering.grunnlagsdata,
                         vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
                         attesteringer = Attesteringshistorikk.empty(),
+                        avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                     ).persistertVariant()
                 }
             }
@@ -290,6 +294,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         grunnlagsdata = tilAttestering.grunnlagsdata,
                         vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
                         attesteringer = Attesteringshistorikk.empty(),
+                        avkorting = AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående),
                     )
                 }
             }
@@ -321,6 +326,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     grunnlagsdata = tilAttestering.grunnlagsdata,
                     vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
                     attesteringer = Attesteringshistorikk.empty(),
+                    avkorting = AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående),
                 ).persistertVariant()
             }
         }
@@ -354,6 +360,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         stønadsperiode = stønadsperiode,
                         grunnlagsdata = tilAttestering.grunnlagsdata,
                         vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
+                        avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                     ).persistertVariant()
                 }
             }
@@ -385,6 +392,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         stønadsperiode = stønadsperiode,
                         grunnlagsdata = tilAttestering.grunnlagsdata,
                         vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
+                        avkorting = AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående),
                     )
                 }
             }
@@ -416,6 +424,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     stønadsperiode = stønadsperiode,
                     grunnlagsdata = tilAttestering.grunnlagsdata,
                     vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
+                    avkorting = AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere(håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående),
                 ).persistertVariant()
             }
         }
@@ -456,6 +465,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 stønadsperiode = stønadsperiode,
                 grunnlagsdata = iverksatt.grunnlagsdata,
                 vilkårsvurderinger = iverksatt.vilkårsvurderinger,
+                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+                ),
             )
             repo.hent(iverksatt.id).also {
                 it shouldBe expected
@@ -485,6 +497,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 stønadsperiode = stønadsperiode,
                 grunnlagsdata = iverksatt.grunnlagsdata,
                 vilkårsvurderinger = iverksatt.vilkårsvurderinger,
+                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+                ),
             )
         }
     }
@@ -537,6 +552,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     grunnlagsdata = iverksatt.grunnlagsdata,
                     vilkårsvurderinger = iverksatt.vilkårsvurderinger.copy(
                         uføre = vurderingUførhet,
+                    ),
+                    avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                        håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
                     ),
                 )
             }
@@ -609,7 +627,103 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 ),
                 grunnlagsdata = opprettet.grunnlagsdata,
                 vilkårsvurderinger = opprettet.vilkårsvurderinger,
+                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+                ),
             )
+        }
+    }
+
+    @Test
+    fun `gjør ingenting med avkorting dersom ingenting har blitt avkortet`() {
+        withMigratedDb { dataSource ->
+            val iverksattInnvilgetUtenAvkorting = søknadsbehandlingIverksattInnvilget().second
+            val iverksattAvslagMedBeregning = søknadsbehandlingIverksattAvslagMedBeregning().second
+            val iverksattAvslagUtenBeregning = søknadsbehandlingIverksattAvslagUtenBeregning().second
+
+            val avkortingsvarselRepoMock = mock<AvkortingsvarselPostgresRepo>()
+
+            val sessionFactory = PostgresSessionFactory(dataSource)
+
+            val repo = SøknadsbehandlingPostgresRepo(
+                dataSource = mock(),
+                fradragsgrunnlagPostgresRepo = mock(),
+                bosituasjongrunnlagRepo = mock(),
+                uføreVilkårsvurderingRepo = mock(),
+                dbMetrics = mock(),
+                sessionFactory = PostgresSessionFactory(dataSource),
+                utenlandsoppholdVilkårsvurderingRepo = mock(),
+                avkortingsvarselRepo = avkortingsvarselRepoMock,
+            )
+
+            repo.lagre(
+                søknadsbehandling = iverksattInnvilgetUtenAvkorting,
+                sessionContext = sessionFactory.newTransactionContext(),
+            )
+            iverksattInnvilgetUtenAvkorting.avkorting shouldBe AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående
+
+            repo.lagre(
+                søknadsbehandling = iverksattAvslagMedBeregning,
+                sessionContext = sessionFactory.newTransactionContext(),
+            )
+            iverksattAvslagMedBeregning.avkorting shouldBe AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+            )
+
+            repo.lagre(
+                søknadsbehandling = iverksattAvslagUtenBeregning,
+                sessionContext = sessionFactory.newTransactionContext(),
+            )
+            iverksattAvslagUtenBeregning.avkorting shouldBe AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+            )
+
+            verifyNoInteractions(avkortingsvarselRepoMock)
+        }
+    }
+
+    @Test
+    fun `oppdaterer avkorting ved lagring av iverksatt innvilget søknadsbehandling med avkorting`() {
+        withMigratedDb { dataSource ->
+            val avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
+                avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+                    objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                        sakId = UUID.randomUUID(),
+                        revurderingId = UUID.randomUUID(),
+                        simulering = simuleringFeilutbetaling(juni(2021)),
+                    ),
+                ),
+            ).håndter().iverksett(UUID.randomUUID())
+
+            val iverksattInnvilgetAvkortet = søknadsbehandlingIverksattInnvilget().let { (_, iverksatt) ->
+                iverksatt.copy(avkorting = avkorting)
+            }
+
+            val avkortingsvarselRepoMock = mock<AvkortingsvarselPostgresRepo>()
+
+            val sessionFactory = PostgresSessionFactory(dataSource)
+
+            val repo = SøknadsbehandlingPostgresRepo(
+                dataSource = mock(),
+                fradragsgrunnlagPostgresRepo = mock(),
+                bosituasjongrunnlagRepo = mock(),
+                uføreVilkårsvurderingRepo = mock(),
+                dbMetrics = mock(),
+                sessionFactory = PostgresSessionFactory(dataSource),
+                utenlandsoppholdVilkårsvurderingRepo = mock(),
+                avkortingsvarselRepo = avkortingsvarselRepoMock,
+            )
+
+            repo.lagre(
+                søknadsbehandling = iverksattInnvilgetAvkortet,
+                sessionContext = sessionFactory.newTransactionContext(),
+            )
+
+            verify(avkortingsvarselRepoMock).lagre(
+                avkortingsvarsel = argThat<Avkortingsvarsel.Utenlandsopphold.Avkortet> { it shouldBe avkorting.avkortingsvarsel },
+                tx = anyOrNull(),
+            )
+            verifyNoMoreInteractions(avkortingsvarselRepoMock)
         }
     }
 }

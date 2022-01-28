@@ -94,13 +94,21 @@ sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
         private fun fullstendigOpphør(): Boolean = nyBeregning.harAlleMånederMerknadForAvslag()
 
         private fun harAndreBeløpsendringerEnnMånederUnderMinstegrense(): Boolean {
-            return harBeløpsendringer(nyBeregning.getMånedsberegninger().filterNot { it.getMerknader().contains(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats) })
+            return harBeløpsendringer(
+                nyBeregning.getMånedsberegninger()
+                    .filterNot {
+                        it.getMerknader().contains(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
+                    },
+            )
         }
 
         private fun harAndreBeløpsendringerEnnMånederMedBeløp0(): Boolean {
             return harBeløpsendringer(
                 nyBeregning.getMånedsberegninger()
-                    .filterNot { !it.getMerknader().contains(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats) && it.getSumYtelse() == 0 },
+                    .filterNot {
+                        !it.getMerknader()
+                            .contains(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats) && it.getSumYtelse() == 0
+                    },
             )
         }
 

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
@@ -33,6 +34,7 @@ internal data class RevurderingServiceMocks(
     val sakService: SakService = mock(),
     val kontrollsamtaleService: KontrollsamtaleService = mock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
+    val avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
 ) {
     val revurderingService = RevurderingServiceImpl(
         utbetalingService = utbetalingService,
@@ -48,7 +50,8 @@ internal data class RevurderingServiceMocks(
         vedtakService = vedtakService,
         sakService = sakService,
         kontrollsamtaleService = kontrollsamtaleService,
-        sessionFactory = sessionFactory
+        sessionFactory = sessionFactory,
+        avkortingsvarselRepo = avkortingsvarselRepo,
     )
 
     fun all() = listOf(
@@ -64,6 +67,7 @@ internal data class RevurderingServiceMocks(
         grunnlagService,
         vilkårsvurderingService,
         sakService,
+        avkortingsvarselRepo,
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {

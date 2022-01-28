@@ -78,6 +78,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             ),
             behandling.vilkårsvurderinger,
             behandling.attesteringer,
+            behandling.avkorting,
         )
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })

@@ -200,7 +200,7 @@ internal class SøknadRoutesKtTest {
                 clock = fixedClock,
             )
 
-            val clients = TestClientsBuilder.build(applicationConfig).copy(
+            val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
                 pdfGenerator = pdfGenerator,
                 dokArkiv = dokArkiv,
                 personOppslag = personOppslag,

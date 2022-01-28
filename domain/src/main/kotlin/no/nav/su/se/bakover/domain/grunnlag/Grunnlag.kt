@@ -122,10 +122,8 @@ sealed class Grunnlag {
         }
 
         override fun erLik(other: Grunnlag): Boolean {
-            if (other !is Fradragsgrunnlag) {
-                return false
-            }
-            return this.periode tilstøter other.periode &&
+            return other is Fradragsgrunnlag &&
+                this.periode tilstøter other.periode &&
                 this.fradrag.fradragstype == other.fradragstype &&
                 this.fradrag.månedsbeløp == other.månedsbeløp &&
                 this.fradrag.utenlandskInntekt == other.utenlandskInntekt &&

@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsplan
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
@@ -20,14 +22,18 @@ import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fjernInntekterForEPSDersomFradragIkkeErKonsistentMedOppdatertBosituasjon
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.Vilkårsvurdert.Companion.opprett
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -48,6 +54,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     abstract override val grunnlagsdata: Grunnlagsdata
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling
     abstract override val attesteringer: Attesteringshistorikk
+    abstract val avkorting: AvkortingVedSøknadsbehandling
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
     abstract val fritekstTilBrev: String
@@ -66,7 +73,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     sealed class KunneIkkeLeggeTilFradragsgrunnlag {
-        object IkkeLovÅLeggeTilFradragIDenneStatusen : KunneIkkeLeggeTilFradragsgrunnlag()
+        data class IkkeLovÅLeggeTilFradragIDenneStatusen(val status: KClass<out Søknadsbehandling>) :
+            KunneIkkeLeggeTilFradragsgrunnlag()
+
         object GrunnlagetMåVæreInneforBehandlingsperioden : KunneIkkeLeggeTilFradragsgrunnlag()
         object PeriodeMangler : KunneIkkeLeggeTilFradragsgrunnlag()
         data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
@@ -99,7 +108,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     open fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
-        KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
+        KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(this::class).left()
 
     fun oppdaterBosituasjon(
         bosituasjon: Grunnlag.Bosituasjon,
@@ -154,6 +163,41 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ).left()
     }
 
+    open fun oppdaterStønadsperiode(
+        oppdatertStønadsperiode: Stønadsperiode,
+        clock: Clock,
+    ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+        return KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
+    }
+
+    sealed class KunneIkkeOppdatereStønadsperiode {
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Vilkårsvurdert> = Vilkårsvurdert::class,
+        ) : KunneIkkeOppdatereStønadsperiode()
+
+        data class KunneIkkeOppdatereGrunnlagsdata(
+            val feil: KunneIkkeLageGrunnlagsdata,
+        ) : KunneIkkeOppdatereStønadsperiode()
+    }
+
+    open fun beregn(
+        begrunnelse: String?,
+        clock: Clock,
+    ): Either<KunneIkkeBeregne, Beregnet> {
+        return KunneIkkeBeregne.UgyldigTilstand(this::class).left()
+    }
+
+    sealed class KunneIkkeBeregne {
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Beregnet> = Beregnet::class,
+        ) : KunneIkkeBeregne()
+
+        data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilFradragsgrunnlag) : KunneIkkeBeregne()
+        object AvkortingErUfullstendig : KunneIkkeBeregne()
+    }
+
     protected open fun valider(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilUtenlandsopphold, Unit> {
         return when {
             utenlandsopphold.vurderingsperioder.size != 1 -> {
@@ -197,7 +241,143 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUførevilkår()
     }
 
+    protected fun beregnInternal(
+        søknadsbehandling: Vilkårsvurdert,
+        begrunnelse: String?,
+        clock: Clock,
+    ): Either<KunneIkkeBeregne, Beregnet> {
+        return when (val avkort = søknadsbehandling.avkorting) {
+            is AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående -> {
+                beregnUtenAvkorting(
+                    begrunnelse = begrunnelse,
+                    clock = clock,
+                ).getOrHandle { return it.left() }
+            }
+            is AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere -> {
+                throw IllegalStateException("${avkort::class} skal aldri kunne oppstå ved beregning. Modellen er dog nødt å støtte dette tilfellet pga at alle tilstander av avslutt/lukking må støttes.")
+            }
+            is AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting -> {
+                beregnMedAvkorting(
+                    avkorting = avkort,
+                    begrunnelse = begrunnelse,
+                    clock = clock,
+                ).getOrHandle { return it.left() }
+            }
+        }.let { (behandling, beregning) ->
+            when (VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
+                is AvslagGrunnetBeregning.Ja -> Beregnet.Avslag(
+                    id = behandling.id,
+                    opprettet = behandling.opprettet,
+                    sakId = behandling.sakId,
+                    saksnummer = behandling.saksnummer,
+                    søknad = behandling.søknad,
+                    oppgaveId = behandling.oppgaveId,
+                    behandlingsinformasjon = behandling.behandlingsinformasjon,
+                    fnr = behandling.fnr,
+                    beregning = beregning,
+                    fritekstTilBrev = behandling.fritekstTilBrev,
+                    stønadsperiode = behandling.stønadsperiode!!,
+                    grunnlagsdata = behandling.grunnlagsdata,
+                    vilkårsvurderinger = behandling.vilkårsvurderinger,
+                    attesteringer = behandling.attesteringer,
+                    avkorting = behandling.avkorting.håndter().kanIkke(),
+                )
+                AvslagGrunnetBeregning.Nei -> {
+                    Beregnet.Innvilget(
+                        id = behandling.id,
+                        opprettet = behandling.opprettet,
+                        sakId = behandling.sakId,
+                        saksnummer = behandling.saksnummer,
+                        søknad = behandling.søknad,
+                        oppgaveId = behandling.oppgaveId,
+                        behandlingsinformasjon = behandling.behandlingsinformasjon,
+                        fnr = behandling.fnr,
+                        beregning = beregning,
+                        fritekstTilBrev = behandling.fritekstTilBrev,
+                        stønadsperiode = behandling.stønadsperiode!!,
+                        grunnlagsdata = behandling.grunnlagsdata,
+                        vilkårsvurderinger = behandling.vilkårsvurderinger,
+                        attesteringer = behandling.attesteringer,
+                        avkorting = behandling.avkorting.håndter(),
+                    )
+                }
+            }.right()
+        }
+    }
+
+    /**
+     * Beregner uten å ta hensyn til avkorting. Fjerner eventuelle [Fradragstype.AvkortingUtenlandsopphold] som måtte
+     * ligge i grunnlaget
+     */
+    private fun beregnUtenAvkorting(
+        begrunnelse: String?,
+        clock: Clock,
+    ): Either<KunneIkkeBeregne, Pair<Vilkårsvurdert, Beregning>> {
+        return leggTilFradragsgrunnlag(
+            grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
+        ).getOrHandle {
+            return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left()
+        }.let {
+            it to gjørBeregning(
+                søknadsbehandling = it,
+                begrunnelse = begrunnelse,
+                clock = clock,
+            )
+        }.right()
+    }
+
+    private fun gjørBeregning(
+        søknadsbehandling: Søknadsbehandling,
+        begrunnelse: String?,
+        clock: Clock,
+    ): Beregning {
+        return BeregningStrategyFactory(clock).beregn(
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+                grunnlagsdata = søknadsbehandling.grunnlagsdata,
+                vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger,
+            ),
+            beregningsPeriode = søknadsbehandling.periode,
+            begrunnelse = begrunnelse,
+        )
+    }
+
+    /**
+     * Restbeløpet etter andre fradrag er faktorert inn av [beregnUtenAvkorting] er maksimalt beløp som kan avkortes.
+     */
+    private fun beregnMedAvkorting(
+        avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting,
+        begrunnelse: String?,
+        clock: Clock,
+    ): Either<KunneIkkeBeregne, Pair<Vilkårsvurdert, Beregning>> {
+        return beregnUtenAvkorting(begrunnelse, clock)
+            .map { (utenAvkorting, beregningUtenAvkorting) ->
+                val fradragForAvkorting = Avkortingsplan(
+                    feilutbetaltBeløp = avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum(),
+                    beregning = beregningUtenAvkorting,
+                    clock = clock,
+                ).lagFradrag().getOrHandle {
+                    return when (it) {
+                        Avkortingsplan.KunneIkkeLageAvkortingsplan.AvkortingErUfullstendig -> {
+                            KunneIkkeBeregne.AvkortingErUfullstendig.left()
+                        }
+                    }
+                }
+
+                val medAvkorting = utenAvkorting.leggTilFradragsgrunnlag(
+                    utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
+                ).getOrHandle { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
+
+                medAvkorting to gjørBeregning(
+                    søknadsbehandling = medAvkorting,
+                    begrunnelse = begrunnelse,
+                    clock = clock,
+                )
+            }
+    }
+
     sealed class Vilkårsvurdert : Søknadsbehandling() {
+        abstract override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
+
         fun tilVilkårsvurdert(
             behandlingsinformasjon: Behandlingsinformasjon,
             grunnlagsdata: Grunnlagsdata = this.grunnlagsdata,
@@ -218,24 +398,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkårsvurderinger,
                 attesteringer,
                 clock,
-            )
-
-        fun tilBeregnet(beregning: Beregning): Beregnet =
-            Beregnet.opprett(
-                id,
-                opprettet,
-                sakId,
-                saksnummer,
-                søknad,
-                oppgaveId,
-                behandlingsinformasjon,
-                fnr,
-                beregning,
-                fritekstTilBrev,
-                stønadsperiode!!,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                attesteringer,
+                avkorting,
             )
 
         companion object {
@@ -254,6 +417,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 attesteringer: Attesteringshistorikk,
                 clock: Clock,
+                avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
             ): Vilkårsvurdert {
                 val oppdaterteVilkårsvurderinger = vilkårsvurderinger.oppdater(
                     stønadsperiode = stønadsperiode!!,
@@ -277,6 +441,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             grunnlagsdata,
                             oppdaterteVilkårsvurderinger,
                             attesteringer,
+                            avkorting.kanIkke(),
                         )
                     }
                     is Vilkårsvurderingsresultat.Innvilget -> {
@@ -294,6 +459,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             grunnlagsdata,
                             oppdaterteVilkårsvurderinger,
                             attesteringer,
+                            avkorting.uhåndtert(),
                         )
                     }
                     is Vilkårsvurderingsresultat.Uavklart -> {
@@ -311,6 +477,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             grunnlagsdata,
                             oppdaterteVilkårsvurderinger,
                             attesteringer,
+                            avkorting.kanIkke(),
                         )
                     }
                 }
@@ -331,6 +498,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
+            override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
         ) : Vilkårsvurdert() {
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
@@ -365,6 +533,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     },
                     vilkårsvurderinger,
                     attesteringer,
+                    avkorting,
                 ).right()
             }
 
@@ -394,6 +563,36 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
+
+            override fun beregn(
+                begrunnelse: String?,
+                clock: Clock,
+            ): Either<KunneIkkeBeregne, Beregnet> {
+                return beregnInternal(
+                    søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock),
+                    begrunnelse = begrunnelse,
+                    clock = clock,
+                )
+            }
+
+            override fun oppdaterStønadsperiode(
+                oppdatertStønadsperiode: Stønadsperiode,
+                clock: Clock,
+            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                return copy(
+                    stønadsperiode = oppdatertStønadsperiode,
+                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                        oppdatertPeriode = oppdatertStønadsperiode.periode,
+                    ).getOrHandle {
+                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                    },
+                ).vilkårsvurder(
+                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                        stønadsperiode = oppdatertStønadsperiode,
+                    ),
+                    clock = clock,
+                ).right()
+            }
         }
 
         data class Avslag(
@@ -410,6 +609,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
+            override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
         ) : Vilkårsvurdert(), ErAvslag {
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
@@ -438,6 +638,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdata,
                     vilkårsvurderinger,
                     attesteringer,
+                    avkorting.håndter().kanIkke(),
                 )
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -473,6 +674,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
+
+            override fun oppdaterStønadsperiode(
+                oppdatertStønadsperiode: Stønadsperiode,
+                clock: Clock,
+            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                return copy(
+                    stønadsperiode = oppdatertStønadsperiode,
+                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                        oppdatertPeriode = oppdatertStønadsperiode.periode,
+                    ).getOrHandle {
+                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                    },
+                ).vilkårsvurder(
+                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                        stønadsperiode = oppdatertStønadsperiode,
+                    ),
+                    clock = clock,
+                ).right()
+            }
         }
 
         data class Uavklart(
@@ -489,6 +709,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
+            override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
         ) : Vilkårsvurdert() {
 
             override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
@@ -526,6 +747,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
 
+            override fun oppdaterStønadsperiode(
+                oppdatertStønadsperiode: Stønadsperiode,
+                clock: Clock,
+            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                return copy(
+                    stønadsperiode = oppdatertStønadsperiode,
+                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                        oppdatertPeriode = oppdatertStønadsperiode.periode,
+                    ).getOrHandle {
+                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                    },
+                ).vilkårsvurder(
+                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                        stønadsperiode = oppdatertStønadsperiode,
+                    ),
+                    clock = clock,
+                ).right()
+            }
+
             data class StønadsperiodeIkkeDefinertException(
                 val id: UUID,
             ) : RuntimeException("Sønadsperiode er ikke definert for søknadsbehandling:$id")
@@ -536,13 +776,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract override val behandlingsinformasjon: Behandlingsinformasjon
         abstract val beregning: Beregning
         abstract override val stønadsperiode: Stønadsperiode
+        abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
 
         fun tilVilkårsvurdert(
             behandlingsinformasjon: Behandlingsinformasjon,
             grunnlagsdata: Grunnlagsdata = this.grunnlagsdata,
             clock: Clock,
         ): Vilkårsvurdert =
-            Vilkårsvurdert.opprett(
+            opprett(
                 id,
                 opprettet,
                 sakId,
@@ -557,25 +798,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkårsvurderinger,
                 attesteringer,
                 clock,
+                avkorting.uhåndtert(),
             )
 
-        fun tilBeregnet(beregning: Beregning): Beregnet =
-            opprett(
-                id,
-                opprettet,
-                sakId,
-                saksnummer,
-                søknad,
-                oppgaveId,
-                behandlingsinformasjon,
-                fnr,
-                beregning,
-                fritekstTilBrev,
-                stønadsperiode,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                attesteringer,
-            )
+        abstract override fun beregn(
+            begrunnelse: String?,
+            clock: Clock,
+        ): Either<KunneIkkeBeregne, Beregnet>
 
         fun tilSimulert(simulering: Simulering): Simulert =
             Simulert(
@@ -594,60 +823,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdata,
                 vilkårsvurderinger,
                 attesteringer,
+                avkorting,
             )
-
-        companion object {
-            fun opprett(
-                id: UUID,
-                opprettet: Tidspunkt,
-                sakId: UUID,
-                saksnummer: Saksnummer,
-                søknad: Søknad.Journalført.MedOppgave,
-                oppgaveId: OppgaveId,
-                behandlingsinformasjon: Behandlingsinformasjon,
-                fnr: Fnr,
-                beregning: Beregning,
-                fritekstTilBrev: String,
-                stønadsperiode: Stønadsperiode,
-                grunnlagsdata: Grunnlagsdata,
-                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-                attesteringer: Attesteringshistorikk,
-            ): Beregnet =
-                when (VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                    is AvslagGrunnetBeregning.Ja -> Avslag(
-                        id,
-                        opprettet,
-                        sakId,
-                        saksnummer,
-                        søknad,
-                        oppgaveId,
-                        behandlingsinformasjon,
-                        fnr,
-                        beregning,
-                        fritekstTilBrev,
-                        stønadsperiode,
-                        grunnlagsdata,
-                        vilkårsvurderinger,
-                        attesteringer,
-                    )
-                    AvslagGrunnetBeregning.Nei -> Innvilget(
-                        id,
-                        opprettet,
-                        sakId,
-                        saksnummer,
-                        søknad,
-                        oppgaveId,
-                        behandlingsinformasjon,
-                        fnr,
-                        beregning,
-                        fritekstTilBrev,
-                        stønadsperiode,
-                        grunnlagsdata,
-                        vilkårsvurderinger,
-                        attesteringer,
-                    )
-                }
-        }
 
         data class Innvilget(
             override val id: UUID,
@@ -664,6 +841,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
+            override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
         ) : Beregnet() {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
             override val periode: Periode = stønadsperiode.periode
@@ -696,6 +874,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     },
                     vilkårsvurderinger,
                     attesteringer,
+                    avkorting.uhåndtert(),
                 ).right()
             }
 
@@ -718,12 +897,42 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 )
             }
 
+            override fun beregn(
+                begrunnelse: String?,
+                clock: Clock,
+            ): Either<KunneIkkeBeregne, Beregnet> {
+                return beregnInternal(
+                    søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock),
+                    begrunnelse = begrunnelse,
+                    clock = clock,
+                )
+            }
+
             override fun leggTilUførevilkår(
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+            }
+
+            override fun oppdaterStønadsperiode(
+                oppdatertStønadsperiode: Stønadsperiode,
+                clock: Clock,
+            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                return copy(
+                    stønadsperiode = oppdatertStønadsperiode,
+                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                        oppdatertPeriode = oppdatertStønadsperiode.periode,
+                    ).getOrHandle {
+                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                    },
+                ).vilkårsvurder(
+                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                        stønadsperiode = oppdatertStønadsperiode,
+                    ),
+                    clock = clock,
+                ).right()
             }
         }
 
@@ -742,6 +951,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
+            override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
         ) : Beregnet(), ErAvslag {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
             override val periode: Periode = stønadsperiode.periode
@@ -776,6 +986,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     },
                     vilkårsvurderinger,
                     attesteringer,
+                    avkorting.uhåndtert(),
                 ).right()
             }
 
@@ -803,6 +1014,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdata,
                     vilkårsvurderinger,
                     attesteringer,
+                    avkorting.kanIkke(),
                 )
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -831,12 +1043,42 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 )
             }
 
+            override fun beregn(
+                begrunnelse: String?,
+                clock: Clock,
+            ): Either<KunneIkkeBeregne, Beregnet> {
+                return beregnInternal(
+                    søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock),
+                    begrunnelse = begrunnelse,
+                    clock = clock,
+                )
+            }
+
             override fun leggTilUførevilkår(
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+            }
+
+            override fun oppdaterStønadsperiode(
+                oppdatertStønadsperiode: Stønadsperiode,
+                clock: Clock,
+            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                return copy(
+                    stønadsperiode = oppdatertStønadsperiode,
+                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                        oppdatertPeriode = oppdatertStønadsperiode.periode,
+                    ).getOrHandle {
+                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                    },
+                ).vilkårsvurder(
+                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                        stønadsperiode = oppdatertStønadsperiode,
+                    ),
+                    clock = clock,
+                ).right()
             }
         }
     }
@@ -857,6 +1099,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
         override val attesteringer: Attesteringshistorikk,
+        override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
     ) : Søknadsbehandling() {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
         override val periode: Periode = stønadsperiode.periode
@@ -887,6 +1130,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 ).getOrHandle { return KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(it).left() },
                 vilkårsvurderinger,
                 attesteringer,
+                avkorting.uhåndtert(),
             ).right()
         }
 
@@ -895,7 +1139,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             grunnlagsdata: Grunnlagsdata = this.grunnlagsdata,
             clock: Clock,
         ): Vilkårsvurdert =
-            Vilkårsvurdert.opprett(
+            opprett(
                 id,
                 opprettet,
                 sakId,
@@ -910,25 +1154,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkårsvurderinger,
                 attesteringer,
                 clock,
+                avkorting.uhåndtert(),
             )
 
-        fun tilBeregnet(beregning: Beregning): Beregnet =
-            Beregnet.opprett(
-                id,
-                opprettet,
-                sakId,
-                saksnummer,
-                søknad,
-                oppgaveId,
-                behandlingsinformasjon,
-                fnr,
-                beregning,
-                fritekstTilBrev,
-                stønadsperiode,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                attesteringer,
+        override fun beregn(
+            begrunnelse: String?,
+            clock: Clock,
+        ): Either<KunneIkkeBeregne, Beregnet> {
+            return beregnInternal(
+                søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock),
+                begrunnelse = begrunnelse,
+                clock = clock,
             )
+        }
 
         fun tilSimulert(simulering: Simulering): Simulert =
             Simulert(
@@ -947,13 +1185,20 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdata,
                 vilkårsvurderinger,
                 attesteringer,
+                avkorting,
             )
 
         fun tilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
             fritekstTilBrev: String,
-        ): TilAttestering.Innvilget =
-            TilAttestering.Innvilget(
+        ): TilAttestering.Innvilget {
+            if (simulering.harFeilutbetalinger()) {
+                /**
+                 * Kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer.
+                 */
+                throw IllegalStateException("Simulering inneholder feilutbetalinger")
+            }
+            return TilAttestering.Innvilget(
                 id,
                 opprettet,
                 sakId,
@@ -970,7 +1215,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdata,
                 vilkårsvurderinger,
                 attesteringer,
+                avkorting,
             )
+        }
 
         override fun leggTilUtenlandsopphold(
             utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
@@ -998,6 +1245,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             return valider(uførhet)
                 .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
         }
+
+        override fun oppdaterStønadsperiode(
+            oppdatertStønadsperiode: Stønadsperiode,
+            clock: Clock,
+        ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+            return copy(
+                stønadsperiode = oppdatertStønadsperiode,
+                grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                    oppdatertPeriode = oppdatertStønadsperiode.periode,
+                ).getOrHandle {
+                    return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                },
+            ).vilkårsvurder(
+                vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                    stønadsperiode = oppdatertStønadsperiode,
+                ),
+                clock = clock,
+            ).right()
+        }
     }
 
     sealed class TilAttestering : Søknadsbehandling() {
@@ -1006,6 +1272,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract fun tilUnderkjent(attestering: Attestering): Underkjent
         abstract override val stønadsperiode: Stønadsperiode
         abstract override val attesteringer: Attesteringshistorikk
+        abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
 
         data class Innvilget(
             override val id: UUID,
@@ -1024,6 +1291,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
+            override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
         ) : TilAttestering() {
             override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_INNVILGET
             override val periode: Periode = stønadsperiode.periode
@@ -1054,6 +1322,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     stønadsperiode,
                     grunnlagsdata,
                     vilkårsvurderinger,
+                    avkorting,
                 )
             }
 
@@ -1075,6 +1344,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     stønadsperiode,
                     grunnlagsdata,
                     vilkårsvurderinger,
+                    avkorting.iverksett(id),
                 )
             }
         }
@@ -1098,6 +1368,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val attesteringer: Attesteringshistorikk,
+                override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
             ) : Avslag() {
 
                 // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -1133,6 +1404,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         stønadsperiode,
                         grunnlagsdata,
                         vilkårsvurderinger,
+                        avkorting,
                     )
                 }
 
@@ -1154,6 +1426,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         stønadsperiode,
                         grunnlagsdata,
                         vilkårsvurderinger,
+                        avkorting.iverksett(id),
                     )
                 }
             }
@@ -1174,6 +1447,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val attesteringer: Attesteringshistorikk,
+                override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
             ) : Avslag() {
 
                 private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
@@ -1216,6 +1490,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         stønadsperiode,
                         grunnlagsdata,
                         vilkårsvurderinger,
+                        avkorting,
                     )
                 }
 
@@ -1238,6 +1513,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         stønadsperiode,
                         grunnlagsdata,
                         vilkårsvurderinger,
+                        avkorting.iverksett(id),
                     )
                 }
             }
@@ -1256,6 +1532,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract val saksbehandler: NavIdentBruker.Saksbehandler
         abstract override val attesteringer: Attesteringshistorikk
         abstract override val stønadsperiode: Stønadsperiode
+        abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
 
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): Underkjent
 
@@ -1264,7 +1541,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             grunnlagsdata: Grunnlagsdata = this.grunnlagsdata,
             clock: Clock,
         ): Vilkårsvurdert =
-            Vilkårsvurdert.opprett(
+            opprett(
                 id,
                 opprettet,
                 sakId,
@@ -1279,6 +1556,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkårsvurderinger,
                 attesteringer,
                 clock,
+                avkorting.uhåndtert(),
             )
 
         data class Innvilget(
@@ -1298,6 +1576,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+            override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
         ) : Underkjent() {
 
             override fun nyOppgaveId(nyOppgaveId: OppgaveId): Innvilget {
@@ -1328,6 +1607,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     },
                     vilkårsvurderinger,
                     attesteringer,
+                    avkorting.uhåndtert(),
                 ).right()
             }
 
@@ -1338,23 +1618,16 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 visitor.visit(this)
             }
 
-            fun tilBeregnet(beregning: Beregning): Beregnet =
-                Beregnet.opprett(
-                    id,
-                    opprettet,
-                    sakId,
-                    saksnummer,
-                    søknad,
-                    oppgaveId,
-                    behandlingsinformasjon,
-                    fnr,
-                    beregning,
-                    fritekstTilBrev,
-                    stønadsperiode,
-                    grunnlagsdata,
-                    vilkårsvurderinger,
-                    attesteringer,
+            override fun beregn(
+                begrunnelse: String?,
+                clock: Clock,
+            ): Either<KunneIkkeBeregne, Beregnet> {
+                return beregnInternal(
+                    søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock),
+                    begrunnelse = begrunnelse,
+                    clock = clock,
                 )
+            }
 
             fun tilSimulert(simulering: Simulering): Simulert =
                 Simulert(
@@ -1373,10 +1646,17 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdata,
                     vilkårsvurderinger,
                     attesteringer,
+                    avkorting,
                 )
 
-            fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Innvilget =
-                TilAttestering.Innvilget(
+            fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Innvilget {
+                if (simulering.harFeilutbetalinger()) {
+                    /**
+                     * Kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer.
+                     */
+                    throw IllegalStateException("Simulering inneholder feilutbetalinger")
+                }
+                return TilAttestering.Innvilget(
                     id,
                     opprettet,
                     sakId,
@@ -1393,7 +1673,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdata,
                     vilkårsvurderinger,
                     attesteringer,
+                    avkorting,
                 )
+            }
 
             override fun leggTilUtenlandsopphold(
                 utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
@@ -1421,6 +1703,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
+
+            override fun oppdaterStønadsperiode(
+                oppdatertStønadsperiode: Stønadsperiode,
+                clock: Clock,
+            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                return copy(
+                    stønadsperiode = oppdatertStønadsperiode,
+                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                        oppdatertPeriode = oppdatertStønadsperiode.periode,
+                    ).getOrHandle {
+                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                    },
+                ).vilkårsvurder(
+                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                        stønadsperiode = oppdatertStønadsperiode,
+                    ),
+                    clock = clock,
+                ).right()
+            }
         }
 
         sealed class Avslag : Underkjent(), ErAvslag {
@@ -1440,6 +1741,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
@@ -1474,6 +1776,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         },
                         vilkårsvurderinger,
                         attesteringer,
+                        avkorting.uhåndtert(),
                     ).right()
                 }
 
@@ -1485,23 +1788,16 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     visitor.visit(this)
                 }
 
-                fun tilBeregnet(beregning: Beregning): Beregnet =
-                    Beregnet.opprett(
-                        id,
-                        opprettet,
-                        sakId,
-                        saksnummer,
-                        søknad,
-                        oppgaveId,
-                        behandlingsinformasjon,
-                        fnr,
-                        beregning,
-                        fritekstTilBrev,
-                        stønadsperiode,
-                        grunnlagsdata,
-                        vilkårsvurderinger,
-                        attesteringer,
+                override fun beregn(
+                    begrunnelse: String?,
+                    clock: Clock,
+                ): Either<KunneIkkeBeregne, Beregnet> {
+                    return beregnInternal(
+                        søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock),
+                        begrunnelse = begrunnelse,
+                        clock = clock,
                     )
+                }
 
                 fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Avslag.MedBeregning =
                     TilAttestering.Avslag.MedBeregning(
@@ -1520,6 +1816,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         grunnlagsdata,
                         vilkårsvurderinger,
                         attesteringer,
+                        avkorting,
                     )
 
                 // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -1555,6 +1852,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     return valider(uførhet)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
                 }
+
+                override fun oppdaterStønadsperiode(
+                    oppdatertStønadsperiode: Stønadsperiode,
+                    clock: Clock,
+                ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                    return copy(
+                        stønadsperiode = oppdatertStønadsperiode,
+                        grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                            oppdatertPeriode = oppdatertStønadsperiode.periode,
+                        ).getOrHandle {
+                            return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                        },
+                    ).vilkårsvurder(
+                        vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                            stønadsperiode = oppdatertStønadsperiode,
+                        ),
+                        clock = clock,
+                    ).right()
+                }
             }
 
             data class UtenBeregning(
@@ -1572,6 +1888,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
@@ -1600,6 +1917,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         grunnlagsdata,
                         vilkårsvurderinger,
                         attesteringer,
+                        avkorting,
                     )
 
                 // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -1635,6 +1953,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     return valider(uførhet)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
                 }
+
+                override fun oppdaterStønadsperiode(
+                    oppdatertStønadsperiode: Stønadsperiode,
+                    clock: Clock,
+                ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                    return copy(
+                        stønadsperiode = oppdatertStønadsperiode,
+                        grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                            oppdatertPeriode = oppdatertStønadsperiode.periode,
+                        ).getOrHandle {
+                            return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                        },
+                    ).vilkårsvurder(
+                        vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                            stønadsperiode = oppdatertStønadsperiode,
+                        ),
+                        clock = clock,
+                    ).right()
+                }
             }
         }
     }
@@ -1651,6 +1988,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract val saksbehandler: NavIdentBruker.Saksbehandler
         abstract override val attesteringer: Attesteringshistorikk
         abstract override val stønadsperiode: Stønadsperiode
+        abstract override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt
 
         data class Innvilget(
             override val id: UUID,
@@ -1669,6 +2007,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+            override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt,
         ) : Iverksatt() {
             override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
             override val periode: Periode = stønadsperiode.periode
@@ -1695,6 +2034,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
@@ -1732,6 +2072,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
@@ -1773,6 +2114,9 @@ sealed class KunneIkkeIverksette {
     object FantIkkePerson : KunneIkkeIverksette()
     object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeIverksette()
     object KunneIkkeGenerereVedtaksbrev : KunneIkkeIverksette()
+    object AvkortingErUfullstendig : KunneIkkeIverksette()
+    object HarBlittAnnullertAvEnAnnen : KunneIkkeIverksette()
+    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksette()
 }
 
 // Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.

@@ -114,7 +114,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
             ),
         )
 
-        nyBeregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats)
+        nyBeregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
 
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = periode2021,
@@ -147,7 +147,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
             ),
         )
 
-        nyBeregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.BeløpErNull)
+        nyBeregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpErNull)
 
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = periode2021,
@@ -200,7 +200,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
             ),
         )
 
-        nyBeregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats)
+        nyBeregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
 
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = periode2021,
@@ -228,7 +228,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
             ),
         )
 
-        nyBeregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.BeløpErNull)
+        nyBeregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpErNull)
 
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = periode2021,

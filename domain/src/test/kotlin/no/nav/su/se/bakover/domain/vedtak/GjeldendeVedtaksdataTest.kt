@@ -1,276 +1,146 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.beregning.BeregningFactory
-import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
-import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
-import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
+import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.utlandsoppholdAvslag
+import no.nav.su.se.bakover.test.vedtakRevurdering
+import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.mock
-import java.util.UUID
 
 internal class GjeldendeVedtaksdataTest {
     @Test
     fun `finner gjeldende vedtak for gitt dato`() {
-        val førstegangsvedtak = førstegangsvedtak(Periode.create(1.januar(2021), 31.desember(2021)))
-        val revurdering = revurdering(Periode.create(1.mai(2021), 31.desember(2021)), førstegangsvedtak)
+        val (sak, førstegangsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(
+                Periode.create(1.januar(2021), 31.desember(2021)), "",
+            ),
+        )
+        val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
+        val (_, revurderingsVedtak) = vedtakRevurdering(
+            revurderingsperiode = revurderingsperiode,
+            sakOgVedtakSomKanRevurderes = sak to førstegangsvedtak,
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = revurderingsperiode,
+                    arbeidsinntekt = 5000.0,
+                    tilhører = FradragTilhører.BRUKER,
+                )
+            )
+        )
         val data = GjeldendeVedtaksdata(
             periode = Periode.create(1.januar(2021), 31.desember(2021)),
             vedtakListe = nonEmptyListOf(
                 førstegangsvedtak,
-                revurdering,
+                revurderingsVedtak,
             ),
             clock = fixedClock,
         )
         data.gjeldendeVedtakPåDato(1.januar(2021)) shouldBe førstegangsvedtak
         data.gjeldendeVedtakPåDato(30.april(2021)) shouldBe førstegangsvedtak
-        data.gjeldendeVedtakPåDato(1.mai(2021)) shouldBe revurdering
-        data.gjeldendeVedtakPåDato(1.desember(2021)) shouldBe revurdering
-
+        data.gjeldendeVedtakPåDato(1.mai(2021)) shouldBe revurderingsVedtak
+        data.gjeldendeVedtakPåDato(1.desember(2021)) shouldBe revurderingsVedtak
         data.tidslinjeForVedtakErSammenhengende() shouldBe true
     }
 
     @Test
     fun `tidslinje inneholder hull mellom to vedtak`() {
-        val førstegangsvedtak = førstegangsvedtak(Periode.create(1.januar(2021), 31.mars(2021)))
-        val revurdering = revurdering(Periode.create(1.mai(2021), 31.desember(2021)), førstegangsvedtak)
-        val data = GjeldendeVedtaksdata(
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
-            vedtakListe = nonEmptyListOf(
-                førstegangsvedtak,
-                revurdering,
+        val (sak, førstegangsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(
+                Periode.create(1.januar(2021), 31.mars(2021)), "",
             ),
-            clock = fixedClock,
         )
 
-        data.gjeldendeVedtakPåDato(1.mars(2021)) shouldBe førstegangsvedtak
-        data.gjeldendeVedtakPåDato(1.april(2021)) shouldBe null
-        data.gjeldendeVedtakPåDato(1.desember(2021)) shouldBe revurdering
-        data.tidslinjeForVedtakErSammenhengende() shouldBe false
+        val (_, nyStønadsperiode) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(
+                Periode.create(1.mai(2021), 31.desember(2021)), "",
+            ),
+        )
+
+        sak.copy(
+            søknadsbehandlinger = sak.søknadsbehandlinger + nyStønadsperiode.behandling,
+            vedtakListe = sak.vedtakListe + nyStønadsperiode,
+        ).let {
+            val data = GjeldendeVedtaksdata(
+                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                vedtakListe = nonEmptyListOf(
+                    førstegangsvedtak as VedtakSomKanRevurderes,
+                    nyStønadsperiode as VedtakSomKanRevurderes,
+                ),
+                clock = fixedClock,
+            )
+            data.gjeldendeVedtakPåDato(1.mars(2021)) shouldBe førstegangsvedtak
+            data.gjeldendeVedtakPåDato(1.april(2021)) shouldBe null
+            data.gjeldendeVedtakPåDato(1.desember(2021)) shouldBe nyStønadsperiode
+            data.tidslinjeForVedtakErSammenhengende() shouldBe false
+        }
+    }
+
+    @Test
+    fun `håndterer at etterspurt periode ikke inneholder vedtaksdata`() {
+        val (_, førstegangsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(
+                Periode.create(1.januar(2021), 31.mars(2021)), "",
+            ),
+        )
+        val data = GjeldendeVedtaksdata(
+            periode = Periode.create(1.mai(2021), 31.desember(2021)),
+            vedtakListe = nonEmptyListOf(førstegangsvedtak as VedtakSomKanRevurderes),
+            clock = fixedClock,
+        )
+        data.gjeldendeVedtakPåDato(1.mai(2021)) shouldBe null
+        data.grunnlagsdata shouldBe Grunnlagsdata.IkkeVurdert
+        data.vilkårsvurderinger shouldBe Vilkårsvurderinger.Revurdering.IkkeVurdert
     }
 
     @Test
     fun `tidslinje inneholder bare et vedtak`() {
-        val førstegangsvedtak = førstegangsvedtak(Periode.create(1.januar(2021), 31.desember(2021)))
+        val (_, førstegangsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(
+                Periode.create(1.januar(2021), 31.desember(2021)), "",
+            ),
+        )
+
         val data = GjeldendeVedtaksdata(
             periode = Periode.create(1.januar(2021), 31.desember(2021)),
-            vedtakListe = nonEmptyListOf(
-                førstegangsvedtak,
-            ),
+            vedtakListe = nonEmptyListOf(førstegangsvedtak as VedtakSomKanRevurderes),
             clock = fixedClock,
         )
         data.tidslinjeForVedtakErSammenhengende() shouldBe true
     }
 
-    private fun førstegangsvedtak(periode: Periode) = VedtakSomKanRevurderes.fromSøknadsbehandling(
-        søknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            sakId = UUID.randomUUID(),
-            saksnummer = Saksnummer(9999),
-            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                sakId = UUID.randomUUID(),
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                journalpostId = JournalpostId(value = "journalpostId"),
-                oppgaveId = OppgaveId(value = "oppgaveId"),
+    @Test
+    fun `gjeldende vedtaksdata inngholder utbetalinger som skal avkortes`() {
+        val (sak, _) = vedtakRevurdering(
+            clock = TikkendeKlokke(),
+            revurderingsperiode = periode2021,
+            vilkårOverrides = listOf(
+                utlandsoppholdAvslag(
+                    periode = periode2021,
+                ),
+            ),
+        )
 
-            ),
-            oppgaveId = OppgaveId(value = "oppgaveId"),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-            fnr = Fnr.generer(),
-            beregning = BeregningFactory(clock = fixedClock).ny(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = periode,
-                sats = Sats.HØY,
-                fradrag = listOf(
-                    FradragFactory.ny(
-                        type = Fradragstype.ForventetInntekt,
-                        månedsbeløp = 0.0,
-                        periode = periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                    FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 5000.0,
-                        periode = periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ),
-                fradragStrategy = FradragStrategy.Enslig,
-                begrunnelse = "just becausre",
-            ),
-            simulering = mock(),
-            saksbehandler = NavIdentBruker.Saksbehandler("saks"),
-            attesteringer = Attesteringshistorikk.empty()
-                .leggTilNyAttestering(
-                    Attestering.Iverksatt(
-                        NavIdentBruker.Attestant("attestant"),
-                        fixedTidspunkt,
-                    ),
-                ),
-            fritekstTilBrev = "",
-            stønadsperiode = Stønadsperiode.create(
-                periode = periode,
-                begrunnelse = "",
-            ),
-            grunnlagsdata = Grunnlagsdata.create(
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = periode,
-                        begrunnelse = null,
-                    ),
-                ),
-            ),
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                uføre = Vilkår.Uførhet.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
-                            grunnlag = null,
-                            periode = periode,
-                            begrunnelse = null,
-                        ),
-                    ),
-                ),
-                formue = innvilgetFormueVilkår(periode),
-                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
-            ),
-        ),
-        utbetalingId = UUID30.randomUUID(),
-        clock = fixedClock,
-    )
-
-    private fun revurdering(periode: Periode, førstegangsvedtak: VedtakSomKanRevurderes.EndringIYtelse) = VedtakSomKanRevurderes.from(
-        revurdering = IverksattRevurdering.Innvilget(
-            id = UUID.randomUUID(),
-            periode = periode,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = førstegangsvedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
-            oppgaveId = OppgaveId(value = "oppgaveId"),
-            fritekstTilBrev = "",
-            revurderingsårsak = Revurderingsårsak(
-                årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                begrunnelse = Revurderingsårsak.Begrunnelse.create(value = "beg"),
-            ),
-            beregning = BeregningFactory(clock = fixedClock).ny(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = periode,
-                sats = Sats.HØY,
-                fradrag = listOf(
-                    FradragFactory.ny(
-                        type = Fradragstype.ForventetInntekt,
-                        månedsbeløp = 1000.0,
-                        periode = periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                    FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 4000.0,
-                        periode = periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ),
-                fradragStrategy = FradragStrategy.Enslig,
-                begrunnelse = "just becausre",
-            ),
-            attesteringer = Attesteringshistorikk.empty()
-                .leggTilNyAttestering(
-                    Attestering.Iverksatt(
-                        attestant = NavIdentBruker.Attestant(navIdent = "attestant"),
-                        fixedTidspunkt,
-                    ),
-                ),
-            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-            simulering = Simulering(
-                gjelderId = Fnr.generer(),
-                gjelderNavn = "",
-                datoBeregnet = 1.mai(2021),
-                nettoBeløp = 0,
-                periodeList = listOf(),
-            ),
-            grunnlagsdata = Grunnlagsdata.create(
-                fradragsgrunnlag = listOf(),
-                bosituasjon = listOf(),
-            ),
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                uføre = Vilkår.Uførhet.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
-                            grunnlag = null,
-                            periode = periode,
-                            begrunnelse = null,
-                        ),
-                    ),
-                ),
-                formue = innvilgetFormueVilkår(periode),
-                utenlandsopphold = utlandsoppholdInnvilget(periode = periode)
-            ),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(
-                revurderingsteg = mapOf(
-                    Revurderingsteg.Uførhet to Vurderingstatus.Vurdert,
-                    Revurderingsteg.Inntekt to Vurderingstatus.Vurdert,
-                ),
-            ),
-        ),
-        utbetalingId = UUID30.randomUUID(),
-        clock = fixedClock,
-    )
+        GjeldendeVedtaksdata(
+            periode = periode2021,
+            vedtakListe = NonEmptyList.fromListUnsafe(sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()),
+            clock = fixedClock,
+        ).let {
+            it.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold() shouldBe true
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web
 
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.grunnlag.FormueVilkårsvurderingRepo
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagRepo
@@ -43,6 +44,7 @@ object TestDatabaseBuilder {
         klageRepo: KlageRepo = mock(),
         klageVedtakRepo: KlagevedtakRepo = mock(),
         kontrollsamtaleRepo: KontrollsamtaleRepo = mock(),
+        avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
     ): DatabaseRepos {
         return DatabaseRepos(
             avstemming = avstemming,
@@ -64,6 +66,7 @@ object TestDatabaseBuilder {
             klageRepo = klageRepo,
             klageVedtakRepo = klageVedtakRepo,
             kontrollsamtaleRepo = kontrollsamtaleRepo,
+            avkortingsvarselRepo = avkortingsvarselRepo,
         )
     }
 }

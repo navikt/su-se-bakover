@@ -49,7 +49,7 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
      * Dersom beløpet er så lavt at det havner under minstegrensen må vi sjekke fradragsbeløpet opp mot 10%
      */
     private fun Månedsberegning.finnBeløpFor10ProsentSjekk(): Int {
-        return if (getMerknader().contains(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats)) {
+        return if (getMerknader().contains(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)) {
             getFradrag()
                 .filter { it.fradragstype == Fradragstype.UnderMinstenivå }
                 .sumOf { it.månedsbeløp }

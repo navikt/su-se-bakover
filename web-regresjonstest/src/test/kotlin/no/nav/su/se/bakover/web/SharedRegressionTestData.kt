@@ -148,8 +148,8 @@ object SharedRegressionTestData {
 
     internal fun Application.testSusebakover(
         clock: Clock = fixedClock,
-        clients: Clients = TestClientsBuilder.build(applicationConfig),
         databaseRepos: DatabaseRepos = databaseRepos(clock = clock),
+        clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),
         unleash: Unleash = FakeUnleash().apply { enableAll() },
         services: Services = ServiceBuilder.build(
             databaseRepos = databaseRepos,
@@ -185,7 +185,10 @@ object SharedRegressionTestData {
     }
 }
 
-object TestClientsBuilder : ClientsBuilder {
+data class TestClientsBuilder(
+    val clock: Clock,
+    val databaseRepos: DatabaseRepos,
+) : ClientsBuilder {
     private val testClients = Clients(
         oauth = AzureClientStub,
         personOppslag = PersonOppslagStub,
@@ -194,7 +197,7 @@ object TestClientsBuilder : ClientsBuilder {
         dokArkiv = DokArkivStub,
         oppgaveClient = OppgaveClientStub,
         kodeverk = mock(),
-        simuleringClient = SimuleringStub(fixedClock),
+        simuleringClient = SimuleringStub(fixedClock, databaseRepos.utbetaling),
         utbetalingPublisher = UtbetalingStub,
         dokDistFordeling = DokDistFordelingStub,
         avstemmingPublisher = AvstemmingStub,

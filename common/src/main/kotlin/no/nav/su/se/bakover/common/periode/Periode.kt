@@ -52,7 +52,7 @@ data class Periode private constructor(
         val startSlutt = Period.between(fraOgMed, other.tilOgMed)
         val plussEnDag = Period.ofDays(1)
         val minusEnDag = Period.ofDays(-1)
-        return sluttStart == plussEnDag || sluttStart == minusEnDag || startSlutt == plussEnDag || startSlutt == minusEnDag
+        return this == other || sluttStart == plussEnDag || sluttStart == minusEnDag || startSlutt == plussEnDag || startSlutt == minusEnDag
     }
 
     /**

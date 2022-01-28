@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.RotatingCredentials
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.StaticCredentials
+import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
@@ -133,6 +134,8 @@ object DatabaseBuilder {
             dbMetrics = dbMetrics,
         )
 
+        val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(sessionFactory)
+
         val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(
             dataSource = dataSource,
             fradragsgrunnlagPostgresRepo = fradragsgrunnlag,
@@ -141,6 +144,7 @@ object DatabaseBuilder {
             dbMetrics = dbMetrics,
             sessionFactory = sessionFactory,
             utenlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
+            avkortingsvarselRepo = avkortingsvarselRepo,
         )
         val klageRepo = KlagePostgresRepo(sessionFactory)
         val revurderingRepo = RevurderingPostgresRepo(
@@ -154,6 +158,7 @@ object DatabaseBuilder {
             klageRepo = klageRepo,
             dbMetrics = dbMetrics,
             sessionFactory = sessionFactory,
+            avkortingsvarselRepo = avkortingsvarselRepo,
         )
         val vedtakRepo = VedtakPostgresRepo(
             dataSource = dataSource,
@@ -187,7 +192,7 @@ object DatabaseBuilder {
                 revurderingRepo = revurderingRepo,
                 vedtakPostgresRepo = vedtakRepo,
                 dbMetrics = dbMetrics,
-                klageRepo = klageRepo
+                klageRepo = klageRepo,
             ),
             person = PersonPostgresRepo(
                 dataSource = dataSource,
@@ -206,6 +211,7 @@ object DatabaseBuilder {
             klageRepo = klageRepo,
             klageVedtakRepo = klageVedtakRepo,
             kontrollsamtaleRepo = kontrollsamtaleRepo,
+            avkortingsvarselRepo = avkortingsvarselRepo,
         )
     }
 }

@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
+import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -9,15 +12,52 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
+
+private data class UtbetalingRepoMock(
+    private val eksisterendeUtbetalinger: List<Utbetaling>,
+) : UtbetalingRepo {
+    override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling.OversendtUtbetaling? {
+        TODO("Not yet implemented")
+    }
+
+    override fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling.OversendtUtbetaling? {
+        TODO("Not yet implemented")
+    }
+
+    override fun hentUtbetalinger(sakId: UUID): List<Utbetaling> {
+        return eksisterendeUtbetalinger
+    }
+
+    override fun oppdaterMedKvittering(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering) {
+        TODO("Not yet implemented")
+    }
+
+    override fun opprettUtbetaling(
+        utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering,
+        transactionContext: TransactionContext,
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun hentUkvitterteUtbetalinger(): List<Utbetaling.OversendtUtbetaling.UtenKvittering> {
+        TODO("Not yet implemented")
+    }
+
+    override fun defaultTransactionContext(): TransactionContext {
+        TODO("Not yet implemented")
+    }
+}
 
 /**
  * Ved simulering av nye utbetalingslinjer (søknadsbehandling eller revurdering som fører til endring).
@@ -42,14 +82,17 @@ fun simuleringNy(
         uføregrunnlag = listOf(
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
+                opprettet = Tidspunkt.now(clock),
                 periode = beregning.periode,
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 0,
             ),
         ),
     ).generate().let {
-        SimuleringStub(clock).simulerUtbetaling(it)
+        SimuleringStub(
+            clock = nåtidForSimuleringStub, // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
+            utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
+        ).simulerUtbetaling(it)
     }.orNull()!!
 }
 
@@ -69,7 +112,10 @@ fun simuleringStans(
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         clock = clock,
     ).let {
-        SimuleringStub(clock).simulerUtbetaling(it)
+        SimuleringStub(
+            clock = clock,
+            utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
+        ).simulerUtbetaling(it)
     }.orNull()!!
 }
 
@@ -88,13 +134,16 @@ fun simuleringGjenopptak(
         behandler = saksbehandler,
         clock = clock,
     ).generer().let {
-        SimuleringStub(clock).simulerUtbetaling(it.getOrFail("Skal kunne lage utbetaling for gjenopptak"))
+        SimuleringStub(
+            clock = clock,
+            utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
+        ).simulerUtbetaling(it.getOrFail("Skal kunne lage utbetaling for gjenopptak"))
     }.orNull()!!
 }
 
 fun simuleringOpphørt(
     opphørsdato: LocalDate,
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    eksisterendeUtbetalinger: List<Utbetaling>,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
@@ -109,7 +158,10 @@ fun simuleringOpphørt(
         clock = clock,
         opphørsDato = opphørsdato,
     ).generate().let {
-        SimuleringStub(clock).simulerUtbetaling(it)
+        SimuleringStub(
+            clock = nåtidForSimuleringStub, // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
+            utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
+        ).simulerUtbetaling(it)
     }.orNull()!!
 }
 
@@ -126,7 +178,8 @@ fun simulering(
 
 fun simuleringFeilutbetaling(
     vararg perioder: Periode,
-    simulertePerioder: List<SimulertPeriode> = perioder.map { simulertPeriodeFeilutbetaling(it) },
+    simulertePerioder: List<SimulertPeriode> = perioder.map { it.tilMånedsperioder() }.flatten()
+        .map { simulertPeriodeFeilutbetaling(it) },
 ): Simulering {
     return Simulering(
         gjelderId = fnr,

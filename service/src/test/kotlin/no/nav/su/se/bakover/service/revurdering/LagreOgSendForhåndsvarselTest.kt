@@ -1,11 +1,14 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.juli
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
@@ -34,6 +37,7 @@ import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
@@ -52,7 +56,9 @@ internal class LagreOgSendForhåndsvarselTest {
 
     @Test
     fun `forhåndsvarsler en simulert-revurdering`() {
-        val simulertRevurdering = RevurderingTestUtils.simulertRevurderingInnvilget
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
+        ).second
 
         val mocks = RevurderingServiceMocks(
             identClient = mock {
@@ -77,7 +83,7 @@ internal class LagreOgSendForhåndsvarselTest {
             saksbehandler = saksbehandler,
             forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
             fritekst = "",
-        ).getOrHandle { throw RuntimeException("Her skulle vi ha fått en revurdering") }
+        ).getOrFail()
 
         revurdering.forhåndsvarsel shouldBe Forhåndsvarsel.UnderBehandling.Sendt
 
@@ -126,9 +132,10 @@ internal class LagreOgSendForhåndsvarselTest {
 
     @Test
     fun `forhåndsvarsler ikke en allerede forhåndsvarslet revurdering`() {
-        val simulertRevurdering = RevurderingTestUtils.simulertRevurderingInnvilget.copy(
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             forhåndsvarsel = Forhåndsvarsel.UnderBehandling.Sendt,
-        )
+            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
+        ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulertRevurdering
@@ -148,6 +155,7 @@ internal class LagreOgSendForhåndsvarselTest {
     fun `kan endre fra ingen forhåndsvarsel til forhåndsvarsel`() {
         val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
+            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
         ).second
 
         val mocks = RevurderingServiceMocks(
@@ -246,6 +254,7 @@ internal class LagreOgSendForhåndsvarselTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående
         )
         testForhåndsvarslerIkkeGittRevurdering(opprettet)
 
@@ -264,15 +273,17 @@ internal class LagreOgSendForhåndsvarselTest {
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
         )
         testForhåndsvarslerIkkeGittRevurdering(beregnet)
     }
 
     @Test
     fun `forhåndsvarsel - hent person feilet`() {
-        val simulertRevurdering = RevurderingTestUtils.simulertRevurderingInnvilget.copy(
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             forhåndsvarsel = null,
-        )
+            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
+        ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulertRevurdering
@@ -296,9 +307,10 @@ internal class LagreOgSendForhåndsvarselTest {
 
     @Test
     fun `forhåndsvarsel - generering av dokument feiler`() {
-        val simulertRevurdering = RevurderingTestUtils.simulertRevurderingInnvilget.copy(
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             forhåndsvarsel = null,
-        )
+            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
+        ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulertRevurdering
@@ -335,7 +347,9 @@ internal class LagreOgSendForhåndsvarselTest {
 
     @Test
     fun `forhåndsvarsel - oppdatering av oppgave feiler`() {
-        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
+        ).second
         val mocks = RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurdering

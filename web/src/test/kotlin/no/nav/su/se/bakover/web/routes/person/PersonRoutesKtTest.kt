@@ -145,7 +145,7 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `skal svare med 500 hvis ukjent feil`() {
-        val clients = TestClientsBuilder.build(applicationConfig).copy(
+        val clients = TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig).copy(
             personOppslag = object : PersonOppslag {
                 override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                 override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
@@ -182,7 +182,7 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `skal svare med 404 hvis person ikke funnet`() {
-        val clients = TestClientsBuilder.build(applicationConfig).copy(
+        val clients = TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig).copy(
             personOppslag = object : PersonOppslag {
                 override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                 override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
@@ -224,7 +224,7 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `skal gi 403 når man ikke har tilgang til person`() {
-        val clients = TestClientsBuilder.build(applicationConfig).copy(
+        val clients = TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig).copy(
             personOppslag = object : PersonOppslag {
                 override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                 override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")

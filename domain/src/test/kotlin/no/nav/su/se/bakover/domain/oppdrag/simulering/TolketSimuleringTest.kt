@@ -7,8 +7,17 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.MånedBeløp
+import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -63,8 +72,7 @@ internal class TolketSimuleringTest {
             ),
         ).simulertePerioder shouldBe listOf(
             TolketPeriode(
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.januar(2021),
+                januar(2021),
                 utbetalinger = listOf(
                     TolketUtbetaling.Etterbetaling(
                         tolketDetalj = listOf(
@@ -125,8 +133,7 @@ internal class TolketSimuleringTest {
             ),
         ).simulertePerioder shouldBe listOf(
             TolketPeriode(
-                fraOgMed = 1.april(2021),
-                tilOgMed = 30.april(2021),
+                april(2021),
                 utbetalinger = listOf(
                     TolketUtbetaling.Ordinær(
                         tolketDetalj = listOf(
@@ -253,44 +260,60 @@ internal class TolketSimuleringTest {
                     ),
                 ),
             ),
-        ).simulertePerioder shouldBe listOf(
-            TolketPeriode(
-                fraOgMed = 1.februar(2021),
-                tilOgMed = 28.februar(2021),
-                utbetalinger = listOf(
-                    TolketUtbetaling.Feilutbetaling(
-                        tolketDetalj = listOf(
-                            TolketDetalj.Ordinær(
-                                beløp = 10000,
-                                forfall = 14.april(2021),
-                                fraOgMed = 1.februar(2021),
-                            ),
-                            TolketDetalj.Feilutbetaling(
-                                beløp = 10779,
-                            ),
-                            TolketDetalj.TidligereUtbetalt(
-                                beløp = -20779,
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-            TolketPeriode(
-                fraOgMed = 1.mars(2021),
-                tilOgMed = 31.mars(2021),
-                utbetalinger = listOf(
-                    TolketUtbetaling.Ordinær(
-                        tolketDetalj = listOf(
-                            TolketDetalj.Ordinær(
-                                beløp = 10000,
-                                forfall = 10.mars(2021),
-                                fraOgMed = 1.mars(2021),
+        ).let {
+            it.simulertePerioder shouldBe listOf(
+                TolketPeriode(
+                    februar(2021),
+                    utbetalinger = listOf(
+                        TolketUtbetaling.Feilutbetaling(
+                            tolketDetalj = listOf(
+                                TolketDetalj.Ordinær(
+                                    beløp = 10000,
+                                    forfall = 14.april(2021),
+                                    fraOgMed = 1.februar(2021),
+                                ),
+                                TolketDetalj.Feilutbetaling(
+                                    beløp = 10779,
+                                ),
+                                TolketDetalj.TidligereUtbetalt(
+                                    beløp = -20779,
+                                ),
                             ),
                         ),
                     ),
                 ),
-            ),
-        )
+                TolketPeriode(
+                    mars(2021),
+                    utbetalinger = listOf(
+                        TolketUtbetaling.Ordinær(
+                            tolketDetalj = listOf(
+                                TolketDetalj.Ordinær(
+                                    beløp = 10000,
+                                    forfall = 10.mars(2021),
+                                    fraOgMed = 1.mars(2021),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            )
+            it.hentUtbetalteBeløp(periode2021) shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(februar(2021), Beløp(20779)),
+                    MånedBeløp(mars(2021), Beløp(0)),
+                ),
+            )
+            it.hentUtbetalteBeløp(februar(2021)) shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(februar(2021), Beløp(20779)),
+                ),
+            )
+            it.hentUtbetalteBeløp(mars(2021)) shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(mars(2021), Beløp(0)),
+                ),
+            )
+        }
     }
 
     @Test
@@ -361,24 +384,30 @@ internal class TolketSimuleringTest {
                     ),
                 ),
             ),
-        ).simulertePerioder shouldBe listOf(
-            TolketPeriode(
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.januar(2021),
-                utbetalinger = listOf(
-                    TolketUtbetaling.Feilutbetaling(
-                        tolketDetalj = listOf(
-                            TolketDetalj.Feilutbetaling(
-                                beløp = 8949,
-                            ),
-                            TolketDetalj.TidligereUtbetalt(
-                                beløp = -8949,
+        ).let {
+            it.simulertePerioder shouldBe listOf(
+                TolketPeriode(
+                    januar(2021),
+                    utbetalinger = listOf(
+                        TolketUtbetaling.Feilutbetaling(
+                            tolketDetalj = listOf(
+                                TolketDetalj.Feilutbetaling(
+                                    beløp = 8949,
+                                ),
+                                TolketDetalj.TidligereUtbetalt(
+                                    beløp = -8949,
+                                ),
                             ),
                         ),
                     ),
                 ),
-            ),
-        )
+            )
+            it.hentUtbetalteBeløp(januar(2021)) shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(januar(2021), Beløp(8949)),
+                ),
+            )
+        }
     }
 
     @Test
@@ -464,44 +493,50 @@ internal class TolketSimuleringTest {
                     ),
                 ),
             ),
-        ).simulertePerioder shouldBe listOf(
-            TolketPeriode(
-                fraOgMed = 1.februar(2021),
-                tilOgMed = 28.februar(2021),
-                utbetalinger = listOf(
-                    TolketUtbetaling.Etterbetaling(
-                        tolketDetalj = listOf(
-                            TolketDetalj.Ordinær(
-                                beløp = 30000,
-                                forfall = 14.april(2021),
-                                fraOgMed = 1.februar(2021),
-                            ),
-                            TolketDetalj.TidligereUtbetalt(
-                                beløp = -20779,
-                            ),
-                            TolketDetalj.Etterbetaling(
-                                beløp = 9221,
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-            TolketPeriode(
-                fraOgMed = 1.mars(2021),
-                tilOgMed = 31.mars(2021),
-                utbetalinger = listOf(
-                    TolketUtbetaling.Ordinær(
-                        tolketDetalj = listOf(
-                            TolketDetalj.Ordinær(
-                                beløp = 30000,
-                                forfall = 10.mars(2021),
-                                fraOgMed = 1.mars(2021),
+        ).let {
+            it.simulertePerioder shouldBe listOf(
+                TolketPeriode(
+                    februar(2021),
+                    utbetalinger = listOf(
+                        TolketUtbetaling.Etterbetaling(
+                            tolketDetalj = listOf(
+                                TolketDetalj.Ordinær(
+                                    beløp = 30000,
+                                    forfall = 14.april(2021),
+                                    fraOgMed = 1.februar(2021),
+                                ),
+                                TolketDetalj.TidligereUtbetalt(
+                                    beløp = -20779,
+                                ),
+                                TolketDetalj.Etterbetaling(
+                                    beløp = 9221,
+                                ),
                             ),
                         ),
                     ),
                 ),
-            ),
-        )
+                TolketPeriode(
+                    mars(2021),
+                    utbetalinger = listOf(
+                        TolketUtbetaling.Ordinær(
+                            tolketDetalj = listOf(
+                                TolketDetalj.Ordinær(
+                                    beløp = 30000,
+                                    forfall = 10.mars(2021),
+                                    fraOgMed = 1.mars(2021),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            )
+            it.hentUtbetalteBeløp(periode2021) shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(februar(2021), Beløp(20779)),
+                    MånedBeløp(mars(2021), Beløp(0)),
+                )
+            )
+        }
     }
 
     @Test
@@ -587,44 +622,50 @@ internal class TolketSimuleringTest {
                     ),
                 ),
             ),
-        ).simulertePerioder shouldBe listOf(
-            TolketPeriode(
-                fraOgMed = 1.februar(2021),
-                tilOgMed = 28.februar(2021),
-                utbetalinger = listOf(
-                    TolketUtbetaling.UendretUtbetaling(
-                        tolketDetalj = listOf(
-                            TolketDetalj.Ordinær(
-                                beløp = 20779,
-                                forfall = 14.april(2021),
-                                fraOgMed = 1.februar(2021),
-                            ),
-                            TolketDetalj.TidligereUtbetalt(
-                                beløp = -20779,
-                            ),
-                            TolketDetalj.UendretUtbetaling(
-                                beløp = 0,
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-            TolketPeriode(
-                fraOgMed = 1.mars(2021),
-                tilOgMed = 31.mars(2021),
-                utbetalinger = listOf(
-                    TolketUtbetaling.Ordinær(
-                        tolketDetalj = listOf(
-                            TolketDetalj.Ordinær(
-                                beløp = 20779,
-                                forfall = 10.mars(2021),
-                                fraOgMed = 1.mars(2021),
+        ).let {
+            it.simulertePerioder shouldBe listOf(
+                TolketPeriode(
+                    februar(2021),
+                    utbetalinger = listOf(
+                        TolketUtbetaling.UendretUtbetaling(
+                            tolketDetalj = listOf(
+                                TolketDetalj.Ordinær(
+                                    beløp = 20779,
+                                    forfall = 14.april(2021),
+                                    fraOgMed = 1.februar(2021),
+                                ),
+                                TolketDetalj.TidligereUtbetalt(
+                                    beløp = -20779,
+                                ),
+                                TolketDetalj.UendretUtbetaling(
+                                    beløp = 0,
+                                ),
                             ),
                         ),
                     ),
                 ),
-            ),
-        )
+                TolketPeriode(
+                    mars(2021),
+                    utbetalinger = listOf(
+                        TolketUtbetaling.Ordinær(
+                            tolketDetalj = listOf(
+                                TolketDetalj.Ordinær(
+                                    beløp = 20779,
+                                    forfall = 10.mars(2021),
+                                    fraOgMed = 1.mars(2021),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            )
+            it.hentUtbetalteBeløp(periode2021) shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(februar(2021), Beløp(20779)),
+                    MånedBeløp(mars(2021), Beløp(0)),
+                ),
+            )
+        }
     }
 
     @Test
@@ -850,8 +891,7 @@ internal class TolketSimuleringTest {
             ),
         ).simulertePerioder shouldBe listOf(
             TolketPeriode(
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021),
+                Periode.create(1.januar(2021), 31.desember(2021)),
                 utbetalinger = listOf(
                     TolketUtbetaling.IngenUtbetaling(
                         tolketDetalj = listOf(

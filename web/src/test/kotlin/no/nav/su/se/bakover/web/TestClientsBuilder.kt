@@ -18,10 +18,15 @@ import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.domain.DatabaseRepos
 import org.mockito.kotlin.mock
+import java.time.Clock
 
-object TestClientsBuilder : ClientsBuilder {
+data class TestClientsBuilder(
+    val clock: Clock,
+    val databaseRepos: DatabaseRepos,
+) : ClientsBuilder {
+
     val testClients = Clients(
         oauth = AzureClientStub,
         personOppslag = PersonOppslagStub,
@@ -30,7 +35,7 @@ object TestClientsBuilder : ClientsBuilder {
         dokArkiv = DokArkivStub,
         oppgaveClient = OppgaveClientStub,
         kodeverk = mock(),
-        simuleringClient = SimuleringStub(fixedClock),
+        simuleringClient = SimuleringStub(clock, databaseRepos.utbetaling),
         utbetalingPublisher = UtbetalingStub,
         dokDistFordeling = DokDistFordelingStub,
         avstemmingPublisher = AvstemmingStub,

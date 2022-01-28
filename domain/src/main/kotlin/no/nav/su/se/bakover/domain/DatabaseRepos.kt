@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.grunnlag.FormueVilkårsvurderingRepo
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagRepo
@@ -40,4 +41,5 @@ data class DatabaseRepos(
     val klageRepo: KlageRepo,
     val klageVedtakRepo: KlagevedtakRepo,
     val kontrollsamtaleRepo: KontrollsamtaleRepo,
+    val avkortingsvarselRepo: AvkortingsvarselRepo,
 )

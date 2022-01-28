@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -73,7 +74,7 @@ internal class BeregnRoutesKtTest {
     private fun services(dataSource: DataSource, databaseRepos: DatabaseRepos = repos(dataSource)) =
         ServiceBuilder.build(
             databaseRepos = databaseRepos,
-            clients = TestClientsBuilder.build(applicationConfig),
+            clients = TestClientsBuilder(fixedClock, databaseRepos).build(applicationConfig),
             behandlingMetrics = mock(),
             søknadMetrics = mock(),
             clock = fixedClock,
@@ -214,9 +215,7 @@ internal class BeregnRoutesKtTest {
                     )
                 }.apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
-                    response.content shouldContain "Ugyldig statusovergang"
-                    response.content shouldContain "TilBeregnet"
-                    response.content shouldContain "Vilkårsvurdert.Uavklart"
+                    response.content shouldContain """{"message":"Kan ikke gå fra tilstanden Uavklart til tilstanden Beregnet","code":"ugyldig_tilstand"}"""
                 }
             }
         }
@@ -248,6 +247,7 @@ internal class BeregnRoutesKtTest {
             oppgaveId = OppgaveId("1234"),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = sak.fnr,
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
         )
         repos.søknadsbehandling.lagreNySøknadsbehandling(
             nySøknadsbehandling,
@@ -257,6 +257,7 @@ internal class BeregnRoutesKtTest {
             SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
                 behandlingId = nySøknadsbehandling.id,
                 stønadsperiode = stønadsperiode,
+                sakId = sak.id,
             ),
         )
 

@@ -20,13 +20,15 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.routes.person.personPath
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 
 // LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) er ikke thread safe
@@ -72,7 +74,7 @@ class RoutesTest {
         withTestApplication(
             {
                 testSusebakover(
-                    clients = testClients.copy(
+                    clients = TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig).copy(
                         personOppslag = object :
                             PersonOppslag {
                             override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =

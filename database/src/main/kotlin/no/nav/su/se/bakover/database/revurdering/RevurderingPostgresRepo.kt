@@ -13,6 +13,10 @@ import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
+import no.nav.su.se.bakover.database.avkorting.AvkortingVedRevurderingDb
+import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
+import no.nav.su.se.bakover.database.avkorting.toDb
+import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
@@ -32,6 +36,7 @@ import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -114,6 +119,7 @@ internal class RevurderingPostgresRepo(
     klageRepo: KlagePostgresRepo,
     private val dbMetrics: DbMetrics,
     private val sessionFactory: PostgresSessionFactory,
+    private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
 ) : RevurderingRepo {
     private val vedtakRepo =
         VedtakPostgresRepo(dataSource, søknadsbehandlingRepo, this, klageRepo, dbMetrics, sessionFactory)
@@ -237,6 +243,10 @@ internal class RevurderingPostgresRepo(
             utenlandsopphold = utlandsoppholdVilkårsvurderingRepo.hent(id, session),
         )
 
+        val avkorting = stringOrNull("avkorting")?.let {
+            objectMapper.readValue<AvkortingVedRevurderingDb>(it).toDomain()
+        }
+
         val revurdering = lagRevurdering(
             status = status,
             id = id,
@@ -255,6 +265,7 @@ internal class RevurderingPostgresRepo(
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
+            avkorting = avkorting,
         )
 
         val avsluttet = stringOrNull("avsluttet")?.let {
@@ -309,7 +320,8 @@ internal class RevurderingPostgresRepo(
                         årsak,
                         begrunnelse,
                         forhåndsvarsel,
-                        informasjonSomRevurderes
+                        informasjonSomRevurderes,
+                        avkorting
                     ) values (
                         :id,
                         :opprettet,
@@ -325,7 +337,8 @@ internal class RevurderingPostgresRepo(
                         :arsak,
                         :begrunnelse,
                         to_json(:forhandsvarsel::json),
-                        to_json(:informasjonSomRevurderes::json)
+                        to_json(:informasjonSomRevurderes::json),
+                        to_json(:avkorting::json)
                     )
                         ON CONFLICT(id) do update set
                         id=:id,
@@ -342,7 +355,8 @@ internal class RevurderingPostgresRepo(
                         årsak=:arsak,
                         begrunnelse=:begrunnelse,
                         forhåndsvarsel=to_json(:forhandsvarsel::json),
-                        informasjonSomRevurderes=to_json(:informasjonSomRevurderes::json)
+                        informasjonSomRevurderes=to_json(:informasjonSomRevurderes::json),
+                        avkorting = to_json(:avkorting::json)
         """.trimIndent()
             .insert(
                 mapOf(
@@ -360,6 +374,7 @@ internal class RevurderingPostgresRepo(
                     },
                     "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
                     "attestering" to revurdering.attesteringer.serialize(),
+                    "avkorting" to objectMapper.writeValueAsString(revurdering.avkorting.toDb()),
                 ),
                 session,
             )
@@ -370,7 +385,7 @@ internal class RevurderingPostgresRepo(
         )
     }
 
-    private fun lagre(revurdering: BeregnetRevurdering, session: TransactionalSession) =
+    private fun lagre(revurdering: BeregnetRevurdering, tx: TransactionalSession) =
         """
                     update
                         revurdering
@@ -381,7 +396,8 @@ internal class RevurderingPostgresRepo(
                         saksbehandler = :saksbehandler,
                         årsak = :arsak,
                         begrunnelse = :begrunnelse,
-                        informasjonSomRevurderes = to_json(:informasjonSomRevurderes::json)
+                        informasjonSomRevurderes = to_json(:informasjonSomRevurderes::json),
+                        avkorting = to_json(:avkorting::json)
                     where
                         id = :id
         """.trimIndent()
@@ -394,12 +410,13 @@ internal class RevurderingPostgresRepo(
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                     "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
+                    "avkorting" to objectMapper.writeValueAsString(revurdering.avkorting.toDb()),
                 ),
-                session,
+                tx,
             )
 
-    private fun lagre(revurdering: SimulertRevurdering, session: TransactionalSession) =
-        """
+    private fun lagre(revurdering: SimulertRevurdering, tx: TransactionalSession) {
+        return """
                     update
                         revurdering
                     set
@@ -409,7 +426,8 @@ internal class RevurderingPostgresRepo(
                         revurderingsType = :revurderingsType,
                         årsak = :arsak,
                         begrunnelse =:begrunnelse,
-                        forhåndsvarsel = to_json(:forhandsvarsel::json)
+                        forhåndsvarsel = to_json(:forhandsvarsel::json),
+                        avkorting = to_json(:avkorting::json)
                     where
                         id = :id
         """.trimIndent()
@@ -425,9 +443,11 @@ internal class RevurderingPostgresRepo(
                     "forhandsvarsel" to revurdering.forhåndsvarsel?.let {
                         objectMapper.writeValueAsString(ForhåndsvarselDatabaseJson.from(it))
                     },
+                    "avkorting" to objectMapper.writeValueAsString(revurdering.avkorting.toDb()),
                 ),
-                session,
+                tx,
             )
+    }
 
     private fun lagre(revurdering: RevurderingTilAttestering, session: TransactionalSession) =
         """
@@ -443,7 +463,8 @@ internal class RevurderingPostgresRepo(
                         begrunnelse =:begrunnelse,
                         revurderingsType = :revurderingsType,
                         skalFøreTilBrevutsending = :skalFoereTilBrevutsending,
-                        forhåndsvarsel = to_json(:forhandsvarsel::json)
+                        forhåndsvarsel = to_json(:forhandsvarsel::json),
+                        avkorting = to_json(:avkorting::json)
                     where
                         id = :id
         """.trimIndent()
@@ -466,11 +487,12 @@ internal class RevurderingPostgresRepo(
                     "forhandsvarsel" to revurdering.forhåndsvarsel?.let {
                         objectMapper.writeValueAsString(ForhåndsvarselDatabaseJson.from(it))
                     },
+                    "avkorting" to objectMapper.writeValueAsString(revurdering.avkorting.toDb()),
                 ),
                 session,
             )
 
-    private fun lagre(revurdering: IverksattRevurdering, session: TransactionalSession) =
+    private fun lagre(revurdering: IverksattRevurdering, tx: TransactionalSession) {
         """
                     update
                         revurdering
@@ -482,7 +504,8 @@ internal class RevurderingPostgresRepo(
                         attestering = to_jsonb(:attestering::jsonb),
                         årsak = :arsak,
                         begrunnelse =:begrunnelse,
-                        revurderingsType = :revurderingsType
+                        revurderingsType = :revurderingsType,
+                        avkorting = to_json(:avkorting::json)
                     where
                         id = :id
         """.trimIndent()
@@ -501,9 +524,42 @@ internal class RevurderingPostgresRepo(
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                     "revurderingsType" to revurdering.toRevurderingsType(),
+                    "avkorting" to objectMapper.writeValueAsString(revurdering.avkorting.toDb()),
                 ),
-                session,
+                tx,
             )
+
+        when (val iverksatt = revurdering.avkorting) {
+            is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> {
+                avkortingsvarselRepo.lagre(
+                    avkortingsvarsel = iverksatt.annullerUtestående,
+                    tx = tx,
+                )
+            }
+            is AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> {
+                // noop
+            }
+            is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> {
+                avkortingsvarselRepo.lagre(
+                    avkortingsvarsel = iverksatt.avkortingsvarsel,
+                    tx = tx,
+                )
+            }
+            is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+                avkortingsvarselRepo.lagre(
+                    avkortingsvarsel = iverksatt.avkortingsvarsel,
+                    tx = tx,
+                )
+                avkortingsvarselRepo.lagre(
+                    avkortingsvarsel = iverksatt.annullerUtestående,
+                    tx = tx,
+                )
+            }
+            is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> {
+                // noop
+            }
+        }
+    }
 
     private fun lagre(revurdering: UnderkjentRevurdering, session: TransactionalSession) =
         """
@@ -514,7 +570,8 @@ internal class RevurderingPostgresRepo(
                         attestering = to_jsonb(:attestering::jsonb),
                         årsak = :arsak,
                         begrunnelse =:begrunnelse,
-                        revurderingsType = :revurderingsType
+                        revurderingsType = :revurderingsType,
+                        avkorting=to_json(:avkorting::json)
                     where
                         id = :id
         """.trimIndent()
@@ -526,6 +583,7 @@ internal class RevurderingPostgresRepo(
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                     "revurderingsType" to revurdering.toRevurderingsType(),
+                    "avkorting" to objectMapper.writeValueAsString(revurdering.avkorting.toDb()),
                 ),
                 session,
             )
@@ -550,7 +608,8 @@ internal class RevurderingPostgresRepo(
             begrunnelse=:begrunnelse,
             forhåndsvarsel=to_json(:forhandsvarsel::json),
             informasjonSomRevurderes=to_json(:informasjonSomRevurderes::json),
-            avsluttet = to_jsonb(:avsluttet::jsonb)
+            avsluttet = to_jsonb(:avsluttet::jsonb),
+            avkorting = to_jsonb(:avkorting::json)
         where
             id = :id
         """.trimIndent()
@@ -580,6 +639,7 @@ internal class RevurderingPostgresRepo(
                             tidspunktAvsluttet = revurdering.tidspunktAvsluttet,
                         ),
                     ),
+                    "avkorting" to objectMapper.writeValueAsString(revurdering.avkorting.toDb()),
                 ),
                 session = session,
             )
@@ -603,6 +663,7 @@ internal class RevurderingPostgresRepo(
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes?,
+        avkorting: AvkortingVedRevurdering?,
     ): AbstraktRevurdering {
         return when (status) {
             RevurderingsType.UNDERKJENT_INNVILGET -> UnderkjentRevurdering.Innvilget(
@@ -621,6 +682,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
+                avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
             )
             RevurderingsType.UNDERKJENT_OPPHØRT -> UnderkjentRevurdering.Opphørt(
                 id = id,
@@ -638,6 +700,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
+                avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
             )
             RevurderingsType.IVERKSATT_INNVILGET -> IverksattRevurdering.Innvilget(
                 id = id,
@@ -655,6 +718,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
+                avkorting = avkorting as AvkortingVedRevurdering.Iverksatt,
             )
             RevurderingsType.IVERKSATT_OPPHØRT -> IverksattRevurdering.Opphørt(
                 id = id,
@@ -672,6 +736,7 @@ internal class RevurderingPostgresRepo(
                 forhåndsvarsel = forhåndsvarsel as Forhåndsvarsel.Ferdigbehandlet,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
+                avkorting = avkorting as AvkortingVedRevurdering.Iverksatt,
             )
             RevurderingsType.TIL_ATTESTERING_INNVILGET -> RevurderingTilAttestering.Innvilget(
                 id = id,
@@ -689,6 +754,7 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
+                avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
             )
             RevurderingsType.TIL_ATTESTERING_OPPHØRT -> RevurderingTilAttestering.Opphørt(
                 id = id,
@@ -706,6 +772,7 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
+                avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
             )
             RevurderingsType.SIMULERT_INNVILGET -> SimulertRevurdering.Innvilget(
                 id = id,
@@ -723,6 +790,7 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
+                avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
             )
             RevurderingsType.SIMULERT_OPPHØRT -> SimulertRevurdering.Opphørt(
                 id = id,
@@ -740,6 +808,7 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
+                avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
             )
             RevurderingsType.BEREGNET_INNVILGET -> BeregnetRevurdering.Innvilget(
                 id = id,
@@ -756,6 +825,7 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
+                avkorting = avkorting as AvkortingVedRevurdering.DelvisHåndtert,
             )
             RevurderingsType.BEREGNET_OPPHØRT -> BeregnetRevurdering.Opphørt(
                 id = id,
@@ -772,6 +842,7 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
+                avkorting = avkorting as AvkortingVedRevurdering.DelvisHåndtert,
             )
             RevurderingsType.OPPRETTET -> OpprettetRevurdering(
                 id = id,
@@ -787,6 +858,7 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
+                avkorting = avkorting as AvkortingVedRevurdering.Uhåndtert,
             )
             RevurderingsType.BEREGNET_INGEN_ENDRING -> BeregnetRevurdering.IngenEndring(
                 id = id,
@@ -803,6 +875,7 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
+                avkorting = avkorting as AvkortingVedRevurdering.DelvisHåndtert,
             )
             RevurderingsType.TIL_ATTESTERING_INGEN_ENDRING -> RevurderingTilAttestering.IngenEndring(
                 id = id,
@@ -820,6 +893,7 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
+                avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
             )
             RevurderingsType.IVERKSATT_INGEN_ENDRING -> IverksattRevurdering.IngenEndring(
                 id = id,
@@ -837,6 +911,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
+                avkorting = avkorting as AvkortingVedRevurdering.Iverksatt,
             )
             RevurderingsType.UNDERKJENT_INGEN_ENDRING -> UnderkjentRevurdering.IngenEndring(
                 id = id,
@@ -854,6 +929,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
+                avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
             )
             RevurderingsType.SIMULERT_STANS -> StansAvYtelseRevurdering.SimulertStansAvYtelse(
                 id = id,

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -117,6 +118,7 @@ internal class VedtakPostgresRepoTest {
                 forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+                avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -203,6 +205,7 @@ internal class VedtakPostgresRepoTest {
                 vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             )
             testDataHelper.revurderingRepo.lagre(attestertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
@@ -225,6 +228,7 @@ internal class VedtakPostgresRepoTest {
                 grunnlagsdata = nyRevurdering.grunnlagsdata,
                 vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+                avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 

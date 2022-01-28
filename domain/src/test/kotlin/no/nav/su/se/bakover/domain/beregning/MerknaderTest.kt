@@ -8,32 +8,32 @@ internal class MerknaderTest {
     @Test
     fun `ugyldige kombinasjoner`() {
         listOf(
-            Merknad.Beregning.BeløpErNull,
-            Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats,
+            Merknad.Beregning.Avslag.BeløpErNull,
+            Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats,
             Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
         ).forEach {
             assertThrows<IllegalArgumentException> {
                 Merknader.Beregningsmerknad().apply {
-                    leggTil(Merknad.Beregning.BeløpErNull, it)
+                    leggTil(Merknad.Beregning.Avslag.BeløpErNull, it)
                 }
             }
         }
 
         listOf(
-            Merknad.Beregning.BeløpErNull,
-            Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats,
+            Merknad.Beregning.Avslag.BeløpErNull,
+            Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats,
             Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
         ).forEach {
             assertThrows<IllegalArgumentException> {
                 Merknader.Beregningsmerknad().apply {
-                    leggTil(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats, it)
+                    leggTil(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats, it)
                 }
             }
         }
 
         listOf(
-            Merknad.Beregning.BeløpErNull,
-            Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats,
+            Merknad.Beregning.Avslag.BeløpErNull,
+            Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats,
             Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
         ).forEach {
             assertThrows<IllegalArgumentException> {

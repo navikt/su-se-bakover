@@ -15,7 +15,7 @@ internal class MerknaderJsonKtTest {
             }
         """.trimIndent()
 
-        val merknad = Merknad.Beregning.BeløpErNull
+        val merknad = Merknad.Beregning.Avslag.BeløpErNull
         JSONAssert.assertEquals(expected, serialize(merknad.toJson()), true)
     }
 
@@ -28,7 +28,7 @@ internal class MerknaderJsonKtTest {
             }
         """.trimIndent()
 
-        val merknad = Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats
+        val merknad = Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats
         JSONAssert.assertEquals(expected, serialize(merknad.toJson()), true)
     }
 
@@ -42,6 +42,19 @@ internal class MerknaderJsonKtTest {
         """.trimIndent()
 
         val merknad = Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats
+        JSONAssert.assertEquals(expected, serialize(merknad.toJson()), true)
+    }
+
+    @Test
+    fun `serialisering og av merknad for avkorting fører til under to prosent`() {
+        //language=json
+        val expected = """
+            {
+              "type": "AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats"
+            }
+        """.trimIndent()
+
+        val merknad = Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats
         JSONAssert.assertEquals(expected, serialize(merknad.toJson()), true)
     }
 }

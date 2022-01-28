@@ -186,6 +186,8 @@ sealed class KunneIkkeOppretteRevurdering {
     object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppretteRevurdering()
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
     object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppretteRevurdering()
+    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) : KunneIkkeOppretteRevurdering()
+    object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
 }
 
 sealed class KunneIkkeOppdatereRevurdering {
@@ -204,6 +206,8 @@ sealed class KunneIkkeOppdatereRevurdering {
     object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppdatereRevurdering()
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
     object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppdatereRevurdering()
+    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) : KunneIkkeOppdatereRevurdering()
+    object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {
@@ -219,6 +223,8 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
     object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneOgSimulereRevurdering()
 
     data class KunneIkkeSimulere(val simuleringFeilet: SimuleringFeilet) : KunneIkkeBeregneOgSimulereRevurdering()
+    object AvkortingErUfullstendig : KunneIkkeBeregneOgSimulereRevurdering()
+    object OpphørAvYtelseSomSkalAvkortes : KunneIkkeBeregneOgSimulereRevurdering()
 }
 
 sealed class KunneIkkeForhåndsvarsle {
@@ -255,6 +261,8 @@ sealed class KunneIkkeIverksetteRevurdering {
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeIverksetteRevurdering()
     object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeIverksetteRevurdering()
     object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
+    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksetteRevurdering()
+    object HarAlleredeBlittAnnullertAvEnAnnen : KunneIkkeIverksetteRevurdering()
     data class UgyldigTilstand(
         val fra: KClass<out AbstraktRevurdering>,
         val til: KClass<out AbstraktRevurdering>,

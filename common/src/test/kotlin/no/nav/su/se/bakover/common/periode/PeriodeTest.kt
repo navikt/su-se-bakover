@@ -74,19 +74,46 @@ internal class PeriodeTest {
 
     @Test
     fun `får ikke opprettet perioder med ugyldige input parametere trycreate`() {
-        Periode.tryCreate(10.januar(2021), 31.desember(2021)) shouldBe Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden.left()
-        Periode.tryCreate(1.februar(2021), 31.januar(2021)) shouldBe Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato.left()
-        Periode.tryCreate(1.januar(2021), 30.desember(2021)) shouldBe Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden.left()
+        Periode.tryCreate(
+            10.januar(2021),
+            31.desember(2021),
+        ) shouldBe Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden.left()
+        Periode.tryCreate(
+            1.februar(2021),
+            31.januar(2021),
+        ) shouldBe Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato.left()
+        Periode.tryCreate(
+            1.januar(2021),
+            30.desember(2021),
+        ) shouldBe Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden.left()
     }
 
     @Test
     fun `periode inneholder en annen periode`() {
-        Periode.create(1.januar(2021), 31.desember(2021)) inneholder Periode.create(1.januar(2021), 31.januar(2021)) shouldBe true
-        Periode.create(1.januar(2021), 31.desember(2021)) inneholder Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
-        Periode.create(1.januar(2021), 31.desember(2021)) inneholder Periode.create(1.desember(2021), 31.desember(2021)) shouldBe true
-        Periode.create(1.januar(2021), 31.desember(2021)) inneholder Periode.create(1.juli(2021), 31.august(2021)) shouldBe true
-        Periode.create(1.januar(2022), 31.desember(2022)) inneholder Periode.create(1.juli(2021), 31.august(2021)) shouldBe false
-        Periode.create(1.januar(2021), 31.desember(2021)) inneholder Periode.create(1.juli(2022), 31.august(2022)) shouldBe false
+        Periode.create(1.januar(2021), 31.desember(2021)) inneholder Periode.create(
+            1.januar(2021),
+            31.januar(2021),
+        ) shouldBe true
+        Periode.create(1.januar(2021), 31.desember(2021)) inneholder Periode.create(
+            1.januar(2021),
+            31.desember(2021),
+        ) shouldBe true
+        Periode.create(1.januar(2021), 31.desember(2021)) inneholder Periode.create(
+            1.desember(2021),
+            31.desember(2021),
+        ) shouldBe true
+        Periode.create(1.januar(2021), 31.desember(2021)) inneholder Periode.create(
+            1.juli(2021),
+            31.august(2021),
+        ) shouldBe true
+        Periode.create(1.januar(2022), 31.desember(2022)) inneholder Periode.create(
+            1.juli(2021),
+            31.august(2021),
+        ) shouldBe false
+        Periode.create(1.januar(2021), 31.desember(2021)) inneholder Periode.create(
+            1.juli(2022),
+            31.august(2022),
+        ) shouldBe false
     }
 
     @Test
@@ -108,13 +135,35 @@ internal class PeriodeTest {
 
     @Test
     fun `tilstøtende perioder`() {
-        Periode.create(1.januar(2021), 31.desember(2021)) tilstøter Periode.create(1.januar(2021), 31.januar(2021)) shouldBe false
-        Periode.create(1.januar(2021), 31.desember(2021)) tilstøter Periode.create(1.januar(2022), 31.desember(2022)) shouldBe true
-        Periode.create(1.januar(2021), 31.desember(2021)) tilstøter Periode.create(1.januar(2022), 31.desember(2022)) shouldBe true
-        Periode.create(1.januar(2021), 31.desember(2021)) tilstøter Periode.create(1.januar(2050), 31.desember(2050)) shouldBe false
-        Periode.create(1.januar(2025), 31.desember(2025)) tilstøter Periode.create(1.januar(2024), 30.november(2024)) shouldBe false
-        Periode.create(1.januar(2021), 31.mars(2021)) tilstøter Periode.create(1.mai(2021), 30.november(2021)) shouldBe false
-        Periode.create(1.januar(2021), 31.mars(2021)) tilstøter Periode.create(1.april(2021), 30.november(2021)) shouldBe true
+        Periode.create(1.januar(2021), 31.desember(2021)) tilstøter Periode.create(
+            1.januar(2021),
+            31.januar(2021),
+        ) shouldBe false
+        Periode.create(1.januar(2021), 31.desember(2021)) tilstøter Periode.create(
+            1.januar(2022),
+            31.desember(2022),
+        ) shouldBe true
+        Periode.create(1.januar(2021), 31.desember(2021)) tilstøter Periode.create(
+            1.januar(2022),
+            31.desember(2022),
+        ) shouldBe true
+        Periode.create(1.januar(2021), 31.desember(2021)) tilstøter Periode.create(
+            1.januar(2050),
+            31.desember(2050),
+        ) shouldBe false
+        Periode.create(1.januar(2025), 31.desember(2025)) tilstøter Periode.create(
+            1.januar(2024),
+            30.november(2024),
+        ) shouldBe false
+        Periode.create(1.januar(2021), 31.mars(2021)) tilstøter Periode.create(
+            1.mai(2021),
+            30.november(2021),
+        ) shouldBe false
+        Periode.create(1.januar(2021), 31.mars(2021)) tilstøter Periode.create(
+            1.april(2021),
+            30.november(2021),
+        ) shouldBe true
+        januar(2021) tilstøter januar(2021) shouldBe true
     }
 
     @Test
@@ -243,44 +292,86 @@ internal class PeriodeTest {
 
     @Test
     fun `bevarer original periode dersom maks inneholder original`() {
-        Periode.create(1.januar(2021), 31.desember(2021)) snitt Periode.create(1.juli(2021), 31.juli(2021)) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
-        Periode.create(1.juli(2021), 31.juli(2021)) snitt Periode.create(1.januar(2021), 31.desember(2021)) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
+        Periode.create(1.januar(2021), 31.desember(2021)) snitt Periode.create(
+            1.juli(2021),
+            31.juli(2021),
+        ) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
+        Periode.create(1.juli(2021), 31.juli(2021)) snitt Periode.create(
+            1.januar(2021),
+            31.desember(2021),
+        ) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
     }
 
     @Test
     fun `justerer original periode dersom original inneholder maks`() {
-        Periode.create(1.juli(2021), 31.juli(2021)) snitt Periode.create(1.januar(2021), 31.desember(2021)) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
-        Periode.create(1.januar(2021), 31.desember(2021)) snitt Periode.create(1.juli(2021), 31.juli(2021)) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
+        Periode.create(1.juli(2021), 31.juli(2021)) snitt Periode.create(
+            1.januar(2021),
+            31.desember(2021),
+        ) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
+        Periode.create(1.januar(2021), 31.desember(2021)) snitt Periode.create(
+            1.juli(2021),
+            31.juli(2021),
+        ) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
     }
 
     @Test
     fun `returnerer ingenting hvis det ikke er overlapp mellom maks og original`() {
-        Periode.create(1.juli(2021), 31.juli(2021)) snitt Periode.create(1.desember(2021), 31.desember(2021)) shouldBe null
-        Periode.create(1.desember(2021), 31.desember(2021)) snitt Periode.create(1.juli(2021), 31.juli(2021)) shouldBe null
+        Periode.create(1.juli(2021), 31.juli(2021)) snitt Periode.create(
+            1.desember(2021),
+            31.desember(2021),
+        ) shouldBe null
+        Periode.create(1.desember(2021), 31.desember(2021)) snitt Periode.create(
+            1.juli(2021),
+            31.juli(2021),
+        ) shouldBe null
     }
 
     @Test
     fun `justerer fraOgMed hvis original starter før maks`() {
-        Periode.create(1.juli(2021), 31.desember(2021)) snitt Periode.create(1.januar(2021), 31.desember(2021)) shouldBe Periode.create(1.juli(2021), 31.desember(2021))
-        Periode.create(1.januar(2021), 31.desember(2021)) snitt Periode.create(1.juli(2021), 31.desember(2021)) shouldBe Periode.create(1.juli(2021), 31.desember(2021))
+        Periode.create(1.juli(2021), 31.desember(2021)) snitt Periode.create(
+            1.januar(2021),
+            31.desember(2021),
+        ) shouldBe Periode.create(1.juli(2021), 31.desember(2021))
+        Periode.create(1.januar(2021), 31.desember(2021)) snitt Periode.create(
+            1.juli(2021),
+            31.desember(2021),
+        ) shouldBe Periode.create(1.juli(2021), 31.desember(2021))
     }
 
     @Test
     fun `justerer tilOgMed hvis original slutter etter maks`() {
-        Periode.create(1.januar(2021), 31.juli(2021)) snitt Periode.create(1.januar(2021), 31.desember(2021)) shouldBe Periode.create(1.januar(2021), 31.juli(2021))
-        Periode.create(1.januar(2021), 31.desember(2021)) snitt Periode.create(1.januar(2021), 31.juli(2021)) shouldBe Periode.create(1.januar(2021), 31.juli(2021))
+        Periode.create(1.januar(2021), 31.juli(2021)) snitt Periode.create(
+            1.januar(2021),
+            31.desember(2021),
+        ) shouldBe Periode.create(1.januar(2021), 31.juli(2021))
+        Periode.create(1.januar(2021), 31.desember(2021)) snitt Periode.create(
+            1.januar(2021),
+            31.juli(2021),
+        ) shouldBe Periode.create(1.januar(2021), 31.juli(2021))
     }
 
     @Test
     fun `justerer fraOgMed hvis original starter før og slutter før maks`() {
-        Periode.create(1.juli(2021), 31.desember(2021)) snitt Periode.create(1.januar(2021), 31.oktober(2021)) shouldBe Periode.create(1.juli(2021), 31.oktober(2021))
-        Periode.create(1.januar(2021), 31.oktober(2021)) snitt Periode.create(1.juli(2021), 31.desember(2021)) shouldBe Periode.create(1.juli(2021), 31.oktober(2021))
+        Periode.create(1.juli(2021), 31.desember(2021)) snitt Periode.create(
+            1.januar(2021),
+            31.oktober(2021),
+        ) shouldBe Periode.create(1.juli(2021), 31.oktober(2021))
+        Periode.create(1.januar(2021), 31.oktober(2021)) snitt Periode.create(
+            1.juli(2021),
+            31.desember(2021),
+        ) shouldBe Periode.create(1.juli(2021), 31.oktober(2021))
     }
 
     @Test
     fun `justerer tilOgMed hvis original starter seneere enn og slutter etter maks`() {
-        Periode.create(1.januar(2021), 31.juli(2021)) snitt Periode.create(1.mars(2021), 31.desember(2021)) shouldBe Periode.create(1.mars(2021), 31.juli(2021))
-        Periode.create(1.mars(2021), 31.desember(2021)) snitt Periode.create(1.januar(2021), 31.juli(2021)) shouldBe Periode.create(1.mars(2021), 31.juli(2021))
+        Periode.create(1.januar(2021), 31.juli(2021)) snitt Periode.create(
+            1.mars(2021),
+            31.desember(2021),
+        ) shouldBe Periode.create(1.mars(2021), 31.juli(2021))
+        Periode.create(1.mars(2021), 31.desember(2021)) snitt Periode.create(
+            1.januar(2021),
+            31.juli(2021),
+        ) shouldBe Periode.create(1.mars(2021), 31.juli(2021))
     }
 
     @Test
@@ -455,19 +546,44 @@ internal class PeriodeTest {
     @Test
     fun `slår sammen perioder hvis mulig`() {
         Periode.create(1.januar(2021), 31.januar(2021)) slåSammen
-            Periode.create(1.februar(2021), 28.februar(2021)) shouldBe (Periode.create(1.januar(2021), 28.februar(2021))).right()
+            Periode.create(1.februar(2021), 28.februar(2021)) shouldBe (
+            Periode.create(
+                1.januar(2021),
+                28.februar(2021),
+            )
+            ).right()
 
         Periode.create(1.januar(2021), 31.juli(2021)) slåSammen
-            Periode.create(1.februar(2021), 28.februar(2021)) shouldBe (Periode.create(1.januar(2021), 31.juli(2021))).right()
+            Periode.create(1.februar(2021), 28.februar(2021)) shouldBe (
+            Periode.create(
+                1.januar(2021),
+                31.juli(2021),
+            )
+            ).right()
 
         Periode.create(1.september(2021), 31.desember(2021)) slåSammen
-            Periode.create(1.mars(2021), 31.oktober(2021)) shouldBe (Periode.create(1.mars(2021), 31.desember(2021))).right()
+            Periode.create(1.mars(2021), 31.oktober(2021)) shouldBe (
+            Periode.create(
+                1.mars(2021),
+                31.desember(2021),
+            )
+            ).right()
 
         Periode.create(1.mars(2021), 31.mars(2021)) slåSammen
-            Periode.create(1.april(2021), 30.april(2021)) shouldBe (Periode.create(1.mars(2021), 30.april(2021))).right()
+            Periode.create(1.april(2021), 30.april(2021)) shouldBe (
+            Periode.create(
+                1.mars(2021),
+                30.april(2021),
+            )
+            ).right()
 
         Periode.create(1.juni(2021), 31.desember(2021)) slåSammen
-            Periode.create(1.mars(2021), 31.mai(2021)) shouldBe (Periode.create(1.mars(2021), 31.desember(2021))).right()
+            Periode.create(1.mars(2021), 31.mai(2021)) shouldBe (
+            Periode.create(
+                1.mars(2021),
+                31.desember(2021),
+            )
+            ).right()
 
         Periode.create(1.juni(2021), 31.juli(2021)) slåSammen
             Periode.create(1.oktober(2021), 31.desember(2021)) shouldBe Periode.PerioderKanIkkeSlåsSammen.left()
@@ -517,7 +633,7 @@ internal class PeriodeTest {
         listOf(
             Periode.create(1.april(2021), 31.juli(2021)),
         ).reduser() shouldBe listOf(
-            Periode.create(1.april(2021), 31.juli(2021))
+            Periode.create(1.april(2021), 31.juli(2021)),
         )
 
         emptyList<Periode>().reduser() shouldBe emptyList()
@@ -538,5 +654,13 @@ internal class PeriodeTest {
             Periode.create(1.januar(2022), 31.desember(2022))
         Periode.create(1.januar(2021), 31.desember(2021)).forskyv(-12) shouldBe
             Periode.create(1.januar(2020), 31.desember(2020))
+    }
+
+    @Test
+    fun `periode inneholder dato`() {
+        januar(2021) inneholder 15.januar(2021) shouldBe true
+        januar(2021) inneholder 15.desember(2021) shouldBe false
+        Periode.create(1.januar(2021), 31.desember(2021)) inneholder 15.januar(2021) shouldBe true
+        Periode.create(1.januar(2021), 31.desember(2021)) inneholder 15.desember(2021) shouldBe true
     }
 }

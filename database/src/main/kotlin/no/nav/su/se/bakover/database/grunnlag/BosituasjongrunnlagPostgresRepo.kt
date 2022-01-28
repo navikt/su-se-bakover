@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.util.UUID
 import javax.sql.DataSource
 
-class BosituasjongrunnlagPostgresRepo(
+internal class BosituasjongrunnlagPostgresRepo(
     private val dataSource: DataSource,
     private val dbMetrics: DbMetrics,
 ) : BosituasjongrunnlagRepo {

@@ -174,6 +174,31 @@ internal object Feilresponser {
         "feil_ved_henting_av_vedtak_dato",
     )
 
+    val kunneIkkeSimulere = InternalServerError.errorJson(
+        "Kunne ikke simulere",
+        "kunne_ikke_simulere",
+    )
+
+    val avkortingErUfullstendig = InternalServerError.errorJson(
+        "Hele det utestående beløpet som skal avkortes pga. utenlandsopphold kunne ikke trekkes fra i valgt stønadsperiode. Det er ikke støtte for å overføre restbeløp til neste stønadsperiode",
+        "avkorting_er_ufullstendig"
+    )
+
+    val avkortingErAlleredeAvkortet = InternalServerError.errorJson(
+        "Avkortingen er allerede avkortet",
+        "avkorting_er_allerede_avkortet"
+    )
+
+    val avkortingErAlleredeAnnullert = InternalServerError.errorJson(
+        "Avkortingen er allerede annullert",
+        "avkorting_er_allerede_annullert"
+    )
+
+    val opphørAvYtelseSomSkalAvkortes = InternalServerError.errorJson(
+        "Opphør av ytelse som skal avkortes støttes ikke.",
+        "opphør_av_ytelse_som_skal_avkortes"
+    )
+
     fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {
         return BadRequest.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName} til tilstanden ${til.simpleName}",

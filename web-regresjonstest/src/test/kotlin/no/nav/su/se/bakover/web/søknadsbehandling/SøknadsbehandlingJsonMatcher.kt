@@ -24,6 +24,7 @@ fun assertSøknadsbehandlingJson(
     expectedStønadsperiode: String? = null, // """{"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-01"},"begrunnelse":""}""",
     expectedGrunnlagsdataOgVilkårsvurderinger: String,
     expectedErLukket: Boolean = false,
+    expectedSimuleringForAvkortingsvarsel: String? = null,
 ) {
     val expectedSakJson = """
     {
@@ -41,7 +42,8 @@ fun assertSøknadsbehandlingJson(
         "hendelser": [],
         "stønadsperiode": $expectedStønadsperiode,
         "grunnlagsdataOgVilkårsvurderinger": $expectedGrunnlagsdataOgVilkårsvurderinger,
-        "erLukket": $expectedErLukket
+        "erLukket": $expectedErLukket,
+        "simuleringForAvkortingsvarsel": $expectedSimuleringForAvkortingsvarsel
     }
     """.trimIndent()
     JSONAssert.assertEquals(

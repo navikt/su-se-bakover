@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
@@ -12,41 +11,25 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
-import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.innvilgetUførevilkår
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.formueVilkår
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -97,73 +80,22 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
 
     @Test
     fun `kan opprette beregning og simulering for revurdering`() {
-        val månedsberegninger = listOf<Månedsberegning>(
-            mock {
-                on { getSumYtelse() } doReturn 1
-                on { periode } doReturn periode
-                on { getSats() } doReturn TestBeregning.getSats()
-            },
-        )
-
-        val beregning = mock<Beregning> {
-            on { getMånedsberegninger() } doReturn månedsberegninger
-            on { getId() } doReturn TestBeregning.getId()
-            on { getSumYtelse() } doReturn TestBeregning.getSumYtelse()
-            on { getFradrag() } doReturn TestBeregning.getFradrag()
-            on { getFradragStrategyName() } doReturn TestBeregning.getFradragStrategyName()
-            on { getOpprettet() } doReturn TestBeregning.getOpprettet()
-            on { getSats() } doReturn TestBeregning.getSats()
-            on { getSumFradrag() } doReturn TestBeregning.getSumFradrag()
-            on { periode } doReturn periode
+        val beregnetRevurdering = opprettetRevurdering(
+            vilkårOverrides = listOf(
+                innvilgetUførevilkår(
+                    forventetInntekt = 12000,
+                )
+            ),
+        ).let { (sak, revurdering) ->
+            revurdering.beregn(
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = fixedClock,
+                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                    fraOgMed = revurdering.periode.fraOgMed,
+                    clock = fixedClock
+                ).getOrFail()
+            ).getOrFail()
         }
-
-        val uføregrunnlag = Grunnlag.Uføregrunnlag(
-            periode = periode,
-            uføregrad = Uføregrad.parse(20),
-            forventetInntekt = 12000,
-            opprettet = fixedTidspunkt,
-        )
-        val beregnetRevurdering = OpprettetRevurdering(
-            id = UUID.randomUUID(),
-            periode = periode,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = vedtak.copy(beregning = beregning),
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.create(
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = periode,
-                        begrunnelse = null,
-                    ),
-                ),
-            ),
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                uføre = Vilkår.Uførhet.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
-                            resultat = Resultat.Innvilget,
-                            grunnlag = uføregrunnlag,
-                            periode = periode,
-                            begrunnelse = null,
-                            opprettet = fixedTidspunkt,
-                        ),
-                    ),
-                ),
-                formue = formueVilkår(periode),
-                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
-            ),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-        ).beregn(eksisterendeUtbetalinger = emptyList(), clock = fixedClock).orNull()!!
 
         val simulertRevurdering = when (beregnetRevurdering) {
             is BeregnetRevurdering.Innvilget -> {

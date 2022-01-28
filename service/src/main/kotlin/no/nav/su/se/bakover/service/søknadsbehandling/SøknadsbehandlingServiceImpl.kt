@@ -11,14 +11,15 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -82,6 +83,7 @@ internal class SøknadsbehandlingServiceImpl(
     private val sakService: SakService,
     private val kontrollsamtaleService: KontrollsamtaleService,
     private val sessionFactory: SessionFactory,
+    private val avkortingsvarselRepo: AvkortingsvarselRepo,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -117,6 +119,8 @@ internal class SøknadsbehandlingServiceImpl(
 
         val søknadsbehandlingId = UUID.randomUUID()
 
+        val avkorting = hentUteståendeAvkorting(søknad.sakId)
+
         søknadsbehandlingRepo.lagreNySøknadsbehandling(
             NySøknadsbehandling(
                 id = søknadsbehandlingId,
@@ -126,6 +130,7 @@ internal class SøknadsbehandlingServiceImpl(
                 oppgaveId = søknad.oppgaveId,
                 fnr = søknad.søknadInnhold.personopplysninger.fnr,
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+                avkorting = avkorting.kanIkke(),
             ),
         )
 
@@ -139,6 +144,26 @@ internal class SøknadsbehandlingServiceImpl(
                 )
             }
             it.right()
+        }
+    }
+
+    private fun hentUteståendeAvkorting(sakId: UUID): AvkortingVedSøknadsbehandling.Uhåndtert {
+        return when (val utestående = avkortingsvarselRepo.hentUtestående(sakId)) {
+            Avkortingsvarsel.Ingen -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(utestående)
+            }
         }
     }
 
@@ -172,18 +197,27 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
 
-        return statusovergang(
-            søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.TilBeregnet {
-                BeregningStrategyFactory(clock).beregn(
-                    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
-                        grunnlagsdata = søknadsbehandling.grunnlagsdata,
-                        vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger,
-                    ),
-                    beregningsPeriode = søknadsbehandling.periode, begrunnelse = request.begrunnelse,
-                )
-            },
-        ).let {
+        return søknadsbehandling.beregn(
+            begrunnelse = request.begrunnelse,
+            clock = clock,
+        ).getOrHandle { feil ->
+            return when (feil) {
+                is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand -> {
+                    KunneIkkeBeregne.UgyldigTilstand(feil.fra, feil.til)
+                }
+                is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
+                    KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(feil.feil.toService())
+                }
+                Søknadsbehandling.KunneIkkeBeregne.AvkortingErUfullstendig -> {
+                    KunneIkkeBeregne.AvkortingErUfullstendig
+                }
+            }.left()
+        }.let {
+            // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
+            grunnlagService.lagreFradragsgrunnlag(
+                behandlingId = it.id,
+                fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
+            )
             søknadsbehandlingRepo.lagre(it)
             it.right()
         }
@@ -333,7 +367,12 @@ internal class SøknadsbehandlingServiceImpl(
 
         return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.TilIverksatt(request.attestering),
+            statusovergang = Statusovergang.TilIverksatt(
+                request.attestering,
+                hentOpprinneligAvkorting = { avkortingid ->
+                    avkortingsvarselRepo.hent(id = avkortingid)
+                },
+            ),
         ).map { iverksattBehandling ->
             when (iverksattBehandling) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
@@ -470,19 +509,13 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun oppdaterStønadsperiode(request: SøknadsbehandlingService.OppdaterStønadsperiodeRequest): Either<SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
-
-        val sak = sakService.hentSak(søknadsbehandling.sakId)
+        val sak = sakService.hentSak(request.sakId)
             .getOrHandle { return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak.left() }
 
-        return forsøkStatusovergang(
-            søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.OppdaterStønadsperiode(
-                oppdatertStønadsperiode = request.stønadsperiode,
-                sak = sak,
-                clock = clock,
-            ),
+        return sak.oppdaterStønadsperiodeForSøknadsbehandling(
+            søknadsbehandlingId = request.behandlingId,
+            stønadsperiode = request.stønadsperiode,
+            clock = clock,
         ).mapLeft {
             SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
         }.map {
@@ -630,23 +663,33 @@ internal class SøknadsbehandlingServiceImpl(
          * Vi ønsker gradvis å gå over til sistenevnte måte å gjøre det på.
          */
         val oppdatertBehandling = behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag).getOrHandle {
-            return when (it) {
-                GrunnlagetMåVæreInneforBehandlingsperioden -> KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
-                IkkeLovÅLeggeTilFradragIDenneStatusen -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
-                    fra = behandling::class,
-                    til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
-                ).left()
-                PeriodeMangler -> KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler.left()
-                is Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
-                    it.feil,
-                ).left()
-            }
+            return it.toService().left()
         }
 
         grunnlagService.lagreFradragsgrunnlag(behandling.id, request.fradragsgrunnlag)
         søknadsbehandlingRepo.lagre(oppdatertBehandling)
 
         return oppdatertBehandling.right()
+    }
+
+    private fun Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.toService(): KunneIkkeLeggeTilFradragsgrunnlag {
+        return when (this) {
+            GrunnlagetMåVæreInneforBehandlingsperioden -> {
+                KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
+            }
+            is IkkeLovÅLeggeTilFradragIDenneStatusen -> {
+                KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                    fra = this.status,
+                    til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
+                )
+            }
+            is Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
+                KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(this.feil)
+            }
+            PeriodeMangler -> {
+                KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler
+            }
+        }
     }
 
     override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext) {
