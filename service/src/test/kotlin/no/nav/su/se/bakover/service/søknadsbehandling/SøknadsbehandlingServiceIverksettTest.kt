@@ -205,7 +205,13 @@ internal class SøknadsbehandlingServiceIverksettTest {
         response shouldBe expected.right()
 
         verify(serviceAndMocks.søknadsbehandlingRepo).hent(innvilgetTilAttestering.id)
-        verify(serviceAndMocks.utbetalingService).genererUtbetalingsRequest(any(), any(), any(), any(), any())
+        verify(serviceAndMocks.utbetalingService).genererUtbetalingsRequest(
+            sakId = argThat { it shouldBe innvilgetTilAttestering.sakId },
+            attestant = argThat { it shouldBe attestant },
+            beregning = argThat { it shouldBe innvilgetTilAttestering.beregning },
+            simulering = argThat { it shouldBe innvilgetTilAttestering.simulering },
+            uføregrunnlag = argThat { it shouldBe innvilgetTilAttestering.vilkårsvurderinger.uføre.grunnlag },
+        )
         verify(serviceAndMocks.søknadsbehandlingRepo).lagre(argThat { it shouldBe expected }, anyOrNull())
         verify(serviceAndMocks.vedtakRepo).lagre(
             argThat {
