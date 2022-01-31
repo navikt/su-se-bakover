@@ -20,6 +20,10 @@ sealed interface SimulerUtbetalingRequest {
         val opphørsdato: LocalDate
     }
 
+    interface StansRequest : SimulerUtbetalingRequest {
+        val stansdato: LocalDate
+    }
+
     data class NyUtbetaling(
         override val sakId: UUID,
         override val saksbehandler: NavIdentBruker,
@@ -32,6 +36,12 @@ sealed interface SimulerUtbetalingRequest {
         override val saksbehandler: NavIdentBruker,
         override val opphørsdato: LocalDate,
     ) : OpphørRequest
+
+    data class Stans(
+        override val sakId: UUID,
+        override val saksbehandler: NavIdentBruker,
+        override val stansdato: LocalDate,
+    ) : StansRequest
 }
 
 sealed interface UtbetalRequest : SimulerUtbetalingRequest {
@@ -48,4 +58,10 @@ sealed interface UtbetalRequest : SimulerUtbetalingRequest {
         override val simulering: Simulering,
     ) : UtbetalRequest,
         SimulerUtbetalingRequest.OpphørRequest by request
+
+    data class Stans(
+        private val request: SimulerUtbetalingRequest.Stans,
+        override val simulering: Simulering,
+    ) : UtbetalRequest,
+        SimulerUtbetalingRequest.StansRequest by request
 }

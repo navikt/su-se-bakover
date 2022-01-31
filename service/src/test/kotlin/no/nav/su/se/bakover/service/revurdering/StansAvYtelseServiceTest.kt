@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
@@ -128,8 +130,6 @@ internal class StansAvYtelseServiceTest {
             on {
                 simulerStans(
                     any(),
-                    any(),
-                    any(),
                 )
             } doReturn SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
         }
@@ -161,9 +161,11 @@ internal class StansAvYtelseServiceTest {
                 fraOgMed = 1.mai(2021),
             )
             verify(it.utbetalingService).simulerStans(
-                sakId = sakId,
-                saksbehandler = saksbehandler,
-                stansDato = 1.mai(2021),
+                request = SimulerUtbetalingRequest.Stans(
+                    sakId = sakId,
+                    saksbehandler = saksbehandler,
+                    stansdato = 1.mai(2021),
+                ),
             )
             it.verifyNoMoreInteractions()
         }
@@ -197,7 +199,7 @@ internal class StansAvYtelseServiceTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerStans(any(), any(), any()) } doReturn simulertUtbetaling().right()
+            on { simulerStans(any()) } doReturn simulertUtbetaling().right()
         }
         val observerMock: EventObserver = mock()
 
@@ -225,13 +227,19 @@ internal class StansAvYtelseServiceTest {
                 fraOgMed = 1.mai(2021),
             )
             verify(it.utbetalingService).simulerStans(
-                sakId = sakId,
-                saksbehandler = saksbehandler,
-                stansDato = 1.mai(2021),
+                request = SimulerUtbetalingRequest.Stans(
+                    sakId = sakId,
+                    saksbehandler = saksbehandler,
+                    stansdato = 1.mai(2021),
+                ),
             )
             verify(it.revurderingRepo).defaultTransactionContext()
             verify(it.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
-            verify(observerMock).handle(argThat { event -> event shouldBe Event.Statistikk.RevurderingStatistikk.Stans(response) })
+            verify(observerMock).handle(
+                argThat { event ->
+                    event shouldBe Event.Statistikk.RevurderingStatistikk.Stans(response)
+                },
+            )
             it.verifyNoMoreInteractions()
         }
     }
@@ -254,9 +262,6 @@ internal class StansAvYtelseServiceTest {
             on {
                 stansUtbetalinger(
                     any(),
-                    any(),
-                    any(),
-                    any(),
                 )
             } doReturn UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL))
                 .left()
@@ -277,10 +282,14 @@ internal class StansAvYtelseServiceTest {
 
             verify(it.revurderingRepo).hent(simulertStans.id)
             verify(it.utbetalingService).stansUtbetalinger(
-                sakId = simulertStans.sakId,
-                attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
-                simulering = simulertStans.simulering,
-                stansDato = simulertStans.periode.fraOgMed,
+                request = UtbetalRequest.Stans(
+                    request = SimulerUtbetalingRequest.Stans(
+                        sakId = simulertStans.sakId,
+                        saksbehandler = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
+                        stansdato = simulertStans.periode.fraOgMed,
+                    ),
+                    simulering = simulertStans.simulering,
+                ),
             )
             it.verifyNoMoreInteractions()
         }
@@ -308,9 +317,6 @@ internal class StansAvYtelseServiceTest {
             on {
                 stansUtbetalinger(
                     any(),
-                    any(),
-                    any(),
-                    any(),
                 )
             } doReturn utbetaling.right()
         }
@@ -328,10 +334,14 @@ internal class StansAvYtelseServiceTest {
 
             verify(it.revurderingRepo).hent(simulertStans.id)
             verify(it.utbetalingService).stansUtbetalinger(
-                sakId = simulertStans.sakId,
-                attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
-                simulering = simulertStans.simulering,
-                stansDato = simulertStans.periode.fraOgMed,
+                request = UtbetalRequest.Stans(
+                    request = SimulerUtbetalingRequest.Stans(
+                        sakId = simulertStans.sakId,
+                        saksbehandler = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
+                        stansdato = simulertStans.periode.fraOgMed,
+                    ),
+                    simulering = simulertStans.simulering,
+                ),
             )
             verify(revurderingRepoMock).defaultTransactionContext()
             verify(it.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
@@ -378,7 +388,7 @@ internal class StansAvYtelseServiceTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerStans(any(), any(), any()) } doReturn simulertUtbetaling().right()
+            on { simulerStans(any()) } doReturn simulertUtbetaling().right()
         }
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -411,9 +421,11 @@ internal class StansAvYtelseServiceTest {
                 fraOgMed = 1.desember(2021),
             )
             verify(it.utbetalingService).simulerStans(
-                sakId = sakId,
-                saksbehandler = NavIdentBruker.Saksbehandler("sverre"),
-                stansDato = 1.desember(2021),
+                request = SimulerUtbetalingRequest.Stans(
+                    sakId = sakId,
+                    saksbehandler = NavIdentBruker.Saksbehandler("sverre"),
+                    stansdato = 1.desember(2021),
+                ),
             )
             verify(it.revurderingRepo).hent(enRevurdering.id)
             it.verifyNoMoreInteractions()
@@ -444,7 +456,7 @@ internal class StansAvYtelseServiceTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerStans(any(), any(), any()) } doReturn simulertUtbetaling().right()
+            on { simulerStans(any()) } doReturn simulertUtbetaling().right()
         }
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -483,9 +495,11 @@ internal class StansAvYtelseServiceTest {
                 fraOgMed = periodeMars2021.fraOgMed,
             )
             verify(it.utbetalingService).simulerStans(
-                sakId = sakId,
-                saksbehandler = NavIdentBruker.Saksbehandler("kjeks"),
-                stansDato = periodeMars2021.fraOgMed,
+                request = SimulerUtbetalingRequest.Stans(
+                    sakId = sakId,
+                    saksbehandler = NavIdentBruker.Saksbehandler("kjeks"),
+                    stansdato = periodeMars2021.fraOgMed,
+                ),
             )
             verify(it.revurderingRepo).hent(eksisterende.id)
             verify(it.revurderingRepo).defaultTransactionContext()

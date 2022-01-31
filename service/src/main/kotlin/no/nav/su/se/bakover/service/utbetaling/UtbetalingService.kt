@@ -53,16 +53,11 @@ interface UtbetalingService {
     ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling>
 
     fun simulerStans(
-        sakId: UUID,
-        saksbehandler: NavIdentBruker,
-        stansDato: LocalDate,
+        request: SimulerUtbetalingRequest.StansRequest,
     ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling>
 
     fun stansUtbetalinger(
-        sakId: UUID,
-        attestant: NavIdentBruker,
-        simulering: Simulering,
-        stansDato: LocalDate,
+        request: UtbetalRequest.Stans,
     ): Either<UtbetalStansFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun simulerGjenopptak(

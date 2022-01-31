@@ -249,18 +249,13 @@ open class AccessCheckProxy(
                 ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> = kastKanKunKallesFraAnnenService()
 
                 override fun simulerStans(
-                    sakId: UUID,
-                    saksbehandler: NavIdentBruker,
-                    stansDato: LocalDate,
+                    request: SimulerUtbetalingRequest.StansRequest,
                 ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
                     kastKanKunKallesFraAnnenService()
                 }
 
                 override fun stansUtbetalinger(
-                    sakId: UUID,
-                    attestant: NavIdentBruker,
-                    simulering: Simulering,
-                    stansDato: LocalDate,
+                    request: UtbetalRequest.Stans,
                 ): Either<UtbetalStansFeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
                     kastKanKunKallesFraAnnenService()
                 }

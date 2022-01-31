@@ -17,6 +17,8 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -122,7 +124,7 @@ internal class StansUtbetalingServiceTest {
         forrigeUtbetalingslinjeId = førsteUtbetalingslinje.forrigeUtbetalingslinjeId,
         beløp = førsteUtbetalingslinje.beløp,
         virkningstidspunkt = 1.februar(2021),
-        uføregrad = førsteUtbetalingslinje.uføregrad
+        uføregrad = førsteUtbetalingslinje.uføregrad,
     )
 
     @Test
@@ -154,12 +156,15 @@ internal class StansUtbetalingServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             clock = fixedClock,
         ).stansUtbetalinger(
-            sak.id,
-            saksbehandler,
-            simulering = simulering,
-            stansDato = 1.februar(2021),
-        )
-            .getOrHandle { fail(it.toString()) }
+            request = UtbetalRequest.Stans(
+                request = SimulerUtbetalingRequest.Stans(
+                    sakId = sak.id,
+                    saksbehandler = saksbehandler,
+                    stansdato = 1.februar(2021),
+                ),
+                simulering = simulering,
+            ),
+        ).getOrHandle { fail(it.toString()) }
 
         response shouldBe oversendtUtbetaling.copy(
             id = response.id,
@@ -212,7 +217,7 @@ internal class StansUtbetalingServiceTest {
                         ),
                     ).toSimulertUtbetaling(simulering).toOversendtUtbetaling(oppdragsmelding)
                 },
-                anyOrNull()
+                anyOrNull(),
             )
         }
         verifyNoMoreInteractions(
@@ -244,10 +249,14 @@ internal class StansUtbetalingServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             clock = fixedClock,
         ).stansUtbetalinger(
-            sakId = sak.id,
-            attestant = saksbehandler,
-            simulering = simulering,
-            stansDato = 1.februar(2021),
+            request = UtbetalRequest.Stans(
+                request = SimulerUtbetalingRequest.Stans(
+                    sakId = sak.id,
+                    saksbehandler = saksbehandler,
+                    stansdato = 1.februar(2021),
+                ),
+                simulering = simulering,
+            ),
         )
 
         response shouldBe UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL))
@@ -302,10 +311,14 @@ internal class StansUtbetalingServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             clock = fixedClock,
         ).stansUtbetalinger(
-            sak.id,
-            saksbehandler,
-            simulering = simulering,
-            stansDato = 1.februar(2021),
+            request = UtbetalRequest.Stans(
+                request = SimulerUtbetalingRequest.Stans(
+                    sakId = sak.id,
+                    saksbehandler = saksbehandler,
+                    stansdato = 1.februar(2021),
+                ),
+                simulering = simulering,
+            ),
         )
 
         response shouldBe UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
@@ -441,10 +454,14 @@ internal class StansUtbetalingServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             clock = fixedClock,
         ).stansUtbetalinger(
-            sakId = sak.id,
-            attestant = saksbehandler,
-            simulering = simuleringMedProblemer,
-            stansDato = 1.februar(2021),
+            request = UtbetalRequest.Stans(
+                request = SimulerUtbetalingRequest.Stans(
+                    sakId = sak.id,
+                    saksbehandler = saksbehandler,
+                    stansdato = 1.februar(2021),
+                ),
+                simulering = simuleringMedProblemer,
+            ),
         ) shouldBe UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.KontrollAvSimuleringFeilet).left()
 
         verify(utbetalingPublisherMock, never()).publish(any())
@@ -474,22 +491,29 @@ internal class StansUtbetalingServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             clock = fixedClock,
         ).stansUtbetalinger(
-            sakId = sak.id,
-            attestant = saksbehandler,
-            simulering = simulering.copy(
-                periodeList = listOf(
-                    SimulertPeriode(
-                        fraOgMed = 1.mars(2021),
-                        tilOgMed = 31.mars(2021),
-                        utbetaling = emptyList(),
+            request = UtbetalRequest.Stans(
+                request = SimulerUtbetalingRequest.Stans(
+                    sakId = sak.id,
+                    saksbehandler = saksbehandler,
+                    stansdato = 1.februar(2021),
+                ),
+                simulering = simulering.copy(
+                    periodeList = listOf(
+                        SimulertPeriode(
+                            fraOgMed = 1.mars(2021),
+                            tilOgMed = 31.mars(2021),
+                            utbetaling = emptyList(),
+                        ),
                     ),
                 ),
             ),
-            stansDato = 1.februar(2021),
         ) shouldBe UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte)
             .left()
 
-        verify(utbetalingPublisherMock, never()).publish(any())
+        verify(
+            utbetalingPublisherMock,
+            never(),
+        ).publish(any())
         verify(utbetalingRepoMock, never()).opprettUtbetaling(any(), anyOrNull())
     }
 }
