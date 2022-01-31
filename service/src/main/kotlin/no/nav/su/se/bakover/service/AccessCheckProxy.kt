@@ -54,7 +54,6 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
@@ -261,16 +260,13 @@ open class AccessCheckProxy(
                 }
 
                 override fun simulerGjenopptak(
-                    sak: Sak,
-                    saksbehandler: NavIdentBruker,
+                    request: SimulerUtbetalingRequest.GjenopptakRequest,
                 ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
                     kastKanKunKallesFraAnnenService()
                 }
 
                 override fun gjenopptaUtbetalinger(
-                    sakId: UUID,
-                    attestant: NavIdentBruker,
-                    simulering: Simulering,
+                    request: UtbetalRequest.Gjenopptak,
                 ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
                     kastKanKunKallesFraAnnenService()
                 }

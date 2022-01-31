@@ -3,8 +3,6 @@ package no.nav.su.se.bakover.service.utbetaling
 import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
@@ -14,7 +12,6 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.LocalDate
 import java.util.UUID
@@ -61,14 +58,11 @@ interface UtbetalingService {
     ): Either<UtbetalStansFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun simulerGjenopptak(
-        sak: Sak,
-        saksbehandler: NavIdentBruker,
+        request: SimulerUtbetalingRequest.GjenopptakRequest,
     ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling>
 
     fun gjenopptaUtbetalinger(
-        sakId: UUID,
-        attestant: NavIdentBruker,
-        simulering: Simulering,
+        request: UtbetalRequest.Gjenopptak,
     ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun opphør(

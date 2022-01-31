@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
@@ -131,9 +133,11 @@ class GjenopptakAvYtelseService(
                 ).getOrHandle { return KunneIkkeIverksetteGjenopptakAvYtelse.SimuleringIndikererFeilutbetaling.left() }
 
                 val stansUtbetaling = utbetalingService.gjenopptaUtbetalinger(
-                    sakId = iverksattRevurdering.sakId,
-                    attestant = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
-                    simulering = revurdering.simulering,
+                    request = UtbetalRequest.Gjenopptak(
+                        sakId = iverksattRevurdering.sakId,
+                        saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
+                        simulering = iverksattRevurdering.simulering
+                    ),
                 ).getOrHandle { return KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(it).left() }
 
                 val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.id, clock)
@@ -173,8 +177,10 @@ class GjenopptakAvYtelseService(
 
     private fun simuler(sak: Sak, request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, Utbetaling.SimulertUtbetaling> =
         utbetalingService.simulerGjenopptak(
-            sak = sak,
-            saksbehandler = request.saksbehandler,
+            request = SimulerUtbetalingRequest.Gjenopptak(
+                saksbehandler = request.saksbehandler,
+                sak = sak
+            ),
         ).getOrHandle {
             log.warn("Kunne ikke opprette revurdering for gjenopptak av ytelse, årsak: $it")
             return KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(it).left()

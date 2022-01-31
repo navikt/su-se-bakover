@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -102,9 +103,11 @@ internal class GjenopptaUtbetalingerServiceTest {
             simuleringClient = simuleringClientMock,
             clock = klokke,
         ).gjenopptaUtbetalinger(
-            sakId = sak.id,
-            attestant = saksbehandler,
-            simulering = simulering,
+            request = UtbetalRequest.Gjenopptak(
+                sakId = sak.id,
+                saksbehandler = saksbehandler,
+                simulering = simulering,
+            ),
         ).getOrFail().let {
             verify(sakServiceMock).hentSak(
                 sakId = argThat { it shouldBe sak.id },
@@ -153,9 +156,11 @@ internal class GjenopptaUtbetalingerServiceTest {
         )
 
         service.gjenopptaUtbetalinger(
-            sakId = sakId,
-            attestant = saksbehandler,
-            simulering = simulering,
+            request = UtbetalRequest.Gjenopptak(
+                sakId = sakId,
+                saksbehandler = saksbehandler,
+                simulering = simulering,
+            ),
         ).let {
             it shouldBe UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.FantIkkeSak).left()
 
@@ -186,9 +191,11 @@ internal class GjenopptaUtbetalingerServiceTest {
             simuleringClient = simuleringClientMock,
             clock = fixedClock,
         ).gjenopptaUtbetalinger(
-            sakId = sak.id,
-            attestant = saksbehandler,
-            simulering = simulering,
+            request = UtbetalRequest.Gjenopptak(
+                sakId = sak.id,
+                saksbehandler = saksbehandler,
+                simulering = simulering,
+            ),
         ).let {
             it shouldBe UtbetalGjenopptakFeil.KunneIkkeSimulere(SimulerGjenopptakFeil.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL))
                 .left()
@@ -242,9 +249,11 @@ internal class GjenopptaUtbetalingerServiceTest {
             simuleringClient = simuleringClientMock,
             clock = klokke,
         ).gjenopptaUtbetalinger(
-            sakId = sak.id,
-            attestant = saksbehandler,
-            simulering = simulering,
+            request = UtbetalRequest.Gjenopptak(
+                sakId = sak.id,
+                saksbehandler = saksbehandler,
+                simulering = simulering,
+            ),
         ).let {
             it shouldBe UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
 
@@ -338,9 +347,11 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             clock = fixedClock,
         ).gjenopptaUtbetalinger(
-            sakId = sak.id,
-            attestant = attestant,
-            simulering = simuleringMedFeil,
+            request = UtbetalRequest.Gjenopptak(
+                sakId = sak.id,
+                saksbehandler = attestant,
+                simulering = simuleringMedFeil,
+            ),
         ) shouldBe UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.KontrollAvSimuleringFeilet).left()
 
         verifyNoMoreInteractions(utbetalingRepoMock, utbetalingPublisherMock)

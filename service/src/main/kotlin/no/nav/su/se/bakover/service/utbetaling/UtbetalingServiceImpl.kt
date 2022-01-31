@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
@@ -283,15 +282,14 @@ internal class UtbetalingServiceImpl(
     }
 
     override fun simulerGjenopptak(
-        sak: Sak,
-        saksbehandler: NavIdentBruker,
+        request: SimulerUtbetalingRequest.GjenopptakRequest,
     ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> =
         Utbetalingsstrategi.Gjenoppta(
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-            fnr = sak.fnr,
-            utbetalinger = sak.utbetalinger,
-            behandler = saksbehandler,
+            sakId = request.sakId,
+            saksnummer = request.sak.saksnummer,
+            fnr = request.sak.fnr,
+            utbetalinger = request.sak.utbetalinger,
+            behandler = request.saksbehandler,
             clock = clock,
         ).generer()
             .mapLeft {
@@ -304,21 +302,22 @@ internal class UtbetalingServiceImpl(
             }
 
     override fun gjenopptaUtbetalinger(
-        sakId: UUID,
-        attestant: NavIdentBruker,
-        simulering: Simulering,
+        request: UtbetalRequest.Gjenopptak,
     ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-        val sak = sakService.hentSak(sakId).getOrElse {
+        val sak = sakService.hentSak(request.sakId).getOrElse {
             return UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.FantIkkeSak).left()
         }
+
         return simulerGjenopptak(
-            sak = sak,
-            saksbehandler = attestant,
+            request = SimulerUtbetalingRequest.Gjenopptak(
+                saksbehandler = request.saksbehandler,
+                sak = sak,
+            ),
         ).mapLeft {
             UtbetalGjenopptakFeil.KunneIkkeSimulere(it)
         }.flatMap { simulertGjenopptak ->
             if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
-                    saksbehandlersSimulering = simulering,
+                    saksbehandlersSimulering = request.simulering,
                     attestantsSimulering = simulertGjenopptak,
                 )
             ) return UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte)
