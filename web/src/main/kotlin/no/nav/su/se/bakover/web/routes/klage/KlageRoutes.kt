@@ -248,7 +248,7 @@ internal fun Route.klageRoutes(
                     )
                     KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler -> BadRequest.errorJson(
                         "Ugyldig opprettholdelseshjemler",
-                        "ugyldig_opprettholdesleshjemler",
+                        "ugyldig_opprettholdelseshjemler",
                     )
                     is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
                 }
