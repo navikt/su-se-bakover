@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.avkortingsvarselUtenlandsopphold
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -61,7 +62,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val response = serviceAndMocks.søknadsbehandlingService.iverksett(
             SøknadsbehandlingService.IverksettRequest(
-                avslagTilAttestering.id,
+                UUID.randomUUID(),
                 Attestering.Iverksatt(attestant, fixedTidspunkt),
             ),
         )
@@ -106,6 +107,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
     @Test
     fun `svarer med feil dersom vi ikke kunne simulere`() {
+        val innvilgetTilAttestering = søknadsbehandlingTilAttesteringInnvilget().second
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn innvilgetTilAttestering
@@ -127,6 +129,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
     @Test
     fun `svarer med feil dersom kontrollsimulering var for ulik`() {
+        val innvilgetTilAttestering = søknadsbehandlingTilAttesteringInnvilget().second
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn innvilgetTilAttestering
@@ -148,6 +151,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
     @Test
     fun `svarer med feil dersom vi ikke kunne utbetale`() {
+        val innvilgetTilAttestering = søknadsbehandlingTilAttesteringInnvilget().second
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn innvilgetTilAttestering
@@ -173,6 +177,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
     @Test
     fun `attesterer og iverksetter innvilgning hvis alt er ok`() {
+        val innvilgetTilAttestering = søknadsbehandlingTilAttesteringInnvilget().second
         val simulertUtbetaling = simulertUtbetaling()
 
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
@@ -235,6 +240,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
     @Test
     fun `attesterer og iverksetter avslag hvis alt er ok`() {
         val attestering = Attestering.Iverksatt(attestant, fixedTidspunkt)
+        val avslagTilAttestering = søknadsbehandlingTilAttesteringAvslagMedBeregning().second
         val expectedAvslag = avslagTilAttestering.tilIverksatt(attestering)
 
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
@@ -292,6 +298,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
     @Test
     fun `attestant og saksbehandler kan ikke være samme person`() {
+        val avslagTilAttestering = søknadsbehandlingTilAttesteringAvslagMedBeregning().second
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn avslagTilAttestering
@@ -313,6 +320,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
     @Test
     fun `svarer med feil dersom generering av vedtaksbrev feiler`() {
+        val avslagTilAttestering = søknadsbehandlingTilAttesteringAvslagMedBeregning().second
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn avslagTilAttestering
@@ -352,6 +360,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
     @Test
     fun `verifiser at utbetaling skjer etter alle lagre-kall`() {
+        val innvilgetTilAttestering = søknadsbehandlingTilAttesteringInnvilget().second
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn innvilgetTilAttestering
@@ -384,8 +393,4 @@ internal class SøknadsbehandlingServiceIverksettTest {
             verify(serviceAndMocks.utbetalingService).publiserUtbetaling(any())
         }
     }
-
-    private val attestant = NavIdentBruker.Attestant("attestant")
-    private val avslagTilAttestering = søknadsbehandlingTilAttesteringAvslagMedBeregning().second
-    private val innvilgetTilAttestering = søknadsbehandlingTilAttesteringInnvilget().second
 }
