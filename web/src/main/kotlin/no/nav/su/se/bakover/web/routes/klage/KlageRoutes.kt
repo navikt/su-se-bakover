@@ -113,7 +113,10 @@ internal fun Route.klageRoutes(
                                 "finnes_allerede_en_klagebehandling",
                             )
                             is KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost -> it.feil.toErrorJson()
-                            KunneIkkeOppretteKlage.JournalpostErIkkeKnyttetTilSak -> TODO()
+                            KunneIkkeOppretteKlage.JournalpostErIkkeKnyttetTilSak -> BadRequest.errorJson(
+                                "Hentet journalpost er ikke knyttet til saken",
+                                "hentet_journalpost_ikke_knyttet_til_sak",
+                            )
                         }
                     }
                     call.svar(resultat)
