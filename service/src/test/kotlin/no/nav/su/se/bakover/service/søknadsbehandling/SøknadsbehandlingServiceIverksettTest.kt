@@ -5,12 +5,8 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.november
-import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.dokument.Dokument
@@ -22,6 +18,7 @@ import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.test.avkortingsvarselUtenlandsopphold
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -29,7 +26,6 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.kontrollsamtale
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simuleringNy
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
@@ -75,58 +71,37 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
     @Test
     fun `feiler hvis utestående avkortinger ikke kunne avkortes fullstendig`() {
-        val tilAttestering = søknadsbehandlingVilkårsvurdertInnvilget().let { (_, vilkårsvurdert) ->
-            vilkårsvurdert.leggTilFradragsgrunnlag(
-                fradragsgrunnlag = listOf(
-                    fradragsgrunnlagArbeidsinntekt(
-                        arbeidsinntekt = 20000.0,
-                    ),
-                ),
-            ).getOrFail().beregn(
-                begrunnelse = null,
-                clock = fixedClock,
-            ).getOrFail().let {
-                it.tilSimulert(simuleringNy(it.beregning))
-            }.tilAttestering(
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = "njet",
-            )
-        }
+        val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second.leggTilFradragsgrunnlag(
+            fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 20000.0)),
+        ).getOrFail().beregn(
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail().let {
+            it.tilSimulert(simuleringNy(it.beregning))
+        }.tilAttestering(
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = "njet",
+        )
 
-        val avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            sakId = UUID.randomUUID(),
-            revurderingId = UUID.randomUUID(),
-            simulering = simuleringFeilutbetaling(
-                oktober(2020), november(2020), desember(2020),
-            ),
-        ).skalAvkortes()
+        val avkortingsvarsel = avkortingsvarselUtenlandsopphold().skalAvkortes()
 
-        SøknadsbehandlingServiceAndMocks(
+        val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
-                on { hent(any()) } doReturn tilAttestering.copy(
-                    avkorting = AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
-                        avkortingsvarsel = avkortingsvarsel,
-                    ),
-                )
+                on { hent(any()) } doReturn behandling.copy(avkorting = AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(avkortingsvarsel))
             },
             avkortingsvarselRepo = mock {
                 on { hent(any()) } doReturn avkortingsvarsel
             },
 
-        ).let {
-            it.søknadsbehandlingService.iverksett(
-                SøknadsbehandlingService.IverksettRequest(
-                    tilAttestering.id,
-                    Attestering.Iverksatt(attestant, fixedTidspunkt),
-                ),
-            ) shouldBe KunneIkkeIverksette.AvkortingErUfullstendig.left()
+        )
+        val response = serviceAndMocks.søknadsbehandlingService.iverksett(
+            SøknadsbehandlingService.IverksettRequest(
+                behandling.id,
+                Attestering.Iverksatt(attestant, fixedTidspunkt),
+            ),
+        )
 
-            verify(it.søknadsbehandlingRepo).hent(tilAttestering.id)
-            verify(it.avkortingsvarselRepo).hent(avkortingsvarsel.id)
-            it.verifyNoMoreInteractions()
-        }
+        response shouldBe KunneIkkeIverksette.AvkortingErUfullstendig.left()
     }
 
     @Test
