@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.HentetJournalpost
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
+import no.nav.su.se.bakover.domain.journalpost.Sak
 import org.junit.jupiter.api.Test
 
 internal class JournalpostHttpClientTest {
@@ -24,7 +25,11 @@ internal class JournalpostHttpClientTest {
             {
               "data": {
                 "journalpost": {
-                  "tema": "SUP"
+                  "tema": "SUP",
+                  "journalstatus": "FERDIGSTILT",
+                  "sak": {
+                  "fagsakId": "1234"
+                  }
                 }
               }
             }
@@ -40,7 +45,11 @@ internal class JournalpostHttpClientTest {
             tokenOppslag = tokenOppslag,
         )
 
-        client.hentJournalpost(JournalpostId("j")) shouldBe HentetJournalpost.create(tema = "SUP").right()
+        client.hentJournalpost(JournalpostId("j")) shouldBe HentetJournalpost.create(
+            tema = "SUP",
+            journalstatus = "FERDIGSTILT",
+            sak = Sak(fagsakId = "1234"),
+        ).right()
     }
 
     @Test

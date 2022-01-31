@@ -12,12 +12,22 @@ internal data class JournalpostResponse(
         if (journalpost == null) {
             return JournalpostFinnesIkke.left()
         }
-        return HentetJournalpost.create(journalpost.tema).right()
+        return HentetJournalpost.create(
+            journalpost.tema,
+            journalpost.journalstatus,
+            no.nav.su.se.bakover.domain.journalpost.Sak(journalpost.sak.fagsakId),
+        ).right()
     }
 }
 
 internal data class Journalpost(
     val tema: String,
+    val journalstatus: String,
+    val sak: Sak,
+)
+
+internal data class Sak(
+    val fagsakId: String,
 )
 
 object JournalpostFinnesIkke

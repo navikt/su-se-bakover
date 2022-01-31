@@ -6,11 +6,16 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.HentetJournalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
+import no.nav.su.se.bakover.domain.journalpost.Sak
 
 object JournalpostClientStub : JournalpostClient {
     override fun hentJournalpost(journalpostId: JournalpostId): Either<KunneIkkeHenteJournalpost, HentetJournalpost> {
         return HentetJournalpost.create(
             tema = "SUP",
+            journalstatus = "FERDIGSTILT",
+            sak = Sak(
+                fagsakId = "en fagsak id som ikke er en id",
+            ),
         ).right()
     }
 }

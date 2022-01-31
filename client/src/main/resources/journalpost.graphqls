@@ -1,3 +1,9 @@
 type JournalpostResponse {
     tema: String
+    journalstatus: String
+    sak: Sak
+}
+
+type Sak{
+    fagsakId: String
 }

@@ -10,8 +10,12 @@ internal class JournalpostResponseTest {
 
     @Test
     fun `mapper journalpostResponse til HentetJournalpost`() {
-        val jpr = JournalpostResponse(Journalpost("SUP"))
-        jpr.toHentetJournalpost() shouldBe HentetJournalpost.create("SUP").right()
+        val jpr = JournalpostResponse(Journalpost("SUP", "FERDIGSTILT", Sak("1234")))
+        jpr.toHentetJournalpost() shouldBe HentetJournalpost.create(
+            tema = "SUP",
+            journalstatus = "FERDIGSTILT",
+            sak = no.nav.su.se.bakover.domain.journalpost.Sak("1234"),
+        ).right()
     }
 
     @Test

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.HentetJournalpost
+import no.nav.su.se.bakover.domain.journalpost.Sak
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -33,7 +34,11 @@ internal class OpprettKlageTest {
 
     private fun getHentetJournalpost(): HentetJournalpost {
         return HentetJournalpost.create(
-            tema = "SUP"
+            tema = "SUP",
+            journalstatus = "FERDIGSTILT",
+            sak = Sak(
+                fagsakId = "yep yep",
+            ),
         )
     }
 
