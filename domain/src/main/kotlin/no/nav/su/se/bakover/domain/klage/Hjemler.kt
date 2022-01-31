@@ -91,12 +91,21 @@ enum class Hjemmel(val kapittel: Int, val paragrafnummer: Int) {
     /** Kapittel 3 - § 10.Endringar (2021-01-01) */
     SU_PARAGRAF_10(3, 10),
 
+    /** Kapittel 3 - § 11.Stønadsperiode og utbetaling (2021-01-01) */
+    SU_PARAGRAF_11(3, 11),
+
     /** Kapittel 3 - § 12.Opphald i institusjon mv. (2021-01-01) */
     SU_PARAGRAF_12(3, 12),
 
     /** Kapittel 3 - § 13.Tilbakekrevjing (2021-01-01) */
     SU_PARAGRAF_13(3, 13),
 
+    /** Kapittel 4 - § 17.Søknad (2021-01-01) */
+    SU_PARAGRAF_17(4, 17),
+
     /** Kapittel 4 - § 18.Plikt til å gi opplysningar (2021-01-01) */
-    SU_PARAGRAF_18(4, 18);
+    SU_PARAGRAF_18(4, 18),
+
+    /** Kapittel 4 - § 21.Kontroll (2021-01-01) */
+    SU_PARAGRAF_21(4, 21);
 }
