@@ -113,7 +113,7 @@ internal class VurderKlageTest {
         verifiserFeilkode(
             feilkode = KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler,
             status = HttpStatusCode.BadRequest,
-            body = "{\"message\":\"Ugyldig opprettholdelseshjemler\",\"code\":\"ugyldig_opprettholdesleshjemler\"}",
+            body = "{\"message\":\"Ugyldig opprettholdelseshjemler\",\"code\":\"ugyldig_opprettholdelseshjemler\"}",
         )
     }
 
