@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
-import io.kotest.assertions.fail
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
@@ -22,6 +21,7 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -35,8 +35,6 @@ internal val simulering = Simulering(
     nettoBeløp = 191500,
     periodeList = listOf(),
 )
-
-inline fun <reified T : Any> defaultMock() = mock<T>(defaultAnswer = { fail("Unstubbed method: ${it.method}") })
 
 internal fun createSøknadsbehandlingService(
     søknadsbehandlingRepo: SøknadsbehandlingRepo = mock(),

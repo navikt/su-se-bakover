@@ -58,6 +58,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn null
             },
+            avkortingsvarselRepo = mock {
+                on { hent(any()) } doReturn null
+            },
         )
 
         val response = serviceAndMocks.søknadsbehandlingService.iverksett(
