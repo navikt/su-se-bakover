@@ -100,6 +100,9 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontr
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.regulering.KanIkkeHenteSaker
+import no.nav.su.se.bakover.service.regulering.ReguleringService
+import no.nav.su.se.bakover.service.regulering.SakerSomKanReguleres
 import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
@@ -245,7 +248,8 @@ open class AccessCheckProxy(
                     return services.utbetaling.utbetal(sakId, attestant, beregning, simulering, uføregrunnlag)
                 }
 
-                override fun publiserUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling): Either<UtbetalingFeilet, Utbetalingsrequest> = kastKanKunKallesFraAnnenService()
+                override fun publiserUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling): Either<UtbetalingFeilet, Utbetalingsrequest> =
+                    kastKanKunKallesFraAnnenService()
 
                 override fun lagreUtbetaling(
                     utbetaling: Utbetaling.SimulertUtbetaling,
@@ -756,7 +760,18 @@ open class AccessCheckProxy(
                     return services.vedtakService.hentAktiveFnr(fomDato)
                 }
 
+                override fun hentAlleSakIdSomHarVedtakEtterDato(fomDato: LocalDate): List<UUID> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun kopierGjeldendeVedtaksdata(
+                    sakId: UUID,
+                    fraOgMed: LocalDate,
+                ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun kopierGjeldendeVedtaksdataForRegulering(
                     sakId: UUID,
                     fraOgMed: LocalDate,
                 ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
@@ -823,7 +838,8 @@ open class AccessCheckProxy(
                     transactionContext: TransactionContext,
                 ): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> = kastKanKunKallesFraAnnenService()
 
-                override fun annullerKontrollsamtale(sakId: UUID): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> = kastKanKunKallesFraAnnenService()
+                override fun annullerKontrollsamtale(sakId: UUID): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> =
+                    kastKanKunKallesFraAnnenService()
             },
             klageService = object : KlageService {
                 override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
@@ -906,6 +922,11 @@ open class AccessCheckProxy(
             klagevedtakService = object : KlagevedtakService {
                 override fun lagre(klageVedtak: UprosessertFattetKlageinstansvedtak) = kastKanKunKallesFraAnnenService()
                 override fun håndterUtfallFraKlageinstans(deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KanIkkeTolkeKlagevedtak, UprosessertKlageinstansvedtak>) {
+                    kastKanKunKallesFraAnnenService()
+                }
+            },
+            reguleringService = object : ReguleringService {
+                override fun hentAlleSakerSomKanReguleres(fraDato: LocalDate): Either<KanIkkeHenteSaker, SakerSomKanReguleres> {
                     kastKanKunKallesFraAnnenService()
                 }
             },

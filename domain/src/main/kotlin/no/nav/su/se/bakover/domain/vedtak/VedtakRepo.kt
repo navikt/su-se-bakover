@@ -10,6 +10,7 @@ interface VedtakRepo {
     fun hentForVedtakId(vedtakId: UUID): Vedtak?
     fun hentForSakId(sakId: UUID): List<Vedtak>
     fun hentAktive(dato: LocalDate): List<VedtakSomKanRevurderes.EndringIYtelse>
+    fun hentAktiveSakId(dato: LocalDate): List<UUID>
     fun lagre(vedtak: Vedtak)
     fun lagre(vedtak: Vedtak, sessionContext: TransactionContext)
     fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes?

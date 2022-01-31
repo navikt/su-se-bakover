@@ -40,6 +40,32 @@ class VedtakServiceImpl(
         return vedtakRepo.hentJournalpostId(vedtakId)
     }
 
+    override fun hentAlleSakIdSomHarVedtakEtterDato(fomDato: LocalDate): List<UUID> {
+        return vedtakRepo.hentAktiveSakId(fomDato).distinct()
+    }
+
+    override fun kopierGjeldendeVedtaksdataForRegulering(
+        sakId: UUID,
+        fraOgMed: LocalDate,
+    ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+        val sak = sakService.hentSak(sakId).getOrHandle {
+            return KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak.left()
+        }
+
+        val vedtakSomKanRevurderes = sak.vedtakListe
+            .filterIsInstance<VedtakSomKanRevurderes>()
+            // .filterNot { vedtak -> vedtak is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering } // fjerne de som ikke kan reguleres?
+            .ifEmpty { return KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak.left() }
+            .let { NonEmptyList.fromListUnsafe(it) }
+
+        val senesteTilOgMedDato = vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed }
+        val periode = Periode.tryCreate(fraOgMed, senesteTilOgMedDato).getOrHandle {
+            return KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode(it).left()
+        }
+
+        return GjeldendeVedtaksdata(periode, vedtakSomKanRevurderes, clock).right()
+    }
+
     override fun hentAktiveFnr(fomDato: LocalDate): List<Fnr> {
         return vedtakRepo.hentAktive(fomDato).map {
             it.behandling.fnr

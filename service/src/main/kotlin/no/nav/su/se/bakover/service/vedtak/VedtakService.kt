@@ -16,8 +16,21 @@ interface VedtakService {
     fun hentForVedtakId(vedtakId: UUID): Vedtak?
     fun hentJournalpostId(vedtakId: UUID): JournalpostId?
     fun hentAktiveFnr(fomDato: LocalDate): List<Fnr>
-    fun kopierGjeldendeVedtaksdata(sakId: UUID, fraOgMed: LocalDate): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata>
-    fun historiskGrunnlagForVedtaksperiode(sakId: UUID, vedtakId: UUID): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata>
+    fun hentAlleSakIdSomHarVedtakEtterDato(fomDato: LocalDate): List<UUID>
+    fun kopierGjeldendeVedtaksdata(
+        sakId: UUID,
+        fraOgMed: LocalDate,
+    ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata>
+
+    fun kopierGjeldendeVedtaksdataForRegulering(
+        sakId: UUID,
+        fraOgMed: LocalDate,
+    ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata>
+
+    fun historiskGrunnlagForVedtaksperiode(
+        sakId: UUID,
+        vedtakId: UUID,
+    ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata>
 }
 
 sealed class KunneIkkeKopiereGjeldendeVedtaksdata {

@@ -164,6 +164,23 @@ internal class VedtakPostgresRepo(
                 }.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse>()
         }
 
+    override fun hentAktiveSakId(dato: LocalDate): List<UUID> {
+        return dataSource.withSession { session ->
+            """
+            select bv.sakid from vedtak v
+            
+            inner join behandling_vedtak bv
+              on v.id = bv.vedtakid
+              
+            where tilogmed >= :dato
+
+            """.trimIndent()
+                .hentListe(mapOf("dato" to dato), session) {
+                    it.uuid("sakid")
+                } // .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse>()
+        }
+    }
+
     private fun Row.toVedtak(session: Session): Vedtak {
         val id = uuid("id")
         val opprettet = tidspunkt("opprettet")
