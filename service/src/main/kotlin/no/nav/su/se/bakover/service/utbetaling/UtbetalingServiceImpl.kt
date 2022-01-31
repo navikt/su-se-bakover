@@ -124,21 +124,14 @@ internal class UtbetalingServiceImpl(
     }
 
     override fun opphør(
-        sakId: UUID,
-        attestant: NavIdentBruker,
-        simulering: Simulering,
-        opphørsdato: LocalDate,
+        request: UtbetalRequest.Opphør,
     ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-        return simulerOpphør(
-            sakId = sakId,
-            saksbehandler = attestant,
-            opphørsdato = opphørsdato,
-        ).mapLeft {
+        return simulerOpphør(request).mapLeft {
             UtbetalingFeilet.KunneIkkeSimulere(it)
         }.flatMap { simulertOpphør ->
             if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
-                    simulering,
-                    simulertOpphør,
+                    saksbehandlersSimulering = request.simulering,
+                    attestantsSimulering = simulertOpphør,
                 )
             ) return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
             utbetal(simulertOpphør)
@@ -146,19 +139,17 @@ internal class UtbetalingServiceImpl(
     }
 
     override fun simulerOpphør(
-        sakId: UUID,
-        saksbehandler: NavIdentBruker,
-        opphørsdato: LocalDate,
+        request: SimulerUtbetalingRequest.OpphørRequest,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-        val sak: Sak = sakService.hentSak(sakId).orNull()!!
+        val sak: Sak = sakService.hentSak(request.sakId).orNull()!!
         return simulerUtbetaling(
             Utbetalingsstrategi.Opphør(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
                 utbetalinger = sak.utbetalinger,
-                behandler = saksbehandler,
-                opphørsDato = opphørsdato,
+                behandler = request.saksbehandler,
+                opphørsDato = request.opphørsdato,
                 clock = clock,
             ).generate(),
         )

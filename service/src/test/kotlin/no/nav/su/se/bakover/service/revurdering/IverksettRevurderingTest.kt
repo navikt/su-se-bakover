@@ -170,7 +170,7 @@ internal class IverksettRevurderingTest {
                 on { hent(any()) } doReturn revurderingTilAttestering
             },
             utbetalingService = mock {
-                on { opphør(any(), any(), any(), any()) } doReturn utbetaling.right()
+                on { opphør(any()) } doReturn utbetaling.right()
             },
 
         )
@@ -181,10 +181,16 @@ internal class IverksettRevurderingTest {
 
         verify(mocks.revurderingRepo).hent(revurderingId)
         verify(mocks.utbetalingService).opphør(
-            sakId = argThat { it shouldBe sakId },
-            attestant = argThat { it shouldBe attestant },
-            simulering = argThat { it shouldBe revurderingTilAttestering.simulering },
-            opphørsdato = argThat { it shouldBe revurderingTilAttestering.periode.fraOgMed },
+            argThat {
+                it shouldBe UtbetalRequest.Opphør(
+                    request = SimulerUtbetalingRequest.Opphør(
+                        sakId = sakId,
+                        saksbehandler = attestant,
+                        opphørsdato = revurderingTilAttestering.periode.fraOgMed,
+                    ),
+                    simulering = revurderingTilAttestering.simulering,
+                )
+            },
         )
         verify(mocks.vedtakRepo).lagre(
             argThat {

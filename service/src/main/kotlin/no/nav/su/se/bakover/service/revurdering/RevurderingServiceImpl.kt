@@ -805,9 +805,11 @@ internal class RevurderingServiceImpl(
                         // TODO er tanken at vi skal oppdatere saksbehandler her? Det kan se ut som vi har tenkt det, men aldri fullført.
                         beregnetRevurdering.toSimulert { sakId, _, opphørsdato ->
                             utbetalingService.simulerOpphør(
-                                sakId = sakId,
-                                saksbehandler = saksbehandler,
-                                opphørsdato = opphørsdato,
+                                request = SimulerUtbetalingRequest.Opphør(
+                                    sakId = sakId,
+                                    saksbehandler = saksbehandler,
+                                    opphørsdato = opphørsdato,
+                                ),
                             )
                         }.mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }
                             .map { simulert ->
@@ -1315,10 +1317,14 @@ internal class RevurderingServiceImpl(
                             clock = clock,
                             utbetal = { sakId: UUID, _: NavIdentBruker.Attestant, opphørsdato: LocalDate, simulering: Simulering ->
                                 utbetalingService.opphør(
-                                    sakId = sakId,
-                                    attestant = attestant,
-                                    opphørsdato = opphørsdato,
-                                    simulering = simulering,
+                                    request = UtbetalRequest.Opphør(
+                                        request = SimulerUtbetalingRequest.Opphør(
+                                            sakId = sakId,
+                                            saksbehandler = attestant,
+                                            opphørsdato = opphørsdato,
+                                        ),
+                                        simulering = simulering,
+                                    ),
                                 ).mapLeft {
                                     RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
                                 }.map {

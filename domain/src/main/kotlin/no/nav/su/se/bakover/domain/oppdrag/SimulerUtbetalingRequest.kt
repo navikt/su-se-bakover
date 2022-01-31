@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import java.time.LocalDate
 import java.util.UUID
 
 sealed interface SimulerUtbetalingRequest {
@@ -15,12 +16,22 @@ sealed interface SimulerUtbetalingRequest {
         val uføregrunnlag: List<Grunnlag.Uføregrunnlag>
     }
 
+    interface OpphørRequest : SimulerUtbetalingRequest {
+        val opphørsdato: LocalDate
+    }
+
     data class NyUtbetaling(
         override val sakId: UUID,
         override val saksbehandler: NavIdentBruker,
         override val beregning: Beregning,
         override val uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
     ) : NyUtbetalingRequest
+
+    data class Opphør(
+        override val sakId: UUID,
+        override val saksbehandler: NavIdentBruker,
+        override val opphørsdato: LocalDate,
+    ) : OpphørRequest
 }
 
 sealed interface UtbetalRequest : SimulerUtbetalingRequest {
@@ -31,4 +42,10 @@ sealed interface UtbetalRequest : SimulerUtbetalingRequest {
         override val simulering: Simulering,
     ) : UtbetalRequest,
         SimulerUtbetalingRequest.NyUtbetalingRequest by request
+
+    data class Opphør(
+        private val request: SimulerUtbetalingRequest.OpphørRequest,
+        override val simulering: Simulering,
+    ) : UtbetalRequest,
+        SimulerUtbetalingRequest.OpphørRequest by request
 }

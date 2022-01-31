@@ -76,7 +76,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 on { hent(any()) } doReturn opprettet
             },
             utbetalingService = mock {
-                on { simulerOpphør(any(), any(), any()) } doReturn opphørUtbetalingSimulert(
+                on { simulerOpphør(any()) } doReturn opphørUtbetalingSimulert(
                     sakOgBehandling = sak to opprettet,
                     opphørsdato = opprettet.periode.fraOgMed,
                     clock = fixedClock,
@@ -397,7 +397,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 on { hent(any()) } doReturn opprettet
             },
             utbetalingService = mock {
-                on { simulerOpphør(any(), any(), any()) } doReturn opphørUtbetalingSimulert(
+                on { simulerOpphør(any()) } doReturn opphørUtbetalingSimulert(
                     sakOgBehandling = sak to opprettet,
                     opphørsdato = opprettet.periode.fraOgMed,
                     clock = fixedClock,
@@ -425,9 +425,13 @@ internal class RevurderingBeregnOgSimulerTest {
                 verify(serviceAndMocks.utbetalingService).hentUtbetalinger(sakId)
                 verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(sakId, opprettet.periode.fraOgMed)
                 verify(serviceAndMocks.utbetalingService).simulerOpphør(
-                    sakId = argThat { it shouldBe sakId },
-                    saksbehandler = argThat { it shouldBe NavIdentBruker.Saksbehandler("s1") },
-                    opphørsdato = argThat { it shouldBe opprettet.periode.fraOgMed },
+                    argThat {
+                        it shouldBe SimulerUtbetalingRequest.Opphør(
+                            sakId = sakId,
+                            saksbehandler = NavIdentBruker.Saksbehandler("s1"),
+                            opphørsdato = opprettet.periode.fraOgMed,
+                        )
+                    }
                 )
                 verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
                 verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())

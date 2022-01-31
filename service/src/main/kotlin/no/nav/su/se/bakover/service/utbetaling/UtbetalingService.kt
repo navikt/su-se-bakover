@@ -32,9 +32,7 @@ interface UtbetalingService {
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun simulerOpphør(
-        sakId: UUID,
-        saksbehandler: NavIdentBruker,
-        opphørsdato: LocalDate,
+        request: SimulerUtbetalingRequest.OpphørRequest,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun utbetal(
@@ -79,10 +77,7 @@ interface UtbetalingService {
     ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun opphør(
-        sakId: UUID,
-        attestant: NavIdentBruker,
-        simulering: Simulering,
-        opphørsdato: LocalDate,
+        request: UtbetalRequest.Opphør,
     ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun hentGjeldendeUtbetaling(

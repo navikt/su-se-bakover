@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -174,7 +175,7 @@ internal class LagBrevutkastForRevurderingTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
         )
 
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
@@ -248,7 +249,7 @@ internal class LagBrevutkastForRevurderingTest {
             )
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerOpphør(any(), any(), any()) } doReturn simulertUtbetalingMock.right()
+            on { simulerOpphør(any()) } doReturn simulertUtbetalingMock.right()
             on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
         }
 
@@ -256,8 +257,13 @@ internal class LagBrevutkastForRevurderingTest {
             revurderingRepo = revurderingRepoMock,
             utbetalingService = utbetalingServiceMock,
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail().right()
-            }
+                on {
+                    kopierGjeldendeVedtaksdata(
+                        any(),
+                        any(),
+                    )
+                } doReturn sak.kopierGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail().right()
+            },
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = NavIdentBruker.Saksbehandler("s1"),
@@ -272,9 +278,13 @@ internal class LagBrevutkastForRevurderingTest {
             verify(revurderingRepoMock).hent(revurderingId)
             verify(utbetalingServiceMock).hentUtbetalinger(sakId)
             verify(utbetalingServiceMock).simulerOpphør(
-                sakId = argThat { it shouldBe sakId },
-                saksbehandler = argThat { it shouldBe NavIdentBruker.Saksbehandler("s1") },
-                opphørsdato = argThat { it shouldBe revurdering.periode.fraOgMed },
+                argThat {
+                    it shouldBe SimulerUtbetalingRequest.Opphør(
+                        sakId = sakId,
+                        saksbehandler = NavIdentBruker.Saksbehandler("s1"),
+                        opphørsdato = revurdering.periode.fraOgMed,
+                    )
+                },
             )
             verify(revurderingRepoMock).defaultTransactionContext()
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual }, anyOrNull())
@@ -312,8 +322,14 @@ internal class LagBrevutkastForRevurderingTest {
                 revurderingRepo = revurderingRepoMock,
                 utbetalingService = utbetalingServiceMock,
                 vedtakService = mock {
-                    on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail().right()
-                }
+                    on {
+                        kopierGjeldendeVedtaksdata(
+                            any(),
+                            any(),
+                        )
+                    } doReturn sak.kopierGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail()
+                        .right()
+                },
             ).beregnOgSimuler(
                 revurderingId = revurderingId,
                 saksbehandler = NavIdentBruker.Saksbehandler("s1"),

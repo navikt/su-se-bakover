@@ -222,13 +222,11 @@ open class AccessCheckProxy(
                 }
 
                 override fun simulerOpphør(
-                    sakId: UUID,
-                    saksbehandler: NavIdentBruker,
-                    opphørsdato: LocalDate,
+                    request: SimulerUtbetalingRequest.OpphørRequest,
                 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-                    assertHarTilgangTilSak(sakId)
+                    assertHarTilgangTilSak(request.sakId)
 
-                    return services.utbetaling.simulerOpphør(sakId, saksbehandler, opphørsdato)
+                    return services.utbetaling.simulerOpphør(request)
                 }
 
                 override fun utbetal(
@@ -283,13 +281,10 @@ open class AccessCheckProxy(
                 }
 
                 override fun opphør(
-                    sakId: UUID,
-                    attestant: NavIdentBruker,
-                    simulering: Simulering,
-                    opphørsdato: LocalDate,
+                    request: UtbetalRequest.Opphør,
                 ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                    assertHarTilgangTilSak(sakId)
-                    return services.utbetaling.opphør(sakId, attestant, simulering, opphørsdato)
+                    assertHarTilgangTilSak(request.sakId)
+                    return services.utbetaling.opphør(request)
                 }
 
                 override fun hentGjeldendeUtbetaling(
