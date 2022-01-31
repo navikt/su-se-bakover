@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
-import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -18,9 +18,11 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.util.UUID
 
 internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
@@ -57,9 +59,15 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
         )
 
         SøknadsbehandlingServiceAndMocks(
-            sakService = mock<SakService>() {
+            sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
+            søknadsbehandlingRepo = mock {
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            grunnlagService = mock {
+                doNothing().whenever(it).lagreBosituasjongrunnlag(any(), any())
+            }
         ).let { it ->
             val response = it.søknadsbehandlingService.oppdaterStønadsperiode(
                 SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
