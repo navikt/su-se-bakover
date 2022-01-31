@@ -1,12 +1,13 @@
 package no.nav.su.se.bakover.client.journalpost
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.sts.TokenOppslag
-import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.HentetJournalpost
@@ -15,17 +16,17 @@ import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-internal data class JournalpostRequest(
+private data class JournalpostRequest(
     val query: String,
     val variables: JournalpostVariables,
 )
 
-data class JournalpostVariables(
+private data class JournalpostVariables(
     val journalpostId: String,
 )
 
 internal class JournalpostHttpClient(
-    val config: ApplicationConfig.ClientsConfig,
+    val safUrl: String,
     val tokenOppslag: TokenOppslag,
 ) : JournalpostClient {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -35,14 +36,18 @@ internal class JournalpostHttpClient(
         val request = JournalpostRequest(query, JournalpostVariables(journalpostId.toString()))
         return hentJournalpostFraSaf(request).mapLeft {
             it
-        }.map {
-            it.toHentetJournalpost()
+        }.flatMap { journalpostResponse ->
+            journalpostResponse.toHentetJournalpost().mapLeft {
+                KunneIkkeHenteJournalpost.FantIkkeJournalpost
+            }.map {
+                it
+            }
         }
     }
 
-    private fun hentJournalpostFraSaf(request: JournalpostRequest): Either<KunneIkkeHenteJournalpost, SafResponse> {
+    private fun hentJournalpostFraSaf(request: JournalpostRequest): Either<KunneIkkeHenteJournalpost, JournalpostResponse> {
         val token = "Bearer ${tokenOppslag.token()}"
-        val (_, response, result) = config.safUrl.httpPost()
+        val (_, response, result) = safUrl.httpPost()
             .header("Authorization", token)
             .header("Content-Type", "application/json")
             .header("Nav-Consumer-Id", "su-se-bakover")
@@ -51,11 +56,11 @@ internal class JournalpostHttpClient(
 
         return result.fold(
             {
-                val safHttpResponse = objectMapper.readValue<SafHttpResponse>(it)
-                if (safHttpResponse.hasErrors()) {
-                    return safHttpResponse.tilKunneIkkeHenteJournalpost().left()
+                val JournalpostHttpResponse = objectMapper.readValue<JournalpostHttpResponse>(it)
+                if (JournalpostHttpResponse.hasErrors()) {
+                    return JournalpostHttpResponse.tilKunneIkkeHenteJournalpost().left()
                 }
-                return safHttpResponse.data.right()
+                return JournalpostHttpResponse.data.right()
             },
             {
                 val statusCode = response.statusCode
@@ -67,8 +72,8 @@ internal class JournalpostHttpClient(
     }
 }
 
-internal data class SafHttpResponse(
-    val data: SafResponse,
+internal data class JournalpostHttpResponse(
+    val data: JournalpostResponse,
     val errors: List<Error>?,
 ) {
     fun hasErrors(): Boolean {
@@ -76,25 +81,27 @@ internal data class SafHttpResponse(
     }
 
     fun tilKunneIkkeHenteJournalpost(): KunneIkkeHenteJournalpost {
-        return errors.orEmpty().map {
-            when (it.extensions?.code) {
+        return errors.orEmpty().map { error ->
+            when (error.extensions.code) {
                 "forbidden" -> KunneIkkeHenteJournalpost.IkkeTilgang
                 "not_found" -> KunneIkkeHenteJournalpost.FantIkkeJournalpost
                 "bad_request" -> KunneIkkeHenteJournalpost.UgyldigInput
                 "server_error" -> KunneIkkeHenteJournalpost.TekniskFeil
-                else -> throw IllegalStateException("Uhåndtert feil fra SAF. code ${it.extensions?.code} ")
+                else -> KunneIkkeHenteJournalpost.Ukjent.also {
+                    log.warn("Uhåndtert feil fra SAF. code ${error.extensions.code} ")
+                }
             }
         }.first()
     }
 }
 
 internal data class Error(
-    val message: String?,
-    val path: List<String>?,
-    val extensions: Extensions?,
+    val message: String,
+    val path: List<String>,
+    val extensions: Extensions,
 )
 
 internal data class Extensions(
-    val code: String?,
-    val classification: String?,
+    val code: String,
+    val classification: String,
 )

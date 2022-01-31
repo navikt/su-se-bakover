@@ -79,7 +79,7 @@ class KlageServiceImpl(
         journalpostClient.hentJournalpost(request.journalpostId).mapLeft {
             return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(it).left()
         }.map {
-            if (!it.erJournalpostKnyttetTilSak()) {
+            if (!it.validerJournalpost()) {
                 return KunneIkkeOppretteKlage.JournalpostErIkkeKnyttetTilSak.left()
             }
         }

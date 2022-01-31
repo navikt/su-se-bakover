@@ -75,9 +75,9 @@ internal class ApplicationConfigTest {
             dkifUrl = "http://dkif.default.svc.nais.local",
             kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
                 url = "kabalUrl",
-                clientId = "kabalClientId"
+                clientId = "kabalClientId",
             ),
-            safUrl = "https://saf.dev.intern.nav.no/graphql"
+            safUrl = "https://saf.dev.intern.nav.no/graphql",
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -252,7 +252,7 @@ internal class ApplicationConfigTest {
                     skjermingUrl = "mocked",
                     dkifUrl = "mocked",
                     kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("mocked", "mocked"),
-                    safUrl = "mocked"
+                    safUrl = "mocked",
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),

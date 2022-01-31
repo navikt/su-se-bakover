@@ -1,16 +1,10 @@
 package no.nav.su.se.bakover.domain.journalpost
 
-/**
- * Representerer en journalpost som er hentet fra SAF
- *
- * TODO - Gjøre noe fine ting mellom denne og OpprettNyJournalpost
- */
+// TODO - Gjøre noe fine ting mellom denne og eksisterende journalpost
 data class HentetJournalpost private constructor(
     private val tema: String,
-
 ) {
-
-    fun erJournalpostKnyttetTilSak(): Boolean {
+    fun validerJournalpost(): Boolean {
         return erTemaSup()
     }
 

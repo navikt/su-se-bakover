@@ -8,5 +8,5 @@ type Queries {
     hentIdenter(ident: ID!, grupper: [IdentGruppe!], historikk: Boolean = false): Identliste
     hentIdenterBolk(identer: [ID!]!, grupper: [IdentGruppe!], historikk: Boolean = false): [HentIdenterBolkResult!]!
     sokPerson(criteria:[Criterion], paging:Paging): SearchResult
-    journalpost(journalpostId: String!): SafResponse
+    journalpost(journalpostId: String!): JournalpostResponse
 }

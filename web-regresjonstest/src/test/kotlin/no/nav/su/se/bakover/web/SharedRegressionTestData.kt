@@ -113,7 +113,7 @@ object SharedRegressionTestData {
             skjermingUrl = "skjermingUrl",
             dkifUrl = "dkifUrl",
             kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(url = "kabalUrl", clientId = "KabalClientId"),
-            safUrl = "safUrl"
+            safUrl = "safUrl",
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),
