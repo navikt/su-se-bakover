@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.ddMMyyyy
-import no.nav.su.se.bakover.common.toBrevformat
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -155,7 +154,7 @@ interface LagBrevRequest {
             opphørsgrunner = opphørsgrunner,
             avslagsparagrafer = opphørsgrunner.getDistinkteParagrafer(),
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
-            opphørsdato = opphørsdato.toBrevformat(),
+            opphørsdato = opphørsdato.ddMMyyyy(),
             avkortingsBeløp = avkortingsBeløp,
         )
 
