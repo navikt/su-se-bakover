@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -47,6 +46,8 @@ import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
@@ -213,14 +214,11 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
 
                 override fun simulerUtbetaling(
-                    sakId: UUID,
-                    saksbehandler: NavIdentBruker,
-                    beregning: Beregning,
-                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+                    request: SimulerUtbetalingRequest.NyUtbetalingRequest,
                 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-                    assertHarTilgangTilSak(sakId)
+                    assertHarTilgangTilSak(request.sakId)
 
-                    return services.utbetaling.simulerUtbetaling(sakId, saksbehandler, beregning, uføregrunnlag)
+                    return services.utbetaling.simulerUtbetaling(request)
                 }
 
                 override fun simulerOpphør(
@@ -234,15 +232,11 @@ open class AccessCheckProxy(
                 }
 
                 override fun utbetal(
-                    sakId: UUID,
-                    attestant: NavIdentBruker,
-                    beregning: Beregning,
-                    simulering: Simulering,
-                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+                    request: UtbetalRequest.NyUtbetaling,
                 ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                    assertHarTilgangTilSak(sakId)
+                    assertHarTilgangTilSak(request.sakId)
 
-                    return services.utbetaling.utbetal(sakId, attestant, beregning, simulering, uføregrunnlag)
+                    return services.utbetaling.utbetal(request)
                 }
 
                 override fun publiserUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling): Either<UtbetalingFeilet, Utbetalingsrequest> = kastKanKunKallesFraAnnenService()
@@ -253,11 +247,7 @@ open class AccessCheckProxy(
                 ): Utbetaling.OversendtUtbetaling.UtenKvittering = kastKanKunKallesFraAnnenService()
 
                 override fun genererUtbetalingsRequest(
-                    sakId: UUID,
-                    attestant: NavIdentBruker,
-                    beregning: Beregning,
-                    simulering: Simulering,
-                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+                    request: UtbetalRequest.NyUtbetaling,
                 ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> = kastKanKunKallesFraAnnenService()
 
                 override fun simulerStans(

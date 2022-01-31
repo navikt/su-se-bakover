@@ -30,6 +30,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -721,7 +723,8 @@ internal class RevurderingServiceImpl(
                     gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
                         sakId = originalRevurdering.sakId,
                         fraOgMed = originalRevurdering.periode.fraOgMed,
-                    ).getOrHandle { throw IllegalStateException("Fant ikke gjeldende vedtaksdata for sak:${originalRevurdering.sakId}") },
+                    )
+                        .getOrHandle { throw IllegalStateException("Fant ikke gjeldende vedtaksdata for sak:${originalRevurdering.sakId}") },
                 ).getOrHandle {
                     return when (it) {
                         is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> {
@@ -770,10 +773,12 @@ internal class RevurderingServiceImpl(
                     }
                     is BeregnetRevurdering.Innvilget -> {
                         utbetalingService.simulerUtbetaling(
-                            sakId = beregnetRevurdering.sakId,
-                            saksbehandler = saksbehandler,
-                            beregning = beregnetRevurdering.beregning,
-                            uføregrunnlag = beregnetRevurdering.vilkårsvurderinger.uføre.grunnlag,
+                            request = SimulerUtbetalingRequest.NyUtbetaling(
+                                sakId = beregnetRevurdering.sakId,
+                                saksbehandler = saksbehandler,
+                                beregning = beregnetRevurdering.beregning,
+                                uføregrunnlag = beregnetRevurdering.vilkårsvurderinger.uføre.grunnlag,
+                            ),
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
                         }.map {
@@ -1275,11 +1280,16 @@ internal class RevurderingServiceImpl(
                             clock = clock,
                             utbetal = {
                                 utbetalingService.utbetal(
-                                    sakId = revurdering.sakId,
-                                    beregning = revurdering.beregning,
-                                    simulering = revurdering.simulering,
-                                    attestant = attestant,
-                                    uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
+                                    request = UtbetalRequest.NyUtbetaling(
+                                        request = SimulerUtbetalingRequest.NyUtbetaling(
+                                            sakId = revurdering.sakId,
+                                            saksbehandler = attestant,
+                                            beregning = revurdering.beregning,
+                                            uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
+                                        ),
+                                        simulering = revurdering.simulering,
+                                    ),
+
                                 ).mapLeft {
                                     RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
                                 }.map {

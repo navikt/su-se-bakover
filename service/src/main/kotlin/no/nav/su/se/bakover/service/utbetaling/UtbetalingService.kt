@@ -5,9 +5,9 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
@@ -28,10 +28,7 @@ interface UtbetalingService {
     ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering>
 
     fun simulerUtbetaling(
-        sakId: UUID,
-        saksbehandler: NavIdentBruker,
-        beregning: Beregning,
-        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        request: SimulerUtbetalingRequest.NyUtbetalingRequest,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun simulerOpphør(
@@ -41,11 +38,7 @@ interface UtbetalingService {
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun utbetal(
-        sakId: UUID,
-        attestant: NavIdentBruker,
-        beregning: Beregning,
-        simulering: Simulering,
-        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        request: UtbetalRequest.NyUtbetaling,
     ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun publiserUtbetaling(
@@ -58,11 +51,7 @@ interface UtbetalingService {
     ): Utbetaling.OversendtUtbetaling.UtenKvittering
 
     fun genererUtbetalingsRequest(
-        sakId: UUID,
-        attestant: NavIdentBruker,
-        beregning: Beregning,
-        simulering: Simulering,
-        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        request: UtbetalRequest.NyUtbetaling,
     ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling>
 
     fun simulerStans(

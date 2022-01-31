@@ -18,6 +18,8 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -34,6 +36,7 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
@@ -351,12 +354,16 @@ internal class UtbetalingServiceImplTest {
             simuleringClient = simuleringClientMock,
             clock = fixedClock,
         ).utbetal(
-            sakId = sakId,
-            attestant = attestant,
-            beregning = beregning,
-            simulering = simulering,
-            listeMedUføregrunnlag,
-        ).orNull()!!
+            request = UtbetalRequest.NyUtbetaling(
+                request = SimulerUtbetalingRequest.NyUtbetaling(
+                    sakId = sakId,
+                    saksbehandler = attestant,
+                    beregning = beregning,
+                    uføregrunnlag = listeMedUføregrunnlag,
+                ),
+                simulering = simulering,
+            ),
+        ).getOrFail()
 
         actual shouldBe utbetalingForSimulering.copy(
             id = actual.id,
@@ -437,7 +444,7 @@ internal class UtbetalingServiceImplTest {
                     ),
                 ).toSimulertUtbetaling(simulering).toOversendtUtbetaling(oppdragsmelding)
             },
-            anyOrNull()
+            anyOrNull(),
         )
         verifyNoMoreInteractions(
             sakServiceMock,
@@ -470,11 +477,15 @@ internal class UtbetalingServiceImplTest {
             simuleringClient = simuleringClientMock,
             clock = fixedClock,
         ).utbetal(
-            sakId = sakId,
-            attestant = attestant,
-            beregning = beregning,
-            simulering = simulering,
-            uføregrunnlag = listeMedUføregrunnlag,
+            request = UtbetalRequest.NyUtbetaling(
+                request = SimulerUtbetalingRequest.NyUtbetaling(
+                    sakId = sakId,
+                    saksbehandler = attestant,
+                    beregning = beregning,
+                    uføregrunnlag = listeMedUføregrunnlag,
+                ),
+                simulering = simulering,
+            ),
         )
 
         response shouldBe UtbetalingFeilet.Protokollfeil.left()
@@ -551,11 +562,15 @@ internal class UtbetalingServiceImplTest {
             simuleringClient = simuleringClientMock,
             clock = fixedClock,
         ).utbetal(
-            sakId = sakId,
-            attestant = attestant,
-            beregning = beregning,
-            simulering = simulering,
-            listeMedUføregrunnlag,
+            request = UtbetalRequest.NyUtbetaling(
+                request = SimulerUtbetalingRequest.NyUtbetaling(
+                    sakId = sakId,
+                    saksbehandler = attestant,
+                    beregning = beregning,
+                    uføregrunnlag = listeMedUføregrunnlag,
+                ),
+                simulering = simulering,
+            ),
         )
 
         actual shouldBe UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()

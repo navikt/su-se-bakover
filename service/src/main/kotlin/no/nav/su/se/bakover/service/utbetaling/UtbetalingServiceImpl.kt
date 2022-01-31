@@ -14,9 +14,9 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
@@ -93,47 +93,30 @@ internal class UtbetalingServiceImpl(
     }
 
     override fun utbetal(
-        sakId: UUID,
-        attestant: NavIdentBruker,
-        beregning: Beregning,
-        simulering: Simulering,
-        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        request: UtbetalRequest.NyUtbetaling,
     ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-        return simulerUtbetaling(
-            sakId = sakId,
-            saksbehandler = attestant,
-            beregning = beregning,
-            uføregrunnlag = uføregrunnlag,
-        ).mapLeft {
-            UtbetalingFeilet.KunneIkkeSimulere(it)
-        }.flatMap { simulertUtbetaling ->
-            if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
-                    simulering,
-                    simulertUtbetaling,
-                )
-            ) return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
-            utbetal(simulertUtbetaling)
-        }
+        return simulerUtbetaling(request)
+            .mapLeft {
+                UtbetalingFeilet.KunneIkkeSimulere(it)
+            }.flatMap { simulertUtbetaling ->
+                if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
+                        saksbehandlersSimulering = request.simulering,
+                        attestantsSimulering = simulertUtbetaling,
+                    )
+                ) return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+                utbetal(simulertUtbetaling)
+            }
     }
 
     override fun genererUtbetalingsRequest(
-        sakId: UUID,
-        attestant: NavIdentBruker,
-        beregning: Beregning,
-        simulering: Simulering,
-        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        request: UtbetalRequest.NyUtbetaling,
     ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
-        return simulerUtbetaling(
-            sakId = sakId,
-            saksbehandler = attestant,
-            beregning = beregning,
-            uføregrunnlag = uføregrunnlag,
-        ).mapLeft {
+        return simulerUtbetaling(request).mapLeft {
             UtbetalingFeilet.KunneIkkeSimulere(it)
         }.flatMap { simulertUtbetaling ->
             if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
-                    simulering,
-                    simulertUtbetaling,
+                    saksbehandlersSimulering = request.simulering,
+                    attestantsSimulering = simulertUtbetaling,
                 )
             ) return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
             simulertUtbetaling.right()
@@ -203,21 +186,18 @@ internal class UtbetalingServiceImpl(
     }
 
     override fun simulerUtbetaling(
-        sakId: UUID,
-        saksbehandler: NavIdentBruker,
-        beregning: Beregning,
-        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        request: SimulerUtbetalingRequest.NyUtbetalingRequest,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-        val sak: Sak = sakService.hentSak(sakId).orNull()!!
+        val sak: Sak = sakService.hentSak(request.sakId).orNull()!!
         return simulerUtbetaling(
             Utbetalingsstrategi.Ny(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
                 utbetalinger = sak.utbetalinger,
-                behandler = saksbehandler,
-                beregning = beregning,
-                uføregrunnlag = uføregrunnlag,
+                behandler = request.saksbehandler,
+                beregning = request.beregning,
+                uføregrunnlag = request.uføregrunnlag,
                 clock = clock,
             ).generate(),
         )
@@ -228,7 +208,10 @@ internal class UtbetalingServiceImpl(
             .map { utbetaling.toSimulertUtbetaling(it) }
     }
 
-    override fun lagreUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling, transactionContext: TransactionContext?): Utbetaling.OversendtUtbetaling.UtenKvittering {
+    override fun lagreUtbetaling(
+        utbetaling: Utbetaling.SimulertUtbetaling,
+        transactionContext: TransactionContext?,
+    ): Utbetaling.OversendtUtbetaling.UtenKvittering {
         val oppdragsmelding = utbetalingPublisher.generateRequest(utbetaling)
         val oversendtUtbetaling = utbetaling.toOversendtUtbetaling(oppdragsmelding)
         val context = transactionContext ?: utbetalingRepo.defaultTransactionContext()
@@ -237,7 +220,7 @@ internal class UtbetalingServiceImpl(
     }
 
     override fun publiserUtbetaling(
-        utbetaling: Utbetaling.SimulertUtbetaling
+        utbetaling: Utbetaling.SimulertUtbetaling,
     ): Either<UtbetalingFeilet, Utbetalingsrequest> =
         utbetalingPublisher.publish(utbetaling).mapLeft {
             UtbetalingFeilet.Protokollfeil
