@@ -300,17 +300,11 @@ internal class TolketSimuleringTest {
             it.hentUtbetalteBeløp(periode2021) shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(februar(2021), Beløp(20779)),
-                    MånedBeløp(mars(2021), Beløp(0)),
                 ),
             )
             it.hentUtbetalteBeløp(februar(2021)) shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(februar(2021), Beløp(20779)),
-                ),
-            )
-            it.hentUtbetalteBeløp(mars(2021)) shouldBe Månedsbeløp(
-                listOf(
-                    MånedBeløp(mars(2021), Beløp(0)),
                 ),
             )
         }
@@ -533,7 +527,6 @@ internal class TolketSimuleringTest {
             it.hentUtbetalteBeløp(periode2021) shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(februar(2021), Beløp(20779)),
-                    MånedBeløp(mars(2021), Beløp(0)),
                 )
             )
         }
@@ -662,7 +655,6 @@ internal class TolketSimuleringTest {
             it.hentUtbetalteBeløp(periode2021) shouldBe Månedsbeløp(
                 listOf(
                     MånedBeløp(februar(2021), Beløp(20779)),
-                    MånedBeløp(mars(2021), Beløp(0)),
                 ),
             )
         }

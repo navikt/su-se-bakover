@@ -32,11 +32,16 @@ data class TolketSimulering(
 
     fun harFeilutbetalinger() = simulertePerioder.any { it.harFeilutbetalinger() }
 
+    /**
+     * Identifiser eventuelle utbetalte beløp per periode.
+     * Inkluderer kun beløp som er større enn 0.
+     */
     fun hentUtbetalteBeløp(periode: Periode): Månedsbeløp {
         return Månedsbeløp(
             simulertePerioder
                 .filter { periode inneholder it.periode }
-                .map { it.hentUtbetaltBeløp() },
+                .map { it.hentUtbetaltBeløp() }
+                .filter { it.sum() > 0 }
         )
     }
 }

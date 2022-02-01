@@ -6,7 +6,7 @@ import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -28,13 +28,17 @@ internal class SimuleringSoapClient(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun simulerUtbetaling(
-        utbetaling: Utbetaling,
+        request: SimulerUtbetalingRequest,
     ): Either<SimuleringFeilet, Simulering> {
-        val simulerRequest = SimuleringRequestBuilder(utbetaling).build()
+        val simulerRequest = SimuleringRequestBuilder(request).build()
         return try {
             simulerFpService.simulerBeregning(simulerRequest)?.response?.let {
                 SimuleringResponseMapper(it, clock).simulering.right()
-            } ?: SimuleringResponseMapper(utbetaling, simulerRequest.request.simuleringsPeriode, clock).simulering.right()
+            } ?: SimuleringResponseMapper(
+                utbetaling = request.utbetaling,
+                simuleringsperiode = simulerRequest.request.simuleringsPeriode,
+                clock = clock,
+            ).simulering.right()
         } catch (e: SimulerBeregningFeilUnderBehandling) {
             log.warn("Funksjonell feil ved simulering, se sikkerlogg for detaljer", e)
             sikkerLogg.warn(

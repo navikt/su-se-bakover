@@ -18,11 +18,13 @@ import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollerSimulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -141,16 +143,27 @@ internal class UtbetalingServiceImpl(
         request: SimulerUtbetalingRequest.OpphørRequest,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         val sak: Sak = sakService.hentSak(request.sakId).orNull()!!
+
+        val utbetaling = Utbetalingsstrategi.Opphør(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            utbetalinger = sak.utbetalinger,
+            behandler = request.saksbehandler,
+            opphørsDato = request.opphørsdato,
+            clock = clock,
+        ).generate()
+
+        val simuleringsperiode = Periode.create(
+            fraOgMed = request.opphørsdato,
+            tilOgMed = utbetaling.senesteDato(),
+        )
+
         return simulerUtbetaling(
-            Utbetalingsstrategi.Opphør(
-                sakId = sak.id,
-                saksnummer = sak.saksnummer,
-                fnr = sak.fnr,
-                utbetalinger = sak.utbetalinger,
-                behandler = request.saksbehandler,
-                opphørsDato = request.opphørsdato,
-                clock = clock,
-            ).generate(),
+            request = SimulerUtbetalingForPeriode(
+                utbetaling = utbetaling,
+                simuleringsperiode = simuleringsperiode,
+            ),
         )
     }
 
@@ -179,23 +192,33 @@ internal class UtbetalingServiceImpl(
         request: SimulerUtbetalingRequest.NyUtbetalingRequest,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         val sak: Sak = sakService.hentSak(request.sakId).orNull()!!
+
+        val utbetaling = Utbetalingsstrategi.Ny(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            utbetalinger = sak.utbetalinger,
+            behandler = request.saksbehandler,
+            beregning = request.beregning,
+            uføregrunnlag = request.uføregrunnlag,
+            clock = clock,
+        ).generate()
+
+        val simuleringsperiode = request.beregning.periode
+
         return simulerUtbetaling(
-            Utbetalingsstrategi.Ny(
-                sakId = sak.id,
-                saksnummer = sak.saksnummer,
-                fnr = sak.fnr,
-                utbetalinger = sak.utbetalinger,
-                behandler = request.saksbehandler,
-                beregning = request.beregning,
-                uføregrunnlag = request.uføregrunnlag,
-                clock = clock,
-            ).generate(),
+            request = SimulerUtbetalingForPeriode(
+                utbetaling = utbetaling,
+                simuleringsperiode = simuleringsperiode,
+            ),
         )
     }
 
-    private fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-        return simuleringClient.simulerUtbetaling(utbetaling = utbetaling)
-            .map { utbetaling.toSimulertUtbetaling(it) }
+    private fun simulerUtbetaling(
+        request: no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest,
+    ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+        return simuleringClient.simulerUtbetaling(request = request)
+            .map { request.utbetaling.toSimulertUtbetaling(it) }
     }
 
     override fun lagreUtbetaling(
@@ -231,7 +254,8 @@ internal class UtbetalingServiceImpl(
         request: SimulerUtbetalingRequest.StansRequest,
     ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
         val sak: Sak = sakService.hentSak(request.sakId).orNull()!!
-        return Utbetalingsstrategi.Stans(
+
+        val utbetaling = Utbetalingsstrategi.Stans(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
@@ -240,14 +264,23 @@ internal class UtbetalingServiceImpl(
             stansDato = request.stansdato,
             clock = clock,
         ).generer()
-            .mapLeft {
-                SimulerStansFeilet.KunneIkkeGenerereUtbetaling(it)
-            }.flatMap { utbetalingForSimulering ->
-                simulerUtbetaling(utbetalingForSimulering)
-                    .mapLeft {
-                        SimulerStansFeilet.KunneIkkeSimulere(it)
-                    }
+            .getOrHandle {
+                return SimulerStansFeilet.KunneIkkeGenerereUtbetaling(it).left()
             }
+
+        val simuleringsperiode = Periode.create(
+            fraOgMed = request.stansdato,
+            tilOgMed = utbetaling.senesteDato(),
+        )
+
+        return simulerUtbetaling(
+            request = SimulerUtbetalingForPeriode(
+                utbetaling = utbetaling,
+                simuleringsperiode = simuleringsperiode,
+            ),
+        ).mapLeft {
+            SimulerStansFeilet.KunneIkkeSimulere(it)
+        }
     }
 
     override fun stansUtbetalinger(
@@ -283,8 +316,8 @@ internal class UtbetalingServiceImpl(
 
     override fun simulerGjenopptak(
         request: SimulerUtbetalingRequest.GjenopptakRequest,
-    ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> =
-        Utbetalingsstrategi.Gjenoppta(
+    ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
+        val utbetaling = Utbetalingsstrategi.Gjenoppta(
             sakId = request.sakId,
             saksnummer = request.sak.saksnummer,
             fnr = request.sak.fnr,
@@ -292,14 +325,27 @@ internal class UtbetalingServiceImpl(
             behandler = request.saksbehandler,
             clock = clock,
         ).generer()
-            .mapLeft {
-                SimulerGjenopptakFeil.KunneIkkeGenerereUtbetaling(it)
-            }.flatMap { utbetalingForSimulering ->
-                simulerUtbetaling(utbetalingForSimulering)
-                    .mapLeft {
-                        SimulerGjenopptakFeil.KunneIkkeSimulere(it)
-                    }
-            }
+            .getOrHandle { return SimulerGjenopptakFeil.KunneIkkeGenerereUtbetaling(it).left() }
+
+        // TODO løse dette på en annen måte? Litt cheaky, men bør være safe (kan f.eks refaktorere modellen til at endringer kun har 1 linje.
+        val reaktiveringslinje = utbetaling.utbetalingslinjer
+            .filterIsInstance<Utbetalingslinje.Endring.Reaktivering>()
+            .single()
+
+        val simuleringsperiode = Periode.create(
+            fraOgMed = reaktiveringslinje.virkningstidspunkt,
+            tilOgMed = reaktiveringslinje.tilOgMed,
+        )
+
+        return simulerUtbetaling(
+            request = SimulerUtbetalingForPeriode(
+                utbetaling = utbetaling,
+                simuleringsperiode = simuleringsperiode,
+            ),
+        ).mapLeft {
+            SimulerGjenopptakFeil.KunneIkkeSimulere(it)
+        }
+    }
 
     override fun gjenopptaUtbetalinger(
         request: UtbetalRequest.Gjenopptak,

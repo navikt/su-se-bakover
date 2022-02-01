@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -26,8 +27,8 @@ class SimuleringStub(
     val utbetalingRepo: UtbetalingRepo,
 ) : SimuleringClient {
 
-    override fun simulerUtbetaling(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> {
-        return simulerUtbetalinger(utbetaling).right()
+    override fun simulerUtbetaling(request: SimulerUtbetalingRequest): Either<SimuleringFeilet, Simulering> {
+        return simulerUtbetalinger(request).right()
     }
 
     private fun List<SimulertPeriode>.calculateNetto() =
@@ -38,7 +39,9 @@ class SimuleringStub(
                 .sumOf { it.belop }
         }
 
-    private fun simulerUtbetalinger(utbetaling: Utbetaling): Simulering {
+    private fun simulerUtbetalinger(request: SimulerUtbetalingRequest): Simulering {
+        val utbetaling = request.utbetaling
+
         return utbetaling.utbetalingslinjer.map {
             when (it) {
                 is Utbetalingslinje.Endring -> {
@@ -60,7 +63,7 @@ class SimuleringStub(
 
             utbetalingsperiode.tilMånedsperioder()
                 .asSequence()
-                .mapNotNull { måned ->
+                .map { måned ->
                     val utbetaltLinje = tidslinje.gjeldendeForDato(måned.fraOgMed)
                     val nyLinje = utbetaling.finnUtbetalingslinjeForDato(måned.fraOgMed)
 
@@ -116,7 +119,31 @@ class SimuleringStub(
                             }
                         }
                         Utbetaling.UtbetalingsType.STANS -> {
-                            null
+                            if (utbetaltLinje != null && måned.tilOgMed < Tidspunkt.now(clock)
+                                .toLocalDate(zoneIdOslo)
+                            ) {
+                                måned to SimulertUtbetaling(
+                                    fagSystemId = utbetaling.saksnummer.toString(),
+                                    utbetalesTilId = utbetaling.fnr,
+                                    utbetalesTilNavn = "LYR MYGG",
+                                    forfall = LocalDate.now(clock),
+                                    feilkonto = true,
+                                    detaljer = listOf(
+                                        createTidligereUtbetalt(
+                                            måned.fraOgMed,
+                                            måned.tilOgMed,
+                                            utbetaltLinje.beløp,
+                                        ),
+                                        createFeilutbetaling(
+                                            måned.fraOgMed,
+                                            måned.tilOgMed,
+                                            utbetaltLinje.beløp,
+                                        ),
+                                    ),
+                                )
+                            } else {
+                                måned to null
+                            }
                         }
                         Utbetaling.UtbetalingsType.GJENOPPTA -> {
                             måned to SimulertUtbetaling(
@@ -158,17 +185,25 @@ class SimuleringStub(
                                     ),
                                 )
                             } else {
-                                null
+                                måned to null
                             }
                         }
                     }
                 }
                 .map { (periode, simulertUtbetaling) ->
-                    SimulertPeriode(
-                        fraOgMed = periode.fraOgMed,
-                        tilOgMed = periode.tilOgMed,
-                        utbetaling = listOf(simulertUtbetaling),
-                    )
+                    if (simulertUtbetaling == null) {
+                        SimulertPeriode(
+                            fraOgMed = periode.fraOgMed,
+                            tilOgMed = periode.tilOgMed,
+                            utbetaling = emptyList(),
+                        )
+                    } else {
+                        SimulertPeriode(
+                            fraOgMed = periode.fraOgMed,
+                            tilOgMed = periode.tilOgMed,
+                            utbetaling = listOf(simulertUtbetaling),
+                        )
+                    }
                 }
                 .toList()
                 .let {

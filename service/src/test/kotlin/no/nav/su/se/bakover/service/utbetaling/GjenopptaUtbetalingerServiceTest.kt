@@ -12,11 +12,11 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -114,9 +114,9 @@ internal class GjenopptaUtbetalingerServiceTest {
             )
             verify(simuleringClientMock).simulerUtbetaling(
                 argThat {
-                    it.utbetalingslinjer shouldHaveSize 1
+                    it.utbetaling.utbetalingslinjer shouldHaveSize 1
                     val utbetalingslinjeForStans = sak.utbetalinger.first().sisteUtbetalingslinje()
-                    it.utbetalingslinjer.first().shouldBeEqualToIgnoringFields(
+                    it.utbetaling.utbetalingslinjer.first().shouldBeEqualToIgnoringFields(
                         Utbetalingslinje.Endring.Reaktivering(
                             utbetalingslinje = utbetalingslinjeForStans,
                             virkningstidspunkt = periode.fraOgMed,
@@ -203,7 +203,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             inOrder(sakServiceMock, simuleringClientMock) {
                 verify(sakServiceMock).hentSak(sak.id)
                 verify(simuleringClientMock).simulerUtbetaling(
-                    argThat { it shouldBe beOfType<Utbetaling.UtbetalingForSimulering>() },
+                    argThat { it shouldBe beOfType<SimulerUtbetalingForPeriode>() },
                 )
             }
             verifyNoMoreInteractions(

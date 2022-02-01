@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -26,6 +27,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -181,12 +183,18 @@ internal class StansUtbetalingServiceTest {
             )
             verify(simuleringClientMock).simulerUtbetaling(
                 argThat {
-                    it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
-                        utbetalingslinjer = nonEmptyListOf(
-                            expectedUtbetalingslinje(it.utbetalingslinjer[0].opprettet),
+                    it shouldBe SimulerUtbetalingForPeriode(
+                        utbetaling = utbetalingForSimulering.copy(
+                            id = it.utbetaling.id,
+                            opprettet = it.utbetaling.opprettet,
+                            avstemmingsnøkkel = it.utbetaling.avstemmingsnøkkel,
+                            utbetalingslinjer = nonEmptyListOf(
+                                expectedUtbetalingslinje(it.utbetaling.utbetalingslinjer[0].opprettet),
+                            ),
+                        ),
+                        simuleringsperiode = Periode.create(
+                            fraOgMed = 1.februar(2021),
+                            tilOgMed = 31.desember(2021),
                         ),
                     )
                 },
@@ -267,12 +275,18 @@ internal class StansUtbetalingServiceTest {
 
             verify(simuleringClientMock).simulerUtbetaling(
                 argThat {
-                    it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
-                        utbetalingslinjer = nonEmptyListOf(
-                            expectedUtbetalingslinje(it.utbetalingslinjer[0].opprettet),
+                    it shouldBe SimulerUtbetalingForPeriode(
+                        utbetaling = utbetalingForSimulering.copy(
+                            id = it.utbetaling.id,
+                            opprettet = it.utbetaling.opprettet,
+                            avstemmingsnøkkel = it.utbetaling.avstemmingsnøkkel,
+                            utbetalingslinjer = nonEmptyListOf(
+                                expectedUtbetalingslinje(it.utbetaling.utbetalingslinjer[0].opprettet),
+                            ),
+                        ),
+                        simuleringsperiode = Periode.create(
+                            fraOgMed = 1.februar(2021),
+                            tilOgMed = 31.desember(2021),
                         ),
                     )
                 },
@@ -335,12 +349,18 @@ internal class StansUtbetalingServiceTest {
 
             verify(simuleringClientMock).simulerUtbetaling(
                 argThat {
-                    it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
-                        utbetalingslinjer = nonEmptyListOf(
-                            expectedUtbetalingslinje(it.utbetalingslinjer[0].opprettet),
+                    it shouldBe SimulerUtbetalingForPeriode(
+                        utbetaling = utbetalingForSimulering.copy(
+                            id = it.utbetaling.id,
+                            opprettet = it.utbetaling.opprettet,
+                            avstemmingsnøkkel = it.utbetaling.avstemmingsnøkkel,
+                            utbetalingslinjer = nonEmptyListOf(
+                                expectedUtbetalingslinje(it.utbetaling.utbetalingslinjer[0].opprettet),
+                            ),
+                        ),
+                        simuleringsperiode = Periode.create(
+                            fraOgMed = 1.februar(2021),
+                            tilOgMed = 31.desember(2021),
                         ),
                     )
                 },
