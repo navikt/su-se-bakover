@@ -5,20 +5,45 @@ import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
+import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.HentetJournalpost
+import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
-import no.nav.su.se.bakover.domain.journalpost.Sak
+import no.nav.su.se.bakover.domain.journalpost.Tema
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Isolated
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.slf4j.MDC
 
+@Isolated
 internal class JournalpostHttpClientTest {
 
     private val tokenOppslag = TokenOppslagStub
 
+    companion object {
+        @BeforeAll
+        @JvmStatic
+        fun beforeAll() {
+            MDC.put("Authorization", "lol")
+        }
+
+        @AfterAll
+        @JvmStatic
+        fun afterAll() {
+            MDC.remove("Authorization")
+        }
+    }
+
     @Test
     fun `henter journalpost OK`() {
-
         //language=JSON
         val suksessResponseJson =
             """
@@ -28,7 +53,7 @@ internal class JournalpostHttpClientTest {
                   "tema": "SUP",
                   "journalstatus": "FERDIGSTILT",
                   "sak": {
-                  "fagsakId": "1234"
+                  "fagsakId": "2021"
                   }
                 }
               }
@@ -40,15 +65,22 @@ internal class JournalpostHttpClientTest {
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
+        val oAuthMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
+        }
+
         val client = JournalpostHttpClient(
-            safUrl = WiremockBase.wireMockServer.baseUrl(),
-            tokenOppslag = tokenOppslag,
+            safConfig = ApplicationConfig.ClientsConfig.SafConfig(
+                url = WiremockBase.wireMockServer.baseUrl(),
+                clientId = "clientId",
+            ),
+            oAuth = oAuthMock,
         )
 
-        client.hentJournalpost(JournalpostId("j")) shouldBe HentetJournalpost.create(
-            tema = "SUP",
-            journalstatus = "FERDIGSTILT",
-            sak = Sak(fagsakId = "1234"),
+        client.hentFerdigstiltJournalpost(Saksnummer(2021), JournalpostId("j")) shouldBe HentetJournalpost.create(
+            tema = Tema.SUP,
+            journalstatus = JournalpostStatus.FERDIGSTILT,
+            saksnummer = Saksnummer(2021),
         ).right()
     }
 
@@ -58,12 +90,18 @@ internal class JournalpostHttpClientTest {
             wiremockBuilderOnBehalfOf("Bearer ${tokenOppslag.token()}")
                 .willReturn(WireMock.serverError()),
         )
+        val oAuthMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
+        }
 
         val client = JournalpostHttpClient(
-            safUrl = WiremockBase.wireMockServer.baseUrl(),
-            tokenOppslag = tokenOppslag,
+            safConfig = ApplicationConfig.ClientsConfig.SafConfig(
+                url = WiremockBase.wireMockServer.baseUrl(),
+                clientId = "clientId",
+            ),
+            oAuth = oAuthMock,
         )
-        client.hentJournalpost(JournalpostId("j")) shouldBe KunneIkkeHenteJournalpost.Ukjent.left()
+        client.hentFerdigstiltJournalpost(Saksnummer(2022), JournalpostId("j")) shouldBe KunneIkkeHenteJournalpost.Ukjent.left()
     }
 
     @Test
@@ -101,11 +139,21 @@ internal class JournalpostHttpClientTest {
                 .willReturn(WireMock.ok(errorResponseJson)),
         )
 
+        val oAuthMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
+        }
+
         val client = JournalpostHttpClient(
-            safUrl = WiremockBase.wireMockServer.baseUrl(),
-            tokenOppslag = tokenOppslag,
+            safConfig = ApplicationConfig.ClientsConfig.SafConfig(
+                url = WiremockBase.wireMockServer.baseUrl(),
+                clientId = "clientId",
+            ),
+            oAuth = oAuthMock,
         )
-        client.hentJournalpost(JournalpostId("j")) shouldBe KunneIkkeHenteJournalpost.FantIkkeJournalpost.left()
+        client.hentFerdigstiltJournalpost(
+            Saksnummer(2022),
+            JournalpostId("j"),
+        ) shouldBe KunneIkkeHenteJournalpost.FantIkkeJournalpost.left()
     }
 
     @Test
@@ -135,7 +183,7 @@ internal class JournalpostHttpClientTest {
         httpResponse.tilKunneIkkeHenteJournalpost() shouldBe expected
     }
 
-    private fun wiremockBuilderOnBehalfOf(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/"))
+    private fun wiremockBuilderOnBehalfOf(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
         .withHeader("Authorization", WireMock.equalTo(authorization))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("Nav-Consumer-Id", WireMock.equalTo("su-se-bakover"))

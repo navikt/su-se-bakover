@@ -59,7 +59,7 @@ data class ProdClientsBuilder(
             ),
         )
         val klageClient = KabalHttpClient(applicationConfig.clientsConfig.kabalConfig, oAuth)
-        val journalpostClient = JournalpostHttpClient(applicationConfig.clientsConfig.safUrl, tokenOppslag)
+        val journalpostClient = JournalpostHttpClient(applicationConfig.clientsConfig.safConfig, oAuth)
 
         return Clients(
             oauth = oAuth,

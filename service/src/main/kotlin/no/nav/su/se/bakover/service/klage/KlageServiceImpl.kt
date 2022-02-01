@@ -76,12 +76,8 @@ class KlageServiceImpl(
             return KunneIkkeOppretteKlage.HarAlleredeEnKlageBehandling.left()
         }
 
-        journalpostClient.hentJournalpost(request.journalpostId).mapLeft {
+        journalpostClient.hentFerdigstiltJournalpost(sak.saksnummer, request.journalpostId).mapLeft {
             return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(it).left()
-        }.map {
-            if (!it.validerJournalpost(sak.saksnummer)) {
-                return KunneIkkeOppretteKlage.JournalpostErIkkeKnyttetTilSak.left()
-            }
         }
 
         val aktørId = personService.hentAktørId(sak.fnr).getOrElse {

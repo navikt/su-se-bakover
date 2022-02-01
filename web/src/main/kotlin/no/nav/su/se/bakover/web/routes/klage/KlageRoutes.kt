@@ -113,10 +113,6 @@ internal fun Route.klageRoutes(
                                 "finnes_allerede_en_klagebehandling",
                             )
                             is KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost -> it.feil.toErrorJson()
-                            KunneIkkeOppretteKlage.JournalpostErIkkeKnyttetTilSak -> BadRequest.errorJson(
-                                "Hentet journalpost er ikke knyttet til saken",
-                                "hentet_journalpost_ikke_knyttet_til_sak",
-                            )
                         }
                     }
                     call.svar(resultat)
@@ -508,6 +504,18 @@ private fun KunneIkkeHenteJournalpost.toErrorJson(): Resultat {
         KunneIkkeHenteJournalpost.UgyldigInput -> BadRequest.errorJson(
             "Ugyldig journalpostId",
             "ugyldig_journalpostId",
+        )
+        KunneIkkeHenteJournalpost.JournalpostIkkeKnyttetTilSak -> BadRequest.errorJson(
+            "Journalposten er ikke knyttet til saken",
+            "journalpost_ikke_knyttet_til_sak",
+        )
+        KunneIkkeHenteJournalpost.JournalpostTemaErIkkeSUP -> BadRequest.errorJson(
+            "Journalpost temaet er ikke SUP",
+            "journalpost_tema_er_ikke_sup",
+        )
+        KunneIkkeHenteJournalpost.JournalpostenErIkkeFerdigstilt -> BadRequest.errorJson(
+            "Journalposten er ikke ferdigstilt",
+            "journalpost_er_ikke_ferdigstilt",
         )
     }
 }

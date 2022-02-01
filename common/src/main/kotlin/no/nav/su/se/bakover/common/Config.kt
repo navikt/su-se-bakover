@@ -303,7 +303,7 @@ data class ApplicationConfig(
         val skjermingUrl: String,
         val dkifUrl: String,
         val kabalConfig: KabalConfig,
-        val safUrl: String,
+        val safConfig: SafConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
@@ -320,7 +320,7 @@ data class ApplicationConfig(
                 skjermingUrl = getEnvironmentVariableOrThrow("SKJERMING_URL"),
                 dkifUrl = getEnvironmentVariableOrDefault("DKIF_URL", "http://dkif.default.svc.nais.local"),
                 kabalConfig = KabalConfig.createFromEnvironmentVariables(),
-                safUrl = getEnvironmentVariableOrDefault("SAF_URL", "https://saf.dev.intern.nav.no/graphql"),
+                safConfig = SafConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
@@ -337,7 +337,7 @@ data class ApplicationConfig(
                 skjermingUrl = "mocked",
                 dkifUrl = "mocked",
                 kabalConfig = KabalConfig.createLocalConfig(),
-                safUrl = "mocked",
+                safConfig = SafConfig.createLocalConfig(),
             )
         }
 
@@ -386,6 +386,23 @@ data class ApplicationConfig(
                 )
 
                 fun createLocalConfig() = KabalConfig(
+                    url = "mocked",
+                    clientId = "mocked",
+                )
+            }
+        }
+
+        data class SafConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = SafConfig(
+                    url = getEnvironmentVariableOrDefault("SAF_URL", "https://saf.dev.intern.nav.no"),
+                    clientId = getEnvironmentVariableOrDefault("SAF_CLIENT_ID", "api:////dev-fss.teamdokumenthandtering.saf/.default"),
+                )
+
+                fun createLocalConfig() = SafConfig(
                     url = "mocked",
                     clientId = "mocked",
                 )

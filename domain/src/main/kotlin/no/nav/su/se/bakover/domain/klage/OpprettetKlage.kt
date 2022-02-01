@@ -107,5 +107,4 @@ sealed interface KunneIkkeOppretteKlage {
     object UgyldigMottattDato : KunneIkkeOppretteKlage
     object HarAlleredeEnKlageBehandling : KunneIkkeOppretteKlage
     data class FeilVedHentingAvJournalpost(val feil: KunneIkkeHenteJournalpost) : KunneIkkeOppretteKlage
-    object JournalpostErIkkeKnyttetTilSak : KunneIkkeOppretteKlage
 }

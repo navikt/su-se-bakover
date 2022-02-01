@@ -1,14 +1,3 @@
-# Fetched from: https://github.com/navikt/pdl/blob/master/apps/api/src/main/resources/schemas/pdl.graphqls 2020-08-07 by John Andre Hestad.
-
-# ISO-8601 representasjon for en kalenderdato. YYYY-MM-DD. Eksempel: 2018-01-01.
-scalar Date
-
-# ISO-8601 representasjon for en kalenderdato med tid, trunkert til nærmeste sekund. YYYY-MM-DD'T'hh:mm:ss. Eksempel: 2018-01-01T12:00:00.
-scalar DateTime
-
-# Schema parser kjenner ikke til Typen long  men den er støttet av graphql-java, så definerer den her for at schema skal validere.
-scalar Long
-
 type Identliste {
     identer: [IdentInformasjon!]!
 }

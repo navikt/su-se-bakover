@@ -2,19 +2,31 @@ package no.nav.su.se.bakover.client.journalpost
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.flatten
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.github.kittinunf.fuel.httpPost
-import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.isSuccess
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.HentetJournalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Duration
+
+// docs: https://confluence.adeo.no/display/BOA/saf+-+Utviklerveiledning#
 
 private data class JournalpostRequest(
     val query: String,
@@ -26,52 +38,67 @@ private data class JournalpostVariables(
 )
 
 internal class JournalpostHttpClient(
-    val safUrl: String,
-    val tokenOppslag: TokenOppslag,
+    private val safConfig: ApplicationConfig.ClientsConfig.SafConfig,
+    private val oAuth: OAuth,
 ) : JournalpostClient {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
-    private val query = this::class.java.getResource("/hentJournalpost.graphql")?.readText()!!
 
-    override fun hentJournalpost(journalpostId: JournalpostId): Either<KunneIkkeHenteJournalpost, HentetJournalpost> {
-        val request = JournalpostRequest(query, JournalpostVariables(journalpostId.toString()))
+    var client: HttpClient = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(20))
+        .followRedirects(HttpClient.Redirect.NEVER)
+        .build()
+
+    override fun hentFerdigstiltJournalpost(
+        saksnummer: Saksnummer,
+        journalpostId: JournalpostId,
+    ): Either<KunneIkkeHenteJournalpost, HentetJournalpost> {
+        val request = JournalpostRequest(
+            this::class.java.getResource("/hentJournalpost.graphql")?.readText()!!,
+            JournalpostVariables(journalpostId.toString()),
+        )
         return hentJournalpostFraSaf(request).mapLeft {
             it
-        }.flatMap { journalpostResponse ->
-            journalpostResponse.toHentetJournalpost().mapLeft {
-                KunneIkkeHenteJournalpost.FantIkkeJournalpost
-            }.map {
-                it
-            }
+        }.flatMap {
+            it.toHentetJournalpost(saksnummer)
         }
     }
 
     private fun hentJournalpostFraSaf(request: JournalpostRequest): Either<KunneIkkeHenteJournalpost, JournalpostResponse> {
-        val token = "Bearer ${tokenOppslag.token()}"
-        val (_, response, result) = safUrl.httpPost()
-            .header("Authorization", token)
-            .header("Content-Type", "application/json")
-            .header("Nav-Consumer-Id", "su-se-bakover")
-            .body(objectMapper.writeValueAsString(request))
-            .responseString()
+        val token = "Bearer ${oAuth.onBehalfOfToken(MDC.get("Authorization"), safConfig.clientId)}"
 
-        return result.fold(
-            {
-                val JournalpostHttpResponse = objectMapper.readValue<JournalpostHttpResponse>(it)
-                if (JournalpostHttpResponse.hasErrors()) {
-                    return JournalpostHttpResponse.tilKunneIkkeHenteJournalpost().left()
+        return Either.catch {
+            val req = HttpRequest.newBuilder(URI.create("${safConfig.url}/graphql"))
+                .header("Authorization", token)
+                .header("Content-Type", "application/json")
+                .header("Nav-Consumer-Id", "su-se-bakover")
+                .POST(
+                    HttpRequest.BodyPublishers.ofString(
+                        objectMapper.writeValueAsString(request),
+                    ),
+                ).build()
+
+            client.send(req, HttpResponse.BodyHandlers.ofString()).let {
+                val body = it.body()
+                if (it.isSuccess()) {
+                    val JournalpostHttpResponse = objectMapper.readValue<JournalpostHttpResponse>(body)
+                    if (JournalpostHttpResponse.hasErrors()) {
+                        return JournalpostHttpResponse.tilKunneIkkeHenteJournalpost().left()
+                    }
+                    return JournalpostHttpResponse.data.right()
                 }
-                return JournalpostHttpResponse.data.right()
-            },
-            {
-                val statusCode = response.statusCode
-                val message = response.responseMessage
-                log.error("Feil i kallet mot SAF. status: $statusCode, message: $message for journalpostId: ${request.variables.journalpostId}")
+
+                log.error("Feil i kallet mot SAF. status: ${it.statusCode()} for journalpostId: ${request.variables.journalpostId}. Se sikker logg for innholdet av body")
+                sikkerLogg.info("Feil i kallet mot SAF. status: ${it.statusCode()}, body: $body for journalpostId: ${request.variables.journalpostId}")
                 KunneIkkeHenteJournalpost.Ukjent.left()
-            },
-        )
+            }
+        }.mapLeft {
+            log.error("Feil i kallet mot SAF.", it)
+            KunneIkkeHenteJournalpost.Ukjent
+        }.flatten()
     }
 }
 
+// https://confluence.adeo.no/display/BOA/saf+-+Utviklerveiledning#safUtviklerveiledning-Feilh%C3%A5ndtering
 internal data class JournalpostHttpResponse(
     val data: JournalpostResponse,
     val errors: List<Error>?,
@@ -83,10 +110,18 @@ internal data class JournalpostHttpResponse(
     fun tilKunneIkkeHenteJournalpost(): KunneIkkeHenteJournalpost {
         return errors.orEmpty().map { error ->
             when (error.extensions.code) {
-                "forbidden" -> KunneIkkeHenteJournalpost.IkkeTilgang
-                "not_found" -> KunneIkkeHenteJournalpost.FantIkkeJournalpost
-                "bad_request" -> KunneIkkeHenteJournalpost.UgyldigInput
-                "server_error" -> KunneIkkeHenteJournalpost.TekniskFeil
+                "forbidden" -> KunneIkkeHenteJournalpost.IkkeTilgang.also {
+                    log.error("Ikke tilgang til Journalpost")
+                }
+                "not_found" -> KunneIkkeHenteJournalpost.FantIkkeJournalpost.also {
+                    log.info("Fant ikke journalpost")
+                }
+                "bad_request" -> KunneIkkeHenteJournalpost.UgyldigInput.also {
+                    log.error("Sendt ugyldig input til SAF")
+                }
+                "server_error" -> KunneIkkeHenteJournalpost.TekniskFeil.also {
+                    log.error("Teknisk feil hos SAF")
+                }
                 else -> KunneIkkeHenteJournalpost.Ukjent.also {
                     log.warn("Uhåndtert feil fra SAF. code ${error.extensions.code} ")
                 }
