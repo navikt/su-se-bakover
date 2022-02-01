@@ -65,9 +65,9 @@ interface UtbetalingService {
         request: UtbetalRequest.Gjenopptak,
     ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
-    fun opphør(
+    fun genererOpphørsRequest(
         request: UtbetalRequest.Opphør,
-    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
+    ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling>
 
     fun hentGjeldendeUtbetaling(
         sakId: UUID,

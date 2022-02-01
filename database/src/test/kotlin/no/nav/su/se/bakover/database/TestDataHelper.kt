@@ -486,7 +486,7 @@ internal class TestDataHelper(
             VedtakSomKanRevurderes.from(
                 revurdering = revurdering.tilIverksatt(
                     attestant = attestant,
-                    utbetal = { utbetaling.id.right() },
+                    utbetal = { Unit.right() },
                     hentOpprinneligAvkorting = { avkortingid ->
                         avkortingsvarselRepo.hent(id = avkortingid)
                     },
@@ -595,7 +595,7 @@ internal class TestDataHelper(
             }
             is RevurderingTilAttestering.Innvilget -> tilAttestering.tilIverksatt(
                 attestant = attestant,
-                utbetal = { UUID30.randomUUID().right() },
+                utbetal = { Unit.right() },
                 hentOpprinneligAvkorting = { null },
             ).getOrHandle {
                 throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
@@ -735,7 +735,7 @@ internal class TestDataHelper(
     fun iverksattRevurderingInnvilget(): IverksattRevurdering.Innvilget {
         return revurderingTilAttesteringInnvilget().tilIverksatt(
             attestant = attestant,
-            utbetal = { UUID30.randomUUID().right() },
+            utbetal = { Unit.right() },
             hentOpprinneligAvkorting = { null },
         ).getOrHandle {
             throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
