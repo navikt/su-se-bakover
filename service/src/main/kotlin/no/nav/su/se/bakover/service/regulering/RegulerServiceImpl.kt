@@ -1,11 +1,10 @@
 package no.nav.su.se.bakover.service.regulering
 
 import arrow.core.Either
-import arrow.core.getOrHandle
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.vedtak.BehandlingType
+import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
@@ -16,67 +15,50 @@ class RegulerServiceImpl(
     private val sakService: SakService,
     private val clock: Clock,
 
-) : ReguleringService {
+    ) : ReguleringService {
 
     override fun hentAlleSakerSomKanReguleres(fraDato: LocalDate): Either<KanIkkeHenteSaker, SakerSomKanReguleres> {
-        val alleSaker = hentAlleSaker(fraDato)
-
-        val automatisk = finnAlleSakerSomKanReguleresAutomatisk(alleSaker, fraDato)
-
-        val manuelt = (alleSaker - automatisk).map {
-            SakSomKanReguleres(
-                sakId = it.id,
-                saksnummer = it.saksnummer,
-                begrunnelse = "",
-                type = "MANUELL",
-            )
-        }
-
         return SakerSomKanReguleres(
-            saker = automatisk.map {
-                SakSomKanReguleres(
-                    sakId = it.id,
-                    saksnummer = it.saksnummer,
-                    begrunnelse = "",
-                    type = "AUTOMATISK",
-                )
-            } + manuelt,
+            saker = hentAlleSaker(fraDato),
         ).right()
     }
 
-    // override fun hentAlleSakerSomKanReguleresAutomatisk(fraDato: LocalDate): Either<KanIkkeHenteSaker, List<Saksnummer>> {
-    //
-    //     return hentALleSakerSomKanReguleresAutomatisk(fraDato).map {
-    //         it.saksnummer
-    //     }.right()
-    // }
-    //
-    // override fun hentAlleSakerSomKanReguleresManuelt(fraDato: LocalDate): Either<KanIkkeHenteSaker, List<Saksnummer>> {
-    //     return (hentAlleSaker(fraDato) - hentALleSakerSomKanReguleresAutomatisk(fraDato)).map {
-    //         it.saksnummer
-    //     }.right()
-    // }
+    // SØKNAD, tommel opp
+    // AVSLAG,  filtrer bort
+    // ENDRING, tommel opp
+    // INGEN_ENDRING, manuell?
+    // OPPHØR, ikke ta hensyn til de mnd som er opphørt
+    // STANS_AV_YTELSE,   manuell
+    // GJENOPPTAK_AV_YTELSE,  tommel opp
+    // AVVIST_KLAGE,    filtrer bort
 
-    private fun finnAlleSakerSomKanReguleresAutomatisk(saker: List<Sak>, fraDato: LocalDate): List<Sak> {
-        return saker.filterNot {
-            it.hentGjeldendeVilkårOgGrunnlag(Periode.create(fraOgMed = fraDato, tilOgMed = LocalDate.MAX), clock).let {
-                it.grunnlagsdata.fradragsgrunnlag.any {
-                    it.fradragstype == Fradragstype.NAVytelserTilLivsopphold ||
-                        it.fradragstype == Fradragstype.OffentligPensjon
-                    // || it.fradragstype == Fradragstype.ForventetInntekt && it.månedsbeløp > 0.0  // hva gjør vi med denne?
+    private fun hentAlleSaker(fraDato: LocalDate): List<SakSomKanReguleres> {
+        return vedtakService.hentListeOverSakidSomKanReguleres(fraDato)
+            .filterNot { it.vedtakType == VedtakType.AVSLAG || it.vedtakType == VedtakType.AVVIST_KLAGE }
+            .groupBy { it.sakId }
+            .mapNotNull { (sakid, vedtakSomKanReguleres) ->
+                val minFra: LocalDate = vedtakSomKanReguleres.minOf { it.fraOgMed }
+                val maxTil: LocalDate = vedtakSomKanReguleres.maxOf { it.tilOgMed }
+
+                val gjeldendeVedtakPrMnd = Periode.create(minFra, maxTil).tilMånedsperioder().map { mnd ->
+                    mnd to vedtakSomKanReguleres.filter {
+                        val vedtaksperiode = Periode.create(it.fraOgMed, it.tilOgMed)
+                        vedtaksperiode.inneholder(mnd)
+                    }.maxByOrNull { it.opprettet.instant }!!
+                }.filterNot { it.second.vedtakType == VedtakType.OPPHØR }.ifEmpty {
+                    return@mapNotNull null
                 }
-            }
-        }
-    }
 
-    private fun hentAlleSaker(fraDato: LocalDate): List<Sak> {
-        return vedtakService.hentAlleSakIdSomHarVedtakEtterDato(fraDato).map {
-            sakService.hentSak(it).getOrHandle { throw IllegalStateException("tull") }
-        }.filter {
-            // skal vi fjerne stans?
-            it.hentPerioderMedLøpendeYtelse().any {
-                Periode.create(fraOgMed = fraDato, tilOgMed = LocalDate.MAX).overlapper(it)
+                val type =
+                    if (gjeldendeVedtakPrMnd.any { it.second.behandlingType == BehandlingType.MANUELL || it.second.vedtakType == VedtakType.INGEN_ENDRING || it.second.vedtakType == VedtakType.STANS_AV_YTELSE }) {
+                        BehandlingType.MANUELL
+                    } else BehandlingType.AUTOMATISK
+
+                SakSomKanReguleres(
+                    sakId = sakid,
+                    saksnummer = vedtakSomKanReguleres.first().saksnummer,
+                    type = type.toString(),
+                )
             }
-        }
     }
 }

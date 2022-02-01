@@ -74,6 +74,7 @@ import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.AutomatiskEllerManuelleSak
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -760,7 +761,7 @@ open class AccessCheckProxy(
                     return services.vedtakService.hentAktiveFnr(fomDato)
                 }
 
-                override fun hentAlleSakIdSomHarVedtakEtterDato(fomDato: LocalDate): List<UUID> {
+                override fun hentListeOverSakidSomKanReguleres(fomDato: LocalDate): List<AutomatiskEllerManuelleSak> {
                     kastKanKunKallesFraAnnenService()
                 }
 

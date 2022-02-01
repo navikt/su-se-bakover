@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuid30OrNull
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -34,12 +35,15 @@ import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.AutomatiskEllerManuelleSak
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.BehandlingType
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.VedtakType.valueOf
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
@@ -164,21 +168,72 @@ internal class VedtakPostgresRepo(
                 }.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse>()
         }
 
-    override fun hentAktiveSakId(dato: LocalDate): List<UUID> {
+    override fun hentVedtakSomKanReguleres(dato: LocalDate): List<AutomatiskEllerManuelleSak> {
         return dataSource.withSession { session ->
             """
-            select bv.sakid from vedtak v
-            
-            inner join behandling_vedtak bv
-              on v.id = bv.vedtakid
-              
-            where tilogmed >= :dato
-
+                with sakogid (sakid, saksnummer, bid, fraOgMed, tilOgMed, vedtaktype, opprettet ) as (
+                    select bv.sakid
+                         , s.saksnummer
+                         , coalesce(bv.søknadsbehandlingid, bv.revurderingid)
+                         , v.fraogmed
+                         , v.tilogmed
+                         , v.vedtaktype
+                         , v.opprettet
+                    from behandling_vedtak bv
+                
+                    inner join vedtak v
+                    on bv.vedtakid = v.id
+                    
+                    inner join sak s
+                    on s.id = bv.sakid
+                
+                    where v.tilogmed >= :dato
+                
+                )
+                
+                select s.sakid
+                     , s.saksnummer
+                     , s.bid
+                     , s.fraOgMed
+                     , s.tilOgMed
+                     , s.vedtaktype
+                     , s.opprettet
+                     , case when ( EXISTS( select 1
+                                             from grunnlag_fradrag g
+                                            where g.behandlingid = s.bid
+                                              and g.fradragstype in ('NAVytelserTilLivsopphold', 'OffentligPensjon')
+                                              and ( not ( (s.tilOgMed < g.fraogmed) or (s.fraOgMed > g.tilogmed) ) )
+                         ) ) then 'MANUELL'
+                         else 'AUTOMATISK'
+                         end behandlingtype
+                       from sakogid s
             """.trimIndent()
                 .hentListe(mapOf("dato" to dato), session) {
-                    it.uuid("sakid")
-                } // .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse>()
+                    it.toAutomatiskEllerManuelleSak()
+                }
         }
+    }
+
+    private fun Row.toAutomatiskEllerManuelleSak(): AutomatiskEllerManuelleSak {
+        val sakId = uuid("sakid")
+        val behandlingId = uuid("bid")
+        val saksnummer = Saksnummer(long("saksnummer"))
+        val opprettet = tidspunkt("opprettet")
+        val fraOgMed = localDate("fraOgMed")
+        val tilOgMed = localDate("tilOgMed")
+        val vedtakType = valueOf(string("vedtaktype")) //todo mappe via vedtakstype i repo
+        val behandlingType = BehandlingType.valueOf(string("behandlingtype"))
+
+        return AutomatiskEllerManuelleSak(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            opprettet = opprettet,
+            behandlingId = behandlingId,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+            vedtakType = vedtakType,
+            behandlingType = behandlingType,
+        )
     }
 
     private fun Row.toVedtak(session: Session): Vedtak {

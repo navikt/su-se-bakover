@@ -8,7 +8,6 @@ import java.util.UUID
 data class SakSomKanReguleres(
     val sakId: UUID,
     val saksnummer: Saksnummer,
-    val begrunnelse: String,
     val type: String,
 )
 
