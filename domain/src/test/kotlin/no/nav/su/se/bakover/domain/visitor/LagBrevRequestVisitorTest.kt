@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.visitor
 
 import arrow.core.Either
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -17,6 +16,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.satsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -45,19 +46,20 @@ import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
@@ -65,39 +67,45 @@ import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.innvilgetUførevilkår
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
-import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgInnvilgetFormue
+import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
+import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.fail
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `responderer med feil dersom vi ikke får til å hente person`() {
-        uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), fixedClock)
-            .let { søknadsbehandling ->
-                LagBrevRequestVisitor(
-                    hentPerson = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left() },
-                    hentNavn = { hentNavn(it) },
-                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
-                    clock = fixedClock,
-                ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left()
-                }
+        vilkårsvurdertInnvilget.tilVilkårsvurdert(
+            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
+            clock = fixedClock,
+        ).let { søknadsbehandling ->
+            LagBrevRequestVisitor(
+                hentPerson = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left() },
+                hentNavn = { hentNavn(it) },
+                hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+                clock = fixedClock,
+            ).apply { søknadsbehandling.accept(this) }.let {
+                it.brevRequest shouldBe LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left()
             }
+        }
     }
 
     @Test
     fun `responderer med feil dersom vi ikke får til å hente navn for saksbehandler eller attestant`() {
-        uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(), fixedClock)
-            .tilBeregnet(innvilgetBeregning)
+        vilkårsvurdertInnvilget.beregn(
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail()
             .tilSimulert(simulering)
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
@@ -116,7 +124,7 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `responderer med feil dersom det ikke er mulig å lage brev for aktuell søknadsbehandling`() {
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
-            uavklart.let {
+            vilkårsvurdertInnvilget.let {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
@@ -127,7 +135,10 @@ internal class LagBrevRequestVisitorTest {
         }
 
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
-            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(), fixedClock)
+            vilkårsvurdertInnvilget.tilVilkårsvurdert(
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                clock = fixedClock,
+            )
                 .let {
                     LagBrevRequestVisitor(
                         hentPerson = { person.right() },
@@ -141,43 +152,48 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for vilkårsvurdert avslag`() {
-        uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), fixedClock)
-            .let { søknadsbehandling ->
-                LagBrevRequestVisitor(
-                    hentPerson = { person.right() },
-                    hentNavn = { hentNavn(it) },
-                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
-                    clock = fixedClock,
-                ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe AvslagBrevRequest(
-                        person = person,
-                        avslag = Avslag(
-                            opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
-                            harEktefelle = false,
-                            beregning = null,
-                        ),
-                        saksbehandlerNavn = "-",
-                        attestantNavn = "-",
-                        fritekst = "",
-                        forventetInntektStørreEnn0 = false,
-                        dagensDato = fixedLocalDate,
-                    ).right()
+        vilkårsvurdertInnvilget.leggTilUførevilkår(
+            uførhet = avslåttUførevilkårUtenGrunnlag(),
+            clock = fixedClock,
+        ).getOrFail().let { søknadsbehandling ->
+            LagBrevRequestVisitor(
+                hentPerson = { person.right() },
+                hentNavn = { hentNavn(it) },
+                hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+                clock = fixedClock,
+            ).apply { søknadsbehandling.accept(this) }.let {
+                it.brevRequest shouldBe AvslagBrevRequest(
+                    person = person,
+                    avslag = Avslag(
+                        opprettet = fixedTidspunkt,
+                        avslagsgrunner = listOf(Avslagsgrunn.UFØRHET),
+                        harEktefelle = false,
+                        beregning = null,
+                    ),
+                    saksbehandlerNavn = "-",
+                    attestantNavn = "-",
+                    fritekst = "",
+                    forventetInntektStørreEnn0 = false,
+                    dagensDato = fixedLocalDate,
+                    saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                ).right()
 
-                    it.brevRequest.map { brevRequest ->
-                        brevRequest.tilDokument { generertPdf.right() }
-                            .map { dokument ->
-                                assertDokument<Dokument.UtenMetadata.Vedtak>(dokument, brevRequest)
-                            }
-                    }
+                it.brevRequest.map { brevRequest ->
+                    brevRequest.tilDokument { generertPdf.right() }
+                        .map { dokument ->
+                            assertDokument<Dokument.UtenMetadata.Vedtak>(dokument, brevRequest)
+                        }
                 }
             }
+        }
     }
 
     @Test
     fun `lager request for beregnet innvilget`() {
-        uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(), fixedClock)
-            .tilBeregnet(innvilgetBeregning)
+        vilkårsvurdertInnvilget.beregn(
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail()
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -187,7 +203,7 @@ internal class LagBrevRequestVisitorTest {
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
-                        beregning = innvilgetBeregning,
+                        beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
                         satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
                         harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
                         saksbehandlerNavn = "-",
@@ -195,6 +211,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -202,40 +219,55 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for beregnet avslag`() {
-        uavklart
-            .tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), fixedClock)
-            .tilBeregnet(avslagBeregning)
-            .let { søknadsbehandling ->
-                LagBrevRequestVisitor(
-                    hentPerson = { person.right() },
-                    hentNavn = { hentNavn(it) },
-                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
-                    clock = fixedClock,
-                ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe AvslagBrevRequest(
-                        person = person,
-                        avslag = Avslag(
-                            opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING, Avslagsgrunn.FOR_HØY_INNTEKT),
-                            harEktefelle = false,
-                            beregning = avslagBeregning,
-                        ),
-                        saksbehandlerNavn = "-",
-                        attestantNavn = "-",
-                        fritekst = "",
-                        forventetInntektStørreEnn0 = false,
-                        dagensDato = fixedLocalDate,
-                    ).right()
-                }
+        vilkårsvurdertInnvilget.leggTilFradragsgrunnlag(
+            fradragsgrunnlag = listOf(
+                Grunnlag.Fradragsgrunnlag.create(
+                    opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 50000.0,
+                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+            ),
+        ).getOrFail().beregn(
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail().let { søknadsbehandling ->
+            LagBrevRequestVisitor(
+                hentPerson = { person.right() },
+                hentNavn = { hentNavn(it) },
+                hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+                clock = fixedClock,
+            ).apply { søknadsbehandling.accept(this) }.let {
+                it.brevRequest shouldBe AvslagBrevRequest(
+                    person = person,
+                    avslag = Avslag(
+                        opprettet = fixedTidspunkt,
+                        avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
+                        harEktefelle = false,
+                        beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
+                    ),
+                    saksbehandlerNavn = "-",
+                    attestantNavn = "-",
+                    fritekst = "",
+                    forventetInntektStørreEnn0 = false,
+                    dagensDato = fixedLocalDate,
+                    saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                ).right()
             }
+        }
     }
 
     @Test
     fun `lager request for simulert`() {
-        uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(), fixedClock)
-            .tilBeregnet(innvilgetBeregning)
-            .tilSimulert(simulering)
-            .let { søknadsbehandling ->
+        vilkårsvurdertInnvilget.beregn(
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail()
+            .tilSimulert(simulering).let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
@@ -244,7 +276,7 @@ internal class LagBrevRequestVisitorTest {
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
-                        beregning = innvilgetBeregning,
+                        beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
                         satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
                         harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
                         saksbehandlerNavn = "-",
@@ -252,6 +284,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
 
                     it.brevRequest.map { brevRequest ->
@@ -267,8 +300,8 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for avslag til attestering uten beregning`() {
         (
-            uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), fixedClock,
+            vilkårsvurdertInnvilget.tilVilkårsvurdert(
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), clock = fixedClock,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -292,6 +325,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -300,8 +334,23 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for avslag til attestering med beregning`() {
         (
-            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(), fixedClock)
-                .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
+            vilkårsvurdertInnvilget.leggTilFradragsgrunnlag(
+                fradragsgrunnlag = listOf(
+                    Grunnlag.Fradragsgrunnlag.create(
+                        opprettet = fixedTidspunkt,
+                        fradrag = FradragFactory.ny(
+                            type = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 50000.0,
+                            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                ),
+            ).getOrFail().beregn(
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
             .let { søknadsbehandling ->
@@ -317,13 +366,14 @@ internal class LagBrevRequestVisitorTest {
                             opprettet = fixedTidspunkt,
                             avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
                             harEktefelle = false,
-                            beregning = avslagBeregning,
+                            beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = "-",
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -331,8 +381,10 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for innvilget til attestering`() {
-        uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(), fixedClock)
-            .tilBeregnet(innvilgetBeregning)
+        vilkårsvurdertInnvilget.beregn(
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail()
             .tilSimulert(simulering)
             .tilAttestering(saksbehandler, "Fritekst!")
             .let { søknadsbehandling ->
@@ -344,7 +396,7 @@ internal class LagBrevRequestVisitorTest {
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
-                        beregning = innvilgetBeregning,
+                        beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
                         satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
                         harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
                         saksbehandlerNavn = saksbehandlerNavn,
@@ -352,6 +404,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -360,8 +413,8 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for underkjent avslag uten beregning`() {
         (
-            uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), fixedClock,
+            vilkårsvurdertInnvilget.tilVilkårsvurdert(
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), clock = fixedClock,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -393,6 +446,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -401,8 +455,23 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for underkjent avslag med beregning`() {
         (
-            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(), fixedClock)
-                .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
+            vilkårsvurdertInnvilget.leggTilFradragsgrunnlag(
+                fradragsgrunnlag = listOf(
+                    Grunnlag.Fradragsgrunnlag.create(
+                        opprettet = fixedTidspunkt,
+                        fradrag = FradragFactory.ny(
+                            type = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 50000.0,
+                            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                ),
+            ).getOrFail().beregn(
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilUnderkjent(
@@ -427,13 +496,14 @@ internal class LagBrevRequestVisitorTest {
                             opprettet = fixedTidspunkt,
                             avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
                             harEktefelle = false,
-                            beregning = avslagBeregning,
+                            beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -441,8 +511,10 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for underkjent innvilgelse`() {
-        uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(), fixedClock)
-            .tilBeregnet(innvilgetBeregning)
+        vilkårsvurdertInnvilget.beregn(
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail()
             .tilSimulert(simulering)
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilUnderkjent(
@@ -462,7 +534,7 @@ internal class LagBrevRequestVisitorTest {
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
-                        beregning = innvilgetBeregning,
+                        beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
                         satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
                         harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
                         saksbehandlerNavn = saksbehandlerNavn,
@@ -470,6 +542,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -478,8 +551,8 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for iverksatt avslag uten beregning`() {
         (
-            uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), fixedClock,
+            vilkårsvurdertInnvilget.tilVilkårsvurdert(
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), clock = fixedClock,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -506,6 +579,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -514,8 +588,24 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for iverksatt avslag med beregning`() {
         (
-            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), fixedClock)
-                .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
+            vilkårsvurdertInnvilget.leggTilFradragsgrunnlag(
+                fradragsgrunnlag = listOf(
+                    Grunnlag.Fradragsgrunnlag.create(
+                        opprettet = fixedTidspunkt,
+                        fradrag = FradragFactory.ny(
+                            type = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 50000.0,
+                            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                ),
+            ).getOrFail()
+                .beregn(
+                    begrunnelse = null,
+                    clock = fixedClock,
+                ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(
@@ -532,15 +622,16 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         avslag = Avslag(
                             opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING, Avslagsgrunn.FOR_HØY_INNTEKT),
+                            avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
                             harEktefelle = false,
-                            beregning = avslagBeregning,
+                            beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -548,8 +639,10 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for iverksatt innvilget`() {
-        uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(), fixedClock)
-            .tilBeregnet(innvilgetBeregning)
+        vilkårsvurdertInnvilget.beregn(
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail()
             .tilSimulert(simulering)
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
@@ -562,7 +655,7 @@ internal class LagBrevRequestVisitorTest {
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
-                        beregning = innvilgetBeregning,
+                        beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
                         satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
                         harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
                         saksbehandlerNavn = saksbehandlerNavn,
@@ -570,6 +663,7 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "Fritekst!",
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
+                        saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     ).right()
                 }
             }
@@ -578,14 +672,16 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for vedtak om innvilget stønad`() {
         val utbetalingId = UUID30.randomUUID()
-        val søknadsbehandling =
-            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(), fixedClock)
-                .tilBeregnet(innvilgetBeregning)
-                .tilSimulert(simulering)
-                .tilAttestering(saksbehandler, "Fritekst!")
-                .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
+        val søknadsbehandling = vilkårsvurdertInnvilget
+            .beregn(
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail()
+            .tilSimulert(simulering)
+            .tilAttestering(saksbehandler, "Fritekst!")
+            .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
-        val innvilgetVedtak = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock)
+        val innvilgetVedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock)
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -604,7 +700,7 @@ internal class LagBrevRequestVisitorTest {
         brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
         brevSøknadsbehandling.brevRequest shouldBe InnvilgetVedtak(
             person = person,
-            beregning = innvilgetBeregning,
+            beregning = expectedInnvilgetBeregning(innvilgetVedtak.beregning.getId()),
             satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
             harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
             saksbehandlerNavn = saksbehandlerNavn,
@@ -612,19 +708,35 @@ internal class LagBrevRequestVisitorTest {
             fritekst = "Fritekst!",
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
+            saksnummer = søknadsbehandling.saksnummer,
         ).right()
     }
 
     @Test
     fun `lager request for vedtak om avslått stønad med beregning`() {
         val søknadsbehandling = (
-            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(), fixedClock)
-                .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
+            vilkårsvurdertInnvilget.leggTilFradragsgrunnlag(
+                fradragsgrunnlag = listOf(
+                    Grunnlag.Fradragsgrunnlag.create(
+                        opprettet = fixedTidspunkt,
+                        fradrag = FradragFactory.ny(
+                            type = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 50000.0,
+                            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                ),
+            ).getOrFail().beregn(
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
-        val avslåttVedtak = Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
+        val avslåttVedtak = Avslagsvedtak.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -647,27 +759,28 @@ internal class LagBrevRequestVisitorTest {
                 opprettet = fixedTidspunkt,
                 avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
                 harEktefelle = false,
-                beregning = avslagBeregning,
+                beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
             ),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "Fritekst!",
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
+            saksnummer = søknadsbehandling.saksnummer,
         ).right()
     }
 
     @Test
     fun `lager request for vedtak om avslått stønad uten beregning`() {
         val søknadsbehandling = (
-            uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), fixedClock,
+            vilkårsvurdertInnvilget.tilVilkårsvurdert(
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), clock = fixedClock,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
-        val avslåttVedtak = Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(
+        val avslåttVedtak = Avslagsvedtak.fromSøknadsbehandlingUtenBeregning(
             avslag = søknadsbehandling,
             clock = fixedClock,
         )
@@ -700,6 +813,7 @@ internal class LagBrevRequestVisitorTest {
             fritekst = "Fritekst!",
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
+            saksnummer = søknadsbehandling.saksnummer,
         ).right()
     }
 
@@ -707,8 +821,10 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for vedtak om revurdering av inntekt`() {
         val utbetalingId = UUID30.randomUUID()
         val søknadsbehandling =
-            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(), fixedClock)
-                .tilBeregnet(innvilgetBeregning)
+            vilkårsvurdertInnvilget.beregn(
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail()
                 .tilSimulert(simulering)
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
@@ -718,7 +834,7 @@ internal class LagBrevRequestVisitorTest {
             id = UUID.randomUUID(),
             periode = revurderingsperiode,
             opprettet = fixedTidspunkt,
-            tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
+            tilRevurdering = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
             grunnlagsdata = Grunnlagsdata.create(
@@ -731,7 +847,7 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ),
-            beregning = innvilgetBeregning,
+            beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
             simulering = simulering,
             attesteringer = Attesteringshistorikk.empty()
                 .leggTilNyAttestering(Attestering.Iverksatt(attestant, fixedTidspunkt)),
@@ -740,12 +856,13 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
         )
 
-        val avslåttVedtak = Vedtak.from(revurdering, utbetalingId, fixedClock)
+        val avslåttVedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -771,6 +888,7 @@ internal class LagBrevRequestVisitorTest {
             harEktefelle = false,
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
+            saksnummer = revurdering.saksnummer,
         ).right()
 
         brevRevurdering.brevRequest.map { brevRequest ->
@@ -785,8 +903,11 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for opphørsvedtak`() {
         val utbetalingId = UUID30.randomUUID()
         val søknadsbehandling =
-            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(), fixedClock)
-                .tilBeregnet(innvilgetBeregning)
+            vilkårsvurdertInnvilget
+                .beregn(
+                    begrunnelse = null,
+                    clock = fixedClock,
+                ).getOrFail()
                 .tilSimulert(simulering)
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
@@ -796,10 +917,10 @@ internal class LagBrevRequestVisitorTest {
             id = UUID.randomUUID(),
             periode = revurderingsperiode,
             opprettet = fixedTidspunkt,
-            tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
+            tilRevurdering = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
-            beregning = innvilgetBeregning,
+            beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
             simulering = simulering,
             attesteringer = Attesteringshistorikk.empty()
                 .leggTilNyAttestering(Attestering.Iverksatt(attestant, fixedTidspunkt)),
@@ -808,7 +929,7 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -832,11 +953,13 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
                 innvilgetFormueVilkår(revurderingsperiode),
+                utlandsoppholdInnvilget(periode = revurderingsperiode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
         )
 
-        val opphørsvedtak = Vedtak.from(revurdering, utbetalingId, fixedClock)
+        val opphørsvedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -863,6 +986,9 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             opphørsgrunner = emptyList(),
             dagensDato = fixedLocalDate,
+            saksnummer = revurdering.saksnummer,
+            opphørsdato = revurdering.periode.fraOgMed,
+            avkortingsBeløp = null,
         ).right()
 
         brevRevurdering.brevRequest.map { brevRequest ->
@@ -876,43 +1002,12 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager opphørsvedtak med opphørsgrunn for uførhet`() {
         val utbetalingId = UUID30.randomUUID()
-        val opphørsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
 
-        val revurdering = (
-            opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-                revurderingsperiode = opphørsperiode,
-                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
-                    grunnlagsdata = Grunnlagsdata.create(
-                        fradragsgrunnlag = listOf(
-                            fradragsgrunnlagArbeidsinntekt(
-                                arbeidsinntekt = 150000.0,
-                                periode = opphørsperiode,
-                            ),
-                        ),
-                        bosituasjon = listOf(
-                            bosituasjongrunnlagEnslig(opphørsperiode),
-                        ),
-                    ),
-                    vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
-                        periode = opphørsperiode,
-                    ),
-                ),
-            ).second
-                .beregn(eksisterendeUtbetalinger = emptyList())
-                .getOrHandle { fail("Skulle gått bra") }
-                .toSimulert(simulering) as SimulertRevurdering.Opphørt
-            )
-            .tilAttestering(
-                attesteringsoppgaveId = oppgaveIdRevurdering,
-                saksbehandler = saksbehandler,
-                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                fritekstTilBrev = "FRITEKST REVURDERING",
-            ).getOrHandle { fail("Skulle gått bra") }
-            .tilIverksatt(attestant) { utbetalingId.right() }
-            .getOrHandle { fail("Skulle gått bra") }
-
-        val opphørsvedtak = Vedtak.from(revurdering, utbetalingId, fixedClock)
-
+        val (_, revurdering) = iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+            utbetalingId = utbetalingId,
+            fritekstTilBrev = "FRITEKST REVURDERING",
+        )
+        val opphørsvedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
@@ -938,6 +1033,9 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             opphørsgrunner = listOf(Opphørsgrunn.UFØRHET),
             dagensDato = fixedLocalDate,
+            saksnummer = revurdering.saksnummer,
+            opphørsdato = revurdering.periode.fraOgMed,
+            avkortingsBeløp = null,
         ).right()
     }
 
@@ -946,47 +1044,61 @@ internal class LagBrevRequestVisitorTest {
         val utbetalingId = UUID30.randomUUID()
         val opphørsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
 
-        val revurdering = (
-            opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-                revurderingsperiode = opphørsperiode,
-                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
-                    grunnlagsdata = Grunnlagsdata.create(
-                        fradragsgrunnlag = listOf(
-                            fradragsgrunnlagArbeidsinntekt(
-                                arbeidsinntekt = 150000.0,
-                                periode = opphørsperiode,
-                            ),
-                        ),
-                        bosituasjon = listOf(
-                            bosituasjongrunnlagEnslig(opphørsperiode),
+        val (sak, revurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+            revurderingsperiode = opphørsperiode,
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+                grunnlagsdata = Grunnlagsdata.create(
+                    fradragsgrunnlag = listOf(
+                        fradragsgrunnlagArbeidsinntekt(
+                            arbeidsinntekt = 150000.0,
+                            periode = opphørsperiode,
                         ),
                     ),
-                    vilkårsvurderinger = vilkårsvurderingerInnvilget(
-                        periode = opphørsperiode,
+                    bosituasjon = listOf(
+                        bosituasjongrunnlagEnslig(periode = opphørsperiode),
                     ),
                 ),
-            ).second
-                .beregn(eksisterendeUtbetalinger = emptyList())
-                .getOrHandle { fail("Skulle gått bra") }
-                .toSimulert(simulering) as SimulertRevurdering.Opphørt
-            )
-            .tilAttestering(
-                attesteringsoppgaveId = oppgaveIdRevurdering,
-                saksbehandler = saksbehandler,
-                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                fritekstTilBrev = "FRITEKST REVURDERING",
-            ).getOrHandle { fail("Skulle gått bra") }
-            .tilIverksatt(attestant) { utbetalingId.right() }
-            .getOrHandle { fail("Skulle gått bra") }
+                vilkårsvurderinger = vilkårsvurderingerInnvilget(
+                    periode = opphørsperiode,
+                ),
+            ),
+        )
 
-        val opphørsvedtak = Vedtak.from(revurdering, utbetalingId, fixedClock)
+        val attestert = revurdering.beregn(
+            eksisterendeUtbetalinger = sak.utbetalinger,
+            clock = fixedClock,
+            gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                fraOgMed = revurdering.periode.fraOgMed,
+                clock = fixedClock,
+            ).getOrFail()
+        ).getOrFail().let {
+            (it as BeregnetRevurdering.Opphørt).toSimulert { sakId, _, opphørsdato ->
+                simulertUtbetalingOpphør(
+                    sakId = sakId,
+                    opphørsdato = opphørsdato,
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                )
+            }.getOrFail()
+        }.prøvOvergangTilSkalIkkeForhåndsvarsles().getOrFail().tilAttestering(
+            attesteringsoppgaveId = oppgaveIdRevurdering,
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = "FRITEKST REVURDERING",
+        ).getOrFail()
+            .tilIverksatt(
+                attestant = attestant,
+                utbetal = { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering -> utbetalingId.right() },
+                hentOpprinneligAvkorting = { null },
+            )
+            .getOrFail()
+
+        val opphørsvedtak = VedtakSomKanRevurderes.from(attestert, utbetalingId, fixedClock)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
-        ).apply { revurdering.accept(this) }
+        ).apply { attestert.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -998,14 +1110,17 @@ internal class LagBrevRequestVisitorTest {
         brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
         brevRevurdering.brevRequest shouldBe LagBrevRequest.Opphørsvedtak(
             person = person,
-            beregning = revurdering.beregning,
-            harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
+            beregning = attestert.beregning,
+            harEktefelle = attestert.grunnlagsdata.bosituasjon.harEktefelle(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",
             forventetInntektStørreEnn0 = false,
             opphørsgrunner = listOf(Opphørsgrunn.FOR_HØY_INNTEKT),
             dagensDato = fixedLocalDate,
+            saksnummer = revurdering.saksnummer,
+            opphørsdato = revurdering.periode.fraOgMed,
+            avkortingsBeløp = null,
         ).right()
     }
 
@@ -1013,8 +1128,10 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for vedtak som ikke fører til endring`() {
         val utbetalingId = UUID30.randomUUID()
         val søknadsbehandling =
-            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(), fixedClock)
-                .tilBeregnet(innvilgetBeregning)
+            vilkårsvurdertInnvilget.beregn(
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail()
                 .tilSimulert(simulering)
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
@@ -1024,10 +1141,10 @@ internal class LagBrevRequestVisitorTest {
             id = UUID.randomUUID(),
             periode = revurderingsperiode,
             opprettet = fixedTidspunkt,
-            tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
+            tilRevurdering = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
-            beregning = innvilgetBeregning,
+            beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
             attesteringer = Attesteringshistorikk.empty()
                 .leggTilNyAttestering(Attestering.Iverksatt(attestant, fixedTidspunkt)),
             fritekstTilBrev = "EN FIN FRITEKST",
@@ -1035,7 +1152,7 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            skalFøreTilBrevutsending = false,
+            skalFøreTilUtsendingAvVedtaksbrev = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
@@ -1049,9 +1166,10 @@ internal class LagBrevRequestVisitorTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
         )
 
-        val vedtakIngenEndring = Vedtak.from(revurdering, fixedClock)
+        val vedtakIngenEndring = VedtakSomKanRevurderes.from(revurdering, fixedClock)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -1079,6 +1197,7 @@ internal class LagBrevRequestVisitorTest {
                 forventetInntektStørreEnn0 = false,
                 gjeldendeMånedsutbetaling = 120,
                 dagensDato = fixedLocalDate,
+                saksnummer = revurdering.saksnummer,
             )
 
             it.brevInnhold should beOfType<BrevInnhold.VedtakIngenEndring>()
@@ -1115,39 +1234,50 @@ internal class LagBrevRequestVisitorTest {
             is NavIdentBruker.Saksbehandler -> saksbehandlerNavn.right()
         }
 
-    private val innvilgetBeregning = BeregningFactory.ny(
-        id = UUID.randomUUID(),
-        opprettet = fixedTidspunkt,
-        periode = Periode.create(1.januar(2021), 31.desember(2021)),
-        sats = Sats.HØY,
-        fradrag = listOf(
-            FradragFactory.ny(
-                type = Fradragstype.ForventetInntekt,
-                månedsbeløp = 5000.0,
-                periode = Periode.create(1.januar(2021), 31.desember(2021)),
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER,
+    private fun expectedInnvilgetBeregning(id: UUID): Beregning {
+        return BeregningFactory(clock = fixedClock).ny(
+            id = id,
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 0.0,
+                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
-        ),
-        fradragStrategy = FradragStrategy.Enslig,
-    )
+            fradragStrategy = FradragStrategy.Enslig,
+        )
+    }
 
-    private val avslagBeregning = BeregningFactory.ny(
-        id = UUID.randomUUID(),
-        opprettet = fixedTidspunkt,
-        periode = Periode.create(1.januar(2021), 31.desember(2021)),
-        sats = Sats.HØY,
-        fradrag = listOf(
-            FradragFactory.ny(
-                type = Fradragstype.ForventetInntekt,
-                månedsbeløp = 50000.0,
-                periode = Periode.create(1.januar(2021), 31.desember(2021)),
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER,
+    private fun expectedAvslagBeregning(id: UUID): Beregning {
+        return BeregningFactory(clock = fixedClock).ny(
+            id = id,
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 50000.0,
+                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 0.0,
+                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
-        ),
-        fradragStrategy = FradragStrategy.Enslig,
-    )
+            fradragStrategy = FradragStrategy.Enslig,
+        )
+    }
 
     private val simulering = Simulering(
         gjelderId = Fnr.generer(),
@@ -1157,13 +1287,5 @@ internal class LagBrevRequestVisitorTest {
         periodeList = listOf(),
     )
 
-    private val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
-
-    private val uavklart = søknadsbehandlingVilkårsvurdertUavklart(
-        grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = stønadsperiode.periode))),
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
-        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-            uføre = innvilgetUførevilkår(periode = stønadsperiode.periode),
-        ),
-    ).second
+    private val vilkårsvurdertInnvilget = søknadsbehandlingVilkårsvurdertInnvilget().second
 }

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<included>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <include resource="logback-audit-config-test.xml"/>
+    <include resource="logback-secure-config-test.xml"/>
+
+    <!-- DB -->
+    <logger name="io.zonky" level="WARN"/>
+    <logger name="org.flywaydb" level="WARN"/>
+
+    <!-- KAFKA -->
+    <logger name="kafka" level="WARN"/>
+    <logger name="org.apache" level="WARN"/>
+    <logger name="io.confluent" level="WARN"/>
+    <logger name="state.change.logger" level="WARN"/>
+    <!-- Denne spammer veldig når vi kjører Kafka-testene (vil dessverre ikke filtere ut sikkerloggen) -->
+    <logger name="no.nav.su.se.bakover.web.services.klage.FattetKlagevedtakConsumer" level="OFF"/>
+
+    <!-- WEB -->
+    <logger name="ktor.test" level="WARN"/>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</included>
+
+
+

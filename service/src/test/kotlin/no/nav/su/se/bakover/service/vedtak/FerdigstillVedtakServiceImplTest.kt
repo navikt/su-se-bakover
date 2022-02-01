@@ -3,30 +3,30 @@ package no.nav.su.se.bakover.service.vedtak
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
-import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.FantIkkeVedtakForUtbetalingId
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
-import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
@@ -72,7 +72,7 @@ internal class FerdigstillVedtakServiceImplTest {
     }
 
     @Test
-    fun `ferdigstill NY kaster feil hvis utbetalinga ikke kan kobles til et vedtak`() {
+    fun `ferdigstill NY ender i feil hvis utbetalinga ikke kan kobles til et vedtak`() {
         val (sak, vedtak) = innvilgetSøknadsbehandlingVedtak()
 
         FerdigstillVedtakServiceMocks(
@@ -80,9 +80,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any()) } doReturn null
             },
         ) {
-            assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
-                service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
-            }.message shouldContain vedtak.utbetalingId.toString()
+            val feil = service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+            feil shouldBe FantIkkeVedtakForUtbetalingId(vedtak.utbetalingId).left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
         }
@@ -100,9 +99,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
             }
         ) {
-            assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
-                service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
-            }.message shouldContain vedtak.id.toString()
+            val feil = service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+            feil shouldBe KunneIkkeGenerereBrev.left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
             verify(brevService).lagDokument(vedtak)
@@ -121,11 +119,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
             }
         ) {
-            assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
-                service.ferdigstillVedtakEtterUtbetaling(
-                    sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering,
-                )
-            }.message shouldContain vedtak.id.toString()
+            val feil = service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+            feil shouldBe KunneIkkeGenerereBrev.left()
 
             inOrder(
                 *all(),
@@ -210,19 +205,19 @@ internal class FerdigstillVedtakServiceImplTest {
 
     @Test
     fun `svarer med feil dersom lukking av oppgave feiler`() {
-        val vedtak = avslagsVedtak()
+        val behandling = søknadsbehandlingIverksattInnvilget().second
 
         FerdigstillVedtakServiceMocks(
             oppgaveService = mock {
                 on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
             },
         ) {
-            service.lukkOppgaveMedBruker(vedtak) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
+            service.lukkOppgaveMedBruker(behandling) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
 
             inOrder(
                 *all(),
             ) {
-                verify(oppgaveService).lukkOppgave(vedtak.behandling.oppgaveId)
+                verify(oppgaveService).lukkOppgave(behandling.oppgaveId)
             }
         }
     }
@@ -263,10 +258,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
     }
 
-    private fun avslagsVedtak(): Vedtak.Avslag.AvslagBeregning =
-        vedtakSøknadsbehandlingIverksattAvslagMedBeregning().second
-
-    private fun innvilgetSøknadsbehandlingVedtak(): Pair<Sak, Vedtak.EndringIYtelse> {
+    private fun innvilgetSøknadsbehandlingVedtak(): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> {
         return vedtakSøknadsbehandlingIverksattInnvilget()
     }
 }

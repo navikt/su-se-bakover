@@ -7,4 +7,5 @@ interface TilbakekrevingRepo {
     fun hentUbehandlaKravgrunnlag(): List<RåttKravgrunnlag>
     fun hentUoversendteTilbakekrevingsavgjørelser(sakId: UUID): List<Tilbakekrevingsavgjørelse>
     fun lagreTilbakekrevingsavgjørelse(tilbakekrevingsavgjørelse: Tilbakekrevingsavgjørelse)
+    fun hentTilbakekrevingsavgjørelse(): Tilbakekrevingsavgjørelse
 }

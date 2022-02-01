@@ -1,33 +1,28 @@
 package no.nav.su.se.bakover.database.revurdering
 
-import arrow.core.getOrHandle
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.beregning.PersistertFradrag
-import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo.ForhåndsvarselDto
+import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -39,22 +34,20 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import org.junit.jupiter.api.Test
-import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class RevurderingPostgresRepoTest {
 
-    private val periode = Periode.create(
-        fraOgMed = 1.januar(2020),
-        tilOgMed = 31.desember(2020),
-    )
     private val revurderingsårsak = Revurderingsårsak(
         Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
@@ -75,9 +68,9 @@ internal class RevurderingPostgresRepoTest {
         ),
     )
 
-    private fun opprettet(vedtak: Vedtak.EndringIYtelse) = OpprettetRevurdering(
+    private fun opprettet(vedtak: VedtakSomKanRevurderes.EndringIYtelse) = OpprettetRevurdering(
         id = UUID.randomUUID(),
-        periode = periode,
+        periode = periode2021,
         opprettet = fixedTidspunkt,
         tilRevurdering = vedtak,
         saksbehandler = saksbehandler,
@@ -89,11 +82,12 @@ internal class RevurderingPostgresRepoTest {
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
     )
 
     private fun beregnetIngenEndring(
         opprettet: OpprettetRevurdering,
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
     ) = BeregnetRevurdering.IngenEndring(
         id = opprettet.id,
         periode = opprettet.periode,
@@ -109,11 +103,12 @@ internal class RevurderingPostgresRepoTest {
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = opprettet.avkorting.håndter(),
     )
 
     private fun beregnetInnvilget(
         opprettet: OpprettetRevurdering,
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
     ) = BeregnetRevurdering.Innvilget(
         id = opprettet.id,
         periode = opprettet.periode,
@@ -129,11 +124,12 @@ internal class RevurderingPostgresRepoTest {
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = opprettet.avkorting.håndter(),
     )
 
     private fun beregnetOpphørt(
         opprettet: OpprettetRevurdering,
-        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling,
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
     ) = BeregnetRevurdering.Opphørt(
         id = opprettet.id,
         periode = opprettet.periode,
@@ -149,6 +145,7 @@ internal class RevurderingPostgresRepoTest {
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = opprettet.avkorting.håndter(),
     )
 
     private fun simulertInnvilget(beregnet: BeregnetRevurdering.Innvilget) = SimulertRevurdering.Innvilget(
@@ -162,11 +159,12 @@ internal class RevurderingPostgresRepoTest {
         simulering = simulering,
         fritekstTilBrev = beregnet.fritekstTilBrev,
         revurderingsårsak = beregnet.revurderingsårsak,
-        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+        forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = beregnet.avkorting.håndter(),
     )
 
     private fun simulertOpphørt(beregnet: BeregnetRevurdering.Opphørt) = SimulertRevurdering.Opphørt(
@@ -180,11 +178,12 @@ internal class RevurderingPostgresRepoTest {
         simulering = simulering,
         fritekstTilBrev = beregnet.fritekstTilBrev,
         revurderingsårsak = beregnet.revurderingsårsak,
-        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+        forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = beregnet.avkorting.håndter(),
     )
 
     @Test
@@ -196,12 +195,12 @@ internal class RevurderingPostgresRepoTest {
 
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
-            repo.hent(opprettet.id) shouldBe opprettet
+            repo.hent(opprettet.id) shouldBe opprettet.persistertVariant()
 
             val beregnetIngenEndring = beregnetIngenEndring(opprettet, vedtak)
 
             repo.lagre(beregnetIngenEndring)
-            repo.hent(opprettet.id) shouldBe beregnetIngenEndring
+            repo.hent(opprettet.id) shouldBe beregnetIngenEndring.persistertVariant()
         }
     }
 
@@ -218,7 +217,7 @@ internal class RevurderingPostgresRepoTest {
             val innvilgetBeregning = beregnetInnvilget(opprettetRevurdering, vedtak)
 
             repo.lagre(innvilgetBeregning)
-            repo.hent(innvilgetBeregning.id) shouldBe innvilgetBeregning
+            repo.hent(innvilgetBeregning.id) shouldBe innvilgetBeregning.persistertVariant()
 
             val oppdatertRevurdering = innvilgetBeregning.oppdater(
                 Periode.create(1.juni(2020), 30.juni(2020)),
@@ -230,10 +229,11 @@ internal class RevurderingPostgresRepoTest {
                 vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 tilRevurdering = etAnnetVedtak,
+                avkorting = innvilgetBeregning.avkorting.uhåndtert(),
             )
 
             repo.lagre(oppdatertRevurdering)
-            repo.hent(innvilgetBeregning.id) shouldBe oppdatertRevurdering
+            repo.hent(innvilgetBeregning.id) shouldBe oppdatertRevurdering.persistertVariant()
         }
     }
 
@@ -262,7 +262,7 @@ internal class RevurderingPostgresRepoTest {
 
             actual shouldNotBe opprettet
             actual shouldNotBe beregnet
-            actual shouldBe nyBeregnet
+            actual shouldBe nyBeregnet.persistertVariant()
         }
     }
 
@@ -284,7 +284,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(simulert)
 
-            repo.hent(opprettet.id) shouldBe simulert
+            repo.hent(opprettet.id) shouldBe simulert.persistertVariant()
         }
     }
 
@@ -306,7 +306,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(simulert)
             repo.lagre(beregnet)
-            repo.hent(opprettet.id) shouldBe beregnet.copy(forhåndsvarsel = simulert.forhåndsvarsel)
+            repo.hent(opprettet.id) shouldBe beregnet.copy(forhåndsvarsel = simulert.forhåndsvarsel).persistertVariant()
         }
     }
 
@@ -333,12 +333,11 @@ internal class RevurderingPostgresRepoTest {
                     attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = "fritekst",
-                    forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                )
+                ).orNull()!!
 
             repo.lagre(tilAttestering)
 
-            repo.hent(opprettet.id) shouldBe tilAttestering
+            repo.hent(opprettet.id) shouldBe tilAttestering.persistertVariant()
         }
     }
 
@@ -364,12 +363,11 @@ internal class RevurderingPostgresRepoTest {
                 attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                 saksbehandler = Saksbehandler("Ny saksbehandler"),
                 fritekstTilBrev = "fritekst",
-                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            )
+            ).orNull()!!
 
             repo.lagre(tilAttestering)
 
-            repo.hent(opprettet.id) shouldBe tilAttestering
+            repo.hent(opprettet.id) shouldBe tilAttestering.persistertVariant()
 
             tilAttestering.saksbehandler shouldNotBe opprettet.saksbehandler
         }
@@ -379,95 +377,12 @@ internal class RevurderingPostgresRepoTest {
     fun `kan lagre og hente en iverksatt revurdering`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val uføregrunnlagPostgresRepo = testDataHelper.uføregrunnlagPostgresRepo
-            val grunnlagPostgresRepo = testDataHelper.grunnlagRepo
             val repo = testDataHelper.revurderingRepo
-            val vedtak =
-                testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val iverksatt = testDataHelper.iverksattRevurderingInnvilget()
 
-            val opprettet = opprettet(vedtak)
-            repo.lagre(opprettet)
-
-            repo.oppdaterForhåndsvarsel(opprettet.id, Forhåndsvarsel.IngenForhåndsvarsel)
-
-            val tilAttestering = RevurderingTilAttestering.Innvilget(
-                id = opprettet.id,
-                periode = periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak,
-                saksbehandler = saksbehandler,
-                beregning = vedtak.beregning,
-                simulering = Simulering(
-                    gjelderId = Fnr.generer(),
-                    gjelderNavn = "Navn Navnesson",
-                    datoBeregnet = fixedLocalDate,
-                    nettoBeløp = 5,
-                    periodeList = listOf(),
-                ),
-                oppgaveId = oppgaveId,
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                grunnlagsdata = Grunnlagsdata.create(
-                    bosituasjon = listOf(
-                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            periode = periode,
-                            begrunnelse = null,
-                        ),
-                    ),
-                    fradragsgrunnlag = listOf(
-                        Grunnlag.Fradragsgrunnlag.tryCreate(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            fradrag =
-                            PersistertFradrag(
-                                fradragstype = Fradragstype.Introduksjonsstønad,
-                                månedsbeløp = 200.0,
-                                periode = periode,
-                                utenlandskInntekt = null,
-                                tilhører = FradragTilhører.BRUKER,
-                            ),
-                        ).orNull()!!,
-                    ),
-                ),
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
-                informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
-                attesteringer = Attesteringshistorikk.empty(),
-            )
-
-            grunnlagPostgresRepo.lagreFradragsgrunnlag(
-                tilAttestering.id,
-                tilAttestering.grunnlagsdata.fradragsgrunnlag,
-            )
-            grunnlagPostgresRepo.lagreBosituasjongrunnlag(
-                behandlingId = tilAttestering.id,
-                grunnlag = tilAttestering.grunnlagsdata.bosituasjon,
-            )
-            testDataHelper.dataSource.withTransaction { tx ->
-                uføregrunnlagPostgresRepo.lagre(
-                    tilAttestering.id,
-                    tilAttestering.vilkårsvurderinger.uføre.grunnlag,
-                    tx,
-                )
-            }
-
-            repo.lagre(tilAttestering)
-
-            val utbetaling = testDataHelper.nyUtbetalingUtenKvittering(
-                revurderingTilAttestering = tilAttestering,
-            )
-
-            val iverksatt = tilAttestering.tilIverksatt(
-                attestant = attestant,
-                utbetal = { utbetaling.id.right() },
-            ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
-
-            repo.lagre(iverksatt)
-            repo.hent(iverksatt.id) shouldBe iverksatt
-            testDataHelper.dataSource.withSession {
-                repo.hentRevurderingerForSak(iverksatt.sakId, it) shouldBe listOf(iverksatt)
+            repo.hent(iverksatt.id) shouldBe iverksatt.persistertVariant()
+            dataSource.withSession {
+                repo.hentRevurderingerForSak(iverksatt.sakId, it) shouldBe listOf(iverksatt.persistertVariant())
             }
         }
     }
@@ -495,8 +410,7 @@ internal class RevurderingPostgresRepoTest {
                     attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = "",
-                    forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                )
+                ).orNull()!!
             repo.lagre(tilAttestering)
 
             val attestering = Attestering.Underkjent(
@@ -509,8 +423,7 @@ internal class RevurderingPostgresRepoTest {
             val underkjent = tilAttestering.underkjenn(attestering, OppgaveId("nyOppgaveId"))
             repo.lagre(underkjent)
 
-            repo.hent(opprettet.id) shouldBe underkjent
-            repo.hentEventuellTidligereAttestering(opprettet.id) shouldBe attestering
+            repo.hent(opprettet.id) shouldBe underkjent.persistertVariant()
         }
     }
 
@@ -525,16 +438,15 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(opprettet)
             val beregnet = beregnetOpphørt(opprettet, vedtak)
             repo.lagre(beregnet)
-            repo.hent(opprettet.id) shouldBe beregnet
+            repo.hent(opprettet.id) shouldBe beregnet.persistertVariant()
             val simulert = simulertOpphørt(beregnet)
             repo.lagre(simulert)
-            repo.hent(opprettet.id) shouldBe simulert
+            repo.hent(opprettet.id) shouldBe simulert.persistertVariant()
             val tilAttestering =
                 simulert.tilAttestering(
-                    opprettet.oppgaveId,
-                    opprettet.saksbehandler,
-                    Forhåndsvarsel.IngenForhåndsvarsel,
-                    opprettet.fritekstTilBrev,
+                    attesteringsoppgaveId = opprettet.oppgaveId,
+                    saksbehandler = opprettet.saksbehandler,
+                    fritekstTilBrev = opprettet.fritekstTilBrev,
                 ).orNull()!!
             repo.lagre(tilAttestering)
 
@@ -557,14 +469,15 @@ internal class RevurderingPostgresRepoTest {
                         opprettet = fixedTidspunkt,
                     ),
                 ),
-                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id) shouldBe underkjent
+            repo.hent(underkjent.id) shouldBe underkjent.persistertVariant()
         }
     }
 
@@ -591,15 +504,16 @@ internal class RevurderingPostgresRepoTest {
                 revurderingsårsak = opprettet.revurderingsårsak,
                 beregning = vedtak.beregning,
                 simulering = simulering,
-                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id) shouldBe underkjent
+            repo.hent(underkjent.id) shouldBe underkjent.persistertVariant()
         }
     }
 
@@ -618,10 +532,9 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(simulert)
             val tilAttestering =
                 simulert.tilAttestering(
-                    opprettet.oppgaveId,
-                    opprettet.saksbehandler,
-                    Forhåndsvarsel.IngenForhåndsvarsel,
-                    opprettet.fritekstTilBrev,
+                    attesteringsoppgaveId = opprettet.oppgaveId,
+                    saksbehandler = opprettet.saksbehandler,
+                    fritekstTilBrev = opprettet.fritekstTilBrev,
                 ).orNull()!!
             repo.lagre(tilAttestering)
 
@@ -642,14 +555,15 @@ internal class RevurderingPostgresRepoTest {
                         fixedTidspunkt,
                     ),
                 ),
-                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
+                avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id) shouldBe underkjent
+            repo.hent(underkjent.id) shouldBe underkjent.persistertVariant()
         }
     }
 
@@ -664,7 +578,7 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(opprettet)
             val beregnet = beregnetIngenEndring(opprettet, vedtak)
             repo.lagre(beregnet)
-            repo.hent(opprettet.id) shouldBe beregnet
+            repo.hent(opprettet.id) shouldBe beregnet.persistertVariant()
             val underkjentTilAttestering = RevurderingTilAttestering.IngenEndring(
                 id = opprettet.id,
                 periode = opprettet.periode,
@@ -675,12 +589,13 @@ internal class RevurderingPostgresRepoTest {
                 fritekstTilBrev = opprettet.fritekstTilBrev,
                 revurderingsårsak = opprettet.revurderingsårsak,
                 beregning = vedtak.beregning,
-                skalFøreTilBrevutsending = false,
+                skalFøreTilUtsendingAvVedtaksbrev = false,
                 forhåndsvarsel = null,
                 grunnlagsdata = opprettet.grunnlagsdata,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             )
             repo.lagre(underkjentTilAttestering)
             val underkjent = UnderkjentRevurdering.IngenEndring(
@@ -701,15 +616,16 @@ internal class RevurderingPostgresRepoTest {
                         opprettet = fixedTidspunkt,
                     ),
                 ),
-                skalFøreTilBrevutsending = false,
+                skalFøreTilUtsendingAvVedtaksbrev = false,
                 forhåndsvarsel = null,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id) shouldBe underkjent
+            repo.hent(underkjent.id) shouldBe underkjent.persistertVariant()
         }
     }
 
@@ -734,16 +650,17 @@ internal class RevurderingPostgresRepoTest {
                 fritekstTilBrev = opprettet.fritekstTilBrev,
                 revurderingsårsak = opprettet.revurderingsårsak,
                 beregning = vedtak.beregning,
-                skalFøreTilBrevutsending = true,
+                skalFøreTilUtsendingAvVedtaksbrev = true,
                 forhåndsvarsel = null,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id) shouldBe underkjent
+            repo.hent(underkjent.id) shouldBe underkjent.persistertVariant()
         }
     }
 
@@ -768,12 +685,13 @@ internal class RevurderingPostgresRepoTest {
                 fritekstTilBrev = opprettet.fritekstTilBrev,
                 revurderingsårsak = opprettet.revurderingsårsak,
                 beregning = vedtak.beregning,
-                skalFøreTilBrevutsending = false,
+                skalFøreTilUtsendingAvVedtaksbrev = false,
                 forhåndsvarsel = null,
                 grunnlagsdata = opprettet.grunnlagsdata,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             )
             repo.lagre(revurderingTilAttestering)
             val underkjent = IverksattRevurdering.IngenEndring(
@@ -792,15 +710,16 @@ internal class RevurderingPostgresRepoTest {
                         fixedTidspunkt,
                     ),
                 ),
-                skalFøreTilBrevutsending = false,
+                skalFøreTilUtsendingAvVedtaksbrev = false,
                 forhåndsvarsel = null,
                 grunnlagsdata = opprettet.grunnlagsdata,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
+                avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id) shouldBe underkjent
+            repo.hent(underkjent.id) shouldBe underkjent.persistertVariant()
         }
     }
 
@@ -809,14 +728,13 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val simulert = testDataHelper.simulertInnvilgetRevurdering()
+            val expected = simulert.prøvOvergangTilSkalIkkeForhåndsvarsles().orNull()!!.also {
+                repo.lagre(it)
+            }
 
-            val opprettet = opprettet(vedtak)
-            repo.lagre(opprettet)
-
-            repo.oppdaterForhåndsvarsel(opprettet.id, Forhåndsvarsel.IngenForhåndsvarsel)
-
-            (repo.hent(opprettet.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+            val actual = repo.hent(simulert.id) as Revurdering
+            actual shouldBe expected.persistertVariant()
         }
     }
 
@@ -825,41 +743,47 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-
-            val opprettet = opprettet(vedtak)
-            repo.lagre(opprettet)
-
-            val forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt
-
-            repo.oppdaterForhåndsvarsel(
-                opprettet.id,
-                forhåndsvarsel,
-            )
-            (repo.hent(opprettet.id) as Revurdering).forhåndsvarsel shouldBe forhåndsvarsel
+            val simulert = testDataHelper.simulertInnvilgetRevurdering()
+            val simulertIngenForhåndsvarsel =
+                simulert.prøvOvergangTilSendt().orNull()!!.also {
+                    repo.lagre(it)
+                }
+            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
         }
     }
 
     @Test
-    fun `Lagrer revurdering med besluttet forhåndsvarsel`() {
+    fun `Lagrer revurdering med samme grunnlag etter forhåndsvarsel`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val simulert = testDataHelper.simulertInnvilgetRevurdering()
+            val simulertIngenForhåndsvarsel =
+                simulert.prøvOvergangTilSendt().orNull()!!
+                    .prøvOvergangTilFortsettMedSammeGrunnlag("").orNull()!!
+                    .tilAttestering(
+                        attesteringsoppgaveId = OppgaveId(value = "attesteringsoppgaveId"),
+                        saksbehandler = Saksbehandler(navIdent = "nySaksbehandler"),
+                        fritekstTilBrev = "Fortsetter etter forhåndsvarsel",
+                    ).orNull()!!
+                    .also {
+                        repo.lagre(it)
+                    }
+            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
+        }
+    }
 
-            val opprettet = opprettet(vedtak)
-            repo.lagre(opprettet)
-
-            val forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
-                begrunnelse = "",
-            )
-
-            repo.oppdaterForhåndsvarsel(
-                opprettet.id,
-                forhåndsvarsel,
-            )
-            (repo.hent(opprettet.id) as Revurdering).forhåndsvarsel shouldBe forhåndsvarsel
+    @Test
+    fun `Lagrer revurdering med grunnlaget skal endres etter forhåndsvarsel`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.revurderingRepo
+            val simulert = testDataHelper.simulertInnvilgetRevurdering()
+            val simulertIngenForhåndsvarsel =
+                simulert.prøvOvergangTilSendt().orNull()!!.prøvOvergangTilEndreGrunnlaget("").orNull()!!.also {
+                    repo.lagre(it)
+                }
+            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
         }
     }
 
@@ -871,18 +795,18 @@ internal class RevurderingPostgresRepoTest {
             val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             val opprettet = opprettet(vedtak)
-            repo.lagre(opprettet.copy(forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel))
+            repo.lagre(opprettet.copy(forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles))
 
-            (repo.hent(opprettet.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+            (repo.hent(opprettet.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
 
             val beregnetRevurdering = beregnetInnvilget(opprettet, vedtak)
 
             repo.lagre(beregnetRevurdering)
-            (repo.hent(opprettet.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+            (repo.hent(opprettet.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
 
             val simulertRevurdering = simulertInnvilget(beregnetRevurdering)
             repo.lagre(simulertRevurdering)
-            (repo.hent(simulertRevurdering.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+            (repo.hent(simulertRevurdering.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
 
             val nyOpprettet = opprettet(vedtak)
             repo.lagre(nyOpprettet.copy(forhåndsvarsel = null))
@@ -895,70 +819,111 @@ internal class RevurderingPostgresRepoTest {
             (repo.hent(nyBeregnetRevurdering.id) as Revurdering).forhåndsvarsel shouldBe null
 
             val nySimulertRevurdering =
-                simulertInnvilget(nyBeregnetRevurdering.copy(forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel))
+                simulertInnvilget(nyBeregnetRevurdering.copy(forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles))
             repo.lagre(nySimulertRevurdering)
-            (repo.hent(nySimulertRevurdering.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+            (repo.hent(nySimulertRevurdering.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
         }
     }
 
     @Test
-    fun `ingen frhåndsvarsel json`() {
-        //language=JSON
-        val ingenJson = """
-            {
-              "type": "IngenForhåndsvarsel"
-            }
-        """.trimIndent()
+    fun `oppdaterer verdier for avkorting ved lagring uten avkorting`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.revurderingRepo
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
-        JSONAssert.assertEquals(
-            ingenJson,
-            serialize(ForhåndsvarselDto.from(Forhåndsvarsel.IngenForhåndsvarsel)),
-            true,
-        )
+            val opprettet = opprettet(vedtak)
+            repo.lagre(opprettet)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+
+            val beregnet = beregnetInnvilget(opprettet, vedtak)
+            repo.lagre(beregnet)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
+
+            val simulert = simulertInnvilget(beregnet)
+            repo.lagre(simulert)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+
+            val tilAttestering = simulert.tilAttestering(
+                attesteringsoppgaveId = simulert.oppgaveId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "nei",
+            ).getOrFail()
+            repo.lagre(tilAttestering)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+
+            val iverksatt = tilAttestering.tilIverksatt(
+                attestant = attestant,
+                clock = fixedClock,
+                utbetal = { UUID30.randomUUID().right() },
+                hentOpprinneligAvkorting = { null },
+            ).getOrFail()
+            repo.lagre(iverksatt)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående
+        }
     }
 
     @Test
-    fun `sendt forhåndsvarsel json`() {
-        //language=JSON
-        val sendtJson = """
-            {
-              "type": "Sendt"
-            }
-        """.trimIndent()
+    fun `oppdaterer verdier for avkorting ved lagring med avkorting`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.revurderingRepo
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
-        JSONAssert.assertEquals(
-            sendtJson,
-            serialize(
-                ForhåndsvarselDto.from(
-                    Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
+            val opprettet = opprettet(vedtak)
+            repo.lagre(opprettet)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+
+            val beregnet = beregnetInnvilget(opprettet, vedtak)
+            repo.lagre(beregnet)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
+
+            val avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+                objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                    sakId = beregnet.sakId,
+                    revurderingId = beregnet.id,
+                    simulering = simuleringFeilutbetaling(juni(2021)),
                 ),
-            ),
-            true,
-        )
-    }
+            )
 
-    @Test
-    fun `besluttet forhåndsvarsel json`() {
-        //language=JSON
-        val besluttetJson = """
-            {
-              "type": "Besluttet",
-              "valg": "FortsettSammeOpplysninger",
-              "begrunnelse": "begrunnelse"
-            }
-        """.trimIndent()
-
-        JSONAssert.assertEquals(
-            besluttetJson,
-            serialize(
-                ForhåndsvarselDto.from(
-                    Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                        BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
-                        "begrunnelse",
-                    ),
+            val simulert = simulertInnvilget(beregnet).copy(
+                avkorting = AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
+                    avkortingsvarsel = avkortingsvarsel,
                 ),
-            ),
-            true,
-        )
+            )
+            repo.lagre(simulert)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
+                avkortingsvarsel = avkortingsvarsel,
+            )
+
+            val tilAttestering = simulert.tilAttestering(
+                attesteringsoppgaveId = simulert.oppgaveId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "nei",
+            ).getOrFail()
+            repo.lagre(tilAttestering)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
+                avkortingsvarsel = avkortingsvarsel,
+            )
+            testDataHelper.sessionFactory.withSession {
+                testDataHelper.avkortingsvarselRepo.hent(avkortingsvarsel.id, it) shouldBe null
+            }
+
+            val iverksatt = tilAttestering.tilIverksatt(
+                attestant = attestant,
+                clock = fixedClock,
+                utbetal = { UUID30.randomUUID().right() },
+                hentOpprinneligAvkorting = { avkortingsvarselId ->
+                    testDataHelper.avkortingsvarselRepo.hent(avkortingsvarselId)
+                },
+            ).getOrFail()
+            repo.lagre(iverksatt)
+            (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel(
+                avkortingsvarsel = avkortingsvarsel,
+            )
+            testDataHelper.sessionFactory.withSession {
+                testDataHelper.avkortingsvarselRepo.hent(avkortingsvarsel.id, it) shouldBe avkortingsvarsel
+            }
+        }
     }
 }

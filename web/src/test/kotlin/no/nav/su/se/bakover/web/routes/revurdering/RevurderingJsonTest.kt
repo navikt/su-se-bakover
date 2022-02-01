@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -25,11 +26,13 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
@@ -55,7 +58,7 @@ internal class RevurderingJsonTest {
         Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
     )
-    private val vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = RevurderingRoutesTestData.vedtak
+    private val vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = RevurderingRoutesTestData.vedtak
 
     @Test
     fun `should serialize and deserialize OpprettetRevurdering`() {
@@ -80,6 +83,8 @@ internal class RevurderingJsonTest {
                 uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
                 ),
+                formue = Vilkår.Formue.IkkeVurdert,
+                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -88,6 +93,7 @@ internal class RevurderingJsonTest {
                 ),
             ),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående
         )
 
         val revurderingJson =
@@ -123,9 +129,9 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "utenlandsopphold": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -165,6 +171,7 @@ internal class RevurderingJsonTest {
                 ),
             ),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
         )
 
         val revurderingJson =
@@ -174,10 +181,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregning": ${serialize(beregning.toJson())},
                 "status": "${RevurderingsStatus.BEREGNET_INNVILGET}",
                 "saksbehandler": "Petter",
                 "periode": {
@@ -204,9 +208,9 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "utenlandsopphold": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -246,6 +250,7 @@ internal class RevurderingJsonTest {
                 ),
             ),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
         )
 
         val revurderingJson =
@@ -255,10 +260,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregning": ${serialize(beregning.toJson())},
                 "status": "${RevurderingsStatus.BEREGNET_OPPHØRT}",
                 "saksbehandler": "Petter",
                 "periode": {
@@ -285,9 +287,9 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "utenlandsopphold": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -327,6 +329,7 @@ internal class RevurderingJsonTest {
                 ),
             ),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
         )
 
         val revurderingJson =
@@ -336,10 +339,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregning": ${serialize(beregning.toJson())},
                 "status": "${RevurderingsStatus.BEREGNET_INGEN_ENDRING}",
                 "saksbehandler": "Petter",
                 "periode": {
@@ -366,9 +366,9 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "utenlandsopphold": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -409,6 +409,7 @@ internal class RevurderingJsonTest {
                 ),
             ),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
         )
 
         val revurderingJson =
@@ -418,10 +419,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                {
-                  "revurdert": ${serialize(beregning.toJson())}
-                },
+                "beregning": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -452,15 +450,16 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "utenlandsopphold": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -495,6 +494,7 @@ internal class RevurderingJsonTest {
                 ),
             ),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
         )
 
         val revurderingJson =
@@ -504,10 +504,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                {
-                  "revurdert": ${serialize(beregning.toJson())}
-                },
+                "beregning": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -538,15 +535,16 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "utenlandsopphold": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -571,7 +569,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -581,6 +579,7 @@ internal class RevurderingJsonTest {
                 ),
             ),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
         )
 
         val revurderingJson =
@@ -590,10 +589,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregning": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -625,15 +621,16 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "utenlandsopphold": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "Vurdert",
                   "Inntekt": "Vurdert"
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -658,7 +655,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -668,6 +665,7 @@ internal class RevurderingJsonTest {
                 ),
             ),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
         )
 
         val revurderingJson =
@@ -677,10 +675,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregning": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -712,15 +707,16 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "utenlandsopphold": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -745,7 +741,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            skalFøreTilBrevutsending = false,
+            skalFøreTilUtsendingAvVedtaksbrev = false,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -755,6 +751,7 @@ internal class RevurderingJsonTest {
                 ),
             ),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
         )
 
         val revurderingJson =
@@ -764,10 +761,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregning": ${serialize(beregning.toJson())},
                 "simulering": null,
                 "status": "${RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING}",
                 "saksbehandler": "Petter",
@@ -796,15 +790,16 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "utenlandsopphold": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -838,7 +833,7 @@ internal class RevurderingJsonTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -847,6 +842,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
         )
 
         val expected =
@@ -856,10 +852,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregning": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -899,14 +892,15 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "utenlandsopphold": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -940,7 +934,7 @@ internal class RevurderingJsonTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -949,6 +943,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
         )
 
         val expected =
@@ -958,10 +953,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregning":${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -1001,14 +993,15 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "utenlandsopphold": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -1042,7 +1035,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            skalFøreTilBrevutsending = false,
+            skalFøreTilUtsendingAvVedtaksbrev = false,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -1051,6 +1044,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
         )
 
         val expected =
@@ -1060,10 +1054,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregning": ${serialize(beregning.toJson())},
                 "simulering": null,
                 "status": "${RevurderingsStatus.UNDERKJENT_INGEN_ENDRING}",
                 "saksbehandler": "Petter",
@@ -1100,14 +1091,15 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "utenlandsopphold": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -1140,7 +1132,7 @@ internal class RevurderingJsonTest {
                 ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -1149,6 +1141,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående
         )
 
         val revurderingJson =
@@ -1158,10 +1151,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregning": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -1193,15 +1183,16 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "utenlandsopphold": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": [{"attestant":"attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}]
+                "attesteringer": [{"attestant":"attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}],
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -1234,7 +1225,7 @@ internal class RevurderingJsonTest {
                 ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -1243,6 +1234,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående
         )
 
         val revurderingJson =
@@ -1252,10 +1244,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregning": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -1287,15 +1276,16 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "utenlandsopphold": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}]
+                "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}],
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -1328,7 +1318,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            skalFøreTilBrevutsending = true,
+            skalFøreTilUtsendingAvVedtaksbrev = true,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -1337,6 +1327,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående
         )
 
         val revurderingJson =
@@ -1346,10 +1337,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregning": ${serialize(beregning.toJson())},
                 "simulering": null,
                 "status": "${RevurderingsStatus.IVERKSATT_INGEN_ENDRING}",
                 "saksbehandler": "Petter",
@@ -1378,15 +1366,16 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "utenlandsopphold": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}]
+                "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}],
+                "simuleringForAvkortingsvarsel": null
 
             }
             """.trimIndent()
@@ -1415,12 +1404,14 @@ internal class RevurderingJsonTest {
                     "tilOgMed": "2021-12-31"
                 },
                 "årsak": "${Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING}",
+                "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "begrunnelse": "valid",
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())}
+                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())},
+                  "utenlandsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)}
                 },
                 "attesteringer": []
             }
@@ -1429,7 +1420,7 @@ internal class RevurderingJsonTest {
         JSONAssert.assertEquals(simulertRevurderingJson, serialize(simulertRevurdering.toJson()), true)
 
         val iverksattRevurdering = simulertRevurdering.iverksett(
-            attestering = attesteringIverksatt,
+            attestering = attesteringIverksatt(clock = fixedClock),
         ).getOrFail("Feil med oppsett av testdata")
 
         val iverksattRevurderingJson =
@@ -1447,14 +1438,16 @@ internal class RevurderingJsonTest {
                     "tilOgMed": "2021-12-31"
                 },
                 "årsak": "${Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING}",
+                "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "begrunnelse": "valid",
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())}
+                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())},
+                  "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)}
                 },
-                "attesteringer": [{"attestant": "attestant", "opprettet": "${attesteringIverksatt.opprettet}", "underkjennelse": null}]
+                "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}]
             }
             """.trimIndent()
 
@@ -1482,11 +1475,13 @@ internal class RevurderingJsonTest {
                 },
                 "årsak": "${Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING}",
                 "begrunnelse": "valid",
+                "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())}
+                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())},
+                  "utenlandsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)}
                 },
                 "attesteringer": []
 
@@ -1495,7 +1490,7 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(simulertRevurderingJson, serialize(simulertRevurdering.toJson()), true)
 
-        val iverksattRevurdering = simulertRevurdering.iverksett(attesteringIverksatt)
+        val iverksattRevurdering = simulertRevurdering.iverksett(attesteringIverksatt(clock = fixedClock))
             .getOrFail("Feil i oppsett av testdata")
 
         val iverksattRevurderingJson =
@@ -1514,13 +1509,15 @@ internal class RevurderingJsonTest {
                 },
                 "årsak": ${Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING},
                 "begrunnelse": "valid",
+                "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())}
+                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())},
+                  "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)}
                 },
-                "attesteringer": [{"attestant": "attestant", "opprettet": "${attesteringIverksatt.opprettet}", "underkjennelse": null}]
+                "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}]
             }
             """.trimIndent()
 

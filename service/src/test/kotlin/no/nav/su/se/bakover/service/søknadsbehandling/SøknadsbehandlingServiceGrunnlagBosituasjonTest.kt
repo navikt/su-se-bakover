@@ -1,29 +1,34 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
@@ -32,6 +37,8 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagUtenBeregning
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
 import org.mockito.kotlin.any
@@ -94,20 +101,75 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående)
         ).tilAttestering(Saksbehandler("saksa"), "")
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn tilAttestering
         }
 
-        createSøknadsbehandlingService(
+        val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(behandlingId = behandlingId, epsFnr = null),
-        ) shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand(
-            fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
-            til = Søknadsbehandling.Vilkårsvurdert::class,
+        )
+
+        actual shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(
+            feil = Søknadsbehandling.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
+                Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
+                Søknadsbehandling.Vilkårsvurdert::class,
+            ),
         ).left()
+    }
+
+    @Test
+    fun `Kan ikke lagre EPS dersom vi ikke finner personen`() {
+        val uavklart = søknadsbehandlingVilkårsvurdertUavklart().second
+
+        val nyBosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = uavklart.periode,
+            fnr = Fnr.generer(),
+        )
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+        }
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
+            on { hent(any()) } doReturn uavklart
+        }
+
+        createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            personService = personServiceMock,
+        ).leggTilBosituasjonEpsgrunnlag(
+            LeggTilBosituasjonEpsRequest(behandlingId = uavklart.id, epsFnr = nyBosituasjon.fnr),
+        ) shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
+    }
+
+    @Test
+    fun `Kan ikke lagre EPS dersom personkallet feiler`() {
+        val uavklart = søknadsbehandlingVilkårsvurdertUavklart().second
+
+        val nyBosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = uavklart.periode,
+            fnr = Fnr.generer(),
+        )
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
+        }
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
+            on { hent(any()) } doReturn uavklart
+        }
+
+        createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            personService = personServiceMock,
+        ).leggTilBosituasjonEpsgrunnlag(
+            LeggTilBosituasjonEpsRequest(behandlingId = uavklart.id, epsFnr = nyBosituasjon.fnr),
+        ) shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
     }
 
     @Test
@@ -133,6 +195,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående)
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
@@ -147,15 +210,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     bosituasjon,
                 ),
             ),
-            behandlingsinformasjon = uavklart.behandlingsinformasjon.copy(
-                bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                    ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                    delerBolig = null,
-                    ektemakeEllerSamboerUførFlyktning = null,
-                    begrunnelse = null,
-                ),
-                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-            ),
+            behandlingsinformasjon = uavklart.behandlingsinformasjon,
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -186,14 +241,90 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
         )
 
-        verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe behandlingId })
-        verify(søknadsbehandlingRepoMock).defaultSessionContext()
-        verify(søknadsbehandlingRepoMock).lagre(any(), anyOrNull()) // Testene til søknadsbehandling vilkårsvurder dekker dette
+        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
+        verify(søknadsbehandlingRepoMock).defaultTransactionContext()
+        verify(søknadsbehandlingRepoMock).lagre(
+            any(),
+            anyOrNull(),
+        ) // Testene til søknadsbehandling vilkårsvurder dekker dette
         verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
             argThat { it shouldBe behandlingId },
             argThat { it shouldBe listOf(bosituasjon.copy(id = it.first().id, opprettet = it.first().opprettet)) },
         )
+        verify(grunnlagServiceMock).lagreFradragsgrunnlag(
+            argThat { it shouldBe behandlingId },
+            argThat { it shouldBe emptyList() }
+        )
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, grunnlagServiceMock)
+    }
+
+    @Test
+    fun `kan lagre EPS selvom man ikke har tilgang til saken`() {
+        val (_, uavklart) = søknadsbehandlingVilkårsvurdertUavklart()
+
+        val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = uavklart.periode,
+            fnr = Fnr.generer(),
+        )
+
+        val expected = uavklart.copy(
+            grunnlagsdata = Grunnlagsdata.create(
+                bosituasjon = listOf(
+                    bosituasjon,
+                ),
+            ),
+            behandlingsinformasjon = uavklart.behandlingsinformasjon,
+        )
+
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
+            on { hent(any()) } doReturnConsecutively listOf(
+                uavklart,
+                uavklart,
+                expected,
+            )
+        }
+
+        val grunnlagServiceMock = mock<GrunnlagService>()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
+        }
+        val response = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            personService = personServiceMock,
+            clock = fixedClock,
+            grunnlagService = grunnlagServiceMock,
+        ).leggTilBosituasjonEpsgrunnlag(
+            LeggTilBosituasjonEpsRequest(behandlingId = uavklart.id, epsFnr = bosituasjon.fnr),
+        ).orNull()!!
+
+        response shouldBe expected.copy(
+            grunnlagsdata = Grunnlagsdata.create(
+                bosituasjon = listOf(
+                    bosituasjon.copy(
+                        id = (response as Søknadsbehandling.Vilkårsvurdert).grunnlagsdata.bosituasjon.first().id,
+                    ),
+                ),
+            ),
+        )
+
+        verify(personServiceMock).hentPerson(bosituasjon.fnr)
+        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })
+        verify(søknadsbehandlingRepoMock).defaultTransactionContext()
+        verify(søknadsbehandlingRepoMock).lagre(
+            any(),
+            anyOrNull(),
+        ) // Testene til søknadsbehandling vilkårsvurder dekker dette
+        verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
+            argThat { it shouldBe uavklart.id },
+            argThat { it shouldBe listOf(bosituasjon.copy(id = it.first().id, opprettet = it.first().opprettet)) },
+        )
+        verify(grunnlagServiceMock).lagreFradragsgrunnlag(
+            argThat { it shouldBe uavklart.id },
+            argThat { it shouldBe emptyList() }
+        )
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock, grunnlagServiceMock, personServiceMock)
     }
 
     @Test
@@ -220,45 +351,23 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
 
     @Test
     fun `fullfør gir error hvis behandling er i ugyldig tilstand`() {
-        val tilAttestering = Søknadsbehandling.Vilkårsvurdert.Avslag(
-            id = behandlingId,
-            opprettet = fixedTidspunkt,
-            sakId = sakId,
-            saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.EPOCH,
-                sakId = sakId,
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                oppgaveId = oppgaveId,
-                journalpostId = JournalpostId("j"),
-            ),
-            oppgaveId = oppgaveId,
-            behandlingsinformasjon = behandlingsinformasjon,
-            fnr = Fnr.generer(),
-            fritekstTilBrev = "",
-            stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty(),
-        ).tilAttestering(Saksbehandler("saksa"), "")
+        val tilAttestering = søknadsbehandlingTilAttesteringAvslagUtenBeregning().second
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn tilAttestering
         }
 
-        createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).fullførBosituasjongrunnlag(
-            FullførBosituasjonRequest(
-                behandlingId = behandlingId,
-                bosituasjon = BosituasjonValg.BOR_ALENE,
-                "begrunnelse",
-            ),
-        ) shouldBe KunneIkkeFullføreBosituasjonGrunnlag.UgyldigTilstand(
-            fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
-            til = Søknadsbehandling.Vilkårsvurdert::class,
-        ).left()
+        shouldThrow<StatusovergangVisitor.UgyldigStatusovergangException> {
+            createSøknadsbehandlingService(
+                søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            ).fullførBosituasjongrunnlag(
+                FullførBosituasjonRequest(
+                    behandlingId = behandlingId,
+                    bosituasjon = BosituasjonValg.BOR_ALENE,
+                    "begrunnelse",
+                ),
+            )
+        }
     }
 
     @Test
@@ -292,6 +401,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående)
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -307,15 +417,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     bosituasjon,
                 ),
             ),
-            behandlingsinformasjon = uavklart.behandlingsinformasjon.copy(
-                bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                    ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                    delerBolig = false,
-                    ektemakeEllerSamboerUførFlyktning = null,
-                    begrunnelse = "begrunnelse",
-                ),
-                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-            ),
+            behandlingsinformasjon = uavklart.behandlingsinformasjon,
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -351,11 +453,15 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe behandlingId })
-        verify(søknadsbehandlingRepoMock).defaultSessionContext()
+        verify(søknadsbehandlingRepoMock).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock).lagre(any(), anyOrNull())
         verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
             argThat { it shouldBe behandlingId },
             argThat { it shouldBe listOf(bosituasjon.copy(id = it.first().id, opprettet = it.first().opprettet)) },
+        )
+        verify(grunnlagServiceMock).lagreFradragsgrunnlag(
+            argThat { it shouldBe behandlingId },
+            argThat { it shouldBe emptyList() }
         )
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, grunnlagServiceMock)
     }

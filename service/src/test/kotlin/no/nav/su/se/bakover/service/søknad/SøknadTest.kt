@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Person
@@ -29,6 +28,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
+import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -467,6 +467,8 @@ class SøknadTest {
                                 journalpostId = journalpostId,
                                 søknadId = UUID.randomUUID(), // ignored
                                 aktørId = person.ident.aktørId,
+                                tilordnetRessurs = null,
+                                clock = fixedClock,
                             ),
                             OppgaveConfig.Søknad::søknadId,
                             OppgaveConfig.Søknad::saksreferanse,
@@ -584,7 +586,9 @@ class SøknadTest {
                         OppgaveConfig.Søknad(
                             journalpostId = journalpostId,
                             søknadId = UUID.randomUUID(), // ignored
-                            aktørId = person.ident.aktørId
+                            aktørId = person.ident.aktørId,
+                            tilordnetRessurs = null,
+                            clock = fixedClock,
                         ),
                         OppgaveConfig.Søknad::søknadId,
                         OppgaveConfig.Søknad::saksreferanse,

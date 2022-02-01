@@ -57,6 +57,7 @@ import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.embeddedPostgres
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -146,7 +147,7 @@ internal class SøknadRoutesKtTest {
         var saksnummer: Long
         withTestApplication(
             {
-                testSusebakover()
+                testSusebakover(databaseRepos = embeddedPostgres())
             },
         ) {
             val fnr = Fnr.generer()
@@ -199,7 +200,7 @@ internal class SøknadRoutesKtTest {
                 clock = fixedClock,
             )
 
-            val clients = TestClientsBuilder.build(applicationConfig).copy(
+            val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
                 pdfGenerator = pdfGenerator,
                 dokArkiv = dokArkiv,
                 personOppslag = personOppslag,
@@ -450,7 +451,7 @@ internal class SøknadRoutesKtTest {
                     },
                 )
 
-                response.content shouldBe serialize(sak.toJson())
+                response.content shouldBe serialize(sak.toJson(fixedClock))
             }
         }
     }

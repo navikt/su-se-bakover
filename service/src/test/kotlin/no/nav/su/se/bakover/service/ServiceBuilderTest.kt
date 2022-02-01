@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service
 
 import io.kotest.matchers.collections.shouldContain
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.database.DatabaseRepos
+import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
@@ -21,7 +21,6 @@ internal class ServiceBuilderTest {
                 hendelseslogg = mock(),
                 sak = mock(),
                 person = mock(),
-                vedtakssnapshot = mock(),
                 søknadsbehandling = mock(),
                 revurderingRepo = mock(),
                 vedtakRepo = mock(),
@@ -30,8 +29,12 @@ internal class ServiceBuilderTest {
                 formueVilkårsvurderingRepo = mock(),
                 personhendelseRepo = mock(),
                 dokumentRepo = mock(),
-                sessionFactory = mock(),
                 nøkkeltallRepo = mock(),
+                sessionFactory = mock(),
+                klageRepo = mock(),
+                klageVedtakRepo = mock(),
+                kontrollsamtaleRepo = mock(),
+                avkortingsvarselRepo = mock(),
                 tilbakekrevingRepo = mock(),
             ),
             clients = Clients(
@@ -46,10 +49,12 @@ internal class ServiceBuilderTest {
                 utbetalingPublisher = mock(),
                 dokDistFordeling = mock(),
                 avstemmingPublisher = mock(),
-                microsoftGraphApiClient = mock(),
+                identClient = mock(),
                 digitalKontaktinformasjon = mock(),
                 leaderPodLookup = mock(),
                 kafkaPublisher = mock(),
+                klageClient = mock(),
+                tilbakekrevingClient = mock(),
             ),
             behandlingMetrics = mock(),
             søknadMetrics = mock(),

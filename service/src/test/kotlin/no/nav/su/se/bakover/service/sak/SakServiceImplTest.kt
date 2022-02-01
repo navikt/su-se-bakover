@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.sak
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak
+import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -170,7 +170,7 @@ internal class SakServiceImplTest {
         val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(saknr1).second
 
         val underkjentInnvilgetRevurdering =
-            underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(saknr2).second
+            underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(saknr2).second
         val tilAttesteringRevurdering =
             tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(saknr2).second
 

@@ -6,14 +6,16 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
-import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
@@ -26,6 +28,12 @@ internal class StansAvYtelseService(
     private val sakService: SakService,
     private val clock: Clock,
 ) {
+    private val observers: MutableList<EventObserver> = mutableListOf()
+
+    fun addObserver(eventObserver: EventObserver) {
+        observers.add(eventObserver)
+    }
+
     fun stansAvYtelse(
         request: StansYtelseRequest,
     ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
@@ -83,6 +91,7 @@ internal class StansAvYtelseService(
         }
 
         revurderingRepo.lagre(simulertRevurdering)
+        observers.forEach { observer -> observer.handle(Event.Statistikk.RevurderingStatistikk.Stans(simulertRevurdering)) }
 
         return simulertRevurdering.right()
     }
@@ -110,10 +119,14 @@ internal class StansAvYtelseService(
                     stansDato = iverksattRevurdering.periode.fraOgMed,
                 ).getOrHandle { return KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(it).left() }
 
-                val vedtak = Vedtak.from(iverksattRevurdering, stansUtbetaling.id, clock)
+                val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.id, clock)
 
                 revurderingRepo.lagre(iverksattRevurdering)
                 vedtakService.lagre(vedtak)
+                observers.forEach { observer ->
+                    observer.handle(Event.Statistikk.RevurderingStatistikk.Stans(iverksattRevurdering))
+                    observer.handle(Event.Statistikk.Vedtaksstatistikk(vedtak))
+                }
 
                 return iverksattRevurdering.right()
             }

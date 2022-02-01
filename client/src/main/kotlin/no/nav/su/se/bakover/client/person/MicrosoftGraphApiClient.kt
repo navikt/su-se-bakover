@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.fromResult
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.person.IdentClient
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -31,20 +33,9 @@ private data class ListOfMicrosoftGraphResponse(
     val value: List<MicrosoftGraphResponse>
 )
 
-interface MicrosoftGraphApiOppslag {
-    fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String>
-}
-
-sealed class MicrosoftGraphApiOppslagFeil {
-    object FeilVedHentingAvOnBehalfOfToken : MicrosoftGraphApiOppslagFeil()
-    object KallTilMicrosoftGraphApiFeilet : MicrosoftGraphApiOppslagFeil()
-    object DeserialiseringAvResponsFeilet : MicrosoftGraphApiOppslagFeil()
-    object FantIkkeBrukerForNavIdent : MicrosoftGraphApiOppslagFeil()
-}
-
 internal class MicrosoftGraphApiClient(
-    private val exchange: OAuth
-) : MicrosoftGraphApiOppslag {
+    private val exchange: OAuth,
+) : IdentClient {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     private val graphApiAppId = "https://graph.microsoft.com"
@@ -52,15 +43,15 @@ internal class MicrosoftGraphApiClient(
         "onPremisesSamAccountName,displayName,givenName,mail,officeLocation,surname,userPrincipalName,id,jobTitle"
     private val baseUrl = "https://graph.microsoft.com/v1.0"
 
-    override fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
+    override fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<KunneIkkeHenteNavnForNavIdent, String> {
         return hentBrukerinformasjonForNavIdent(navIdent).map { it.displayName }
     }
 
-    private fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> {
+    private fun hentBrukerinformasjon(userToken: String): Either<KunneIkkeHenteNavnForNavIdent, MicrosoftGraphResponse> {
         val onBehalfOfToken = Either.catch {
             exchange.onBehalfOfToken(userToken, graphApiAppId)
         }.getOrHandle {
-            return MicrosoftGraphApiOppslagFeil.FeilVedHentingAvOnBehalfOfToken.left()
+            return KunneIkkeHenteNavnForNavIdent.FeilVedHentingAvOnBehalfOfToken.left()
         }
 
         return doReq(
@@ -74,7 +65,7 @@ internal class MicrosoftGraphApiClient(
         )
     }
 
-    private fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> {
+    private fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker): Either<KunneIkkeHenteNavnForNavIdent, MicrosoftGraphResponse> {
         val token = exchange.getSystemToken(graphApiAppId)
 
         return doReq<ListOfMicrosoftGraphResponse>(
@@ -87,12 +78,12 @@ internal class MicrosoftGraphApiClient(
                 .authentication()
                 .bearer(token),
         ).flatMap {
-            if (it.value.size != 1) MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
+            if (it.value.size != 1) KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent.left()
             else it.value.first().right()
         }
     }
 
-    private inline fun <reified T> doReq(req: Request): Either<MicrosoftGraphApiOppslagFeil, T> {
+    private inline fun <reified T> doReq(req: Request): Either<KunneIkkeHenteNavnForNavIdent, T> {
         val (_, _, result) = req
             .header("Accept", "application/json")
             .responseString()
@@ -102,14 +93,14 @@ internal class MicrosoftGraphApiClient(
                 val errorMessage = error.response.body().asString("application/json")
                 val statusCode = error.response.statusCode
                 log.error("Kall til Microsoft Graph API feilet med kode $statusCode, melding: $errorMessage, request-parametre: ${req.parameters}")
-                MicrosoftGraphApiOppslagFeil.KallTilMicrosoftGraphApiFeilet
+                KunneIkkeHenteNavnForNavIdent.KallTilMicrosoftGraphApiFeilet
             }
             .flatMap { res ->
                 Either.catch {
                     objectMapper.readValue<T>(res)
                 }.mapLeft {
                     log.error("Deserialisering av respons fra Microsoft Graph API feilet: $it, request-parametre: ${req.parameters}, response-string: $res")
-                    MicrosoftGraphApiOppslagFeil.DeserialiseringAvResponsFeilet
+                    KunneIkkeHenteNavnForNavIdent.DeserialiseringAvResponsFeilet
                 }
             }
     }

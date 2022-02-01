@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.behandling
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.serialize
@@ -13,16 +14,21 @@ internal class AttesteringshistorikkTest {
 
     @Test
     fun `attesteringer er sortert etter tidspunkt`() {
-        val attestering1 = Attestering.Iverksatt(
-            NavIdentBruker.Attestant("Attestant1"),
-            fixedTidspunkt.plus(1, ChronoUnit.DAYS),
+        val attestering1 = Attestering.Underkjent(
+            attestant = NavIdentBruker.Attestant("Attestant1"),
+            opprettet = fixedTidspunkt,
+            grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+            kommentar = "kommentar",
         )
         val attestering2 = Attestering.Iverksatt(
-            NavIdentBruker.Attestant("Attestant2"),
-            fixedTidspunkt.plus(2, ChronoUnit.DAYS),
+            attestant = NavIdentBruker.Attestant("Attestant2"),
+            opprettet = fixedTidspunkt.plus(2, ChronoUnit.DAYS),
         )
 
-        Attesteringshistorikk(mutableListOf(attestering2, attestering1)).hentAttesteringer() shouldBe listOf(attestering1, attestering2)
+        Attesteringshistorikk.create(mutableListOf(attestering2, attestering1)) shouldBe listOf(
+            attestering1,
+            attestering2,
+        )
     }
 
     @Test
@@ -30,11 +36,13 @@ internal class AttesteringshistorikkTest {
         val opprettet = fixedTidspunkt
         val attestering1 = Attestering.Iverksatt(NavIdentBruker.Attestant("Attestant1"), opprettet)
         val attestering2 = Attestering.Underkjent(
-            NavIdentBruker.Attestant("Attestant2"),
-            opprettet.plus(1, ChronoUnit.DAYS), Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL, "kommentar"
+            attestant = NavIdentBruker.Attestant("Attestant2"),
+            opprettet = opprettet.plus(1, ChronoUnit.DAYS),
+            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            kommentar = "kommentar",
         )
 
-        val actual = Attesteringshistorikk(mutableListOf(attestering1, attestering2)).hentAttesteringer().serialize()
+        val actual = Attesteringshistorikk.create(mutableListOf(attestering1, attestering2)).serialize()
         val expected = """
                 [
                   {
@@ -57,7 +65,7 @@ internal class AttesteringshistorikkTest {
 
     @Test
     fun `serializerer tom liste riktig`() {
-        val actual = Attesteringshistorikk(listOf()).hentAttesteringer().serialize()
+        val actual = Attesteringshistorikk.create(listOf()).serialize()
         val expected = """
                 []
         """.trimIndent()
@@ -70,8 +78,10 @@ internal class AttesteringshistorikkTest {
         val opprettet = fixedTidspunkt
         val attestering1 = Attestering.Iverksatt(NavIdentBruker.Attestant("Attestant1"), opprettet)
         val attestering2 = Attestering.Underkjent(
-            NavIdentBruker.Attestant("Attestant2"),
-            opprettet.plus(1, ChronoUnit.DAYS), Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL, "kommentar"
+            attestant = NavIdentBruker.Attestant("Attestant2"),
+            opprettet = opprettet.plus(1, ChronoUnit.DAYS),
+            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            kommentar = "kommentar",
         )
 
         val json = """
@@ -92,29 +102,95 @@ internal class AttesteringshistorikkTest {
         """.trimIndent()
 
         val deserialized: List<Attestering> = json.deserializeList()
-        val expected = Attesteringshistorikk(mutableListOf(attestering1, attestering2))
+        val expected = Attesteringshistorikk.create(mutableListOf(attestering1, attestering2))
 
-        Attesteringshistorikk(deserialized) shouldBe expected
+        Attesteringshistorikk.create(deserialized) shouldBe expected
     }
 
     @Test
     fun `legger till attestering i sluttet av listen`() {
         val opprettet = fixedTidspunkt
         val attestering1 = Attestering.Underkjent(
-            NavIdentBruker.Attestant("Attestant2"),
-            opprettet.plus(1, ChronoUnit.DAYS), Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL, "kommentar",
+            attestant = NavIdentBruker.Attestant("Attestant2"),
+            opprettet = opprettet.plus(1, ChronoUnit.DAYS),
+            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            kommentar = "kommentar",
         )
         val attestering2 = Attestering.Underkjent(
-            NavIdentBruker.Attestant("Attestant2"),
-            opprettet.plus(2, ChronoUnit.DAYS), Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL, "kommentar"
+            attestant = NavIdentBruker.Attestant("Attestant2"),
+            opprettet = opprettet.plus(2, ChronoUnit.DAYS),
+            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            kommentar = "kommentar",
         )
-        val attestering3 = Attestering.Iverksatt(NavIdentBruker.Attestant("Attestant1"), opprettet.plus(3, ChronoUnit.DAYS))
+        val attestering3 =
+            Attestering.Iverksatt(NavIdentBruker.Attestant("Attestant1"), opprettet.plus(3, ChronoUnit.DAYS))
 
         val actual = Attesteringshistorikk.empty()
             .leggTilNyAttestering(attestering1)
             .leggTilNyAttestering(attestering2)
             .leggTilNyAttestering(attestering3)
 
-        actual.hentAttesteringer() shouldBe listOf(attestering1, attestering2, attestering3)
+        actual shouldBe listOf(attestering1, attestering2, attestering3)
+    }
+
+    @Test
+    fun `kaster exception dersom man legger til en eldre attestering`() {
+        val opprettet = fixedTidspunkt
+        val attestering1 = Attestering.Underkjent(
+            attestant = NavIdentBruker.Attestant("Attestant2"),
+            opprettet = opprettet.plus(1, ChronoUnit.DAYS),
+            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            kommentar = "kommentar",
+        )
+        val attestering2 = Attestering.Underkjent(
+            attestant = NavIdentBruker.Attestant("Attestant2"),
+            opprettet = opprettet,
+            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            kommentar = "kommentar",
+        )
+        shouldThrow<AssertionError> {
+            Attesteringshistorikk.empty()
+                .leggTilNyAttestering(attestering1)
+                .leggTilNyAttestering(attestering2)
+        }.message shouldBe "Kan ikke legge til en attestering som ikke er nyere enn den forrige attesteringen"
+    }
+
+    @Test
+    fun `kaster exception dersom man legger til en like gammel attestering`() {
+        val opprettet = fixedTidspunkt
+        val attestering1 = Attestering.Underkjent(
+            attestant = NavIdentBruker.Attestant("Attestant2"),
+            opprettet = opprettet,
+            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            kommentar = "kommentar",
+        )
+        val attestering2 = Attestering.Underkjent(
+            attestant = NavIdentBruker.Attestant("Attestant2"),
+            opprettet = opprettet,
+            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            kommentar = "kommentar",
+        )
+        shouldThrow<AssertionError> {
+            Attesteringshistorikk.empty()
+                .leggTilNyAttestering(attestering1)
+                .leggTilNyAttestering(attestering2)
+        }.message shouldBe "Kan ikke legge til en attestering som ikke er nyere enn den forrige attesteringen"
+    }
+
+    @Test
+    fun `kan ikke legge til 2 iverksatte attesteringer`() {
+        val attestering1 = Attestering.Iverksatt(
+            attestant = NavIdentBruker.Attestant(navIdent = "Den første attestanten som iverksatte."),
+            opprettet = fixedTidspunkt
+        )
+        val attestering2 = Attestering.Iverksatt(
+            attestant = NavIdentBruker.Attestant(navIdent = "Den andre attestanten som iverksatte (dette skal feile.)"),
+            opprettet = fixedTidspunkt.plus(1, ChronoUnit.MICROS),
+        )
+        shouldThrow<AssertionError> {
+            Attesteringshistorikk.empty()
+                .leggTilNyAttestering(attestering1)
+                .leggTilNyAttestering(attestering2)
+        }.message shouldBe "Attesteringshistorikk kan maks inneholde en iverksetting, men var: [Iverksatt(attestant=Den første attestanten som iverksatte., opprettet=2021-01-01T01:02:03.456789Z), Iverksatt(attestant=Den andre attestanten som iverksatte (dette skal feile.), opprettet=2021-01-01T01:02:03.456790Z)]"
     }
 }

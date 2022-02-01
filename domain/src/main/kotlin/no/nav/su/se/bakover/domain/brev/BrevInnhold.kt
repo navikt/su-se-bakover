@@ -65,6 +65,10 @@ abstract class BrevInnhold {
         @Suppress("unused")
         @JsonInclude
         val harFradrag: Boolean = beregningsperioder.harFradrag()
+
+        @Suppress("unused")
+        @JsonInclude
+        val harAvkorting: Boolean = beregningsperioder.harAvkorting()
     }
 
     data class Opphørsvedtak(
@@ -80,13 +84,19 @@ abstract class BrevInnhold {
         val attestantNavn: String,
         val fritekst: String,
         val forventetInntektStørreEnn0: Boolean,
-        val halvGrunnbeløp: Int?
+        val halvGrunnbeløp: Int?,
+        val opphørsdato: String,
+        val avkortingsBeløp: Int?,
     ) : BrevInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.Opphørsvedtak
 
         @Suppress("unused")
         @JsonInclude
         val harFradrag: Boolean = beregningsperioder.harFradrag()
+
+        @Suppress("unused")
+        @JsonInclude
+        val harAvkorting: Boolean = beregningsperioder.harAvkorting()
     }
 
     data class Personalia(
@@ -94,6 +104,7 @@ abstract class BrevInnhold {
         val fødselsnummer: Fnr,
         val fornavn: String,
         val etternavn: String,
+        val saksnummer: Long,
     )
 
     data class RevurderingAvInntekt(
@@ -116,6 +127,10 @@ abstract class BrevInnhold {
         @Suppress("unused")
         @JsonInclude
         val harFradrag: Boolean = beregningsperioder.harFradrag()
+
+        @Suppress("unused")
+        @JsonInclude
+        val harAvkorting: Boolean = beregningsperioder.harAvkorting()
     }
 
     data class VedtakIngenEndring(
@@ -139,6 +154,10 @@ abstract class BrevInnhold {
         @Suppress("unused")
         @JsonInclude
         val harFradrag: Boolean = beregningsperioder.harFradrag()
+
+        @Suppress("unused")
+        @JsonInclude
+        val harAvkorting: Boolean = beregningsperioder.harAvkorting()
     }
 
     data class Forhåndsvarsel(
@@ -148,6 +167,54 @@ abstract class BrevInnhold {
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.Forhåndsvarsel
     }
+
+    /**
+     * Brev for når en revurdering er forhåndsvarslet
+     * hvis revurderingen ikke er forhåndsvarslet, er det ikke noe brev.
+     */
+    data class AvsluttRevurdering(
+        val personalia: Personalia,
+        val saksbehandlerNavn: String,
+        val fritekst: String?,
+    ) : BrevInnhold() {
+        override val brevTemplate = BrevTemplate.Revurdering.AvsluttRevurdering
+    }
+
+    data class InnkallingTilKontrollsamtale(
+        val personalia: Personalia,
+    ) : BrevInnhold() {
+        override val brevTemplate = BrevTemplate.InnkallingTilKontrollsamtale
+    }
+
+    sealed class Klage : BrevInnhold() {
+
+        data class Oppretthold(
+            val personalia: Personalia,
+            val saksbehandlerNavn: String,
+            val fritekst: String,
+            val klageDato: String,
+            val vedtakDato: String,
+            val saksnummer: Long,
+        ) : Klage() {
+            override val brevTemplate = BrevTemplate.Klage.Oppretthold
+        }
+
+        data class Avvist(
+            val personalia: Personalia,
+            val saksbehandlerNavn: String,
+            val fritekst: String,
+            val saksnummer: Long,
+        ) : Klage() {
+            override val brevTemplate = BrevTemplate.Klage.Avvist
+        }
+    }
 }
 
-fun List<Beregningsperiode>.harFradrag() = this.any { it.fradrag.bruker.isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty() }
+fun List<Beregningsperiode>.harFradrag() =
+    this.any {
+        it.fradrag.bruker.filterNot { fradrag -> fradrag.type == "Avkorting på grunn av tidligere utenlandsopphold" }
+            .isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty()
+    }
+
+fun List<Beregningsperiode>.harAvkorting() =
+    this.any { it.fradrag.bruker.any { fradrag -> fradrag.type == "Avkorting på grunn av tidligere utenlandsopphold" } }

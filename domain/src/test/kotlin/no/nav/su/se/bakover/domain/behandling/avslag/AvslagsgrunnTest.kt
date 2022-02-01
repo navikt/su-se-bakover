@@ -11,12 +11,12 @@ internal class AvslagsgrunnTest {
         Avslagsgrunn.FOR_HØY_INNTEKT.tilOpphørsgrunn() shouldBe Opphørsgrunn.FOR_HØY_INNTEKT
         Avslagsgrunn.FORMUE.tilOpphørsgrunn() shouldBe Opphørsgrunn.FORMUE
         Avslagsgrunn.SU_UNDER_MINSTEGRENSE.tilOpphørsgrunn() shouldBe Opphørsgrunn.SU_UNDER_MINSTEGRENSE
+        Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER.tilOpphørsgrunn() shouldBe Opphørsgrunn.UTENLANDSOPPHOLD
 
         listOf(
             Avslagsgrunn.PERSONLIG_OPPMØTE,
             Avslagsgrunn.OPPHOLDSTILLATELSE,
             Avslagsgrunn.FLYKTNING,
-            Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER,
             Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON,
             Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE,
         ).forEach {

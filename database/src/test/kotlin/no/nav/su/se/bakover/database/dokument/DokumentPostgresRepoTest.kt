@@ -6,6 +6,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.oppgaveId
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.dokument.Dokument
@@ -26,7 +27,11 @@ internal class DokumentPostgresRepoTest {
 
             val sak = testDataHelper.nySakMedNySøknad()
             val etVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val enRevurdering = testDataHelper.tilIverksattRevurdering()
+            val enRevurdering = testDataHelper.iverksattRevurderingInnvilget()
+            val enKlage = testDataHelper.oversendtKlage(
+                vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first,
+                oppgaveId = oppgaveId,
+            )
 
             val original = Dokument.MedMetadata.Vedtak(
                 id = UUID.randomUUID(),
@@ -39,6 +44,7 @@ internal class DokumentPostgresRepoTest {
                     søknadId = sak.søknad.id,
                     vedtakId = etVedtak.id,
                     revurderingId = enRevurdering.id,
+                    klageId = enKlage.id,
                     bestillBrev = false,
                 ),
             )
@@ -57,6 +63,7 @@ internal class DokumentPostgresRepoTest {
             dokumentRepo.hentForSøknad(sak.søknad.id) shouldHaveSize 1
             dokumentRepo.hentForVedtak(etVedtak.id) shouldHaveSize 1
             dokumentRepo.hentForRevurdering(enRevurdering.id) shouldHaveSize 1
+            dokumentRepo.hentForKlage(enKlage.id) shouldHaveSize 1
         }
     }
 

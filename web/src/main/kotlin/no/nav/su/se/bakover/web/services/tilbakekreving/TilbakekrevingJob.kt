@@ -27,7 +27,9 @@ class TilbakekrevingJob(
             if (isLeaderPod()) {
                 log.info("Kjører skeduleringsjobb '$jobName'")
                 Either.catch {
-                    tilbakekrevingService.sendTilbakekrevinger()
+                    tilbakekrevingService.sendTilbakekrevinger() {
+                        TODO()
+                    }
                 }.mapLeft {
                     log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
                 }

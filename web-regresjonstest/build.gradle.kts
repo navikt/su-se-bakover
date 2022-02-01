@@ -16,3 +16,8 @@ dependencies {
         exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock
     }
 }
+
+task<JavaExec>("nySøknad") {
+    classpath = project(":web-regresjonstest").sourceSets["test"].runtimeClasspath
+    mainClass.set("no.nav.su.se.bakover.web.søknad.ny.OpprettNySakMedSøknadLokaltKt")
+}

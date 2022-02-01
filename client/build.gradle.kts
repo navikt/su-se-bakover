@@ -1,6 +1,6 @@
 val fuelVersion = "2.3.1"
 val tjenestespesifikasjonVersion = "2572.674c4b6"
-val cxfVersion = "3.4.5"
+val cxfVersion = "3.5.0"
 
 dependencies {
     implementation(project(":common"))
@@ -10,7 +10,7 @@ dependencies {
     implementation("com.github.kittinunf.fuel:fuel-gson:$fuelVersion")
     implementation("javax.xml.bind:jaxb-api:2.3.1")
 
-    implementation("org.json:json:20210307")
+    implementation("org.json:json:20211205")
 
     implementation("com.github.navikt.tjenestespesifikasjoner:nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon:$tjenestespesifikasjonVersion")
     implementation("com.github.navikt.tjenestespesifikasjoner:nav-system-os-simuler-fp-service-tjenestespesifikasjon:$tjenestespesifikasjonVersion")
@@ -25,10 +25,10 @@ dependencies {
     implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
 
     testImplementation(project(":test-common"))
-    testImplementation("com.github.tomakehurst:wiremock-jre8:2.31.0") {
+    testImplementation("com.github.tomakehurst:wiremock-jre8:2.32.0") {
         exclude(group = "junit")
     }
-    testImplementation("org.xmlunit:xmlunit-matchers:2.8.3")
+    testImplementation("org.xmlunit:xmlunit-matchers:2.9.0")
 }
 
 configure<SourceSetContainer> {

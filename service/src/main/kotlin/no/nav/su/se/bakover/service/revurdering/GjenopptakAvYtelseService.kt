@@ -7,17 +7,19 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
@@ -32,6 +34,12 @@ class GjenopptakAvYtelseService(
     private val vedtakService: VedtakService,
     private val sakService: SakService,
 ) {
+    private val observers: MutableList<EventObserver> = mutableListOf()
+
+    fun addObserver(eventObserver: EventObserver) {
+        observers.add(eventObserver)
+    }
+
     fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
         val sisteVedtak = vedtakRepo.hentForSakId(request.sakId)
             .filterIsInstance<VedtakSomKanRevurderes>()
@@ -42,9 +50,10 @@ class GjenopptakAvYtelseService(
                 ),
             ).tidslinje.lastOrNull()?.originaltVedtak ?: return KunneIkkeGjenopptaYtelse.FantIngenVedtak.left()
 
-        if (sisteVedtak !is Vedtak.EndringIYtelse.StansAvYtelse) {
+        if (sisteVedtak !is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
             return KunneIkkeGjenopptaYtelse.SisteVedtakErIkkeStans.left()
         } else {
+            val sak = sakService.hentSak(request.sakId).getOrHandle { return KunneIkkeGjenopptaYtelse.FantIkkeSak.left() }
             val simulertRevurdering = when (request) {
                 is GjenopptaYtelseRequest.Oppdater -> {
                     val update = revurderingRepo.hent(request.revurderingId)
@@ -55,7 +64,7 @@ class GjenopptakAvYtelseService(
                         fraOgMed = sisteVedtak.periode.fraOgMed,
                     ).getOrHandle { return it.left() }
 
-                    val simulering = simuler(request).getOrHandle { return it.left() }
+                    val simulering = simuler(sak, request).getOrHandle { return it.left() }
 
                     when (update) {
                         is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
@@ -75,17 +84,14 @@ class GjenopptakAvYtelseService(
                     }
                 }
                 is GjenopptaYtelseRequest.Opprett -> {
-                    if (sakService.hentSak(request.sakId)
-                        .getOrHandle { return KunneIkkeGjenopptaYtelse.FantIkkeSak.left() }
-                        .harÅpenRevurderingForGjenopptakAvYtelse()
-                    ) return KunneIkkeGjenopptaYtelse.SakHarÅpenRevurderingForGjenopptakAvYtelse.left()
+                    if (sak.harÅpenRevurderingForGjenopptakAvYtelse()) return KunneIkkeGjenopptaYtelse.SakHarÅpenRevurderingForGjenopptakAvYtelse.left()
 
                     val gjeldendeVedtaksdata: GjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                         sakId = request.sakId,
                         fraOgMed = sisteVedtak.periode.fraOgMed,
                     ).getOrHandle { return it.left() }
 
-                    val simulering = simuler(request).getOrHandle { return it.left() }
+                    val simulering = simuler(sak, request).getOrHandle { return it.left() }
 
                     GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
                         id = UUID.randomUUID(),
@@ -102,6 +108,7 @@ class GjenopptakAvYtelseService(
             }
 
             revurderingRepo.lagre(simulertRevurdering)
+            observers.forEach { observer -> observer.handle(Event.Statistikk.RevurderingStatistikk.Gjenoppta(simulertRevurdering)) }
 
             return simulertRevurdering.right()
         }
@@ -129,10 +136,14 @@ class GjenopptakAvYtelseService(
                     simulering = revurdering.simulering,
                 ).getOrHandle { return KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(it).left() }
 
-                val vedtak = Vedtak.from(iverksattRevurdering, stansUtbetaling.id, clock)
+                val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.id, clock)
 
                 revurderingRepo.lagre(iverksattRevurdering)
                 vedtakRepo.lagre(vedtak)
+                observers.forEach { observer ->
+                    observer.handle(Event.Statistikk.RevurderingStatistikk.Gjenoppta(iverksattRevurdering))
+                    observer.handle(Event.Statistikk.Vedtaksstatistikk(vedtak))
+                }
 
                 return iverksattRevurdering.right()
             }
@@ -160,13 +171,12 @@ class GjenopptakAvYtelseService(
         }.right()
     }
 
-    private fun simuler(request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, Utbetaling.SimulertUtbetaling> {
-        return utbetalingService.simulerGjenopptak(
-            sakId = request.sakId,
+    private fun simuler(sak: Sak, request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, Utbetaling.SimulertUtbetaling> =
+        utbetalingService.simulerGjenopptak(
+            sak = sak,
             saksbehandler = request.saksbehandler,
         ).getOrHandle {
             log.warn("Kunne ikke opprette revurdering for gjenopptak av ytelse, årsak: $it")
             return KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(it).left()
         }.right()
-    }
 }

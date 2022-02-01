@@ -1,26 +1,56 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.beregning.BeregningFactory
-import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.statistikk.mappers.StønadsstatistikkMapper
+import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
+import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
 internal class StønadsstatistikkMapperTest {
-    val clock = fixedClock
-    val aktørId = AktørId("293829399")
+    private val aktørId = AktørId("293829399")
+    private val testdata = vedtakSøknadsbehandlingIverksattInnvilget().let { (_, vedtak) ->
+        vedtakSøknadsbehandlingIverksattInnvilget(
+            vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger.copy(
+                uføre = Vilkår.Uførhet.Vurdert.create(
+                    vurderingsperioder = arrow.core.nonEmptyListOf(
+                        Vurderingsperiode.Uføre.create(
+                            id = java.util.UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            resultat = Resultat.Innvilget,
+                            grunnlag = Grunnlag.Uføregrunnlag(
+                                id = java.util.UUID.randomUUID(),
+                                opprettet = fixedTidspunkt,
+                                periode = periode2021,
+                                uføregrad = Uføregrad.parse(50),
+                                forventetInntekt = 36000,
+                            ),
+                            periode = periode2021,
+                            begrunnelse = "innvilgetUførevilkårForventetInntekt0",
+                        ),
+                    ),
+                ),
+            ),
+        )
+    }
+    private val sak = testdata.first
+    private val vedtak = testdata.second
 
     @Test
     fun `mapper riktig`() {
@@ -36,24 +66,7 @@ internal class StønadsstatistikkMapperTest {
             "2021-12-01",
         )
 
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-            beregning = BeregningFactory.ny(
-                fradragStrategy = FradragStrategy.Enslig,
-                periode = periode2021,
-                sats = Sats.HØY,
-                fradrag = FradragFactory.periodiser(
-                    FradragFactory.ny(
-                        type = Fradragstype.ForventetInntekt,
-                        månedsbeløp = 3000.0,
-                        periode = periode2021,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ),
-            ),
-        )
-
-        StønadsstatistikkMapper(clock).map(vedtak, aktørId, periode2021.fraOgMed) shouldBe
+        StønadsstatistikkMapper(fixedClock).map(vedtak, aktørId, periode2021.fraOgMed, sak) shouldBe
             Statistikk.Stønad(
                 funksjonellTid = fixedTidspunkt,
                 tekniskTid = fixedTidspunkt,
@@ -70,11 +83,12 @@ internal class StønadsstatistikkMapperTest {
                 gjeldendeStonadStopptidspunkt = periode2021.tilOgMed,
                 gjeldendeStonadUtbetalingsstart = periode2021.fraOgMed,
                 gjeldendeStonadUtbetalingsstopp = periode2021.tilOgMed,
-                månedsbeløp = bruttosats1.map {
+                månedsbeløp = bruttosats1.map
+                {
                     Statistikk.Stønad.Månedsbeløp(
                         måned = it,
                         stonadsklassifisering = Statistikk.Stønadsklassifisering.BOR_ALENE,
-                        bruttosats = 20945,
+                        bruttosats = 20946,
                         nettosats = 17946,
                         inntekter = listOf(
                             Statistikk.Inntekt(
@@ -84,7 +98,8 @@ internal class StønadsstatistikkMapperTest {
                         ),
                         fradragSum = 3000,
                     )
-                } + bruttosats2.map {
+                } + bruttosats2.map
+                {
                     Statistikk.Stønad.Månedsbeløp(
                         måned = it,
                         stonadsklassifisering = Statistikk.Stønadsklassifisering.BOR_ALENE,
@@ -99,7 +114,7 @@ internal class StønadsstatistikkMapperTest {
                         fradragSum = 3000,
                     )
                 },
-                versjon = clock.millis(),
+                versjon = fixedClock.millis(),
                 opphorsgrunn = null,
                 opphorsdato = null,
                 flyktningsstatus = "FLYKTNING",
@@ -108,27 +123,12 @@ internal class StønadsstatistikkMapperTest {
 
     @Test
     fun `serialiserer riktig`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-            beregning = BeregningFactory.ny(
-                fradragStrategy = FradragStrategy.Enslig,
-                periode = periode2021,
-                sats = Sats.HØY,
-                fradrag = FradragFactory.periodiser(
-                    FradragFactory.ny(
-                        type = Fradragstype.ForventetInntekt,
-                        månedsbeløp = 3000.0,
-                        periode = periode2021,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ),
-            ),
-        )
         val actual = objectMapper.writeValueAsString(
-            StønadsstatistikkMapper(clock).map(
-                vedtak,
-                aktørId,
-                vedtak.periode.fraOgMed,
+            StønadsstatistikkMapper(fixedClock).map(
+                vedtak = vedtak,
+                aktørId = aktørId,
+                ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,
+                sak = sak,
             ),
         )
         val expected = """
@@ -152,7 +152,7 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-01-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 20945,
+                      "bruttosats": 20946,
                       "nettosats": 17946,
                       "inntekter": [
                         {
@@ -165,7 +165,7 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-02-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 20945,
+                      "bruttosats": 20946,
                       "nettosats": 17946,
                       "inntekter": [
                         {
@@ -178,7 +178,7 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-03-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 20945,
+                      "bruttosats": 20946,
                       "nettosats": 17946,
                       "inntekter": [
                         {
@@ -191,7 +191,7 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-04-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 20945,
+                      "bruttosats": 20946,
                       "nettosats": 17946,
                       "inntekter": [
                         {
@@ -304,6 +304,114 @@ internal class StønadsstatistikkMapperTest {
                         }
                       ],
                       "fradragSum": 3000
+                    }
+                  ],
+                  "versjon": 1609462923456,
+                  "flyktningsstatus": "FLYKTNING"
+                }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(expected, actual, true)
+    }
+
+    @Test
+    fun `Stans gir nullutbetaling`() {
+        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            periode = Periode.create(1.januar(2021), 28.februar(2021)),
+        )
+        val actual = objectMapper.writeValueAsString(
+            StønadsstatistikkMapper(clock = fixedClock).map(
+                vedtak = vedtak,
+                aktørId = aktørId,
+                ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,
+                sak = sak,
+            ),
+        )
+        val expected = """
+                {
+                  "funksjonellTid": "2021-01-01T01:02:03.456789Z",
+                  "tekniskTid": "2021-01-01T01:02:03.456789Z",
+                  "stonadstype": "SU_UFØR",
+                  "sakId": "${sak.id}",
+                  "aktorId": 293829399,
+                  "sakstype": "STANS",
+                  "vedtaksdato": "2021-01-01",
+                  "vedtakstype": "STANS",
+                  "vedtaksresultat": "STANSET",
+                  "behandlendeEnhetKode": "4815",
+                  "ytelseVirkningstidspunkt": "2021-01-01",
+                  "gjeldendeStonadVirkningstidspunkt": "2021-01-01",
+                  "gjeldendeStonadStopptidspunkt": "2021-02-28",
+                  "gjeldendeStonadUtbetalingsstart": "2021-01-01",
+                  "gjeldendeStonadUtbetalingsstopp": "2021-02-28",
+                  "månedsbeløp": [],
+                  "versjon": 1609462923456,
+                  "flyktningsstatus": "FLYKTNING"
+                }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(expected, actual, true)
+    }
+
+    @Test
+    fun `Gjenopptak sender med riktig månedsbeløp`() {
+        val (sak, vedtak) = vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
+            Periode.create(
+                1.januar(2021),
+                28.februar(2021),
+            ),
+        )
+        val actual = objectMapper.writeValueAsString(
+            StønadsstatistikkMapper(fixedClock).map(
+                vedtak = vedtak,
+                aktørId = aktørId,
+                ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,
+                sak = sak,
+            ),
+        )
+        val expected = """
+                {
+                  "funksjonellTid": "2021-01-01T01:02:03.456789Z",
+                  "tekniskTid": "2021-01-01T01:02:03.456789Z",
+                  "stonadstype": "SU_UFØR",
+                  "sakId": "${sak.id}",
+                  "aktorId": 293829399,
+                  "sakstype": "GJENOPPTAK",
+                  "vedtaksdato": "2021-01-01",
+                  "vedtakstype": "GJENOPPTAK",
+                  "vedtaksresultat": "GJENOPPTATT",
+                  "behandlendeEnhetKode": "4815",
+                  "ytelseVirkningstidspunkt": "2021-01-01",
+                  "gjeldendeStonadVirkningstidspunkt": "2021-01-01",
+                  "gjeldendeStonadStopptidspunkt": "2021-02-28",
+                  "gjeldendeStonadUtbetalingsstart": "2021-01-01",
+                  "gjeldendeStonadUtbetalingsstopp": "2021-02-28",
+                  "månedsbeløp": [
+                    {
+                      "måned": "2021-01-01",
+                      "stonadsklassifisering": "BOR_ALENE",
+                      "bruttosats": 20946,
+                      "nettosats": 20946,
+                      "inntekter": [
+                        {
+                          "inntektstype": "ForventetInntekt",
+                          "beløp": 0
+                        }
+                      ],
+                      "fradragSum": 0
+                    },
+                    {
+                      "måned": "2021-02-01",
+                      "stonadsklassifisering": "BOR_ALENE",
+                      "bruttosats": 20946,
+                      "nettosats": 20946,
+                      "inntekter": [
+                        {
+                          "inntektstype": "ForventetInntekt",
+                          "beløp": 0
+                        }
+                      ],
+                      "fradragSum": 0
                     }
                   ],
                   "versjon": 1609462923456,

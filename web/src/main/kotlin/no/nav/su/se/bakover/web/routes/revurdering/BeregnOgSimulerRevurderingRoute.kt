@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurd
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.service.revurdering.Varselmelding
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.ErrorJson
 import no.nav.su.se.bakover.web.Resultat
@@ -22,6 +23,8 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErUfullstendig
+import no.nav.su.se.bakover.web.routes.Feilresponser.opphørAvYtelseSomSkalAvkortes
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
@@ -58,14 +61,16 @@ internal fun Route.beregnOgSimulerRevurdering(
     }
 }
 
-data class RevurderingOgFeilmeldingerResponseJson(
+internal data class RevurderingOgFeilmeldingerResponseJson(
     val revurdering: RevurderingJson,
     val feilmeldinger: List<ErrorJson>,
+    val varselmeldinger: List<ErrorJson>,
 )
 
 internal fun RevurderingOgFeilmeldingerResponse.toJson() = RevurderingOgFeilmeldingerResponseJson(
     revurdering = revurdering.toJson(),
     feilmeldinger = feilmeldinger.map { it.toJson() },
+    varselmeldinger = varselmeldinger.map { it.toJson() },
 )
 
 internal fun RevurderingsutfallSomIkkeStøttes.toJson(): ErrorJson = when (this) {
@@ -87,22 +92,51 @@ internal fun RevurderingsutfallSomIkkeStøttes.toJson(): ErrorJson = when (this)
     )
 }
 
+internal fun Varselmelding.toJson(): ErrorJson {
+    return when (this) {
+        Varselmelding.BeløpsendringUnder10Prosent -> {
+            ErrorJson(
+                message = "Beløpsendring er mindre enn 10 prosent av gjeldende utbetaling.",
+                code = "beløpsendring_mindre_enn_ti_prosent",
+            )
+        }
+    }
+}
+
 private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
     return when (this) {
-        is FantIkkeRevurdering -> fantIkkeRevurdering
-        is UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
-        is KanIkkeVelgeSisteMånedVedNedgangIStønaden -> BadRequest.errorJson(
-            "Kan ikke velge siste måned av stønadsperioden ved nedgang i stønaden",
-            "siste_måned_ved_nedgang_i_stønaden",
-        )
-        is KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag -> BadRequest.errorJson(
-            "Ugyldig beregningsgrunnlag. Underliggende årsak: ${this.reason}",
-            "ugyldig_beregningsgrunnlag",
-        )
-        is KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> BadRequest.errorJson(
-            "Kan ikke ha fradrag knyttet til EPS når bruker ikke har EPS.",
-            "kan_ikke_ha_eps_fradrag_uten_eps",
-        )
-        is KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere -> this.simuleringFeilet.tilResultat()
+        is FantIkkeRevurdering -> {
+            fantIkkeRevurdering
+        }
+        is UgyldigTilstand -> {
+            ugyldigTilstand(this.fra, this.til)
+        }
+        is KanIkkeVelgeSisteMånedVedNedgangIStønaden -> {
+            BadRequest.errorJson(
+                "Kan ikke velge siste måned av stønadsperioden ved nedgang i stønaden",
+                "siste_måned_ved_nedgang_i_stønaden",
+            )
+        }
+        is KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag -> {
+            BadRequest.errorJson(
+                "Ugyldig beregningsgrunnlag. Underliggende årsak: ${this.reason}",
+                "ugyldig_beregningsgrunnlag",
+            )
+        }
+        is KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> {
+            BadRequest.errorJson(
+                "Kan ikke ha fradrag knyttet til EPS når bruker ikke har EPS.",
+                "kan_ikke_ha_eps_fradrag_uten_eps",
+            )
+        }
+        is KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere -> {
+            this.simuleringFeilet.tilResultat()
+        }
+        KunneIkkeBeregneOgSimulereRevurdering.AvkortingErUfullstendig -> {
+            avkortingErUfullstendig
+        }
+        KunneIkkeBeregneOgSimulereRevurdering.OpphørAvYtelseSomSkalAvkortes -> {
+            opphørAvYtelseSomSkalAvkortes
+        }
     }
 }

@@ -6,18 +6,19 @@ import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.person.IdentClient
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest.Companion.lukk
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
@@ -26,6 +27,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingLukket
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
@@ -41,7 +43,7 @@ internal class LukkSøknadServiceImpl(
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
     private val søknadsbehandlingService: SøknadsbehandlingService,
-    private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
+    private val identClient: IdentClient,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
 ) : LukkSøknadService {
@@ -93,13 +95,15 @@ internal class LukkSøknadServiceImpl(
                                 log.warn("Kunne ikke lukke oppgave ${søknad.oppgaveId} for søknad ${søknad.id}")
                             }
                         val sak = hentSak(lukket.sakId)
+
+                        val event = if (lukketSøknadbehandling == null) {
+                            Event.Statistikk.SøknadStatistikk.SøknadLukket(søknad = lukket, saksnummer = sak.saksnummer)
+                        } else {
+                            SøknadsbehandlingLukket(lukketSøknadbehandling)
+                        }
+
                         observers.forEach { observer ->
-                            observer.handle(
-                                Event.Statistikk.SøknadStatistikk.SøknadLukket(
-                                    søknad = lukket,
-                                    saksnummer = sak.saksnummer,
-                                ),
-                            )
+                            observer.handle(event)
                         }
                         sak.right()
                     }
@@ -134,8 +138,10 @@ internal class LukkSøknadServiceImpl(
                     log.error("Kunne ikke lage brevutkast siden vi ikke fant personen for søknad ${request.søknadId}")
                     KunneIkkeLageBrevutkast.FantIkkePerson
                 }.flatMap { person ->
+                    val sak = sakService.hentSakidOgSaksnummer(fnr = person.ident.fnr)
+                        .getOrHandle { return KunneIkkeLageBrevutkast.FantIkkeSak.left() }
                     val brevRequest = when (request) {
-                        is LukkSøknadRequest.MedBrev -> lagBrevRequest(person, søknad, request)
+                        is LukkSøknadRequest.MedBrev -> lagBrevRequest(person, søknad, request, sak.saksnummer)
                         is LukkSøknadRequest.UtenBrev -> return KunneIkkeLageBrevutkast.UkjentBrevtype.left()
                     }
                     brevService.lagBrev(brevRequest)
@@ -146,7 +152,12 @@ internal class LukkSøknadServiceImpl(
         }
     }
 
-    private fun lagBrevRequest(person: Person, søknad: Søknad, request: LukkSøknadRequest.MedBrev): LagBrevRequest {
+    private fun lagBrevRequest(
+        person: Person,
+        søknad: Søknad,
+        request: LukkSøknadRequest.MedBrev,
+        saksnummer: Saksnummer,
+    ): LagBrevRequest {
         return when (request) {
             is LukkSøknadRequest.MedBrev.TrekkSøknad -> TrukketSøknadBrevRequest(
                 person = person,
@@ -154,18 +165,20 @@ internal class LukkSøknadServiceImpl(
                 trukketDato = request.trukketDato,
                 saksbehandlerNavn = hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" },
                 dagensDato = LocalDate.now(clock),
+                saksnummer = saksnummer,
             )
             is LukkSøknadRequest.MedBrev.AvvistSøknad -> AvvistSøknadBrevRequest(
                 person = person,
                 brevConfig = request.brevConfig,
                 saksbehandlerNavn = hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" },
                 dagensDato = LocalDate.now(clock),
+                saksnummer = saksnummer,
             )
         }
     }
 
-    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
-        return microsoftGraphApiClient.hentNavnForNavIdent(navIdent)
+    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<KunneIkkeHenteNavnForNavIdent, String> {
+        return identClient.hentNavnForNavIdent(navIdent)
     }
 
     private fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad> {
@@ -191,7 +204,9 @@ internal class LukkSøknadServiceImpl(
         søknad: Søknad.Journalført.MedOppgave.IkkeLukket,
         lukketSøknadsbehandling: LukketSøknadsbehandling?,
     ): Either<KunneIkkeLukkeSøknad, Søknad.Journalført.MedOppgave.Lukket> {
-        val dokument = lagBrevRequest(person, søknad, request)
+        val sak = sakService.hentSakidOgSaksnummer(fnr = person.ident.fnr)
+            .getOrHandle { return KunneIkkeLukkeSøknad.FantIkkeSak.left() }
+        val dokument = lagBrevRequest(person, søknad, request, sak.saksnummer)
             .tilDokument {
                 brevService.lagBrev(it).mapLeft { LagBrevRequest.KunneIkkeGenererePdf }
             }.map {

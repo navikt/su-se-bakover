@@ -19,10 +19,14 @@ object JournalpostFactory {
         BrevTemplate.Opphørsvedtak,
         BrevTemplate.Revurdering.Inntekt,
         BrevTemplate.VedtakIngenEndring,
+        BrevTemplate.Klage.Avvist,
         -> Journalpost.Vedtakspost.from(person, saksnummer, brevInnhold, pdf)
         BrevTemplate.TrukketSøknad,
         BrevTemplate.AvvistSøknadFritekst,
         BrevTemplate.Forhåndsvarsel,
+        BrevTemplate.Revurdering.AvsluttRevurdering,
+        BrevTemplate.InnkallingTilKontrollsamtale,
+        BrevTemplate.Klage.Oppretthold,
         -> Journalpost.Info.from(person, saksnummer, brevInnhold, pdf)
     }
 

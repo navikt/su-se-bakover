@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services.dokument
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.web.services.erLeaderPod
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.net.InetAddress
@@ -24,7 +25,7 @@ class DistribuerDokumentJob(
     private val periode = Duration.of(1, ChronoUnit.MINUTES).toMillis()
 
     fun schedule() {
-        log.info("Starter skeduleringsjobb '$jobName' med intervall: $periode ms. Mitt hostnavn er $hostName. Jeg er ${if (isLeaderPod()) "" else "ikke "}leder.")
+        log.info("Starter skeduleringsjobb '$jobName' med intervall: $periode ms. Mitt hostnavn er $hostName. Jeg er ${if (leaderPodLookup.erLeaderPod(hostname = hostName)) "" else "ikke "}leder.")
 
         fixedRateTimer(
             name = jobName,
@@ -32,7 +33,7 @@ class DistribuerDokumentJob(
             period = periode,
         ) {
             Either.catch {
-                if (isLeaderPod()) {
+                if (leaderPodLookup.erLeaderPod(hostname = hostName)) {
                     // Ktor legger på X-Correlation-ID for web-requests, men vi har ikke noe tilsvarende automagi for meldingskøen.
                     MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
                     // Disse er debug siden jobben kjører hvert minutt.
@@ -47,5 +48,4 @@ class DistribuerDokumentJob(
     }
 
     private val hostName = InetAddress.getLocalHost().hostName
-    private fun isLeaderPod() = leaderPodLookup.amITheLeader(hostName).isRight()
 }

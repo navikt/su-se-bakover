@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
@@ -22,6 +21,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
+import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -299,7 +299,9 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                     it shouldBe OppgaveConfig.Søknad(
                         journalpostId = journalførtSøknad.journalpostId,
                         søknadId = journalførtSøknad.id,
-                        aktørId = person.ident.aktørId
+                        aktørId = person.ident.aktørId,
+                        clock = fixedClock,
+                        tilordnetRessurs = null,
                     )
                 },
             )
@@ -397,7 +399,9 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                     it shouldBe OppgaveConfig.Søknad(
                         journalpostId = journalførtSøknad.journalpostId,
                         søknadId = journalførtSøknad.id,
-                        aktørId = person.ident.aktørId
+                        aktørId = person.ident.aktørId,
+                        clock = fixedClock,
+                        tilordnetRessurs = null,
                     )
                 },
             )

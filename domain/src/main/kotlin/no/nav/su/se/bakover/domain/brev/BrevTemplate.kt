@@ -47,10 +47,32 @@ sealed class BrevTemplate(
         brevTittel = "Varsel om at vi vil ta opp stønaden din til ny vurdering"
     )
 
+    object InnkallingTilKontrollsamtale : BrevTemplate(
+        pdfTemplate = PdfTemplate.InnkallingTilKontrollsamtale,
+        brevTittel = "Supplerende stønad ufør flyktning – innkalling til samtale"
+    )
+
     sealed class Revurdering(pdfTemplate: PdfTemplate, brevTittel: String) : BrevTemplate(pdfTemplate, brevTittel) {
         object Inntekt : Revurdering(
             pdfTemplate = PdfTemplate.Revurdering.Inntekt,
-            brevTittel = "Vi har vurdert den supplerende stønaden din på nytt"
+            brevTittel = "Vi har vurdert den supplerende stønaden din på nytt",
+        )
+
+        object AvsluttRevurdering : Revurdering(
+            pdfTemplate = PdfTemplate.Revurdering.Avslutt,
+            brevTittel = "Ikke grunnlag for revurdering",
+        )
+    }
+
+    sealed class Klage(pdfTemplate: PdfTemplate, brevTittel: String) : BrevTemplate(pdfTemplate, brevTittel) {
+        object Oppretthold : Klage(
+            pdfTemplate = PdfTemplate.Klage.Oppretthold,
+            brevTittel = "Oversendelsesbrev til klager",
+        )
+
+        object Avvist : Klage(
+            pdfTemplate = PdfTemplate.Klage.Avvist,
+            brevTittel = "Avvist klage"
         )
     }
 }

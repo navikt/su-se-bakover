@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain.beregning
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -12,12 +15,10 @@ interface Månedsberegning : PeriodisertInformasjon {
     fun getSatsbeløp(): Double
     fun getFradrag(): List<Fradrag>
     fun getFribeløpForEps(): Double
+    fun getMerknader(): List<Merknad.Beregning>
 
     fun erFradragForEpsBenyttetIBeregning() =
         getFradrag().any { it.fradragstype == Fradragstype.BeregnetFradragEPS }
-
-    fun erSumYtelseUnderMinstebeløp() =
-        getSumYtelse() == 0 && getFradrag().any { it.fradragstype == Fradragstype.UnderMinstenivå }
 
     /**
      * Sammenligner alle metodene.
@@ -42,4 +43,22 @@ interface Månedsberegning : PeriodisertInformasjon {
      * Denne vil tvinge sub-klassene til å override.
      */
     override fun equals(other: Any?): Boolean
+}
+
+/**
+ * Godtar bare at det eksisterer 1 merknad som kan føre til avslag per måned.
+ * Se logikk for opprettelsen av merknader i [Merknader.Beregningsmerknad]
+ */
+fun Månedsberegning.finnMerknadForAvslag(): Either<IngenMerknaderForAvslag, Merknad.Beregning> {
+    return getMerknader().mapNotNull {
+        when (it) {
+            is Merknad.Beregning.Avslag -> it
+            else -> null
+        }
+    }.let {
+        when (it.isEmpty()) {
+            true -> IngenMerknaderForAvslag.left()
+            false -> it.single().right()
+        }
+    }
 }

@@ -13,7 +13,6 @@ import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
-import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.CollectorRegistry
@@ -53,7 +52,8 @@ internal fun Application.installMetrics(prometheusMeterRegistry: PrometheusMeter
             JvmGcMetrics(),
             ProcessorMetrics(),
             JvmThreadMetrics(),
-            LogbackMetrics()
+            // We don't use LogbackMetrics anymore because of this impossible cast:  this(tags, (LoggerContext) LoggerFactory.getILoggerFactory());
+            // See https://github.com/micrometer-metrics/micrometer/issues/2868 for more information
         )
     }
 }

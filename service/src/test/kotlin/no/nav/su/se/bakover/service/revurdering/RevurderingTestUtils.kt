@@ -4,25 +4,29 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.person.IdentClient
+import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -31,7 +35,7 @@ import org.mockito.kotlin.mock
 import java.time.Clock
 import java.time.LocalDate
 
-object RevurderingTestUtils {
+internal object RevurderingTestUtils {
     private val dagensDato = fixedLocalDate.let {
         LocalDate.of(
             it.year,
@@ -92,20 +96,23 @@ object RevurderingTestUtils {
         revurderingRepo: RevurderingRepo = mock(),
         oppgaveService: OppgaveService = mock(),
         personService: PersonService = mock(),
-        microsoftGraphApiClient: MicrosoftGraphApiOppslag = mock(),
+        identClient: IdentClient = mock(),
         brevService: BrevService = mock(),
         clock: Clock = fixedClock,
         vedtakRepo: VedtakRepo = mock(),
         vilkårsvurderingService: VilkårsvurderingService = mock(),
         grunnlagService: GrunnlagService = mock(),
-        sakService: SakService = mock()
+        sakService: SakService = mock(),
+        kontrollsamtaleService: KontrollsamtaleService = mock(),
+        sessionFactory: SessionFactory = TestSessionFactory(),
+        avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
     ) =
         RevurderingServiceImpl(
             utbetalingService = utbetalingService,
             revurderingRepo = revurderingRepo,
             oppgaveService = oppgaveService,
             personService = personService,
-            microsoftGraphApiClient = microsoftGraphApiClient,
+            identClient = identClient,
             brevService = brevService,
             clock = clock,
             vedtakRepo = vedtakRepo,
@@ -113,6 +120,9 @@ object RevurderingTestUtils {
             grunnlagService = grunnlagService,
             vedtakService = vedtakService,
             sakService = sakService,
+            kontrollsamtaleService = kontrollsamtaleService,
+            sessionFactory = sessionFactory,
+            avkortingsvarselRepo = avkortingsvarselRepo,
         )
 
     /**

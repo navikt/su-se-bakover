@@ -4,6 +4,7 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.github.cdimascio.dotenv.dotenv
 import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrDefault
+import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrNull
 import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrThrow
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -11,9 +12,11 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
 import java.time.Duration
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 private object EnvironmentConfig {
@@ -30,6 +33,10 @@ private object EnvironmentConfig {
 
     fun getEnvironmentVariableOrDefault(environmentVariableName: String, default: String): String {
         return env[environmentVariableName] ?: default
+    }
+
+    fun getEnvironmentVariableOrNull(environmentVariableName: String): String? {
+        return env[environmentVariableName] ?: null
     }
 
     fun exists(environmentVariableName: String): Boolean {
@@ -55,6 +62,7 @@ data class ApplicationConfig(
     val kafkaConfig: KafkaConfig,
     val unleash: UnleashConfig,
     val jobConfig: JobConfig,
+    val kabalKafkaConfig: KabalKafkaConfig,
 ) {
     enum class RuntimeEnvironment {
         Test,
@@ -134,7 +142,10 @@ data class ApplicationConfig(
             )
 
             fun createLocalConfig() = AzureConfig(
-                clientSecret = getEnvironmentVariableOrDefault("AZURE_APP_CLIENT_SECRET", "Denne brukes bare dersom man bruker en reell PDL/Oppgave-integrasjon o.l."),
+                clientSecret = getEnvironmentVariableOrDefault(
+                    "AZURE_APP_CLIENT_SECRET",
+                    "Denne brukes bare dersom man bruker en reell PDL/Oppgave-integrasjon o.l.",
+                ),
                 wellKnownUrl = getEnvironmentVariableOrDefault(
                     "AZURE_APP_WELL_KNOWN_URL",
                     "http://localhost:4321/default/.well-known/openid-configuration",
@@ -225,7 +236,7 @@ data class ApplicationConfig(
             ) {
                 companion object {
                     fun createFromEnvironmentVariables() = Mq(
-                        mqReplyTo = getEnvironmentVariableOrThrow("MQ_KRAVGRUNNLAG_REPLY_TO"),
+                        mqReplyTo = getEnvironmentVariableOrThrow("TODO_MQ_KRAVGRUNNLAG_REPLY_TO"),
                     )
                 }
             }
@@ -235,7 +246,7 @@ data class ApplicationConfig(
             ) {
                 companion object {
                     fun createFromEnvironmentVariables() = Soap(
-                        url = getEnvironmentVariableOrThrow("TODO jah"),
+                        url = getEnvironmentVariableOrThrow("TODO_KRAVGRUNNLAG_SOAP"),
                     )
                 }
             }
@@ -329,6 +340,7 @@ data class ApplicationConfig(
         val stsUrl: String,
         val skjermingUrl: String,
         val dkifUrl: String,
+        val kabalConfig: KabalConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
@@ -344,6 +356,7 @@ data class ApplicationConfig(
                 ),
                 skjermingUrl = getEnvironmentVariableOrThrow("SKJERMING_URL"),
                 dkifUrl = getEnvironmentVariableOrDefault("DKIF_URL", "http://dkif.default.svc.nais.local"),
+                kabalConfig = KabalConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
@@ -359,6 +372,7 @@ data class ApplicationConfig(
                 ),
                 skjermingUrl = "mocked",
                 dkifUrl = "mocked",
+                kabalConfig = KabalConfig.createLocalConfig()
             )
         }
 
@@ -395,25 +409,40 @@ data class ApplicationConfig(
                 )
             }
         }
+
+        data class KabalConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = KabalConfig(
+                    url = getEnvironmentVariableOrDefault("KABAL_URL", "https://kabal-api.dev.intern.nav.no"),
+                    clientId = getEnvironmentVariableOrDefault("KABAL_CLIENT_ID", "api://dev-gcp.klage.kabal-api"),
+                )
+
+                fun createLocalConfig() = KabalConfig(
+                    url = "mocked",
+                    clientId = "mocked",
+                )
+            }
+        }
     }
 
     data class KafkaConfig(
-        private val common: Map<String, String>,
         val producerCfg: ProducerCfg,
         val consumerCfg: ConsumerCfg,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = KafkaConfig(
-                common = Common().configure(),
                 producerCfg = ProducerCfg(
-                    kafkaConfig = Common().configure() + mapOf(
+                    kafkaConfig = CommonAivenKafkaConfig().configure() + mapOf(
                         ProducerConfig.ACKS_CONFIG to "all",
                         ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
                         ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
                     ),
                 ),
                 consumerCfg = ConsumerCfg(
-                    Onprem().configure() + mapOf(
+                    CommonOnpremKafkaConfig().configure() + mapOf(
                         KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
                         KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrDefault(
                             "KAFKA_ONPREM_SCHEMA_REGISTRY",
@@ -435,7 +464,6 @@ data class ApplicationConfig(
             )
 
             fun createLocalConfig() = KafkaConfig(
-                common = emptyMap(),
                 producerCfg = ProducerCfg(emptyMap()),
                 consumerCfg = ConsumerCfg(emptyMap()),
             )
@@ -447,14 +475,19 @@ data class ApplicationConfig(
         )
 
         data class ConsumerCfg(
-            val kafkaConfig: Map<String, Any>
+            val kafkaConfig: Map<String, Any>,
         ) {
             companion object {
-                fun getUserInfoConfig() = "${getEnvironmentVariableOrDefault("KAFKA_SCHEMA_REGISTRY_USER", "usr")}:${getEnvironmentVariableOrDefault("KAFKA_SCHEMA_REGISTRY_PASSWORD", "pwd")}"
+                fun getUserInfoConfig() = "${
+                getEnvironmentVariableOrDefault(
+                    "KAFKA_SCHEMA_REGISTRY_USER",
+                    "usr",
+                )
+                }:${getEnvironmentVariableOrDefault("KAFKA_SCHEMA_REGISTRY_PASSWORD", "pwd")}"
             }
         }
 
-        private data class Common(
+        internal data class CommonAivenKafkaConfig(
             val brokers: String = getEnvironmentVariableOrDefault("KAFKA_BROKERS", "brokers"),
             val sslConfig: Map<String, String> = SslConfig().configure(),
         ) {
@@ -480,13 +513,14 @@ data class ApplicationConfig(
             )
         }
 
-        private data class Onprem(
+        private data class CommonOnpremKafkaConfig(
             val brokers: String = getEnvironmentVariableOrDefault("KAFKA_ONPREM_BROKERS", "kafka_onprem_brokers"),
-            val saslConfigs: Map<String, String> = SaslConfig().configure()
+            val saslConfigs: Map<String, String> = SaslConfig().configure(),
         ) {
             fun configure(): Map<String, String> =
                 mapOf(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to brokers) + saslConfigs
         }
+
         private data class SaslConfig(
             val truststorePath: String = getEnvironmentVariableOrDefault("NAV_TRUSTSTORE_PATH", "truststorePath"),
             val credstorePwd: String = getEnvironmentVariableOrDefault("NAV_TRUSTSTORE_PASSWORD", "credstorePwd"),
@@ -499,7 +533,7 @@ data class ApplicationConfig(
                 SaslConfigs.SASL_JAAS_CONFIG to "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"$username\" password=\"$password\";",
                 SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to truststorePath,
                 SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to credstorePwd,
-                SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd
+                SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd,
             )
         }
     }
@@ -528,15 +562,21 @@ data class ApplicationConfig(
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
             unleash = UnleashConfig.createFromEnvironmentVariables(),
             jobConfig = JobConfig(
-                personhendelse = JobConfig.Personhendelse(naisCluster())
-            )
+                personhendelse = JobConfig.Personhendelse(naisCluster()),
+                konsistensavstemming = when (naisCluster()) {
+                    NaisCluster.Dev -> JobConfig.Konsistensavstemming.Dev()
+                    NaisCluster.Prod -> JobConfig.Konsistensavstemming.Prod()
+                    null -> throw IllegalStateException("Kunne ikke identifsiere nais-cluster")
+                },
+            ),
+            kabalKafkaConfig = KabalKafkaConfig.createFromEnvironmentVariables(),
         )
 
         fun createLocalConfig() = ApplicationConfig(
             runtimeEnvironment = RuntimeEnvironment.Local,
             naisCluster = naisCluster(),
             leaderPodLookupPath = "",
-            pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBoolean(),
+            pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBooleanStrict(),
             serviceUser = ServiceUserConfig.createLocalConfig(),
             azure = AzureConfig.createLocalConfig(),
             frikort = FrikortConfig.createLocalConfig(),
@@ -546,8 +586,10 @@ data class ApplicationConfig(
             kafkaConfig = KafkaConfig.createLocalConfig(),
             unleash = UnleashConfig.createFromEnvironmentVariables(),
             jobConfig = JobConfig(
-                personhendelse = JobConfig.Personhendelse(naisCluster())
-            )
+                personhendelse = JobConfig.Personhendelse(naisCluster()),
+                konsistensavstemming = JobConfig.Konsistensavstemming.Local(),
+            ),
+            kabalKafkaConfig = KabalKafkaConfig.createLocalConfig(),
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
         }
@@ -563,8 +605,13 @@ data class ApplicationConfig(
 
         fun isRunningLocally() = naisCluster() == null
         fun isNotProd() = isRunningLocally() || naisCluster() == NaisCluster.Dev
+        fun fnrKode6() = getEnvironmentVariableOrNull("FNR_KODE6")
     }
-    data class JobConfig(val personhendelse: Personhendelse) {
+
+    data class JobConfig(
+        val personhendelse: Personhendelse,
+        val konsistensavstemming: Konsistensavstemming,
+    ) {
         data class Personhendelse(private val naisCluster: NaisCluster?) {
             private val PREPROD: Long = Duration.of(10, ChronoUnit.MINUTES).toMillis()
             private val PROD: Long = Duration.of(1, ChronoUnit.DAYS).toMillis()
@@ -574,6 +621,54 @@ data class ApplicationConfig(
                     NaisCluster.Prod -> PROD
                     else -> PREPROD
                 }
+        }
+
+        sealed class Konsistensavstemming {
+            abstract val kjøreplan: Set<LocalDate>
+
+            data class Prod(
+                override val kjøreplan: Set<LocalDate> = setOf(
+                    22.november(2021),
+                    5.januar(2022),
+                    28.januar(2022),
+                    25.februar(2022),
+                    25.mars(2022),
+                    26.april(2022),
+                    27.mai(2022),
+                    29.juni(2022),
+                    29.juli(2022),
+                    30.august(2022),
+                    29.september(2022),
+                    28.oktober(2022),
+                    21.november(2022),
+                ),
+            ) : Konsistensavstemming()
+
+            data class Dev(override val kjøreplan: Set<LocalDate> = emptySet()) : Konsistensavstemming()
+            data class Local(override val kjøreplan: Set<LocalDate> = emptySet()) : Konsistensavstemming()
+        }
+    }
+
+    data class KabalKafkaConfig(
+        val kafkaConfig: Map<String, Any>,
+    ) {
+        companion object {
+            fun createFromEnvironmentVariables() = KabalKafkaConfig(
+                kafkaConfig = KafkaConfig.CommonAivenKafkaConfig().configure() + mapOf(
+                    ConsumerConfig.GROUP_ID_CONFIG to "su-se-bakover",
+                    ConsumerConfig.CLIENT_ID_CONFIG to getEnvironmentVariableOrThrow("HOSTNAME"),
+                    ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
+                    ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
+                    ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+                    ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+                    ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 100,
+
+                ),
+            )
+
+            fun createLocalConfig() = KabalKafkaConfig(
+                kafkaConfig = emptyMap(),
+            )
         }
     }
 }

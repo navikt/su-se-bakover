@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -19,6 +21,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -31,7 +34,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.FinnSaksbehandlerVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingVisitor
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakVisitor
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -180,7 +184,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: SimulertRevurdering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner(clock))
     }
 
     override fun visit(revurdering: RevurderingTilAttestering.Innvilget) {
@@ -188,7 +192,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: RevurderingTilAttestering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner(clock))
     }
 
     override fun visit(revurdering: RevurderingTilAttestering.IngenEndring) {
@@ -200,7 +204,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: IverksattRevurdering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner(clock))
     }
 
     override fun visit(revurdering: IverksattRevurdering.IngenEndring) {
@@ -212,42 +216,57 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: UnderkjentRevurdering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner(clock))
     }
 
     override fun visit(revurdering: UnderkjentRevurdering.IngenEndring) {
         brevRequest = revurderingIngenEndring(revurdering, revurdering.beregning)
     }
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling) {
         brevRequest = innvilgetVedtakSøknadsbehandling(vedtak)
     }
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse.InnvilgetRevurdering) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering) {
         brevRequest = innvilgetVedtakRevurdering(vedtak)
     }
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse.OpphørtRevurdering) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering) {
         brevRequest = opphørsvedtak(vedtak)
     }
 
-    override fun visit(vedtak: Vedtak.Avslag.AvslagVilkår) {
+    override fun visit(vedtak: Avslagsvedtak.AvslagVilkår) {
         brevRequest = avslåttVedtakSøknadsbehandling(vedtak)
     }
 
-    override fun visit(vedtak: Vedtak.Avslag.AvslagBeregning) {
+    override fun visit(vedtak: Avslagsvedtak.AvslagBeregning) {
         brevRequest = avslåttVedtakSøknadsbehandling(vedtak)
     }
 
-    override fun visit(vedtak: Vedtak.IngenEndringIYtelse) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.IngenEndringIYtelse) {
         brevRequest = vedtakIngenEndringIYtelse(vedtak)
     }
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse.StansAvYtelse) {
+    override fun visit(revurdering: AvsluttetRevurdering) {
+        brevRequest = hentPersonOgNavn(
+            // siden avslutt-brevet er et informasjons-brev, trengs ikke attestant
+            fnr = revurdering.fnr, saksbehandler = revurdering.saksbehandler, attestant = null,
+        ).map {
+            LagBrevRequest.AvsluttRevurdering(
+                person = it.person,
+                fritekst = revurdering.fritekst,
+                saksbehandlerNavn = it.saksbehandlerNavn,
+                dagensDato = LocalDate.now(clock),
+                saksnummer = revurdering.saksnummer,
+            )
+        }
+    }
+
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
         throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
     }
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse.GjenopptakAvYtelse) {
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse) {
         throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
     }
 
@@ -299,6 +318,7 @@ class LagBrevRequestVisitor(
                 beregning = beregning,
                 fritekst = fritekst,
                 uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføre.grunnlag,
+                saksnummer = søknadsbehandling.saksnummer,
             )
         }
 
@@ -320,6 +340,7 @@ class LagBrevRequestVisitor(
                 beregning = beregning,
                 fritekst = søknadsbehandling.fritekstTilBrev,
                 uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføre.grunnlag,
+                saksnummer = søknadsbehandling.saksnummer,
             )
         }
 
@@ -339,8 +360,10 @@ class LagBrevRequestVisitor(
                 revurdertBeregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
-                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag().harForventetInntektStørreEnn0(),
+                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag()
+                    .harForventetInntektStørreEnn0(),
                 dagensDato = LocalDate.now(clock),
+                saksnummer = revurdering.saksnummer,
             )
         }
 
@@ -360,6 +383,102 @@ class LagBrevRequestVisitor(
                 it.attestant
             },
         ).map {
+            // TODO avkorting refaktorer dette?
+            val avkortingsbeløp = when (revurdering) {
+                is BeregnetRevurdering.Opphørt -> {
+                    when (revurdering.avkorting) {
+                        is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere -> {
+                            null
+                        }
+                    }
+                }
+                is IverksattRevurdering.Opphørt -> {
+                    when (revurdering.avkorting) {
+                        is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                        is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                    }
+                }
+                is RevurderingTilAttestering.Opphørt -> {
+                    when (revurdering.avkorting) {
+                        is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                    }
+                }
+                is SimulertRevurdering.Opphørt -> {
+                    when (revurdering.avkorting) {
+                        is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                    }
+                }
+                is UnderkjentRevurdering.Opphørt -> {
+                    when (revurdering.avkorting) {
+                        is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+                            null
+                        }
+                        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+                            revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
+                        }
+                    }
+                }
+                else -> {
+                    null
+                }
+            }
+
             LagBrevRequest.Opphørsvedtak(
                 person = it.person,
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
@@ -367,9 +486,13 @@ class LagBrevRequestVisitor(
                 fritekst = revurdering.fritekstTilBrev,
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
-                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag().harForventetInntektStørreEnn0(),
+                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag()
+                    .harForventetInntektStørreEnn0(),
                 opphørsgrunner = opphørsgrunner,
                 dagensDato = LocalDate.now(clock),
+                saksnummer = revurdering.saksnummer,
+                opphørsdato = revurdering.periode.fraOgMed,
+                avkortingsBeløp = avkortingsbeløp,
             )
         }
 
@@ -380,6 +503,7 @@ class LagBrevRequestVisitor(
         beregning: Beregning?,
         fritekst: String,
         uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        saksnummer: Saksnummer,
     ) = LagBrevRequest.AvslagBrevRequest(
         person = personOgNavn.person,
         avslag = Avslag(
@@ -393,6 +517,7 @@ class LagBrevRequestVisitor(
         fritekst = fritekst,
         forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
         dagensDato = LocalDate.now(clock),
+        saksnummer = saksnummer,
     )
 
     private fun requestForInnvilgelse(
@@ -401,6 +526,7 @@ class LagBrevRequestVisitor(
         uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
         beregning: Beregning,
         fritekst: String,
+        saksnummer: Saksnummer,
     ): LagBrevRequest.InnvilgetVedtak = LagBrevRequest.InnvilgetVedtak(
         person = personOgNavn.person,
         beregning = beregning,
@@ -411,6 +537,7 @@ class LagBrevRequestVisitor(
         fritekst = fritekst,
         forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
         dagensDato = LocalDate.now(clock),
+        saksnummer = saksnummer,
     )
 
     private data class PersonOgNavn(
@@ -430,7 +557,7 @@ class LagBrevRequestVisitor(
         ) : RuntimeException(msg)
     }
 
-    private fun innvilgetVedtakSøknadsbehandling(vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling) =
+    private fun innvilgetVedtakSøknadsbehandling(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling) =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
             saksbehandler = vedtak.saksbehandler,
@@ -442,10 +569,11 @@ class LagBrevRequestVisitor(
                 beregning = vedtak.beregning,
                 fritekst = vedtak.behandling.fritekstTilBrev,
                 uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
+                saksnummer = vedtak.behandling.saksnummer,
             )
         }
 
-    private fun innvilgetVedtakRevurdering(vedtak: Vedtak.EndringIYtelse.InnvilgetRevurdering) =
+    private fun innvilgetVedtakRevurdering(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering) =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
             saksbehandler = vedtak.saksbehandler,
@@ -460,10 +588,11 @@ class LagBrevRequestVisitor(
                 harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
                 dagensDato = LocalDate.now(clock),
+                saksnummer = vedtak.behandling.saksnummer,
             )
         }
 
-    private fun opphørsvedtak(vedtak: Vedtak.EndringIYtelse.OpphørtRevurdering) =
+    private fun opphørsvedtak(vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering) =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
             saksbehandler = vedtak.saksbehandler,
@@ -477,13 +606,24 @@ class LagBrevRequestVisitor(
                 fritekst = vedtak.behandling.fritekstTilBrev,
                 harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
-                opphørsgrunner = vedtak.utledOpphørsgrunner(),
+                opphørsgrunner = vedtak.utledOpphørsgrunner(clock),
                 dagensDato = LocalDate.now(clock),
+                saksnummer = vedtak.behandling.saksnummer,
+                opphørsdato = vedtak.periode.fraOgMed,
+                avkortingsBeløp = when (val avkorting = vedtak.behandling.avkorting) {
+                    is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> null
+                    is AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> null
+                    is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> null
+                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> avkorting.avkortingsvarsel.hentUtbetalteBeløp()
+                        .sum()
+                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> avkorting.avkortingsvarsel.hentUtbetalteBeløp()
+                        .sum()
+                },
             )
         }
 
     private fun avslåttVedtakSøknadsbehandling(
-        vedtak: Vedtak.Avslag,
+        vedtak: Avslagsvedtak,
     ) =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
@@ -495,14 +635,15 @@ class LagBrevRequestVisitor(
                 avslagsgrunner = vedtak.avslagsgrunner,
                 harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.ifNotEmpty { harEktefelle() } ?: false,
                 beregning = when (vedtak) {
-                    is Vedtak.Avslag.AvslagBeregning -> vedtak.beregning
-                    is Vedtak.Avslag.AvslagVilkår -> null
+                    is Avslagsvedtak.AvslagBeregning -> vedtak.beregning
+                    is Avslagsvedtak.AvslagVilkår -> null
                 },
                 fritekst = when (vedtak) {
-                    is Vedtak.Avslag.AvslagBeregning -> vedtak.behandling.fritekstTilBrev
-                    is Vedtak.Avslag.AvslagVilkår -> vedtak.behandling.fritekstTilBrev
+                    is Avslagsvedtak.AvslagBeregning -> vedtak.behandling.fritekstTilBrev
+                    is Avslagsvedtak.AvslagVilkår -> vedtak.behandling.fritekstTilBrev
                 },
                 uføregrunnlag = vedtak.behandling.vilkårsvurderinger.hentUføregrunnlag(),
+                saksnummer = vedtak.behandling.saksnummer,
             )
         }
 
@@ -524,10 +665,11 @@ class LagBrevRequestVisitor(
                     harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
                     uføregrunnlag = revurdering.vilkårsvurderinger.hentUføregrunnlag(),
                     gjeldendeMånedsutbetaling = gjeldendeUtbetaling,
+                    saksnummer = revurdering.saksnummer,
                 )
             }
 
-    private fun vedtakIngenEndringIYtelse(vedtak: Vedtak.IngenEndringIYtelse): Either<KunneIkkeLageBrevRequest, LagBrevRequest.VedtakIngenEndring> =
+    private fun vedtakIngenEndringIYtelse(vedtak: VedtakSomKanRevurderes.IngenEndringIYtelse): Either<KunneIkkeLageBrevRequest, LagBrevRequest.VedtakIngenEndring> =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
             saksbehandler = vedtak.saksbehandler,
@@ -542,6 +684,7 @@ class LagBrevRequestVisitor(
                     harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                     uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
                     gjeldendeMånedsutbetaling = gjeldendeUtbetaling,
+                    saksnummer = vedtak.behandling.saksnummer,
                 )
             }
 
@@ -552,6 +695,7 @@ class LagBrevRequestVisitor(
         fritekst: String,
         harEktefelle: Boolean,
         gjeldendeMånedsutbetaling: Int,
+        saksnummer: Saksnummer,
     ) = LagBrevRequest.VedtakIngenEndring(
         person = personOgNavn.person,
         saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
@@ -562,5 +706,6 @@ class LagBrevRequestVisitor(
         forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
         gjeldendeMånedsutbetaling = gjeldendeMånedsutbetaling,
         dagensDato = LocalDate.now(clock),
+        saksnummer = saksnummer,
     )
 }

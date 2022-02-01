@@ -9,12 +9,6 @@ import org.jetbrains.annotations.TestOnly
 @TestOnly
 fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
     Behandlingsinformasjon(
-        uførhet = Behandlingsinformasjon.Uførhet(
-            status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-            uføregrad = uførhet?.uføregrad ?: 20,
-            forventetInntekt = uførhet?.forventetInntekt ?: 10,
-            begrunnelse = uførhet?.begrunnelse,
-        ),
         flyktning = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
             begrunnelse = flyktning?.begrunnelse,
@@ -30,10 +24,6 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
             begrunnelse = institusjonsopphold?.begrunnelse,
-        ),
-        oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-            begrunnelse = oppholdIUtlandet?.begrunnelse,
         ),
         formue = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
@@ -54,24 +44,11 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
             status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
             begrunnelse = personligOppmøte?.begrunnelse,
         ),
-        bosituasjon = Behandlingsinformasjon.Bosituasjon(
-            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-            delerBolig = bosituasjon?.delerBolig ?: false,
-            ektemakeEllerSamboerUførFlyktning = bosituasjon?.ektemakeEllerSamboerUførFlyktning,
-            begrunnelse = bosituasjon?.begrunnelse,
-        ),
-        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
     )
 
 @TestOnly
 fun Behandlingsinformasjon.withAlleVilkårAvslått() =
     Behandlingsinformasjon(
-        uførhet = Behandlingsinformasjon.Uførhet(
-            status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
-            uføregrad = uførhet?.uføregrad ?: 20,
-            forventetInntekt = uførhet?.forventetInntekt ?: 10,
-            begrunnelse = uførhet?.begrunnelse,
-        ),
         flyktning = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
             begrunnelse = flyktning?.begrunnelse,
@@ -87,10 +64,6 @@ fun Behandlingsinformasjon.withAlleVilkårAvslått() =
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårIkkeOppfylt,
             begrunnelse = institusjonsopphold?.begrunnelse,
-        ),
-        oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet,
-            begrunnelse = oppholdIUtlandet?.begrunnelse,
         ),
         formue = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
@@ -111,13 +84,6 @@ fun Behandlingsinformasjon.withAlleVilkårAvslått() =
             status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
             begrunnelse = personligOppmøte?.begrunnelse,
         ),
-        bosituasjon = Behandlingsinformasjon.Bosituasjon(
-            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-            delerBolig = bosituasjon?.delerBolig ?: false,
-            ektemakeEllerSamboerUførFlyktning = bosituasjon?.ektemakeEllerSamboerUførFlyktning,
-            begrunnelse = bosituasjon?.begrunnelse,
-        ),
-        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
     )
 
 @TestOnly
@@ -131,18 +97,3 @@ fun Behandlingsinformasjon.withAvslåttFlyktning(): Behandlingsinformasjon {
         ),
     )
 }
-
-@TestOnly
-fun withVilkårIkkeVurdert() =
-    Behandlingsinformasjon(
-        uførhet = null,
-        flyktning = null,
-        lovligOpphold = null,
-        fastOppholdINorge = null,
-        institusjonsopphold = null,
-        oppholdIUtlandet = null,
-        formue = null,
-        personligOppmøte = null,
-        bosituasjon = null,
-        ektefelle = null,
-    )

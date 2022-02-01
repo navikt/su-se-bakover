@@ -10,6 +10,7 @@ interface DokumentRepo {
     fun hentForSøknad(id: UUID): List<Dokument.MedMetadata>
     fun hentForVedtak(id: UUID): List<Dokument.MedMetadata>
     fun hentForRevurdering(id: UUID): List<Dokument.MedMetadata>
+    fun hentForKlage(id: UUID): List<Dokument.MedMetadata>
 
     fun hentDokumentdistribusjon(id: UUID): Dokumentdistribusjon?
     fun hentDokumenterForDistribusjon(): List<Dokumentdistribusjon>

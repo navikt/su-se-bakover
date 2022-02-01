@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeGjenopptaYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
@@ -33,20 +34,16 @@ import java.util.UUID
 
 internal class GjenopptaUtbetalingRouteKtTest {
 
-    private val mockServices = TestServicesBuilder.services()
-
     @Test
     fun `svarer med 201 ved påbegynt gjenopptak av utbetaling`() {
-        val enRevurdering = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
-            .second
-        val revurderingServiceMock = mock<RevurderingService> {
-            on { gjenopptaYtelse(any()) } doReturn enRevurdering.right()
-        }
+        val enRevurdering = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse().second
         withTestApplication(
             {
                 testSusebakover(
-                    services = mockServices.copy(
-                        revurdering = revurderingServiceMock,
+                    services = TestServicesBuilder.services(
+                        revurdering = mock {
+                            on { gjenopptaYtelse(any()) } doReturn enRevurdering.right()
+                        },
                     ),
                 )
             },
@@ -75,21 +72,20 @@ internal class GjenopptaUtbetalingRouteKtTest {
     @Test
     fun `svarer med 400 ved forsøk å iverksetting av ugyldig revurdering`() {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
-        val revurderingServiceMock = mock<RevurderingService> {
-            on {
-                iverksettGjenopptakAvYtelse(
-                    any(),
-                    any(),
-                )
-            } doReturn KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand(
-                enRevurdering::class,
-            ).left()
-        }
         withTestApplication(
             {
                 testSusebakover(
-                    services = mockServices.copy(
-                        revurdering = revurderingServiceMock,
+                    services = TestServicesBuilder.services(
+                        revurdering = mock {
+                            on {
+                                iverksettGjenopptakAvYtelse(
+                                    any(),
+                                    any(),
+                                )
+                            } doReturn KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand(
+                                enRevurdering::class,
+                            ).left()
+                        },
                     ),
                 )
             },
@@ -108,21 +104,20 @@ internal class GjenopptaUtbetalingRouteKtTest {
     @Test
     fun `svarer med 500 hvis utbetaling feiler`() {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
-        val revurderingServiceMock = mock<RevurderingService> {
-            on {
-                iverksettGjenopptakAvYtelse(
-                    any(),
-                    any(),
-                )
-            } doReturn KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(
-                UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte),
-            ).left()
-        }
         withTestApplication(
             {
                 testSusebakover(
-                    services = mockServices.copy(
-                        revurdering = revurderingServiceMock,
+                    services = TestServicesBuilder.services(
+                        revurdering = mock<RevurderingService> {
+                            on {
+                                iverksettGjenopptakAvYtelse(
+                                    any(),
+                                    any(),
+                                )
+                            } doReturn KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(
+                                UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte),
+                            ).left()
+                        },
                     ),
                 )
             },
@@ -142,22 +137,24 @@ internal class GjenopptaUtbetalingRouteKtTest {
     fun `svarer med 200 ved oppdatering av eksisterende revurdering`() {
         val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
         val simulertRevurdering = eksisterende.second
-        val sisteVedtak = eksisterende.first.vedtakListe.last()
+        val sisteVedtak = eksisterende.first.vedtakListe.last() as VedtakSomKanRevurderes
 
-        val revurderingServiceMock = mock<RevurderingService> {
-            doAnswer {
-                val args = (it.arguments[0] as GjenopptaYtelseRequest.Oppdater)
-                simulertRevurdering.copy(
-                    periode = Periode.create(sisteVedtak.periode.fraOgMed, simulertRevurdering.periode.tilOgMed),
-                    revurderingsårsak = args.revurderingsårsak,
-                ).right()
-            }.whenever(mock).gjenopptaYtelse(any())
-        }
         withTestApplication(
             {
                 testSusebakover(
-                    services = mockServices.copy(
-                        revurdering = revurderingServiceMock,
+                    services = TestServicesBuilder.services(
+                        revurdering = mock<RevurderingService> {
+                            doAnswer {
+                                val args = (it.arguments[0] as GjenopptaYtelseRequest.Oppdater)
+                                simulertRevurdering.copy(
+                                    periode = Periode.create(
+                                        sisteVedtak.periode.fraOgMed,
+                                        simulertRevurdering.periode.tilOgMed,
+                                    ),
+                                    revurderingsårsak = args.revurderingsårsak,
+                                ).right()
+                            }.whenever(mock).gjenopptaYtelse(any())
+                        },
                     ),
                 )
             },
@@ -189,14 +186,13 @@ internal class GjenopptaUtbetalingRouteKtTest {
     fun `svarer med 400 ved ugyldig input`() {
         val enRevurdering = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
             .second
-        val revurderingServiceMock = mock<RevurderingService> {
-            on { gjenopptaYtelse(any()) } doReturn enRevurdering.right()
-        }
         withTestApplication(
             {
                 testSusebakover(
-                    services = mockServices.copy(
-                        revurdering = revurderingServiceMock,
+                    services = TestServicesBuilder.services(
+                        revurdering = mock<RevurderingService> {
+                            on { gjenopptaYtelse(any()) } doReturn enRevurdering.right()
+                        },
                     ),
                 )
             },
@@ -225,18 +221,17 @@ internal class GjenopptaUtbetalingRouteKtTest {
 
     @Test
     fun `svarer med 500 ved forsøk på gjenopptak av opphørt periode`() {
-        val revurderingServiceMock = mock<RevurderingService> {
-            on { gjenopptaYtelse(any()) } doReturn KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(
-                SimulerGjenopptakFeil.KunneIkkeGenerereUtbetaling(
-                    Utbetalingsstrategi.Gjenoppta.Feil.KanIkkeGjenopptaOpphørtePeriode,
-                ),
-            ).left()
-        }
         withTestApplication(
             {
                 testSusebakover(
-                    services = mockServices.copy(
-                        revurdering = revurderingServiceMock,
+                    services = TestServicesBuilder.services(
+                        revurdering = mock {
+                            on { gjenopptaYtelse(any()) } doReturn KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(
+                                SimulerGjenopptakFeil.KunneIkkeGenerereUtbetaling(
+                                    Utbetalingsstrategi.Gjenoppta.Feil.KanIkkeGjenopptaOpphørtePeriode,
+                                ),
+                            ).left()
+                        },
                     ),
                 )
             },

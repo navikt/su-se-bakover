@@ -1,7 +1,8 @@
 package no.nav.su.se.bakover.database.tilbakekreving
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.juli
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
@@ -9,7 +10,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsavgjørelse
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -60,8 +61,8 @@ internal class TilbakekrevingPostgresRepoTest {
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 sakId = UUID.randomUUID(),
-                revurderingId =,
-                periode = Periode(fraOgMed =, tilOgMed =),
+                revurderingId = UUID.randomUUID(),
+                periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.juli(2021)),
                 oversendtTidspunkt = null
             ).tilFerdigbehandlet()
             repo.lagreTilbakekrevingsavgjørelse(ferdigbehandletKravgrunnlag)

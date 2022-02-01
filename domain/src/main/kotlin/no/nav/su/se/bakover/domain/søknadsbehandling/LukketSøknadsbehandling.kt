@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 
 data class LukketSøknadsbehandling private constructor(
     val lukketSøknadsbehandling: Søknadsbehandling,
@@ -24,7 +25,17 @@ data class LukketSøknadsbehandling private constructor(
     override val fnr = lukketSøknadsbehandling.fnr
     // Så vi kan initialiseres uten at periode er satt (typisk ved ny søknadsbehandling)
     override val periode by lazy { lukketSøknadsbehandling.periode }
-
+    override val avkorting: AvkortingVedSøknadsbehandling = when (val avkorting = lukketSøknadsbehandling.avkorting) {
+        is AvkortingVedSøknadsbehandling.Håndtert -> {
+            avkorting.kanIkke()
+        }
+        is AvkortingVedSøknadsbehandling.Iverksatt -> {
+            throw IllegalStateException("Kan ikke lukke iverksatt")
+        }
+        is AvkortingVedSøknadsbehandling.Uhåndtert -> {
+            avkorting.kanIkke()
+        }
+    }
     companion object {
 
         fun tryCreate(

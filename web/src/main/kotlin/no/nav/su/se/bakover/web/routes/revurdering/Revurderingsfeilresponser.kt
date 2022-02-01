@@ -4,8 +4,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.web.Resultat
@@ -14,7 +16,6 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeLageBrevutkas
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.feilVedGenereringAvDokument
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.fantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
 
@@ -32,6 +33,11 @@ internal object Revurderingsfeilresponser {
     val fantIngenVedtakSomKanRevurderes = NotFound.errorJson(
         "Fant ingen vedtak som kan revurderes for angitt periode",
         "ingenting_å_revurdere_i_perioden",
+    )
+
+    val fantIkkePersonEllerSaksbehandlerNavn = BadRequest.errorJson(
+        "Fant ikke person eller saksbehandler navn",
+        "fant_ikke_person_eller_saksbehandler_navn",
     )
 
     object OpprettelseOgOppdateringAvRevurdering {
@@ -59,10 +65,19 @@ internal object Revurderingsfeilresponser {
             "Formue som fører til opphør må revurderes",
             "formue_som_fører_til_opphør_må_revurderes",
         )
+        val utenlandsoppholdSomFørerTilOpphørMåRevurderes = BadRequest.errorJson(
+            "Utenlandsopphold som fører til opphør må revurderes",
+            "utenlandsopphold_som_fører_til_opphør_må_revurderes"
+        )
 
         val epsFormueMedFlereBosituasjonsperioderMåRevurderes = BadRequest.errorJson(
             "Formue må revurderes siden det finnes EPS formue og flere bosituasjonsperioder",
             "eps_formue_med_flere_perioder_må_revurderes",
+        )
+
+        fun uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(periode: Periode) = InternalServerError.errorJson(
+            "Saken har en utestående avkorting som enten må avkortes i ny stønadsperiode eller revurderes i sin helhet. Vennligst inkluder ${periode.fraOgMed}-${periode.tilOgMed} i revurderingsperioden eller avkort i ny stønadsperiode.",
+            "utestående_avkorting_må_revurderes_eller_avkortes_i_ny_periode",
         )
     }
 
@@ -86,14 +101,17 @@ internal object Revurderingsfeilresponser {
     }
 
     fun KunneIkkeForhåndsvarsle.tilResultat() = when (this) {
-        is KunneIkkeForhåndsvarsle.AlleredeForhåndsvarslet -> HttpStatusCode.Conflict.errorJson(
+        is KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling -> HttpStatusCode.Conflict.errorJson(
             "Allerede forhåndsvarslet",
             "allerede_forhåndsvarslet",
         )
         is KunneIkkeForhåndsvarsle.FantIkkePerson -> fantIkkePerson
-        is KunneIkkeForhåndsvarsle.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+        is KunneIkkeForhåndsvarsle.KunneIkkeOppdatereOppgave -> kunneIkkeOppretteOppgave
         is KunneIkkeForhåndsvarsle.FantIkkeRevurdering -> fantIkkeRevurdering
-        is KunneIkkeForhåndsvarsle.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
+        is KunneIkkeForhåndsvarsle.MåVæreITilstandenSimulert -> BadRequest.errorJson(
+            "Må være i tilstanden ${SimulertRevurdering::class.simpleName} for å kunne forhåndsvarsle. Nåværende tilstand: ${fra.simpleName} ",
+            "ugyldig_tilstand",
+        )
         is KunneIkkeForhåndsvarsle.Attestering -> this.subError.tilResultat()
         is KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler -> navneoppslagSaksbehandlerAttesttantFeilet
         KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument -> feilVedGenereringAvDokument

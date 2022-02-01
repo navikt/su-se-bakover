@@ -4,12 +4,12 @@ import arrow.core.Either
 import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrow
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -41,6 +41,9 @@ internal class AccessCheckProxyTest {
         grunnlagService = mock(),
         nøkkeltallService = mock(),
         avslåSøknadManglendeDokumentasjonService = mock(),
+        kontrollsamtale = mock(),
+        klageService = mock(),
+        klagevedtakService = mock(),
         tilbakekrevingService = mock(),
     )
 
@@ -236,6 +239,10 @@ internal class AccessCheckProxyTest {
                 }
 
                 override fun hentFnrForVedtak(vedtakId: UUID): List<Fnr> {
+                    return listOf(Fnr.generer())
+                }
+
+                override fun hentFnrForKlage(klageId: UUID): List<Fnr> {
                     return listOf(Fnr.generer())
                 }
             },

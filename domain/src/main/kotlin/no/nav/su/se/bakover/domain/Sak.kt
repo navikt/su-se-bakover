@@ -9,12 +9,16 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.reduser
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -61,6 +65,7 @@ data class Sak(
     val utbetalinger: List<Utbetaling>,
     val revurderinger: List<AbstraktRevurdering> = emptyList(),
     val vedtakListe: List<Vedtak> = emptyList(),
+    val klager: List<Klage> = emptyList(),
 ) {
     fun utbetalingstidslinje(
         periode: Periode = Periode.create(
@@ -77,18 +82,96 @@ data class Sak(
         )
     }
 
-    fun hentGjeldendeVilkårOgGrunnlag(periode: Periode, clock: Clock): GrunnlagsdataOgVilkårsvurderinger {
-        return GjeldendeVedtaksdata(
+    fun hentGjeldendeVilkårOgGrunnlag(
+        periode: Periode,
+        clock: Clock,
+    ): GrunnlagsdataOgVilkårsvurderinger {
+        return hentGjeldendeVedtaksdata(
             periode = periode,
+            clock = clock,
+        ).fold(
+            { GrunnlagsdataOgVilkårsvurderinger.IkkeVurdert },
+            {
+                GrunnlagsdataOgVilkårsvurderinger(
+                    grunnlagsdata = it.grunnlagsdata,
+                    vilkårsvurderinger = it.vilkårsvurderinger,
+                )
+            },
+        )
+    }
+
+    fun kopierGjeldendeVedtaksdata(
+        fraOgMed: LocalDate,
+        clock: Clock,
+    ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+        return vedtakListe
+            .filterIsInstance<VedtakSomKanRevurderes>()
+            .ifEmpty { return KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak.left() }
+            .let { vedtakSomKanRevurderes ->
+                hentGjeldendeVedtaksdata(
+                    periode = Periode.create(fraOgMed, vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed }),
+                    clock = clock,
+                )
+            }
+    }
+
+    private fun hentGjeldendeVedtaksdata(
+        periode: Periode,
+        clock: Clock,
+    ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+        return vedtakListe
+            .filterIsInstance<VedtakSomKanRevurderes>()
+            .ifEmpty { return KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak.left() }
+            .let { vedtakSomKanRevurderes ->
+                GjeldendeVedtaksdata(
+                    periode = periode,
+                    vedtakListe = NonEmptyList.fromListUnsafe(vedtakSomKanRevurderes),
+                    clock = clock,
+                ).right()
+            }
+    }
+
+    sealed class KunneIkkeHenteGjeldendeVedtaksdata {
+        object FantIngenVedtak : KunneIkkeHenteGjeldendeVedtaksdata()
+    }
+
+    /**
+     * Brukes for å hente den seneste gjeldenden/brukte månedsberegningen for en gitt måned i saken.
+     *
+     * Per nå så er det kun Vedtak i form av [VedtakSomKanRevurderes.EndringIYtelse] som bidrar til dette, bortsett fra [VedtakSomKanRevurderes.IngenEndringIYtelse] som har
+     * andre beregnings-beløp som ikke skal ha en påverkan på saken.
+     * */
+    fun hentGjeldendeMånedsberegningForMåned(månedsperiode: Periode, clock: Clock): Månedsberegning? {
+        assert(månedsperiode.getAntallMåneder() == 1)
+        return GjeldendeVedtaksdata(
+            periode = månedsperiode,
             vedtakListe = NonEmptyList.fromListUnsafe(
-                vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().ifEmpty {
-                    return GrunnlagsdataOgVilkårsvurderinger.IkkeVurdert
-                },
+                vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+                    .filterNot { it is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse || it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse || it is VedtakSomKanRevurderes.IngenEndringIYtelse }.ifEmpty {
+                        return null
+                    },
             ),
             clock = clock,
-        ).let {
-            GrunnlagsdataOgVilkårsvurderinger(it.grunnlagsdata, it.vilkårsvurderinger)
+        ).gjeldendeVedtakPåDato(månedsperiode.fraOgMed)?.let {
+            when (it) {
+                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> it.beregning
+                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> it.beregning
+                is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> it.beregning
+                is VedtakSomKanRevurderes.IngenEndringIYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.IngenEndring")
+                is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.StansAvYtelse")
+                is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.GjenopptakAvYtelse")
+            }
+        }?.let { beregning ->
+            beregning.getMånedsberegninger().associateBy { it.periode }[månedsperiode]
         }
+    }
+
+    fun hentGjeldendeStønadsperiode(clock: Clock): Periode? =
+        hentPerioderMedLøpendeYtelse().filter { it.inneholder(LocalDate.now(clock)) }.maxByOrNull { it.tilOgMed }
+
+    fun harGjeldendeEllerFremtidigStønadsperiode(clock: Clock): Boolean {
+        val now = LocalDate.now(clock)
+        return hentPerioderMedLøpendeYtelse().any { it.inneholder(now) || it.starterEtter(now) }
     }
 
     fun harÅpenRevurderingForStansAvYtelse(): Boolean {
@@ -103,7 +186,7 @@ data class Sak(
      * Identifiser alle perioder hvor ytelsen har vært eller vil være løpende.
      */
     fun hentPerioderMedLøpendeYtelse(): List<Periode> {
-        return vedtakListe.filterIsInstance<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling>()
+        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>()
             .map { it.periode }
             .flatMap { innvilgetStønadsperiode ->
                 vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
@@ -114,6 +197,112 @@ data class Sak(
                     .map { it.periode }
                     .reduser()
             }.reduser()
+    }
+    fun hentÅpneKlager(): List<Klage> = klager.filter { it.erÅpen() }
+
+    fun hentKlage(klageId: UUID): Klage? = klager.find { it.id == klageId }
+
+    fun kanUtbetalingerStansesEllerGjenopptas(clock: Clock): KanStansesEllerGjenopptas {
+        return utbetalingstidslinje().tidslinje.let {
+            if (it.isNotEmpty() && ingenKommendeOpphørEllerHull(it, clock)) {
+                if (it.last() is UtbetalingslinjePåTidslinje.Stans) {
+                    KanStansesEllerGjenopptas.GJENOPPTA
+                } else {
+                    KanStansesEllerGjenopptas.STANS
+                }
+            } else {
+                KanStansesEllerGjenopptas.INGEN
+            }
+        }
+    }
+
+    /**
+     * Tillater ikke stans dersom stønadsperiodene inneholder opphør eller hull frem i tid, siden det kan bli
+     * problematisk hvis man stanser og gjenopptar på tvers av disse. Ta opp igjen problemstillingen dersom
+     * fag trenger å stanse i et slikt tilfelle.
+     */
+    private fun ingenKommendeOpphørEllerHull(utbetalingslinjer: List<UtbetalingslinjePåTidslinje>, clock: Clock): Boolean {
+        val kommendeUtbetalingslinjer = utbetalingslinjer.filter { it.periode.tilOgMed.isAfter(LocalDate.now(clock)) }
+
+        if (kommendeUtbetalingslinjer.any { it is UtbetalingslinjePåTidslinje.Opphør }) {
+            return false
+        }
+
+        if (kommendeUtbetalingslinjer.map { linje -> linje.periode }.reduser().size > 1) {
+            return false
+        }
+
+        return true
+    }
+
+    fun oppdaterStønadsperiodeForSøknadsbehandling(
+        søknadsbehandlingId: UUID,
+        stønadsperiode: Stønadsperiode,
+        clock: Clock,
+    ): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert> {
+        val søknadsbehandling = søknadsbehandlinger.singleOrNull {
+            it.id == søknadsbehandlingId
+        } ?: return KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
+
+        hentPerioderMedLøpendeYtelse().let { stønadsperioder ->
+            if (stønadsperioder.any { it overlapper stønadsperiode.periode }) {
+                return KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode.left()
+            }
+            if (stønadsperioder.any { it.starterSamtidigEllerSenere(stønadsperiode.periode) }) {
+                return KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer.left()
+            }
+        }
+
+        hentGjeldendeVedtaksdata(
+            periode = stønadsperiode.periode,
+            clock = clock,
+        ).fold(
+            {
+                when (it) {
+                    KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak -> {
+                        // Ignoreres da dette er et gyldig og vanlig case for søknadsbehandling
+                    }
+                }
+            },
+            {
+                if (it.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold()) {
+                    val alleUtbetalingerErOpphørt =
+                        utbetalingstidslinje(periode = it.periode).tidslinje.all { utbetalingslinjePåTidslinje ->
+                            utbetalingslinjePåTidslinje is UtbetalingslinjePåTidslinje.Opphør
+                        }
+
+                    if (!alleUtbetalingerErOpphørt)
+                        return KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
+                }
+            },
+        )
+
+        return søknadsbehandling.oppdaterStønadsperiode(
+            oppdatertStønadsperiode = stønadsperiode,
+            clock = clock,
+        ).mapLeft {
+            when (it) {
+                is Søknadsbehandling.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
+                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
+                }
+                is Søknadsbehandling.KunneIkkeOppdatereStønadsperiode.UgyldigTilstand -> {
+                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
+                }
+            }
+        }
+    }
+
+    sealed class KunneIkkeOppdatereStønadsperiode {
+        object FantIkkeBehandling : KunneIkkeOppdatereStønadsperiode()
+        object StønadsperiodeOverlapperMedLøpendeStønadsperiode : KunneIkkeOppdatereStønadsperiode()
+        object StønadsperiodeForSenerePeriodeEksisterer : KunneIkkeOppdatereStønadsperiode()
+        data class KunneIkkeOppdatereGrunnlagsdata(val feil: Søknadsbehandling.KunneIkkeOppdatereStønadsperiode) :
+            KunneIkkeOppdatereStønadsperiode()
+
+        data class KunneIkkeHenteGjeldendeVedtaksdata(val feil: Sak.KunneIkkeHenteGjeldendeVedtaksdata) :
+            KunneIkkeOppdatereStønadsperiode()
+
+        object StønadsperiodeInneholderAvkortingPgaUtenlandsopphold : KunneIkkeOppdatereStønadsperiode()
     }
 }
 
@@ -134,6 +323,7 @@ data class NySak(
             utbetalinger = emptyList(),
             revurderinger = emptyList(),
             vedtakListe = emptyList(),
+            klager = emptyList(),
         )
     }
 }
@@ -142,7 +332,10 @@ class SakFactory(
     private val uuidFactory: UUIDFactory = UUIDFactory(),
     private val clock: Clock,
 ) {
-    fun nySakMedNySøknad(fnr: Fnr, søknadInnhold: SøknadInnhold): NySak {
+    fun nySakMedNySøknad(
+        fnr: Fnr,
+        søknadInnhold: SøknadInnhold,
+    ): NySak {
         val opprettet = Tidspunkt.now(clock)
         val sakId = uuidFactory.newUUID()
         return NySak(
@@ -163,3 +356,9 @@ data class BegrensetSakinfo(
     val harÅpenSøknad: Boolean,
     val iverksattInnvilgetStønadsperiode: Periode?,
 )
+
+enum class KanStansesEllerGjenopptas {
+    STANS,
+    GJENOPPTA,
+    INGEN;
+}

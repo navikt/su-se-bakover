@@ -5,7 +5,7 @@ import org.flywaydb.core.api.MigrationVersion
 import org.flywaydb.core.api.output.MigrateResult
 import javax.sql.DataSource
 
-internal class Flyway(
+class Flyway(
     private val dataSource: DataSource,
     private val role: String? = null,
 ) {

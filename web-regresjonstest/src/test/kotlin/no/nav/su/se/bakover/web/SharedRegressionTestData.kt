@@ -11,6 +11,7 @@ import no.finn.unleash.FakeUnleash
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
+import no.nav.su.se.bakover.client.kabal.KlageClientStub
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
@@ -19,18 +20,19 @@ import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
 import no.nav.su.se.bakover.client.stubs.nais.LeaderPodLookupStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.AvstemmingStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
+import no.nav.su.se.bakover.client.stubs.oppdrag.TilbakekrevingClientStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
-import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
+import no.nav.su.se.bakover.client.stubs.person.IdentClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.migratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
@@ -90,6 +92,10 @@ object SharedRegressionTestData {
                 url = "simuleringTestUrl",
                 stsSoapUrl = "simuleringStsTestSoapUrl",
             ),
+            tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
+                mq = TODO(),
+                soap = TODO(),
+            ),
         ),
         database = ApplicationConfig.DatabaseConfig.StaticCredentials(
             jdbcUrl = "jdbcTestUrl",
@@ -110,14 +116,20 @@ object SharedRegressionTestData {
             stsUrl = "stsUrl",
             skjermingUrl = "skjermingUrl",
             dkifUrl = "dkifUrl",
+            kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(url = "kabalUrl", clientId = "KabalClientId"),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
-            common = emptyMap(),
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),
             consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
         ),
         unleash = ApplicationConfig.UnleashConfig("https://localhost", "su-se-bakover"),
-        jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(null)),
+        jobConfig = ApplicationConfig.JobConfig(
+            personhendelse = ApplicationConfig.JobConfig.Personhendelse(null),
+            konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Local(),
+        ),
+        kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
+            kafkaConfig = emptyMap(),
+        ),
     )
 
     private val jwtStub = JwtStub(applicationConfig.azure)
@@ -141,8 +153,8 @@ object SharedRegressionTestData {
 
     internal fun Application.testSusebakover(
         clock: Clock = fixedClock,
-        clients: Clients = TestClientsBuilder.build(applicationConfig),
         databaseRepos: DatabaseRepos = databaseRepos(clock = clock),
+        clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),
         unleash: Unleash = FakeUnleash().apply { enableAll() },
         services: Services = ServiceBuilder.build(
             databaseRepos = databaseRepos,
@@ -178,7 +190,10 @@ object SharedRegressionTestData {
     }
 }
 
-object TestClientsBuilder : ClientsBuilder {
+data class TestClientsBuilder(
+    val clock: Clock,
+    val databaseRepos: DatabaseRepos,
+) : ClientsBuilder {
     private val testClients = Clients(
         oauth = AzureClientStub,
         personOppslag = PersonOppslagStub,
@@ -187,14 +202,16 @@ object TestClientsBuilder : ClientsBuilder {
         dokArkiv = DokArkivStub,
         oppgaveClient = OppgaveClientStub,
         kodeverk = mock(),
-        simuleringClient = SimuleringStub,
+        simuleringClient = SimuleringStub(fixedClock, databaseRepos.utbetaling),
         utbetalingPublisher = UtbetalingStub,
         dokDistFordeling = DokDistFordelingStub,
         avstemmingPublisher = AvstemmingStub,
-        microsoftGraphApiClient = MicrosoftGraphApiClientStub,
+        identClient = IdentClientStub,
         digitalKontaktinformasjon = DkifClientStub,
         leaderPodLookup = LeaderPodLookupStub,
         kafkaPublisher = KafkaPublisherStub,
+        klageClient = KlageClientStub,
+        tilbakekrevingClient = TilbakekrevingClientStub,
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

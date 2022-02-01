@@ -2,23 +2,27 @@ package no.nav.su.se.bakover.database.utbetaling
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.DbMetrics
+import no.nav.su.se.bakover.database.PostgresSessionFactory
+import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import java.util.UUID
 import javax.sql.DataSource
 
 internal class UtbetalingPostgresRepo(
     private val dataSource: DataSource,
     private val dbMetrics: DbMetrics,
+    private val sessionFactory: PostgresSessionFactory,
 ) : UtbetalingRepo {
     override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling.OversendtUtbetaling? {
         return dbMetrics.timeQuery("hentUtbetalingId") {
@@ -61,8 +65,8 @@ internal class UtbetalingPostgresRepo(
         }
     }
 
-    override fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering) {
-        dataSource.withTransaction { session ->
+    override fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering, transactionContext: TransactionContext) {
+        transactionContext.withTransaction { session ->
             """
             insert into utbetaling (id, opprettet, sakId, fnr, type, avstemmingsnøkkel, simulering, utbetalingsrequest, behandler)
             values (:id, :opprettet, :sakId, :fnr, :type, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json), :behandler)
@@ -118,4 +122,6 @@ internal class UtbetalingPostgresRepo(
 
         return utbetalingslinje
     }
+
+    override fun defaultTransactionContext(): TransactionContext = sessionFactory.newTransactionContext()
 }

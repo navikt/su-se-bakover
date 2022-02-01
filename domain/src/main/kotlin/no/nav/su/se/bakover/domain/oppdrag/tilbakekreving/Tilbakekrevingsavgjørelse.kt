@@ -29,7 +29,11 @@ sealed class Tilbakekrevingsavgjørelse {
             override val revurderingId: UUID,
             override val periode: Periode,
             override val oversendtTidspunkt: Tidspunkt?,
-        ) : SkalTilbakekreve()
+        ) : SkalTilbakekreve() {
+            fun tilFerdigbehandlet(): Tilbakekrevingsavgjørelse {
+                return this
+            }
+        }
 
         data class BurdeForstått(
             override val id: UUID,

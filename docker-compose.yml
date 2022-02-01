@@ -1,4 +1,4 @@
-version: '2'
+version: '3.9'
 services:
   postgres:
     image: "postgres:latest"
@@ -12,7 +12,15 @@ services:
       POSTGRES_USER: "user"
       POSTGRES_PASSWORD: "pwd"
       POSTGRES_DB: "supstonad-db-local"
-    mem_limit: "2g"
+    deploy:
+      resources:
+        reservations:
+          memory: 2G
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 1s
+      timeout: 5s
+      retries: 10
 
 volumes:
   supstonad-db-local:

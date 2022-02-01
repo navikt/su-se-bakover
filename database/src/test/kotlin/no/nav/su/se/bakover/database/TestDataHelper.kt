@@ -4,14 +4,12 @@ import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.beregning.PersistertBeregning
-import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
-import no.nav.su.se.bakover.database.beregning.TestBeregning
-import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
@@ -20,8 +18,12 @@ import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
+import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
+import no.nav.su.se.bakover.database.klage.KlagevedtakPostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
@@ -40,18 +42,33 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
-import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.AvvistKlage
+import no.nav.su.se.bakover.domain.klage.Hjemler
+import no.nav.su.se.bakover.domain.klage.Hjemmel
+import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
+import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
+import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
+import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
+import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
+import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
+import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -60,7 +77,6 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -73,25 +89,34 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
-import no.nav.su.se.bakover.test.beregningAvslag
+import no.nav.su.se.bakover.test.behandlingsinformasjonAlleVilkårInnvilget
+import no.nav.su.se.bakover.test.beregningAvslagForHøyInntekt
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
-import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
+import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt0
+import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
+import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt0
+import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
-internal val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.januar(2021)))
+internal val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
 internal val tomBehandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
 internal val behandlingsinformasjonMedAlleVilkårOppfylt =
     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -100,20 +125,11 @@ internal val behandlingsinformasjonMedAvslag =
 
 internal val oppgaveId = OppgaveId("oppgaveId")
 internal val journalpostId = JournalpostId("journalpostId")
-internal fun beregning(periode: Periode = stønadsperiode.periode) =
-    TestBeregning.toSnapshot().copy(periode = periode)
 
-internal val persistertMånedsberegning = PersistertMånedsberegning(
-    sumYtelse = 0,
-    sumFradrag = 0.0,
-    benyttetGrunnbeløp = 0,
-    sats = Sats.ORDINÆR,
-    satsbeløp = 0.0,
-    fradrag = listOf(),
-    periode = Periode.create(1.januar(2020), 31.desember(2020)),
-    fribeløpForEps = 0.0,
-)
-internal val avslåttBeregning: PersistertBeregning = beregningAvslag().toSnapshot()
+internal fun innvilgetBeregning(periode: Periode = stønadsperiode.periode) =
+    no.nav.su.se.bakover.test.beregning(periode)
+
+internal val avslåttBeregning: Beregning = beregningAvslagForHøyInntekt()
 
 internal fun simulering(fnr: Fnr) = Simulering(
     gjelderId = fnr,
@@ -134,18 +150,35 @@ internal val underkjentAttestering =
     )
 internal val iverksattAttestering = Attestering.Iverksatt(attestant, fixedTidspunkt)
 internal val avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt)
-internal fun utbetalingslinje() = Utbetalingslinje.Ny(
-    fraOgMed = 1.januar(2020),
-    tilOgMed = 31.desember(2020),
-    forrigeUtbetalingslinjeId = null,
-    beløp = 25000,
-    uføregrad = Uføregrad.parse(50),
-)
+internal fun utbetalingslinje(periode: Periode = stønadsperiode.periode) =
+    Utbetalingslinje.Ny(
+        opprettet = fixedTidspunkt,
+        fraOgMed = periode.fraOgMed,
+        tilOgMed = periode.tilOgMed,
+        forrigeUtbetalingslinjeId = null,
+        beløp = 25000,
+        uføregrad = Uføregrad.parse(50),
+    )
+
+internal fun utbetalingslinje(
+    beløp: Int = 25000,
+    fraOgMed: LocalDate = 1.januar(2020),
+    tilOgMed: LocalDate = 31.desember(2020),
+): Utbetalingslinje.Ny {
+    return Utbetalingslinje.Ny(
+        opprettet = fixedTidspunkt,
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+        forrigeUtbetalingslinjeId = null,
+        beløp = beløp,
+        uføregrad = Uføregrad.parse(50),
+    )
+}
 
 internal fun oversendtUtbetalingUtenKvittering(
     søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
-    utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
+    utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(søknadsbehandling.periode)),
 ) = oversendtUtbetalingUtenKvittering(
     søknadsbehandling.fnr,
     søknadsbehandling.sakId,
@@ -157,7 +190,7 @@ internal fun oversendtUtbetalingUtenKvittering(
 internal fun oversendtUtbetalingUtenKvittering(
     revurdering: RevurderingTilAttestering,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
-    utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
+    utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(revurdering.periode)),
 ) = oversendtUtbetalingUtenKvittering(
     revurdering.fnr,
     revurdering.sakId,
@@ -207,6 +240,7 @@ internal class TestDataHelper(
     internal val utbetalingRepo = UtbetalingPostgresRepo(
         dataSource = dataSource,
         dbMetrics = dbMetrics,
+        sessionFactory = sessionFactory
     )
     internal val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     internal val søknadRepo = SøknadPostgresRepo(
@@ -215,6 +249,7 @@ internal class TestDataHelper(
         postgresSessionFactory = sessionFactory,
     )
     internal val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
+    internal val utenlandsoppholdgrunnlagPostgresRepo = UtenlandsoppholdgrunnlagPostgresRepo()
     internal val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(
         dataSource = dataSource,
         dbMetrics = dbMetrics,
@@ -232,6 +267,11 @@ internal class TestDataHelper(
         uføregrunnlagRepo = uføregrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
     )
+    internal val utenlandsoppholdVilkårsvurderingRepo = UtenlandsoppholdVilkårsvurderingPostgresRepo(
+        utenlandsoppholdgrunnlagRepo = utenlandsoppholdgrunnlagPostgresRepo,
+        dbMetrics = dbMetrics,
+    )
+    internal val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(sessionFactory)
     internal val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo()
     internal val formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(
         dataSource = dataSource,
@@ -245,38 +285,49 @@ internal class TestDataHelper(
         uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
+        utenlandsoppholdVilkårsvurderingRepo = utenlandsoppholdVilkårsvurderingRepo,
+        avkortingsvarselRepo = avkortingsvarselRepo,
     )
+    internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory)
     internal val revurderingRepo = RevurderingPostgresRepo(
         dataSource = dataSource,
         fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
         bosituasjonsgrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
         uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
+        utlandsoppholdVilkårsvurderingRepo = utenlandsoppholdVilkårsvurderingRepo,
         formueVilkårsvurderingRepo = formueVilkårsvurderingPostgresRepo,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
+        klageRepo = klagePostgresRepo,
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
+        avkortingsvarselRepo = avkortingsvarselRepo,
     )
     internal val vedtakRepo = VedtakPostgresRepo(
         dataSource = dataSource,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         revurderingRepo = revurderingRepo,
+        klageRepo = klagePostgresRepo,
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
     )
+    internal val personRepo = PersonPostgresRepo(
+        dataSource = dataSource,
+        dbMetrics = dbMetrics,
+    )
+    internal val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource = dataSource, fixedClock)
+    internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
+    internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource, fixedClock)
+
+    internal val klagevedtakPostgresRepo = KlagevedtakPostgresRepo(sessionFactory)
+
     internal val sakRepo = SakPostgresRepo(
         sessionFactory = sessionFactory,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         revurderingRepo = revurderingRepo,
         vedtakPostgresRepo = vedtakRepo,
         dbMetrics = dbMetrics,
+        klageRepo = klagePostgresRepo,
     )
-    internal val personRepo = PersonPostgresRepo(
-        dataSource = dataSource,
-        dbMetrics = dbMetrics,
-    )
-    internal val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource = dataSource)
-    internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
-    internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource, fixedClock)
     internal val tilbakekrevingRepo = TilbakekrevingPostgresRepo(sessionFactory = sessionFactory)
 
     fun nySakMedNySøknad(
@@ -345,7 +396,7 @@ internal class TestDataHelper(
             søknadRepo.oppdaterjournalpostId(journalførtSøknad)
         }
         return sakRepo.hentSak(nySak.id)
-            ?: throw java.lang.IllegalStateException("Fant ikke sak rett etter vi opprettet den.")
+            ?: throw IllegalStateException("Fant ikke sak rett etter vi opprettet den.")
     }
 
     fun journalførtSøknadForEksisterendeSak(
@@ -367,7 +418,7 @@ internal class TestDataHelper(
             søknadRepo.oppdaterOppgaveId(it)
         }
         return sakRepo.hentSak(sak.id)
-            ?: throw java.lang.IllegalStateException("Fant ikke sak rett etter vi opprettet den.")
+            ?: throw IllegalStateException("Fant ikke sak rett etter vi opprettet den.")
     }
 
     fun journalførtSøknadMedOppgaveForEksisterendeSak(
@@ -381,10 +432,12 @@ internal class TestDataHelper(
     }
 
     fun nyOversendtUtbetalingMedKvittering(
+        periode: Periode = stønadsperiode.periode,
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
-        utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
+        utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode)),
     ): Pair<Søknadsbehandling.Iverksatt.Innvilget, Utbetaling.OversendtUtbetaling.MedKvittering> {
         val utenKvittering = nyIverksattInnvilget(
+            periode = periode,
             avstemmingsnøkkel = avstemmingsnøkkel,
             utbetalingslinjer = utbetalingslinjer,
         )
@@ -399,21 +452,23 @@ internal class TestDataHelper(
         søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
         utbetalingId: UUID30,
     ) =
-        Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock).also {
+        VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock).also {
             vedtakRepo.lagre(it)
         }
 
-    fun vedtakMedInnvilgetSøknadsbehandling(): Pair<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling, Utbetaling> {
-        val (søknadsbehandling, utbetaling) = nyOversendtUtbetalingMedKvittering()
+    fun vedtakMedInnvilgetSøknadsbehandling(
+        periode: Periode = stønadsperiode.periode,
+    ): Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, Utbetaling> {
+        val (søknadsbehandling, utbetaling) = nyOversendtUtbetalingMedKvittering(periode)
         return Pair(
-            Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock).also {
+            VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock).also {
                 vedtakRepo.lagre(it)
             },
             utbetaling,
         )
     }
 
-    fun vedtakForRevurdering(revurdering: RevurderingTilAttestering.Innvilget): Pair<Vedtak.EndringIYtelse, Utbetaling> {
+    fun vedtakForRevurdering(revurdering: RevurderingTilAttestering.Innvilget): Pair<VedtakSomKanRevurderes.EndringIYtelse, Utbetaling> {
         val utbetalingId = UUID30.randomUUID()
 
         val utbetaling = oversendtUtbetalingUtenKvittering(
@@ -422,13 +477,17 @@ internal class TestDataHelper(
             utbetalingslinjer = nonEmptyListOf(utbetalingslinje()),
         ).copy(id = utbetalingId)
 
-        utbetalingRepo.opprettUtbetaling(utbetaling)
+        utbetalingRepo.opprettUtbetaling(utbetaling, sessionFactory.newTransactionContext())
 
         return Pair(
-            Vedtak.from(
+            VedtakSomKanRevurderes.from(
                 revurdering = revurdering.tilIverksatt(
                     attestant = attestant,
-                ) { utbetaling.id.right() }.orNull()!!,
+                    utbetal = { utbetaling.id.right() },
+                    hentOpprinneligAvkorting = { avkortingid ->
+                        avkortingsvarselRepo.hent(id = avkortingid)
+                    },
+                ).orNull()!!,
                 utbetalingId = utbetaling.id,
                 fixedClock,
             ).also {
@@ -438,12 +497,19 @@ internal class TestDataHelper(
         )
     }
 
+    fun vedtakForIverksattAvvistKlage(klage: IverksattAvvistKlage = iverksattAvvistKlage()): Klagevedtak.Avvist {
+        return Klagevedtak.Avvist.fromIverksattAvvistKlage(klage, fixedClock).also {
+            vedtakRepo.lagre(it)
+        }
+    }
+
     fun nyRevurdering(
-        innvilget: Vedtak.EndringIYtelse,
+        innvilget: VedtakSomKanRevurderes.EndringIYtelse,
         periode: Periode,
         epsFnr: Fnr? = null,
-        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataRevurdering(epsFnr),
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering = innvilgetVilkårsvurderingerRevurdering(),
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataRevurdering(periode, epsFnr),
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering = innvilgetVilkårsvurderingerSøknadsbehandling(periode = periode)
+            .tilVilkårsvurderingerRevurdering(),
     ): OpprettetRevurdering {
         return OpprettetRevurdering(
             id = UUID.randomUUID(),
@@ -462,6 +528,7 @@ internal class TestDataHelper(
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
         ).also {
             lagreVilkårOgGrunnlag(
                 behandlingId = it.id,
@@ -472,44 +539,45 @@ internal class TestDataHelper(
         }
     }
 
-    fun beregnetOpphørtRevurdering(): BeregnetRevurdering {
+    private fun beregnetRevurdering(): BeregnetRevurdering.Innvilget {
         val vedtak = vedtakMedInnvilgetSøknadsbehandling()
         return nyRevurdering(
             innvilget = vedtak.first,
             periode = stønadsperiode.periode,
             epsFnr = null,
         ).beregn(
-            listOf(vedtak.second),
-        ).getOrHandle {
-            throw java.lang.IllegalStateException("Her skal vi ha en beregnet revurdering")
-        }.also {
+            eksisterendeUtbetalinger = listOf(vedtak.second),
+            clock = clock,
+            gjeldendeVedtaksdata = GjeldendeVedtaksdata(
+                periode = stønadsperiode.periode,
+                vedtakListe = nonEmptyListOf(vedtak.first),
+                clock = clock,
+            )
+        ).getOrFail().let {
             revurderingRepo.lagre(it)
+            it as BeregnetRevurdering.Innvilget
         }
     }
 
-    private fun simulertOpphørtRevurdering(): SimulertRevurdering {
-        return beregnetOpphørtRevurdering().toSimulert(simulering(Fnr.generer())).also {
+    private fun simulertRevurdering(): SimulertRevurdering {
+        return beregnetRevurdering().toSimulert(simulering(Fnr.generer())).also {
             revurderingRepo.lagre(it)
         }
     }
 
     fun tilAttesteringRevurdering(): RevurderingTilAttestering {
-        val simulert = simulertOpphørtRevurdering()
+        val simulert = simulertRevurdering()
         return when (simulert) {
             is SimulertRevurdering.Innvilget -> simulert.tilAttestering(
                 attesteringsoppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "",
-                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            )
+            ).getOrFail()
             is SimulertRevurdering.Opphørt -> simulert.tilAttestering(
                 attesteringsoppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "",
-                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            ).getOrHandle {
-                throw java.lang.IllegalStateException("Her skal vi ha en revurdering som er til attestering")
-            }
+            ).getOrFail()
         }.also {
             revurderingRepo.lagre(it)
         }
@@ -520,21 +588,23 @@ internal class TestDataHelper(
             is RevurderingTilAttestering.IngenEndring -> tilAttestering.tilIverksatt(
                 attestant,
             ).getOrHandle {
-                throw javax.jms.IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
+                throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
             }
             is RevurderingTilAttestering.Innvilget -> tilAttestering.tilIverksatt(
                 attestant = attestant,
-            ) {
-                UUID30.randomUUID().right()
-            }.getOrHandle {
-                throw javax.jms.IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
+                utbetal = { UUID30.randomUUID().right() },
+                hentOpprinneligAvkorting = { null },
+            ).getOrHandle {
+                throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
             }
             is RevurderingTilAttestering.Opphørt -> tilAttestering.tilIverksatt(
-                attestant,
-            ) {
-                UUID30.randomUUID().right()
-            }.getOrHandle {
-                throw javax.jms.IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
+                attestant = attestant,
+                utbetal = { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering ->
+                    UUID30.randomUUID().right()
+                },
+                hentOpprinneligAvkorting = { null },
+            ).getOrHandle {
+                throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
             }
         }.also {
             revurderingRepo.lagre(it)
@@ -547,6 +617,147 @@ internal class TestDataHelper(
         }
     }
 
+    fun beregnetInnvilgetRevurdering(): BeregnetRevurdering.Innvilget {
+        val vedtak = vedtakMedInnvilgetSøknadsbehandling()
+        return nyRevurdering(
+            innvilget = vedtak.first,
+            periode = stønadsperiode.periode,
+            epsFnr = null,
+        ).beregn(
+            eksisterendeUtbetalinger = listOf(vedtak.second),
+            clock = clock,
+            gjeldendeVedtaksdata = GjeldendeVedtaksdata(
+                periode = stønadsperiode.periode,
+                vedtakListe = nonEmptyListOf(vedtak.first),
+                clock = clock,
+            ),
+        ).getOrHandle {
+            throw IllegalStateException("Her skal vi ha en beregnet revurdering")
+        }.also {
+            revurderingRepo.lagre(it)
+        } as BeregnetRevurdering.Innvilget
+    }
+
+    fun beregnetOpphørtRevurdering(): BeregnetRevurdering.Opphørt {
+        val vedtak = vedtakMedInnvilgetSøknadsbehandling()
+        return nyRevurdering(
+            innvilget = vedtak.first,
+            periode = stønadsperiode.periode,
+            epsFnr = null,
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
+                periode = stønadsperiode.periode,
+            ),
+        ).beregn(
+            eksisterendeUtbetalinger = listOf(vedtak.second),
+            clock = clock,
+            gjeldendeVedtaksdata = GjeldendeVedtaksdata(
+                periode = stønadsperiode.periode,
+                vedtakListe = nonEmptyListOf(vedtak.first),
+                clock = clock,
+            ),
+        ).getOrHandle {
+            throw IllegalStateException("Her skal vi ha en beregnet revurdering")
+        }.also {
+            revurderingRepo.lagre(it)
+        } as BeregnetRevurdering.Opphørt
+    }
+
+    fun beregnetIngenEndringRevurdering(): BeregnetRevurdering.IngenEndring {
+        val vedtak = vedtakMedInnvilgetSøknadsbehandling(
+            stønadsperiode.periode,
+        )
+        val gjeldende = GjeldendeVedtaksdata(
+            periode = stønadsperiode.periode,
+            vedtakListe = nonEmptyListOf(vedtak.first),
+            clock = fixedClock,
+        )
+        return nyRevurdering(
+            innvilget = vedtak.first,
+            periode = stønadsperiode.periode,
+            epsFnr = null,
+            grunnlagsdata = gjeldende.grunnlagsdata,
+            vilkårsvurderinger = gjeldende.vilkårsvurderinger,
+        ).beregn(
+            eksisterendeUtbetalinger = listOf(vedtak.second),
+            clock = clock,
+            gjeldendeVedtaksdata = gjeldende,
+        ).getOrHandle {
+            throw IllegalStateException("Her skal vi ha en beregnet revurdering")
+        }.also {
+            revurderingRepo.lagre(it)
+        } as BeregnetRevurdering.IngenEndring
+    }
+
+    fun simulertInnvilgetRevurdering(): SimulertRevurdering.Innvilget {
+        return beregnetInnvilgetRevurdering().toSimulert(simulering(Fnr.generer())).also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
+    /**
+     * Setter forhåndsvarsel til SkalIkkeForhåndsvarsel dersom den ikke er satt på dette tidspunktet.
+     */
+    fun revurderingTilAttesteringInnvilget(): RevurderingTilAttestering.Innvilget {
+        val simulert: SimulertRevurdering.Innvilget = simulertInnvilgetRevurdering().let {
+            if (it.forhåndsvarsel == null) it.prøvOvergangTilSkalIkkeForhåndsvarsles().orNull()!! else it
+        }
+        return simulert.tilAttestering(
+            attesteringsoppgaveId = oppgaveId,
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = "",
+        ).getOrHandle {
+            throw IllegalStateException("Her skal vi ha en revurdering som er til attestering, feil: $it")
+        }.also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
+    /**
+     * Setter forhåndsvarsel til SkalIkkeForhåndsvarsel dersom den ikke er satt på dette tidspunktet.
+     */
+    @Suppress("unused")
+    fun revurderingTilAttesteringIngenEndring(): RevurderingTilAttestering.IngenEndring {
+        val beregnet: BeregnetRevurdering.IngenEndring = beregnetIngenEndringRevurdering()
+        return beregnet.tilAttestering(
+            attesteringsoppgaveId = oppgaveId,
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = "",
+            skalFøreTilUtsendingAvVedtaksbrev = false,
+        ).also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
+    @Suppress("unused")
+    fun iverksattRevurderingInnvilget(): IverksattRevurdering.Innvilget {
+        return revurderingTilAttesteringInnvilget().tilIverksatt(
+            attestant = attestant,
+            utbetal = { UUID30.randomUUID().right() },
+            hentOpprinneligAvkorting = { null },
+        ).getOrHandle {
+            throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
+        }.also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
+    @Suppress("unused")
+    fun iverksattRevurderingIngenEndring(): IverksattRevurdering.IngenEndring {
+        return revurderingTilAttesteringIngenEndring().tilIverksatt(
+            attestant,
+        ).getOrHandle {
+            throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
+        }.also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
+    fun underkjentRevurderingFraInnvilget(): UnderkjentRevurdering.Innvilget {
+        return revurderingTilAttesteringInnvilget().underkjenn(underkjentAttestering, OppgaveId("oppgaveid")).also {
+            revurderingRepo.lagre(it)
+        } as UnderkjentRevurdering.Innvilget
+    }
+
     /* Kaller lagreNySøknadsbehandling (insert) */
     fun nySøknadsbehandling(
         sak: Sak = nySakMedJournalførtSøknadOgOppgave(),
@@ -554,7 +765,6 @@ internal class TestDataHelper(
         behandlingsinformasjon: Behandlingsinformasjon = tomBehandlingsinformasjon,
         stønadsperiode: Stønadsperiode? = no.nav.su.se.bakover.database.stønadsperiode,
     ): Søknadsbehandling.Vilkårsvurdert.Uavklart {
-
         return NySøknadsbehandling(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -563,6 +773,7 @@ internal class TestDataHelper(
             oppgaveId = søknad.oppgaveId,
             behandlingsinformasjon = behandlingsinformasjon,
             fnr = sak.fnr,
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
         ).let {
             søknadsbehandlingRepo.lagreNySøknadsbehandling(it)
             (søknadsbehandlingRepo.hent(it.id)!! as Søknadsbehandling.Vilkårsvurdert.Uavklart).copy(
@@ -573,97 +784,34 @@ internal class TestDataHelper(
         }
     }
 
-    private fun innvilgetVilkårsvurderingerSøknadsbehandling() = Vilkårsvurderinger.Søknadsbehandling(
-        uføre = Vilkår.Uførhet.Vurdert.create(
-            vurderingsperioder = nonEmptyListOf(
-                Vurderingsperiode.Uføre.create(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    resultat = Resultat.Innvilget,
-                    grunnlag = Grunnlag.Uføregrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = stønadsperiode.periode,
-                        uføregrad = Uføregrad.parse(100),
-                        forventetInntekt = 0,
-                    ),
-                    periode = stønadsperiode.periode,
-                    begrunnelse = null,
-                ),
-            ),
-        ),
-        // søknadsbehandling benytter enn så lenge formue fra behandlingsinformajson
-    ).oppdater(
-        stønadsperiode = stønadsperiode,
-        behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
-        grunnlagsdata = Grunnlagsdata.tryCreate(
-            fradragsgrunnlag = listOf(),
-            bosituasjon = listOf(bosituasjongrunnlagEnslig(stønadsperiode.periode)),
-        ).getOrFail(),
-        clock = fixedClock,
-
-    )
-
-    private fun innvilgetGrunnlagsdataSøknadsbehandling(epsFnr: Fnr? = null) = Grunnlagsdata.create(
+    private fun innvilgetGrunnlagsdataSøknadsbehandling(
+        periode: Periode = stønadsperiode.periode,
+        epsFnr: Fnr? = null,
+    ) = Grunnlagsdata.create(
         bosituasjon = listOf(
-            if (epsFnr != null) Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-                id = UUID.randomUUID(),
-                fnr = epsFnr,
-                opprettet = fixedTidspunkt,
-                periode = stønadsperiode.periode,
-                begrunnelse = null,
-            ) else
-                Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    periode = stønadsperiode.periode,
-                    begrunnelse = null,
-                ),
+            when (epsFnr == null) {
+                true -> bosituasjongrunnlagEnslig(id = UUID.randomUUID(), periode = periode)
+                false -> bosituasjongrunnlagEpsUførFlyktning(id = UUID.randomUUID(), periode = periode, epsFnr = epsFnr)
+            },
         ),
         // søknadsbehandling benytter enn så lenge fradrag rett fra beregning
         fradragsgrunnlag = emptyList(),
     )
 
-    private fun innvilgetVilkårsvurderingerRevurdering() = innvilgetVilkårsvurderingerSøknadsbehandling()
-        .tilVilkårsvurderingerRevurdering()
-        .copy(
-            formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
-                vurderingsperioder = nonEmptyListOf(
-                    Vurderingsperiode.Formue.create(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        resultat = Resultat.Innvilget,
-                        grunnlag = Formuegrunnlag.fromPersistence(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            periode = stønadsperiode.periode, epsFormue = null,
-                            søkersFormue = Formuegrunnlag.Verdier.create(
-                                verdiIkkePrimærbolig = 0,
-                                verdiEiendommer = 0,
-                                verdiKjøretøy = 0,
-                                innskudd = 0,
-                                verdipapir = 0,
-                                pengerSkyldt = 0,
-                                kontanter = 0,
-                                depositumskonto = 0,
-                            ),
-                            begrunnelse = null,
-                        ),
-                        periode = stønadsperiode.periode,
-                    ),
-                ),
-            ),
-        )
-
-    private fun innvilgetGrunnlagsdataRevurdering(epsFnr: Fnr? = null) =
-        innvilgetGrunnlagsdataSøknadsbehandling(epsFnr)
+    private fun innvilgetGrunnlagsdataRevurdering(
+        periode: Periode = stønadsperiode.periode,
+        epsFnr: Fnr? = null,
+    ) =
+        innvilgetGrunnlagsdataSøknadsbehandling(periode, epsFnr)
 
     internal fun nyInnvilgetVilkårsvurdering(
+        periode: Periode = stønadsperiode.periode,
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
-        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = innvilgetVilkårsvurderingerSøknadsbehandling(),
-        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(),
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = innvilgetVilkårsvurderingerSøknadsbehandling(periode = periode),
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(periode = periode),
     ): Søknadsbehandling.Vilkårsvurdert.Innvilget {
         return nySøknadsbehandling(
+            stønadsperiode = Stønadsperiode.create(periode),
             behandlingsinformasjon = behandlingsinformasjon,
         ).copy(
             vilkårsvurderinger = vilkårsvurderinger,
@@ -681,6 +829,36 @@ internal class TestDataHelper(
         } as Søknadsbehandling.Vilkårsvurdert.Innvilget
     }
 
+    fun innvilgetVilkårsvurderingerSøknadsbehandling(
+        periode: Periode = stønadsperiode.periode,
+        uføre: Vilkår.Uførhet = innvilgetUførevilkårForventetInntekt0(
+            id = UUID.randomUUID(),
+            periode = periode,
+            uføregrunnlag = uføregrunnlagForventetInntekt0(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = periode,
+            ),
+        ),
+        bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(
+            id = UUID.randomUUID(),
+            periode = periode,
+        ),
+        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+        utenlandsopphold: UtenlandsoppholdVilkår = utlandsoppholdInnvilget(
+            id = UUID.randomUUID(),
+            periode = periode,
+        ),
+    ): Vilkårsvurderinger.Søknadsbehandling {
+        return vilkårsvurderingerInnvilget(
+            periode = periode,
+            uføre = uføre,
+            bosituasjon = bosituasjon,
+            behandlingsinformasjon = behandlingsinformasjon,
+            utenlandsopphold = utenlandsopphold,
+        )
+    }
+
     internal fun lagreVilkårOgGrunnlag(
         behandlingId: UUID,
         vilkårsvurderinger: Vilkårsvurderinger,
@@ -694,7 +872,6 @@ internal class TestDataHelper(
                 formueVilkårsvurderingPostgresRepo.lagre(behandlingId, vilkårsvurderinger.formue)
             }
             is Vilkårsvurderinger.Søknadsbehandling -> {
-                uføreVilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.uføre)
                 formueVilkårsvurderingPostgresRepo.lagre(behandlingId, vilkårsvurderinger.formue)
             }
         }
@@ -702,7 +879,7 @@ internal class TestDataHelper(
 
     internal fun nyAvslåttVilkårsvurdering(
         grunnlagsdata: Grunnlagsdata = Grunnlagsdata.create(
-            bosituasjon = listOf(bosituasjongrunnlagEnslig(stønadsperiode.periode)),
+            bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = stønadsperiode.periode)),
         ),
         vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = Vilkårsvurderinger.Søknadsbehandling(
             uføre = innvilgetUførevilkår(periode = stønadsperiode.periode),
@@ -723,31 +900,58 @@ internal class TestDataHelper(
     }
 
     private fun nyInnvilgetBeregning(
+        periode: Periode = stønadsperiode.periode,
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
-        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = innvilgetVilkårsvurderingerSøknadsbehandling(),
-        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(),
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = innvilgetVilkårsvurderingerSøknadsbehandling(periode),
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(periode),
     ): Søknadsbehandling.Beregnet.Innvilget {
-        return nyInnvilgetVilkårsvurdering(behandlingsinformasjon, vilkårsvurderinger, grunnlagsdata).tilBeregnet(
-            beregning(),
-        ).also {
+        return nyInnvilgetVilkårsvurdering(
+            periode,
+            behandlingsinformasjon,
+            vilkårsvurderinger,
+            grunnlagsdata,
+        ).beregn(
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail().also {
             søknadsbehandlingRepo.lagre(it)
         } as Søknadsbehandling.Beregnet.Innvilget
     }
 
     internal fun nyAvslåttBeregning(): Søknadsbehandling.Beregnet.Avslag {
-        return nyInnvilgetVilkårsvurdering().tilBeregnet(
-            avslåttBeregning,
-        ).also {
+        return nyInnvilgetVilkårsvurdering(
+            vilkårsvurderinger = innvilgetVilkårsvurderingerSøknadsbehandling(
+                periode = stønadsperiode.periode,
+                uføre = innvilgetUførevilkårForventetInntekt0(
+                    id = UUID.randomUUID(),
+                    periode = stønadsperiode.periode,
+                    uføregrunnlag = uføregrunnlagForventetInntekt(
+                        id = UUID.randomUUID(),
+                        periode = stønadsperiode.periode,
+                        forventetInntekt = 1_000_000,
+                    ),
+                ),
+            ),
+        ).beregn(
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail().also {
             søknadsbehandlingRepo.lagre(it)
         } as Søknadsbehandling.Beregnet.Avslag
     }
 
     private fun nySimulering(
+        periode: Periode = stønadsperiode.periode,
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
-        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = innvilgetVilkårsvurderingerSøknadsbehandling(),
-        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(),
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = innvilgetVilkårsvurderingerSøknadsbehandling(periode),
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(periode),
     ): Søknadsbehandling.Simulert {
-        return nyInnvilgetBeregning(behandlingsinformasjon, vilkårsvurderinger, grunnlagsdata).let {
+        return nyInnvilgetBeregning(
+            periode,
+            behandlingsinformasjon,
+            vilkårsvurderinger,
+            grunnlagsdata,
+        ).let {
             it.tilSimulert(simulering(it.fnr))
         }.also {
             søknadsbehandlingRepo.lagre(it)
@@ -755,12 +959,18 @@ internal class TestDataHelper(
     }
 
     internal fun nyTilInnvilgetAttestering(
+        periode: Periode = stønadsperiode.periode,
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
-        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = innvilgetVilkårsvurderingerSøknadsbehandling(),
-        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(),
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = innvilgetVilkårsvurderingerSøknadsbehandling(periode),
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(periode),
         fritekstTilBrev: String = "",
     ): Søknadsbehandling.TilAttestering.Innvilget {
-        return nySimulering(behandlingsinformasjon, vilkårsvurderinger, grunnlagsdata).tilAttestering(
+        return nySimulering(
+            periode,
+            behandlingsinformasjon,
+            vilkårsvurderinger,
+            grunnlagsdata,
+        ).tilAttestering(
             saksbehandler,
             fritekstTilBrev,
         ).also {
@@ -813,16 +1023,22 @@ internal class TestDataHelper(
     }
 
     internal fun nyIverksattInnvilget(
+        periode: Periode = stønadsperiode.periode,
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
-        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = innvilgetVilkårsvurderingerSøknadsbehandling(),
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = innvilgetVilkårsvurderingerSøknadsbehandling(periode),
         epsFnr: Fnr? = null,
-        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(epsFnr),
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(periode, epsFnr),
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
-        utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
+        utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode)),
     ): Pair<Søknadsbehandling.Iverksatt.Innvilget, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         val utbetalingId = UUID30.randomUUID()
         val innvilget =
-            nyTilInnvilgetAttestering(behandlingsinformasjon, vilkårsvurderinger, grunnlagsdata).tilIverksatt(
+            nyTilInnvilgetAttestering(
+                periode = periode,
+                behandlingsinformasjon,
+                vilkårsvurderinger,
+                grunnlagsdata,
+            ).tilIverksatt(
                 iverksattAttestering,
             )
         val utbetaling = oversendtUtbetalingUtenKvittering(
@@ -830,11 +1046,13 @@ internal class TestDataHelper(
             avstemmingsnøkkel = avstemmingsnøkkel,
             utbetalingslinjer = utbetalingslinjer,
         ).copy(id = utbetalingId)
-        utbetalingRepo.opprettUtbetaling(utbetaling)
+        utbetalingRepo.opprettUtbetaling(utbetaling, sessionFactory.newTransactionContext())
         søknadsbehandlingRepo.lagre(innvilget)
+        vedtakRepo.lagre(VedtakSomKanRevurderes.fromSøknadsbehandling(innvilget, utbetalingId, fixedClock))
         return innvilget to utbetaling
     }
 
+    @Suppress("unused")
     internal fun nyUtbetalingUtenKvittering(
         revurderingTilAttestering: RevurderingTilAttestering,
     ): Utbetaling.OversendtUtbetaling.UtenKvittering {
@@ -844,7 +1062,7 @@ internal class TestDataHelper(
             utbetalingslinjer = nonEmptyListOf(utbetalingslinje()),
         ).copy(id = UUID30.randomUUID())
 
-        utbetalingRepo.opprettUtbetaling(utbetaling)
+        utbetalingRepo.opprettUtbetaling(utbetaling, sessionFactory.newTransactionContext())
         return utbetaling
     }
 
@@ -866,6 +1084,263 @@ internal class TestDataHelper(
         ).also {
             søknadsbehandlingRepo.lagre(it)
         }
+    }
+
+    fun nyKlage(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): OpprettetKlage {
+        return Klage.ny(
+            sakId = vedtak.behandling.sakId,
+            saksnummer = vedtak.behandling.saksnummer,
+            fnr = vedtak.behandling.fnr,
+            journalpostId = JournalpostId(value = UUID.randomUUID().toString()),
+            oppgaveId = oppgaveId,
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerNyKlage"),
+            clock = fixedClock,
+            datoKlageMottatt = fixedLocalDate,
+        ).also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun utfyltVilkårsvurdertKlageTilVurdering(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VilkårsvurdertKlage.Utfylt.TilVurdering {
+        return nyKlage(vedtak = vedtak).vilkårsvurder(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVilkårsvurdertKlage"),
+            vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                vedtakId = vedtak.id,
+                innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
+                klagesDetPåKonkreteElementerIVedtaket = true,
+                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
+                begrunnelse = "enBegrunnelse",
+            ),
+        ).getOrFail().let {
+            if (it !is VilkårsvurdertKlage.Utfylt.TilVurdering) throw IllegalStateException("Forventet en Utfylt(TilVurdering) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")
+            it
+        }.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun utfyltAvvistVilkårsvurdertKlage(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VilkårsvurdertKlage.Utfylt.Avvist {
+        return nyKlage(vedtak).vilkårsvurder(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltAvvistVilkårsvurdertKlage"),
+            vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                vedtakId = vedtak.id,
+                innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
+                klagesDetPåKonkreteElementerIVedtaket = true,
+                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
+                begrunnelse = "en begrunnelse med person opplysninger",
+            ),
+        ).getOrFail().let {
+            if (it !is VilkårsvurdertKlage.Utfylt.Avvist) throw IllegalStateException("Forventet en Utfylt(Avvist) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")
+            it
+        }.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun bekreftetVilkårsvurdertKlageTilVurdering(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VilkårsvurdertKlage.Bekreftet.TilVurdering {
+        return utfyltVilkårsvurdertKlageTilVurdering(vedtak = vedtak).bekreftVilkårsvurderinger(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVilkårsvurdertKlage"),
+        ).orNull()!!.let {
+            if (it !is VilkårsvurdertKlage.Bekreftet.TilVurdering) throw IllegalStateException("Forventet en Bekreftet(TilVurdering) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")
+            it
+        }.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun bekreftetAvvistVilkårsvurdertKlage(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VilkårsvurdertKlage.Bekreftet.Avvist {
+        return utfyltAvvistVilkårsvurdertKlage(vedtak).bekreftVilkårsvurderinger(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetAvvistVilkårsvurdertKlage"),
+        ).getOrFail().let {
+            if (it !is VilkårsvurdertKlage.Bekreftet.Avvist) throw IllegalStateException("Forventet en Bekreftet(Avvist) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")
+            it
+        }.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun påbegyntVurdertKlage(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VurdertKlage.Påbegynt {
+        return bekreftetVilkårsvurdertKlageTilVurdering(vedtak = vedtak).vurder(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
+            vurderinger = VurderingerTilKlage.Påbegynt.create(
+                fritekstTilBrev = "Friteksten til brevet er som følge: ",
+                vedtaksvurdering = null,
+            ),
+        ).getOrFail().let {
+            if (it !is VurdertKlage.Påbegynt) throw IllegalStateException("Forventet en Påbegynt vurdert klage. fikk ${it::class} ved opprettelse av test data")
+            it
+        }.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun utfyltVurdertKlage(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VurdertKlage.Utfylt {
+        return påbegyntVurdertKlage(vedtak = vedtak).vurder(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
+            vurderinger = VurderingerTilKlage.Utfylt(
+                fritekstTilBrev = "Friteksten til brevet er som følge: ",
+                vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold(
+                    hjemler = Hjemler.Utfylt.create(
+                        nonEmptyListOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4),
+                    ),
+                ),
+            ),
+        ).getOrFail().let {
+            if (it !is VurdertKlage.Utfylt) throw IllegalStateException("Forventet en Påbegynt vurdert klage. fikk ${it::class} ved opprettelse av test data")
+            it
+        }.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun bekreftetVurdertKlage(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VurdertKlage.Bekreftet {
+        return utfyltVurdertKlage(vedtak = vedtak).bekreftVurderinger(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVurdertKlage"),
+        ).orNull()!!.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun avvistKlage(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerAvvistKlage"),
+        fritekstTilBrev: String = "en god, og lang fritekst",
+    ): AvvistKlage {
+        return bekreftetAvvistVilkårsvurdertKlage(vedtak).leggTilAvvistFritekstTilBrev(
+            saksbehandler,
+            fritekstTilBrev,
+        ).getOrFail().also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun klageTilAttesteringTilVurdering(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
+    ): KlageTilAttestering.Vurdert {
+        return bekreftetVurdertKlage(vedtak = vedtak).sendTilAttestering(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerKlageTilAttestering"),
+            opprettOppgave = { oppgaveId.right() },
+        ).orNull()!!.let {
+            if (it !is KlageTilAttestering.Vurdert) throw IllegalStateException("Forventet en KlageTilAttestering(TilVurdering). fikk ${it::class} ved opprettelse av test-data")
+            it
+        }.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun avvistKlageTilAttestering(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
+        saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerAvvistKlageTilAttestering"),
+        fritekstTilBrev: String = "en god, og lang fritekst",
+    ): KlageTilAttestering.Avvist {
+        return avvistKlage(vedtak, saksbehandler, fritekstTilBrev).sendTilAttestering(
+            saksbehandler = saksbehandler,
+            opprettOppgave = { oppgaveId.right() },
+        ).getOrFail().also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun underkjentKlageTilVurdering(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        oppgaveId: OppgaveId = OppgaveId("underkjentKlageOppgaveId"),
+    ): VurdertKlage.Bekreftet {
+        return klageTilAttesteringTilVurdering(vedtak = vedtak, oppgaveId = oppgaveId).underkjenn(
+            underkjentAttestering = Attestering.Underkjent(
+                attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerUnderkjentKlage"),
+                opprettet = fixedTidspunkt,
+                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                kommentar = "underkjennelseskommentar",
+            ),
+        ) { oppgaveId.right() }.orNull()!!.let {
+            if (it !is VurdertKlage.Bekreftet) throw IllegalStateException("Forventet VurdertKlage.Bekreftet ved opprettelse av test data. fikk ${it::class} ved opprettelse av test-data")
+            it
+        }.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun underkjentAvvistKlage(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        oppgaveId: OppgaveId = OppgaveId("underkjentKlageOppgaveId"),
+    ): AvvistKlage {
+        return avvistKlageTilAttestering(vedtak, oppgaveId).underkjenn(
+            underkjentAttestering = Attestering.Underkjent(
+                attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerUnderkjentKlage"),
+                opprettet = fixedTidspunkt,
+                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                kommentar = "underkjennelseskommentar",
+            ),
+        ) { oppgaveId.right() }.getOrFail().also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun oversendtKlage(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
+    ): OversendtKlage {
+        return klageTilAttesteringTilVurdering(vedtak = vedtak, oppgaveId = oppgaveId).oversend(
+            iverksattAttestering = Attestering.Iverksatt(
+                attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerOversendtKlage"),
+                opprettet = fixedTidspunkt,
+            ),
+        ).orNull()!!.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun iverksattAvvistKlage(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
+    ): IverksattAvvistKlage {
+        return avvistKlageTilAttestering(vedtak, oppgaveId).iverksett(
+            iverksattAttestering = Attestering.Iverksatt(
+                attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerIverksattAvvistKlage"),
+                opprettet = fixedTidspunkt,
+            ),
+        ).getOrFail().also { klagePostgresRepo.lagre(it) }
+    }
+
+    fun uprosessertKlagevedtak(
+        id: UUID = UUID.randomUUID(),
+        klageId: UUID = UUID.randomUUID(),
+        utfall: KlagevedtakUtfall = KlagevedtakUtfall.STADFESTELSE,
+        opprettet: Tidspunkt = fixedTidspunkt,
+    ): Pair<UUID, UUID> {
+        klagevedtakPostgresRepo.lagre(
+            UprosessertFattetKlageinstansvedtak(
+                id = id,
+                opprettet = opprettet,
+                metadata = UprosessertFattetKlageinstansvedtak.Metadata(
+                    hendelseId = UUID.randomUUID().toString(),
+                    offset = 0,
+                    partisjon = 0,
+                    key = "",
+                    value = "{\"kildeReferanse\": \"$klageId\", \"utfall\":\"$utfall\"}",
+                ),
+            ),
+        )
+
+        return Pair(id, klageId)
     }
 
     companion object {

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Person.Navn
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.BrevConfig
 import no.nav.su.se.bakover.domain.brev.BrevInnhold.Personalia
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -19,6 +20,7 @@ internal class AvvistSøknadBrevRequestTest {
         fødselsnummer = Fnr(fnr = "12345678901"),
         fornavn = "Tore",
         etternavn = "Strømøy",
+        saksnummer = 2021,
     )
 
     private val person = Person(
@@ -36,6 +38,7 @@ internal class AvvistSøknadBrevRequestTest {
             brevConfig = BrevConfig.Vedtak(null),
             saksbehandlerNavn = "saksbehandler",
             dagensDato = fixedLocalDate,
+            saksnummer = Saksnummer(2021),
         ).brevInnhold shouldBe AvvistSøknadVedtakBrevInnhold(
             expectedPersonalia,
             "saksbehandler",
@@ -50,6 +53,7 @@ internal class AvvistSøknadBrevRequestTest {
             brevConfig = BrevConfig.Vedtak("jeg er fritekst"),
             saksbehandlerNavn = "saksbehandler",
             dagensDato = fixedLocalDate,
+            saksnummer = Saksnummer(2021),
         ).brevInnhold shouldBe AvvistSøknadVedtakBrevInnhold(
             expectedPersonalia,
             "saksbehandler",
@@ -66,6 +70,7 @@ internal class AvvistSøknadBrevRequestTest {
             ),
             saksbehandlerNavn = "saksbehandler",
             dagensDato = fixedLocalDate,
+            saksnummer = Saksnummer(2021),
         ).brevInnhold shouldBe AvvistSøknadFritekstBrevInnhold(
             personalia = expectedPersonalia,
             saksbehandlerNavn = "saksbehandler",

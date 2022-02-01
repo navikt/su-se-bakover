@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson.Companion.create
+import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
@@ -17,13 +18,15 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import java.time.format.DateTimeFormatter
 
 internal fun Søknadsbehandling.toJson(): BehandlingJson {
+
+    val behandlingsinformasjonJson = behandlingsinformasjon.toJson()
     return when (this) {
         is Søknadsbehandling.Vilkårsvurdert -> BehandlingJson(
             id = id.toString(),
             opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
             sakId = sakId,
             søknad = søknad.toJson(),
-            behandlingsinformasjon = behandlingsinformasjon.toJson(),
+            behandlingsinformasjon = behandlingsinformasjonJson,
             status = status.toString(),
             attesteringer = attesteringer.toJson(),
             saksbehandler = null,
@@ -33,6 +36,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
             grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
             fritekstTilBrev = fritekstTilBrev,
             erLukket = false,
+            simuleringForAvkortingsvarsel = avkorting.toJson(),
         )
         is Søknadsbehandling.Beregnet -> {
             BehandlingJson(
@@ -40,7 +44,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = null,
@@ -50,6 +54,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.Simulert -> {
@@ -58,7 +63,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = null,
@@ -68,6 +73,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.TilAttestering.Innvilget -> {
@@ -76,7 +82,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -86,6 +92,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
@@ -94,7 +101,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -104,6 +111,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
@@ -112,7 +120,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -122,6 +130,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.Underkjent.Innvilget -> {
@@ -130,9 +139,9 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
-                attesteringer = attesteringer.hentAttesteringer().map {
+                attesteringer = attesteringer.map {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
                             attestant = it.attestant.navIdent,
@@ -156,6 +165,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> {
@@ -164,7 +174,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -174,6 +184,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> {
@@ -182,7 +193,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -192,6 +203,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
@@ -200,7 +212,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -210,6 +222,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
@@ -218,7 +231,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -228,6 +241,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is Søknadsbehandling.Iverksatt.Innvilget -> {
@@ -236,7 +250,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -246,6 +260,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
+                simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is LukketSøknadsbehandling -> {

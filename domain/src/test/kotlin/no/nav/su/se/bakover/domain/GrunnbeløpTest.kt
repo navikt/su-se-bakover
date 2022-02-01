@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.domain
 
+import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.Month.APRIL
@@ -114,5 +117,24 @@ internal class GrunnbeløpTest {
             LocalDate.of(2020, 5, 1) to 50676,
             LocalDate.of(2019, 5, 1) to 49929,
         )
+    }
+
+    @Test
+    fun `1g`() {
+        Grunnbeløp.`1G`.heltallPåDato(LocalDate.of(2017, MAY, 1)) shouldBe 93634
+        Grunnbeløp.`1G`.heltallPåDato(LocalDate.of(2018, MAY, 1)) shouldBe 96883
+        Grunnbeløp.`1G`.heltallPåDato(LocalDate.of(2019, MAY, 1)) shouldBe 99858
+        Grunnbeløp.`1G`.heltallPåDato(LocalDate.of(2020, MAY, 1)) shouldBe 101351
+        Grunnbeløp.`1G`.heltallPåDato(LocalDate.of(2021, MAY, 1)) shouldBe 106399
+    }
+
+    @Test
+    fun `månedsbeløp`() {
+        Grunnbeløp.`1G`.månedsbeløp(1.januar(2021)) shouldBe 8445.92.plusOrMinus(0.005)
+        Grunnbeløp.`2,28G`.månedsbeløp(1.januar(2021)) shouldBe 19256.69.plusOrMinus(0.005)
+        Grunnbeløp.`2,48G`.månedsbeløp(1.januar(2021)) shouldBe 20945.87.plusOrMinus(0.005)
+        Grunnbeløp.`1G`.månedsbeløp(1.desember(2021)) shouldBe 8866.58.plusOrMinus(0.005)
+        Grunnbeløp.`2,28G`.månedsbeløp(1.desember(2021)) shouldBe 20215.81.plusOrMinus(0.005)
+        Grunnbeløp.`2,48G`.månedsbeløp(1.desember(2021)) shouldBe 21989.13.plusOrMinus(0.005)
     }
 }

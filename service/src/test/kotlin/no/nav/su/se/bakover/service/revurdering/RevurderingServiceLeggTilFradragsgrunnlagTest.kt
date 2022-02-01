@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -17,6 +16,7 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.service.argThat
@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -39,7 +40,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
-class RevurderingServiceLeggTilFradragsgrunnlagTest {
+internal class RevurderingServiceLeggTilFradragsgrunnlagTest {
     @Test
     fun `lagreFradrag happy case`() {
         val revurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
@@ -75,6 +76,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
             argThat { it shouldBe revurdering.id },
             argThat { it shouldBe request.fradragsgrunnlag },
         )
+        verify(revurderingRepoMock).defaultTransactionContext()
         verify(revurderingRepoMock).lagre(
             argThat {
                 it shouldBe revurdering.copy(
@@ -91,6 +93,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                     ),
                 )
             },
+            anyOrNull()
         )
 
         verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)

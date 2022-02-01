@@ -7,10 +7,11 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.sak.SakService
 import java.time.Clock
@@ -29,6 +30,14 @@ class VedtakServiceImpl(
 
     override fun lagre(vedtak: Vedtak, sessionContext: TransactionContext) {
         return vedtakRepo.lagre(vedtak, sessionContext)
+    }
+
+    override fun hentForVedtakId(vedtakId: UUID): Vedtak? {
+        return vedtakRepo.hentForVedtakId(vedtakId)
+    }
+
+    override fun hentJournalpostId(vedtakId: UUID): JournalpostId? {
+        return vedtakRepo.hentJournalpostId(vedtakId)
     }
 
     override fun hentAktiveFnr(fomDato: LocalDate): List<Fnr> {

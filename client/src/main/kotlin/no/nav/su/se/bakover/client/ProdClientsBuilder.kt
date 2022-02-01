@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dkif.DkifClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
+import no.nav.su.se.bakover.client.kabal.KabalHttpClient
 import no.nav.su.se.bakover.client.kafka.KafkaPublisherClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.nais.LeaderPodLookupClient
@@ -58,6 +59,7 @@ data class ProdClientsBuilder(
                 pdlClientConfig = pdlClientConfig,
             ),
         )
+        val klageClient = KabalHttpClient(applicationConfig.clientsConfig.kabalConfig, oAuth)
 
         return Clients(
             oauth = oAuth,
@@ -79,6 +81,7 @@ data class ProdClientsBuilder(
                     disableCNCheck = true,
                     serviceUser = serviceUser,
                 ).wrapWithSTSSimulerFpService(),
+                clock = clock,
             ),
             utbetalingPublisher = UtbetalingMqPublisher(
                 mqPublisher = applicationConfig.oppdrag.let {
@@ -100,17 +103,18 @@ data class ProdClientsBuilder(
                     jmsContext = jmsConfig.jmsContext,
                 ),
             ),
-            microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
+            identClient = MicrosoftGraphApiClient(oAuth),
             digitalKontaktinformasjon = dkif,
             leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
             kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),
+            klageClient = klageClient,
             tilbakekrevingClient = TilbakekrevingSoapClient(
                 TilbakekrevingSoapClientConfig(
                     tilbakekrevingServiceUrl = applicationConfig.oppdrag.tilbakekreving.soap.url,
                     stsSoapUrl = applicationConfig.oppdrag.simulering.stsSoapUrl,
                     disableCNCheck = true,
                     serviceUser = serviceUser,
-                ).tilbakekrevingSoapService(),
+                ).tilbakekrevingSoapService()
             ),
         )
     }

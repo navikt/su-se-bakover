@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -13,6 +14,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.expectedBosituasjonJson
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.expectedVurderingUføreJson
+import no.nav.su.se.bakover.web.routes.grunnlag.UtenlandsoppholdVilkårJsonTest.Companion.expectedUtenlandsoppholdVurdert
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknadJsonString
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.behandlingId
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.innvilgetSøknadsbehandling
@@ -38,12 +40,6 @@ internal class SøknadsbehandlingJsonTest {
           "id": "$behandlingId",
           "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(søknadsbehandling.opprettet)}",
           "behandlingsinformasjon": {
-                "uførhet": {
-                    "status": "VilkårOppfylt",
-                    "uføregrad": 20,
-                    "forventetInntekt": 10,
-                    "begrunnelse": null
-                },
                 "flyktning": {
                     "status" : "VilkårOppfylt",
                     "begrunnelse" : null
@@ -60,13 +56,8 @@ internal class SøknadsbehandlingJsonTest {
                     "status": "VilkårOppfylt",
                     "begrunnelse": null
                 },
-                "oppholdIUtlandet": {
-                    "status": "SkalHoldeSegINorge",
-                    "begrunnelse": null
-                },
                 "formue": {
                     "status": "VilkårOppfylt",
-                    "borSøkerMedEPS": true,
                     "verdier": {
                         "verdiIkkePrimærbolig": 0,
                         "verdiEiendommer": 0,
@@ -92,26 +83,7 @@ internal class SøknadsbehandlingJsonTest {
                 "personligOppmøte": {
                     "status": "MøttPersonlig",
                     "begrunnelse": null
-                },
-                "bosituasjon": {
-                    "delerBolig": false,
-                    "ektemakeEllerSamboerUførFlyktning": false,
-                    "begrunnelse": null
-                },
-                "ektefelle": {
-                    "fnr": "17087524256",
-                    "navn": {
-                      "fornavn": "fornavn",
-                      "mellomnavn": null,
-                      "etternavn": "etternavn"
-                    },
-                    "kjønn": null,
-                    "fødselsdato": "1975-08-17",
-                    "adressebeskyttelse": null,
-                    "skjermet": null,
-                    "alder": 46
-                },
-                "utledetSats": "HØY"
+                }
           },
           "søknad": $søknadJsonString,
           "beregning": $expectedBeregningJson,
@@ -147,12 +119,13 @@ internal class SøknadsbehandlingJsonTest {
                       "beløp": 50676
                   }
                 ],
-                "vilkår": "Formue",
                 "vurderinger": []
-              }
+              },
+              "utenlandsopphold": $expectedUtenlandsoppholdVurdert
           },
           "fritekstTilBrev": "",
-          "erLukket": false
+          "erLukket": false,
+          "simuleringForAvkortingsvarsel": null
         }
             """.trimIndent()
     }
@@ -183,6 +156,7 @@ internal class SøknadsbehandlingJsonTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
 
@@ -192,17 +166,12 @@ internal class SøknadsbehandlingJsonTest {
         {
           "id": "$behandlingId",
           "behandlingsinformasjon": {
-            "uførhet": null,
             "flyktning": null,
             "lovligOpphold": null,
             "fastOppholdINorge": null,
             "institusjonsopphold": null,
-            "oppholdIUtlandet": null,
             "formue": null,
-            "personligOppmøte": null,
-            "bosituasjon": null,
-            "utledetSats": null,
-            "ektefelle": null
+            "personligOppmøte": null
           },
           "søknad": $søknadJsonString,
           "beregning": null,
@@ -230,12 +199,13 @@ internal class SøknadsbehandlingJsonTest {
                       "beløp": 50676
                   }
                 ],
-                "vilkår": "Formue",
                 "vurderinger": []
-            }
+            },
+            "utenlandsopphold": null
           },
           "fritekstTilBrev": "",
-          "erLukket": false
+          "erLukket": false,
+          "simuleringForAvkortingsvarsel": null
         }
         """
 

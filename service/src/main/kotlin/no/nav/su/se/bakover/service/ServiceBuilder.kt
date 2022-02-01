@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service
 
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.database.DatabaseRepos
+import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
@@ -10,6 +10,9 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingServiceImpl
+import no.nav.su.se.bakover.service.klage.KlageServiceImpl
+import no.nav.su.se.bakover.service.klage.KlagevedtakServiceImpl
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
@@ -25,7 +28,6 @@ import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.service.vedtak.VedtakServiceImpl
-import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import java.time.Clock
 
 object ServiceBuilder {
@@ -65,7 +67,7 @@ object ServiceBuilder {
             sakService = sakService,
             personService = personService,
             sessionFactory = databaseRepos.sessionFactory,
-            microsoftGraphApiOppslag = clients.microsoftGraphApiClient,
+            microsoftGraphApiOppslag = clients.identClient,
             utbetalingService = utbetalingService,
             clock = clock,
         )
@@ -107,12 +109,22 @@ object ServiceBuilder {
             clock = clock,
         )
 
+        val kontrollsamtaleService = KontrollsamtaleServiceImpl(
+            sakService = sakService,
+            personService = personService,
+            brevService = brevService,
+            oppgaveService = oppgaveService,
+            sessionFactory = databaseRepos.sessionFactory,
+            clock = clock,
+            kontrollsamtaleRepo = databaseRepos.kontrollsamtaleRepo,
+        )
+
         val revurderingService = RevurderingServiceImpl(
             utbetalingService = utbetalingService,
             revurderingRepo = databaseRepos.revurderingRepo,
             oppgaveService = oppgaveService,
             personService = personService,
-            microsoftGraphApiClient = clients.microsoftGraphApiClient,
+            identClient = clients.identClient,
             brevService = brevService,
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
@@ -120,12 +132,12 @@ object ServiceBuilder {
             grunnlagService = grunnlagService,
             vedtakService = vedtakService,
             sakService = sakService,
+            kontrollsamtaleService = kontrollsamtaleService,
+            sessionFactory = databaseRepos.sessionFactory,
+            avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo
         ).apply { addObserver(statistikkService) }
 
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
-
-        val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
-
         val toggleService = ToggleServiceImpl(unleash)
 
         val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
@@ -136,16 +148,37 @@ object ServiceBuilder {
             oppgaveService = oppgaveService,
             behandlingMetrics = behandlingMetrics,
             brevService = brevService,
-            opprettVedtakssnapshotService = opprettVedtakssnapshotService,
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
             ferdigstillVedtakService = ferdigstillVedtakService,
-            vilkårsvurderingService = vilkårsvurderingService,
             grunnlagService = grunnlagService,
             sakService = sakService,
+            kontrollsamtaleService = kontrollsamtaleService,
+            sessionFactory = databaseRepos.sessionFactory,
+            avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
         ).apply {
             addObserver(statistikkService)
         }
+        val klageService = KlageServiceImpl(
+            sakRepo = databaseRepos.sak,
+            klageRepo = databaseRepos.klageRepo,
+            vedtakService = vedtakService,
+            brevService = brevService,
+            personService = personService,
+            identClient = clients.identClient,
+            klageClient = clients.klageClient,
+            sessionFactory = databaseRepos.sessionFactory,
+            oppgaveService = oppgaveService,
+            clock = clock,
+        )
+        val klagevedtakService = KlagevedtakServiceImpl(
+            klagevedtakRepo = databaseRepos.klageVedtakRepo,
+            klageRepo = databaseRepos.klageRepo,
+            oppgaveService = oppgaveService,
+            personService = personService,
+            sessionFactory = databaseRepos.sessionFactory,
+            clock = clock,
+        )
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
@@ -162,7 +195,7 @@ object ServiceBuilder {
                 oppgaveService = oppgaveService,
                 personService = personService,
                 søknadsbehandlingService = søknadsbehandlingService,
-                microsoftGraphApiClient = clients.microsoftGraphApiClient,
+                identClient = clients.identClient,
                 sakService = sakService,
                 clock = clock,
                 sessionFactory = databaseRepos.sessionFactory,
@@ -188,6 +221,9 @@ object ServiceBuilder {
                 sessionFactory = databaseRepos.sessionFactory,
                 sakService = sakService,
             ),
+            kontrollsamtale = kontrollsamtaleService,
+            klageService = klageService,
+            klagevedtakService = klagevedtakService,
             tilbakekrevingService = TilbakekrevingServiceImpl(
                 tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo,
                 tilbakekrevingClient = clients.tilbakekrevingClient

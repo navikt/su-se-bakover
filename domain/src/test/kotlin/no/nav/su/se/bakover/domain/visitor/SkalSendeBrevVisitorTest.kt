@@ -3,19 +3,21 @@ package no.nav.su.se.bakover.domain.visitor
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 internal class SkalSendeBrevVisitorTest {
     @Test
     fun `vedtak for innvilget revurdering med årsak g-regulering skal ikke sende brev`() {
-        val vedtak = Vedtak.from(
+        val vedtak = VedtakSomKanRevurderes.from(
             revurdering = iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
                 revurderingsårsak = Revurderingsårsak.create(
                     årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(),
@@ -35,7 +37,7 @@ internal class SkalSendeBrevVisitorTest {
 
     @Test
     fun `vedtak for revurderinger sender brev som default`() {
-        val vedtak = Vedtak.from(
+        val vedtak = VedtakSomKanRevurderes.from(
             revurdering = iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second,
             utbetalingId = UUID30.randomUUID(),
             clock = fixedClock,
@@ -50,7 +52,7 @@ internal class SkalSendeBrevVisitorTest {
 
     @Test
     fun `vedtak for avslag med beregning sender brev`() {
-        val vedtak = Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(
+        val vedtak: Avslagsvedtak.AvslagBeregning = Avslagsvedtak.fromSøknadsbehandlingMedBeregning(
             avslag = søknadsbehandlingIverksattAvslagMedBeregning().second,
             clock = fixedClock,
         )
@@ -64,7 +66,7 @@ internal class SkalSendeBrevVisitorTest {
 
     @Test
     fun `vedtak for avslag uten beregning sender brev`() {
-        val vedtak = Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(
+        val vedtak: Avslagsvedtak.AvslagVilkår = Avslagsvedtak.fromSøknadsbehandlingUtenBeregning(
             avslag = søknadsbehandlingIverksattAvslagUtenBeregning().second,
             clock = fixedClock,
         )
@@ -77,8 +79,9 @@ internal class SkalSendeBrevVisitorTest {
     }
 
     @Test
+    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `vedtak for revurdering uten endringer sender brev hvis det er valgt`() {
-        val skalSendeBrev = Vedtak.from(
+        val skalSendeBrev = VedtakSomKanRevurderes.from(
             revurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
                 skalFøreTilBrevutsending = true,
             ).second,
@@ -93,8 +96,9 @@ internal class SkalSendeBrevVisitorTest {
     }
 
     @Test
+    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `vedtak for revurdering uten endringer sender ikke brev hvis det er valgt`() {
-        val skalIkkeSendeBrev = Vedtak.from(
+        val skalIkkeSendeBrev = VedtakSomKanRevurderes.from(
             revurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
                 skalFøreTilBrevutsending = false,
             ).second,
@@ -110,7 +114,7 @@ internal class SkalSendeBrevVisitorTest {
 
     @Test
     fun `vedtak for innvilget søknadsbehandling skal sende brev`() {
-        val vedtak = Vedtak.fromSøknadsbehandling(
+        val vedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(
             søknadsbehandling = søknadsbehandlingIverksattInnvilget().second,
             utbetalingId = UUID30.randomUUID(),
             fixedClock,

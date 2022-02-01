@@ -14,9 +14,9 @@ import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.finn.unleash.FakeUnleash
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
@@ -50,7 +50,7 @@ internal class SakRoutesKtTest {
     )
     private fun services(reps: DatabaseRepos) = ServiceBuilder.build(
         databaseRepos = reps,
-        clients = TestClientsBuilder.build(applicationConfig),
+        clients = TestClientsBuilder(fixedClock, reps).build(applicationConfig),
         behandlingMetrics = mock(),
         søknadMetrics = mock(),
         clock = fixedClock,

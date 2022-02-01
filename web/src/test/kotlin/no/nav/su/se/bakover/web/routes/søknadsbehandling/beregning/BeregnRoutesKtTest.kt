@@ -13,14 +13,15 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -34,13 +35,17 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.VilkårsvurderRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
+import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
+import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
@@ -69,7 +74,7 @@ internal class BeregnRoutesKtTest {
     private fun services(dataSource: DataSource, databaseRepos: DatabaseRepos = repos(dataSource)) =
         ServiceBuilder.build(
             databaseRepos = databaseRepos,
-            clients = TestClientsBuilder.build(applicationConfig),
+            clients = TestClientsBuilder(fixedClock, databaseRepos).build(applicationConfig),
             behandlingMetrics = mock(),
             søknadMetrics = mock(),
             clock = fixedClock,
@@ -210,9 +215,7 @@ internal class BeregnRoutesKtTest {
                     )
                 }.apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
-                    response.content shouldContain "Ugyldig statusovergang"
-                    response.content shouldContain "TilBeregnet"
-                    response.content shouldContain "Vilkårsvurdert.Uavklart"
+                    response.content shouldContain """{"message":"Kan ikke gå fra tilstanden Uavklart til tilstanden Beregnet","code":"ugyldig_tilstand"}"""
                 }
             }
         }
@@ -244,6 +247,7 @@ internal class BeregnRoutesKtTest {
             oppgaveId = OppgaveId("1234"),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = sak.fnr,
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
         )
         repos.søknadsbehandling.lagreNySøknadsbehandling(
             nySøknadsbehandling,
@@ -253,6 +257,7 @@ internal class BeregnRoutesKtTest {
             SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
                 behandlingId = nySøknadsbehandling.id,
                 stønadsperiode = stønadsperiode,
+                sakId = sak.id,
             ),
         )
 
@@ -274,15 +279,23 @@ internal class BeregnRoutesKtTest {
         val objects = setup(services, repos)
 
         val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
-        services.søknadsbehandling.leggTilUføregrunnlag(
-            LeggTilUførevurderingRequest(
+        services.søknadsbehandling.leggTilUførevilkår(
+            LeggTilUførevilkårRequest(
                 behandlingId = objects.søknadsbehandling.id,
                 periode = objects.søknadsbehandling.periode,
-                uføregrad = Uføregrad.parse(behandlingsinformasjon.uførhet!!.uføregrad!!),
-                forventetInntekt = behandlingsinformasjon.uførhet!!.forventetInntekt,
-                oppfylt = behandlingsinformasjon.uførhet!!.status,
-                begrunnelse = behandlingsinformasjon.uførhet!!.begrunnelse,
+                uføregrad = Uføregrad.parse(100),
+                forventetInntekt = 0,
+                oppfylt = UførevilkårStatus.VilkårOppfylt,
+                begrunnelse = "Må få være ufør vel",
             ),
+        )
+        services.søknadsbehandling.leggTilUtenlandsopphold(
+            request = LeggTilUtenlandsoppholdRequest(
+                behandlingId = objects.søknadsbehandling.id,
+                periode = periode2021,
+                status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
+                begrunnelse = "Veldig bra"
+            )
         )
         services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(
@@ -294,7 +307,7 @@ internal class BeregnRoutesKtTest {
             FullførBosituasjonRequest(
                 behandlingId = objects.søknadsbehandling.id,
                 bosituasjon = BosituasjonValg.BOR_ALENE,
-                begrunnelse = behandlingsinformasjon.bosituasjon?.begrunnelse,
+                begrunnelse = "fullførBosituasjongrunnlag begrunnelse",
             ),
         )
         services.søknadsbehandling.vilkårsvurder(

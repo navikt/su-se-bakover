@@ -11,34 +11,33 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Uføre.periodeForGrunnlagOgVurderingErForskjellig
-import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
 import java.util.UUID
 
-internal fun Route.leggTilGrunnlagSøknadsbehandlingRoutes(
+internal fun Route.leggTilUføregrunnlagRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
 ) {
     data class UføregrunnlagBody(
         val periode: PeriodeJson,
         val uføregrad: Int?,
         val forventetInntekt: Int?,
-        val resultat: Behandlingsinformasjon.Uførhet.Status,
+        val resultat: UførevilkårStatus,
         val begrunnelse: String,
     ) {
 
-        fun toLeggTilUføregrunnlagRequest(behandlingId: UUID): Either<Resultat, LeggTilUførevurderingRequest> {
-            return LeggTilUførevurderingRequest(
+        fun toLeggTilUføregrunnlagRequest(behandlingId: UUID): Either<Resultat, LeggTilUførevilkårRequest> {
+            return LeggTilUførevilkårRequest(
                 behandlingId = behandlingId,
                 periode = periode.toPeriode().getOrHandle {
                     return it.left()
@@ -62,19 +61,16 @@ internal fun Route.leggTilGrunnlagSøknadsbehandlingRoutes(
                     call.svar(
                         body.toLeggTilUføregrunnlagRequest(behandlingId)
                             .flatMap { leggTilUføregrunnlagRequest ->
-                                søknadsbehandlingService.leggTilUføregrunnlag(
+                                søknadsbehandlingService.leggTilUførevilkår(
                                     leggTilUføregrunnlagRequest
                                 ).mapLeft {
                                     when (it) {
-                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-                                        is SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UgyldigTilstand -> ugyldigTilstand(
-                                            it.fra,
-                                            it.til,
-                                        )
-                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler -> Feilresponser.Uføre.uføregradOgForventetInntektMangler
-                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig -> periodeForGrunnlagOgVurderingErForskjellig
-                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder -> Feilresponser.overlappendeVurderingsperioder
-                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> Feilresponser.utenforBehandlingsperioden
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår.UføregradOgForventetInntektMangler -> Feilresponser.Uføre.uføregradOgForventetInntektMangler
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår.PeriodeForGrunnlagOgVurderingErForskjellig -> periodeForGrunnlagOgVurderingErForskjellig
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår.OverlappendeVurderingsperioder -> Feilresponser.overlappendeVurderingsperioder
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> Feilresponser.utenforBehandlingsperioden
+                                        is SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår.UgyldigTilstand -> Feilresponser.ugyldigTilstand(it.fra, it.til)
                                     }
                                 }.map {
                                     Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))

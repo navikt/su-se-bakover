@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.tilbakekreving
 
+import arrow.core.getOrHandle
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
@@ -35,8 +36,8 @@ class TilbakekrevingServiceImpl(
             tilbakekrevingClient.avgjørKravgrunnlag(
                 Tilbakekrevingsvedtak.tryCreate(
                     kravgrunnlag = mapper(it),
-                    tilbakekrevingsavgjørelse = tilbakekrevingRepo.hentTilbakekrevingsavgjørelse // TODO jah: Må knytte kravgrunnlaget til en revurdering/vedtak. Hente saken?
-                ),
+                    tilbakekrevingsavgjørelse = tilbakekrevingRepo.hentTilbakekrevingsavgjørelse() // TODO jah: Må knytte kravgrunnlaget til en revurdering/vedtak. Hente saken?
+                ).getOrHandle { throw IllegalStateException() },
             )
         }
     }

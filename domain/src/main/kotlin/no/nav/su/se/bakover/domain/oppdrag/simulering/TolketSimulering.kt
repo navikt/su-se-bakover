@@ -1,5 +1,9 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.Beløp
+import no.nav.su.se.bakover.domain.MånedBeløp
+import no.nav.su.se.bakover.domain.Månedsbeløp
 import java.time.LocalDate
 
 data class TolketSimulering(
@@ -21,27 +25,40 @@ data class TolketSimulering(
         }
 
         TolketPeriode(
-            it.fraOgMed,
-            it.tilOgMed,
-            utbetalinger,
+            periode = Periode.create(it.fraOgMed, it.tilOgMed),
+            utbetalinger = utbetalinger,
         )
     }
 
     fun harFeilutbetalinger() = simulertePerioder.any { it.harFeilutbetalinger() }
+
+    fun hentUtbetalteBeløp(periode: Periode): Månedsbeløp {
+        return Månedsbeløp(
+            simulertePerioder
+                .filter { periode inneholder it.periode }
+                .map { it.hentUtbetaltBeløp() },
+        )
+    }
 }
 
 data class TolketPeriode(
-    val fraOgMed: LocalDate,
-    val tilOgMed: LocalDate,
+    val periode: Periode,
     val utbetalinger: List<TolketUtbetaling>,
 ) {
     fun harFeilutbetalinger() = utbetalinger.any { it is TolketUtbetaling.Feilutbetaling }
+    fun hentUtbetaltBeløp(): MånedBeløp {
+        return MånedBeløp(periode, Beløp(utbetalinger.sumOf { it.hentUtbetaltBeløp().sum() }))
+    }
 }
 
 sealed class TolketUtbetaling {
     abstract val tolketDetalj: List<TolketDetalj>
 
     abstract fun bruttobeløp(): Int
+
+    fun hentUtbetaltBeløp(): Beløp {
+        return Beløp(tolketDetalj.filterIsInstance<TolketDetalj.TidligereUtbetalt>().sumOf { it.beløp })
+    }
 
     companion object {
         fun from(tolketDetaljer: List<TolketDetalj>) = when {
@@ -123,7 +140,8 @@ sealed class TolketUtbetaling {
     }
 
     object IngenEntydigTolkning : IllegalStateException("Simulert utbetaling kunne ikke tolkes entydig.")
-    object IndikererFeilutbetaling : IllegalStateException("Indikasjon på feilutbetaling, men detaljer for feilutbetaling mangler.")
+    object IndikererFeilutbetaling :
+        IllegalStateException("Indikasjon på feilutbetaling, men detaljer for feilutbetaling mangler.")
 }
 
 sealed class TolketDetalj {
@@ -157,8 +175,8 @@ sealed class TolketDetalj {
             klassekode == KlasseKode.SUUFORE &&
             typeSats == "MND" &&
             antallSats == 1 &&
-            sats > 0 &&
-            belop > 0
+            sats >= 0 &&
+            belop >= 0
     }
 
     data class Etterbetaling(

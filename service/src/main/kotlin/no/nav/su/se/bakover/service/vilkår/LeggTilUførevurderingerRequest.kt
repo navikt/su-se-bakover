@@ -12,7 +12,7 @@ import java.util.UUID
 data class LeggTilUførevurderingerRequest(
     /** Dekker både søknadsbehandlingId og revurderingId */
     val behandlingId: UUID,
-    val vurderinger: Nel<LeggTilUførevurderingRequest>,
+    val vurderinger: Nel<LeggTilUførevilkårRequest>,
 ) {
     sealed class UgyldigUførevurdering {
         object UføregradOgForventetInntektMangler : UgyldigUførevurdering()
@@ -25,12 +25,12 @@ data class LeggTilUførevurderingerRequest(
 
     fun toVilkår(behandlingsperiode: Periode, clock: Clock): Either<UgyldigUførevurdering, Vilkår.Uførhet.Vurdert> {
         return vurderinger.map { vurdering ->
-            vurdering.toVurderingsperiode(behandlingsperiode, clock).getOrHandle {
+            vurdering.toVurderingsperiode(clock).getOrHandle {
                 return when (it) {
-                    LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> UgyldigUførevurdering.UføregradOgForventetInntektMangler.left()
-                    LeggTilUførevurderingRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-                    LeggTilUførevurderingRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> UgyldigUførevurdering.OverlappendeVurderingsperioder.left()
-                    LeggTilUførevurderingRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
+                    LeggTilUførevilkårRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> UgyldigUførevurdering.UføregradOgForventetInntektMangler.left()
+                    LeggTilUførevilkårRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                    LeggTilUførevilkårRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> UgyldigUførevurdering.OverlappendeVurderingsperioder.left()
+                    LeggTilUførevilkårRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
                 }
             }
         }.let { vurderingsperioder ->

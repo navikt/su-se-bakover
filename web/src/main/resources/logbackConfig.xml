@@ -1,45 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <included>
-    <appender name="STDOUT_JSON" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <includeMdcKeyName>X-Correlation-ID</includeMdcKeyName>
-        </encoder>
-    </appender>
-
-    <appender name="auditLogger" class="com.papertrailapp.logback.Syslog4jAppender">
-        <layout class="ch.qos.logback.classic.PatternLayout">
-            <pattern>%m%n%xEx</pattern>
-        </layout>
-
-        <!-- Send audit logs to audit.nais Rsyslog server -->
-        <syslogConfig class="org.productivity.java.syslog4j.impl.net.tcp.TCPNetSyslogConfig">
-            <host>audit.nais</host>
-            <port>6514</port>
-            <ident>su-se-bakover</ident>
-            <maxMessageLength>128000</maxMessageLength>
-        </syslogConfig>
-    </appender>
-
-    <appender name="secureAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/secure-logs/secure.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <fileNamePattern>/secure-logs/secure.log.%i</fileNamePattern>
-            <minIndex>1</minIndex>
-            <maxIndex>1</maxIndex>
-        </rollingPolicy>
-        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <maxFileSize>50MB</maxFileSize>
-        </triggeringPolicy>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
-    </appender>
-
-    <logger name="auditLogger" level="INFO" additivity="false">
-        <appender-ref ref="auditLogger"/>
-    </logger>
-
-    <logger name="sikkerLogg" level="DEBUG" additivity="false">
-        <appender-ref ref="secureAppender"/>
-    </logger>
+    <include resource="logback-json-config.xml"/>
+    <include resource="logback-audit-config.xml"/>
+    <include resource="logback-secure-config.xml"/>
 
     <logger name="com.zaxxer.hikari" level="INFO"/>
     <logger name="no.nav" level="DEBUG"/>

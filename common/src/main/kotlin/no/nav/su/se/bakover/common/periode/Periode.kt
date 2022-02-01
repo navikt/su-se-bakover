@@ -5,8 +5,22 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonIgnore
+import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.august
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.erSisteDagIMåned
+import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
+import no.nav.su.se.bakover.common.juni
+import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.november
+import no.nav.su.se.bakover.common.oktober
+import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.common.startOfMonth
 import java.time.LocalDate
 import java.time.Period
 
@@ -31,12 +45,14 @@ data class Periode private constructor(
     infix fun inneholder(dato: LocalDate): Boolean =
         dato in fraOgMed..tilOgMed
 
+    infix fun starterEtter(dato: LocalDate): Boolean = tilOgMed.isAfter(dato)
+
     infix fun tilstøter(other: Periode): Boolean {
         val sluttStart = Period.between(tilOgMed, other.fraOgMed)
         val startSlutt = Period.between(fraOgMed, other.tilOgMed)
         val plussEnDag = Period.ofDays(1)
         val minusEnDag = Period.ofDays(-1)
-        return sluttStart == plussEnDag || sluttStart == minusEnDag || startSlutt == plussEnDag || startSlutt == minusEnDag
+        return this == other || sluttStart == plussEnDag || sluttStart == minusEnDag || startSlutt == plussEnDag || startSlutt == minusEnDag
     }
 
     /**
@@ -107,6 +123,17 @@ data class Periode private constructor(
     infix fun før(other: Periode) = tilOgMed.isBefore(other.fraOgMed)
     infix fun etter(other: Periode) = fraOgMed.isAfter(other.tilOgMed)
 
+    /**
+     * Forskyver en periode n hele måneder angitt av parameteret [måneder].
+     * Positivt heltall er framover i tid, negativt heltall er bakover i tid.
+     */
+    fun forskyv(måneder: Int): Periode {
+        return Periode(
+            fraOgMed.plusMonths(måneder.toLong()).startOfMonth(),
+            tilOgMed.plusMonths(måneder.toLong()).endOfMonth(),
+        )
+    }
+
     companion object {
         fun create(fraOgMed: LocalDate, tilOgMed: LocalDate): Periode {
             return tryCreate(fraOgMed, tilOgMed).getOrHandle { throw IllegalArgumentException(it.toString()) }
@@ -166,3 +193,16 @@ fun List<Periode>.reduser(): List<Periode> {
         slåttSammen
     }
 }
+
+fun januar(year: Int) = 1.januar(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun februar(year: Int) = 1.februar(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun mars(year: Int) = 1.mars(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun april(year: Int) = 1.april(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun mai(year: Int) = 1.mai(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun juni(year: Int) = 1.juni(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun juli(year: Int) = 1.juli(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun august(year: Int) = 1.august(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun september(year: Int) = 1.september(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun oktober(year: Int) = 1.oktober(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun november(year: Int) = 1.november(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun desember(year: Int) = 1.desember(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }

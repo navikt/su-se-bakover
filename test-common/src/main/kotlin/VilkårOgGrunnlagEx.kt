@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
@@ -198,13 +198,13 @@ fun InstitusjonsoppholdVilkår.shouldBeEqualToExceptId(expected: Institusjonsopp
     }
 }
 
-fun OppholdIUtlandetVilkår.shouldBeEqualToExceptId(expected: OppholdIUtlandetVilkår) {
+fun UtenlandsoppholdVilkår.shouldBeEqualToExceptId(expected: UtenlandsoppholdVilkår) {
     when (this) {
-        OppholdIUtlandetVilkår.IkkeVurdert -> {
+        UtenlandsoppholdVilkår.IkkeVurdert -> {
             this shouldBe expected
         }
-        is OppholdIUtlandetVilkår.Vurdert -> {
-            expected.shouldBeTypeOf<OppholdIUtlandetVilkår.Vurdert>()
+        is UtenlandsoppholdVilkår.Vurdert -> {
+            expected.shouldBeTypeOf<UtenlandsoppholdVilkår.Vurdert>()
             this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
                 actual.shouldBeEqualToIgnoringFields(expected, Vurderingsperiode::id, Vurderingsperiode::grunnlag)
                 actual.id shouldNotBe expected.id
@@ -255,7 +255,7 @@ fun List<Grunnlag.Bosituasjon>.shouldBeEqualToExceptId(expected: List<Grunnlag.B
 }
 
 fun Grunnlag.Fradragsgrunnlag.shouldBeEqualToExceptId(expected: Grunnlag.Fradragsgrunnlag) {
-    this.shouldBeEqualToIgnoringFields(expected.id, Grunnlag.Fradragsgrunnlag::id)
+    this.shouldBeEqualToIgnoringFields(expected, Grunnlag.Fradragsgrunnlag::id)
     this.id shouldNotBe expected.id
 }
 
@@ -291,7 +291,7 @@ fun Vilkårsvurderinger.Søknadsbehandling.shouldBeEqualToExceptId(expected: Vil
         this.lovligOpphold.shouldBeEqualToExceptId(expected.lovligOpphold)
         this.fastOpphold.shouldBeEqualToExceptId(expected.fastOpphold)
         this.institusjonsopphold.shouldBeEqualToExceptId(expected.institusjonsopphold)
-        this.oppholdIUtlandet.shouldBeEqualToExceptId(expected.oppholdIUtlandet)
+        this.utenlandsopphold.shouldBeEqualToExceptId(expected.utenlandsopphold)
         this.personligOppmøte.shouldBeEqualToExceptId(expected.personligOppmøte)
     }
 }

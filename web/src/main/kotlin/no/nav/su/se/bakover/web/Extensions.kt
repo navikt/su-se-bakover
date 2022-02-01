@@ -101,6 +101,13 @@ internal suspend inline fun ApplicationCall.receiveTextUTF8(): String {
     }
 }
 
+internal suspend fun ApplicationCall.withStringParam(parameterName: String, ifRight: suspend (String) -> Unit) {
+    this.parameter(parameterName).fold(
+        ifLeft = { this.svar(it) },
+        ifRight = { ifRight(it) },
+    )
+}
+
 internal suspend fun ApplicationCall.withSakId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("sakId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "sakId_mangler_eller_feil_format")) },
@@ -132,6 +139,13 @@ internal suspend fun ApplicationCall.withBehandlingId(ifRight: suspend (UUID) ->
 internal suspend fun ApplicationCall.withVedtakId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("vedtakId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "vedtakId_mangler_eller_feil_format")) },
+        ifRight = { ifRight(it) },
+    )
+}
+
+internal suspend fun ApplicationCall.withKlageId(ifRight: suspend (UUID) -> Unit) {
+    this.lesUUID("klageId").fold(
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "klageId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }

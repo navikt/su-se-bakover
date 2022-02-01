@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -55,6 +56,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
         )
 
     @Test
@@ -186,33 +188,6 @@ class GrunnlagBosituasjonEpsRoutesTest {
             }.apply {
                 response.status() shouldBe HttpStatusCode.NotFound
                 response.content shouldContain ("fant_ikke_person")
-            }
-        }
-    }
-
-    @Test
-    fun `behandling har ugyldig tilstand`() {
-        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilBosituasjonEpsgrunnlag(any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand(
-                fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
-                til = Søknadsbehandling.Vilkårsvurdert::class,
-            ).left()
-        }
-
-        withTestApplication(
-            {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
-            },
-        ) {
-            defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon/eps",
-                listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody("""{ "epsFnr": "$fnr"}""".trimIndent())
-            }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain ("ugyldig_tilstand")
             }
         }
     }

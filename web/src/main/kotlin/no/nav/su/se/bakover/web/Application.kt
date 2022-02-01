@@ -33,7 +33,7 @@ import no.nav.su.se.bakover.common.JmsConfig
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.DatabaseRepos
+import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -63,6 +63,8 @@ import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.dokument.dokumentRoutes
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
+import no.nav.su.se.bakover.web.routes.klage.klageRoutes
+import no.nav.su.se.bakover.web.routes.kontrollsamtale.kontrollsamtaleRoutes
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
@@ -74,8 +76,12 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbehandligRoutes
 import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.routes.toggleRoutes
-import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
+import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
+import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
+import no.nav.su.se.bakover.web.services.klage.FattetKlageinstansvedtakConsumer
+import no.nav.su.se.bakover.web.services.klage.KlageinstansvedtakJob
+import no.nav.su.se.bakover.web.services.kontrollsamtale.KontrollsamtaleinnkallingJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingIbmMqConsumer
@@ -111,7 +117,10 @@ fun Application.susebakover(
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients =
         if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais)
-            StubClientsBuilder.build(applicationConfig)
+            StubClientsBuilder(
+                clock = clock,
+                databaseRepos = databaseRepos,
+            ).build(applicationConfig)
         else
             ProdClientsBuilder(
                 jmsConfig,
@@ -244,18 +253,21 @@ fun Application.susebakover(
                     accessCheckProxy,
                 ) { accessProtectedServices ->
                     personRoutes(accessProtectedServices.person, clock)
-                    sakRoutes(accessProtectedServices.sak)
+                    sakRoutes(accessProtectedServices.sak, clock)
                     søknadRoutes(
                         søknadService = accessProtectedServices.søknad,
                         lukkSøknadService = accessProtectedServices.lukkSøknad,
                         avslåSøknadManglendeDokumentasjonService = accessProtectedServices.avslåSøknadManglendeDokumentasjonService,
+                        clock = clock,
                     )
                     overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling, clock)
                     avstemmingRoutes(accessProtectedServices.avstemming, clock)
                     driftRoutes(accessProtectedServices.søknad)
                     revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock)
+                    klageRoutes(accessProtectedServices.klageService)
                     dokumentRoutes(accessProtectedServices.brev)
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
+                    kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtale)
                 }
             }
         }
@@ -265,33 +277,56 @@ fun Application.susebakover(
         ferdigstillVedtakService = services.ferdigstillVedtak,
         clock = clock,
     )
-    val personhendelseService =
-        PersonhendelseService(databaseRepos.sak, databaseRepos.personhendelseRepo, services.oppgave, services.person)
+    val personhendelseService = PersonhendelseService(
+        sakRepo = databaseRepos.sak,
+        personhendelseRepo = databaseRepos.personhendelseRepo,
+        oppgaveServiceImpl = services.oppgave,
+        personService = services.person,
+        clock = clock,
+    )
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsConfig.jmsContext,
             kvitteringConsumer = utbetalingKvitteringConsumer,
         )
-        TilbakekrevingIbmMqConsumer(
-            queueName = applicationConfig.oppdrag.tilbakekreving.mqReplyTo,
-            globalJmsContext = jmsConfig.jmsContext,
-            tilbakekrevingService = services.tilbakekrevingService,
-            clock = clock,
-        )
-        AvstemmingJob(
+        GrensesnittsavstemingJob(
             avstemmingService = services.avstemming,
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
+
         PersonhendelseConsumer(
             consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
             personhendelseService = personhendelseService,
             maxBatchSize = applicationConfig.kafkaConfig.consumerCfg.kafkaConfig[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] as? Int,
         )
+        FattetKlageinstansvedtakConsumer(
+            consumer = KafkaConsumer(applicationConfig.kabalKafkaConfig.kafkaConfig),
+            klagevedtakService = services.klagevedtakService,
+            maxBatchSize = applicationConfig.kabalKafkaConfig.kafkaConfig[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] as? Int,
+            clock = clock,
+            toggleService = services.toggles,
+        )
         DistribuerDokumentJob(
             brevService = services.brev,
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
+
+        KonsistensavstemmingJob(
+            avstemmingService = services.avstemming,
+            leaderPodLookup = clients.leaderPodLookup,
+            jobConfig = applicationConfig.jobConfig.konsistensavstemming,
+            clock = clock,
+        ).schedule()
+
+        KlageinstansvedtakJob(klagevedtakService = services.klagevedtakService, leaderPodLookup = clients.leaderPodLookup).schedule()
+
+        TilbakekrevingIbmMqConsumer(
+            queueName = applicationConfig.oppdrag.tilbakekreving.mq.mqReplyTo,
+            globalJmsContext = jmsConfig.jmsContext,
+            tilbakekrevingService = services.tilbakekrevingService,
+            clock = clock,
+        )
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         LokalKvitteringJob(LokalKvitteringService(databaseRepos.utbetaling, utbetalingKvitteringConsumer)).schedule()
 
@@ -299,12 +334,32 @@ fun Application.susebakover(
             brevService = services.brev,
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
+
+        GrensesnittsavstemingJob(
+            avstemmingService = services.avstemming,
+            leaderPodLookup = clients.leaderPodLookup,
+        ).schedule()
+
+        KonsistensavstemmingJob(
+            avstemmingService = services.avstemming,
+            leaderPodLookup = clients.leaderPodLookup,
+            jobConfig = applicationConfig.jobConfig.konsistensavstemming,
+            clock = clock,
+        ).schedule()
+        KlageinstansvedtakJob(klagevedtakService = services.klagevedtakService, leaderPodLookup = clients.leaderPodLookup).schedule()
     }
 
     PersonhendelseOppgaveJob(
         personhendelseService = personhendelseService,
         leaderPodLookup = clients.leaderPodLookup,
-        intervall = applicationConfig.jobConfig.personhendelse.intervall
+        intervall = applicationConfig.jobConfig.personhendelse.intervall,
+    ).schedule()
+
+    KontrollsamtaleinnkallingJob(
+        isProd = applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod,
+        leaderPodLookup = clients.leaderPodLookup,
+        kontrollsamtaleService = services.kontrollsamtale,
+        clock = clock,
     ).schedule()
 }
 

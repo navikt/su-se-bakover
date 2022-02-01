@@ -1,15 +1,18 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.fnr
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -17,7 +20,8 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
-import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
+import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -41,46 +45,50 @@ internal fun createSøknadsbehandlingService(
     behandlingMetrics: BehandlingMetrics = mock(),
     observer: EventObserver = mock(),
     brevService: BrevService = mock(),
-    opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
-    clock: Clock = Clock.systemUTC(),
+    clock: Clock = fixedClock,
     vedtakRepo: VedtakRepo = mock(),
     ferdigstillVedtakService: FerdigstillVedtakService = mock(),
-    vilkårsvurderingService: VilkårsvurderingService = mock(),
     grunnlagService: GrunnlagService = mock(),
     sakService: SakService = mock(),
+    kontrollsamtaleService: KontrollsamtaleService = mock(),
+    sessionFactory: SessionFactory = TestSessionFactory(),
+    avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
 ) = SøknadsbehandlingServiceImpl(
-    søknadService,
-    søknadsbehandlingRepo,
-    utbetalingService,
-    personService,
-    oppgaveService,
-    behandlingMetrics,
-    brevService,
-    opprettVedtakssnapshotService,
-    clock,
-    vedtakRepo,
-    ferdigstillVedtakService,
-    vilkårsvurderingService,
-    grunnlagService,
-    sakService,
+    søknadService = søknadService,
+    søknadsbehandlingRepo = søknadsbehandlingRepo,
+    utbetalingService = utbetalingService,
+    personService = personService,
+    oppgaveService = oppgaveService,
+    behandlingMetrics = behandlingMetrics,
+    brevService = brevService,
+    clock = clock,
+    vedtakRepo = vedtakRepo,
+    ferdigstillVedtakService = ferdigstillVedtakService,
+    grunnlagService = grunnlagService,
+    sakService = sakService,
+    kontrollsamtaleService = kontrollsamtaleService,
+    sessionFactory = sessionFactory,
+    avkortingsvarselRepo
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
-    val søknadsbehandlingRepo: SøknadsbehandlingRepo = mock(),
-    val utbetalingService: UtbetalingService = mock(),
-    val oppgaveService: OppgaveService = mock(),
-    val søknadService: SøknadService = mock(),
-    val personService: PersonService = mock(),
+    val søknadsbehandlingRepo: SøknadsbehandlingRepo = defaultMock(),
+    val utbetalingService: UtbetalingService = defaultMock(),
+    val oppgaveService: OppgaveService = defaultMock(),
+    val søknadService: SøknadService = defaultMock(),
+    val personService: PersonService = defaultMock(),
     val behandlingMetrics: BehandlingMetrics = mock(),
     val observer: EventObserver = mock(),
-    val brevService: BrevService = mock(),
-    val opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
+    val brevService: BrevService = defaultMock(),
     val clock: Clock = fixedClock,
-    val vedtakRepo: VedtakRepo = mock(),
-    val ferdigstillVedtakService: FerdigstillVedtakService = mock(),
-    val vilkårsvurderingService: VilkårsvurderingService = mock(),
-    val grunnlagService: GrunnlagService = mock(),
-    val sakService: SakService = mock()
+    val vedtakRepo: VedtakRepo = defaultMock(),
+    val ferdigstillVedtakService: FerdigstillVedtakService = defaultMock(),
+    val vilkårsvurderingService: VilkårsvurderingService = defaultMock(),
+    val grunnlagService: GrunnlagService = defaultMock(),
+    val sakService: SakService = defaultMock(),
+    val kontrollsamtaleService: KontrollsamtaleService = defaultMock(),
+    val sessionFactory: SessionFactory = TestSessionFactory(),
+    val avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadService = søknadService,
@@ -90,13 +98,14 @@ internal data class SøknadsbehandlingServiceAndMocks(
         oppgaveService = oppgaveService,
         behandlingMetrics = behandlingMetrics,
         brevService = brevService,
-        opprettVedtakssnapshotService = opprettVedtakssnapshotService,
         clock = clock,
         vedtakRepo = vedtakRepo,
         ferdigstillVedtakService = ferdigstillVedtakService,
-        vilkårsvurderingService = vilkårsvurderingService,
         grunnlagService = grunnlagService,
         sakService = sakService,
+        kontrollsamtaleService = kontrollsamtaleService,
+        sessionFactory = sessionFactory,
+        avkortingsvarselRepo = avkortingsvarselRepo,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {
@@ -109,12 +118,13 @@ internal data class SøknadsbehandlingServiceAndMocks(
             behandlingMetrics,
             observer,
             brevService,
-            opprettVedtakssnapshotService,
             vedtakRepo,
             ferdigstillVedtakService,
             vilkårsvurderingService,
             grunnlagService,
             sakService,
+            kontrollsamtaleService,
+            avkortingsvarselRepo
         ).toTypedArray()
     }
 
@@ -128,12 +138,13 @@ internal data class SøknadsbehandlingServiceAndMocks(
             behandlingMetrics,
             observer,
             brevService,
-            opprettVedtakssnapshotService,
             vedtakRepo,
             ferdigstillVedtakService,
             vilkårsvurderingService,
             grunnlagService,
             sakService,
+            kontrollsamtaleService,
+            avkortingsvarselRepo
         )
     }
 }

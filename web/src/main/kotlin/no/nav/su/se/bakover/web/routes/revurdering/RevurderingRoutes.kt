@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import io.ktor.routing.Route
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.forhåndsvarslingRoute
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import java.time.Clock
 
@@ -29,9 +30,9 @@ internal fun Route.revurderingRoutes(
 
     brevutkastForRevurdering(revurderingService)
 
-    fortsettEtterForhåndsvarselRoute(revurderingService)
-
     leggTilGrunnlagRevurderingRoutes(revurderingService)
+
+    leggTilUtlandsoppholdRoute(revurderingService)
 
     leggTilFradragRevurdering(revurderingService, clock)
 
@@ -44,4 +45,6 @@ internal fun Route.revurderingRoutes(
     stansUtbetaling(revurderingService)
 
     gjenopptaUtbetaling(revurderingService)
+
+    avsluttRevurderingRoute(revurderingService)
 }

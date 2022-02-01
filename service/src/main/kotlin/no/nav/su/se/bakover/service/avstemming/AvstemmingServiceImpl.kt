@@ -7,9 +7,9 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
 import java.time.Clock
 import java.time.LocalDate
 
@@ -56,6 +56,10 @@ internal class AvstemmingServiceImpl(
                 it.right()
             },
         )
+    }
+
+    override fun konsistensavstemmingUtførtForOgPåDato(dato: LocalDate): Boolean {
+        return repo.konsistensavstemmingUtførtForOgPåDato(dato)
     }
 
     private fun grensesnittsavstemming(periode: AvstemmingsPeriode): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {

@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 
 import arrow.core.Either
-import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.domain.NavIdentBruker
 
 /** Beslutningsgrunnlaget til et kravgrunnlag som sendes til Oppdrag. */
 data class Tilbakekrevingsvedtak private constructor(
@@ -13,7 +11,7 @@ data class Tilbakekrevingsvedtak private constructor(
 
     val tilbakekrevingsavgjørelse: Tilbakekrevingsavgjørelse,
 
-    ) {
+) {
     companion object {
         /**
          * @param kravgrunnlag Kravgrunnlaget fra kravmeldingen som vi skal ta en avgjørelse på.

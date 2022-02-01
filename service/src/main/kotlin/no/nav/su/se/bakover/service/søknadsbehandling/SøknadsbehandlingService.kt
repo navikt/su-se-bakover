@@ -1,22 +1,22 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -31,13 +31,14 @@ interface SøknadsbehandlingService {
     fun brev(request: BrevRequest): Either<KunneIkkeLageBrev, ByteArray>
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
     fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling>
-    fun leggTilUføregrunnlag(request: LeggTilUførevurderingRequest): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling>
+    fun leggTilUførevilkår(request: LeggTilUførevilkårRequest): Either<KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling>
     fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling>
     fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling>
     fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling>
     fun hentForSøknad(søknadId: UUID): Søknadsbehandling?
-    fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext)
-    fun lagre(avslag: AvslagManglendeDokumentasjon, sessionContext: SessionContext)
+    fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext)
+    fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext)
+    fun leggTilUtenlandsopphold(request: LeggTilUtenlandsoppholdRequest): Either<KunneIkkeLeggeTilUtenlandsopphold, Søknadsbehandling.Vilkårsvurdert>
 
     data class OpprettRequest(
         val søknadId: UUID,
@@ -51,14 +52,11 @@ interface SøknadsbehandlingService {
         object HarAlleredeÅpenSøknadsbehandling : KunneIkkeOpprette()
     }
 
-    data class VilkårsvurderRequest(
-        val behandlingId: UUID,
-        val behandlingsinformasjon: Behandlingsinformasjon,
-    )
-
     sealed class KunneIkkeVilkårsvurdere {
         object FantIkkeBehandling : KunneIkkeVilkårsvurdere()
         object HarIkkeEktefelle : KunneIkkeVilkårsvurdere()
+        data class FeilVedValideringAvBehandlingsinformasjon(val feil: VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon) :
+            KunneIkkeVilkårsvurdere()
     }
 
     data class BeregnRequest(
@@ -68,6 +66,14 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeBeregne {
         object FantIkkeBehandling : KunneIkkeBeregne()
+        object KunneIkkeSimulereUtbetaling : KunneIkkeBeregne()
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling>,
+        ) : KunneIkkeBeregne()
+
+        data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilFradragsgrunnlag) : KunneIkkeBeregne()
+        object AvkortingErUfullstendig : KunneIkkeBeregne()
     }
 
     data class SimulerRequest(
@@ -90,7 +96,6 @@ interface SøknadsbehandlingService {
         object FantIkkeBehandling : KunneIkkeSendeTilAttestering()
         object KunneIkkeFinneAktørId : KunneIkkeSendeTilAttestering()
         object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering()
-        object KunneIkkeAvgjøreOmFørstegangEllerNyPeriode : KunneIkkeSendeTilAttestering()
     }
 
     data class UnderkjennRequest(
@@ -103,7 +108,6 @@ interface SøknadsbehandlingService {
         object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenne()
         object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenne()
         object FantIkkeAktørId : KunneIkkeUnderkjenne()
-        object KunneIkkeAvgjøreOmFørstegangEllerNyPeriode : KunneIkkeUnderkjenne()
     }
 
     data class IverksettRequest(
@@ -140,49 +144,44 @@ interface SøknadsbehandlingService {
     sealed class KunneIkkeOppdatereStønadsperiode {
         object FantIkkeBehandling : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
         object FantIkkeSak : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
-        data class KunneIkkeOppdatereStønadsperiode(val feil: Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode) :
+        data class KunneIkkeOppdatereStønadsperiode(val feil: Sak.KunneIkkeOppdatereStønadsperiode) :
             SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
     }
 
     data class OppdaterStønadsperiodeRequest(
         val behandlingId: UUID,
         val stønadsperiode: Stønadsperiode,
+        val sakId: UUID,
     )
 
-    sealed class KunneIkkeLeggeTilGrunnlag {
-        object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
+    sealed class KunneIkkeLeggeTilUføreVilkår {
+        object FantIkkeBehandling : KunneIkkeLeggeTilUføreVilkår()
+        object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilUføreVilkår()
+        object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilUføreVilkår()
+        object OverlappendeVurderingsperioder : KunneIkkeLeggeTilUføreVilkår()
+        object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilUføreVilkår()
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling>,
-        ) : KunneIkkeLeggeTilGrunnlag()
-
-        object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
-        object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
-        object OverlappendeVurderingsperioder : KunneIkkeLeggeTilGrunnlag()
-        object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilGrunnlag()
+        ) : KunneIkkeLeggeTilUføreVilkår()
     }
 
     sealed class KunneIkkeLeggeTilBosituasjonEpsGrunnlag {
         object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
-        data class UgyldigTilstand(
-            val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling>,
-        ) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
 
         object KlarteIkkeHentePersonIPdl : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
-        data class KunneIkkeEndreBosituasjonEpsGrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+
+        data class KunneIkkeOppdatereBosituasjon(val feil: Søknadsbehandling.KunneIkkeOppdatereBosituasjon) :
+            KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
     }
 
     sealed class KunneIkkeFullføreBosituasjonGrunnlag {
         object FantIkkeBehandling : KunneIkkeFullføreBosituasjonGrunnlag()
-        data class UgyldigTilstand(
-            val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling>,
-        ) : KunneIkkeFullføreBosituasjonGrunnlag()
 
         object KlarteIkkeLagreBosituasjon : KunneIkkeFullføreBosituasjonGrunnlag()
         object KlarteIkkeHentePersonIPdl : KunneIkkeFullføreBosituasjonGrunnlag()
-        data class KunneIkkeEndreBosituasjongrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeFullføreBosituasjonGrunnlag()
+        data class KunneIkkeEndreBosituasjongrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
+            KunneIkkeFullføreBosituasjonGrunnlag()
     }
 
     sealed class KunneIkkeLeggeTilFradragsgrunnlag {
@@ -193,6 +192,20 @@ interface SøknadsbehandlingService {
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling>,
         ) : KunneIkkeLeggeTilFradragsgrunnlag()
-        data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilFradragsgrunnlag()
+
+        data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
+            KunneIkkeLeggeTilFradragsgrunnlag()
+    }
+
+    sealed class KunneIkkeLeggeTilUtenlandsopphold {
+        object FantIkkeBehandling : KunneIkkeLeggeTilUtenlandsopphold()
+        object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
+        object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold()
+        object MåInneholdeKunEnVurderingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
+        object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold()
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling>,
+        ) : KunneIkkeLeggeTilUtenlandsopphold()
     }
 }

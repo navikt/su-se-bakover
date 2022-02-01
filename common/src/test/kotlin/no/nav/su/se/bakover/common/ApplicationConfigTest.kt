@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.common
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -51,8 +52,8 @@ internal class ApplicationConfigTest {
                 stsSoapUrl = "stsSoapUrl",
             ),
             tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
-                mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq("tilbakekrevingMqReplyTo"),
-                soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap("tilbakekrevingSoapClientUrl"),
+                mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq("TODO_MQ_KRAVGRUNNLAG_REPLY_TO"),
+                soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap("TODO_KRAVGRUNNLAG_SOAP"),
             ),
         ),
         database = ApplicationConfig.DatabaseConfig.RotatingCredentials(
@@ -76,20 +77,12 @@ internal class ApplicationConfigTest {
             stsUrl = "stsUrl",
             skjermingUrl = "skjermingUrl",
             dkifUrl = "http://dkif.default.svc.nais.local",
+            kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
+                url = "kabalUrl",
+                clientId = "kabalClientId"
+            )
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
-            common = mapOf(
-                "bootstrap.servers" to "brokers",
-                "security.protocol" to "SSL",
-                "ssl.endpoint.identification.algorithm" to "",
-                "ssl.truststore.type" to "jks",
-                "ssl.keystore.type" to "PKCS12",
-                "ssl.truststore.location" to "truststorePath",
-                "ssl.truststore.password" to "credstorePwd",
-                "ssl.keystore.location" to "keystorePath",
-                "ssl.keystore.password" to "credstorePwd",
-                "ssl.key.password" to "credstorePwd",
-            ),
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
                 mapOf(
                     "bootstrap.servers" to "brokers",
@@ -124,14 +117,38 @@ internal class ApplicationConfigTest {
                     "basic.auth.credentials.source" to "USER_INFO",
                     "basic.auth.user.info" to "usr:pwd",
                     "group.id" to "su-se-bakover",
-                    "client.id" to "su-se-bakover-hostname",
+                    "client.id" to "hostname",
                     "enable.auto.commit" to "false",
                     "max.poll.records" to 100,
                 ),
-            )
+            ),
         ),
         unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
-        jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(ApplicationConfig.NaisCluster.Prod)),
+        jobConfig = ApplicationConfig.JobConfig(
+            personhendelse = ApplicationConfig.JobConfig.Personhendelse(ApplicationConfig.NaisCluster.Prod),
+            konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Prod(),
+        ),
+        kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
+            kafkaConfig = mapOf(
+                "bootstrap.servers" to "brokers",
+                "security.protocol" to "SSL",
+                "ssl.endpoint.identification.algorithm" to "",
+                "ssl.truststore.type" to "jks",
+                "ssl.keystore.type" to "PKCS12",
+                "ssl.truststore.location" to "truststorePath",
+                "ssl.truststore.password" to "credstorePwd",
+                "ssl.keystore.location" to "keystorePath",
+                "ssl.keystore.password" to "credstorePwd",
+                "ssl.key.password" to "credstorePwd",
+                "group.id" to "su-se-bakover",
+                "client.id" to "hostname",
+                "enable.auto.commit" to "false",
+                "auto.offset.reset" to "earliest",
+                "key.deserializer" to StringDeserializer::class.java,
+                "value.deserializer" to StringDeserializer::class.java,
+                "max.poll.records" to 100,
+            ),
+        ),
     )
 
     @Test
@@ -169,6 +186,11 @@ internal class ApplicationConfigTest {
                 "SKJERMING_URL" to "skjermingUrl",
                 "ELECTOR_PATH" to "leaderPodLookupPath",
                 "PDL_CLIENT_ID" to "pdlClientId",
+                "KABAL_URL" to "kabalUrl",
+                "KABAL_CLIENT_ID" to "kabalClientId",
+                "HOSTNAME" to "hostname",
+                "TODO_MQ_KRAVGRUNNLAG_REPLY_TO" to "TODO_MQ_KRAVGRUNNLAG_REPLY_TO",
+                "TODO_KRAVGRUNNLAG_SOAP" to "TODO_KRAVGRUNNLAG_SOAP",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -238,14 +260,18 @@ internal class ApplicationConfigTest {
                     stsUrl = "mocked",
                     skjermingUrl = "mocked",
                     dkifUrl = "mocked",
+                    kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("mocked", "mocked")
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
-                    common = emptyMap(),
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),
                     consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
                 ),
                 unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
-                jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(null)),
+                jobConfig = ApplicationConfig.JobConfig(
+                    personhendelse = ApplicationConfig.JobConfig.Personhendelse(null),
+                    konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Local(),
+                ),
+                kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(emptyMap()),
             )
         }
     }

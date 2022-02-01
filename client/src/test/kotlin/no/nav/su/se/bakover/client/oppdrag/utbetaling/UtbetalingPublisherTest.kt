@@ -19,6 +19,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 
 internal class UtbetalingPublisherTest {
@@ -59,6 +61,7 @@ internal class UtbetalingPublisherTest {
     }
 
     private val simulertUtbetaling = Utbetaling.SimulertUtbetaling(
+        opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = Fnr("12345678910"),
@@ -78,7 +81,7 @@ internal class UtbetalingPublisherTest {
             gjelderId = Fnr(
                 fnr = "12345678910"
             ),
-            gjelderNavn = "navn", datoBeregnet = idag(), nettoBeløp = 0, periodeList = listOf()
+            gjelderNavn = "navn", datoBeregnet = idag(fixedClock), nettoBeløp = 0, periodeList = listOf()
         ),
         behandler = NavIdentBruker.Saksbehandler("Z123")
     )

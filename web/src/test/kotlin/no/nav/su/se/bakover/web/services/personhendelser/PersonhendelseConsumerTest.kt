@@ -14,7 +14,7 @@ import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.sivilstand.Sivilstand
 import no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.hendelse.Personhendelse
+import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -29,6 +29,7 @@ import org.apache.kafka.common.config.SaslConfigs
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Isolated
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
@@ -42,6 +43,7 @@ import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 private const val TOPIC1 = "kafkaTopic1"
 private const val TOPIC2 = "kafkaTopic2"
 
+@Isolated
 internal class PersonhendelseConsumerTest {
 
     private val PARTITION = 0

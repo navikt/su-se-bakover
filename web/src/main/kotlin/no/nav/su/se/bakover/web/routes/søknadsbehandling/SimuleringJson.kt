@@ -50,34 +50,34 @@ internal fun TolketPeriode.toJson(): SimuleringJson.SimulertPeriodeJson {
     val utbetaling = utbetalinger.singleOrNull() ?: throw MerEnnEnUtbetalingIMinstEnAvPeriodene
     return when (utbetaling) {
         is TolketUtbetaling.Etterbetaling -> SimuleringJson.SimulertPeriodeJson(
-            fraOgMed = fraOgMed,
-            tilOgMed = tilOgMed,
+            fraOgMed = periode.fraOgMed,
+            tilOgMed = periode.tilOgMed,
             type = SimulertUtbetalingstype.ETTERBETALING,
             bruttoYtelse = utbetaling.bruttobeløp(),
         )
         is TolketUtbetaling.Feilutbetaling -> SimuleringJson.SimulertPeriodeJson(
-            fraOgMed = fraOgMed,
-            tilOgMed = tilOgMed,
+            fraOgMed = periode.fraOgMed,
+            tilOgMed = periode.tilOgMed,
             type = SimulertUtbetalingstype.FEILUTBETALING,
             bruttoYtelse = utbetaling.bruttobeløp()
                 .times(-1),
         )
         is TolketUtbetaling.Ordinær -> SimuleringJson.SimulertPeriodeJson(
-            fraOgMed = fraOgMed,
-            tilOgMed = tilOgMed,
+            fraOgMed = periode.fraOgMed,
+            tilOgMed = periode.tilOgMed,
             type = SimulertUtbetalingstype.ORDINÆR,
             bruttoYtelse = utbetaling.bruttobeløp(),
         )
         is TolketUtbetaling.UendretUtbetaling -> SimuleringJson.SimulertPeriodeJson(
-            fraOgMed = fraOgMed,
-            tilOgMed = tilOgMed,
+            fraOgMed = periode.fraOgMed,
+            tilOgMed = periode.tilOgMed,
             type = SimulertUtbetalingstype.UENDRET,
             bruttoYtelse = utbetaling.bruttobeløp(),
         )
 
         is TolketUtbetaling.IngenUtbetaling -> SimuleringJson.SimulertPeriodeJson(
-            fraOgMed = fraOgMed,
-            tilOgMed = tilOgMed,
+            fraOgMed = periode.fraOgMed,
+            tilOgMed = periode.tilOgMed,
             type = SimulertUtbetalingstype.INGEN_UTBETALING,
             bruttoYtelse = utbetaling.bruttobeløp(),
         )

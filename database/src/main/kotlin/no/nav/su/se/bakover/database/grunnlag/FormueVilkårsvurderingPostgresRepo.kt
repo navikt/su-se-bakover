@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.withTransaction
-import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.grunnlag.FormueVilkårsvurderingRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import java.util.UUID
@@ -37,7 +37,9 @@ internal class FormueVilkårsvurderingPostgresRepo(
     internal fun lagre(behandlingId: UUID, vilkår: Vilkår.Formue, tx: TransactionalSession) {
         slettForBehandlingId(behandlingId, tx)
         when (vilkår) {
-            Vilkår.Formue.IkkeVurdert -> Unit
+            Vilkår.Formue.IkkeVurdert -> {
+                formuegrunnlagPostgresRepo.lagreFormuegrunnlag(behandlingId, emptyList(), tx)
+            }
             is Vilkår.Formue.Vurdert -> {
                 formuegrunnlagPostgresRepo.lagreFormuegrunnlag(
                     behandlingId = behandlingId,
@@ -140,23 +142,5 @@ internal class FormueVilkårsvurderingPostgresRepo(
                 tilOgMed = localDate("tilOgMed"),
             ),
         )
-    }
-
-    private enum class ResultatDto {
-        AVSLAG,
-        INNVILGET,
-        UAVKLART;
-
-        fun toDomain() = when (this) {
-            AVSLAG -> Resultat.Avslag
-            INNVILGET -> Resultat.Innvilget
-            UAVKLART -> Resultat.Uavklart
-        }
-    }
-
-    private fun Resultat.toDto() = when (this) {
-        Resultat.Avslag -> ResultatDto.AVSLAG
-        Resultat.Innvilget -> ResultatDto.INNVILGET
-        Resultat.Uavklart -> ResultatDto.UAVKLART
     }
 }

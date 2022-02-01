@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -29,10 +29,12 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
@@ -50,9 +52,11 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -91,10 +95,10 @@ internal class RevurderingLeggTilFormueServiceTest {
 
         actual shouldBe beOfType<RevurderingOgFeilmeldingerResponse>()
         val expectedVilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-            Vilkår.Uførhet.Vurdert.create(
+            uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
-                        id = ((actual.revurdering.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
+                        id = (actual.revurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = Grunnlag.Uføregrunnlag(
@@ -109,14 +113,15 @@ internal class RevurderingLeggTilFormueServiceTest {
                     ),
                 ),
             ),
-            Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+            utenlandsopphold = utlandsoppholdInnvilget(periode = periodeHele2021),
+            formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Formue.tryCreate(
-                        id = ((actual.revurdering.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).formue as Vilkår.Formue.Vurdert).vurderingsperioder.first().id,
+                        id = (actual.revurdering.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).vurderingsperioder.first().id,
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = Formuegrunnlag.create(
-                            id = ((actual.revurdering.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).formue as Vilkår.Formue.Vurdert).grunnlag.first().id,
+                            id = (actual.revurdering.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).grunnlag.first().id,
                             periode = periodeHele2021,
                             opprettet = fixedTidspunkt,
                             epsFormue = Formuegrunnlag.Verdier.empty(),
@@ -138,6 +143,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         )
 
         verify(revurderingRepoMock).hent(revurderingId)
+        verify(revurderingRepoMock).defaultTransactionContext()
         verify(revurderingRepoMock).lagre(
             argThat {
                 val arg = it as Revurdering
@@ -148,6 +154,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     vilkårsvurderinger = expectedVilkårsvurderinger,
                 )
             },
+            anyOrNull()
         )
         verify(vilkårsvurderingServiceMock).lagre(
             argThat { it shouldBe revurderingId },
@@ -378,7 +385,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     ),
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                    Vilkår.Uførhet.Vurdert.create(
+                    uføre = Vilkår.Uførhet.Vurdert.create(
                         vurderingsperioder = nonEmptyListOf(
                             Vurderingsperiode.Uføre.create(
                                 id = UUID.randomUUID(),
@@ -390,6 +397,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                             ),
                         ),
                     ),
+                    formue = Vilkår.Formue.IkkeVurdert,
+                    utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert
                 ),
             ),
         ).second
@@ -428,10 +437,12 @@ internal class RevurderingLeggTilFormueServiceTest {
         actual.feilmeldinger.shouldContain(RevurderingsutfallSomIkkeStøttes.OpphørAvFlereVilkår)
 
         verify(revurderingRepoMock).hent(revurderingId)
+        verify(revurderingRepoMock).defaultTransactionContext()
         verify(revurderingRepoMock).lagre(
             argThat {
                 it shouldBe actual.revurdering
             },
+            anyOrNull()
         )
         verifyNoMoreInteractions(revurderingRepoMock)
     }
@@ -533,7 +544,7 @@ internal class RevurderingLeggTilFormueServiceTest {
     private val uføreId = UUID.randomUUID()
 
     private val vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-        Vilkår.Uførhet.Vurdert.create(
+        uføre = Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
                 Vurderingsperiode.Uføre.create(
                     id = uføreId,
@@ -550,7 +561,9 @@ internal class RevurderingLeggTilFormueServiceTest {
                     begrunnelse = "ok2k",
                 ),
             ),
-        )
+        ),
+        formue = Vilkår.Formue.IkkeVurdert,
+        utenlandsopphold = utlandsoppholdInnvilget(periode = periodeHele2021)
     )
 
     private val opprettetRevurdering = OpprettetRevurdering(
@@ -585,6 +598,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         ),
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+        avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
     )
 
     private val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
@@ -596,7 +610,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         oppgaveId = OppgaveId("oppgaveid"),
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
-        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+        forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
         beregning = testBeregning,
         simulering = Simulering(
             gjelderId = fnr,
@@ -628,5 +642,6 @@ internal class RevurderingLeggTilFormueServiceTest {
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
     )
 }

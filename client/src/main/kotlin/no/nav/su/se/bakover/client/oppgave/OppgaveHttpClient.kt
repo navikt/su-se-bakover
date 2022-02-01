@@ -109,6 +109,18 @@ internal class OppgaveHttpClient(
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
                 } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nPersonhendelse: ${OppgavebeskrivelseMapper.map(config.personhendelsestype)}"
+            is OppgaveConfig.Kontrollsamtale ->
+                "--- ${
+                Tidspunkt.now(clock).toOppgaveFormat()
+                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
+            is OppgaveConfig.Klage.Vedtak ->
+                "--- ${
+                Tidspunkt.now(clock).toOppgaveFormat()
+                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\n${OppgavebeskrivelseMapper.map(config.utfall)}"
+            is OppgaveConfig.Klage ->
+                "--- ${
+                Tidspunkt.now(clock).toOppgaveFormat()
+                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
         }
 
         return Either.catch {
@@ -148,6 +160,7 @@ internal class OppgaveHttpClient(
                     objectMapper.readValue(body, OppgaveResponse::class.java).getOppgaveId().right()
                 } else {
                     log.error("Feil i kallet mot oppgave. status=${it.statusCode()}, body=$body")
+                    sikkerLogg.error("Feil i kallet mot oppgave. Requestcontent=$config, ${it.statusCode()}, body=$body")
                     OppgaveFeil.KunneIkkeOppretteOppgave.left()
                 }
             }

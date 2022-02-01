@@ -49,7 +49,7 @@ internal class VilkårsvurderingerTest {
                         it.lovligOpphold,
                         it.fastOpphold,
                         it.institusjonsopphold,
-                        it.oppholdIUtlandet,
+                        it.utenlandsopphold,
                         it.personligOppmøte,
                     ),
                 )
@@ -128,15 +128,15 @@ internal class VilkårsvurderingerTest {
             vilkårsvurderingerInnvilget(
                 behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt().patch(
                     Behandlingsinformasjon(
-                        oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-                            status = Behandlingsinformasjon.OppholdIUtlandet.Status.Uavklart, begrunnelse = "",
+                        lovligOpphold = Behandlingsinformasjon.LovligOpphold(
+                            status = Behandlingsinformasjon.LovligOpphold.Status.Uavklart, begrunnelse = "",
                         ),
                     ),
                 ),
             ).let {
                 it.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
                     setOf(
-                        OppholdIUtlandetVilkår.IkkeVurdert,
+                        LovligOppholdVilkår.IkkeVurdert,
                     ),
                 )
             }
@@ -152,7 +152,7 @@ internal class VilkårsvurderingerTest {
                     LovligOppholdVilkår.IkkeVurdert,
                     FastOppholdINorgeVilkår.IkkeVurdert,
                     InstitusjonsoppholdVilkår.IkkeVurdert,
-                    OppholdIUtlandetVilkår.IkkeVurdert,
+                    UtenlandsoppholdVilkår.IkkeVurdert,
                     PersonligOppmøteVilkår.IkkeVurdert,
                 ),
             )
@@ -209,7 +209,7 @@ internal class VilkårsvurderingerTest {
                 behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
                 grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = emptyList(),
-                    bosituasjon = listOf(bosituasjongrunnlagEnslig(periode2021)),
+                    bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = periode2021)),
                 ),
                 clock = fixedClock,
             ).let {
@@ -217,37 +217,6 @@ internal class VilkårsvurderingerTest {
                     vilkår = setOf(it.flyktning),
                 )
             }
-        }
-
-        @Test
-        fun `ignorerer uføre, bosituasjon og null fra behandlingsinformasjon ved oppdatering`() {
-            val uavklart = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert
-
-            uavklart.resultat shouldBe beOfType<Vilkårsvurderingsresultat.Uavklart>()
-
-            val behandlingsinformasjon = Behandlingsinformasjon
-                .lagTomBehandlingsinformasjon()
-                .copy(
-                    uførhet = Behandlingsinformasjon.Uførhet(
-                        status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-                        uføregrad = 20,
-                        forventetInntekt = 10,
-                        begrunnelse = "",
-                    ),
-                    bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                        delerBolig = true,
-                        ektemakeEllerSamboerUførFlyktning = true,
-                        begrunnelse = "",
-                    ),
-                )
-
-            uavklart.oppdater(
-                stønadsperiode = Stønadsperiode.create(periode2021, ""),
-                behandlingsinformasjon = behandlingsinformasjon,
-                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                clock = fixedClock,
-            ) shouldBe uavklart
         }
 
         @Test
@@ -262,7 +231,7 @@ internal class VilkårsvurderingerTest {
                 LovligOppholdVilkår.IkkeVurdert,
                 FastOppholdINorgeVilkår.IkkeVurdert,
                 InstitusjonsoppholdVilkår.IkkeVurdert,
-                OppholdIUtlandetVilkår.IkkeVurdert,
+                UtenlandsoppholdVilkår.IkkeVurdert,
                 PersonligOppmøteVilkår.IkkeVurdert,
             )
 
@@ -275,7 +244,7 @@ internal class VilkårsvurderingerTest {
                 LovligOppholdVilkår.IkkeVurdert,
                 FastOppholdINorgeVilkår.IkkeVurdert,
                 InstitusjonsoppholdVilkår.IkkeVurdert,
-                OppholdIUtlandetVilkår.IkkeVurdert,
+                UtenlandsoppholdVilkår.IkkeVurdert,
                 PersonligOppmøteVilkår.IkkeVurdert,
             )
 
@@ -288,7 +257,7 @@ internal class VilkårsvurderingerTest {
                 LovligOppholdVilkår.IkkeVurdert,
                 FastOppholdINorgeVilkår.IkkeVurdert,
                 InstitusjonsoppholdVilkår.IkkeVurdert,
-                OppholdIUtlandetVilkår.IkkeVurdert,
+                UtenlandsoppholdVilkår.IkkeVurdert,
                 PersonligOppmøteVilkår.IkkeVurdert,
             )
         }
@@ -304,6 +273,7 @@ internal class VilkårsvurderingerTest {
                     setOf(
                         it.uføre,
                         it.formue,
+                        it.utenlandsopphold,
                     ),
                 )
             }
@@ -353,7 +323,11 @@ internal class VilkårsvurderingerTest {
                 .let { vilkårsvurdering ->
                     (vilkårsvurdering.resultat as Vilkårsvurderingsresultat.Avslag).let {
                         it.vilkår shouldBe vilkårsvurdering.vilkår
-                        it.avslagsgrunner shouldBe listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FORMUE)
+                        it.avslagsgrunner shouldBe listOf(
+                            Avslagsgrunn.UFØRHET,
+                            Avslagsgrunn.FORMUE,
+                            Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER,
+                        )
                         it.dato shouldBe 1.januar(2021)
                     }
                 }
@@ -386,6 +360,7 @@ internal class VilkårsvurderingerTest {
                 setOf(
                     Vilkår.Uførhet.IkkeVurdert,
                     Vilkår.Formue.IkkeVurdert,
+                    UtenlandsoppholdVilkår.IkkeVurdert,
                 ),
             )
         }

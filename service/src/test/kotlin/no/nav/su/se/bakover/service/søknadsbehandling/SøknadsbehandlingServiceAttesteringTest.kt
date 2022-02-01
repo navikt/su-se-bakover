@@ -7,13 +7,13 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -34,6 +35,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
@@ -74,7 +76,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         simulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = "NAVN",
-            datoBeregnet = idag(),
+            datoBeregnet = idag(fixedClock),
             nettoBeløp = 191500,
             periodeList = listOf(),
         ),
@@ -87,6 +89,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
     )
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z12345")
@@ -133,6 +136,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
         )
 
         actual shouldBe expected.right()
@@ -146,9 +150,10 @@ class SøknadsbehandlingServiceAttesteringTest {
                     søknadId = søknadId,
                     aktørId = aktørId,
                     tilordnetRessurs = null,
+                    clock = fixedClock,
                 ),
             )
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(expected) })
@@ -237,11 +242,14 @@ class SøknadsbehandlingServiceAttesteringTest {
         verify(personServiceMock).hentAktørId(simulertBehandling.fnr)
         verify(søknadsbehandlingRepoMock).hentEventuellTidligereAttestering(simulertBehandling.id)
         verify(oppgaveServiceMock).opprettOppgave(
-            OppgaveConfig.AttesterSøknadsbehandling(
-                søknadId = simulertBehandling.søknad.id,
-                aktørId = aktørId,
-                tilordnetRessurs = null,
-            ),
+            argThat {
+                it shouldBe OppgaveConfig.AttesterSøknadsbehandling(
+                    søknadId = simulertBehandling.søknad.id,
+                    aktørId = aktørId,
+                    tilordnetRessurs = null,
+                    clock = fixedClock,
+                )
+            },
         )
 
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
@@ -291,6 +299,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
         )
 
         actual shouldBe expected.right()
@@ -304,9 +313,10 @@ class SøknadsbehandlingServiceAttesteringTest {
                     søknadId = søknadId,
                     aktørId = aktørId,
                     tilordnetRessurs = null,
+                    clock = fixedClock,
                 ),
             )
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(expected) })

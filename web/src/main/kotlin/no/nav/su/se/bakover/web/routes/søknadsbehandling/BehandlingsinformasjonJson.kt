@@ -1,52 +1,30 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.beregning.Sats
-import java.time.LocalDate
 
 internal data class BehandlingsinformasjonJson(
-    val uførhet: UførhetJson? = null,
     val flyktning: FlyktningJson? = null,
     val lovligOpphold: LovligOppholdJson? = null,
     val fastOppholdINorge: FastOppholdINorgeJson? = null,
     val institusjonsopphold: InstitusjonsoppholdJson? = null,
-    val oppholdIUtlandet: OppholdIUtlandetJson? = null,
     val formue: FormueJson? = null,
     val personligOppmøte: PersonligOppmøteJson? = null,
-    val bosituasjon: BosituasjonJson? = null,
-    val utledetSats: Sats? = null,
-    val ektefelle: EktefelleJson? = null,
 ) {
     companion object {
         internal fun Behandlingsinformasjon.toJson() =
             BehandlingsinformasjonJson(
-                uførhet = uførhet?.toJson(),
                 flyktning = flyktning?.toJson(),
                 lovligOpphold = lovligOpphold?.toJson(),
                 fastOppholdINorge = fastOppholdINorge?.toJson(),
                 institusjonsopphold = institusjonsopphold?.toJson(),
-                oppholdIUtlandet = oppholdIUtlandet?.toJson(),
-                formue = formue?.toJson(ektefelle),
+                formue = formue?.toJson(),
                 personligOppmøte = personligOppmøte?.toJson(),
-                bosituasjon = bosituasjon?.toJson(),
-                utledetSats = utledSats().orNull(),
-                ektefelle = ektefelle?.toJson(),
             )
     }
 }
 
 internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
     Behandlingsinformasjon(
-        uførhet = b.uførhet?.let { u ->
-            Behandlingsinformasjon.Uførhet(
-                status = Behandlingsinformasjon.Uførhet.Status.valueOf(u.status),
-                uføregrad = u.uføregrad,
-                forventetInntekt = u.forventetInntekt,
-                begrunnelse = u.begrunnelse,
-            )
-        },
         flyktning = b.flyktning?.let { f ->
             Behandlingsinformasjon.Flyktning(
                 status = Behandlingsinformasjon.Flyktning.Status.valueOf(f.status),
@@ -71,24 +49,18 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                 begrunnelse = i.begrunnelse,
             )
         },
-        oppholdIUtlandet = b.oppholdIUtlandet?.let { o ->
-            Behandlingsinformasjon.OppholdIUtlandet(
-                status = Behandlingsinformasjon.OppholdIUtlandet.Status.valueOf(o.status),
-                begrunnelse = o.begrunnelse,
-            )
-        },
         formue = b.formue?.let { f ->
             Behandlingsinformasjon.Formue(
                 status = Behandlingsinformasjon.Formue.Status.valueOf(f.status),
                 verdier = Behandlingsinformasjon.Formue.Verdier(
-                    verdiIkkePrimærbolig = f.verdier?.verdiIkkePrimærbolig,
-                    verdiEiendommer = f.verdier?.verdiEiendommer,
-                    verdiKjøretøy = f.verdier?.verdiKjøretøy,
-                    innskudd = f.verdier?.innskudd,
-                    verdipapir = f.verdier?.verdipapir,
-                    pengerSkyldt = f.verdier?.pengerSkyldt,
-                    kontanter = f.verdier?.kontanter,
-                    depositumskonto = f.verdier?.depositumskonto,
+                    verdiIkkePrimærbolig = f.verdier.verdiIkkePrimærbolig,
+                    verdiEiendommer = f.verdier.verdiEiendommer,
+                    verdiKjøretøy = f.verdier.verdiKjøretøy,
+                    innskudd = f.verdier.innskudd,
+                    verdipapir = f.verdier.verdipapir,
+                    pengerSkyldt = f.verdier.pengerSkyldt,
+                    kontanter = f.verdier.kontanter,
+                    depositumskonto = f.verdier.depositumskonto,
                 ),
                 epsVerdier = f.epsVerdier?.let {
                     Behandlingsinformasjon.Formue.Verdier(
@@ -111,17 +83,6 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                 begrunnelse = p.begrunnelse,
             )
         },
-        // Vi ønsker ikke at frontenden skal kunne oppdatere bosituasjon og ektefelle. Dette gjøres via grunnlag- og vilkårsvurderingmetodene i SøknadsbehandlingService og RevurderingService.
-        bosituasjon = null,
-        ektefelle = null,
-    )
-
-internal fun Behandlingsinformasjon.Uførhet.toJson() =
-    UførhetJson(
-        status = status.name,
-        uføregrad = uføregrad,
-        forventetInntekt = forventetInntekt,
-        begrunnelse = begrunnelse,
     )
 
 internal fun Behandlingsinformasjon.Flyktning.toJson() =
@@ -148,17 +109,10 @@ internal fun Behandlingsinformasjon.Institusjonsopphold.toJson() =
         begrunnelse = begrunnelse,
     )
 
-internal fun Behandlingsinformasjon.OppholdIUtlandet.toJson() =
-    OppholdIUtlandetJson(
-        status = status.name,
-        begrunnelse = begrunnelse,
-    )
-
-internal fun Behandlingsinformasjon.Formue.toJson(ektefellePartnerSamboer: Behandlingsinformasjon.EktefellePartnerSamboer?) =
+internal fun Behandlingsinformasjon.Formue.toJson() =
     FormueJson(
         status = status.name,
-        verdier = this.verdier?.toJson(),
-        borSøkerMedEPS = (ektefellePartnerSamboer as? Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle) != null,
+        verdier = this.verdier.toJson(),
         epsVerdier = this.epsVerdier?.toJson(),
         begrunnelse = begrunnelse,
     )
@@ -181,34 +135,7 @@ internal fun Behandlingsinformasjon.PersonligOppmøte.toJson() =
         begrunnelse = begrunnelse,
     )
 
-internal fun Behandlingsinformasjon.Bosituasjon.toJson() =
-    BosituasjonJson(
-        delerBolig = delerBolig,
-        ektemakeEllerSamboerUførFlyktning = ektemakeEllerSamboerUførFlyktning,
-        begrunnelse = begrunnelse,
-    )
-
-internal fun Behandlingsinformasjon.EktefellePartnerSamboer.toJson() = when (this) {
-    is Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle -> EktefelleJson(
-        fnr = this.fnr,
-        navn = this.navn,
-        kjønn = this.kjønn,
-        fødselsdato = this.fødselsdato,
-        alder = this.getAlder(),
-        adressebeskyttelse = this.adressebeskyttelse,
-        skjermet = this.skjermet,
-    )
-    is Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle -> null
-}
-
 internal inline fun <reified T : Enum<T>> enumContains(s: String) = enumValues<T>().any { it.name == s }
-
-internal data class UførhetJson(
-    val status: String,
-    val uføregrad: Int?,
-    val forventetInntekt: Int?,
-    val begrunnelse: String?,
-)
 
 internal data class FlyktningJson(
     val status: String,
@@ -230,57 +157,25 @@ internal data class InstitusjonsoppholdJson(
     val begrunnelse: String?,
 )
 
-internal data class OppholdIUtlandetJson(
+internal data class FormueJson(
     val status: String,
+    val verdier: VerdierJson,
+    val epsVerdier: VerdierJson?,
     val begrunnelse: String?,
 )
 
-internal data class FormueJson(
-    val status: String,
-    val verdier: VerdierJson?,
-    val borSøkerMedEPS: Boolean,
-    val epsVerdier: VerdierJson?,
-    val begrunnelse: String?,
-) {
-    fun harVerdierOgErGyldig(): Boolean = verdier?.let {
-        if (borSøkerMedEPS) {
-            return verdier.depositumErMindreEllerLikInnskudd() && (epsVerdier?.depositumErMindreEllerLikInnskudd() ?: false)
-        }
-
-        return verdier.depositumErMindreEllerLikInnskudd()
-    } ?: false
-}
-
 internal data class VerdierJson(
-    val verdiIkkePrimærbolig: Int?,
-    val verdiEiendommer: Int?,
-    val verdiKjøretøy: Int?,
-    val innskudd: Int?,
-    val verdipapir: Int?,
-    val pengerSkyldt: Int?,
-    val kontanter: Int?,
-    val depositumskonto: Int?,
-) {
-    fun depositumErMindreEllerLikInnskudd() = if (depositumskonto != null && innskudd != null) depositumskonto <= innskudd else false
-}
+    val verdiIkkePrimærbolig: Int,
+    val verdiEiendommer: Int,
+    val verdiKjøretøy: Int,
+    val innskudd: Int,
+    val verdipapir: Int,
+    val pengerSkyldt: Int,
+    val kontanter: Int,
+    val depositumskonto: Int,
+)
 
 internal data class PersonligOppmøteJson(
     val status: String,
     val begrunnelse: String?,
-)
-
-internal data class BosituasjonJson(
-    val delerBolig: Boolean?,
-    val ektemakeEllerSamboerUførFlyktning: Boolean?,
-    val begrunnelse: String?,
-)
-
-internal data class EktefelleJson(
-    val fnr: Fnr?,
-    val navn: Person.Navn?,
-    val kjønn: String?,
-    val fødselsdato: LocalDate?,
-    val adressebeskyttelse: String?,
-    val skjermet: Boolean?,
-    val alder: Int?,
 )

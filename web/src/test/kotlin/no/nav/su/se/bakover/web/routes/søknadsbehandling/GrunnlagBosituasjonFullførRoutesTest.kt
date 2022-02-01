@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -54,6 +55,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
         attesteringer = Attesteringshistorikk.empty(),
+        avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
     )
 
     @Test
@@ -320,33 +322,6 @@ class GrunnlagBosituasjonFullførRoutesTest {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain ("kunne_ikke_legge_til_bosituasjonsgrunnlag")
                 // For å treffe denne må man prøve å fullføre en ufullstendig bosituasjon som burde ha fnr, men som ikke har det
-            }
-        }
-    }
-
-    @Test
-    fun `behandling har ugyldig tilstand`() {
-        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { fullførBosituasjongrunnlag(any()) } doReturn SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.UgyldigTilstand(
-                fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
-                til = Søknadsbehandling.Vilkårsvurdert::class,
-            ).left()
-        }
-
-        withTestApplication(
-            {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
-            },
-        ) {
-            defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon/fullfør",
-                listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody("""{ "bosituasjon": "DELER_BOLIG_MED_VOKSNE", "begrunnelse": null}""".trimIndent())
-            }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain ("ugyldig_tilstand")
             }
         }
     }

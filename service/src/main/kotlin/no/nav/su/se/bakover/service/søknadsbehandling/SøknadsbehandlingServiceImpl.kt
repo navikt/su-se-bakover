@@ -4,27 +4,28 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.persistence.SessionContext
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
@@ -33,18 +34,19 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingsperioden
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
-import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -55,13 +57,13 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
-import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -74,13 +76,14 @@ internal class SøknadsbehandlingServiceImpl(
     private val oppgaveService: OppgaveService,
     private val behandlingMetrics: BehandlingMetrics,
     private val brevService: BrevService,
-    private val opprettVedtakssnapshotService: OpprettVedtakssnapshotService,
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
     private val ferdigstillVedtakService: FerdigstillVedtakService,
-    private val vilkårsvurderingService: VilkårsvurderingService,
     private val grunnlagService: GrunnlagService,
     private val sakService: SakService,
+    private val kontrollsamtaleService: KontrollsamtaleService,
+    private val sessionFactory: SessionFactory,
+    private val avkortingsvarselRepo: AvkortingsvarselRepo,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -116,6 +119,8 @@ internal class SøknadsbehandlingServiceImpl(
 
         val søknadsbehandlingId = UUID.randomUUID()
 
+        val avkorting = hentUteståendeAvkorting(søknad.sakId)
+
         søknadsbehandlingRepo.lagreNySøknadsbehandling(
             NySøknadsbehandling(
                 id = søknadsbehandlingId,
@@ -125,6 +130,7 @@ internal class SøknadsbehandlingServiceImpl(
                 oppgaveId = søknad.oppgaveId,
                 fnr = søknad.søknadInnhold.personopplysninger.fnr,
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+                avkorting = avkorting.kanIkke(),
             ),
         )
 
@@ -141,27 +147,46 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun vilkårsvurder(request: SøknadsbehandlingService.VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
+    private fun hentUteståendeAvkorting(sakId: UUID): AvkortingVedSøknadsbehandling.Uhåndtert {
+        return when (val utestående = avkortingsvarselRepo.hentUtestående(sakId)) {
+            Avkortingsvarsel.Ingen -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+            }
+            is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(utestående)
+            }
+        }
+    }
+
+    override fun vilkårsvurder(request: VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling.left()
 
-        request.behandlingsinformasjon.formue?.epsVerdier?.let {
-            when (søknadsbehandling.grunnlagsdata.bosituasjon.firstOrNull()) {
-                is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen,
-                is Grunnlag.Bosituasjon.Fullstendig.Enslig,
-                is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps,
-                null,
-                -> {
-                    return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.HarIkkeEktefelle.left()
-                }
-                else -> {
-                }
-            }
+        val validertBehandlingsinformasjon = request.hentValidertBehandlingsinformasjon(
+            søknadsbehandling.grunnlagsdata.bosituasjon.firstOrNull(),
+        ).getOrHandle {
+            return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FeilVedValideringAvBehandlingsinformasjon(it).left()
         }
 
+        return vilkårsvurder(søknadsbehandling, validertBehandlingsinformasjon)
+    }
+
+    private fun vilkårsvurder(
+        søknadsbehandling: Søknadsbehandling,
+        validertBehandlingsinformasjon: Behandlingsinformasjon,
+    ): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
         return statusovergang(
             søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.TilVilkårsvurdert(request.behandlingsinformasjon, clock),
+            statusovergang = Statusovergang.TilVilkårsvurdert(validertBehandlingsinformasjon, clock),
         ).let { vilkårsvurdert ->
             søknadsbehandlingRepo.lagre(vilkårsvurdert)
             vilkårsvurdert.right()
@@ -172,18 +197,27 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
 
-        return statusovergang(
-            søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.TilBeregnet {
-                BeregningStrategyFactory().beregn(
-                    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
-                        grunnlagsdata = søknadsbehandling.grunnlagsdata,
-                        vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger,
-                    ),
-                    beregningsPeriode = søknadsbehandling.periode, begrunnelse = request.begrunnelse,
-                )
-            },
-        ).let {
+        return søknadsbehandling.beregn(
+            begrunnelse = request.begrunnelse,
+            clock = clock,
+        ).getOrHandle { feil ->
+            return when (feil) {
+                is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand -> {
+                    KunneIkkeBeregne.UgyldigTilstand(feil.fra, feil.til)
+                }
+                is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
+                    KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(feil.feil.toService())
+                }
+                Søknadsbehandling.KunneIkkeBeregne.AvkortingErUfullstendig -> {
+                    KunneIkkeBeregne.AvkortingErUfullstendig
+                }
+            }.left()
+        }.let {
+            // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
+            grunnlagService.lagreFradragsgrunnlag(
+                behandlingId = it.id,
+                fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
+            )
             søknadsbehandlingRepo.lagre(it)
             it.right()
         }
@@ -235,6 +269,7 @@ internal class SøknadsbehandlingServiceImpl(
                 søknadId = søknadsbehandling.søknad.id,
                 aktørId = aktørId,
                 tilordnetRessurs = tilordnetRessurs,
+                clock = clock,
             ),
         ).getOrElse {
             log.error("Kunne ikke opprette Attesteringsoppgave. Avbryter handlingen.")
@@ -290,6 +325,7 @@ internal class SøknadsbehandlingServiceImpl(
                     søknadId = underkjent.søknad.id,
                     aktørId = aktørId,
                     tilordnetRessurs = underkjent.saksbehandler,
+                    clock = clock,
                 ),
             ).getOrElse {
                 log.error("Behandling ${underkjent.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
@@ -329,41 +365,45 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeIverksette.FantIkkeBehandling.left()
 
-        var utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering? = null
         return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilIverksatt(
-                attestering = request.attestering,
-            ) {
-                utbetalingService.utbetal(
-                    sakId = it.sakId,
-                    attestant = request.attestering.attestant,
-                    beregning = it.beregning,
-                    simulering = it.simulering,
-                    uføregrunnlag = it.vilkårsvurderinger.uføre.grunnlag,
-                ).mapLeft { kunneIkkeUtbetale ->
-                    log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $kunneIkkeUtbetale")
-                    KunneIkkeIverksette.KunneIkkeUtbetale(kunneIkkeUtbetale)
-                }.map { utbetalingUtenKvittering ->
-                    // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
-                    utbetaling = utbetalingUtenKvittering
-                    utbetalingUtenKvittering.id
-                }
-            },
+                request.attestering,
+                hentOpprinneligAvkorting = { avkortingid ->
+                    avkortingsvarselRepo.hent(id = avkortingid)
+                },
+            ),
         ).map { iverksattBehandling ->
             when (iverksattBehandling) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
-                    søknadsbehandlingRepo.lagre(iverksattBehandling)
-                    val vedtak = Vedtak.fromSøknadsbehandling(iverksattBehandling, utbetaling!!.id, clock)
-                    vedtakRepo.lagre(vedtak)
 
-                    log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}")
-                    opprettVedtakssnapshotService.opprettVedtak(
-                        vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(
-                            iverksattBehandling,
-                            utbetaling!!,
-                        ),
-                    )
+                    val utbetaling = utbetalingService.genererUtbetalingsRequest(
+                        sakId = iverksattBehandling.sakId,
+                        attestant = request.attestering.attestant,
+                        beregning = iverksattBehandling.beregning,
+                        simulering = iverksattBehandling.simulering,
+                        uføregrunnlag = iverksattBehandling.vilkårsvurderinger.uføre.grunnlag,
+                    ).getOrHandle { kunneIkkeUtbetale ->
+                        log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $kunneIkkeUtbetale")
+                        return KunneIkkeIverksette.KunneIkkeUtbetale(kunneIkkeUtbetale).left()
+                    }
+
+                    val vedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(iverksattBehandling, utbetaling.id, clock)
+                    Either.catch {
+                        sessionFactory.withTransactionContext {
+                            søknadsbehandlingRepo.lagre(iverksattBehandling, it)
+                            utbetalingService.lagreUtbetaling(utbetaling, it)
+                            vedtakRepo.lagre(vedtak, it)
+                            kontrollsamtaleService.opprettPlanlagtKontrollsamtale(vedtak, it)
+                            utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
+                                log.error("Kunne ikke publisere utbetaling på køen. Ruller tilbake. SakId: ${iverksattBehandling.sakId}", feil)
+                                throw RuntimeException("Publisering av utbetaling på køen feilet. $feil")
+                            }
+                        }
+                    }.mapLeft { return KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left() }
+
+                    log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
+
                     behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
                     iverksattBehandling.also {
@@ -378,7 +418,7 @@ internal class SøknadsbehandlingServiceImpl(
                     }
                 }
                 is Søknadsbehandling.Iverksatt.Avslag -> {
-                    val vedtak = opprettAvslagsvedtak(iverksattBehandling)
+                    val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling)
 
                     val dokument = brevService.lagDokument(vedtak)
                         .getOrHandle { return KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev.left() }
@@ -392,27 +432,20 @@ internal class SøknadsbehandlingServiceImpl(
                             ),
                         )
 
-                    // TODO jm: skriker etter en transaksjon
-                    // TODO jm: sjekk om vi allerede har distribuert?
-                    søknadsbehandlingRepo.lagre(iverksattBehandling)
-                    vedtakRepo.lagre(vedtak)
-                    brevService.lagreDokument(dokument)
+                    sessionFactory.withTransactionContext {
+                        søknadsbehandlingRepo.lagre(iverksattBehandling, it)
+                        vedtakRepo.lagre(vedtak, it)
+                        brevService.lagreDokument(dokument, it)
+                    }
 
                     log.info("Iverksatt avslag for behandling: ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
-                    opprettVedtakssnapshotService.opprettVedtak(
-                        vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(
-                            søknadsbehandling = iverksattBehandling,
-                            avslagsgrunner = iverksattBehandling.avslagsgrunner,
-                        ),
-                    )
+
                     behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
 
-                    if (vedtak.behandling is BehandlingMedOppgave) {
-                        ferdigstillVedtakService.lukkOppgaveMedBruker(vedtak)
-                            .mapLeft {
-                                log.error("Lukking av oppgave for behandlingId: ${(vedtak.behandling as BehandlingMedOppgave).oppgaveId} feilet. Må ryddes opp manuelt.")
-                            }
-                    }
+                    ferdigstillVedtakService.lukkOppgaveMedBruker(vedtak.behandling)
+                        .mapLeft {
+                            log.error("Lukking av oppgave for behandlingId: ${(vedtak.behandling as BehandlingMedOppgave).oppgaveId} feilet. Må ryddes opp manuelt.")
+                        }
 
                     iverksattBehandling.also {
                         observers.forEach { observer ->
@@ -428,16 +461,16 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    private fun opprettAvslagsvedtak(iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag): Vedtak.Avslag =
+    private fun opprettAvslagsvedtak(iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag): Avslagsvedtak =
         when (iverksattBehandling) {
             is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
-                Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(
+                Avslagsvedtak.fromSøknadsbehandlingMedBeregning(
                     avslag = iverksattBehandling,
                     clock = clock,
                 )
             }
             is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
-                Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(
+                Avslagsvedtak.fromSøknadsbehandlingUtenBeregning(
                     avslag = iverksattBehandling,
                     clock = clock,
                 )
@@ -476,27 +509,17 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun oppdaterStønadsperiode(request: SøknadsbehandlingService.OppdaterStønadsperiodeRequest): Either<SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
-
-        val sak = sakService.hentSak(søknadsbehandling.sakId)
+        val sak = sakService.hentSak(request.sakId)
             .getOrHandle { return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak.left() }
 
-        return forsøkStatusovergang(
-            søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.OppdaterStønadsperiode(
-                oppdatertStønadsperiode = request.stønadsperiode,
-                sak = sak,
-                clock = clock,
-            ),
+        return sak.oppdaterStønadsperiodeForSøknadsbehandling(
+            søknadsbehandlingId = request.behandlingId,
+            stønadsperiode = request.stønadsperiode,
+            clock = clock,
         ).mapLeft {
             SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
-            vilkårsvurderingService.lagre(
-                behandlingId = it.id,
-                vilkårsvurderinger = it.vilkårsvurderinger,
-            )
             grunnlagService.lagreBosituasjongrunnlag(
                 behandlingId = it.id,
                 bosituasjongrunnlag = it.grunnlagsdata.bosituasjon,
@@ -509,112 +532,74 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun leggTilUføregrunnlag(
-        request: LeggTilUførevurderingRequest,
-    ): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {
+    override fun leggTilUførevilkår(
+        request: LeggTilUførevilkårRequest,
+    ): Either<KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
+            ?: return KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling.left()
 
-        if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
-            return KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(
-                søknadsbehandling::class,
-                Søknadsbehandling.Vilkårsvurdert::class,
-            ).left()
-
-        val vilkår = request.toVilkår(søknadsbehandling.periode, clock).getOrHandle {
+        val vilkår = request.toVilkår(clock).getOrHandle {
             return when (it) {
-                LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
-                LeggTilUførevurderingRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-                LeggTilUførevurderingRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder.left()
-                LeggTilUførevurderingRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
+                LeggTilUførevilkårRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> {
+                    KunneIkkeLeggeTilUføreVilkår.UføregradOgForventetInntektMangler
+                }
+                LeggTilUførevilkårRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                    KunneIkkeLeggeTilUføreVilkår.PeriodeForGrunnlagOgVurderingErForskjellig
+                }
+                LeggTilUførevilkårRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> {
+                    KunneIkkeLeggeTilUføreVilkår.OverlappendeVurderingsperioder
+                }
+                LeggTilUførevilkårRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
+                    KunneIkkeLeggeTilUføreVilkår.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden
+                }
+            }.left()
+        }
+
+        val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(vilkår, clock)
+            .getOrHandle {
+                return when (it) {
+                    is Søknadsbehandling.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand -> {
+                        KunneIkkeLeggeTilUføreVilkår.UgyldigTilstand(fra = it.fra, til = it.til)
+                    }
+                    Søknadsbehandling.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode -> {
+                        KunneIkkeLeggeTilUføreVilkår.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden
+                    }
+                }.left()
             }
-        }
-        // TODO midliertidig til behandlingsinformasjon er borte
-        val grunnlag = (vilkår as? Vilkår.Uførhet.Vurdert)?.grunnlag?.firstOrNull()
-        return vilkårsvurder(
-            SøknadsbehandlingService.VilkårsvurderRequest(
-                behandlingId = søknadsbehandling.id,
-                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.copy(
-                    uførhet = Behandlingsinformasjon.Uførhet(
-                        status = when (vilkår.resultat) {
-                            Resultat.Avslag -> Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt
-                            Resultat.Innvilget -> Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
-                            Resultat.Uavklart -> Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling
-                        },
-                        uføregrad = grunnlag?.uføregrad?.value,
-                        forventetInntekt = grunnlag?.forventetInntekt,
-                        begrunnelse = request.begrunnelse,
-                    ),
-                ),
-            ),
-        ).mapLeft {
-            KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling
-        }.map {
-            // TODO jah: Legg til Søknadsbehandling.leggTilUføre(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
-            vilkårsvurderingService.lagre(
-                it.id,
-                it.vilkårsvurderinger.leggTil(vilkår),
-            )
-            søknadsbehandlingRepo.hent(søknadsbehandling.id)!!
-        }
+
+        søknadsbehandlingRepo.lagre(vilkårsvurdert)
+        return vilkårsvurdert.right()
     }
 
     override fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
 
-        if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
-            return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand(
-                søknadsbehandling::class,
-                Søknadsbehandling.Vilkårsvurdert::class,
-            ).left()
-
         val bosituasjon = request.toBosituasjon(søknadsbehandling.periode, clock) {
-            personService.hentPerson(it)
-        }.getOrHandle { return it.left() }
+            personService.hentPerson(it).fold(
+                { error ->
+                    if (error is KunneIkkeHentePerson.IkkeTilgangTilPerson) {
+                        true.right()
+                    } else {
+                        KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
+                    }
+                },
+                {
+                    true.right()
+                },
+            )
+        }.getOrHandle {
+            return it.left()
+        }
 
-        return vilkårsvurder(
-            SøknadsbehandlingService.VilkårsvurderRequest(
-                behandlingId = søknadsbehandling.id,
-                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
-                    bosituasjon = bosituasjon,
-                ) {
-                    personService.hentPerson(it)
-                }.getOrHandle { return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left() },
-            ),
-        ).mapLeft {
-            return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
+        return søknadsbehandling.oppdaterBosituasjon(bosituasjon, clock).mapLeft {
+            KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(it)
         }.map {
             // TODO jah: Legg til Søknadsbehandling.leggTilBosituasjonEpsgrunnlag(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
-            return when (it) {
-                is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
-                        bosituasjon = listOf(
-                            bosituasjon,
-                        ),
-                        fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ).getOrHandle {
-                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag(it).left()
-                    },
-                )
-                is Søknadsbehandling.Vilkårsvurdert.Innvilget -> it.copy(
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
-                        bosituasjon = listOf(bosituasjon),
-                        fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ).getOrHandle {
-                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag(it).left()
-                    },
-                )
-                is Søknadsbehandling.Vilkårsvurdert.Uavklart -> it.copy(
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
-                        bosituasjon = listOf(bosituasjon),
-                        fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ).getOrHandle {
-                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag(it).left()
-                    },
-                )
-            }.right()
+            grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
+            søknadsbehandlingRepo.lagre(it)
+            it
         }
     }
 
@@ -622,31 +607,24 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
 
-        if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
-            return KunneIkkeFullføreBosituasjonGrunnlag.UgyldigTilstand(
-                søknadsbehandling::class,
-                Søknadsbehandling.Vilkårsvurdert::class,
-            ).left()
-
         val bosituasjon =
             request.toBosituasjon(søknadsbehandling.grunnlagsdata.bosituasjon.singleOrThrow(), clock).getOrHandle {
                 return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon.left()
             }
 
         return vilkårsvurder(
-            SøknadsbehandlingService.VilkårsvurderRequest(
+            VilkårsvurderRequest(
                 behandlingId = søknadsbehandling.id,
-                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
-                    bosituasjon = bosituasjon,
-                ) {
-                    personService.hentPerson(it)
-                }.getOrHandle { return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeHentePersonIPdl.left() },
+                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.copy(
+                    formue = søknadsbehandling.behandlingsinformasjon.formue?.nullstillEpsFormueHvisIngenEps(bosituasjon),
+                ),
             ),
         ).mapLeft {
             return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
         }.map {
             // TODO jah: Legg til Søknadsbehandling.fullførBosituasjongrunnlag(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
+            grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
             return when (it) {
                 is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(
                     grunnlagsdata = Grunnlagsdata.tryCreate(
@@ -680,18 +658,12 @@ internal class SøknadsbehandlingServiceImpl(
         val behandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
+        /**
+         *  I flere av funksjonene i denne fila bruker vi [Statusovergang] og [no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor] for å bestemme om det er en gyldig statusovergang, men i dette tilfellet bruker vi domenemodellen sin funksjon leggTilFradragsgrunnlag til dette.
+         * Vi ønsker gradvis å gå over til sistenevnte måte å gjøre det på.
+         */
         val oppdatertBehandling = behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag).getOrHandle {
-            return when (it) {
-                GrunnlagetMåVæreInneforBehandlingsperioden -> KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
-                IkkeLovÅLeggeTilFradragIDenneStatusen -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
-                    fra = behandling::class,
-                    til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
-                ).left()
-                PeriodeMangler -> KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler.left()
-                is Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
-                    it.feil,
-                ).left()
-            }
+            return it.toService().left()
         }
 
         grunnlagService.lagreFradragsgrunnlag(behandling.id, request.fradragsgrunnlag)
@@ -700,11 +672,85 @@ internal class SøknadsbehandlingServiceImpl(
         return oppdatertBehandling.right()
     }
 
-    override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext) {
-        søknadsbehandlingRepo.lagre(lukketSøknadbehandling, sessionContext)
+    private fun Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.toService(): KunneIkkeLeggeTilFradragsgrunnlag {
+        return when (this) {
+            GrunnlagetMåVæreInneforBehandlingsperioden -> {
+                KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
+            }
+            is IkkeLovÅLeggeTilFradragIDenneStatusen -> {
+                KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                    fra = this.status,
+                    til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
+                )
+            }
+            is Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
+                KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(this.feil)
+            }
+            PeriodeMangler -> {
+                KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler
+            }
+        }
     }
 
-    override fun lagre(avslag: AvslagManglendeDokumentasjon, sessionContext: SessionContext) {
-        return søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(avslag, sessionContext)
+    override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext) {
+        søknadsbehandlingRepo.lagre(lukketSøknadbehandling, tx)
+    }
+
+    override fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext) {
+        return søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(avslag, tx)
+    }
+
+    override fun leggTilUtenlandsopphold(request: LeggTilUtenlandsoppholdRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold, Søknadsbehandling.Vilkårsvurdert> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+            ?: return SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
+
+        val vilkår = UtenlandsoppholdVilkår.Vurdert.tryCreate(
+            vurderingsperioder = nonEmptyListOf(
+                request.tilVurderingsperiode(clock = clock).getOrHandle {
+                    when (it) {
+                        LeggTilUtenlandsoppholdRequest.UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                            throw IllegalStateException("$it Skal ikke kunne forekomme for søknadsbehandling")
+                        }
+                    }
+                },
+            ),
+        ).getOrHandle {
+            when (it) {
+                UtenlandsoppholdVilkår.Vurdert.UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder -> {
+                    throw IllegalStateException("$it Skal ikke kunne forekomme for søknadsbehandling")
+                }
+            }
+        }
+
+        val vilkårsvurdert = søknadsbehandling.leggTilUtenlandsopphold(vilkår, clock)
+            .getOrHandle {
+                return it.tilService().left()
+            }
+
+        søknadsbehandlingRepo.lagre(vilkårsvurdert)
+        return vilkårsvurdert.right()
+    }
+
+    private fun Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.tilService(): SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold {
+        return when (this) {
+            is Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen -> {
+                SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(
+                    fra = this.fra,
+                    til = this.til,
+                )
+            }
+            Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> {
+                SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode
+            }
+            Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat -> {
+                SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat
+            }
+            Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode -> {
+                SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode
+            }
+            Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden -> {
+                SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden
+            }
+        }
     }
 }

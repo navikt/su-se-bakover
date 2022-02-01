@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
@@ -27,9 +28,11 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.plus
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class UtbetalingsstrategiStansTest {
@@ -84,6 +87,7 @@ internal class UtbetalingsstrategiStansTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinje = Utbetalingslinje.Ny(
+                        opprettet = fixedTidspunkt,
                         fraOgMed = 1.januar(2020),
                         tilOgMed = 31.desember(2020),
                         forrigeUtbetalingslinjeId = null,
@@ -114,6 +118,7 @@ internal class UtbetalingsstrategiStansTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = Utbetalingslinje.Ny(
+                        opprettet = fixedTidspunkt,
                         fraOgMed = 1.januar(2020),
                         tilOgMed = 31.desember(2020),
                         forrigeUtbetalingslinjeId = null,
@@ -143,6 +148,7 @@ internal class UtbetalingsstrategiStansTest {
         val utbetaling = createUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -169,6 +175,7 @@ internal class UtbetalingsstrategiStansTest {
         val utbetaling = createUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -195,6 +202,7 @@ internal class UtbetalingsstrategiStansTest {
         val utbetaling = createUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2021),
                     forrigeUtbetalingslinjeId = null,
@@ -300,6 +308,7 @@ internal class UtbetalingsstrategiStansTest {
         val første = createUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.august(2021),
                     tilOgMed = 30.april(2022),
                     forrigeUtbetalingslinjeId = null,
@@ -308,20 +317,23 @@ internal class UtbetalingsstrategiStansTest {
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
+            clock = fixedClock,
         )
         val opphør = createUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = første.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.november(2021),
-                    clock = Clock.systemUTC(),
+                    clock = fixedClock.plus(1, ChronoUnit.SECONDS),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.OPPHØR,
+            clock = fixedClock.plus(1, ChronoUnit.SECONDS),
         )
         val andre = createUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt.plus(2, ChronoUnit.SECONDS),
                     fraOgMed = 1.november(2021),
                     tilOgMed = 30.april(2022),
                     forrigeUtbetalingslinjeId = opphør.sisteUtbetalingslinje().id,
@@ -330,6 +342,7 @@ internal class UtbetalingsstrategiStansTest {
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
+            clock = fixedClock.plus(2, ChronoUnit.SECONDS),
         )
 
         Utbetalingsstrategi.Stans(
@@ -343,21 +356,30 @@ internal class UtbetalingsstrategiStansTest {
         ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.KanIkkeStanseOpphørtePerioder.left()
     }
 
-    private fun createUtbetaling(utbetalingslinjer: NonEmptyList<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) =
+    private fun createUtbetaling(
+        utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
+        type: Utbetaling.UtbetalingsType,
+        clock: Clock = fixedClock,
+    ) =
         Utbetaling.OversendtUtbetaling.MedKvittering(
+            opprettet = Tidspunkt.now(clock),
             sakId = sakId,
             saksnummer = saksnummer,
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
-                datoBeregnet = idag(),
+                datoBeregnet = idag(clock),
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
             utbetalingsrequest = Utbetalingsrequest(
                 value = "",
             ),
-            kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, "", mottattTidspunkt = fixedTidspunkt),
+            kvittering = Kvittering(
+                Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
+                "",
+                mottattTidspunkt = Tidspunkt.now(clock),
+            ),
             utbetalingslinjer = utbetalingslinjer,
             fnr = fnr,
             type = type,

@@ -1,10 +1,13 @@
 package no.nav.su.se.bakover.domain.revurdering
 
-import no.nav.su.se.bakover.common.periode.Periode
+import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.Merknad
+import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvslag
+import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknadForAvslag
+import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock
@@ -29,7 +32,7 @@ sealed class VurderOpphørVedRevurdering {
     data class VilkårsvurderingerOgBeregning(
         private val vilkårsvurderinger: no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger,
         private val beregning: Beregning,
-        private val clock: Clock = Clock.systemUTC(),
+        private val clock: Clock,
     ) : VurderOpphørVedRevurdering() {
         val resultat = when (
             val opphør = setOf(
@@ -68,48 +71,39 @@ data class VurderOmVilkårGirOpphørVedRevurdering(
 
 data class VurderOmBeregningGirOpphørVedRevurdering(
     private val beregning: Beregning,
-    private val clock: Clock = Clock.systemUTC(),
+    private val clock: Clock,
 ) {
     val resultat = beregningGirOpphør()
 
     private fun beregningGirOpphør(): OpphørVedRevurdering {
-        if (fullstendigOpphør()) {
-            when {
-                beregning.alleMånederErUnderMinstebeløp() -> return OpphørVedRevurdering.Ja(
-                    listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE),
-                    beregning.getMånedsberegninger().first().periode.fraOgMed,
-                )
-                beregning.alleMånederHarBeløpLik0() -> return OpphørVedRevurdering.Ja(
-                    listOf(Opphørsgrunn.FOR_HØY_INNTEKT),
-                    beregning.getMånedsberegninger().first().periode.fraOgMed,
-                )
-            }
+        return if (beregning.harAlleMånederMerknadForAvslag()) {
+            beregning.finnFørsteMånedMedMerknadForAvslag()
+                .getOrHandle { throw IllegalStateException("Skal eksistere minste èn måned med avslag.") }
+                .let { (månedsberegning, merknad) ->
+                    OpphørVedRevurdering.Ja(
+                        opphørsgrunner = listOf(element = merknad.tilOpphørsgrunn()),
+                        opphørsdato = månedsberegning.periode.fraOgMed,
+                    )
+                }
+        } else {
+            val førsteDagInneværendeMåned = LocalDate.now(clock).startOfMonth()
+            beregning.finnMånederMedMerknadForAvslag()
+                .getOrHandle { return OpphørVedRevurdering.Nei }
+                .firstOrNull { (månedsberegning, _) -> månedsberegning.periode.fraOgMed >= førsteDagInneværendeMåned }
+                ?.let { (månedsberegning, merknad) ->
+                    OpphørVedRevurdering.Ja(
+                        opphørsgrunner = listOf(element = merknad.tilOpphørsgrunn()),
+                        opphørsdato = månedsberegning.periode.fraOgMed,
+                    )
+                } ?: OpphørVedRevurdering.Nei
         }
-
-        førsteFremtidigeMånedUnderMinstebeløp()?.let {
-            return OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE), it.periode.fraOgMed)
-        }
-        førsteFremtidigeMånedBeløpLik0()?.let {
-            return OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.FOR_HØY_INNTEKT), it.periode.fraOgMed)
-        }
-        return OpphørVedRevurdering.Nei
     }
 
-    private fun fullstendigOpphør(): Boolean =
-        beregning.alleMånederErUnderMinstebeløp() || beregning.alleMånederHarBeløpLik0()
-
-    private fun førsteFremtidigeMånedUnderMinstebeløp(): Månedsberegning? {
-        val førsteDagInneværendeMåned = LocalDate.now(clock).startOfMonth()
-        return beregning.getMånedsberegninger().sortedBy { it.periode.fraOgMed }
-            .firstOrNull() { it.periode.starterSamtidigEllerSenere(førsteDagInneværendeMåned) && it.erSumYtelseUnderMinstebeløp() }
+    fun Merknad.Beregning.tilOpphørsgrunn(): Opphørsgrunn {
+        return when (this) {
+            is Merknad.Beregning.Avslag.BeløpErNull -> Opphørsgrunn.FOR_HØY_INNTEKT
+            is Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats -> Opphørsgrunn.SU_UNDER_MINSTEGRENSE
+            else -> throw IllegalStateException("Merknad av type: ${this::class} skal ikke gi opphør.")
+        }
     }
-
-    private fun førsteFremtidigeMånedBeløpLik0(): Månedsberegning? {
-        val førsteDagInneværendeMåned = LocalDate.now(clock).startOfMonth()
-        return beregning.getMånedsberegninger().sortedBy { it.periode.fraOgMed }
-            .firstOrNull() { it.periode.starterSamtidigEllerSenere(førsteDagInneværendeMåned) && !it.erSumYtelseUnderMinstebeløp() && it.getSumYtelse() == 0 }
-    }
-
-    private fun Periode.starterSamtidigEllerSenere(other: LocalDate) =
-        this.fraOgMed.isEqual(other) || this.fraOgMed.isAfter(other)
 }

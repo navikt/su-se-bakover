@@ -12,10 +12,10 @@ import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.migratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
@@ -65,6 +65,10 @@ val applicationConfig = ApplicationConfig(
             url = "simuleringTestUrl",
             stsSoapUrl = "simuleringStsTestSoapUrl",
         ),
+        tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
+            mq = TODO(),
+            soap = TODO(),
+        )
     ),
     database = ApplicationConfig.DatabaseConfig.StaticCredentials(
         jdbcUrl = "jdbcTestUrl",
@@ -85,14 +89,20 @@ val applicationConfig = ApplicationConfig(
         stsUrl = "stsUrl",
         skjermingUrl = "skjermingUrl",
         dkifUrl = "dkifUrl",
+        kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("kabalUrl", "kabalClientId"),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(
-        common = emptyMap(),
         producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),
         consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
     ),
     unleash = ApplicationConfig.UnleashConfig("https://localhost", "su-se-bakover"),
-    jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(null))
+    jobConfig = ApplicationConfig.JobConfig(
+        personhendelse = ApplicationConfig.JobConfig.Personhendelse(null),
+        konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Local(),
+    ),
+    kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
+        kafkaConfig = emptyMap(),
+    ),
 )
 
 internal val jwtStub = JwtStub(applicationConfig.azure)
@@ -103,14 +113,17 @@ internal val dbMetricsStub: DbMetrics = object : DbMetrics {
     }
 }
 
+internal fun mockedDb() = TestDatabaseBuilder.build()
+internal fun embeddedPostgres(clock: Clock = fixedClock) = DatabaseBuilder.build(
+    embeddedDatasource = migratedDb(),
+    dbMetrics = dbMetricsStub,
+    clock = clock,
+)
+
 internal fun Application.testSusebakover(
     clock: Clock = fixedClock,
-    clients: Clients = TestClientsBuilder.build(applicationConfig),
-    databaseRepos: DatabaseRepos = DatabaseBuilder.build(
-        embeddedDatasource = migratedDb(),
-        dbMetrics = dbMetricsStub,
-        clock = clock,
-    ),
+    databaseRepos: DatabaseRepos = mockedDb(),
+    clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),
     unleash: Unleash = FakeUnleash().apply { enableAll() },
     services: Services = ServiceBuilder.build(
         // build actual clients
@@ -155,7 +168,10 @@ fun TestApplicationEngine.defaultRequest(
 ): TestApplicationCall {
     return handleRequest(method, uri) {
         addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-        addHeader(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken())
+        addHeader(
+            HttpHeaders.Authorization,
+            jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken(),
+        )
         setup()
     }
 }

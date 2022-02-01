@@ -13,13 +13,13 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -29,7 +29,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
@@ -154,7 +155,7 @@ internal class VedtakServiceImplTest {
 
     @Test
     fun `kopier gjeldende vedtaksdata - ugyldig periode`() {
-        val vedtakMock = mock<Vedtak.EndringIYtelse> {
+        val vedtakMock = mock<VedtakSomKanRevurderes.EndringIYtelse> {
             on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
         }
         val sakServiceMock = mock<SakService> {
@@ -190,13 +191,13 @@ internal class VedtakServiceImplTest {
         )
         val sakOgVedtak2 = vedtakRevurderingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
-            clock = fixedClock.plus(1, ChronoUnit.DAYS),
             sakOgVedtakSomKanRevurderes = sakOgVedtak1,
+            clock = fixedClock.plus(1, ChronoUnit.DAYS),
         )
         val sakOgVedtak3 = vedtakRevurderingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
-            clock = fixedClock.plus(2, ChronoUnit.DAYS),
             sakOgVedtakSomKanRevurderes = sakOgVedtak2,
+            clock = fixedClock.plus(2, ChronoUnit.DAYS),
         )
         // TODO jah: Fjern igjen
         sakOgVedtak3.first.vedtakListe shouldBe listOf(sakOgVedtak1.second, sakOgVedtak2.second, sakOgVedtak3.second)
@@ -265,7 +266,7 @@ internal class VedtakServiceImplTest {
     )
 
     private fun innvilgetVedtak(fnr: Fnr) =
-        Vedtak.fromSøknadsbehandling(
+        VedtakSomKanRevurderes.fromSøknadsbehandling(
             Søknadsbehandling.Iverksatt.Innvilget(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
@@ -291,6 +292,7 @@ internal class VedtakServiceImplTest {
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
+                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,
             ),
             UUID30.randomUUID(),
             fixedClock,

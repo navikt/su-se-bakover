@@ -1,18 +1,21 @@
 package no.nav.su.se.bakover.database.vedtak
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.attestant
-import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.innvilgetBeregning
+import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -25,7 +28,8 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -47,7 +51,7 @@ internal class VedtakPostgresRepoTest {
             val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             dataSource.withSession {
-                vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
+                vedtakRepo.hent(vedtak.id, it) shouldBe vedtak.persistertVariant()
             }
         }
     }
@@ -58,12 +62,12 @@ internal class VedtakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo
             val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning()
-            val vedtak = Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
+            val vedtak = Avslagsvedtak.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
 
             vedtakRepo.lagre(vedtak)
 
             dataSource.withSession {
-                vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
+                vedtakRepo.hent(vedtak.id, it) shouldBe vedtak.persistertVariant()
             }
         }
     }
@@ -111,13 +115,14 @@ internal class VedtakPostgresRepoTest {
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
-                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+                avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
-            val revurderingVedtak = Vedtak.from(iverksattRevurdering, søknadsbehandlingVedtak.utbetalingId, fixedClock)
+            val revurderingVedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, søknadsbehandlingVedtak.utbetalingId, fixedClock)
 
             vedtakRepo.lagre(revurderingVedtak)
 
@@ -139,15 +144,15 @@ internal class VedtakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo
             val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
-            val vedtakSomErAktivt = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock)
-                .copy(periode = Periode.create(1.februar(2021), 31.mars(2021)))
-            val vedtakUtenforAktivPeriode = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock)
-                .copy(periode = Periode.create(1.januar(2021), 31.januar(2021)))
+            val vedtakSomErAktivt = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock)
+                .copy(periode = Periode.create(1.januar(2021), 31.mars(2021)))
+            val vedtakUtenforAktivPeriode = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock)
+                .copy(periode = Periode.create(1.januar(2020), 31.desember(2020)))
             vedtakRepo.lagre(vedtakSomErAktivt)
             vedtakRepo.lagre(vedtakUtenforAktivPeriode)
 
             val actual = vedtakRepo.hentAktive(1.februar(2021))
-            actual.first() shouldBe vedtakSomErAktivt
+            actual.first() shouldBe vedtakSomErAktivt.persistertVariant()
         }
     }
 
@@ -157,7 +162,7 @@ internal class VedtakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo
             val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning()
-            val vedtak = Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
+            val vedtak = Avslagsvedtak.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
 
             vedtakRepo.lagre(vedtak)
 
@@ -188,18 +193,19 @@ internal class VedtakPostgresRepoTest {
                 tilRevurdering = søknadsbehandlingVedtak,
                 saksbehandler = nyRevurdering.saksbehandler,
                 oppgaveId = OppgaveId(""),
-                beregning = beregning(nyRevurdering.periode),
+                beregning = innvilgetBeregning(nyRevurdering.periode),
                 fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
-                skalFøreTilBrevutsending = true,
+                skalFøreTilUtsendingAvVedtaksbrev = true,
                 forhåndsvarsel = null,
                 grunnlagsdata = nyRevurdering.grunnlagsdata,
                 vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             )
             testDataHelper.revurderingRepo.lagre(attestertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
@@ -209,7 +215,7 @@ internal class VedtakPostgresRepoTest {
                 tilRevurdering = søknadsbehandlingVedtak,
                 saksbehandler = nyRevurdering.saksbehandler,
                 oppgaveId = OppgaveId(""),
-                beregning = beregning(nyRevurdering.periode),
+                beregning = innvilgetBeregning(nyRevurdering.periode),
                 attesteringer = Attesteringshistorikk.empty()
                     .leggTilNyAttestering(Attestering.Iverksatt(attestant, fixedTidspunkt)),
                 fritekstTilBrev = "",
@@ -217,20 +223,21 @@ internal class VedtakPostgresRepoTest {
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
-                skalFøreTilBrevutsending = true,
+                skalFøreTilUtsendingAvVedtaksbrev = true,
                 forhåndsvarsel = null,
                 grunnlagsdata = nyRevurdering.grunnlagsdata,
                 vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+                avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
-            val revurderingVedtak = Vedtak.from(iverksattRevurdering, fixedClock)
+            val revurderingVedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, fixedClock)
 
             vedtakRepo.lagre(revurderingVedtak)
 
             dataSource.withSession {
-                vedtakRepo.hent(revurderingVedtak.id, it) shouldBe revurderingVedtak
+                vedtakRepo.hent(revurderingVedtak.id, it) shouldBe revurderingVedtak.persistertVariant()
             }
 
             dataSource.withSession { session ->
@@ -274,11 +281,11 @@ internal class VedtakPostgresRepoTest {
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
             val utbetaling = testDataHelper.nyOversendtUtbetalingMedKvittering().second
-            val vedtak = Vedtak.from(iverksattRevurdering, utbetaling.id, fixedClock)
+            val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, fixedClock)
 
             testDataHelper.vedtakRepo.lagre(vedtak)
             testDataHelper.dataSource.withSession {
-                testDataHelper.vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
+                testDataHelper.vedtakRepo.hent(vedtak.id, it) shouldBe vedtak.persistertVariant()
             }
         }
     }
@@ -312,11 +319,11 @@ internal class VedtakPostgresRepoTest {
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
             val utbetaling = testDataHelper.nyOversendtUtbetalingMedKvittering().second
-            val vedtak = Vedtak.from(iverksattRevurdering, utbetaling.id, fixedClock)
+            val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, fixedClock)
 
             testDataHelper.vedtakRepo.lagre(vedtak)
             testDataHelper.dataSource.withSession {
-                testDataHelper.vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
+                testDataHelper.vedtakRepo.hent(vedtak.id, it) shouldBe vedtak.persistertVariant()
             }
         }
     }

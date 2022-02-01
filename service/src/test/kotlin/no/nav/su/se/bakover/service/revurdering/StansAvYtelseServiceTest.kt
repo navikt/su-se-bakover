@@ -5,21 +5,24 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
-import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -39,15 +42,20 @@ import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentCaptor
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.capture
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import java.time.LocalDate
 import java.util.UUID
 
-class StansAvYtelseServiceTest {
+internal class StansAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom vi ikke får tak i gjeldende grunnlagdata`() {
@@ -191,12 +199,14 @@ class StansAvYtelseServiceTest {
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { simulerStans(any(), any(), any()) } doReturn simulertUtbetaling().right()
         }
+        val observerMock: EventObserver = mock()
 
         RevurderingServiceMocks(
             vedtakService = vedtakServiceMock,
             utbetalingService = utbetalingServiceMock,
             sakService = sakServiceMock,
         ).let {
+            it.revurderingService.addObserver(observerMock)
             val response = it.revurderingService.stansAvYtelse(
                 StansYtelseRequest.Opprett(
                     sakId = sakId,
@@ -219,7 +229,9 @@ class StansAvYtelseServiceTest {
                 saksbehandler = saksbehandler,
                 stansDato = 1.mai(2021),
             )
-            verify(it.revurderingRepo).lagre(response)
+            verify(it.revurderingRepo).defaultTransactionContext()
+            verify(it.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
+            verify(observerMock).handle(argThat { event -> event shouldBe Event.Statistikk.RevurderingStatistikk.Stans(response) })
             it.verifyNoMoreInteractions()
         }
     }
@@ -302,11 +314,13 @@ class StansAvYtelseServiceTest {
                 )
             } doReturn utbetaling.right()
         }
+        val observerMock: EventObserver = mock()
 
         RevurderingServiceMocks(
             revurderingRepo = revurderingRepoMock,
             utbetalingService = utbetalingServiceMock,
         ).let {
+            it.revurderingService.addObserver(observerMock)
             val response = it.revurderingService.iverksettStansAvYtelse(
                 revurderingId = revurderingId,
                 attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
@@ -319,24 +333,32 @@ class StansAvYtelseServiceTest {
                 simulering = simulertStans.simulering,
                 stansDato = simulertStans.periode.fraOgMed,
             )
-            verify(it.revurderingRepo).lagre(response)
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(it.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
+            val expectedVedtak = VedtakSomKanRevurderes.from(
+                revurdering = response,
+                utbetalingId = utbetaling.id,
+                clock = fixedClock,
+            )
             verify(it.vedtakService).lagre(
                 argThat { vedtak ->
                     vedtak.shouldBeEqualToIgnoringFields(
-                        Vedtak.from(
-                            revurdering = response,
-                            utbetalingId = utbetaling.id,
-                            clock = fixedClock,
-                        ),
-                        Vedtak::id,
+                        expectedVedtak,
+                        VedtakSomKanRevurderes::id,
                     )
                 },
             )
+
+            val eventCaptor = ArgumentCaptor.forClass(Event::class.java)
+            verify(observerMock, times(2)).handle(capture<Event>(eventCaptor))
+            eventCaptor.allValues[0] shouldBe Event.Statistikk.RevurderingStatistikk.Stans(response)
+            eventCaptor.allValues[1].shouldBeTypeOf<Event.Statistikk.Vedtaksstatistikk>()
             it.verifyNoMoreInteractions()
         }
     }
 
     @Test
+    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `svarer med feil ved forsøk på å oppdatere revurderinger som ikke er av korrekt type`() {
         val enRevurdering = beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
             stønadsperiode = Stønadsperiode.create(periode2021, "jambo"),
@@ -466,7 +488,8 @@ class StansAvYtelseServiceTest {
                 stansDato = periodeMars2021.fraOgMed,
             )
             verify(it.revurderingRepo).hent(eksisterende.id)
-            verify(it.revurderingRepo).lagre(response)
+            verify(it.revurderingRepo).defaultTransactionContext()
+            verify(it.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
             it.verifyNoMoreInteractions()
         }
     }

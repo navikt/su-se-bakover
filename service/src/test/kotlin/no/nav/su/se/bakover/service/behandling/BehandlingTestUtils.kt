@@ -8,20 +8,14 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Person.Navn
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Bosituasjon
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.FastOppholdINorge
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning.Status
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Formue
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Formue.Verdier
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.LovligOpphold
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.OppholdIUtlandet
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.test.generer
@@ -45,22 +39,8 @@ object BehandlingTestUtils {
         ),
         navn = Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
     )
-    private val ektefelle = Ektefelle(
-        fnr = Fnr("17087524256"),
-        navn = Navn("fornavn", null, "etternavn"),
-        kjønn = null,
-        fødselsdato = null,
-        adressebeskyttelse = null,
-        skjermet = null
-    )
 
     internal val behandlingsinformasjon = Behandlingsinformasjon(
-        uførhet = Uførhet(
-            status = VilkårOppfylt,
-            uføregrad = 20,
-            forventetInntekt = 10,
-            begrunnelse = null
-        ),
         flyktning = Flyktning(
             status = Status.VilkårOppfylt,
             begrunnelse = null
@@ -75,10 +55,6 @@ object BehandlingTestUtils {
         ),
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
-            begrunnelse = null
-        ),
-        oppholdIUtlandet = OppholdIUtlandet(
-            status = SkalHoldeSegINorge,
             begrunnelse = null
         ),
         formue = Formue(
@@ -109,12 +85,5 @@ object BehandlingTestUtils {
             status = MøttPersonlig,
             begrunnelse = null
         ),
-        bosituasjon = Bosituasjon(
-            ektefelle = ektefelle,
-            delerBolig = false,
-            ektemakeEllerSamboerUførFlyktning = false,
-            begrunnelse = null
-        ),
-        ektefelle = ektefelle
     )
 }

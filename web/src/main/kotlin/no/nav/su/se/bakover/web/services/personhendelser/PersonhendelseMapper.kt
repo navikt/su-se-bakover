@@ -7,8 +7,8 @@ import arrow.core.right
 import no.nav.person.pdl.leesah.Endringstype
 import no.nav.su.se.bakover.common.orNull
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
+import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.web.services.personhendelser.KunneIkkeMappePersonhendelse.IkkeAktuellOpplysningstype
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse

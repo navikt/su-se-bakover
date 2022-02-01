@@ -17,6 +17,7 @@ object VedtakInnholdTestdataBuilder {
             fødselsnummer = Fnr("12345678901"),
             fornavn = "Tore",
             etternavn = "Strømøy",
+            saksnummer = 2121,
         ),
         fradato = "01.01.2020",
         tildato = "01.01.2020",
@@ -32,11 +33,11 @@ object VedtakInnholdTestdataBuilder {
                 ytelsePerMåned = 0,
                 satsbeløpPerMåned = 0,
                 epsFribeløp = 0,
-                fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), true))
-            )
+                fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), true)),
+            ),
         ),
         saksbehandlerNavn = "Nei Josbø",
         attestantNavn = "Morge R. R. Gartin",
-        fritekst = "Dette er fritekst"
+        fritekst = "Dette er fritekst",
     )
 }

@@ -5,6 +5,7 @@ import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.contentType
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -19,15 +20,28 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.comparator.CustomComparator
 import javax.sql.DataSource
 
+fun nyDigitalSøknad(
+    fnr: String = SharedRegressionTestData.fnr,
+    dataSource: DataSource,
+): String {
+    return nySøknad(
+        requestJson = NySøknadJson.Request.nyDigitalSøknad(
+            fnr = fnr,
+        ),
+        brukerrolle = Brukerrolle.Veileder,
+        dataSource = dataSource,
+    )
+}
+
 /**
  * Emulerer at en veileder sender inn en digital søknad
  */
-fun nyDigitalSøknad(
+fun nyDigitalSøknadOgVerifiser(
     fnr: String = SharedRegressionTestData.fnr,
     expectedSaksnummerInResponse: Long,
     dataSource: DataSource,
 ): String {
-    return nySøknad(
+    return nySøknadOgVerifiser(
         requestJson = NySøknadJson.Request.nyDigitalSøknad(
             fnr = fnr,
         ),
@@ -44,13 +58,13 @@ fun nyDigitalSøknad(
  * Emulerer at en saksbehandler sender inn en papirsøknad
  * TODO jah: Bør teste at veiledere ikke har tilgang til å sende papirsøknader. Og bør vi teste det her eller i web?
  */
-fun nyPapirsøknad(
+fun nyPapirsøknadOgVerifiser(
     fnr: String = SharedRegressionTestData.fnr,
     expectedSaksnummerInResponse: Long,
     mottaksdato: String = fixedLocalDate.toString(),
     dataSource: DataSource,
 ): String {
-    return nySøknad(
+    return nySøknadOgVerifiser(
         requestJson = NySøknadJson.Request.nyPapirsøknad(
             fnr = fnr,
             mottaksdato = mottaksdato,
@@ -65,12 +79,38 @@ fun nyPapirsøknad(
     )
 }
 
+private fun nySøknadOgVerifiser(
+    requestJson: String,
+    expectedResponseJson: String,
+    brukerrolle: Brukerrolle, // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
+    dataSource: DataSource,
+): String {
+    return nySøknad(
+        requestJson = requestJson,
+        brukerrolle = brukerrolle,
+        dataSource = dataSource,
+    ).also {
+        JSONAssert.assertEquals(
+            expectedResponseJson,
+            it,
+            CustomComparator(
+                JSONCompareMode.STRICT,
+                Customization(
+                    "søknad.id",
+                ) { _, _ -> true },
+                Customization(
+                    "søknad.sakId",
+                ) { _, _ -> true },
+            ),
+        )
+    }
+}
+
 /**
  * Ny søknad har en deterministisk respons, så vi gjør bare assertingen inline.
  */
 private fun nySøknad(
     requestJson: String,
-    expectedResponseJson: String,
     brukerrolle: Brukerrolle, // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
     dataSource: DataSource,
 ): String {
@@ -91,20 +131,7 @@ private fun nySøknad(
             setBody(requestJson)
         }.apply {
             response.status() shouldBe HttpStatusCode.Created
-        }.response.content!!.also {
-            JSONAssert.assertEquals(
-                expectedResponseJson,
-                it,
-                CustomComparator(
-                    JSONCompareMode.STRICT,
-                    Customization(
-                        "søknad.id",
-                    ) { _, _ -> true },
-                    Customization(
-                        "søknad.sakId",
-                    ) { _, _ -> true },
-                ),
-            )
-        }
+            response.contentType() shouldBe io.ktor.http.ContentType.parse("application/json; charset=UTF-8")
+        }.response.content!!
     }
 }

@@ -3,19 +3,21 @@ package no.nav.su.se.bakover.database.beregning
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.persistertMånedsberegning
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.temporal.ChronoUnit
@@ -25,82 +27,119 @@ internal class BeregningMapperTest {
 
     @Test
     fun `mapper fradrag til snapshot`() {
-        assertFradragMapping(TestFradrag.toSnapshot(), TestFradrag)
+        createBeregning().let {
+            assertFradragMapping(it.toSnapshot().getFradrag(), it.getFradrag())
+        }
     }
 
     @Test
     fun `mapper månedsberegning til snapshot`() {
-        assertMånedsberegningMapping(TestMånedsberegning.toSnapshot(), TestMånedsberegning)
+        createBeregning().let {
+            assertMånedsberegningMapping(it.toSnapshot().getMånedsberegninger(), it.getMånedsberegninger())
+        }
     }
 
     @Test
     fun `mapper beregning til snapshot`() {
-        assertBeregningMapping(TestBeregning.toSnapshot(), TestBeregning)
+        createBeregning().let {
+            assertBeregningMapping(it.toSnapshot(), it)
+        }
     }
 
     @Test
     fun `mapper snapshot av beregning til json`() {
+        val beregningSnapshot = createBeregning(periode = mai(2021))
         //language=json
         val expectedJson = """
             {
-              "id": "${TestBeregning.getId()}",
-              "opprettet": "${TestBeregning.getOpprettet()}",
+              "id": "${beregningSnapshot.getId()}",
+              "opprettet": "${beregningSnapshot.getOpprettet()}",
               "sats": "HØY",
               "månedsberegninger": [
                 {
-                  "sumYtelse": 8637,
-                  "sumFradrag": 12000.0,
-                  "benyttetGrunnbeløp": 99858,
+                  "sumYtelse": 0,
+                  "sumFradrag": 21989.126666666667,
+                  "benyttetGrunnbeløp": 106399,
                   "sats": "HØY",
-                  "satsbeløp": 20637.32,
+                  "satsbeløp": 21989.126666666667,
                   "fradrag": [
                     {
                       "fradragstype": "ForventetInntekt",
-                      "månedsbeløp": 12000.0,
+                      "månedsbeløp": 55000.0,
                       "utenlandskInntekt": null,
                       "periode": {
-                        "fraOgMed": "2021-01-01",
-                        "tilOgMed": "2021-01-31"
+                        "fraOgMed": "2021-05-01",
+                        "tilOgMed": "2021-05-31"
                       },
                       "tilhører": "BRUKER"
                     }
                   ],
                   "periode": {
-                    "fraOgMed": "2021-01-01",
-                    "tilOgMed": "2021-01-31"
+                    "fraOgMed": "2021-05-01",
+                    "tilOgMed": "2021-05-31"
                   },
-                "fribeløpForEps": 0.0
+                "fribeløpForEps": 0.0,
+                "merknader": [
+                    {
+                      "type": "BeløpErNull"
+                    }
+                  ]
                 }
               ],
               "fradrag": [
                 {
                   "fradragstype": "ForventetInntekt",
-                  "månedsbeløp": 12000.0,
+                  "månedsbeløp": 55000.0,
                   "utenlandskInntekt": null,
                   "periode": {
-                    "fraOgMed": "2021-01-01",
-                    "tilOgMed": "2021-01-31"
+                    "fraOgMed": "2021-05-01",
+                    "tilOgMed": "2021-05-31"
                   },
                   "tilhører": "BRUKER"
                 }
               ],
-              "sumYtelse": 8637,
-              "sumFradrag": 12000.0,
+              "sumYtelse": 0,
+              "sumFradrag": 21989.126666666667,
               "periode": {
-                "fraOgMed": "2021-01-01",
-                "tilOgMed": "2021-01-31"
+                "fraOgMed": "2021-05-01",
+                "tilOgMed": "2021-05-31"
               },
               "fradragStrategyName": "Enslig",
-              "begrunnelse": null
+              "begrunnelse": "begrunnelse"
             }
         """.trimIndent()
-        JSONAssert.assertEquals(expectedJson, objectMapper.writeValueAsString(TestBeregning.toSnapshot()), true)
+        JSONAssert.assertEquals(expectedJson, serialiserBeregning(beregningSnapshot), true)
+    }
+
+    @Test
+    fun `serialisering av snapshot og rå beregning er ikke lik`() {
+        val beregning = createBeregning()
+
+        JSONAssert.assertNotEquals(
+            objectMapper.writeValueAsString(beregning),
+            serialiserBeregning(beregning),
+            true,
+        )
+    }
+
+    @Test
+    fun `snapshot er idempotent`() {
+        val original: Beregning = createBeregning()
+        val snapshot: PersistertBeregning = original.toSnapshot()
+        val idempotent: PersistertBeregning = snapshot.toSnapshot()
+
+        snapshot shouldBe idempotent
+
+        JSONAssert.assertEquals(serialiserBeregning(original), serialiserBeregning(snapshot), true)
+        JSONAssert.assertEquals(serialiserBeregning(snapshot), serialiserBeregning(idempotent), true)
+        JSONAssert.assertEquals(serialiserBeregning(original), serialiserBeregning(idempotent), true)
     }
 
     @Test
     fun `should be equal to PersistertBeregning ignoring id, opprettet and begrunnelse`() {
-        val a: Beregning = createBeregning(fixedTidspunkt, "a")
-        val b: Beregning = createBeregning(fixedTidspunkt.plus(1, ChronoUnit.SECONDS), "b")
+        val a: Beregning = createBeregning(opprettet = fixedTidspunkt, begrunnelse = "a").toSnapshot()
+        val b: Beregning =
+            createBeregning(opprettet = fixedTidspunkt.plus(1, ChronoUnit.SECONDS), begrunnelse = "b").toSnapshot()
         a shouldBe b
         a.getId() shouldNotBe b.getId()
         a.getOpprettet() shouldNotBe b.getOpprettet()
@@ -108,43 +147,46 @@ internal class BeregningMapperTest {
         (a === b) shouldBe false
     }
 
-    private fun createBeregning(opprettet: Tidspunkt = fixedTidspunkt, begrunnelse: String = "begrunnelse") =
-        PersistertBeregning(
+    private fun createBeregning(
+        periode: Periode = periode2021,
+        opprettet: Tidspunkt = fixedTidspunkt,
+        begrunnelse: String = "begrunnelse",
+    ) =
+        BeregningFactory(clock = fixedClock).ny(
             id = UUID.randomUUID(),
             opprettet = opprettet,
+            periode = periode,
             sats = Sats.HØY,
-            månedsberegninger = listOf(persistertMånedsberegning),
             fradrag = listOf(
-                PersistertFradrag(
-                    fradragstype = Fradragstype.ForventetInntekt,
-                    månedsbeløp = 12000.0,
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 55000.0,
                     utenlandskInntekt = null,
-                    periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
+                    periode = periode,
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            sumYtelse = 0,
-            sumFradrag = 0.0,
-            periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
-            fradragStrategyName = FradragStrategyName.Enslig,
+            fradragStrategy = FradragStrategy.Enslig,
             begrunnelse = begrunnelse,
         )
 }
 
-internal fun assertFradragMapping(mapped: Fradrag, original: Fradrag) {
-    mapped.periode shouldBe original.periode
-    mapped.utenlandskInntekt shouldBe original.utenlandskInntekt
-    mapped.månedsbeløp shouldBe original.månedsbeløp
+internal fun assertFradragMapping(mapped: List<Fradrag>, original: List<Fradrag>) {
+    mapped.forEachIndexed { index, fradrag ->
+        fradrag.periode shouldBe original[index].periode
+        fradrag.utenlandskInntekt shouldBe original[index].utenlandskInntekt
+        fradrag.månedsbeløp shouldBe original[index].månedsbeløp
+    }
 }
 
-internal fun assertMånedsberegningMapping(mapped: Månedsberegning, original: Månedsberegning) {
-    mapped.getBenyttetGrunnbeløp() shouldBe original.getBenyttetGrunnbeløp()
-    mapped.getSatsbeløp() shouldBe original.getSatsbeløp()
-    mapped.getSats() shouldBe original.getSats()
-    mapped.getSumYtelse() shouldBe original.getSumYtelse()
-    mapped.getSumFradrag() shouldBe original.getSumFradrag()
-    mapped.getFradrag().forEachIndexed { index, fradrag ->
-        assertFradragMapping(fradrag, original.getFradrag()[index])
+internal fun assertMånedsberegningMapping(mapped: List<Månedsberegning>, original: List<Månedsberegning>) {
+    mapped.forEachIndexed { index, månedsberegning ->
+        månedsberegning.getBenyttetGrunnbeløp() shouldBe original[index].getBenyttetGrunnbeløp()
+        månedsberegning.getSatsbeløp() shouldBe original[index].getSatsbeløp()
+        månedsberegning.getSats() shouldBe original[index].getSats()
+        månedsberegning.getSumYtelse() shouldBe original[index].getSumYtelse()
+        månedsberegning.getSumFradrag() shouldBe original[index].getSumFradrag()
+        assertFradragMapping(månedsberegning.getFradrag(), original[index].getFradrag())
     }
 }
 
@@ -155,10 +197,6 @@ internal fun assertBeregningMapping(mapped: Beregning, original: Beregning) {
     mapped.getSats() shouldBe original.getSats()
     mapped.getSumFradrag() shouldBe original.getSumFradrag()
     mapped.getSumYtelse() shouldBe original.getSumYtelse()
-    mapped.getFradrag().forEachIndexed { index, fradrag ->
-        assertFradragMapping(fradrag, original.getFradrag()[index])
-    }
-    mapped.getMånedsberegninger().forEachIndexed { index, månedsberegning ->
-        assertMånedsberegningMapping(månedsberegning, original.getMånedsberegninger()[index])
-    }
+    assertFradragMapping(mapped.getFradrag(), original.getFradrag())
+    assertMånedsberegningMapping(mapped.getMånedsberegninger(), original.getMånedsberegninger())
 }

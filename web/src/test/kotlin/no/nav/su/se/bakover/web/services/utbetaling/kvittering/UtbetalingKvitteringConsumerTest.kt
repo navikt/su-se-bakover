@@ -6,6 +6,7 @@ import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldStartWith
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
@@ -22,7 +23,9 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.FantIkkeVedtakForUtbetalingId
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.sakId
@@ -37,14 +40,12 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import java.time.Clock
-import java.time.ZoneOffset
 
 internal class UtbetalingKvitteringConsumerTest {
 
     private val avstemmingsnøkkel = Avstemmingsnøkkel.fromString(avstemmingsnøkkelIXml)
-    private val clock = Clock.fixed(Tidspunkt.EPOCH.instant, ZoneOffset.UTC)
     private val utbetalingUtenKvittering = Utbetaling.OversendtUtbetaling.UtenKvittering(
+        opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = saksnummer,
         utbetalingslinjer = nonEmptyListOf(
@@ -63,16 +64,21 @@ internal class UtbetalingKvitteringConsumerTest {
         simulering = Simulering(
             gjelderId = Fnr("12345678910"),
             gjelderNavn = "navn",
-            datoBeregnet = idag(),
+            datoBeregnet = idag(fixedClock),
             nettoBeløp = 0,
             periodeList = listOf(),
         ),
         type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Attestant("Z123"),
     )
+    private val kvittering = Kvittering(
+        utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+        originalKvittering = "<xmlMessage>",
+        mottattTidspunkt = Tidspunkt.now(fixedClock)
+    )
 
     @Test
-    fun `kaster exception ved ukjent utbetalings id`() {
+    fun `kaster exception hvis vi ikke klarer å oppdatere kvittering`() {
         val serviceMock = mock<UtbetalingService> {
             on { oppdaterMedKvittering(eq(avstemmingsnøkkel), any()) } doReturn FantIkkeUtbetaling.left()
         }
@@ -81,9 +87,27 @@ internal class UtbetalingKvitteringConsumerTest {
         shouldThrow<RuntimeException> {
             consumer.onMessage(kvitteringXml())
         }.also {
-            it.message shouldBe "Kunne ikke lagre kvittering. Fant ikke utbetaling med avstemmingsnøkkel $avstemmingsnøkkel"
+            it.message shouldStartWith "Kunne ikke oppdatere kvittering eller vedtak ved prossessering av kvittering"
         }
         verify(serviceMock, Times(2)).oppdaterMedKvittering(any(), any())
+    }
+
+    @Test
+    fun `kaster exception hvis vi ikke klarer å oppdatere vedtak`() {
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { oppdaterMedKvittering(eq(avstemmingsnøkkel), any()) } doReturn utbetalingUtenKvittering.toKvittertUtbetaling(kvittering).right()
+        }
+        val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService> {
+            on { ferdigstillVedtakEtterUtbetaling(any()) } doReturn FantIkkeVedtakForUtbetalingId(UUID30.randomUUID()).left()
+        }
+        val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillVedtakServiceMock, fixedClock)
+
+        shouldThrow<RuntimeException> {
+            consumer.onMessage(kvitteringXml())
+        }.also {
+            it.message shouldStartWith "Kunne ikke oppdatere kvittering eller vedtak ved prossessering av kvittering"
+        }
+        verify(ferdigstillVedtakServiceMock, Times(2)).ferdigstillVedtakEtterUtbetaling(any())
     }
 
     @Test
@@ -94,7 +118,7 @@ internal class UtbetalingKvitteringConsumerTest {
         val kvittering = Kvittering(
             utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
             originalKvittering = xmlMessage,
-            mottattTidspunkt = Tidspunkt.now(clock)
+            mottattTidspunkt = fixedTidspunkt,
         )
         val utbetalingMedKvittering = utbetaling.toKvittertUtbetaling(kvittering)
 
@@ -106,7 +130,7 @@ internal class UtbetalingKvitteringConsumerTest {
             on { ferdigstillVedtakEtterUtbetaling(any()) }.thenThrow(IllegalArgumentException("Kastet fra FerdigstillIverksettingService"))
         }
 
-        val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillVedtakServiceMock, clock)
+        val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillVedtakServiceMock, fixedClock)
 
         assertThrows<RuntimeException> {
             consumer.onMessage(xmlMessage)

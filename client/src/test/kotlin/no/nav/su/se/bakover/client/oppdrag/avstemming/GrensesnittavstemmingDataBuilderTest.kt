@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -159,7 +160,7 @@ internal val manglerKvitteringId = UUID30.randomUUID()
 private val simulering = Simulering(
     gjelderId = fnr,
     gjelderNavn = "",
-    datoBeregnet = idag(),
+    datoBeregnet = idag(fixedClock),
     nettoBeløp = 0,
     periodeList = listOf(),
 )

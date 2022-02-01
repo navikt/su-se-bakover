@@ -8,8 +8,11 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.endOfDay
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.startOfDay
@@ -25,6 +28,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
 internal class AvstemmingPostgresRepoTest {
@@ -41,6 +45,7 @@ internal class AvstemmingPostgresRepoTest {
 
             repo.opprettGrensesnittsavstemming(
                 Avstemming.Grensesnittavstemming(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2020).startOfDay(),
                     tilOgMed = 2.januar(2020).startOfDay(),
                     utbetalinger = listOf(utbetalingMedKvittering.second),
@@ -48,6 +53,7 @@ internal class AvstemmingPostgresRepoTest {
             )
 
             val second = Avstemming.Grensesnittavstemming(
+                opprettet = fixedTidspunkt,
                 fraOgMed = 3.januar(2020).startOfDay(),
                 tilOgMed = 4.januar(2020).startOfDay(),
                 utbetalinger = listOf(utbetalingMedKvittering.second),
@@ -202,6 +208,75 @@ internal class AvstemmingPostgresRepoTest {
     }
 
     @Test
+    fun `finner ut om konsistensavstemming er utført for og på aktuell dato`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = AvstemmingPostgresRepo(dataSource)
+            val oversendtUtbetalingMedKvittering =
+                testDataHelper.nyOversendtUtbetalingMedKvittering()
+
+            val avstemming1 = Avstemming.Konsistensavstemming.Ny(
+                id = UUID30.randomUUID(),
+                opprettet = 1.januar(2021).startOfDay(ZoneOffset.UTC),
+                løpendeFraOgMed = 1.januar(2021).startOfDay(zoneIdOslo),
+                opprettetTilOgMed = 31.desember(2020).endOfDay(zoneIdOslo),
+                utbetalinger = listOf(oversendtUtbetalingMedKvittering.second),
+                avstemmingXmlRequest = "some xml",
+            )
+
+            repo.opprettKonsistensavstemming(avstemming1)
+
+            repo.konsistensavstemmingUtførtForOgPåDato(
+                dato = 1.januar(2021),
+            ) shouldBe true
+
+            repo.konsistensavstemmingUtførtForOgPåDato(
+                dato = 31.desember(2020),
+            ) shouldBe false
+
+            repo.konsistensavstemmingUtførtForOgPåDato(
+                dato = 2.januar(2021),
+            ) shouldBe false
+
+            val avstemming2 = Avstemming.Konsistensavstemming.Ny(
+                id = UUID30.randomUUID(),
+                opprettet = 1.februar(2021).startOfDay(ZoneOffset.UTC),
+                løpendeFraOgMed = 1.april(2021).startOfDay(zoneIdOslo),
+                opprettetTilOgMed = 31.mars(2021).endOfDay(zoneIdOslo),
+                utbetalinger = listOf(oversendtUtbetalingMedKvittering.second),
+                avstemmingXmlRequest = "some xml",
+            )
+
+            repo.opprettKonsistensavstemming(avstemming2)
+
+            repo.konsistensavstemmingUtførtForOgPåDato(
+                dato = 1.februar(2021),
+            ) shouldBe false
+            repo.konsistensavstemmingUtførtForOgPåDato(
+                dato = 1.april(2021),
+            ) shouldBe false
+
+            val avstemming3 = Avstemming.Konsistensavstemming.Ny(
+                id = UUID30.randomUUID(),
+                opprettet = 1.mars(2021).startOfDay(ZoneOffset.UTC),
+                løpendeFraOgMed = 1.juni(2021).startOfDay(zoneIdOslo),
+                opprettetTilOgMed = 31.mai(2021).endOfDay(zoneIdOslo),
+                utbetalinger = listOf(oversendtUtbetalingMedKvittering.second),
+                avstemmingXmlRequest = "some xml",
+            )
+
+            repo.opprettKonsistensavstemming(avstemming3)
+
+            repo.konsistensavstemmingUtførtForOgPåDato(
+                dato = 1.mars(2021),
+            ) shouldBe false
+            repo.konsistensavstemmingUtførtForOgPåDato(
+                dato = 1.juni(2021),
+            ) shouldBe false
+        }
+    }
+
+    @Test
     fun `konsistensavstemming henter kun utbetalinger hvor det eksisterer utbetalingslinjer med tom større enn eller lik løpendeFraOgMed`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
@@ -289,6 +364,7 @@ internal class AvstemmingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = AvstemmingPostgresRepo(dataSource)
             val første = Utbetalingslinje.Ny(
+                opprettet = fixedTidspunkt,
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 30.april(2020),
                 forrigeUtbetalingslinjeId = null,
@@ -296,6 +372,7 @@ internal class AvstemmingPostgresRepoTest {
                 uføregrad = Uføregrad.parse(50),
             )
             val andre = Utbetalingslinje.Ny(
+                opprettet = fixedTidspunkt,
                 fraOgMed = 1.mai(2020),
                 tilOgMed = 31.desember(2020),
                 forrigeUtbetalingslinjeId = første.id,

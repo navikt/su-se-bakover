@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -21,171 +22,314 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.BeslutningEtterForhåndsvarsling
+import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.ForhåndsvarselJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
 import no.nav.su.se.bakover.web.testSusebakover
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class ForhåndsvarslingRouteTest {
-
     private val revurderingId = UUID.randomUUID()
 
-    @Test
-    fun `uautoriserte kan ikke forhåndsvarsle eller sende til attestering`() {
-        withTestApplication(
-            {
-                testSusebakover()
-            },
-        ) {
-            defaultRequest(
-                HttpMethod.Post,
-                "${RevurderingRoutesTestData.requestPath}/$revurderingId/forhandsvarsleEllerSendTilAttestering",
-                listOf(Brukerrolle.Veileder),
-            ).apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
-                JSONAssert.assertEquals(
-                    """
+    @Nested
+    inner class `lagre forhåndsvarselvalg` {
+        @Test
+        fun `uautoriserte kan ikke forhåndsvarsle eller sende til attestering`() {
+            withTestApplication(
+                {
+                    testSusebakover()
+                },
+            ) {
+                defaultRequest(
+                    HttpMethod.Post,
+                    "${RevurderingRoutesTestData.requestPath}/$revurderingId/forhandsvarsel",
+                    listOf(Brukerrolle.Veileder),
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.Forbidden
+                    JSONAssert.assertEquals(
+                        """
                     {
                         "message":"Bruker mangler en av de tillatte rollene: Saksbehandler."
                     }
-                    """.trimIndent(),
-                    response.content,
-                    true,
+                        """.trimIndent(),
+                        response.content,
+                        true,
+                    )
+                }
+            }
+        }
+
+        @Test
+        fun `lagrer valget`() {
+            val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak()
+                .second.copy(
+                    forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
+                    fritekstTilBrev = ""
                 )
+
+            val revurderingServiceMock = mock<RevurderingService> {
+                on {
+                    lagreOgSendForhåndsvarsel(
+                        eq(simulertRevurdering.id),
+                        any(),
+                        eq(Forhåndsvarselhandling.INGEN_FORHÅNDSVARSEL),
+                        eq(""),
+                    )
+                } doReturn simulertRevurdering.right()
+            }
+
+            withTestApplication(
+                {
+                    testSusebakover(
+                        services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock),
+                    )
+                },
+            ) {
+                defaultRequest(
+                    HttpMethod.Post,
+                    "${RevurderingRoutesTestData.requestPath}/${simulertRevurdering.id}/forhandsvarsel",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    setBody(
+                        //language=json
+                        """
+                        {
+                          "forhåndsvarselhandling": "INGEN_FORHÅNDSVARSEL",
+                          "fritekst": ""
+                        }
+                        """.trimIndent(),
+                    )
+                }.apply {
+                    response.status() shouldBe HttpStatusCode.OK
+                    val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(response.content!!)
+                    actualResponse.id shouldBe simulertRevurdering.id.toString()
+                    actualResponse.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
+                    actualResponse.fritekstTilBrev shouldBe ""
+                    actualResponse.forhåndsvarsel shouldBe ForhåndsvarselJson.IngenForhåndsvarsel
+                }
             }
         }
     }
 
-    @Test
-    fun `sender forhådsvarsling`() {
-        val simulertRevurdering = SimulertRevurdering.Innvilget(
-            id = UUID.randomUUID(),
-            periode = RevurderingRoutesTestData.periode,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = RevurderingRoutesTestData.vedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
-            beregning = TestBeregning,
-            simulering = Simulering(
-                gjelderId = Fnr(fnr = "12345678901"),
-                gjelderNavn = "navn",
-                datoBeregnet = fixedLocalDate,
-                nettoBeløp = 0,
-                periodeList = listOf(),
-            ),
-            oppgaveId = OppgaveId("OppgaveId"),
-            fritekstTilBrev = "Friteksten",
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
-            forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-        )
-
-        val revurderingServiceMock = mock<RevurderingService> {
-            on { forhåndsvarsleEllerSendTilAttestering(any(), any(), any(), any()) } doReturn simulertRevurdering.right()
-        }
-
-        withTestApplication(
-            {
-                testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
-            defaultRequest(
-                HttpMethod.Post,
-                "${RevurderingRoutesTestData.requestPath}/${simulertRevurdering.id}/forhandsvarsleEllerSendTilAttestering",
-                listOf(Brukerrolle.Saksbehandler),
+    @Nested
+    inner class `fortsett etter forhåndsvarsel` {
+        @Test
+        fun `uautoriserte kan ikke sende revurdering til attestering`() {
+            withTestApplication(
+                {
+                    testSusebakover()
+                },
             ) {
-                setBody(
-                    //language=json
-                    """
-                        {
-                          "revurderingshandling": "FORHÅNDSVARSLE",
-                          "fritekst": "Friteksten"
-                        }
-                    """.trimIndent(),
-                )
-            }.apply {
-                response.status() shouldBe HttpStatusCode.OK
-                val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(response.content!!)
-                actualResponse.id shouldBe simulertRevurdering.id.toString()
-                actualResponse.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
-                actualResponse.fritekstTilBrev shouldBe "Friteksten"
-                actualResponse.forhåndsvarsel shouldBe ForhåndsvarselJson.SkalVarslesSendt
+                defaultRequest(
+                    HttpMethod.Post,
+                    "${RevurderingRoutesTestData.requestPath}/$revurderingId/fortsettEtterForhåndsvarsel",
+                    listOf(Brukerrolle.Veileder),
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.Forbidden
+                    JSONAssert.assertEquals(
+                        """
+                    {
+                        "message":"Bruker mangler en av de tillatte rollene: Saksbehandler."
+                    }
+                        """.trimIndent(),
+                        response.content,
+                        true,
+                    )
+                }
             }
         }
-    }
 
-    @Test
-    fun `sender til attestering`() {
-        val simulertRevurdering = SimulertRevurdering.Innvilget(
-            id = UUID.randomUUID(),
-            periode = RevurderingRoutesTestData.periode,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = RevurderingRoutesTestData.vedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
-            beregning = TestBeregning,
-            simulering = Simulering(
-                gjelderId = Fnr(fnr = "12345678901"),
-                gjelderNavn = "navn",
-                datoBeregnet = fixedLocalDate,
-                nettoBeløp = 0,
-                periodeList = listOf(),
-            ),
-            oppgaveId = OppgaveId("OppgaveId"),
-            fritekstTilBrev = "Friteksten",
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-        )
+        @Test
+        fun `fortsetter med andre opplysninger`() {
+            val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget("begrunnelse"),
+            ).second
 
-        val revurderingServiceMock = mock<RevurderingService> {
-            on { forhåndsvarsleEllerSendTilAttestering(any(), any(), any(), any()) } doReturn simulertRevurdering.right()
+            val revurderingServiceMock = mock<RevurderingService> {
+                on { fortsettEtterForhåndsvarsling(any()) } doReturn simulertRevurdering.right()
+            }
+
+            withTestApplication(
+                {
+                    testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
+                },
+            ) {
+                defaultRequest(
+                    HttpMethod.Post,
+                    "${RevurderingRoutesTestData.requestPath}/${simulertRevurdering.id}/fortsettEtterForhåndsvarsel",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    // fritekstTilBrev skal bli ignorert i dette tilfellet
+                    setBody(
+                        //language=json
+                        """
+                        {
+                          "fritekstTilBrev": "Friteksten",
+                          "valg": "FORTSETT_MED_ANDRE_OPPLYSNINGER",
+                          "begrunnelse": "begrunnelse"
+                        }
+                        """.trimIndent(),
+                    )
+                }.apply {
+                    response.status() shouldBe HttpStatusCode.OK
+                    val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(response.content!!)
+                    actualResponse.id shouldBe simulertRevurdering.id.toString()
+                    actualResponse.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
+                    actualResponse.fritekstTilBrev shouldBe ""
+                    actualResponse.forhåndsvarsel shouldBe ForhåndsvarselJson.SkalVarslesBesluttet(
+                        begrunnelse = "begrunnelse",
+                        beslutningEtterForhåndsvarsling = BeslutningEtterForhåndsvarsling.FortsettMedAndreOpplysninger,
+                    )
+                }
+            }
         }
 
-        withTestApplication(
-            {
-                testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
-            defaultRequest(
-                HttpMethod.Post,
-                "${RevurderingRoutesTestData.requestPath}/${simulertRevurdering.id}/forhandsvarsleEllerSendTilAttestering",
-                listOf(Brukerrolle.Saksbehandler),
+        @Test
+        fun `fortsetter med samme opplysninger`() {
+            val simulertRevurdering = SimulertRevurdering.Innvilget(
+                id = UUID.randomUUID(),
+                periode = RevurderingRoutesTestData.periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = RevurderingRoutesTestData.vedtak,
+                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
+                beregning = TestBeregning,
+                simulering = Simulering(
+                    gjelderId = Fnr(fnr = "12345678901"),
+                    gjelderNavn = "navn",
+                    datoBeregnet = fixedLocalDate,
+                    nettoBeløp = 0,
+                    periodeList = listOf(),
+                ),
+                oppgaveId = OppgaveId("OppgaveId"),
+                fritekstTilBrev = "Friteksten",
+                revurderingsårsak = Revurderingsårsak(
+                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                    Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+                ),
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag("begrunnelse"),
+                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+                attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+            )
+
+            val revurderingServiceMock = mock<RevurderingService> {
+                on { fortsettEtterForhåndsvarsling(any()) } doReturn simulertRevurdering.right()
+            }
+
+            withTestApplication(
+                {
+                    testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
+                },
             ) {
-                setBody(
-                    //language=json
-                    """
+                defaultRequest(
+                    HttpMethod.Post,
+                    "${RevurderingRoutesTestData.requestPath}/${simulertRevurdering.id}/fortsettEtterForhåndsvarsel",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    setBody(
+                        //language=json
+                        """
                         {
-                          "revurderingshandling": "SEND_TIL_ATTESTERING",
-                          "fritekst": "Friteksten"
+                          "fritekstTilBrev": "Friteksten",
+                          "valg": "FORTSETT_MED_SAMME_OPPLYSNINGER",
+                          "begrunnelse": "begrunnelse"
                         }
-                    """.trimIndent(),
-                )
-            }.apply {
-                response.status() shouldBe HttpStatusCode.OK
-                val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(response.content!!)
-                actualResponse.id shouldBe simulertRevurdering.id.toString()
-                actualResponse.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
-                actualResponse.fritekstTilBrev shouldBe "Friteksten"
-                actualResponse.forhåndsvarsel shouldBe ForhåndsvarselJson.IngenForhåndsvarsel
+                        """.trimIndent(),
+                    )
+                }.apply {
+                    response.status() shouldBe HttpStatusCode.OK
+                    val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(response.content!!)
+                    actualResponse.id shouldBe simulertRevurdering.id.toString()
+                    actualResponse.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
+                    actualResponse.fritekstTilBrev shouldBe "Friteksten"
+                    actualResponse.forhåndsvarsel shouldBe ForhåndsvarselJson.SkalVarslesBesluttet(
+                        begrunnelse = "begrunnelse",
+                        beslutningEtterForhåndsvarsling = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
+                    )
+                }
+            }
+        }
+
+        @Test
+        fun `avslutter uten endring`() {
+            val simulertRevurdering = SimulertRevurdering.Innvilget(
+                id = UUID.randomUUID(),
+                periode = RevurderingRoutesTestData.periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = RevurderingRoutesTestData.vedtak,
+                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
+                beregning = TestBeregning,
+                simulering = Simulering(
+                    gjelderId = Fnr(fnr = "12345678901"),
+                    gjelderNavn = "navn",
+                    datoBeregnet = fixedLocalDate,
+                    nettoBeløp = 0,
+                    periodeList = listOf(),
+                ),
+                oppgaveId = OppgaveId("OppgaveId"),
+                fritekstTilBrev = "Friteksten",
+                revurderingsårsak = Revurderingsårsak(
+                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                    Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+                ),
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet("begrunnelse"),
+                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+                attesteringer = Attesteringshistorikk.empty(),
+                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+            )
+
+            val revurderingServiceMock = mock<RevurderingService> {
+                on { fortsettEtterForhåndsvarsling(any()) } doReturn simulertRevurdering.right()
+            }
+
+            withTestApplication(
+                {
+                    testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
+                },
+            ) {
+                defaultRequest(
+                    HttpMethod.Post,
+                    "${RevurderingRoutesTestData.requestPath}/${simulertRevurdering.id}/fortsettEtterForhåndsvarsel",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    setBody(
+                        //language=json
+                        """
+                        {
+                          "fritekstTilBrev": "Friteksten",
+                          "valg": "AVSLUTT_UTEN_ENDRINGER",
+                          "begrunnelse": "begrunnelse"
+                        }
+                        """.trimIndent(),
+                    )
+                }.apply {
+                    response.status() shouldBe HttpStatusCode.OK
+                    val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(response.content!!)
+                    actualResponse.id shouldBe simulertRevurdering.id.toString()
+                    actualResponse.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
+                    actualResponse.fritekstTilBrev shouldBe "Friteksten"
+                    actualResponse.forhåndsvarsel shouldBe ForhåndsvarselJson.SkalVarslesBesluttet(
+                        begrunnelse = "begrunnelse",
+                        beslutningEtterForhåndsvarsling = BeslutningEtterForhåndsvarsling.AvsluttUtenEndringer,
+                    )
+                }
             }
         }
     }

@@ -75,6 +75,10 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         }
     }
 
+    override fun hentTilbakekrevingsavgjørelse(): Tilbakekrevingsavgjørelse {
+        TODO()
+    }
+
     override fun hentUoversendteTilbakekrevingsavgjørelser(sakId: UUID): List<Tilbakekrevingsavgjørelse> {
         return sessionFactory.withSession { session ->
             "select * from tilbakekrevingsavgjørelse where sakId = :sakId and oversendtTidspunkt is null".hentListe(

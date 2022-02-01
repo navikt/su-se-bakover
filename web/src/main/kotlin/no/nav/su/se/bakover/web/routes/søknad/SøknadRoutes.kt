@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSøknadId
+import java.time.Clock
 
 internal const val søknadPath = "/soknad"
 
@@ -50,6 +51,7 @@ internal fun Route.søknadRoutes(
     søknadService: SøknadService,
     lukkSøknadService: LukkSøknadService,
     avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService,
+    clock: Clock,
 ) {
     authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
         post(søknadPath) {
@@ -139,7 +141,7 @@ internal fun Route.søknadRoutes(
                         {
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, null)
                             call.sikkerlogg("Lukket søknad for søknad: $søknadId")
-                            call.svar(Resultat.json(OK, serialize(it.toJson())))
+                            call.svar(Resultat.json(OK, serialize(it.toJson(clock))))
                         },
                     )
                 }
@@ -164,7 +166,7 @@ internal fun Route.søknadRoutes(
                             when (it) {
                                 KunneIkkeAvslåSøknad.SøknadsbehandlingIUgyldigTilstandForAvslag -> Feilresponser.behandlingErIUgyldigTilstand
                                 KunneIkkeAvslåSøknad.KunneIkkeFinneGjeldendeUtbetaling -> Feilresponser.fantIkkeGjeldendeUtbetaling
-                                KunneIkkeAvslåSøknad.KunneIkkeGenererePDF -> Feilresponser.kunneIkkeGenererePdf
+                                KunneIkkeAvslåSøknad.KunneIkkeGenererePDF -> Feilresponser.Brev.kunneIkkeGenerereBrev
                                 KunneIkkeAvslåSøknad.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Feilresponser.fantIkkeSaksbehandlerEllerAttestant
                                 KunneIkkeAvslåSøknad.KunneIkkeHentePerson -> Feilresponser.fantIkkePerson
                                 KunneIkkeAvslåSøknad.FantIkkeSak -> Feilresponser.fantIkkeSak
@@ -176,7 +178,7 @@ internal fun Route.søknadRoutes(
                             },
                         )
                     }.map {
-                        call.svar(Resultat.json(OK, serialize(it.toJson())))
+                        call.svar(Resultat.json(OK, serialize(it.toJson(clock))))
                     }
                 }
             }

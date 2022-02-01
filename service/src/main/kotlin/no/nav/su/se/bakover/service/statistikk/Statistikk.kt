@@ -165,10 +165,14 @@ sealed class Statistikk {
         enum class Vedtakstype(val beskrivelse: String) {
             SØKNAD("Søknad"),
             REVURDERING("Revurdering"),
+            STANS("Stans"),
+            GJENOPPTAK("Gjenopptak"),
         }
         enum class Vedtaksresultat(val beskrivelse: String) {
             INNVILGET("Innvilget"),
             OPPHØRT("Opphørt"),
+            STANSET("Stanset"),
+            GJENOPPTATT("Gjenopptatt"),
         }
 
         data class Månedsbeløp(

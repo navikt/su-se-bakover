@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.person.PersonRepo
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -154,6 +155,33 @@ internal class PersonPostgresRepo(
             """
                 .trimMargin()
                 .hentListe(mapOf("vedtakId" to vedtakId), session) {
+                    listOfNotNull(
+                        it.stringOrNull("epsFnr"),
+                        it.string("søkersFnr"),
+                    )
+                }
+                .flatten()
+                .distinct()
+                .map { Fnr(it) }
+        }
+    }
+
+    override fun hentFnrForKlage(klageId: UUID): List<Fnr> {
+        return dataSource.withSession { session ->
+            """
+               SELECT 
+                    s.fnr søkersFnr,
+                    eps_fnr epsFnr
+                FROM klage k
+                INNER JOIN sak s ON s.id = k.sakId
+                INNER JOIN behandling_vedtak bv ON bv.sakId = k.sakId
+                INNER JOIN behandling b ON b.id = bv.søknadsbehandlingId
+                LEFT JOIN revurdering r ON r.id = bv.revurderingId
+                INNER JOIN grunnlag_bosituasjon gb ON gb.behandlingId IN (b.id, r.id)
+            WHERE bv.vedtakId = :vedtakId;
+            """
+                .trimMargin()
+                .hentListe(mapOf("klageId" to klageId), session) {
                     listOfNotNull(
                         it.stringOrNull("epsFnr"),
                         it.string("søkersFnr"),

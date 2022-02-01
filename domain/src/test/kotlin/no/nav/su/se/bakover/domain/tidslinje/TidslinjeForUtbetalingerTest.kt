@@ -17,6 +17,9 @@ import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.plus
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
@@ -38,6 +41,7 @@ internal class TidslinjeForUtbetalingerTest {
     @Test
     fun `en utbetaling`() {
         val første = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
@@ -60,6 +64,7 @@ internal class TidslinjeForUtbetalingerTest {
     @Test
     fun `et par helt ordinære utbetalinger`() {
         val første = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
@@ -67,6 +72,7 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
@@ -96,6 +102,7 @@ internal class TidslinjeForUtbetalingerTest {
     @Test
     fun `enkel stans på tvers av måneder med forskjellig beløp`() {
         val første = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
@@ -103,6 +110,7 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
@@ -137,6 +145,7 @@ internal class TidslinjeForUtbetalingerTest {
     @Test
     fun `reaktivering av enkel stans på tvers av måneder med forskjellig beløp`() {
         val første = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
@@ -144,6 +153,7 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
@@ -195,6 +205,7 @@ internal class TidslinjeForUtbetalingerTest {
     @Test
     fun `reaktivering av opphør på tvers av måneder med forskjellig beløp`() {
         val første = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
@@ -202,6 +213,7 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
@@ -253,6 +265,7 @@ internal class TidslinjeForUtbetalingerTest {
     @Test
     fun `opphør av alle utbetalingene`() {
         val første = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
@@ -260,6 +273,7 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
@@ -288,6 +302,7 @@ internal class TidslinjeForUtbetalingerTest {
     @Test
     fun `reaktivering av ytelse som er opphørt`() {
         val første = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
@@ -295,6 +310,7 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
@@ -334,6 +350,7 @@ internal class TidslinjeForUtbetalingerTest {
     @Test
     fun `reaktivering av ytelse som har blitt revurdert etter stans`() {
         val første = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
@@ -341,6 +358,7 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
@@ -350,9 +368,10 @@ internal class TidslinjeForUtbetalingerTest {
         val førsteStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = andre,
             virkningstidspunkt = 1.mars(2020),
-            clock = clock,
+            clock = fixedClock.plus(2, ChronoUnit.SECONDS),
         )
         val tredje = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt.plus(3, ChronoUnit.SECONDS),
             fraOgMed = 1.mars(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = førsteStans.id,
@@ -362,12 +381,12 @@ internal class TidslinjeForUtbetalingerTest {
         val andreStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = tredje,
             virkningstidspunkt = 1.oktober(2020),
-            clock = clock,
+            clock = fixedClock.plus(4, ChronoUnit.SECONDS),
         )
         val reaktivering = Utbetalingslinje.Endring.Reaktivering(
             utbetalingslinje = andreStans,
             virkningstidspunkt = 1.november(2020),
-            clock = clock,
+            clock = fixedClock.plus(5, ChronoUnit.SECONDS),
         )
 
         TidslinjeForUtbetalinger(
@@ -404,6 +423,7 @@ internal class TidslinjeForUtbetalingerTest {
     @Test
     fun `kan stanse tidligere reaktivert ytelse igjen`() {
         val første = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
@@ -411,6 +431,7 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
@@ -591,6 +612,7 @@ internal class TidslinjeForUtbetalingerTest {
     @Test
     fun `reaktivering av tidligere stans og reaktiveringer på tvers av måneder med forskjellig beløp`() {
         val første = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
@@ -598,6 +620,7 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
@@ -665,6 +688,7 @@ internal class TidslinjeForUtbetalingerTest {
     @Test
     fun `opphør av måned tilbake i tid med påfølgende reaktivering`() {
         val første = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
@@ -672,6 +696,7 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
@@ -723,6 +748,7 @@ internal class TidslinjeForUtbetalingerTest {
     @Test
     fun `potpurri`() {
         val første = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
@@ -730,6 +756,7 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
@@ -742,6 +769,7 @@ internal class TidslinjeForUtbetalingerTest {
             clock = clock,
         )
         val tredje = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.oktober(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = opphør.id,
@@ -793,6 +821,7 @@ internal class TidslinjeForUtbetalingerTest {
     @Test
     fun `helt ordinære utbetalinger - rekkefølgen på input har ikke noe å si`() {
         val første = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
@@ -800,6 +829,7 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
@@ -807,6 +837,7 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         val tredje = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.januar(2021),
             tilOgMed = 31.desember(2021),
             forrigeUtbetalingslinjeId = andre.id,
@@ -814,6 +845,7 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         val fjerde = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.februar(2021),
             tilOgMed = 31.desember(2021),
             forrigeUtbetalingslinjeId = tredje.id,
@@ -821,6 +853,7 @@ internal class TidslinjeForUtbetalingerTest {
             uføregrad = Uføregrad.parse(50),
         )
         val femte = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.mars(2021),
             tilOgMed = 31.desember(2021),
             forrigeUtbetalingslinjeId = fjerde.id,

@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.database.sak.SakRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.mappers.BehandlingStatistikkMapper
 import no.nav.su.se.bakover.service.statistikk.mappers.SakStatistikkMapper
@@ -77,14 +77,16 @@ internal class StatistikkServiceImpl(
                         ifLeft = { log.error("Finner ikke aktørId for person med sakId: ${sak.id}") },
                         ifRight = { aktørId ->
                             val ytelseVirkningstidspunkt = vedtakRepo.hentForSakId(event.vedtak.behandling.sakId)
-                                .filterIsInstance<Vedtak.EndringIYtelse>()
+                                .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse>()
                                 .minOf { it.periode.fraOgMed }
 
-                            publiser(StønadsstatistikkMapper(clock).map(event.vedtak, aktørId, ytelseVirkningstidspunkt))
+                            publiser(StønadsstatistikkMapper(clock).map(event.vedtak, aktørId, ytelseVirkningstidspunkt, sak))
                         }
                     )
                 }
             }
+            is Event.Statistikk.RevurderingStatistikk.Gjenoppta -> publiser(BehandlingStatistikkMapper(clock).map(event.gjenoppta))
+            is Event.Statistikk.RevurderingStatistikk.Stans -> publiser(BehandlingStatistikkMapper(clock).map(event.stans))
         }
     }
 }

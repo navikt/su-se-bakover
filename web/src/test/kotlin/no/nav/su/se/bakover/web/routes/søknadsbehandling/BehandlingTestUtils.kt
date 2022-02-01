@@ -7,10 +7,10 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.bosituasjon
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.vurderingsperiodeUføre
+import no.nav.su.se.bakover.web.routes.grunnlag.UtenlandsoppholdVilkårJsonTest.Companion.utenlandsopphold
 import java.time.LocalDate
 import java.util.UUID
 
@@ -48,14 +49,6 @@ object BehandlingTestUtils {
         journalpostId = journalpostId,
     )
     internal val fnr = Fnr.generer()
-    private val ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-        fnr = Fnr("17087524256"),
-        navn = Person.Navn("fornavn", null, "etternavn"),
-        kjønn = null,
-        fødselsdato = LocalDate.of(1975, 8, 17),
-        adressebeskyttelse = null,
-        skjermet = null,
-    )
 
     internal fun innvilgetSøknadsbehandling() = Søknadsbehandling.Iverksatt.Innvilget(
         id = behandlingId,
@@ -65,12 +58,6 @@ object BehandlingTestUtils {
         søknad = journalførtSøknadMedOppgave,
         oppgaveId = oppgaveId,
         behandlingsinformasjon = Behandlingsinformasjon(
-            uførhet = Behandlingsinformasjon.Uførhet(
-                status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-                uføregrad = 20,
-                forventetInntekt = 10,
-                begrunnelse = null,
-            ),
             flyktning = Behandlingsinformasjon.Flyktning(
                 status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
                 begrunnelse = null,
@@ -85,10 +72,6 @@ object BehandlingTestUtils {
             ),
             institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
                 status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
-                begrunnelse = null,
-            ),
-            oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-                status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
                 begrunnelse = null,
             ),
             formue = Behandlingsinformasjon.Formue(
@@ -119,13 +102,6 @@ object BehandlingTestUtils {
                 status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
                 begrunnelse = null,
             ),
-            bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                ektefelle = ektefelle,
-                delerBolig = false,
-                ektemakeEllerSamboerUførFlyktning = false,
-                begrunnelse = null,
-            ),
-            ektefelle = ektefelle,
         ),
         fnr = fnr,
         beregning = TestBeregning,
@@ -145,9 +121,11 @@ object BehandlingTestUtils {
             bosituasjon = listOf(bosituasjon),
         ),
         vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-            Vilkår.Uførhet.Vurdert.create(
+            uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
             ),
+            utenlandsopphold = utenlandsopphold,
         ),
+        avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,
     )
 }

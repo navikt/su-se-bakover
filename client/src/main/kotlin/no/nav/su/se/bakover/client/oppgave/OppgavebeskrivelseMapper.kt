@@ -1,9 +1,12 @@
 package no.nav.su.se.bakover.client.oppgave
 
-import no.nav.su.se.bakover.domain.hendelse.Personhendelse
+import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
+import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 
 object OppgavebeskrivelseMapper {
+    fun map(utfall: KlagevedtakUtfall): String = "Utfall: ${utfall.toReadableName()}\n\n${utfall.LukkBeskrivelse()}"
+
     fun map(hendelse: Personhendelse.Hendelse) = when (hendelse) {
         is Personhendelse.Hendelse.Dødsfall -> {
             "Dødsfall\n" +
@@ -32,5 +35,32 @@ object OppgavebeskrivelseMapper {
         SivilstandTyper.SEPARERT_PARTNER -> "Separert partner"
         SivilstandTyper.SKILT_PARTNER -> "Skilt partner"
         SivilstandTyper.GJENLEVENDE_PARTNER -> "Gjenlevende partner"
+    }
+
+    private fun KlagevedtakUtfall.toReadableName() = when (this) {
+        KlagevedtakUtfall.TRUKKET -> "Trukket"
+        KlagevedtakUtfall.RETUR -> "Retur"
+        KlagevedtakUtfall.OPPHEVET -> "Opphevet"
+        KlagevedtakUtfall.MEDHOLD -> "Medhold"
+        KlagevedtakUtfall.DELVIS_MEDHOLD -> "Delvis medhold"
+        KlagevedtakUtfall.STADFESTELSE -> "Stadfestelse"
+        KlagevedtakUtfall.UGUNST -> "Ugunst"
+        KlagevedtakUtfall.AVVIST -> "Avvist"
+    }
+    private fun KlagevedtakUtfall.LukkBeskrivelse() = when (this) {
+        /*
+        * Informasjonsoppgaver som må lukkes manuelt.
+        * */
+        KlagevedtakUtfall.TRUKKET,
+        KlagevedtakUtfall.STADFESTELSE,
+        KlagevedtakUtfall.AVVIST -> "Denne oppgaven er kun til opplysning og må lukkes manuelt."
+        /*
+        * Oppgaver som krever handling. Lukkes automatisk av `su-se-bakover`.
+        * */
+        KlagevedtakUtfall.RETUR,
+        KlagevedtakUtfall.OPPHEVET,
+        KlagevedtakUtfall.MEDHOLD,
+        KlagevedtakUtfall.DELVIS_MEDHOLD,
+        KlagevedtakUtfall.UGUNST -> "Klagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk."
     }
 }
