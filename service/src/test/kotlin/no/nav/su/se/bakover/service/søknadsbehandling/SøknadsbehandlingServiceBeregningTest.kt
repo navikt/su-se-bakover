@@ -21,10 +21,12 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.util.UUID
 
 class SøknadsbehandlingServiceBeregningTest {
@@ -56,6 +58,9 @@ class SøknadsbehandlingServiceBeregningTest {
             avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
+            grunnlagService = mock {
+                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
+            }
         ).let {
             val beregnet = it.søknadsbehandlingService.beregn(
                 SøknadsbehandlingService.BeregnRequest(
@@ -137,6 +142,9 @@ class SøknadsbehandlingServiceBeregningTest {
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn vilkårsvurdert
             },
+            grunnlagService = mock {
+                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
+            }
         ).let {
             vilkårsvurdert.avkorting shouldBe beOfType<AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting>()
 
@@ -197,6 +205,9 @@ class SøknadsbehandlingServiceBeregningTest {
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn vilkårsvurdert
             },
+            grunnlagService = mock {
+                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
+            }
         ).let {
             vilkårsvurdert.avkorting shouldBe beOfType<AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting>()
 

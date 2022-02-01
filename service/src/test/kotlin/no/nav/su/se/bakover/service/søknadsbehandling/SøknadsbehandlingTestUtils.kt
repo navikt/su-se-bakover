@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -71,21 +72,21 @@ internal fun createSøknadsbehandlingService(
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
-    val søknadsbehandlingRepo: SøknadsbehandlingRepo = mock(),
-    val utbetalingService: UtbetalingService = mock(),
-    val oppgaveService: OppgaveService = mock(),
-    val søknadService: SøknadService = mock(),
-    val personService: PersonService = mock(),
+    val søknadsbehandlingRepo: SøknadsbehandlingRepo = defaultMock(),
+    val utbetalingService: UtbetalingService = defaultMock(),
+    val oppgaveService: OppgaveService = defaultMock(),
+    val søknadService: SøknadService = defaultMock(),
+    val personService: PersonService = defaultMock(),
     val behandlingMetrics: BehandlingMetrics = mock(),
     val observer: EventObserver = mock(),
-    val brevService: BrevService = mock(),
+    val brevService: BrevService = defaultMock(),
     val clock: Clock = fixedClock,
-    val vedtakRepo: VedtakRepo = mock(),
-    val ferdigstillVedtakService: FerdigstillVedtakService = mock(),
-    val vilkårsvurderingService: VilkårsvurderingService = mock(),
-    val grunnlagService: GrunnlagService = mock(),
-    val sakService: SakService = mock(),
-    val kontrollsamtaleService: KontrollsamtaleService = mock(),
+    val vedtakRepo: VedtakRepo = defaultMock(),
+    val ferdigstillVedtakService: FerdigstillVedtakService = defaultMock(),
+    val vilkårsvurderingService: VilkårsvurderingService = defaultMock(),
+    val grunnlagService: GrunnlagService = defaultMock(),
+    val sakService: SakService = defaultMock(),
+    val kontrollsamtaleService: KontrollsamtaleService = defaultMock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
 ) {

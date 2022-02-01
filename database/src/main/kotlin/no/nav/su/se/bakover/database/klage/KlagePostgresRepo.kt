@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Hjemler
+import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
@@ -724,9 +725,12 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 SU_PARAGRAF_8("su_paragraf_8"),
                 SU_PARAGRAF_9("su_paragraf_9"),
                 SU_PARAGRAF_10("su_paragraf_10"),
+                SU_PARAGRAF_11("su_paragraf_11"),
                 SU_PARAGRAF_12("su_paragraf_12"),
                 SU_PARAGRAF_13("su_paragraf_13"),
-                SU_PARAGRAF_18("su_paragraf_18");
+                SU_PARAGRAF_17("su_paragraf_17"),
+                SU_PARAGRAF_18("su_paragraf_18"),
+                SU_PARAGRAF_21("su_paragraf_21");
 
                 fun toDomain(): no.nav.su.se.bakover.domain.klage.Hjemmel {
                     return when (this) {
@@ -737,9 +741,12 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                         SU_PARAGRAF_8 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_8
                         SU_PARAGRAF_9 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_9
                         SU_PARAGRAF_10 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_10
+                        SU_PARAGRAF_11 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_11
                         SU_PARAGRAF_12 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_12
                         SU_PARAGRAF_13 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_13
+                        SU_PARAGRAF_17 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_17
                         SU_PARAGRAF_18 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_18
+                        SU_PARAGRAF_21 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_21
                     }
                 }
 
@@ -754,9 +761,12 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                                 no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_8 -> SU_PARAGRAF_8
                                 no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_9 -> SU_PARAGRAF_9
                                 no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_10 -> SU_PARAGRAF_10
+                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_11 -> SU_PARAGRAF_11
                                 no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_12 -> SU_PARAGRAF_12
                                 no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_13 -> SU_PARAGRAF_13
+                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_17 -> SU_PARAGRAF_17
                                 no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_18 -> SU_PARAGRAF_18
+                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_21 -> SU_PARAGRAF_21
                             }.toString()
                         }
                     }
