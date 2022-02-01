@@ -41,7 +41,7 @@ data class TolketSimulering(
             simulertePerioder
                 .filter { periode inneholder it.periode }
                 .map { it.hentUtbetaltBeløp() }
-                .filter { it.sum() > 0 }
+                .filter { it.sum() > 0 },
         )
     }
 }
@@ -74,7 +74,11 @@ sealed class TolketUtbetaling {
                 val sum = tolketDetaljer.sumOf { it.beløp }
                 when {
                     sum > 0 -> Etterbetaling(tolketDetaljer + TolketDetalj.Etterbetaling(sum))
-                    sum == 0 -> UendretUtbetaling(tolketDetaljer + TolketDetalj.UendretUtbetaling(sum))
+                    sum == 0 -> UendretUtbetaling(
+                        tolketDetaljer + TolketDetalj.UendretUtbetaling(
+                            tolketDetaljer.filterIsInstance<TolketDetalj.Ordinær>().sumOf { it.beløp },
+                        ),
+                    )
                     else -> throw IndikererFeilutbetaling
                 }
             }

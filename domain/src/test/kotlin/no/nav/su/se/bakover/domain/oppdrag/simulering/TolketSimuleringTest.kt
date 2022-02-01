@@ -631,7 +631,7 @@ internal class TolketSimuleringTest {
                                     beløp = -20779,
                                 ),
                                 TolketDetalj.UendretUtbetaling(
-                                    beløp = 0,
+                                    beløp = 20779,
                                 ),
                             ),
                         ),
