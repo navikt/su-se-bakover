@@ -408,7 +408,7 @@ fun iverksattRevurdering(
                 tilAttestering.tilIverksatt(
                     attestant = attestering.attestant,
                     clock = clock,
-                    utbetal = { utbetaling.id.right() },
+                    utbetal = { Unit.right() },
                     hentOpprinneligAvkorting = {
                         when (val opprinnelig = tilAttestering.avkorting) {
                             is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
@@ -1271,8 +1271,8 @@ fun iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     fritekstTilBrev: String = "",
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("Attestant"),
-    utbetal: () -> Either<RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30> = {
-        UUID30.randomUUID().right()
+    utbetal: () -> Either<RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, Unit> = {
+        Unit.right()
     },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
 ): Pair<Sak, IverksattRevurdering.Innvilget> {

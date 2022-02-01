@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
@@ -379,7 +380,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             },
             utbetalingService = mock {
                 on { genererUtbetalingsRequest(any()) } doReturn simulertUtbetaling().right()
-                on { publiserUtbetaling(any()) } doReturn utbetalingsRequest.right()
+                on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("<xml></xml>").right()
             },
             kontrollsamtaleService = mock {
                 on { opprettPlanlagtKontrollsamtale(any(), any()) } doReturn kontrollsamtale().right()

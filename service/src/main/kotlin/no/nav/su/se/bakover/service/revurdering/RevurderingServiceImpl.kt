@@ -32,8 +32,6 @@ import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -1232,154 +1230,155 @@ internal class RevurderingServiceImpl(
             }
     }
 
-    // TODO ai: Extraher ut logikk till funskjoner for å forenkle flyten
+    private fun lagDokument(vedtakIngenEndring: VedtakSomKanRevurderes.IngenEndringIYtelse): Either<KunneIkkeIverksetteRevurdering, Dokument.MedMetadata> =
+        brevService.lagDokument(vedtakIngenEndring)
+            .getOrHandle {
+                return when (it) {
+                    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling
+                    KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeIverksetteRevurdering.KunneIkkeGenerereBrev
+                    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeIverksetteRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                    KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeIverksetteRevurdering.FantIkkePerson
+                }.left()
+            }
+            .leggTilMetadata(
+                Dokument.Metadata(
+                    sakId = vedtakIngenEndring.behandling.sakId,
+                    vedtakId = vedtakIngenEndring.id,
+                    bestillBrev = true,
+                ),
+            ).right()
+
     override fun iverksett(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
-        var utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering? = null
-        var vedtak: VedtakSomKanRevurderes? = null
+        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
+        if (revurdering !is RevurderingTilAttestering) return KunneIkkeIverksetteRevurdering.UgyldigTilstand(revurdering::class, IverksattRevurdering::class).left()
 
-        val revurdering = revurderingRepo.hent(revurderingId)
-            ?: return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
+        val iverksattRevurdering = when (revurdering) {
+            is RevurderingTilAttestering.IngenEndring -> {
+                revurdering.tilIverksatt(attestant, clock)
+                    .map { iverksattRevurdering ->
+                        Either.catch {
+                            val vedtakIngenEndring = VedtakSomKanRevurderes.from(iverksattRevurdering, clock)
+                            sessionFactory.withTransactionContext { tx ->
+                                vedtakRepo.lagre(vedtakIngenEndring, tx)
+                                revurderingRepo.lagre(iverksattRevurdering)
 
-        return when (revurdering) {
-            is RevurderingTilAttestering -> {
-                val iverksattRevurdering = when (revurdering) {
-                    is RevurderingTilAttestering.IngenEndring -> {
-                        revurdering.tilIverksatt(attestant, clock)
-                            .map { iverksattRevurdering ->
-                                val vedtakIngenEndring = VedtakSomKanRevurderes.from(iverksattRevurdering, clock)
                                 if (vedtakIngenEndring.skalSendeBrev()) {
-                                    val dokument = brevService.lagDokument(vedtakIngenEndring)
-                                        .getOrHandle {
-                                            return when (it) {
-                                                KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling
-                                                KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeIverksetteRevurdering.KunneIkkeGenerereBrev
-                                                KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeIverksetteRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                                                KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeIverksetteRevurdering.FantIkkePerson
-                                            }.left()
-                                        }
-                                        .leggTilMetadata(
-                                            Dokument.Metadata(
-                                                sakId = vedtakIngenEndring.behandling.sakId,
-                                                vedtakId = vedtakIngenEndring.id,
-                                                bestillBrev = true,
-                                            ),
-                                        )
-
-                                    vedtakRepo.lagre(vedtakIngenEndring)
-                                    brevService.lagreDokument(dokument)
-                                } else {
-                                    vedtak = vedtakIngenEndring
-                                    vedtakRepo.lagre(vedtakIngenEndring)
+                                    lagDokument(vedtakIngenEndring).map {
+                                        brevService.lagreDokument(it, tx)
+                                    }
                                 }
-
-                                // TODO (CHM 18.01.21): Lukk attesteringsoppgave. For de andre to casene blir denne lukket i `ferdigstillVedtakEtterUtbetaling`
-                                // P.t. vil ikke IngenEndring inntreffe, pga 10%-endringen, men må testes når denne evt. blir lagt tilbake
-                                // oppgaveService.lukkOppgave(revurdering.oppgaveId)
-
-                                iverksattRevurdering
                             }
-                    }
-                    is RevurderingTilAttestering.Innvilget -> {
-                        revurdering.tilIverksatt(
-                            attestant = attestant,
-                            clock = clock,
-                            utbetal = {
-                                utbetalingService.utbetal(
-                                    request = UtbetalRequest.NyUtbetaling(
-                                        request = SimulerUtbetalingRequest.NyUtbetaling(
-                                            sakId = revurdering.sakId,
-                                            saksbehandler = attestant,
-                                            beregning = revurdering.beregning,
-                                            uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
-                                        ),
-                                        simulering = revurdering.simulering,
-                                    ),
-
-                                ).mapLeft {
-                                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
-                                }.map {
-                                    // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
-                                    utbetaling = it
-                                    it.id
-                                }
-                            },
-                            hentOpprinneligAvkorting = { avkortingid ->
-                                avkortingsvarselRepo.hent(id = avkortingid)
-                            },
-                        ).map { iverksattRevurdering ->
-                            vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling!!.id, clock).let {
-                                vedtakRepo.lagre(it)
-                                it
-                            }
-                            iverksattRevurdering
+                        }.mapLeft {
+                            KunneIkkeIverksetteRevurdering.LagringFeilet
                         }
-                    }
-                    is RevurderingTilAttestering.Opphørt -> {
-                        revurdering.tilIverksatt(
-                            attestant = attestant,
-                            clock = clock,
-                            utbetal = { sakId: UUID, _: NavIdentBruker.Attestant, opphørsdato: LocalDate, simulering: Simulering ->
-                                utbetalingService.opphør(
-                                    request = UtbetalRequest.Opphør(
-                                        request = SimulerUtbetalingRequest.Opphør(
-                                            sakId = sakId,
-                                            saksbehandler = attestant,
-                                            opphørsdato = opphørsdato,
-                                        ),
-                                        simulering = simulering,
-                                    ),
-                                ).mapLeft {
-                                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
-                                }.map {
-                                    // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
-                                    utbetaling = it
-                                    it.id
-                                }
-                            },
-                            hentOpprinneligAvkorting = { avkortingid ->
-                                avkortingsvarselRepo.hent(id = avkortingid)
-                            },
-                        ).map {
-                            val opphørtVedtak = VedtakSomKanRevurderes.from(it, utbetaling!!.id, clock)
-                            vedtakRepo.lagre(opphørtVedtak)
-                            kontrollsamtaleService.annullerKontrollsamtale(opphørtVedtak.behandling.sakId)
-                            vedtak = opphørtVedtak
-                            it
-                        }
-                    }
-                }.getOrHandle {
-                    return when (it) {
-                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-                        is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(
-                            it.utbetalingFeilet,
-                        )
-                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
-                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAnnullertAvEnAnnen
-                    }.left()
-                }
 
-                revurderingRepo.lagre(iverksattRevurdering)
-                observers.forEach { observer ->
-                    observer.handle(
-                        Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering),
-                    )
-                    if (vedtak is VedtakSomKanRevurderes.EndringIYtelse) {
-                        observer.handle(
-                            Event.Statistikk.Vedtaksstatistikk(
-                                vedtak as VedtakSomKanRevurderes.EndringIYtelse,
-                            ),
-                        )
-                    }
-                }
+                        // TODO (CHM 18.01.21): Lukk attesteringsoppgave. For de andre to casene blir denne lukket i `ferdigstillVedtakEtterUtbetaling`
+                        // P.t. vil ikke IngenEndring inntreffe, pga 10%-endringen, men må testes når denne evt. blir lagt tilbake
+                        // oppgaveService.lukkOppgave(revurdering.oppgaveId)
 
-                return iverksattRevurdering.right()
+                        iverksattRevurdering
+                    }
             }
-            else -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(revurdering::class, IverksattRevurdering::class)
-                .left()
+            is RevurderingTilAttestering.Innvilget -> {
+                revurdering.validerTilIverksatt(
+                    attestant = attestant,
+                    hentOpprinneligAvkorting = { avkortingid -> avkortingsvarselRepo.hent(avkortingid) },
+                    clock = clock
+                ).map { iverksattRevurdering ->
+                    utbetalingService.genererUtbetalingsRequest(
+                        request = UtbetalRequest.NyUtbetaling(
+                            request = SimulerUtbetalingRequest.NyUtbetaling(
+                                sakId = revurdering.sakId,
+                                saksbehandler = attestant, beregning = revurdering.beregning,
+
+                                uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
+                            ),
+                            simulering = revurdering.simulering,
+                        ),
+                    ).map { utbetaling ->
+                        Either.catch {
+                            sessionFactory.withTransactionContext { tx ->
+                                val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, clock)
+                                vedtakRepo.lagre(vedtak, tx)
+                                revurderingRepo.lagre(iverksattRevurdering, tx)
+                                utbetalingService.lagreUtbetaling(utbetaling, tx)
+                                utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
+                                    log.error("Kunne ikke publisere revurderingsutbetaling på køen. Ruller tilbake. SakId: ${iverksattRevurdering.sakId}", feil)
+                                    throw RuntimeException("Publisering av revurderingsutbetaling på køen feilet. $feil")
+                                }
+                            }
+                        }.mapLeft {
+                            KunneIkkeIverksetteRevurdering.LagringFeilet
+                        }
+                    }
+                    iverksattRevurdering
+                }
+            }
+            is RevurderingTilAttestering.Opphørt -> {
+                revurdering.validerTilIverksatt(
+                    attestant = attestant,
+                    clock = clock,
+                    hentOpprinneligAvkorting = { avkortingid -> avkortingsvarselRepo.hent(avkortingid) }
+                ).map { iverksattRevurdering ->
+                    utbetalingService.genererOpphørsRequest(
+                        request = UtbetalRequest.Opphør(
+                            request = SimulerUtbetalingRequest.Opphør(
+                                sakId = iverksattRevurdering.sakId,
+                                saksbehandler = attestant,
+                                opphørsdato = revurdering.opphørsdatoForUtbetalinger,
+                            ),
+                            simulering = iverksattRevurdering.simulering,
+                        ),
+                    ).map { utbetaling ->
+                        Either.catch {
+                            sessionFactory.withTransactionContext { tx ->
+                                val opphørtVedtak =
+                                    VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, clock)
+                                vedtakRepo.lagre(opphørtVedtak, tx)
+                                kontrollsamtaleService.annullerKontrollsamtale(opphørtVedtak.behandling.sakId, tx)
+                                revurderingRepo.lagre(iverksattRevurdering, tx)
+                                utbetalingService.lagreUtbetaling(utbetaling, tx)
+                                utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
+                                    log.error(
+                                        "Kunne ikke publisere revurdering-opphør på køen. Ruller tilbake. SakId: ${iverksattRevurdering.sakId}",
+                                        feil
+                                    )
+                                    throw RuntimeException("Publisering av revurdering-opphør på køen feilet. $feil")
+                                }
+                                observers.forEach { observer ->
+                                    observer.handle(
+                                        Event.Statistikk.Vedtaksstatistikk(opphørtVedtak),
+                                    )
+                                }
+                            }
+                        }.mapLeft {
+                            KunneIkkeIverksetteRevurdering.LagringFeilet
+                        }
+                    }
+                    iverksattRevurdering
+                }
+            }
+        }.getOrHandle {
+            return when (it) {
+                RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+                is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(
+                    it.utbetalingFeilet,
+                )
+                RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+                RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAnnullertAvEnAnnen
+            }.left()
         }
+
+        observers.forEach { observer ->
+            observer.handle(
+                Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering),
+            )
+        }
+
+        return iverksattRevurdering.right()
     }
 
     override fun underkjenn(
