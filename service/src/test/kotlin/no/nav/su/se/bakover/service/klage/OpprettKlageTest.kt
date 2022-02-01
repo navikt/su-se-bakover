@@ -132,6 +132,7 @@ internal class OpprettKlageTest {
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
 
         verify(mocks.sakRepoMock).hentSak(sakId)
+        verify(mocks.journalpostClient).hentFerdigstiltJournalpost(sak.saksnummer, JournalpostId("j2"))
         verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
         mocks.verifyNoMoreInteractions()
     }
@@ -175,6 +176,7 @@ internal class OpprettKlageTest {
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
 
         verify(mocks.sakRepoMock).hentSak(sakId)
+        verify(mocks.journalpostClient).hentFerdigstiltJournalpost(sak.saksnummer, JournalpostId("j2"))
         verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
         verify(mocks.oppgaveService).opprettOppgave(
             argThat {

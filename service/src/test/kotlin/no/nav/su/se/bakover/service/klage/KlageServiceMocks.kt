@@ -51,6 +51,7 @@ internal data class KlageServiceMocks(
         identClient,
         klageClient,
         oppgaveService,
+        journalpostClient,
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {
