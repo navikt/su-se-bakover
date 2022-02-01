@@ -221,7 +221,7 @@ internal class VedtakPostgresRepo(
         val opprettet = tidspunkt("opprettet")
         val fraOgMed = localDate("fraOgMed")
         val tilOgMed = localDate("tilOgMed")
-        val vedtakType = valueOf(string("vedtaktype")) //todo mappe via vedtakstype i repo
+        val vedtakType = valueOf(string("vedtaktype")) // todo mappe via vedtakstype i repo
         val behandlingType = BehandlingType.valueOf(string("behandlingtype"))
 
         return AutomatiskEllerManuelleSak(

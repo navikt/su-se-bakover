@@ -15,7 +15,7 @@ class RegulerServiceImpl(
     private val sakService: SakService,
     private val clock: Clock,
 
-    ) : ReguleringService {
+) : ReguleringService {
 
     override fun hentAlleSakerSomKanReguleres(fraDato: LocalDate): Either<KanIkkeHenteSaker, SakerSomKanReguleres> {
         return SakerSomKanReguleres(
