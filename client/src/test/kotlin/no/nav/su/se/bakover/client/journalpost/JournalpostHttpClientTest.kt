@@ -180,7 +180,7 @@ internal class JournalpostHttpClientTest {
             ),
         )
 
-        httpResponse.tilKunneIkkeHenteJournalpost() shouldBe expected
+        httpResponse.tilKunneIkkeHenteJournalpost("j") shouldBe expected
     }
 
     private fun wiremockBuilderOnBehalfOf(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
