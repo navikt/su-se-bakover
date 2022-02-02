@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dkif.DkifClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
+import no.nav.su.se.bakover.client.journalpost.JournalpostHttpClient
 import no.nav.su.se.bakover.client.kabal.KabalHttpClient
 import no.nav.su.se.bakover.client.kafka.KafkaPublisherClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
@@ -58,6 +59,7 @@ data class ProdClientsBuilder(
             ),
         )
         val klageClient = KabalHttpClient(applicationConfig.clientsConfig.kabalConfig, oAuth)
+        val journalpostClient = JournalpostHttpClient(applicationConfig.clientsConfig.safConfig, oAuth)
 
         return Clients(
             oauth = oAuth,
@@ -105,7 +107,8 @@ data class ProdClientsBuilder(
             digitalKontaktinformasjon = dkif,
             leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
             kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),
-            klageClient = klageClient
+            klageClient = klageClient,
+            journalpostClient = journalpostClient
         )
     }
 }

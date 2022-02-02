@@ -1,0 +1,10 @@
+query($journalpostId: String!){
+    journalpost(journalpostId: $journalpostId){
+        tema
+        journalstatus
+        sak {
+            fagsakId
+        }
+    }
+}
+

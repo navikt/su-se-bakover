@@ -86,6 +86,7 @@ val applicationConfig = ApplicationConfig(
         skjermingUrl = "skjermingUrl",
         dkifUrl = "dkifUrl",
         kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("kabalUrl", "kabalClientId"),
+        safConfig = ApplicationConfig.ClientsConfig.SafConfig("safUrlkabalUrl", "safClientId"),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(
         producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
 import java.util.UUID
@@ -105,4 +106,5 @@ sealed interface KunneIkkeOppretteKlage {
     object KunneIkkeOppretteOppgave : KunneIkkeOppretteKlage
     object UgyldigMottattDato : KunneIkkeOppretteKlage
     object HarAlleredeEnKlageBehandling : KunneIkkeOppretteKlage
+    data class FeilVedHentingAvJournalpost(val feil: KunneIkkeHenteJournalpost) : KunneIkkeOppretteKlage
 }

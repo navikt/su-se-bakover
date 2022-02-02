@@ -10,10 +10,10 @@ scalar DateTime
 scalar Long
 
 schema {
-    query: Query
+    query: Queries
 }
 
-type Query {
+type Queries {
     hentPerson(ident: ID!): Person
     hentPersonBolk(identer: [ID!]!): [HentPersonBolkResult!]!
     hentIdenter(ident: ID!, grupper: [IdentGruppe!], historikk: Boolean = false): Identliste
