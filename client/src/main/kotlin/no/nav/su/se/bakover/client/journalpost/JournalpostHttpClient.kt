@@ -80,11 +80,12 @@ internal class JournalpostHttpClient(
             client.send(req, HttpResponse.BodyHandlers.ofString()).let {
                 val body = it.body()
                 if (it.isSuccess()) {
-                    val JournalpostHttpResponse = objectMapper.readValue<JournalpostHttpResponse>(body)
-                    if (JournalpostHttpResponse.hasErrors()) {
-                        return JournalpostHttpResponse.tilKunneIkkeHenteJournalpost().left()
+                    val journalpostHttpResponse = objectMapper.readValue<JournalpostHttpResponse>(body)
+                    if (journalpostHttpResponse.hasErrors()) {
+                        return journalpostHttpResponse.tilKunneIkkeHenteJournalpost(request.variables.journalpostId)
+                            .left()
                     }
-                    return JournalpostHttpResponse.data.right()
+                    return journalpostHttpResponse.data.right()
                 }
 
                 log.error("Feil i kallet mot SAF. status: ${it.statusCode()} for journalpostId: ${request.variables.journalpostId}. Se sikker logg for innholdet av body")
@@ -107,23 +108,23 @@ internal data class JournalpostHttpResponse(
         return errors !== null && errors.isNotEmpty()
     }
 
-    fun tilKunneIkkeHenteJournalpost(): KunneIkkeHenteJournalpost {
+    fun tilKunneIkkeHenteJournalpost(journalpostId: String): KunneIkkeHenteJournalpost {
         return errors.orEmpty().map { error ->
             when (error.extensions.code) {
                 "forbidden" -> KunneIkkeHenteJournalpost.IkkeTilgang.also {
-                    log.error("Ikke tilgang til Journalpost")
+                    log.error("Ikke tilgang til Journalpost. Id $journalpostId")
                 }
                 "not_found" -> KunneIkkeHenteJournalpost.FantIkkeJournalpost.also {
-                    log.info("Fant ikke journalpost")
+                    log.info("Fant ikke journalpost. Id $journalpostId")
                 }
                 "bad_request" -> KunneIkkeHenteJournalpost.UgyldigInput.also {
-                    log.error("Sendt ugyldig input til SAF")
+                    log.error("Sendt ugyldig input til SAF. Id $journalpostId")
                 }
                 "server_error" -> KunneIkkeHenteJournalpost.TekniskFeil.also {
-                    log.error("Teknisk feil hos SAF")
+                    log.error("Teknisk feil hos SAF. Id $journalpostId")
                 }
                 else -> KunneIkkeHenteJournalpost.Ukjent.also {
-                    log.warn("Uhåndtert feil fra SAF. code ${error.extensions.code} ")
+                    log.warn("Uhåndtert feil fra SAF. code ${error.extensions.code}. Id $journalpostId")
                 }
             }
         }.first()
