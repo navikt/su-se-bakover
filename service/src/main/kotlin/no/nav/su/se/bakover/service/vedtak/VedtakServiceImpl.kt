@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.vedtak.AutomatiskEllerManuelleSak
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
@@ -39,10 +38,6 @@ class VedtakServiceImpl(
 
     override fun hentJournalpostId(vedtakId: UUID): JournalpostId? {
         return vedtakRepo.hentJournalpostId(vedtakId)
-    }
-
-    override fun hentListeOverSakidSomKanReguleres(fomDato: LocalDate): List<AutomatiskEllerManuelleSak> {
-        return vedtakRepo.hentVedtakSomKanReguleres(fomDato).distinct()
     }
 
     override fun kopierGjeldendeVedtaksdataForRegulering(

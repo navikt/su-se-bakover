@@ -3,16 +3,15 @@ package no.nav.su.se.bakover.service.regulering
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.vedtak.BehandlingType
-import no.nav.su.se.bakover.domain.vedtak.VedtakType
-import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.domain.regulering.AutomatiskEllerManuellSak
+import no.nav.su.se.bakover.domain.regulering.BehandlingType
+import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
+import no.nav.su.se.bakover.domain.regulering.VedtakType
 import java.time.Clock
 import java.time.LocalDate
 
-class RegulerServiceImpl(
-    private val vedtakService: VedtakService,
-    private val sakService: SakService,
+class ReguleringServiceImpl(
+    private val reguleringRepo: ReguleringRepo,
     private val clock: Clock,
 
 ) : ReguleringService {
@@ -32,8 +31,12 @@ class RegulerServiceImpl(
     // GJENOPPTAK_AV_YTELSE,  tommel opp
     // AVVIST_KLAGE,    filtrer bort
 
+    private fun hentSakerSomKanReguleres(fomDato: LocalDate): List<AutomatiskEllerManuellSak> {
+        return reguleringRepo.hentVedtakSomKanReguleres(fomDato) // .distinct()
+    }
+
     private fun hentAlleSaker(fraDato: LocalDate): List<SakSomKanReguleres> {
-        return vedtakService.hentListeOverSakidSomKanReguleres(fraDato)
+        return hentSakerSomKanReguleres(fraDato)
             .filterNot { it.vedtakType == VedtakType.AVSLAG || it.vedtakType == VedtakType.AVVIST_KLAGE }
             .groupBy { it.sakId }
             .mapNotNull { (sakid, vedtakSomKanReguleres) ->
@@ -50,7 +53,7 @@ class RegulerServiceImpl(
                 }
 
                 val type =
-                    if (gjeldendeVedtakPrMnd.any { it.second.behandlingType == BehandlingType.MANUELL || it.second.vedtakType == VedtakType.INGEN_ENDRING || it.second.vedtakType == VedtakType.STANS_AV_YTELSE }) {
+                    if (gjeldendeVedtakPrMnd.any { it.second.behandlingType == BehandlingType.MANUELL || it.second.vedtakType == VedtakType.STANS_AV_YTELSE }) {
                         BehandlingType.MANUELL
                     } else BehandlingType.AUTOMATISK
 

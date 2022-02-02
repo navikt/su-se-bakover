@@ -19,6 +19,4 @@ object KanIkkeHenteSaker
 
 interface ReguleringService {
     fun hentAlleSakerSomKanReguleres(fraDato: LocalDate): Either<KanIkkeHenteSaker, SakerSomKanReguleres>
-    // fun hentAlleSakerSomKanReguleresAutomatisk(fraDato: LocalDate): Either<KanIkkeHenteSaker, List<Saksnummer>>
-    // fun hentAlleSakerSomKanReguleresManuelt(fraDato: LocalDate): Either<KanIkkeHenteSaker, List<Saksnummer>>
 }

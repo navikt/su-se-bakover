@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.vedtak.AutomatiskEllerManuelleSak
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import java.time.LocalDate
@@ -17,7 +16,6 @@ interface VedtakService {
     fun hentForVedtakId(vedtakId: UUID): Vedtak?
     fun hentJournalpostId(vedtakId: UUID): JournalpostId?
     fun hentAktiveFnr(fomDato: LocalDate): List<Fnr>
-    fun hentListeOverSakidSomKanReguleres(fomDato: LocalDate): List<AutomatiskEllerManuelleSak>
     fun kopierGjeldendeVedtaksdata(
         sakId: UUID,
         fraOgMed: LocalDate,

@@ -245,8 +245,6 @@ fun Application.susebakover(
             frikortVedtakRoutes(services.vedtakService, clock)
         }
 
-        reguleringRoutes(services.reguleringService, clock)
-
         authenticate("jwt") {
             withUser {
                 meRoutes(applicationConfig, azureGroupMapper)
@@ -270,6 +268,7 @@ fun Application.susebakover(
                     dokumentRoutes(accessProtectedServices.brev)
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
                     kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtale)
+                    reguleringRoutes(services.reguleringService, clock)
                 }
             }
         }

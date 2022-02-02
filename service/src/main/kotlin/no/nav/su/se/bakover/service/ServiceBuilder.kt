@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
-import no.nav.su.se.bakover.service.regulering.RegulerServiceImpl
+import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StatistikkServiceImpl
@@ -137,9 +137,8 @@ object ServiceBuilder {
             avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo
         ).apply { addObserver(statistikkService) }
 
-        val reguleringService = RegulerServiceImpl(
-            vedtakService = vedtakService,
-            sakService = sakService,
+        val reguleringService = ReguleringServiceImpl(
+            reguleringRepo = databaseRepos.reguleringRepo,
             clock = clock,
         )
 
