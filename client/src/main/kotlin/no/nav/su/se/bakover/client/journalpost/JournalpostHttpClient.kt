@@ -124,7 +124,7 @@ internal data class JournalpostHttpResponse(
                     log.error("Teknisk feil hos SAF. Id $journalpostId")
                 }
                 else -> KunneIkkeHenteJournalpost.Ukjent.also {
-                    log.warn("Uhåndtert feil fra SAF. code ${error.extensions.code}. Id $journalpostId")
+                    log.error("Uhåndtert feil fra SAF. code ${error.extensions.code}. Id $journalpostId")
                 }
             }
         }.first()

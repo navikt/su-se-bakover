@@ -23,6 +23,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.slf4j.MDC
 
+// "denne må kjøres isolated siden MDC er static og vil tukle med andre tester som bruker MDC og kjører parallellt" - Quote from John Andre Hestad 2022
 @Isolated
 internal class JournalpostHttpClientTest {
 
