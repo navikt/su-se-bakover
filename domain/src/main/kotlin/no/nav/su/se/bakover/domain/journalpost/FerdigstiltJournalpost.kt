@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.journalpost
 import no.nav.su.se.bakover.domain.Saksnummer
 
 // TODO - Gjøre noe fine ting mellom denne og eksisterende journalpost
-data class HentetJournalpost private constructor(
+data class FerdigstiltJournalpost private constructor(
     private val tema: Tema,
     private val journalstatus: JournalpostStatus,
     private val saksnummer: Saksnummer,
@@ -14,8 +14,8 @@ data class HentetJournalpost private constructor(
             tema: Tema,
             journalstatus: JournalpostStatus,
             saksnummer: Saksnummer,
-        ): HentetJournalpost {
-            return HentetJournalpost(tema, journalstatus, saksnummer)
+        ): FerdigstiltJournalpost {
+            return FerdigstiltJournalpost(tema, journalstatus, saksnummer)
         }
     }
 }

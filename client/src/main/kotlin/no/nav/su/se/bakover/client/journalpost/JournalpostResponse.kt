@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.journalpost.HentetJournalpost
+import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
 import no.nav.su.se.bakover.domain.journalpost.Tema
@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.journalpost.Tema
 internal data class JournalpostResponse(
     val journalpost: Journalpost?,
 ) {
-    fun toHentetJournalpost(saksnummer: Saksnummer): Either<KunneIkkeHenteJournalpost, HentetJournalpost> {
+    fun toValidertJournalpost(saksnummer: Saksnummer): Either<KunneIkkeHenteJournalpost, FerdigstiltJournalpost> {
         if (journalpost == null) {
             return KunneIkkeHenteJournalpost.FantIkkeJournalpost.left()
         }
@@ -28,7 +28,7 @@ internal data class JournalpostResponse(
             return KunneIkkeHenteJournalpost.JournalpostIkkeKnyttetTilSak.left()
         }
 
-        return HentetJournalpost.create(
+        return FerdigstiltJournalpost.create(
             Tema.valueOf(journalpost.tema),
             JournalpostStatus.valueOf(journalpost.journalstatus),
             saksnummer,

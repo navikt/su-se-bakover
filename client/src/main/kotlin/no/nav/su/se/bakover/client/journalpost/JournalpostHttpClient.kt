@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.journalpost.HentetJournalpost
+import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
 import org.slf4j.Logger
@@ -51,7 +51,7 @@ internal class JournalpostHttpClient(
     override fun hentFerdigstiltJournalpost(
         saksnummer: Saksnummer,
         journalpostId: JournalpostId,
-    ): Either<KunneIkkeHenteJournalpost, HentetJournalpost> {
+    ): Either<KunneIkkeHenteJournalpost, FerdigstiltJournalpost> {
         val request = JournalpostRequest(
             this::class.java.getResource("/hentJournalpost.graphql")?.readText()!!,
             JournalpostVariables(journalpostId.toString()),
@@ -59,7 +59,7 @@ internal class JournalpostHttpClient(
         return hentJournalpostFraSaf(request).mapLeft {
             it
         }.flatMap {
-            it.toHentetJournalpost(saksnummer)
+            it.toValidertJournalpost(saksnummer)
         }
     }
 

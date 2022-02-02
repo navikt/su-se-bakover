@@ -8,7 +8,7 @@ interface JournalpostClient {
     fun hentFerdigstiltJournalpost(
         saksnummer: Saksnummer,
         journalpostId: JournalpostId,
-    ): Either<KunneIkkeHenteJournalpost, HentetJournalpost>
+    ): Either<KunneIkkeHenteJournalpost, FerdigstiltJournalpost>
 }
 
 sealed interface KunneIkkeHenteJournalpost {
