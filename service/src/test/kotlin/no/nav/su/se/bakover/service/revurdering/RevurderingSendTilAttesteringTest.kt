@@ -268,7 +268,7 @@ internal class RevurderingSendTilAttesteringTest {
             ) shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left()
 
             verify(it.revurderingRepo, never()).lagre(any(), anyOrNull())
-            verify(it.toggleService).isEnabled("supstonad.feilutbetaling")
+            verify(it.toggleService).isEnabled("supstonad.ufore.feilutbetaling")
         }
     }
 
@@ -306,7 +306,7 @@ internal class RevurderingSendTilAttesteringTest {
             ).getOrFail() shouldBe beOfType<RevurderingTilAttestering.Innvilget>()
 
             verify(it.revurderingRepo).lagre(any(), anyOrNull())
-            verify(it.toggleService).isEnabled("supstonad.feilutbetaling")
+            verify(it.toggleService).isEnabled("supstonad.ufore.feilutbetaling")
         }
     }
 
