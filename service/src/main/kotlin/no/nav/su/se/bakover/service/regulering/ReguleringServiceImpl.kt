@@ -13,7 +13,6 @@ import java.time.LocalDate
 class ReguleringServiceImpl(
     private val reguleringRepo: ReguleringRepo,
     private val clock: Clock,
-
 ) : ReguleringService {
 
     override fun hentAlleSakerSomKanReguleres(fraDato: LocalDate): Either<KanIkkeHenteSaker, SakerSomKanReguleres> {

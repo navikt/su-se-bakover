@@ -52,7 +52,7 @@ internal class ReguleringPostgresRepo(
                                              from grunnlag_fradrag g
                                             where g.behandlingid = s.bid
                                               and g.fradragstype in ('NAVytelserTilLivsopphold', 'OffentligPensjon')
-                                              and ( not ( (s.tilOgMed < g.fraogmed) or (s.fraOgMed > g.tilogmed) ) )
+                                              and ( (s.tilOgMed >= g.fraogmed) and (:dato <= g.tilogmed) )
                          ) ) then 'MANUELL'
                          else 'AUTOMATISK'
                          end behandlingtype
@@ -83,6 +83,7 @@ internal class ReguleringPostgresRepo(
         }
         val behandlingType = BehandlingType.valueOf(string("behandlingtype"))
 
+        // TODO ai: Bytt navn, er ikke en sak (man får ett per vedtak).
         return AutomatiskEllerManuellSak(
             sakId = sakId,
             saksnummer = saksnummer,
