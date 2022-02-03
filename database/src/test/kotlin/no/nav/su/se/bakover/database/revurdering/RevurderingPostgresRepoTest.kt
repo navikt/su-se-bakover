@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.revurdering
 
-import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.januar
@@ -854,7 +853,6 @@ internal class RevurderingPostgresRepoTest {
             val iverksatt = tilAttestering.tilIverksatt(
                 attestant = attestant,
                 clock = fixedClock,
-                utbetal = { Unit.right() },
                 hentOpprinneligAvkorting = { null },
             ).getOrFail()
             repo.lagre(iverksatt)
@@ -911,7 +909,6 @@ internal class RevurderingPostgresRepoTest {
             val iverksatt = tilAttestering.tilIverksatt(
                 attestant = attestant,
                 clock = fixedClock,
-                utbetal = { Unit.right() },
                 hentOpprinneligAvkorting = { avkortingsvarselId ->
                     testDataHelper.avkortingsvarselRepo.hent(avkortingsvarselId)
                 },

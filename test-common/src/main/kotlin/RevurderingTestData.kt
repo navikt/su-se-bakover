@@ -1,11 +1,9 @@
 package no.nav.su.se.bakover.test
 
-import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -408,7 +406,6 @@ fun iverksattRevurdering(
                 tilAttestering.tilIverksatt(
                     attestant = attestering.attestant,
                     clock = clock,
-                    utbetal = { Unit.right() },
                     hentOpprinneligAvkorting = {
                         when (val opprinnelig = tilAttestering.avkorting) {
                             is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
@@ -439,7 +436,6 @@ fun iverksattRevurdering(
                 tilAttestering.tilIverksatt(
                     attestant = attestering.attestant,
                     clock = clock,
-                    utbetal = { _, _, _, _ -> utbetaling.id.right() },
                     hentOpprinneligAvkorting = {
                         when (val opprinnelig = tilAttestering.avkorting) {
                             is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
@@ -1085,7 +1081,6 @@ fun iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
     },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
-    utbetalingId: UUID30 = UUID30.randomUUID(),
     fritekstTilBrev: String = "fritekstTilBrev",
 ): Pair<Sak, IverksattRevurdering.Opphørt> {
     return tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
@@ -1101,9 +1096,7 @@ fun iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
     ).let { (sak, revurdering) ->
         val iverksatt = revurdering.tilIverksatt(
             attestant = attestering.attestant,
-            utbetal = { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering ->
-                utbetalingId.right()
-            },
+            clock = clock,
             hentOpprinneligAvkorting = { null },
         ).getOrFail("Feil i oppsett av testdata")
 
@@ -1271,9 +1264,6 @@ fun iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     fritekstTilBrev: String = "",
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("Attestant"),
-    utbetal: () -> Either<RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, Unit> = {
-        Unit.right()
-    },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
 ): Pair<Sak, IverksattRevurdering.Innvilget> {
     return tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
@@ -1291,7 +1281,7 @@ fun iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     ).let { (sak, revurdering) ->
         val innvilgetIverksattRevurdering = revurdering.tilIverksatt(
             attestant = attestant,
-            utbetal = utbetal,
+            clock = fixedClock,
             hentOpprinneligAvkorting = { null },
         ).getOrHandle { throw RuntimeException("Feilet med generering av test data for Iverksatt-revurdering") }
         Pair(

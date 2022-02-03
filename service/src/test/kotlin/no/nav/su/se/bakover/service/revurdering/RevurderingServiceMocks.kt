@@ -74,6 +74,7 @@ internal data class RevurderingServiceMocks(
         vilkårsvurderingService,
         sakService,
         avkortingsvarselRepo,
+        kontrollsamtaleService
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {
