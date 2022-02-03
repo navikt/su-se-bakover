@@ -5,6 +5,9 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -17,6 +20,7 @@ import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -28,29 +32,33 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevurderingService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periodeNesteMånedOgTreMånederFram
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsakRegulerGrunnbeløp
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.test.aktørId
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doReturnConsecutively
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 import java.util.UUID
 
 internal class RegulerGrunnbeløpServiceImplTest {
@@ -122,6 +130,60 @@ internal class RegulerGrunnbeløpServiceImplTest {
             any(),
         )
         verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock)
+    }
+
+    @Test
+    fun `G-regulering med uendret fradrag og forventetInntekt fører til IngenEndring`() {
+        val (sak, revurdering) = opprettetRevurdering(
+            revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
+            revurderingsårsak = Revurderingsårsak.create(
+                årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(),
+                begrunnelse = "tjohei",
+            ),
+        )
+
+        val serviceAndMocks = RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn revurdering
+            },
+            utbetalingService = mock {
+                on { hentUtbetalinger(any()) } doReturn sak.utbetalinger
+            },
+            grunnlagService = mock {
+                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
+            },
+            vedtakService = mock {
+                on {
+                    kopierGjeldendeVedtaksdata(
+                        any(),
+                        any(),
+                    )
+                } doReturn sak.kopierGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail().right()
+            },
+        )
+
+        val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
+            revurderingId = revurdering.id,
+            saksbehandler = saksbehandler,
+        ).getOrFail().revurdering
+
+        inOrder(
+            *serviceAndMocks.all(),
+        ) {
+            verify(serviceAndMocks.revurderingRepo).hent(argThat { it shouldBe revurderingId })
+            verify(serviceAndMocks.utbetalingService).hentUtbetalinger(argThat { it shouldBe sakId })
+            verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(
+                argThat { it shouldBe sakId },
+                argThat { it shouldBe revurdering.periode.fraOgMed },
+            )
+            verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
+            verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
+            verify(serviceAndMocks.grunnlagService).lagreFradragsgrunnlag(
+                argThat { it shouldBe revurdering.id },
+                argThat { it shouldBe revurdering.grunnlagsdata.fradragsgrunnlag },
+            )
+            serviceAndMocks.verifyNoMoreInteractions()
+        }
     }
 
     @Test
