@@ -1,13 +1,11 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -1088,7 +1086,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
         override val skalFøreTilUtsendingAvVedtaksbrev = true
 
-        fun validerTilIverksatt(
+        fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
             hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
             clock: Clock
@@ -1121,19 +1119,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 ),
                 avkorting = avkorting.iverksett(id),
             )
-        }
-
-        fun tilIverksatt(
-            attestant: NavIdentBruker.Attestant,
-            clock: Clock = Clock.systemUTC(),
-            utbetal: () -> Either<KunneIkkeIverksetteRevurdering, Unit>,
-            hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
-        ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Innvilget> {
-            val iverksattRevurdering = validerTilIverksatt(attestant, hentOpprinneligAvkorting, clock)
-            return iverksattRevurdering.map {
-                utbetal()
-                it
-            }
         }
     }
 
@@ -1175,7 +1160,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
             }
         }
 
-        fun validerTilIverksatt(
+        fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
             hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
             clock: Clock
@@ -1209,18 +1194,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 avkorting = avkorting.iverksett(id),
             )
         }
-
-        // TODO: sjekk om vi skal utbetale 0 utbetalinger, eller ny status
-        fun tilIverksatt(
-            attestant: NavIdentBruker.Attestant,
-            clock: Clock = Clock.systemUTC(),
-            utbetal: (sakId: UUID, attestant: NavIdentBruker.Attestant, opphørsdato: LocalDate, simulering: Simulering) -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>,
-            hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
-        ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Opphørt> =
-            validerTilIverksatt(attestant, hentOpprinneligAvkorting, clock).map {
-                utbetal(sakId, attestant, opphørsdatoForUtbetalinger, simulering) // TODO: Nå feiler det ikke om utbetal feiler
-                it
-            }
     }
 
     data class IngenEndring(

@@ -23,8 +23,11 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKan
 import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAnnullert
 import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAvkortet
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
+import no.nav.su.se.bakover.web.routes.Feilresponser.ingenEndringUgyldig
+import no.nav.su.se.bakover.web.routes.Feilresponser.lagringFeilet
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.web.routes.Feilresponser.utbetalingFeilet
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -66,4 +69,7 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
     KunneIkkeIverksetteRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
     KunneIkkeIverksetteRevurdering.HarAlleredeBlittAnnullertAvEnAnnen -> avkortingErAlleredeAnnullert
     KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> avkortingErAlleredeAvkortet
+    KunneIkkeIverksetteRevurdering.IngenEndringErIkkeGyldig -> ingenEndringUgyldig
+    KunneIkkeIverksetteRevurdering.KunneIkkePublisereUtbetaling -> utbetalingFeilet
+    KunneIkkeIverksetteRevurdering.LagringFeilet -> lagringFeilet
 }

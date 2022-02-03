@@ -1230,24 +1230,6 @@ internal class RevurderingServiceImpl(
             }
     }
 
-    private fun lagDokument(vedtakIngenEndring: VedtakSomKanRevurderes.IngenEndringIYtelse): Either<KunneIkkeIverksetteRevurdering, Dokument.MedMetadata> =
-        brevService.lagDokument(vedtakIngenEndring)
-            .getOrHandle {
-                return when (it) {
-                    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling
-                    KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeIverksetteRevurdering.KunneIkkeGenerereBrev
-                    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeIverksetteRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                    KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeIverksetteRevurdering.FantIkkePerson
-                }.left()
-            }
-            .leggTilMetadata(
-                Dokument.Metadata(
-                    sakId = vedtakIngenEndring.behandling.sakId,
-                    vedtakId = vedtakIngenEndring.id,
-                    bestillBrev = true,
-                ),
-            ).right()
-
     override fun iverksett(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
@@ -1257,33 +1239,11 @@ internal class RevurderingServiceImpl(
 
         val iverksattRevurdering = when (revurdering) {
             is RevurderingTilAttestering.IngenEndring -> {
-                revurdering.tilIverksatt(attestant, clock)
-                    .map { iverksattRevurdering ->
-                        Either.catch {
-                            val vedtakIngenEndring = VedtakSomKanRevurderes.from(iverksattRevurdering, clock)
-                            sessionFactory.withTransactionContext { tx ->
-                                vedtakRepo.lagre(vedtakIngenEndring, tx)
-                                revurderingRepo.lagre(iverksattRevurdering)
-
-                                if (vedtakIngenEndring.skalSendeBrev()) {
-                                    lagDokument(vedtakIngenEndring).map {
-                                        brevService.lagreDokument(it, tx)
-                                    }
-                                }
-                            }
-                        }.mapLeft {
-                            KunneIkkeIverksetteRevurdering.LagringFeilet
-                        }
-
-                        // TODO (CHM 18.01.21): Lukk attesteringsoppgave. For de andre to casene blir denne lukket i `ferdigstillVedtakEtterUtbetaling`
-                        // P.t. vil ikke IngenEndring inntreffe, pga 10%-endringen, men må testes når denne evt. blir lagt tilbake
-                        // oppgaveService.lukkOppgave(revurdering.oppgaveId)
-
-                        iverksattRevurdering
-                    }
+                log.error("Revudere til INGEN_ENDRING er ikke lov. SakId: ${revurdering.sakId}")
+                return KunneIkkeIverksetteRevurdering.IngenEndringErIkkeGyldig.left()
             }
             is RevurderingTilAttestering.Innvilget -> {
-                revurdering.validerTilIverksatt(
+                revurdering.tilIverksatt(
                     attestant = attestant,
                     hentOpprinneligAvkorting = { avkortingid -> avkortingsvarselRepo.hent(avkortingid) },
                     clock = clock
@@ -1299,6 +1259,7 @@ internal class RevurderingServiceImpl(
                             simulering = revurdering.simulering,
                         ),
                     ).map { utbetaling ->
+                        val revurderingsfeilmelding = "Publisering av revurderingsutbetaling på køen feilet."
                         Either.catch {
                             sessionFactory.withTransactionContext { tx ->
                                 val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, clock)
@@ -1307,18 +1268,21 @@ internal class RevurderingServiceImpl(
                                 utbetalingService.lagreUtbetaling(utbetaling, tx)
                                 utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
                                     log.error("Kunne ikke publisere revurderingsutbetaling på køen. Ruller tilbake. SakId: ${iverksattRevurdering.sakId}", feil)
-                                    throw RuntimeException("Publisering av revurderingsutbetaling på køen feilet. $feil")
+                                    throw RuntimeException("$revurderingsfeilmelding $feil")
                                 }
                             }
                         }.mapLeft {
-                            KunneIkkeIverksetteRevurdering.LagringFeilet
+                            return if (it.message?.startsWith(revurderingsfeilmelding) == true)
+                                KunneIkkeIverksetteRevurdering.KunneIkkePublisereUtbetaling.left()
+                            else
+                                KunneIkkeIverksetteRevurdering.LagringFeilet.left()
                         }
                     }
                     iverksattRevurdering
                 }
             }
             is RevurderingTilAttestering.Opphørt -> {
-                revurdering.validerTilIverksatt(
+                revurdering.tilIverksatt(
                     attestant = attestant,
                     clock = clock,
                     hentOpprinneligAvkorting = { avkortingid -> avkortingsvarselRepo.hent(avkortingid) }
@@ -1333,20 +1297,18 @@ internal class RevurderingServiceImpl(
                             simulering = iverksattRevurdering.simulering,
                         ),
                     ).map { utbetaling ->
+                        val revurderingfeilmelding = "Kunne ikke publisere revurdering-opphør på køen. Ruller tilbake."
                         Either.catch {
                             sessionFactory.withTransactionContext { tx ->
-                                val opphørtVedtak =
-                                    VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, clock)
+                                val opphørtVedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, clock)
                                 vedtakRepo.lagre(opphørtVedtak, tx)
                                 kontrollsamtaleService.annullerKontrollsamtale(opphørtVedtak.behandling.sakId, tx)
                                 revurderingRepo.lagre(iverksattRevurdering, tx)
                                 utbetalingService.lagreUtbetaling(utbetaling, tx)
+                                // TODO: sjekk om vi skal utbetale 0 utbetalinger, eller ny status
                                 utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
-                                    log.error(
-                                        "Kunne ikke publisere revurdering-opphør på køen. Ruller tilbake. SakId: ${iverksattRevurdering.sakId}",
-                                        feil
-                                    )
-                                    throw RuntimeException("Publisering av revurdering-opphør på køen feilet. $feil")
+                                    log.error("Kunne ikke publisere revurdering-opphør på køen. Ruller tilbake. SakId: ${iverksattRevurdering.sakId}", feil)
+                                    throw RuntimeException("$revurderingfeilmelding $feil")
                                 }
                                 observers.forEach { observer ->
                                     observer.handle(
@@ -1355,7 +1317,10 @@ internal class RevurderingServiceImpl(
                                 }
                             }
                         }.mapLeft {
-                            KunneIkkeIverksetteRevurdering.LagringFeilet
+                            return if (it.message?.startsWith(revurderingfeilmelding) == true)
+                                KunneIkkeIverksetteRevurdering.KunneIkkePublisereUtbetaling.left()
+                            else
+                                KunneIkkeIverksetteRevurdering.LagringFeilet.left()
                         }
                     }
                     iverksattRevurdering

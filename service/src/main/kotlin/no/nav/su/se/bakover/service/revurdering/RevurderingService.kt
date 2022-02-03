@@ -256,10 +256,12 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
 sealed class KunneIkkeIverksetteRevurdering {
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
     data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteRevurdering()
+    object KunneIkkePublisereUtbetaling : KunneIkkeIverksetteRevurdering()
     object KunneIkkeGenerereBrev : KunneIkkeIverksetteRevurdering()
     object FantIkkePerson : KunneIkkeIverksetteRevurdering()
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeIverksetteRevurdering()
     object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeIverksetteRevurdering()
+    object IngenEndringErIkkeGyldig : KunneIkkeIverksetteRevurdering()
     object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
     object LagringFeilet : KunneIkkeIverksetteRevurdering()
     object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksetteRevurdering()

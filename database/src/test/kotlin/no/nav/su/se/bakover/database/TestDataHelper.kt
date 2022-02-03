@@ -481,7 +481,7 @@ internal class TestDataHelper(
             VedtakSomKanRevurderes.from(
                 revurdering = revurdering.tilIverksatt(
                     attestant = attestant,
-                    utbetal = { Unit.right() },
+                    clock = fixedClock,
                     hentOpprinneligAvkorting = { avkortingid ->
                         avkortingsvarselRepo.hent(id = avkortingid)
                     },
@@ -576,34 +576,6 @@ internal class TestDataHelper(
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "",
             ).getOrFail()
-        }.also {
-            revurderingRepo.lagre(it)
-        }
-    }
-
-    fun tilIverksattRevurdering(): IverksattRevurdering {
-        return when (val tilAttestering = tilAttesteringRevurdering()) {
-            is RevurderingTilAttestering.IngenEndring -> tilAttestering.tilIverksatt(
-                attestant,
-            ).getOrHandle {
-                throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
-            }
-            is RevurderingTilAttestering.Innvilget -> tilAttestering.tilIverksatt(
-                attestant = attestant,
-                utbetal = { Unit.right() },
-                hentOpprinneligAvkorting = { null },
-            ).getOrHandle {
-                throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
-            }
-            is RevurderingTilAttestering.Opphørt -> tilAttestering.tilIverksatt(
-                attestant = attestant,
-                utbetal = { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering ->
-                    UUID30.randomUUID().right()
-                },
-                hentOpprinneligAvkorting = { null },
-            ).getOrHandle {
-                throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
-            }
         }.also {
             revurderingRepo.lagre(it)
         }
@@ -730,7 +702,7 @@ internal class TestDataHelper(
     fun iverksattRevurderingInnvilget(): IverksattRevurdering.Innvilget {
         return revurderingTilAttesteringInnvilget().tilIverksatt(
             attestant = attestant,
-            utbetal = { Unit.right() },
+            clock = fixedClock,
             hentOpprinneligAvkorting = { null },
         ).getOrHandle {
             throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")

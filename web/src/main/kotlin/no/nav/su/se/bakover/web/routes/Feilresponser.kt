@@ -199,6 +199,21 @@ internal object Feilresponser {
         "opphør_av_ytelse_som_skal_avkortes"
     )
 
+    val ingenEndringUgyldig = InternalServerError.errorJson(
+        "Revurderingen er kalkulert med 'ingen endring', som ikke er en gyldig tilstand",
+        "ingen_endring_er_ikke_gyldig"
+    )
+
+    val utbetalingFeilet = InternalServerError.errorJson(
+        "Kunne ikke utføre utbetaling",
+        "kunne_ikke_utbetale",
+    )
+
+    val lagringFeilet = InternalServerError.errorJson(
+        "Kunne ikke lagre",
+        "kunne_ikke_lagre",
+    )
+
     fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {
         return BadRequest.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName} til tilstanden ${til.simpleName}",
