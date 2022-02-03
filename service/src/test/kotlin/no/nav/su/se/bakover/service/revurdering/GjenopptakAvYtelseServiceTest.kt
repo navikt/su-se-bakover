@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
@@ -48,11 +49,13 @@ import org.mockito.ArgumentCaptor
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.capture
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.time.LocalDate
 import java.util.UUID
 
@@ -245,82 +248,65 @@ internal class GjenopptakAvYtelseServiceTest {
         )
         val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode)
 
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-        }
+        val serviceAndMocks = RevurderingServiceMocks(
+            vedtakRepo = mock {
+                on { hentForSakId(any()) } doReturn sak.vedtakListe
+            },
+            vedtakService = mock {
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(periode = periode, vedtakListe = nonEmptyListOf(vedtak), clock = fixedClock).right()
+            },
+            utbetalingService = mock {
+                on { simulerGjenopptak(any()) } doReturn simulertGjenopptakUtbetaling().right()
+            },
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            revurderingRepo = mock {
+                doNothing().whenever(it).lagre(any(), anyOrNull())
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            }
+        )
 
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForSakId(any()) } doReturn sak.vedtakListe
-        }
-
-        val vedtakServiceMock = mock<VedtakService> {
-            on {
-                kopierGjeldendeVedtaksdata(
-                    any(),
-                    any(),
-                )
-            } doReturn GjeldendeVedtaksdata(
-                periode = periode,
-                vedtakListe = nonEmptyListOf(vedtak),
-                clock = fixedClock,
-            ).right()
-        }
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerGjenopptak(any()) } doReturn simulertGjenopptakUtbetaling().right()
-        }
-
-        val observerMock: EventObserver = mock()
-
-        RevurderingServiceMocks(
-            vedtakRepo = vedtakRepoMock,
-            vedtakService = vedtakServiceMock,
-            utbetalingService = utbetalingServiceMock,
-            sakService = sakServiceMock,
-        ).let {
-            it.revurderingService.addObserver(observerMock)
-            val response = it.revurderingService.gjenopptaYtelse(
-                GjenopptaYtelseRequest.Opprett(
-                    sakId = sak.id,
-                    saksbehandler = saksbehandler,
-                    revurderingsårsak = Revurderingsårsak.create(
-                        årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
-                        begrunnelse = "begrunnelse",
-                    ),
-                ),
-            ).getOrFail("skulle gått bra")
-
-            response.saksbehandler shouldBe saksbehandler
-            response.periode shouldBe periode
-            response.tilRevurdering shouldBe vedtak
-            response.revurderingsårsak shouldBe Revurderingsårsak.create(
-                årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
-                begrunnelse = "begrunnelse",
-            )
-
-            verify(it.vedtakRepo).hentForSakId(sak.id)
-            verify(it.sakService).hentSak(sak.id)
-            verify(it.vedtakService).kopierGjeldendeVedtaksdata(
+        val response = serviceAndMocks.revurderingService.gjenopptaYtelse(
+            GjenopptaYtelseRequest.Opprett(
                 sakId = sak.id,
-                fraOgMed = periode.fraOgMed,
-            )
-            verify(it.utbetalingService).simulerGjenopptak(
-                request = argThat {
+                saksbehandler = saksbehandler,
+                revurderingsårsak = Revurderingsårsak.create(
+                    årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
+                    begrunnelse = "begrunnelse",
+                ),
+            ),
+        ).getOrFail("skulle gått bra")
+
+        response.saksbehandler shouldBe saksbehandler
+        response.periode shouldBe periode
+        response.tilRevurdering shouldBe vedtak
+        response.revurderingsårsak shouldBe Revurderingsårsak.create(
+            årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
+            begrunnelse = "begrunnelse",
+        )
+
+        verify(serviceAndMocks.vedtakRepo).hentForSakId(sak.id)
+        verify(serviceAndMocks.sakService).hentSak(sak.id)
+        verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(
+            sakId = sak.id,
+            fraOgMed = periode.fraOgMed,
+        )
+        verify(serviceAndMocks.utbetalingService).simulerGjenopptak(
+            request = argThat {
                     it shouldBe SimulerUtbetalingRequest.Gjenopptak(
-                        saksbehandler = saksbehandler,
-                        sak = sak,
+            saksbehandler = saksbehandler,sak = sak,
                     )
                 },
-            )
-            verify(it.revurderingRepo).defaultTransactionContext()
-            verify(it.revurderingRepo).lagre(eq(response), anyOrNull())
-            verify(observerMock).handle(
-                argThat { event ->
-                    event shouldBe Event.Statistikk.RevurderingStatistikk.Gjenoppta(response)
-                },
-            )
-            it.verifyNoMoreInteractions()
-        }
+        )
+        verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
+        verify(serviceAndMocks.revurderingRepo).lagre(eq(response), anyOrNull())
+        verify(serviceAndMocks.observer).handle(
+            argThat { event ->
+                event shouldBe Event.Statistikk.RevurderingStatistikk.Gjenoppta(response)
+            },
+        )
+        serviceAndMocks.verifyNoMoreInteractions()
     }
 
     @Test

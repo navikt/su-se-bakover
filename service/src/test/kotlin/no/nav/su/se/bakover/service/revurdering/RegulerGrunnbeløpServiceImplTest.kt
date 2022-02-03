@@ -3,16 +3,9 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -21,17 +14,12 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -42,21 +30,16 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevur
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periodeNesteMånedOgTreMånederFram
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsakRegulerGrunnbeløp
-import no.nav.su.se.bakover.service.statistikk.Event
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.test.aktørId
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
-import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
-import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -139,57 +122,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             any(),
         )
         verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock)
-    }
-
-    @Test
-    fun `G-regulering med uendret fradrag og forventetInntekt fører til IngenEndring`() {
-        val (sak, revurdering) = opprettetRevurdering(
-            revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
-            revurderingsårsak = Revurderingsårsak.create(
-                årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(),
-                begrunnelse = "tjohei",
-            ),
-        )
-
-        RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn revurdering
-            },
-            utbetalingService = mock {
-                on { hentUtbetalinger(any()) } doReturn sak.utbetalinger
-            },
-            vedtakService = mock {
-                on {
-                    kopierGjeldendeVedtaksdata(
-                        any(),
-                        any(),
-                    )
-                } doReturn sak.kopierGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail().right()
-            },
-        ).let { serviceAndMocks ->
-            val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
-                revurderingId = revurdering.id,
-                saksbehandler = saksbehandler,
-            ).getOrFail().revurdering
-
-            inOrder(
-                *serviceAndMocks.all(),
-            ) {
-                verify(serviceAndMocks.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(serviceAndMocks.utbetalingService).hentUtbetalinger(argThat { it shouldBe sakId })
-                verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(
-                    argThat { it shouldBe sakId },
-                    argThat { it shouldBe revurdering.periode.fraOgMed },
-                )
-                verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
-                verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
-                verify(serviceAndMocks.grunnlagService).lagreFradragsgrunnlag(
-                    argThat { it shouldBe revurdering.id },
-                    argThat { it shouldBe revurdering.grunnlagsdata.fradragsgrunnlag },
-                )
-                serviceAndMocks.verifyNoMoreInteractions()
-            }
-        }
     }
 
     @Test
@@ -462,91 +394,5 @@ internal class RegulerGrunnbeløpServiceImplTest {
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual }, anyOrNull())
         }
         verifyNoMoreInteractions(revurderingRepoMock, personServiceMock, oppgaveServiceMock)
-    }
-
-    @Test
-    fun `iverksetter endring av ytelse`() {
-        val attestant = NavIdentBruker.Attestant("attestant")
-
-        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
-        val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
-            id = revurderingId,
-            periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = tilRevurdering,
-            oppgaveId = OppgaveId(value = "OppgaveId"),
-            beregning = TestBeregning,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            skalFøreTilUtsendingAvVedtaksbrev = false,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-        )
-
-        val iverksattRevurdering = IverksattRevurdering.IngenEndring(
-            id = revurderingId,
-            periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId(value = "OppgaveId"),
-            beregning = TestBeregning,
-            attesteringer = Attesteringshistorikk.empty()
-                .leggTilNyAttestering(Attestering.Iverksatt(attestant, fixedTidspunkt)),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            skalFøreTilUtsendingAvVedtaksbrev = false,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
-        )
-
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn revurderingTilAttestering
-        }
-
-        val vedtakRepoMock = mock<VedtakRepo>()
-        val eventObserver: EventObserver = mock()
-
-        createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            vedtakRepo = vedtakRepoMock,
-            clock = fixedClock,
-        ).apply { addObserver(eventObserver) }
-            .iverksett(
-                revurderingId = revurderingTilAttestering.id,
-                attestant = attestant,
-            ) shouldBe iverksattRevurdering.right()
-
-        inOrder(
-            revurderingRepoMock,
-            vedtakRepoMock,
-            eventObserver,
-        ) {
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-            verify(vedtakRepoMock).lagre(
-                argThat {
-                    it should beOfType<VedtakSomKanRevurderes.IngenEndringIYtelse>()
-                },
-            )
-            verify(revurderingRepoMock).defaultTransactionContext()
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe iverksattRevurdering }, anyOrNull())
-            verify(eventObserver).handle(
-                argThat {
-                    it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering)
-                },
-            )
-        }
-        verifyNoMoreInteractions(
-            revurderingRepoMock,
-            vedtakRepoMock,
-        )
     }
 }

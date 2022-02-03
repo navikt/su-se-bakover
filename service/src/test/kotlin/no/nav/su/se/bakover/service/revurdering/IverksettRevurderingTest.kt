@@ -146,7 +146,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { genererOpphørsRequest(any(), any(), any(), any()) } doReturn simulertUtbetaling().right()
+                on { genererOpphørsRequest(any()) } doReturn simulertUtbetaling().right()
                 on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("<xml></xml>").right()
                 on { lagreUtbetaling(any(), anyOrNull()) } doReturn oversendtUtbetalingUtenKvittering()
             },
@@ -179,7 +179,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { genererUtbetalingsRequest(any(), any(), any(), any(), any()) } doReturn simulertUtbetaling().right()
+                on { genererUtbetalingsRequest(any()) } doReturn simulertUtbetaling().right()
                 on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("<xml></xml>").right()
             },
             vedtakRepo = mock {
@@ -223,7 +223,7 @@ internal class IverksettRevurderingTest {
                 on { hent(any()) } doReturn revurderingTilAttestering().second
             },
             utbetalingService = mock {
-                on { genererUtbetalingsRequest(any(), any(), any(), any(), any()) } doReturn simulertUtbetaling().right()
+                on { genererUtbetalingsRequest(any()) } doReturn simulertUtbetaling().right()
             },
             vedtakRepo = mock {
                 on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
@@ -245,7 +245,7 @@ internal class IverksettRevurderingTest {
                 on { hent(any()) } doReturn tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second
             },
             utbetalingService = mock {
-                on { genererOpphørsRequest(any(), any(), any(), any()) } doReturn simulertUtbetaling().right()
+                on { genererOpphørsRequest(any()) } doReturn simulertUtbetaling().right()
             },
             vedtakRepo = mock {
                 on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
@@ -268,7 +268,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { genererOpphørsRequest(any(), any(), any(), any()) } doReturn simulertUtbetaling().right()
+                on { genererOpphørsRequest(any()) } doReturn simulertUtbetaling().right()
                 on { publiserUtbetaling(any()) } doReturn UtbetalingFeilet.FantIkkeSak.left()
                 on { lagreUtbetaling(any(), anyOrNull()) } doReturn oversendtUtbetalingUtenKvittering()
             },
@@ -295,7 +295,7 @@ internal class IverksettRevurderingTest {
                 on { hent(any()) } doReturn revurderingTilAttestering().second
             },
             utbetalingService = mock {
-                on { genererUtbetalingsRequest(any(), any(), any(), any(), any()) } doReturn simulertUtbetaling().right()
+                on { genererUtbetalingsRequest(any()) } doReturn simulertUtbetaling().right()
             },
             vedtakRepo = mock {
                 on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
@@ -317,7 +317,7 @@ internal class IverksettRevurderingTest {
                 on { hent(any()) } doReturn revurderingTilAttestering().second
             },
             utbetalingService = mock {
-                on { genererUtbetalingsRequest(any(), any(), any(), any(), any()) } doReturn simulertUtbetaling().right()
+                on { genererUtbetalingsRequest(any()) } doReturn simulertUtbetaling().right()
                 on { publiserUtbetaling(any()) } doReturn UtbetalingFeilet.FantIkkeSak.left()
                 on { lagreUtbetaling(any(), anyOrNull()) } doReturn oversendtUtbetalingUtenKvittering()
             },
