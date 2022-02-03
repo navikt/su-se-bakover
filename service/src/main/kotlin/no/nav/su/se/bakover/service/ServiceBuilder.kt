@@ -118,6 +118,7 @@ object ServiceBuilder {
             kontrollsamtaleRepo = databaseRepos.kontrollsamtaleRepo,
         )
 
+        val toggleService = ToggleServiceImpl(unleash)
         val revurderingService = RevurderingServiceImpl(
             utbetalingService = utbetalingService,
             revurderingRepo = databaseRepos.revurderingRepo,
@@ -133,11 +134,11 @@ object ServiceBuilder {
             sakService = sakService,
             kontrollsamtaleService = kontrollsamtaleService,
             sessionFactory = databaseRepos.sessionFactory,
-            avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo
+            avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
+            toggleService = toggleService,
         ).apply { addObserver(statistikkService) }
 
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
-        val toggleService = ToggleServiceImpl(unleash)
 
         val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
             søknadService = søknadService,

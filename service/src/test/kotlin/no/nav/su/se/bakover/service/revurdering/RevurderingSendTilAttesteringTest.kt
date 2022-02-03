@@ -5,13 +5,13 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -33,12 +33,17 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.formueGrunnlagUtenEps0Innvilget
 import no.nav.su.se.bakover.test.formueGrunnlagUtenEpsAvslått
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
+import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -154,7 +159,7 @@ internal class RevurderingSendTilAttesteringTest {
         val revurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
-            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
         ).second
 
         RevurderingServiceMocks(
@@ -189,7 +194,7 @@ internal class RevurderingSendTilAttesteringTest {
         val revurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
-            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
         ).second
 
         RevurderingServiceMocks(
@@ -238,29 +243,71 @@ internal class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `kan ikke sende revurdering med simulert feilutbetaling til attestering`() {
-        val simuleringMock = mock<Simulering> {
-            on { harFeilutbetalinger() } doReturn true
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn simulertRevurdering(
+                    grunnlagsdataOverrides = listOf(
+                        fradragsgrunnlagArbeidsinntekt(
+                            periode = periode2021,
+                            arbeidsinntekt = 5000.0,
+                        ),
+                    ),
+                ).second
+            },
+            toggleService = mock {
+                on { isEnabled(any()) } doReturn false
+            },
+        ).let {
+            it.revurderingService.sendTilAttestering(
+                SendTilAttesteringRequest(
+                    revurderingId = revurderingId,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = "Fritekst",
+                    skalFøreTilBrevutsending = true,
+                ),
+            ) shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left()
+
+            verify(it.revurderingRepo, never()).lagre(any(), anyOrNull())
+            verify(it.toggleService).isEnabled("supstonad.feilutbetaling")
         }
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn RevurderingTestUtils.simulertRevurderingInnvilget.copy(
-                simulering = simuleringMock,
-            )
+    }
+
+    @Test
+    fun `kan sende revurdering til attestering dersom toggle for feilbetaling tillatt er på`() {
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn simulertRevurdering(
+                    grunnlagsdataOverrides = listOf(
+                        fradragsgrunnlagArbeidsinntekt(
+                            periode = periode2021,
+                            arbeidsinntekt = 5000.0,
+                        ),
+                    ),
+                ).second
+            },
+            toggleService = mock {
+                on { isEnabled(any()) } doReturn true
+            },
+            personService = mock {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn oppgaveIdRevurdering.right()
+                on { lukkOppgave(any()) } doReturn Unit.right()
+            }
+        ).let {
+            it.revurderingService.sendTilAttestering(
+                SendTilAttesteringRequest(
+                    revurderingId = revurderingId,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = "Fritekst",
+                    skalFøreTilBrevutsending = true,
+                ),
+            ).getOrFail() shouldBe beOfType<RevurderingTilAttestering.Innvilget>()
+
+            verify(it.revurderingRepo).lagre(any(), anyOrNull())
+            verify(it.toggleService).isEnabled("supstonad.feilutbetaling")
         }
-
-        val actual = RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-        ).sendTilAttestering(
-            SendTilAttesteringRequest(
-                revurderingId = revurderingId,
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = "Fritekst",
-                skalFøreTilBrevutsending = true,
-            ),
-        )
-
-        actual shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left()
-
-        verify(revurderingRepoMock, never()).lagre(any(), anyOrNull())
     }
 
     @Test
@@ -359,33 +406,6 @@ internal class RevurderingSendTilAttesteringTest {
                 RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
             ),
         ).left()
-
-        verify(revurderingRepoMock, never()).lagre(any(), anyOrNull())
-    }
-
-    @Test
-    fun `kan ikke sende revurdering med utfall som ikke støttes til attestering - simulering har feilubtbetaling`() {
-        val simuleringMock = mock<Simulering> {
-            on { harFeilutbetalinger() } doReturn true
-        }
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn RevurderingTestUtils.simulertRevurderingInnvilget.copy(
-                simulering = simuleringMock,
-            )
-        }
-
-        val actual = RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-        ).sendTilAttestering(
-            SendTilAttesteringRequest(
-                revurderingId = revurderingId,
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = "Fritekst",
-                skalFøreTilBrevutsending = true,
-            ),
-        )
-
-        actual shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left()
 
         verify(revurderingRepoMock, never()).lagre(any(), anyOrNull())
     }

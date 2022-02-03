@@ -76,6 +76,7 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.Event.Statistikk.RevurderingStatistikk.RevurderingAvsluttet
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -101,6 +102,7 @@ internal class RevurderingServiceImpl(
     private val sessionFactory: SessionFactory,
     sakService: SakService,
     private val avkortingsvarselRepo: AvkortingsvarselRepo,
+    private val toggleService: ToggleService,
 ) : RevurderingService {
     private val stansAvYtelseService = StansAvYtelseService(
         utbetalingService = utbetalingService,
@@ -1148,7 +1150,7 @@ internal class RevurderingServiceImpl(
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }.flatMap {
-                    if (revurdering.harSimuleringFeilutbetaling()) KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left() else Unit.right()
+                    if (!feilutbetalingTillatt() && revurdering.harSimuleringFeilutbetaling()) KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left() else Unit.right()
                 }
             }
             is UnderkjentRevurdering.Innvilget -> {
@@ -1160,7 +1162,7 @@ internal class RevurderingServiceImpl(
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }.flatMap {
-                    if (revurdering.harSimuleringFeilutbetaling()) KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left() else Unit.right()
+                    if (!feilutbetalingTillatt() && revurdering.harSimuleringFeilutbetaling()) KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left() else Unit.right()
                 }
             }
             is UnderkjentRevurdering.Opphørt -> {
@@ -1172,7 +1174,7 @@ internal class RevurderingServiceImpl(
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }.flatMap {
-                    if (revurdering.harSimuleringFeilutbetaling()) KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left() else Unit.right()
+                    if (!feilutbetalingTillatt() && revurdering.harSimuleringFeilutbetaling()) KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left() else Unit.right()
                 }
             }
             is UnderkjentRevurdering.IngenEndring -> {
@@ -1190,6 +1192,10 @@ internal class RevurderingServiceImpl(
                 til = RevurderingTilAttestering::class,
             ).left()
         }
+    }
+
+    private fun feilutbetalingTillatt(): Boolean {
+        return toggleService.isEnabled("supstonad.feilutbetaling")
     }
 
     override fun lagBrevutkastForRevurdering(
