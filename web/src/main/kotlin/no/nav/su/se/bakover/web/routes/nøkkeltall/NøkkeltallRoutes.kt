@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.web.features.authorize
 
 const val nøkkeltallPath = "/nøkkeltall"
 internal fun Route.nøkkeltallRoutes(nøkkeltallService: NøkkeltallService) {
-    authorize(Brukerrolle.Saksbehandler) {
+    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Drift) {
         get(nøkkeltallPath) {
             call.respond(HttpStatusCode.OK, nøkkeltallService.hentNøkkeltall().toJson())
         }
