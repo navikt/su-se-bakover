@@ -10,12 +10,14 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.oktober
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
@@ -63,7 +65,15 @@ internal class SimuleringSoapClientTest {
             clock = fixedClock,
         )
 
-        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringResponseMapper(
+        simuleringService.simulerUtbetaling(
+            request = SimulerUtbetalingForPeriode(
+                simuleringsperiode = Periode.create(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.desember(2020),
+                ),
+                utbetaling = nyUtbetaling,
+            ),
+        ) shouldBe SimuleringResponseMapper(
             okSimuleringResponse(),
             fixedClock,
         ).simulering.right()
@@ -93,7 +103,15 @@ internal class SimuleringSoapClientTest {
                 ),
             ),
         )
-        simuleringService.simulerUtbetaling(opphør) shouldBe Simulering(
+        simuleringService.simulerUtbetaling(
+            request = SimulerUtbetalingForPeriode(
+                simuleringsperiode = Periode.create(
+                    fraOgMed = 1.januar(2018),
+                    tilOgMed = 31.desember(2020),
+                ),
+                utbetaling = opphør,
+            ),
+        ) shouldBe Simulering(
             gjelderId = FNR,
             gjelderNavn = FNR.toString(),
             nettoBeløp = 0,
@@ -128,7 +146,15 @@ internal class SimuleringSoapClientTest {
             clock = fixedClock,
         )
 
-        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
+        simuleringService.simulerUtbetaling(
+            request = SimulerUtbetalingForPeriode(
+                simuleringsperiode = Periode.create(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.desember(2020),
+                ),
+                utbetaling = nyUtbetaling,
+            ),
+        ) shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
     }
 
     @Test
@@ -146,7 +172,15 @@ internal class SimuleringSoapClientTest {
             clock = fixedClock,
         )
 
-        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
+        simuleringService.simulerUtbetaling(
+            request = SimulerUtbetalingForPeriode(
+                simuleringsperiode = Periode.create(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.desember(2020),
+                ),
+                utbetaling = nyUtbetaling,
+            ),
+        ) shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
     }
 
     @Test
@@ -164,7 +198,15 @@ internal class SimuleringSoapClientTest {
             clock = fixedClock,
         )
 
-        val response = simuleringService.simulerUtbetaling(nyUtbetaling)
+        val response = simuleringService.simulerUtbetaling(
+            request = SimulerUtbetalingForPeriode(
+                simuleringsperiode = Periode.create(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.desember(2020),
+                ),
+                utbetaling = nyUtbetaling,
+            ),
+        )
 
         response shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
     }
@@ -184,7 +226,15 @@ internal class SimuleringSoapClientTest {
             clock = fixedClock,
         )
 
-        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
+        simuleringService.simulerUtbetaling(
+            request = SimulerUtbetalingForPeriode(
+                simuleringsperiode = Periode.create(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.desember(2020),
+                ),
+                utbetaling = nyUtbetaling,
+            ),
+        ) shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
     }
 
     @Test
@@ -223,7 +273,15 @@ internal class SimuleringSoapClientTest {
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
         )
 
-        simuleringService.simulerUtbetaling(utenBeløp) shouldBe Simulering(
+        simuleringService.simulerUtbetaling(
+            request = SimulerUtbetalingForPeriode(
+                simuleringsperiode = Periode.create(
+                    fraOgMed = 1.oktober(2020),
+                    tilOgMed = 31.desember(2020),
+                ),
+                utbetaling = utenBeløp,
+            ),
+        ) shouldBe Simulering(
             gjelderId = FNR,
             gjelderNavn = FNR.toString(),
             nettoBeløp = 0,

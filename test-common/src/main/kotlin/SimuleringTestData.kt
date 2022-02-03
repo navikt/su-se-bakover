@@ -11,10 +11,12 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
@@ -92,8 +94,13 @@ fun simuleringNy(
         SimuleringStub(
             clock = nåtidForSimuleringStub, // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
             utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
-        ).simulerUtbetaling(it)
-    }.orNull()!!
+        ).simulerUtbetaling(
+            SimulerUtbetalingForPeriode(
+                utbetaling = it,
+                simuleringsperiode = beregning.periode,
+            ),
+        )
+    }.getOrFail()
 }
 
 fun simuleringStans(
@@ -112,11 +119,23 @@ fun simuleringStans(
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         clock = clock,
     ).let {
+        val stans = it.utbetalingslinjer
+            .filterIsInstance<Utbetalingslinje.Endring.Stans>()
+            .single()
+
         SimuleringStub(
             clock = clock,
             utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
-        ).simulerUtbetaling(it)
-    }.orNull()!!
+        ).simulerUtbetaling(
+            SimulerUtbetalingForPeriode(
+                utbetaling = it,
+                simuleringsperiode = Periode.create(
+                    fraOgMed = stans.virkningstidspunkt,
+                    tilOgMed = stans.tilOgMed,
+                ),
+            ),
+        )
+    }.getOrFail()
 }
 
 fun simuleringGjenopptak(
@@ -133,12 +152,24 @@ fun simuleringGjenopptak(
         utbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         clock = clock,
-    ).generer().let {
+    ).generer().getOrFail().let {
+        val reaktivering = it.utbetalingslinjer
+            .filterIsInstance<Utbetalingslinje.Endring.Reaktivering>()
+            .single()
+
         SimuleringStub(
             clock = clock,
             utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
-        ).simulerUtbetaling(it.getOrFail("Skal kunne lage utbetaling for gjenopptak"))
-    }.orNull()!!
+        ).simulerUtbetaling(
+            SimulerUtbetalingForPeriode(
+                utbetaling = it,
+                simuleringsperiode = Periode.create(
+                    fraOgMed = reaktivering.virkningstidspunkt,
+                    tilOgMed = reaktivering.tilOgMed,
+                ),
+            ),
+        )
+    }.getOrFail()
 }
 
 fun simuleringOpphørt(
@@ -158,11 +189,23 @@ fun simuleringOpphørt(
         clock = clock,
         opphørsDato = opphørsdato,
     ).generate().let {
+        val opphør = it.utbetalingslinjer
+            .filterIsInstance<Utbetalingslinje.Endring.Opphør>()
+            .single()
+
         SimuleringStub(
             clock = nåtidForSimuleringStub, // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
             utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
-        ).simulerUtbetaling(it)
-    }.orNull()!!
+        ).simulerUtbetaling(
+            request = SimulerUtbetalingForPeriode(
+                utbetaling = it,
+                simuleringsperiode = Periode.create(
+                    fraOgMed = opphør.virkningstidspunkt,
+                    tilOgMed = opphør.tilOgMed,
+                ),
+            ),
+        )
+    }.getOrFail()
 }
 
 fun simulering(

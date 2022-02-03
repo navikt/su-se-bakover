@@ -11,6 +11,8 @@ import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
@@ -194,7 +196,6 @@ internal class GjenopptakAvYtelseServiceTest {
             on {
                 simulerGjenopptak(
                     any(),
-                    any(),
                 )
             } doReturn SimulerGjenopptakFeil.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
         }
@@ -227,8 +228,10 @@ internal class GjenopptakAvYtelseServiceTest {
                 fraOgMed = periode.fraOgMed,
             )
             verify(it.utbetalingService).simulerGjenopptak(
-                sak = sak,
-                saksbehandler = saksbehandler,
+                request = SimulerUtbetalingRequest.Gjenopptak(
+                    saksbehandler = saksbehandler,
+                    sak = sak,
+                ),
             )
             it.verifyNoMoreInteractions()
         }
@@ -264,7 +267,7 @@ internal class GjenopptakAvYtelseServiceTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerGjenopptak(any(), any()) } doReturn simulertGjenopptakUtbetaling().right()
+            on { simulerGjenopptak(any()) } doReturn simulertGjenopptakUtbetaling().right()
         }
 
         val observerMock: EventObserver = mock()
@@ -302,8 +305,12 @@ internal class GjenopptakAvYtelseServiceTest {
                 fraOgMed = periode.fraOgMed,
             )
             verify(it.utbetalingService).simulerGjenopptak(
-                sak = sak,
-                saksbehandler = saksbehandler,
+                request = argThat {
+                    it shouldBe SimulerUtbetalingRequest.Gjenopptak(
+                        saksbehandler = saksbehandler,
+                        sak = sak,
+                    )
+                },
             )
             verify(it.revurderingRepo).defaultTransactionContext()
             verify(it.revurderingRepo).lagre(eq(response), anyOrNull())
@@ -329,7 +336,7 @@ internal class GjenopptakAvYtelseServiceTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { gjenopptaUtbetalinger(any(), any(), any()) } doReturn UtbetalGjenopptakFeil.KunneIkkeUtbetale(
+            on { gjenopptaUtbetalinger(any()) } doReturn UtbetalGjenopptakFeil.KunneIkkeUtbetale(
                 UtbetalingFeilet.Protokollfeil,
             ).left()
         }
@@ -351,9 +358,13 @@ internal class GjenopptakAvYtelseServiceTest {
 
             verify(revurderingRepoMock).hent(revurderingGjenopptak.second.id)
             verify(it.utbetalingService).gjenopptaUtbetalinger(
-                sakId = sakId,
-                attestant = attestant,
-                simulering = revurderingGjenopptak.second.simulering,
+                request = argThat {
+                    it shouldBe UtbetalRequest.Gjenopptak(
+                        sakId = sakId,
+                        saksbehandler = attestant,
+                        simulering = revurderingGjenopptak.second.simulering,
+                    )
+                },
             )
             it.verifyNoMoreInteractions()
         }
@@ -393,7 +404,7 @@ internal class GjenopptakAvYtelseServiceTest {
         )
         val (sak, revurdering) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
             periodeForStans = periode,
-            clock = fixedClock
+            clock = fixedClock,
         )
 
         val vedtakRepoMock = mock<VedtakRepo> {
@@ -418,7 +429,7 @@ internal class GjenopptakAvYtelseServiceTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerGjenopptak(any(), any()) } doReturn simulertGjenopptakUtbetaling().right()
+            on { simulerGjenopptak(any()) } doReturn simulertGjenopptakUtbetaling().right()
         }
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -430,7 +441,7 @@ internal class GjenopptakAvYtelseServiceTest {
             vedtakRepo = vedtakRepoMock,
             vedtakService = vedtakServiceMock,
             utbetalingService = utbetalingServiceMock,
-            sakService = sakService
+            sakService = sakService,
         ).let {
             val response = it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Oppdater(
@@ -459,8 +470,12 @@ internal class GjenopptakAvYtelseServiceTest {
                 fraOgMed = periode.fraOgMed,
             )
             verify(it.utbetalingService).simulerGjenopptak(
-                sak = sak,
-                saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
+                request = argThat {
+                    it shouldBe SimulerUtbetalingRequest.Gjenopptak(
+                        saksbehandler = NavIdentBruker.Saksbehandler("jossi"),
+                        sak = sak,
+                    )
+                },
             )
             verify(it.revurderingRepo).hent(revurdering.id)
             verify(it.revurderingRepo).defaultTransactionContext()
@@ -568,8 +583,6 @@ internal class GjenopptakAvYtelseServiceTest {
             on {
                 gjenopptaUtbetalinger(
                     any(),
-                    any(),
-                    any(),
                 )
             } doReturn utbetaling.right()
         }
@@ -579,7 +592,7 @@ internal class GjenopptakAvYtelseServiceTest {
         RevurderingServiceMocks(
             revurderingRepo = revurderingRepoMock,
             utbetalingService = utbetalingServiceMock,
-            vedtakRepo = vedtakRepoMock
+            vedtakRepo = vedtakRepoMock,
         ).let {
             it.revurderingService.addObserver(observerMock)
             val response = it.revurderingService.iverksettGjenopptakAvYtelse(
@@ -589,9 +602,11 @@ internal class GjenopptakAvYtelseServiceTest {
 
             verify(it.revurderingRepo).hent(simulertGjenopptak.id)
             verify(it.utbetalingService).gjenopptaUtbetalinger(
-                sakId = simulertGjenopptak.sakId,
-                attestant = NavIdentBruker.Attestant(simulertGjenopptak.saksbehandler.navIdent),
-                simulering = simulertGjenopptak.simulering,
+                request = UtbetalRequest.Gjenopptak(
+                    sakId = simulertGjenopptak.sakId,
+                    saksbehandler = NavIdentBruker.Attestant(simulertGjenopptak.saksbehandler.navIdent),
+                    simulering = simulertGjenopptak.simulering
+                ),
             )
 
             verify(it.revurderingRepo).defaultTransactionContext()

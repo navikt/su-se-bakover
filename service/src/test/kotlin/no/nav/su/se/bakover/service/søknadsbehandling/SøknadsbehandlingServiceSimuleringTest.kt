@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -54,13 +55,13 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             on { hent(any()) } doReturn beregnetBehandling
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerUtbetaling(any(), any(), any(), any()) } doReturn simulertUtbetaling.right()
+            on { simulerUtbetaling(any()) } doReturn simulertUtbetaling.right()
         }
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
         ).simuler(
-            SøknadsbehandlingService.SimulerRequest(beregnetBehandling.id, saksbehandler)
+            SøknadsbehandlingService.SimulerRequest(beregnetBehandling.id, saksbehandler),
         )
 
         val expected = Søknadsbehandling.Simulert(
@@ -79,17 +80,19 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
         )
 
         response shouldBe expected.right()
 
         verify(søknadsbehandlingRepoMock).hent(beregnetBehandling.id)
         verify(utbetalingServiceMock).simulerUtbetaling(
-            sakId = argThat { it shouldBe beregnetBehandling.sakId },
-            saksbehandler = argThat { it shouldBe saksbehandler },
-            beregning = argThat { it shouldBe beregnetBehandling.beregning },
-            uføregrunnlag = argThat { it shouldBe emptyList() },
+            request = SimulerUtbetalingRequest.NyUtbetaling(
+                sakId = beregnetBehandling.sakId,
+                saksbehandler = saksbehandler,
+                beregning = beregnetBehandling.beregning,
+                uføregrunnlag = emptyList(),
+            ),
         )
         verify(søknadsbehandlingRepoMock).lagre(expected)
     }
@@ -105,7 +108,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
         ).simuler(
-            SøknadsbehandlingService.SimulerRequest(beregnetBehandling.id, saksbehandler)
+            SøknadsbehandlingService.SimulerRequest(beregnetBehandling.id, saksbehandler),
         )
 
         response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.FantIkkeBehandling.left()
@@ -120,25 +123,28 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             on { hent(any()) } doReturn beregnetBehandling
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerUtbetaling(any(), any(), any(), any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
+            on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
         }
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
         ).simuler(
-            SøknadsbehandlingService.SimulerRequest(beregnetBehandling.id, saksbehandler)
+            SøknadsbehandlingService.SimulerRequest(beregnetBehandling.id, saksbehandler),
         )
 
-        response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
+        response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL)
+            .left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe beregnetBehandling.id })
 
         verify(utbetalingServiceMock).simulerUtbetaling(
-            sakId = argThat { it shouldBe beregnetBehandling.sakId },
-            saksbehandler = argThat { it shouldBe saksbehandler },
-            beregning = argThat { it shouldBe beregnetBehandling.beregning },
-            uføregrunnlag = argThat { it shouldBe emptyList() },
+            request = SimulerUtbetalingRequest.NyUtbetaling(
+                sakId = beregnetBehandling.sakId,
+                saksbehandler = saksbehandler,
+                beregning = beregnetBehandling.beregning,
+                uføregrunnlag = emptyList(),
+            ),
         )
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, utbetalingServiceMock)
     }
@@ -171,7 +177,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
         attesteringer = Attesteringshistorikk.empty(),
-        avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+        avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
     )
 
     private val simulering = Simulering(

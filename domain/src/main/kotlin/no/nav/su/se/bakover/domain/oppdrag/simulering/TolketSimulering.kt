@@ -32,11 +32,16 @@ data class TolketSimulering(
 
     fun harFeilutbetalinger() = simulertePerioder.any { it.harFeilutbetalinger() }
 
+    /**
+     * Identifiser eventuelle utbetalte beløp per periode.
+     * Inkluderer kun beløp som er større enn 0.
+     */
     fun hentUtbetalteBeløp(periode: Periode): Månedsbeløp {
         return Månedsbeløp(
             simulertePerioder
                 .filter { periode inneholder it.periode }
-                .map { it.hentUtbetaltBeløp() },
+                .map { it.hentUtbetaltBeløp() }
+                .filter { it.sum() > 0 },
         )
     }
 }
@@ -69,7 +74,11 @@ sealed class TolketUtbetaling {
                 val sum = tolketDetaljer.sumOf { it.beløp }
                 when {
                     sum > 0 -> Etterbetaling(tolketDetaljer + TolketDetalj.Etterbetaling(sum))
-                    sum == 0 -> UendretUtbetaling(tolketDetaljer + TolketDetalj.UendretUtbetaling(sum))
+                    sum == 0 -> UendretUtbetaling(
+                        tolketDetaljer + TolketDetalj.UendretUtbetaling(
+                            tolketDetaljer.filterIsInstance<TolketDetalj.Ordinær>().sumOf { it.beløp },
+                        ),
+                    )
                     else -> throw IndikererFeilutbetaling
                 }
             }

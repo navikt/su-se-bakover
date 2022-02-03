@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -78,7 +80,7 @@ internal class IverksettRevurderingTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående
+            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
         )
         val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = revurderingId,
@@ -96,7 +98,7 @@ internal class IverksettRevurderingTest {
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -107,7 +109,7 @@ internal class IverksettRevurderingTest {
             on { id } doReturn utbetalingId
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { utbetal(any(), any(), any(), any(), any()) } doReturn utbetalingMock.right()
+            on { utbetal(any()) } doReturn utbetalingMock.right()
         }
         val vedtakRepoMock = mock<VedtakRepo>()
         val eventObserver: EventObserver = mock()
@@ -130,11 +132,17 @@ internal class IverksettRevurderingTest {
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(utbetalingServiceMock).utbetal(
-                sakId = argThat { it shouldBe revurderingTilAttestering.sakId },
-                attestant = argThat { it shouldBe attestant },
-                beregning = argThat { it shouldBe revurderingTilAttestering.beregning },
-                simulering = argThat { it shouldBe revurderingTilAttestering.simulering },
-                uføregrunnlag = argThat { it shouldBe emptyList() },
+                request = argThat {
+                    it shouldBe UtbetalRequest.NyUtbetaling(
+                        request = SimulerUtbetalingRequest.NyUtbetaling(
+                            sakId = revurderingTilAttestering.sakId,
+                            saksbehandler = attestant,
+                            beregning = revurderingTilAttestering.beregning,
+                            uføregrunnlag = emptyList(),
+                        ),
+                        simulering = revurderingTilAttestering.simulering,
+                    )
+                },
             )
             verify(utbetalingMock, times(2)).id
             verify(vedtakRepoMock).lagre(
@@ -162,7 +170,7 @@ internal class IverksettRevurderingTest {
                 on { hent(any()) } doReturn revurderingTilAttestering
             },
             utbetalingService = mock {
-                on { opphør(any(), any(), any(), any()) } doReturn utbetaling.right()
+                on { opphør(any()) } doReturn utbetaling.right()
             },
 
         )
@@ -173,10 +181,16 @@ internal class IverksettRevurderingTest {
 
         verify(mocks.revurderingRepo).hent(revurderingId)
         verify(mocks.utbetalingService).opphør(
-            sakId = argThat { it shouldBe sakId },
-            attestant = argThat { it shouldBe attestant },
-            simulering = argThat { it shouldBe revurderingTilAttestering.simulering },
-            opphørsdato = argThat { it shouldBe revurderingTilAttestering.periode.fraOgMed },
+            argThat {
+                it shouldBe UtbetalRequest.Opphør(
+                    request = SimulerUtbetalingRequest.Opphør(
+                        sakId = sakId,
+                        saksbehandler = attestant,
+                        opphørsdato = revurderingTilAttestering.periode.fraOgMed,
+                    ),
+                    simulering = revurderingTilAttestering.simulering,
+                )
+            },
         )
         verify(mocks.vedtakRepo).lagre(
             argThat {

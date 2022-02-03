@@ -44,7 +44,7 @@ internal class VidereførAvkorting(
             return Revurdering.KunneIkkeBeregneRevurdering.AvkortingErUfullstendig.left()
         }
 
-        return utenAvkorting.oppdaterFradragOgMarkerSomVurdert(
+        return utenAvkorting.oppdaterFradrag(
             fradragsgrunnlag = utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
         ).getOrHandle {
             throw IllegalStateException(
@@ -66,7 +66,7 @@ internal class AnnullerAvkorting(
 }
 
 private fun beregnUtenAvkorting(revurdering: Revurdering, clock: Clock): Pair<OpprettetRevurdering, Beregning> {
-    return revurdering.oppdaterFradragOgMarkerSomVurdert(
+    return revurdering.oppdaterFradrag(
         fradragsgrunnlag = revurdering.grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
     ).getOrHandle {
         throw IllegalStateException(Revurdering.KunneIkkeLeggeTilFradrag.UgyldigTilstand(revurdering::class).toString())

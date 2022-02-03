@@ -3,18 +3,15 @@ package no.nav.su.se.bakover.service.utbetaling
 import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.LocalDate
 import java.util.UUID
@@ -28,24 +25,15 @@ interface UtbetalingService {
     ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering>
 
     fun simulerUtbetaling(
-        sakId: UUID,
-        saksbehandler: NavIdentBruker,
-        beregning: Beregning,
-        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        request: SimulerUtbetalingRequest.NyUtbetalingRequest,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun simulerOpphør(
-        sakId: UUID,
-        saksbehandler: NavIdentBruker,
-        opphørsdato: LocalDate,
+        request: SimulerUtbetalingRequest.OpphørRequest,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun utbetal(
-        sakId: UUID,
-        attestant: NavIdentBruker,
-        beregning: Beregning,
-        simulering: Simulering,
-        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        request: UtbetalRequest.NyUtbetaling,
     ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun publiserUtbetaling(
@@ -58,42 +46,27 @@ interface UtbetalingService {
     ): Utbetaling.OversendtUtbetaling.UtenKvittering
 
     fun genererUtbetalingsRequest(
-        sakId: UUID,
-        attestant: NavIdentBruker,
-        beregning: Beregning,
-        simulering: Simulering,
-        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        request: UtbetalRequest.NyUtbetaling,
     ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling>
 
     fun simulerStans(
-        sakId: UUID,
-        saksbehandler: NavIdentBruker,
-        stansDato: LocalDate,
+        request: SimulerUtbetalingRequest.StansRequest,
     ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling>
 
     fun stansUtbetalinger(
-        sakId: UUID,
-        attestant: NavIdentBruker,
-        simulering: Simulering,
-        stansDato: LocalDate,
+        request: UtbetalRequest.Stans,
     ): Either<UtbetalStansFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun simulerGjenopptak(
-        sak: Sak,
-        saksbehandler: NavIdentBruker,
+        request: SimulerUtbetalingRequest.GjenopptakRequest,
     ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling>
 
     fun gjenopptaUtbetalinger(
-        sakId: UUID,
-        attestant: NavIdentBruker,
-        simulering: Simulering,
+        request: UtbetalRequest.Gjenopptak,
     ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun opphør(
-        sakId: UUID,
-        attestant: NavIdentBruker,
-        simulering: Simulering,
-        opphørsdato: LocalDate,
+        request: UtbetalRequest.Opphør,
     ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun hentGjeldendeUtbetaling(
