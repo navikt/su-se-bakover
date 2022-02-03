@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -35,6 +36,7 @@ internal data class RevurderingServiceMocks(
     val kontrollsamtaleService: KontrollsamtaleService = mock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
+    val toggleService: ToggleService = mock(),
 ) {
     val revurderingService = RevurderingServiceImpl(
         utbetalingService = utbetalingService,
@@ -52,6 +54,7 @@ internal data class RevurderingServiceMocks(
         kontrollsamtaleService = kontrollsamtaleService,
         sessionFactory = sessionFactory,
         avkortingsvarselRepo = avkortingsvarselRepo,
+        toggleService = toggleService,
     )
 
     fun all() = listOf(
