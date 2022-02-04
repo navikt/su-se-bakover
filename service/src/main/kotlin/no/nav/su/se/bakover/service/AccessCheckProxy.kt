@@ -246,7 +246,7 @@ open class AccessCheckProxy(
                     transactionContext: TransactionContext?,
                 ): Utbetaling.OversendtUtbetaling.UtenKvittering = kastKanKunKallesFraAnnenService()
 
-                override fun genererUtbetalingsRequest(
+                override fun verifiserOgSimulerUtbetaling(
                     request: UtbetalRequest.NyUtbetaling,
                 ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> = kastKanKunKallesFraAnnenService()
 
@@ -274,12 +274,9 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun opphør(
+                override fun verifiserOgSimulerOpphør(
                     request: UtbetalRequest.Opphør,
-                ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                    assertHarTilgangTilSak(request.sakId)
-                    return services.utbetaling.opphør(request)
-                }
+                ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> = kastKanKunKallesFraAnnenService()
 
                 override fun hentGjeldendeUtbetaling(
                     sakId: UUID,
@@ -802,7 +799,7 @@ open class AccessCheckProxy(
                     transactionContext: TransactionContext,
                 ): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> = kastKanKunKallesFraAnnenService()
 
-                override fun annullerKontrollsamtale(sakId: UUID): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> =
+                override fun annullerKontrollsamtale(sakId: UUID, transactionContext: TransactionContext): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> =
                     kastKanKunKallesFraAnnenService()
             },
             klageService = object : KlageService {

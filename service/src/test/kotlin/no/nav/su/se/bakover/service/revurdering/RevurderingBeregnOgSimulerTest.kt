@@ -53,10 +53,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 internal class RevurderingBeregnOgSimulerTest {
 
@@ -71,7 +73,7 @@ internal class RevurderingBeregnOgSimulerTest {
             ),
         )
 
-        RevurderingServiceMocks(
+        val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn opprettet
             },
@@ -89,16 +91,19 @@ internal class RevurderingBeregnOgSimulerTest {
                     fixedClock,
                 ).getOrFail().right()
             },
-        ).let {
-            val response = it.revurderingService.beregnOgSimuler(
-                revurderingId = opprettet.id,
-                saksbehandler = saksbehandler,
-            ).getOrFail()
+            grunnlagService = mock {
+                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
+            }
+        )
 
-            response.feilmeldinger shouldBe listOf(
-                RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
-            )
-        }
+        val response = serviceAndMocks.revurderingService.beregnOgSimuler(
+            revurderingId = opprettet.id,
+            saksbehandler = saksbehandler,
+        ).getOrFail()
+
+        response.feilmeldinger shouldBe listOf(
+            RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
+        )
     }
 
     @Test
@@ -148,7 +153,7 @@ internal class RevurderingBeregnOgSimulerTest {
             ),
         )
 
-        RevurderingServiceMocks(
+        val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn opprettetRevurdering
             },
@@ -173,43 +178,45 @@ internal class RevurderingBeregnOgSimulerTest {
                     fixedClock,
                 ).getOrFail().right()
             },
-        ).let { serviceAndMocks ->
-            val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
-                revurderingId = opprettetRevurdering.id,
-                saksbehandler = saksbehandler,
-            ).getOrFail()
+            grunnlagService = mock {
+                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
+            }
+        )
+        val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
+            revurderingId = opprettetRevurdering.id,
+            saksbehandler = saksbehandler,
+        ).getOrFail()
 
-            actual.let {
-                it.revurdering shouldBe beOfType<SimulertRevurdering.Innvilget>()
-                it.feilmeldinger shouldBe emptyList()
-            }
-            inOrder(
-                *serviceAndMocks.all(),
-            ) {
-                verify(serviceAndMocks.revurderingRepo).hent(any())
-                verify(serviceAndMocks.utbetalingService).hentUtbetalinger(sakId)
-                verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(
-                    argThat { it shouldBe sakId },
-                    argThat { it shouldBe opprettetRevurdering.periode.fraOgMed },
-                )
-                verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
-                    request = argThat {
-                        it shouldBe SimulerUtbetalingRequest.NyUtbetaling(
-                            sakId = sakId,
-                            saksbehandler = saksbehandler,
-                            beregning = (actual.revurdering as SimulertRevurdering).beregning,
-                            uføregrunnlag = opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag,
-                        )
-                    },
-                )
-                verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
-                verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
-                verify(serviceAndMocks.grunnlagService).lagreFradragsgrunnlag(
-                    argThat { it shouldBe opprettetRevurdering.id },
-                    argThat { it shouldBe opprettetRevurdering.grunnlagsdata.fradragsgrunnlag },
-                )
-                serviceAndMocks.verifyNoMoreInteractions()
-            }
+        actual.let {
+            it.revurdering shouldBe beOfType<SimulertRevurdering.Innvilget>()
+            it.feilmeldinger shouldBe emptyList()
+        }
+        inOrder(
+            *serviceAndMocks.all(),
+        ) {
+            verify(serviceAndMocks.revurderingRepo).hent(any())
+            verify(serviceAndMocks.utbetalingService).hentUtbetalinger(sakId)
+            verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(
+                argThat { it shouldBe sakId },
+                argThat { it shouldBe opprettetRevurdering.periode.fraOgMed },
+            )
+            verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
+                request = argThat {
+                    it shouldBe SimulerUtbetalingRequest.NyUtbetaling(
+                        sakId = sakId,
+                        saksbehandler = saksbehandler,
+                        beregning = (actual.revurdering as SimulertRevurdering).beregning,
+                        uføregrunnlag = opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag,
+                    )
+                },
+            )
+            verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
+            verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
+            verify(serviceAndMocks.grunnlagService).lagreFradragsgrunnlag(
+                argThat { it shouldBe opprettetRevurdering.id },
+                argThat { it shouldBe opprettetRevurdering.grunnlagsdata.fradragsgrunnlag },
+            )
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
@@ -296,7 +303,7 @@ internal class RevurderingBeregnOgSimulerTest {
     fun `beregnOgSimuler - kan beregne og simuler underkjent revurdering på nytt`() {
         val (sak, underkjent) = underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak()
 
-        RevurderingServiceMocks(
+        val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn underkjent
             },
@@ -314,41 +321,44 @@ internal class RevurderingBeregnOgSimulerTest {
                     clock = fixedClock,
                 ).getOrFail().right()
             },
-        ).let { serviceAndMocks ->
-            val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
-                underkjent.id,
-                saksbehandler,
-            ).getOrFail()
-
-            actual.let {
-                it.revurdering shouldBe beOfType<SimulertRevurdering.Innvilget>()
-                it.feilmeldinger shouldBe emptyList()
+            grunnlagService = mock {
+                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
             }
+        )
 
-            inOrder(
-                *serviceAndMocks.all(),
-            ) {
-                verify(serviceAndMocks.revurderingRepo).hent(argThat { it shouldBe underkjent.id })
-                verify(serviceAndMocks.utbetalingService).hentUtbetalinger(sakId)
-                verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(sakId, underkjent.periode.fraOgMed)
-                verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
-                    request = argThat {
-                        it shouldBe SimulerUtbetalingRequest.NyUtbetaling(
-                            sakId = sakId,
-                            saksbehandler = saksbehandler,
-                            beregning = (actual.revurdering as SimulertRevurdering).beregning,
-                            uføregrunnlag = underkjent.vilkårsvurderinger.uføre.grunnlag,
-                        )
-                    },
-                )
-                verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
-                verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
-                verify(serviceAndMocks.grunnlagService).lagreFradragsgrunnlag(
-                    argThat { it shouldBe underkjent.id },
-                    argThat { it shouldBe underkjent.grunnlagsdata.fradragsgrunnlag },
-                )
-                serviceAndMocks.verifyNoMoreInteractions()
-            }
+        val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
+            underkjent.id,
+            saksbehandler,
+        ).getOrFail()
+
+        actual.let {
+            it.revurdering shouldBe beOfType<SimulertRevurdering.Innvilget>()
+            it.feilmeldinger shouldBe emptyList()
+        }
+
+        inOrder(
+            *serviceAndMocks.all(),
+        ) {
+            verify(serviceAndMocks.revurderingRepo).hent(argThat { it shouldBe underkjent.id })
+            verify(serviceAndMocks.utbetalingService).hentUtbetalinger(sakId)
+            verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(sakId, underkjent.periode.fraOgMed)
+            verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
+                request = argThat {
+                    it shouldBe SimulerUtbetalingRequest.NyUtbetaling(
+                        sakId = sakId,
+                        saksbehandler = saksbehandler,
+                        beregning = (actual.revurdering as SimulertRevurdering).beregning,
+                        uføregrunnlag = underkjent.vilkårsvurderinger.uføre.grunnlag,
+                    )
+                },
+            )
+            verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
+            verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
+            verify(serviceAndMocks.grunnlagService).lagreFradragsgrunnlag(
+                argThat { it shouldBe underkjent.id },
+                argThat { it shouldBe underkjent.grunnlagsdata.fradragsgrunnlag },
+            )
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
@@ -392,7 +402,7 @@ internal class RevurderingBeregnOgSimulerTest {
             ),
         )
 
-        RevurderingServiceMocks(
+        val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn opprettet
             },
@@ -410,37 +420,39 @@ internal class RevurderingBeregnOgSimulerTest {
                     clock = fixedClock,
                 ).getOrFail().right()
             },
-        ).let { serviceAndMocks ->
-            val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
-                revurderingId = opprettet.id,
-                saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-            ).getOrFail().revurdering
-
-            actual shouldBe beOfType<SimulertRevurdering.Opphørt>()
-
-            inOrder(
-                *serviceAndMocks.all(),
-            ) {
-                verify(serviceAndMocks.revurderingRepo).hent(opprettet.id)
-                verify(serviceAndMocks.utbetalingService).hentUtbetalinger(sakId)
-                verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(sakId, opprettet.periode.fraOgMed)
-                verify(serviceAndMocks.utbetalingService).simulerOpphør(
-                    argThat {
-                        it shouldBe SimulerUtbetalingRequest.Opphør(
-                            sakId = sakId,
-                            saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-                            opphørsdato = opprettet.periode.fraOgMed,
-                        )
-                    }
-                )
-                verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
-                verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
-                verify(serviceAndMocks.grunnlagService).lagreFradragsgrunnlag(
-                    argThat { it shouldBe opprettet.id },
-                    argThat { it shouldBe opprettet.grunnlagsdata.fradragsgrunnlag },
-                )
-                serviceAndMocks.verifyNoMoreInteractions()
+            grunnlagService = mock {
+                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
             }
+        )
+        val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
+            revurderingId = opprettet.id,
+            saksbehandler = NavIdentBruker.Saksbehandler("s1"),
+        ).getOrFail().revurdering
+
+        actual shouldBe beOfType<SimulertRevurdering.Opphørt>()
+
+        inOrder(
+            *serviceAndMocks.all(),
+        ) {
+            verify(serviceAndMocks.revurderingRepo).hent(opprettet.id)
+            verify(serviceAndMocks.utbetalingService).hentUtbetalinger(sakId)
+            verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(sakId, opprettet.periode.fraOgMed)
+            verify(serviceAndMocks.utbetalingService).simulerOpphør(
+                argThat {
+                    it shouldBe SimulerUtbetalingRequest.Opphør(
+                        sakId = sakId,
+                        saksbehandler = NavIdentBruker.Saksbehandler("s1"),
+                        opphørsdato = opprettet.periode.fraOgMed,
+                    )
+                }
+            )
+            verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
+            verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
+            verify(serviceAndMocks.grunnlagService).lagreFradragsgrunnlag(
+                argThat { it shouldBe opprettet.id },
+                argThat { it shouldBe opprettet.grunnlagsdata.fradragsgrunnlag },
+            )
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
@@ -492,7 +504,7 @@ internal class RevurderingBeregnOgSimulerTest {
             clock = tikkendeKlokke,
         )
 
-        RevurderingServiceMocks(
+        val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn revurdering2
             },
@@ -501,25 +513,20 @@ internal class RevurderingBeregnOgSimulerTest {
                 on { hentUtbetalinger(any()) } doReturn sakEtterRevurdering2.utbetalinger
             },
             vedtakService = mock {
-                on {
-                    kopierGjeldendeVedtaksdata(sakId = any(), fraOgMed = any())
-                } doReturn sakEtterRevurdering2.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurderingsperiode2.fraOgMed,
-                    clock = tikkendeKlokke,
-                ).getOrFail().right()
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sakEtterRevurdering2.kopierGjeldendeVedtaksdata(fraOgMed = revurderingsperiode2.fraOgMed, clock = tikkendeKlokke).getOrFail().right()
             },
-        ).let { serviceAndMocks ->
-            val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
-                revurderingId = revurdering2.id,
-                saksbehandler = saksbehandler,
-            ).getOrFail().revurdering
-
-            (actual as SimulertRevurdering.Innvilget).let { simulert ->
-                simulert.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
-                    .sumOf { it.månedsbeløp } shouldBe expectedAvkorting
-                simulert.beregning.getFradrag().filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
-                    .sumOf { it.månedsbeløp } shouldBe expectedAvkorting
+            grunnlagService = mock {
+                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
             }
+        )
+
+        val actual = serviceAndMocks.revurderingService.beregnOgSimuler(revurdering2.id, saksbehandler).getOrFail().revurdering
+
+        (actual as SimulertRevurdering.Innvilget).let { simulert ->
+            simulert.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
+                .sumOf { it.månedsbeløp } shouldBe expectedAvkorting
+            simulert.beregning.getFradrag().filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
+                .sumOf { it.månedsbeløp } shouldBe expectedAvkorting
         }
     }
 }

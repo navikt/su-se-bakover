@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -1089,83 +1088,37 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
         fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
-            clock: Clock = Clock.systemUTC(),
-            utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>,
             hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
-        ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Innvilget> {
-
-            if (saksbehandler.navIdent == attestant.navIdent) {
-                return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
-            }
-
-            val avkortingId = when (avkorting) {
-                is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
-                    avkorting.avkortingsvarsel.id
-                }
-                AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
-                    null
-                }
-                is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
-                    null
-                }
-                is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
-                    null
-                }
-                is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-                    avkorting.annullerUtestående.id
-                }
-            }
-
-            if (avkortingId != null) {
-                hentOpprinneligAvkorting(avkortingId).also { avkortingsvarsel ->
-                    when (avkortingsvarsel) {
-                        Avkortingsvarsel.Ingen -> {
-                            throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
-                        }
-                        is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
-                            return KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen.left()
-                        }
-                        is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
-                            return KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen.left()
-                        }
-                        is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
-                            throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
-                        }
-                        is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
-                            // Dette er den eneste som er gyldig
-                        }
-                        null -> {
-                            throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
-                        }
-                    }
-                }
-            }
-
-            return utbetal().map {
-                IverksattRevurdering.Innvilget(
-                    id = id,
-                    periode = periode,
-                    opprettet = opprettet,
-                    tilRevurdering = tilRevurdering,
-                    saksbehandler = saksbehandler,
-                    beregning = beregning,
-                    simulering = simulering,
-                    oppgaveId = oppgaveId,
-                    fritekstTilBrev = fritekstTilBrev,
-                    revurderingsårsak = revurderingsårsak,
-                    forhåndsvarsel = forhåndsvarsel,
-                    grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    informasjonSomRevurderes = informasjonSomRevurderes,
-                    attesteringer = attesteringer.leggTilNyAttestering(
-                        Attestering.Iverksatt(
-                            attestant,
-                            Tidspunkt.now(clock),
-                        ),
+            clock: Clock
+        ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Innvilget> = validerTilIverksettOvergang(
+            attestant = attestant,
+            hentOpprinneligAvkorting = hentOpprinneligAvkorting,
+            saksbehandler = saksbehandler,
+            avkorting = avkorting
+        ).map {
+            IverksattRevurdering.Innvilget(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                simulering = simulering,
+                oppgaveId = oppgaveId,
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                attesteringer = attesteringer.leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        attestant,
+                        Tidspunkt.now(clock),
                     ),
-                    avkorting = avkorting.iverksett(id),
-                )
-            }
+                ),
+                avkorting = avkorting.iverksett(id),
+            )
         }
     }
 
@@ -1192,6 +1145,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         }
 
         override val skalFøreTilUtsendingAvVedtaksbrev = true
+        val opphørsdatoForUtbetalinger = OpphørsdatoForUtbetalinger(this).value
 
         fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
             return when (
@@ -1206,87 +1160,39 @@ sealed class RevurderingTilAttestering : Revurdering() {
             }
         }
 
-        // TODO: sjekk om vi skal utbetale 0 utbetalinger, eller ny status
         fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
-            clock: Clock = Clock.systemUTC(),
-            utbetal: (sakId: UUID, attestant: NavIdentBruker.Attestant, opphørsdato: LocalDate, simulering: Simulering) -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>,
             hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
-        ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Opphørt> {
-
-            if (saksbehandler.navIdent == attestant.navIdent) {
-                return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
-            }
-
-            val avkortingId = when (avkorting) {
-                is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
-                    avkorting.avkortingsvarsel.id
-                }
-                AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
-                    null
-                }
-                is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
-                    null
-                }
-                is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
-                    null
-                }
-                is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-                    avkorting.annullerUtestående.id
-                }
-            }
-
-            if (avkortingId != null) {
-                hentOpprinneligAvkorting(avkortingId).also { avkortingsvarsel ->
-                    when (avkortingsvarsel) {
-                        Avkortingsvarsel.Ingen -> {
-                            throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
-                        }
-                        is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
-                            return KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen.left()
-                        }
-                        is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
-                            return KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen.left()
-                        }
-                        is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
-                            throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
-                        }
-                        is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
-                            // Dette er den eneste som er gyldig
-                        }
-                        null -> {
-                            throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
-                        }
-                    }
-                }
-            }
-
-            return utbetal(sakId, attestant, OpphørsdatoForUtbetalinger(revurdering = this).value, simulering)
-                .map {
-                    IverksattRevurdering.Opphørt(
-                        id = id,
-                        periode = periode,
-                        opprettet = opprettet,
-                        tilRevurdering = tilRevurdering,
-                        saksbehandler = saksbehandler,
-                        beregning = beregning,
-                        simulering = simulering,
-                        oppgaveId = oppgaveId,
-                        fritekstTilBrev = fritekstTilBrev,
-                        revurderingsårsak = revurderingsårsak,
-                        forhåndsvarsel = forhåndsvarsel,
-                        grunnlagsdata = grunnlagsdata,
-                        vilkårsvurderinger = vilkårsvurderinger,
-                        informasjonSomRevurderes = informasjonSomRevurderes,
-                        attesteringer = attesteringer.leggTilNyAttestering(
-                            Attestering.Iverksatt(
-                                attestant,
-                                Tidspunkt.now(clock),
-                            ),
-                        ),
-                        avkorting = avkorting.iverksett(id),
-                    )
-                }
+            clock: Clock
+        ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Opphørt> = validerTilIverksettOvergang(
+            attestant = attestant,
+            hentOpprinneligAvkorting = hentOpprinneligAvkorting,
+            saksbehandler = saksbehandler,
+            avkorting = avkorting
+        ).map {
+            IverksattRevurdering.Opphørt(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                simulering = simulering,
+                oppgaveId = oppgaveId,
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                attesteringer = attesteringer.leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        attestant,
+                        Tidspunkt.now(clock),
+                    ),
+                ),
+                avkorting = avkorting.iverksett(id),
+            )
         }
     }
 
@@ -1805,4 +1711,59 @@ enum class Revurderingsteg(val vilkår: String) {
     // InnlagtPåInstitusjon("InnlagtPåInstitusjon"),
     Utenlandsopphold("Utenlandsopphold"),
     Inntekt("Inntekt"),
+}
+
+private fun validerTilIverksettOvergang(
+    attestant: NavIdentBruker.Attestant,
+    hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
+    saksbehandler: Saksbehandler,
+    avkorting: AvkortingVedRevurdering.Håndtert
+): Either<RevurderingTilAttestering.KunneIkkeIverksetteRevurdering, Unit> {
+    if (saksbehandler.navIdent == attestant.navIdent) {
+        return RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+    }
+
+    val avkortingId = when (avkorting) {
+        is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
+            avkorting.avkortingsvarsel.id
+        }
+        AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
+            null
+        }
+        is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+            null
+        }
+        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
+            null
+        }
+        is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+            avkorting.annullerUtestående.id
+        }
+    }
+
+    if (avkortingId != null) {
+        hentOpprinneligAvkorting(avkortingId).also { avkortingsvarsel ->
+            when (avkortingsvarsel) {
+                Avkortingsvarsel.Ingen -> {
+                    throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
+                }
+                is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
+                    return RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen.left()
+                }
+                is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                    return RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen.left()
+                }
+                is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                    throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
+                }
+                is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
+                    // Dette er den eneste som er gyldig
+                }
+                null -> {
+                    throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
+                }
+            }
+        }
+    }
+    return Unit.right()
 }

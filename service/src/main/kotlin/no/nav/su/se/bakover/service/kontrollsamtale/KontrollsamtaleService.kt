@@ -35,7 +35,7 @@ interface KontrollsamtaleService {
     fun hentNestePlanlagteKontrollsamtale(sakId: UUID): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale>
     fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>>
     fun opprettPlanlagtKontrollsamtale(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, transactionContext: TransactionContext): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale>
-    fun annullerKontrollsamtale(sakId: UUID): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit>
+    fun annullerKontrollsamtale(sakId: UUID, transactionContext: TransactionContext): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit>
 }
 
 class KontrollsamtaleServiceImpl(
@@ -164,13 +164,13 @@ class KontrollsamtaleServiceImpl(
             }
     }
 
-    override fun annullerKontrollsamtale(sakId: UUID): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> =
+    override fun annullerKontrollsamtale(sakId: UUID, transactionContext: TransactionContext): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> =
         hentNestePlanlagteKontrollsamtale(sakId).mapLeft {
             log.info("Fant ingen planlagt kontrollsamtale for sakId $sakId")
             KunneIkkeKalleInnTilKontrollsamtale.FantIkkeKontrollsamtale
         }.flatMap {
             it.annuller().map { annullertKontrollSamtale ->
-                kontrollsamtaleRepo.lagre(annullertKontrollSamtale)
+                kontrollsamtaleRepo.lagre(annullertKontrollSamtale, transactionContext)
             }.mapLeft {
                 KunneIkkeKalleInnTilKontrollsamtale.UgyldigStatusovergang
             }

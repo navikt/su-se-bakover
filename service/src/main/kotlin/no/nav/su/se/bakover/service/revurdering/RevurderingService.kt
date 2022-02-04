@@ -260,7 +260,9 @@ sealed class KunneIkkeIverksetteRevurdering {
     object FantIkkePerson : KunneIkkeIverksetteRevurdering()
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeIverksetteRevurdering()
     object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeIverksetteRevurdering()
+    object IngenEndringErIkkeGyldig : KunneIkkeIverksetteRevurdering()
     object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
+    object LagringFeilet : KunneIkkeIverksetteRevurdering()
     object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksetteRevurdering()
     object HarAlleredeBlittAnnullertAvEnAnnen : KunneIkkeIverksetteRevurdering()
     data class UgyldigTilstand(
