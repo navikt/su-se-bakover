@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import java.time.LocalDate
 import java.util.UUID
 
-data class AutomatiskEllerManuellSak(
+data class VedtakSomKanReguleres(
     val sakId: UUID,
     val saksnummer: Saksnummer,
     val opprettet: Tidspunkt,
@@ -33,5 +33,5 @@ enum class VedtakType {
 }
 
 interface ReguleringRepo {
-    fun hentVedtakSomKanReguleres(dato: LocalDate): List<AutomatiskEllerManuellSak>
+    fun hentVedtakSomKanReguleres(dato: LocalDate): List<VedtakSomKanReguleres>
 }

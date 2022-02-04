@@ -3,16 +3,14 @@ package no.nav.su.se.bakover.service.regulering
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.regulering.AutomatiskEllerManuellSak
 import no.nav.su.se.bakover.domain.regulering.BehandlingType
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
+import no.nav.su.se.bakover.domain.regulering.VedtakSomKanReguleres
 import no.nav.su.se.bakover.domain.regulering.VedtakType
-import java.time.Clock
 import java.time.LocalDate
 
 class ReguleringServiceImpl(
     private val reguleringRepo: ReguleringRepo,
-    private val clock: Clock,
 ) : ReguleringService {
 
     override fun hentAlleSakerSomKanReguleres(fraDato: LocalDate): Either<KanIkkeHenteSaker, SakerSomKanReguleres> {
@@ -21,25 +19,16 @@ class ReguleringServiceImpl(
         ).right()
     }
 
-    // SØKNAD, tommel opp
-    // AVSLAG,  filtrer bort
-    // ENDRING, tommel opp
-    // INGEN_ENDRING, manuell?
-    // OPPHØR, ikke ta hensyn til de mnd som er opphørt
-    // STANS_AV_YTELSE,   manuell
-    // GJENOPPTAK_AV_YTELSE,  tommel opp
-    // AVVIST_KLAGE,    filtrer bort
-
-    private fun hentSakerSomKanReguleres(fomDato: LocalDate): List<AutomatiskEllerManuellSak> {
-        return reguleringRepo.hentVedtakSomKanReguleres(fomDato) // .distinct()
+    private fun hentVedtakSomKanReguleres(fomDato: LocalDate): List<VedtakSomKanReguleres> {
+        return reguleringRepo.hentVedtakSomKanReguleres(fomDato)
     }
 
     private fun hentAlleSaker(fraDato: LocalDate): List<SakSomKanReguleres> {
-        return hentSakerSomKanReguleres(fraDato)
+        return hentVedtakSomKanReguleres(fraDato)
             .filterNot { it.vedtakType == VedtakType.AVSLAG || it.vedtakType == VedtakType.AVVIST_KLAGE }
             .groupBy { it.sakId }
             .mapNotNull { (sakid, vedtakSomKanReguleres) ->
-                val minFra: LocalDate = vedtakSomKanReguleres.minOf { it.fraOgMed }
+                val minFra: LocalDate = maxOf(vedtakSomKanReguleres.minOf { it.fraOgMed }, fraDato)
                 val maxTil: LocalDate = vedtakSomKanReguleres.maxOf { it.tilOgMed }
 
                 val gjeldendeVedtakPrMnd = Periode.create(minFra, maxTil).tilMånedsperioder().map { mnd ->
@@ -59,7 +48,7 @@ class ReguleringServiceImpl(
                 SakSomKanReguleres(
                     sakId = sakid,
                     saksnummer = vedtakSomKanReguleres.first().saksnummer,
-                    type = type.toString(),
+                    type = type,
                 )
             }
     }

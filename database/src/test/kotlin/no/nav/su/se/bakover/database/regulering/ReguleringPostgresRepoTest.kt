@@ -18,8 +18,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.regulering.AutomatiskEllerManuellSak
 import no.nav.su.se.bakover.domain.regulering.BehandlingType
+import no.nav.su.se.bakover.domain.regulering.VedtakSomKanReguleres
 import no.nav.su.se.bakover.domain.regulering.VedtakType
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -36,7 +36,7 @@ internal class ReguleringPostgresRepoTest {
             val list = testDataHelper.reguleringRepo.hentVedtakSomKanReguleres(1.mai(2021))
 
             list.size shouldBe 1
-            list.first() shouldBe AutomatiskEllerManuellSak(
+            list.first() shouldBe VedtakSomKanReguleres(
                 sakId = søknadsbehandling.sakId,
                 saksnummer = søknadsbehandling.saksnummer,
                 opprettet = søknadsbehandling.opprettet,

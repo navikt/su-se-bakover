@@ -8,9 +8,9 @@ import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.vedtak.VedtakType
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.regulering.AutomatiskEllerManuellSak
 import no.nav.su.se.bakover.domain.regulering.BehandlingType
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
+import no.nav.su.se.bakover.domain.regulering.VedtakSomKanReguleres
 import java.time.LocalDate
 import javax.sql.DataSource
 
@@ -18,7 +18,7 @@ internal class ReguleringPostgresRepo(
     private val dataSource: DataSource,
     private val sessionFactory: PostgresSessionFactory,
 ) : ReguleringRepo {
-    override fun hentVedtakSomKanReguleres(dato: LocalDate): List<AutomatiskEllerManuellSak> {
+    override fun hentVedtakSomKanReguleres(dato: LocalDate): List<VedtakSomKanReguleres> {
         return dataSource.withSession { session ->
             """
                 with sakogid (sakid, saksnummer, bid, fraOgMed, tilOgMed, vedtaktype, opprettet ) as (
@@ -59,12 +59,12 @@ internal class ReguleringPostgresRepo(
                        from sakogid s
             """.trimIndent()
                 .hentListe(mapOf("dato" to dato), session) {
-                    it.toAutomatiskEllerManuelleSak()
+                    it.toVedtakSomKanReguleres()
                 }
         }
     }
 
-    private fun Row.toAutomatiskEllerManuelleSak(): AutomatiskEllerManuellSak {
+    private fun Row.toVedtakSomKanReguleres(): VedtakSomKanReguleres {
         val sakId = uuid("sakid")
         val behandlingId = uuid("bid")
         val saksnummer = Saksnummer(long("saksnummer"))
@@ -83,8 +83,7 @@ internal class ReguleringPostgresRepo(
         }
         val behandlingType = BehandlingType.valueOf(string("behandlingtype"))
 
-        // TODO ai: Bytt navn, er ikke en sak (man får ett per vedtak).
-        return AutomatiskEllerManuellSak(
+        return VedtakSomKanReguleres(
             sakId = sakId,
             saksnummer = saksnummer,
             opprettet = opprettet,
