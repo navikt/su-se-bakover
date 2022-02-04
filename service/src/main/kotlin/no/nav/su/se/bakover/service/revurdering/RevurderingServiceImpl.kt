@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeiletException
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -1248,7 +1249,7 @@ internal class RevurderingServiceImpl(
                     hentOpprinneligAvkorting = { avkortingid -> avkortingsvarselRepo.hent(avkortingid) },
                     clock = clock
                 ).map { iverksattRevurdering ->
-                    utbetalingService.genererUtbetalingsRequest(
+                    utbetalingService.verifiserOgSimulerUtbetaling(
                         request = UtbetalRequest.NyUtbetaling(
                             request = SimulerUtbetalingRequest.NyUtbetaling(
                                 sakId = revurdering.sakId,
@@ -1259,23 +1260,22 @@ internal class RevurderingServiceImpl(
                             simulering = revurdering.simulering,
                         ),
                     ).map { utbetaling ->
-                        val revurderingsfeilmelding = "Publisering av revurderingsutbetaling på køen feilet."
                         Either.catch {
                             sessionFactory.withTransactionContext { tx ->
                                 val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, clock)
+                                utbetalingService.lagreUtbetaling(utbetaling, tx)
                                 vedtakRepo.lagre(vedtak, tx)
                                 revurderingRepo.lagre(iverksattRevurdering, tx)
-                                utbetalingService.lagreUtbetaling(utbetaling, tx)
                                 utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
                                     log.error("Kunne ikke publisere revurderingsutbetaling på køen. Ruller tilbake. SakId: ${iverksattRevurdering.sakId}", feil)
-                                    throw RuntimeException("$revurderingsfeilmelding $feil")
+                                    throw UtbetalingFeiletException(feil)
                                 }
                             }
                         }.mapLeft {
-                            return if (it.message?.startsWith(revurderingsfeilmelding) == true)
-                                KunneIkkeIverksetteRevurdering.KunneIkkePublisereUtbetaling.left()
-                            else
-                                KunneIkkeIverksetteRevurdering.LagringFeilet.left()
+                            return when (it) {
+                                is UtbetalingFeiletException -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it.feil).left()
+                                else -> KunneIkkeIverksetteRevurdering.LagringFeilet.left()
+                            }
                         }
                     }
                     iverksattRevurdering
@@ -1287,7 +1287,7 @@ internal class RevurderingServiceImpl(
                     clock = clock,
                     hentOpprinneligAvkorting = { avkortingid -> avkortingsvarselRepo.hent(avkortingid) }
                 ).map { iverksattRevurdering ->
-                    utbetalingService.genererOpphørsRequest(
+                    utbetalingService.verifiserOgSimulerOpphør(
                         request = UtbetalRequest.Opphør(
                             request = SimulerUtbetalingRequest.Opphør(
                                 sakId = iverksattRevurdering.sakId,
@@ -1297,18 +1297,16 @@ internal class RevurderingServiceImpl(
                             simulering = iverksattRevurdering.simulering,
                         ),
                     ).map { utbetaling ->
-                        val revurderingfeilmelding = "Kunne ikke publisere revurdering-opphør på køen. Ruller tilbake."
                         Either.catch {
                             sessionFactory.withTransactionContext { tx ->
                                 val opphørtVedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, clock)
+                                utbetalingService.lagreUtbetaling(utbetaling, tx)
                                 vedtakRepo.lagre(opphørtVedtak, tx)
                                 kontrollsamtaleService.annullerKontrollsamtale(opphørtVedtak.behandling.sakId, tx)
                                 revurderingRepo.lagre(iverksattRevurdering, tx)
-                                utbetalingService.lagreUtbetaling(utbetaling, tx)
-                                // TODO: sjekk om vi skal utbetale 0 utbetalinger, eller ny status
                                 utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
                                     log.error("Kunne ikke publisere revurdering-opphør på køen. Ruller tilbake. SakId: ${iverksattRevurdering.sakId}", feil)
-                                    throw RuntimeException("$revurderingfeilmelding $feil")
+                                    throw UtbetalingFeiletException(feil)
                                 }
                                 observers.forEach { observer ->
                                     observer.handle(
@@ -1317,10 +1315,10 @@ internal class RevurderingServiceImpl(
                                 }
                             }
                         }.mapLeft {
-                            return if (it.message?.startsWith(revurderingfeilmelding) == true)
-                                KunneIkkeIverksetteRevurdering.KunneIkkePublisereUtbetaling.left()
-                            else
-                                KunneIkkeIverksetteRevurdering.LagringFeilet.left()
+                            return when (it) {
+                                is UtbetalingFeiletException -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it.feil).left()
+                                else -> KunneIkkeIverksetteRevurdering.LagringFeilet.left()
+                            }
                         }
                     }
                     iverksattRevurdering

@@ -204,11 +204,6 @@ internal object Feilresponser {
         "ingen_endring_er_ikke_gyldig"
     )
 
-    val utbetalingFeilet = InternalServerError.errorJson(
-        "Kunne ikke utføre utbetaling",
-        "kunne_ikke_utbetale",
-    )
-
     val lagringFeilet = InternalServerError.errorJson(
         "Kunne ikke lagre",
         "kunne_ikke_lagre",

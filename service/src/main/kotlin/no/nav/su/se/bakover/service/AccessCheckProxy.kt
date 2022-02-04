@@ -243,7 +243,7 @@ open class AccessCheckProxy(
                     transactionContext: TransactionContext?,
                 ): Utbetaling.OversendtUtbetaling.UtenKvittering = kastKanKunKallesFraAnnenService()
 
-                override fun genererUtbetalingsRequest(
+                override fun verifiserOgSimulerUtbetaling(
                     request: UtbetalRequest.NyUtbetaling,
                 ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> = kastKanKunKallesFraAnnenService()
 
@@ -271,7 +271,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun genererOpphørsRequest(
+                override fun verifiserOgSimulerOpphør(
                     request: UtbetalRequest.Opphør,
                 ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> = kastKanKunKallesFraAnnenService()
 

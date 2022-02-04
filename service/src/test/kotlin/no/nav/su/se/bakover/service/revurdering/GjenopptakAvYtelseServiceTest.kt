@@ -276,7 +276,7 @@ internal class GjenopptakAvYtelseServiceTest {
                     begrunnelse = "begrunnelse",
                 ),
             ),
-        ).getOrFail("skulle gått bra")
+        ).getOrFail()
 
         response.saksbehandler shouldBe saksbehandler
         response.periode shouldBe periode
@@ -294,10 +294,10 @@ internal class GjenopptakAvYtelseServiceTest {
         )
         verify(serviceAndMocks.utbetalingService).simulerGjenopptak(
             request = argThat {
-                    it shouldBe SimulerUtbetalingRequest.Gjenopptak(
-            saksbehandler = saksbehandler,sak = sak,
-                    )
-                },
+                it shouldBe SimulerUtbetalingRequest.Gjenopptak(
+                    saksbehandler = saksbehandler, sak = sak,
+                )
+            },
         )
         verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
         verify(serviceAndMocks.revurderingRepo).lagre(eq(response), anyOrNull())

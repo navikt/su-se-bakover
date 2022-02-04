@@ -109,7 +109,7 @@ internal class UtbetalingServiceImpl(
             }
     }
 
-    override fun genererUtbetalingsRequest(
+    override fun verifiserOgSimulerUtbetaling(
         request: UtbetalRequest.NyUtbetaling,
     ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
         return simulerUtbetaling(request).mapLeft {
@@ -124,7 +124,7 @@ internal class UtbetalingServiceImpl(
         }
     }
 
-    override fun genererOpphørsRequest(
+    override fun verifiserOgSimulerOpphør(
         request: UtbetalRequest.Opphør,
     ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
         return simulerOpphør(request).mapLeft {
