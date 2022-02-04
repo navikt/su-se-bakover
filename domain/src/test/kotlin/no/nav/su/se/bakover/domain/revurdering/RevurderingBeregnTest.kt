@@ -410,6 +410,7 @@ internal class RevurderingBeregnTest {
                         ),
                     ),
                 )
+                beregnet.informasjonSomRevurderes shouldBe revurdering.informasjonSomRevurderes
             }
         }
     }
@@ -534,6 +535,7 @@ internal class RevurderingBeregnTest {
                         ),
                     ),
                 )
+                beregnet.informasjonSomRevurderes shouldBe revurdering.informasjonSomRevurderes
             }
         }
     }

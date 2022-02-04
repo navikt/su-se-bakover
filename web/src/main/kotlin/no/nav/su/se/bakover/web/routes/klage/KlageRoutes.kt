@@ -11,6 +11,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.post
@@ -19,6 +20,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
@@ -110,6 +112,7 @@ internal fun Route.klageRoutes(
                                 "Finnes allerede en klagebehandling med gitt journalpostId",
                                 "finnes_allerede_en_klagebehandling",
                             )
+                            is KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost -> it.feil.toErrorJson()
                         }
                     }
                     call.svar(resultat)
@@ -477,5 +480,42 @@ private fun KunneIkkeLageBrevutkast.toErrorJson(): Resultat {
         KunneIkkeLageBrevutkast.FantIkkeKlage -> fantIkkeKlage
         is KunneIkkeLageBrevutkast.FeilVedBrevRequest -> this.feil.toErrorJson()
         is KunneIkkeLageBrevutkast.GenereringAvBrevFeilet -> this.feil.toErrorJson()
+    }
+}
+
+private fun KunneIkkeHenteJournalpost.toErrorJson(): Resultat {
+    return when (this) {
+        KunneIkkeHenteJournalpost.FantIkkeJournalpost -> BadRequest.errorJson(
+            "Fant ikke journalpost",
+            "fant_ikke_journalpost",
+        )
+        KunneIkkeHenteJournalpost.IkkeTilgang -> Unauthorized.errorJson(
+            "Ikke tilgang til Journalpost",
+            "ikke_tilgang_til_journalpost",
+        )
+        KunneIkkeHenteJournalpost.TekniskFeil -> InternalServerError.errorJson(
+            "Teknisk feil ved henting av journalpost",
+            "teknisk_feil_ved_henting_av_journalpost",
+        )
+        KunneIkkeHenteJournalpost.Ukjent -> InternalServerError.errorJson(
+            "Ukjent feil ved henting av journalpost",
+            "ukjent_feil_ved_henting_av_journalpost",
+        )
+        KunneIkkeHenteJournalpost.UgyldigInput -> BadRequest.errorJson(
+            "Ugyldig journalpostId",
+            "ugyldig_journalpostId",
+        )
+        KunneIkkeHenteJournalpost.JournalpostIkkeKnyttetTilSak -> BadRequest.errorJson(
+            "Journalposten er ikke knyttet til saken",
+            "journalpost_ikke_knyttet_til_sak",
+        )
+        KunneIkkeHenteJournalpost.JournalpostTemaErIkkeSUP -> BadRequest.errorJson(
+            "Journalpost temaet er ikke SUP",
+            "journalpost_tema_er_ikke_sup",
+        )
+        KunneIkkeHenteJournalpost.JournalpostenErIkkeFerdigstilt -> BadRequest.errorJson(
+            "Journalposten er ikke ferdigstilt",
+            "journalpost_er_ikke_ferdigstilt",
+        )
     }
 }

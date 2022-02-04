@@ -179,7 +179,7 @@ internal fun Klage.toJson(): KlageJson {
             fritekstTilBrev = this.vurderinger.fritekstTilBrev,
             vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
             attesteringer = this.attesteringer.toJson(),
-            klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() }
+            klagevedtakshistorikk = klagevedtakshistorikk.map { it.toJson() },
         )
         is KlageTilAttestering.Avvist -> KlageJson(
             id = this.id.toString(),

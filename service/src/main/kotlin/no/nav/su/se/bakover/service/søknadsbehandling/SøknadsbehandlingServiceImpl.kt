@@ -22,6 +22,8 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -230,14 +232,15 @@ internal class SøknadsbehandlingServiceImpl(
             søknadsbehandling = saksbehandling,
             statusovergang = Statusovergang.TilSimulert { beregning ->
                 utbetalingService.simulerUtbetaling(
-                    saksbehandling.sakId,
-                    request.saksbehandler,
-                    beregning,
-                    saksbehandling.vilkårsvurderinger.uføre.grunnlag,
-                )
-                    .map {
-                        it.simulering
-                    }
+                    SimulerUtbetalingRequest.NyUtbetaling(
+                        sakId = saksbehandling.sakId,
+                        saksbehandler = request.saksbehandler,
+                        beregning = beregning,
+                        uføregrunnlag = saksbehandling.vilkårsvurderinger.uføre.grunnlag,
+                    ),
+                ).map {
+                    it.simulering
+                }
             },
         ).mapLeft {
             SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
@@ -378,11 +381,15 @@ internal class SøknadsbehandlingServiceImpl(
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
 
                     val utbetaling = utbetalingService.genererUtbetalingsRequest(
-                        sakId = iverksattBehandling.sakId,
-                        attestant = request.attestering.attestant,
-                        beregning = iverksattBehandling.beregning,
-                        simulering = iverksattBehandling.simulering,
-                        uføregrunnlag = iverksattBehandling.vilkårsvurderinger.uføre.grunnlag,
+                        request = UtbetalRequest.NyUtbetaling(
+                            request = SimulerUtbetalingRequest.NyUtbetaling(
+                                sakId = iverksattBehandling.sakId,
+                                saksbehandler = request.attestering.attestant,
+                                beregning = iverksattBehandling.beregning,
+                                uføregrunnlag = iverksattBehandling.vilkårsvurderinger.uføre.grunnlag,
+                            ),
+                            simulering = iverksattBehandling.simulering,
+                        ),
                     ).getOrHandle { kunneIkkeUtbetale ->
                         log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $kunneIkkeUtbetale")
                         return KunneIkkeIverksette.KunneIkkeUtbetale(kunneIkkeUtbetale).left()
@@ -396,7 +403,10 @@ internal class SøknadsbehandlingServiceImpl(
                             vedtakRepo.lagre(vedtak, it)
                             kontrollsamtaleService.opprettPlanlagtKontrollsamtale(vedtak, it)
                             utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
-                                log.error("Kunne ikke publisere utbetaling på køen. Ruller tilbake. SakId: ${iverksattBehandling.sakId}", feil)
+                                log.error(
+                                    "Kunne ikke publisere utbetaling på køen. Ruller tilbake. SakId: ${iverksattBehandling.sakId}",
+                                    feil,
+                                )
                                 throw RuntimeException("Publisering av utbetaling på køen feilet. $feil")
                             }
                         }

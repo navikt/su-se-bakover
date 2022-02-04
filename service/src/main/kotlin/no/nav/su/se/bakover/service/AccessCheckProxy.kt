@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -47,13 +46,14 @@ import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
@@ -216,36 +216,27 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
 
                 override fun simulerUtbetaling(
-                    sakId: UUID,
-                    saksbehandler: NavIdentBruker,
-                    beregning: Beregning,
-                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+                    request: SimulerUtbetalingRequest.NyUtbetalingRequest,
                 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-                    assertHarTilgangTilSak(sakId)
+                    assertHarTilgangTilSak(request.sakId)
 
-                    return services.utbetaling.simulerUtbetaling(sakId, saksbehandler, beregning, uføregrunnlag)
+                    return services.utbetaling.simulerUtbetaling(request)
                 }
 
                 override fun simulerOpphør(
-                    sakId: UUID,
-                    saksbehandler: NavIdentBruker,
-                    opphørsdato: LocalDate,
+                    request: SimulerUtbetalingRequest.OpphørRequest,
                 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-                    assertHarTilgangTilSak(sakId)
+                    assertHarTilgangTilSak(request.sakId)
 
-                    return services.utbetaling.simulerOpphør(sakId, saksbehandler, opphørsdato)
+                    return services.utbetaling.simulerOpphør(request)
                 }
 
                 override fun utbetal(
-                    sakId: UUID,
-                    attestant: NavIdentBruker,
-                    beregning: Beregning,
-                    simulering: Simulering,
-                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+                    request: UtbetalRequest.NyUtbetaling,
                 ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                    assertHarTilgangTilSak(sakId)
+                    assertHarTilgangTilSak(request.sakId)
 
-                    return services.utbetaling.utbetal(sakId, attestant, beregning, simulering, uføregrunnlag)
+                    return services.utbetaling.utbetal(request)
                 }
 
                 override fun publiserUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling): Either<UtbetalingFeilet, Utbetalingsrequest> = kastKanKunKallesFraAnnenService()
@@ -256,53 +247,38 @@ open class AccessCheckProxy(
                 ): Utbetaling.OversendtUtbetaling.UtenKvittering = kastKanKunKallesFraAnnenService()
 
                 override fun genererUtbetalingsRequest(
-                    sakId: UUID,
-                    attestant: NavIdentBruker,
-                    beregning: Beregning,
-                    simulering: Simulering,
-                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+                    request: UtbetalRequest.NyUtbetaling,
                 ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> = kastKanKunKallesFraAnnenService()
 
                 override fun simulerStans(
-                    sakId: UUID,
-                    saksbehandler: NavIdentBruker,
-                    stansDato: LocalDate,
+                    request: SimulerUtbetalingRequest.StansRequest,
                 ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
                     kastKanKunKallesFraAnnenService()
                 }
 
                 override fun stansUtbetalinger(
-                    sakId: UUID,
-                    attestant: NavIdentBruker,
-                    simulering: Simulering,
-                    stansDato: LocalDate,
+                    request: UtbetalRequest.Stans,
                 ): Either<UtbetalStansFeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
                     kastKanKunKallesFraAnnenService()
                 }
 
                 override fun simulerGjenopptak(
-                    sak: Sak,
-                    saksbehandler: NavIdentBruker,
+                    request: SimulerUtbetalingRequest.GjenopptakRequest,
                 ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
                     kastKanKunKallesFraAnnenService()
                 }
 
                 override fun gjenopptaUtbetalinger(
-                    sakId: UUID,
-                    attestant: NavIdentBruker,
-                    simulering: Simulering,
+                    request: UtbetalRequest.Gjenopptak,
                 ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
                     kastKanKunKallesFraAnnenService()
                 }
 
                 override fun opphør(
-                    sakId: UUID,
-                    attestant: NavIdentBruker,
-                    simulering: Simulering,
-                    opphørsdato: LocalDate,
+                    request: UtbetalRequest.Opphør,
                 ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                    assertHarTilgangTilSak(sakId)
-                    return services.utbetaling.opphør(sakId, attestant, simulering, opphørsdato)
+                    assertHarTilgangTilSak(request.sakId)
+                    return services.utbetaling.opphør(request)
                 }
 
                 override fun hentGjeldendeUtbetaling(

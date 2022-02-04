@@ -54,6 +54,7 @@ internal class ServiceBuilderTest {
                 leaderPodLookup = mock(),
                 kafkaPublisher = mock(),
                 klageClient = mock(),
+                journalpostClient = mock(),
                 tilbakekrevingClient = mock(),
             ),
             behandlingMetrics = mock(),

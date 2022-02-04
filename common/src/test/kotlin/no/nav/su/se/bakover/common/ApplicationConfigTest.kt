@@ -79,8 +79,12 @@ internal class ApplicationConfigTest {
             dkifUrl = "http://dkif.default.svc.nais.local",
             kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
                 url = "kabalUrl",
-                clientId = "kabalClientId"
-            )
+                clientId = "kabalClientId",
+            ),
+            safConfig = ApplicationConfig.ClientsConfig.SafConfig(
+                url = "safUrl",
+                clientId = "safClientId",
+            ),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -188,6 +192,8 @@ internal class ApplicationConfigTest {
                 "PDL_CLIENT_ID" to "pdlClientId",
                 "KABAL_URL" to "kabalUrl",
                 "KABAL_CLIENT_ID" to "kabalClientId",
+                "SAF_URL" to "safUrl",
+                "SAF_CLIENT_ID" to "safClientId",
                 "HOSTNAME" to "hostname",
                 "TODO_MQ_KRAVGRUNNLAG_REPLY_TO" to "TODO_MQ_KRAVGRUNNLAG_REPLY_TO",
                 "TODO_KRAVGRUNNLAG_SOAP" to "TODO_KRAVGRUNNLAG_SOAP",
@@ -260,7 +266,8 @@ internal class ApplicationConfigTest {
                     stsUrl = "mocked",
                     skjermingUrl = "mocked",
                     dkifUrl = "mocked",
-                    kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("mocked", "mocked")
+                    kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("mocked", "mocked"),
+                    safConfig = ApplicationConfig.ClientsConfig.SafConfig("mocked", "mocked"),
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),

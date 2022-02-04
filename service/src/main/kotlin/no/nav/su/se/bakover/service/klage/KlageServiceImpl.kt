@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
@@ -56,6 +57,7 @@ class KlageServiceImpl(
     private val klageClient: KlageClient,
     private val sessionFactory: SessionFactory,
     private val oppgaveService: OppgaveService,
+    private val journalpostClient: JournalpostClient,
     val clock: Clock,
 ) : KlageService {
 
@@ -72,6 +74,10 @@ class KlageServiceImpl(
 
         if (sak.klager.harEksisterendeJournalpostId(request.journalpostId)) {
             return KunneIkkeOppretteKlage.HarAlleredeEnKlageBehandling.left()
+        }
+
+        journalpostClient.hentFerdigstiltJournalpost(sak.saksnummer, request.journalpostId).mapLeft {
+            return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(it).left()
         }
 
         val aktørId = personService.hentAktørId(sak.fnr).getOrElse {

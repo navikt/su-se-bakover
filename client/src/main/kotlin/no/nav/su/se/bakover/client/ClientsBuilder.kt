@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
@@ -40,5 +41,6 @@ data class Clients(
     val leaderPodLookup: LeaderPodLookup,
     val kafkaPublisher: KafkaPublisher,
     val klageClient: KlageClient,
+    val journalpostClient: JournalpostClient,
     val tilbakekrevingClient: TilbakekrevingClient,
 )

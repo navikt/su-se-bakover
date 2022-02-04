@@ -30,6 +30,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -76,6 +78,7 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.Event.Statistikk.RevurderingStatistikk.RevurderingAvsluttet
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -101,6 +104,7 @@ internal class RevurderingServiceImpl(
     private val sessionFactory: SessionFactory,
     sakService: SakService,
     private val avkortingsvarselRepo: AvkortingsvarselRepo,
+    private val toggleService: ToggleService,
 ) : RevurderingService {
     private val stansAvYtelseService = StansAvYtelseService(
         utbetalingService = utbetalingService,
@@ -721,7 +725,8 @@ internal class RevurderingServiceImpl(
                     gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
                         sakId = originalRevurdering.sakId,
                         fraOgMed = originalRevurdering.periode.fraOgMed,
-                    ).getOrHandle { throw IllegalStateException("Fant ikke gjeldende vedtaksdata for sak:${originalRevurdering.sakId}") },
+                    )
+                        .getOrHandle { throw IllegalStateException("Fant ikke gjeldende vedtaksdata for sak:${originalRevurdering.sakId}") },
                 ).getOrHandle {
                     return when (it) {
                         is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> {
@@ -770,10 +775,12 @@ internal class RevurderingServiceImpl(
                     }
                     is BeregnetRevurdering.Innvilget -> {
                         utbetalingService.simulerUtbetaling(
-                            sakId = beregnetRevurdering.sakId,
-                            saksbehandler = saksbehandler,
-                            beregning = beregnetRevurdering.beregning,
-                            uføregrunnlag = beregnetRevurdering.vilkårsvurderinger.uføre.grunnlag,
+                            request = SimulerUtbetalingRequest.NyUtbetaling(
+                                sakId = beregnetRevurdering.sakId,
+                                saksbehandler = saksbehandler,
+                                beregning = beregnetRevurdering.beregning,
+                                uføregrunnlag = beregnetRevurdering.vilkårsvurderinger.uføre.grunnlag,
+                            ),
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
                         }.map {
@@ -800,9 +807,11 @@ internal class RevurderingServiceImpl(
                         // TODO er tanken at vi skal oppdatere saksbehandler her? Det kan se ut som vi har tenkt det, men aldri fullført.
                         beregnetRevurdering.toSimulert { sakId, _, opphørsdato ->
                             utbetalingService.simulerOpphør(
-                                sakId = sakId,
-                                saksbehandler = saksbehandler,
-                                opphørsdato = opphørsdato,
+                                request = SimulerUtbetalingRequest.Opphør(
+                                    sakId = sakId,
+                                    saksbehandler = saksbehandler,
+                                    opphørsdato = opphørsdato,
+                                ),
                             )
                         }.mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }
                             .map { simulert ->
@@ -1148,7 +1157,7 @@ internal class RevurderingServiceImpl(
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }.flatMap {
-                    if (revurdering.harSimuleringFeilutbetaling()) KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left() else Unit.right()
+                    if (!feilutbetalingTillatt() && revurdering.harSimuleringFeilutbetaling()) KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left() else Unit.right()
                 }
             }
             is UnderkjentRevurdering.Innvilget -> {
@@ -1160,7 +1169,7 @@ internal class RevurderingServiceImpl(
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }.flatMap {
-                    if (revurdering.harSimuleringFeilutbetaling()) KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left() else Unit.right()
+                    if (!feilutbetalingTillatt() && revurdering.harSimuleringFeilutbetaling()) KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left() else Unit.right()
                 }
             }
             is UnderkjentRevurdering.Opphørt -> {
@@ -1172,7 +1181,7 @@ internal class RevurderingServiceImpl(
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }.flatMap {
-                    if (revurdering.harSimuleringFeilutbetaling()) KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left() else Unit.right()
+                    if (!feilutbetalingTillatt() && revurdering.harSimuleringFeilutbetaling()) KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left() else Unit.right()
                 }
             }
             is UnderkjentRevurdering.IngenEndring -> {
@@ -1190,6 +1199,10 @@ internal class RevurderingServiceImpl(
                 til = RevurderingTilAttestering::class,
             ).left()
         }
+    }
+
+    private fun feilutbetalingTillatt(): Boolean {
+        return toggleService.isEnabled("supstonad.ufore.feilutbetaling")
     }
 
     override fun lagBrevutkastForRevurdering(
@@ -1275,11 +1288,16 @@ internal class RevurderingServiceImpl(
                             clock = clock,
                             utbetal = {
                                 utbetalingService.utbetal(
-                                    sakId = revurdering.sakId,
-                                    beregning = revurdering.beregning,
-                                    simulering = revurdering.simulering,
-                                    attestant = attestant,
-                                    uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
+                                    request = UtbetalRequest.NyUtbetaling(
+                                        request = SimulerUtbetalingRequest.NyUtbetaling(
+                                            sakId = revurdering.sakId,
+                                            saksbehandler = attestant,
+                                            beregning = revurdering.beregning,
+                                            uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
+                                        ),
+                                        simulering = revurdering.simulering,
+                                    ),
+
                                 ).mapLeft {
                                     RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
                                 }.map {
@@ -1305,10 +1323,14 @@ internal class RevurderingServiceImpl(
                             clock = clock,
                             utbetal = { sakId: UUID, _: NavIdentBruker.Attestant, opphørsdato: LocalDate, simulering: Simulering ->
                                 utbetalingService.opphør(
-                                    sakId = sakId,
-                                    attestant = attestant,
-                                    opphørsdato = opphørsdato,
-                                    simulering = simulering,
+                                    request = UtbetalRequest.Opphør(
+                                        request = SimulerUtbetalingRequest.Opphør(
+                                            sakId = sakId,
+                                            saksbehandler = attestant,
+                                            opphørsdato = opphørsdato,
+                                        ),
+                                        simulering = simulering,
+                                    ),
                                 ).mapLeft {
                                     RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
                                 }.map {

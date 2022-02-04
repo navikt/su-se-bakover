@@ -5,12 +5,14 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import org.junit.jupiter.api.Test
@@ -35,25 +37,31 @@ internal class SimuleringRequestBuilderValidationTest {
     fun `valider soap xml mot xsd skjema`() {
         val eksisterendeOppdragslinjeid = UUID30.randomUUID()
         val simuleringRequest = SimuleringRequestBuilder(
-            utbetaling = Utbetaling.UtbetalingForSimulering(
-                opprettet = fixedTidspunkt,
-                saksnummer = saksnummer,
-                sakId = sakId,
-                utbetalingslinjer = nonEmptyListOf(
-                    Utbetalingslinje.Ny(
-                        opprettet = fixedTidspunkt,
-                        fraOgMed = 1.januar(2020),
-                        tilOgMed = 31.januar(2020),
-                        beløp = 10,
-                        forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid,
-                        uføregrad = Uføregrad.parse(50),
+            request = SimulerUtbetalingForPeriode(
+                utbetaling = Utbetaling.UtbetalingForSimulering(
+                    opprettet = fixedTidspunkt,
+                    saksnummer = saksnummer,
+                    sakId = sakId,
+                    utbetalingslinjer = nonEmptyListOf(
+                        Utbetalingslinje.Ny(
+                            opprettet = fixedTidspunkt,
+                            fraOgMed = 1.januar(2020),
+                            tilOgMed = 31.januar(2020),
+                            beløp = 10,
+                            forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid,
+                            uføregrad = Uføregrad.parse(50),
+                        ),
                     ),
-                ),
-                fnr = Fnr("12345678910"),
-                type = Utbetaling.UtbetalingsType.NY,
+                    fnr = Fnr("12345678910"),
+                    type = Utbetaling.UtbetalingsType.NY,
 
-                behandler = NavIdentBruker.Saksbehandler("Z123"),
-                avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
+                    behandler = NavIdentBruker.Saksbehandler("Z123"),
+                    avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
+                ),
+                simuleringsperiode = Periode.create(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.januar(2020),
+                ),
             ),
         ).build().request
 
@@ -66,7 +74,7 @@ internal class SimuleringRequestBuilderValidationTest {
         marshaller.schema = s
         marshaller.marshal(
             JAXBElement(QName("", "request"), SimulerBeregningRequest::class.java, simuleringRequest),
-            DefaultHandler()
+            DefaultHandler(),
         )
     }
 }

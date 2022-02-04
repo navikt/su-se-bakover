@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.klage
 
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.person.IdentClient
@@ -24,6 +25,7 @@ internal data class KlageServiceMocks(
     val klageClient: KlageClient = mock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val oppgaveService: OppgaveService = mock(),
+    val journalpostClient: JournalpostClient = mock(),
     val clock: Clock = fixedClock,
 ) {
     val service = KlageServiceImpl(
@@ -36,6 +38,7 @@ internal data class KlageServiceMocks(
         klageClient = klageClient,
         sessionFactory = sessionFactory,
         oppgaveService = oppgaveService,
+        journalpostClient = journalpostClient,
         clock = clock,
     )
 
@@ -48,6 +51,7 @@ internal data class KlageServiceMocks(
         identClient,
         klageClient,
         oppgaveService,
+        journalpostClient,
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {

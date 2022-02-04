@@ -8,6 +8,8 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -113,10 +115,14 @@ internal class StansAvYtelseService(
                 ).getOrHandle { return KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling.left() }
 
                 val stansUtbetaling = utbetalingService.stansUtbetalinger(
-                    sakId = iverksattRevurdering.sakId,
-                    attestant = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
-                    simulering = revurdering.simulering,
-                    stansDato = iverksattRevurdering.periode.fraOgMed,
+                    request = UtbetalRequest.Stans(
+                        request = SimulerUtbetalingRequest.Stans(
+                            sakId = iverksattRevurdering.sakId,
+                            saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
+                            stansdato = iverksattRevurdering.periode.fraOgMed,
+                        ),
+                        simulering = iverksattRevurdering.simulering,
+                    ),
                 ).getOrHandle { return KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(it).left() }
 
                 val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.id, clock)
@@ -153,9 +159,11 @@ internal class StansAvYtelseService(
 
     private fun simuler(request: StansYtelseRequest): Either<KunneIkkeStanseYtelse, Utbetaling.SimulertUtbetaling> {
         return utbetalingService.simulerStans(
-            sakId = request.sakId,
-            saksbehandler = request.saksbehandler,
-            stansDato = request.fraOgMed,
+            request = SimulerUtbetalingRequest.Stans(
+                sakId = request.sakId,
+                saksbehandler = request.saksbehandler,
+                stansdato = request.fraOgMed,
+            ),
         ).getOrHandle {
             log.warn("Kunne ikke opprette revurdering for stans av ytelse, årsak: $it")
             return KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).left()
