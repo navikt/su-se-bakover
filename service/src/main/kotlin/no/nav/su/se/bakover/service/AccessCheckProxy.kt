@@ -766,13 +766,6 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun kopierGjeldendeVedtaksdataForRegulering(
-                    sakId: UUID,
-                    fraOgMed: LocalDate,
-                ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
                 override fun historiskGrunnlagForVedtaksperiode(
                     sakId: UUID,
                     vedtakId: UUID,

@@ -21,11 +21,6 @@ interface VedtakService {
         fraOgMed: LocalDate,
     ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata>
 
-    fun kopierGjeldendeVedtaksdataForRegulering(
-        sakId: UUID,
-        fraOgMed: LocalDate,
-    ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata>
-
     fun historiskGrunnlagForVedtaksperiode(
         sakId: UUID,
         vedtakId: UUID,
