@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.regulering.BehandlingType
+import no.nav.su.se.bakover.domain.regulering.ReguleringType
 import no.nav.su.se.bakover.domain.regulering.VedtakSomKanReguleres
 import no.nav.su.se.bakover.domain.regulering.VedtakType
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
@@ -44,7 +44,7 @@ internal class ReguleringPostgresRepoTest {
                 fraOgMed = søknadsbehandling.periode.fraOgMed,
                 tilOgMed = søknadsbehandling.periode.tilOgMed,
                 vedtakType = VedtakType.SØKNAD,
-                behandlingType = BehandlingType.AUTOMATISK,
+                reguleringType = ReguleringType.AUTOMATISK,
             )
         }
     }
@@ -58,7 +58,7 @@ internal class ReguleringPostgresRepoTest {
             val list = testDataHelper.reguleringRepo.hentVedtakSomKanReguleres(1.mai(2021))
 
             list.size shouldBe 1
-            list.first().behandlingType shouldBe BehandlingType.AUTOMATISK
+            list.first().reguleringType shouldBe ReguleringType.AUTOMATISK
         }
     }
 
@@ -69,14 +69,14 @@ internal class ReguleringPostgresRepoTest {
             testDataHelper.nyIverksattInnvilget(
                 grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = listOf(lagFradragsgrunnlag(Fradragstype.OffentligPensjon)),
-                    bosituasjon = listOf(bosituasjongrunnlagEnslig(UUID.randomUUID(), stønadsperiode2021.periode))
+                    bosituasjon = listOf(bosituasjongrunnlagEnslig(UUID.randomUUID(), stønadsperiode2021.periode)),
                 ),
             )
 
             val list = testDataHelper.reguleringRepo.hentVedtakSomKanReguleres(1.mai(2021))
 
             list.size shouldBe 1
-            list.first().behandlingType shouldBe BehandlingType.MANUELL
+            list.first().reguleringType shouldBe ReguleringType.MANUELL
         }
     }
 
@@ -87,14 +87,14 @@ internal class ReguleringPostgresRepoTest {
             testDataHelper.nyIverksattInnvilget(
                 grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = listOf(lagFradragsgrunnlag(Fradragstype.NAVytelserTilLivsopphold)),
-                    bosituasjon = listOf(bosituasjongrunnlagEnslig(UUID.randomUUID(), stønadsperiode2021.periode))
+                    bosituasjon = listOf(bosituasjongrunnlagEnslig(UUID.randomUUID(), stønadsperiode2021.periode)),
                 ),
             )
 
             val list = testDataHelper.reguleringRepo.hentVedtakSomKanReguleres(1.mai(2021))
 
             list.size shouldBe 1
-            list.first().behandlingType shouldBe BehandlingType.MANUELL
+            list.first().reguleringType shouldBe ReguleringType.MANUELL
         }
     }
 
@@ -106,15 +106,20 @@ internal class ReguleringPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             testDataHelper.nyIverksattInnvilget(
                 grunnlagsdata = Grunnlagsdata.create(
-                    fradragsgrunnlag = listOf(lagFradragsgrunnlag(Fradragstype.OffentligPensjon, periodeUtenforGittDato)),
-                    bosituasjon = listOf(bosituasjongrunnlagEnslig(UUID.randomUUID(), stønadsperiode2021.periode))
+                    fradragsgrunnlag = listOf(
+                        lagFradragsgrunnlag(
+                            Fradragstype.OffentligPensjon,
+                            periodeUtenforGittDato,
+                        ),
+                    ),
+                    bosituasjon = listOf(bosituasjongrunnlagEnslig(UUID.randomUUID(), stønadsperiode2021.periode)),
                 ),
             )
 
             val list = testDataHelper.reguleringRepo.hentVedtakSomKanReguleres(1.mai(2021))
 
             list.size shouldBe 1
-            list.first().behandlingType shouldBe BehandlingType.AUTOMATISK
+            list.first().reguleringType shouldBe ReguleringType.AUTOMATISK
         }
     }
 
@@ -124,7 +129,7 @@ internal class ReguleringPostgresRepoTest {
         val list = testDataHelper.reguleringRepo.hentVedtakSomKanReguleres(1.mai(2021))
 
         list.size shouldBe 1
-        list.first().behandlingType shouldBe BehandlingType.MANUELL
+        list.first().reguleringType shouldBe ReguleringType.MANUELL
     }
 
     @Test
@@ -134,7 +139,7 @@ internal class ReguleringPostgresRepoTest {
         val list = testDataHelper.reguleringRepo.hentVedtakSomKanReguleres(1.mai(2021))
 
         list.size shouldBe 1
-        list.first().behandlingType shouldBe BehandlingType.MANUELL
+        list.first().reguleringType shouldBe ReguleringType.MANUELL
     }
 
     @Test
@@ -144,7 +149,7 @@ internal class ReguleringPostgresRepoTest {
         val list = testDataHelper.reguleringRepo.hentVedtakSomKanReguleres(1.mai(2021))
 
         list.size shouldBe 1
-        list.first().behandlingType shouldBe BehandlingType.MANUELL
+        list.first().reguleringType shouldBe ReguleringType.MANUELL
     }
 
     @Test
@@ -154,7 +159,7 @@ internal class ReguleringPostgresRepoTest {
         val list = testDataHelper.reguleringRepo.hentVedtakSomKanReguleres(1.mai(2021))
 
         list.size shouldBe 1
-        list.first().behandlingType shouldBe BehandlingType.AUTOMATISK
+        list.first().reguleringType shouldBe ReguleringType.AUTOMATISK
     }
 
     @Test
@@ -164,7 +169,7 @@ internal class ReguleringPostgresRepoTest {
         val list = testDataHelper.reguleringRepo.hentVedtakSomKanReguleres(1.mai(2021))
 
         list.size shouldBe 1
-        list.first().behandlingType shouldBe BehandlingType.MANUELL
+        list.first().reguleringType shouldBe ReguleringType.MANUELL
     }
 
     @Test
@@ -174,7 +179,7 @@ internal class ReguleringPostgresRepoTest {
         val list = testDataHelper.reguleringRepo.hentVedtakSomKanReguleres(1.mai(2021))
 
         list.size shouldBe 1
-        list.first().behandlingType shouldBe BehandlingType.MANUELL
+        list.first().reguleringType shouldBe ReguleringType.MANUELL
     }
 
     @Test
@@ -184,7 +189,7 @@ internal class ReguleringPostgresRepoTest {
         val list = testDataHelper.reguleringRepo.hentVedtakSomKanReguleres(1.mai(2021))
 
         list.size shouldBe 1
-        list.first().behandlingType shouldBe BehandlingType.MANUELL
+        list.first().reguleringType shouldBe ReguleringType.MANUELL
     }
 
     private fun setupTestData(fradragsPeriode: Periode): TestDataHelper {
@@ -193,7 +198,7 @@ internal class ReguleringPostgresRepoTest {
             nyIverksattInnvilget(
                 grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = listOf(lagFradragsgrunnlag(Fradragstype.OffentligPensjon, fradragsPeriode)),
-                    bosituasjon = listOf(bosituasjongrunnlagEnslig(UUID.randomUUID(), stønadsperiode2021.periode))
+                    bosituasjon = listOf(bosituasjongrunnlagEnslig(UUID.randomUUID(), stønadsperiode2021.periode)),
                 ),
             )
         }
@@ -201,7 +206,10 @@ internal class ReguleringPostgresRepoTest {
         return testDataHelper
     }
 
-    private fun lagFradragsgrunnlag(fradragstype: Fradragstype, periode: Periode = stønadsperiode2021.periode): Grunnlag.Fradragsgrunnlag {
+    private fun lagFradragsgrunnlag(
+        fradragstype: Fradragstype,
+        periode: Periode = stønadsperiode2021.periode,
+    ): Grunnlag.Fradragsgrunnlag {
         return Grunnlag.Fradragsgrunnlag.create(
             UUID.randomUUID(), Tidspunkt.now(),
             FradragFactory.ny(
@@ -209,8 +217,8 @@ internal class ReguleringPostgresRepoTest {
                 månedsbeløp = 3000.0,
                 periode = periode,
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
-            )
+                tilhører = FradragTilhører.BRUKER,
+            ),
         )
     }
 }

@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.vedtak.VedtakType
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.regulering.BehandlingType
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
+import no.nav.su.se.bakover.domain.regulering.ReguleringType
 import no.nav.su.se.bakover.domain.regulering.VedtakSomKanReguleres
 import java.time.LocalDate
 import javax.sql.DataSource
@@ -18,7 +18,7 @@ internal class ReguleringPostgresRepo(
     private val dataSource: DataSource,
     private val sessionFactory: PostgresSessionFactory,
 ) : ReguleringRepo {
-    override fun hentVedtakSomKanReguleres(dato: LocalDate): List<VedtakSomKanReguleres> {
+    override fun hentVedtakSomKanReguleres(fraOgMed: LocalDate): List<VedtakSomKanReguleres> {
         return dataSource.withSession { session ->
             """
                 with sakogid (sakid, saksnummer, bid, fraOgMed, tilOgMed, vedtaktype, opprettet ) as (
@@ -58,7 +58,7 @@ internal class ReguleringPostgresRepo(
                          end behandlingtype
                        from sakogid s
             """.trimIndent()
-                .hentListe(mapOf("dato" to dato), session) {
+                .hentListe(mapOf("dato" to fraOgMed), session) {
                     it.toVedtakSomKanReguleres()
                 }
         }
@@ -81,7 +81,7 @@ internal class ReguleringPostgresRepo(
             VedtakType.GJENOPPTAK_AV_YTELSE -> no.nav.su.se.bakover.domain.regulering.VedtakType.GJENOPPTAK_AV_YTELSE
             VedtakType.AVVIST_KLAGE -> no.nav.su.se.bakover.domain.regulering.VedtakType.AVVIST_KLAGE
         }
-        val behandlingType = BehandlingType.valueOf(string("behandlingtype"))
+        val reguleringType = ReguleringType.valueOf(string("behandlingtype"))
 
         return VedtakSomKanReguleres(
             sakId = sakId,
@@ -91,7 +91,7 @@ internal class ReguleringPostgresRepo(
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
             vedtakType = vedtakType,
-            behandlingType = behandlingType,
+            reguleringType = reguleringType,
         )
     }
 }

@@ -100,7 +100,6 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontr
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.regulering.KanIkkeHenteSaker
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.service.regulering.SakerSomKanReguleres
 import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
@@ -922,7 +921,7 @@ open class AccessCheckProxy(
                 }
             },
             reguleringService = object : ReguleringService {
-                override fun hentAlleSakerSomKanReguleres(fraDato: LocalDate): Either<KanIkkeHenteSaker, SakerSomKanReguleres> {
+                override fun hentAlleSakerSomKanReguleres(fraDato: LocalDate?): SakerSomKanReguleres {
                     kastKanKunKallesFraAnnenService()
                 }
             },

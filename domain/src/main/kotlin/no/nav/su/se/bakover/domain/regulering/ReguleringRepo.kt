@@ -13,10 +13,10 @@ data class VedtakSomKanReguleres(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
     val vedtakType: VedtakType,
-    val behandlingType: BehandlingType,
+    val reguleringType: ReguleringType,
 )
 
-enum class BehandlingType {
+enum class ReguleringType {
     AUTOMATISK,
     MANUELL,
 }
@@ -33,5 +33,5 @@ enum class VedtakType {
 }
 
 interface ReguleringRepo {
-    fun hentVedtakSomKanReguleres(dato: LocalDate): List<VedtakSomKanReguleres>
+    fun hentVedtakSomKanReguleres(fraOgMed: LocalDate): List<VedtakSomKanReguleres>
 }

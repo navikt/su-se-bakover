@@ -1,23 +1,20 @@
 package no.nav.su.se.bakover.service.regulering
 
-import arrow.core.Either
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.regulering.BehandlingType
+import no.nav.su.se.bakover.domain.regulering.ReguleringType
 import java.time.LocalDate
 import java.util.UUID
 
 data class SakSomKanReguleres(
     val sakId: UUID,
     val saksnummer: Saksnummer,
-    val type: BehandlingType,
+    val reguleringType: ReguleringType,
 )
 
 data class SakerSomKanReguleres(
     val saker: List<SakSomKanReguleres>,
 )
 
-object KanIkkeHenteSaker
-
 interface ReguleringService {
-    fun hentAlleSakerSomKanReguleres(fraDato: LocalDate): Either<KanIkkeHenteSaker, SakerSomKanReguleres>
+    fun hentAlleSakerSomKanReguleres(fraDato: LocalDate?): SakerSomKanReguleres
 }
