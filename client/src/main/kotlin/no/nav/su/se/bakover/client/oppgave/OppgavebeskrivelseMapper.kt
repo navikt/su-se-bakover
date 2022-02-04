@@ -51,16 +51,15 @@ object OppgavebeskrivelseMapper {
         /*
         * Informasjonsoppgaver som må lukkes manuelt.
         * */
-        KlagevedtakUtfall.TRUKKET,
         KlagevedtakUtfall.STADFESTELSE,
+        KlagevedtakUtfall.TRUKKET,
         KlagevedtakUtfall.AVVIST -> "Denne oppgaven er kun til opplysning og må lukkes manuelt."
-        /*
-        * Oppgaver som krever handling. Lukkes automatisk av `su-se-bakover`.
-        * */
-        KlagevedtakUtfall.RETUR,
+        /* Oppgaver som krever ytterligere handlinger og må lukkes manuelt. */
+        KlagevedtakUtfall.UGUNST,
         KlagevedtakUtfall.OPPHEVET,
         KlagevedtakUtfall.MEDHOLD,
-        KlagevedtakUtfall.DELVIS_MEDHOLD,
-        KlagevedtakUtfall.UGUNST -> "Klagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk."
+        KlagevedtakUtfall.DELVIS_MEDHOLD -> "Klagen krever ytterligere saksbehandling. Denne oppgaven må lukkes manuelt."
+        /* Oppgaver som krever ytterligere handling. Oppgaver lukkes automatisk av `su-se-bakover` */
+        KlagevedtakUtfall.RETUR -> "Klagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk."
     }
 }
