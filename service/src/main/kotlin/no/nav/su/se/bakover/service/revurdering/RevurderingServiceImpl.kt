@@ -1238,55 +1238,68 @@ internal class RevurderingServiceImpl(
         val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
         if (revurdering !is RevurderingTilAttestering) return KunneIkkeIverksetteRevurdering.UgyldigTilstand(revurdering::class, IverksattRevurdering::class).left()
 
-        val iverksattRevurdering = when (revurdering) {
+        return when (revurdering) {
             is RevurderingTilAttestering.IngenEndring -> {
                 log.error("Revudere til INGEN_ENDRING er ikke lov. SakId: ${revurdering.sakId}")
-                return KunneIkkeIverksetteRevurdering.IngenEndringErIkkeGyldig.left()
+                KunneIkkeIverksetteRevurdering.IngenEndringErIkkeGyldig.left()
             }
-            is RevurderingTilAttestering.Innvilget -> {
+            is RevurderingTilAttestering.Innvilget ->
                 revurdering.tilIverksatt(
                     attestant = attestant,
                     hentOpprinneligAvkorting = { avkortingid -> avkortingsvarselRepo.hent(avkortingid) },
                     clock = clock
-                ).map { iverksattRevurdering ->
+                ).mapLeft {
+                    when (it) {
+                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+                        is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it.utbetalingFeilet)
+                    }
+                }.flatMap { iverksattRevurdering ->
                     utbetalingService.verifiserOgSimulerUtbetaling(
                         request = UtbetalRequest.NyUtbetaling(
                             request = SimulerUtbetalingRequest.NyUtbetaling(
                                 sakId = revurdering.sakId,
                                 saksbehandler = attestant, beregning = revurdering.beregning,
-
                                 uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
                             ),
                             simulering = revurdering.simulering,
                         ),
-                    ).map { utbetaling ->
-                        Either.catch {
-                            sessionFactory.withTransactionContext { tx ->
-                                val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, clock)
-                                utbetalingService.lagreUtbetaling(utbetaling, tx)
-                                vedtakRepo.lagre(vedtak, tx)
-                                revurderingRepo.lagre(iverksattRevurdering, tx)
-                                utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
-                                    log.error("Kunne ikke publisere revurderingsutbetaling på køen. Ruller tilbake. SakId: ${iverksattRevurdering.sakId}", feil)
-                                    throw UtbetalingFeiletException(feil)
+                    ).mapLeft { KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it) }
+                        .flatMap { utbetaling ->
+                            Either.catch {
+                                sessionFactory.withTransactionContext { tx ->
+                                    val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, clock)
+                                    utbetalingService.lagreUtbetaling(utbetaling, tx)
+                                    vedtakRepo.lagre(vedtak, tx)
+                                    revurderingRepo.lagre(iverksattRevurdering, tx)
+                                    utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
+                                        log.error("Kunne ikke publisere revurderingsutbetaling på køen. Ruller tilbake. SakId: ${iverksattRevurdering.sakId}", feil)
+                                        throw UtbetalingFeiletException(feil)
+                                    }
+                                }
+                            }.mapLeft {
+                                when (it) {
+                                    is UtbetalingFeiletException -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it.feil)
+                                    else -> KunneIkkeIverksetteRevurdering.LagringFeilet
                                 }
                             }
-                        }.mapLeft {
-                            return when (it) {
-                                is UtbetalingFeiletException -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it.feil).left()
-                                else -> KunneIkkeIverksetteRevurdering.LagringFeilet.left()
-                            }
                         }
-                    }
-                    iverksattRevurdering
+                        .map { iverksattRevurdering }
                 }
-            }
-            is RevurderingTilAttestering.Opphørt -> {
+            is RevurderingTilAttestering.Opphørt ->
                 revurdering.tilIverksatt(
                     attestant = attestant,
                     clock = clock,
                     hentOpprinneligAvkorting = { avkortingid -> avkortingsvarselRepo.hent(avkortingid) }
-                ).map { iverksattRevurdering ->
+                ).mapLeft {
+                    when (it) {
+                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+                        is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it.utbetalingFeilet)
+                    }
+                }.flatMap { iverksattRevurdering ->
                     utbetalingService.verifiserOgSimulerOpphør(
                         request = UtbetalRequest.Opphør(
                             request = SimulerUtbetalingRequest.Opphør(
@@ -1296,7 +1309,9 @@ internal class RevurderingServiceImpl(
                             ),
                             simulering = iverksattRevurdering.simulering,
                         ),
-                    ).map { utbetaling ->
+                    ).mapLeft {
+                        KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
+                    }.flatMap { utbetaling ->
                         Either.catch {
                             sessionFactory.withTransactionContext { tx ->
                                 val opphørtVedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, clock)
@@ -1315,33 +1330,23 @@ internal class RevurderingServiceImpl(
                                 }
                             }
                         }.mapLeft {
-                            return when (it) {
-                                is UtbetalingFeiletException -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it.feil).left()
-                                else -> KunneIkkeIverksetteRevurdering.LagringFeilet.left()
+                            when (it) {
+                                is UtbetalingFeiletException -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it.feil)
+                                else -> KunneIkkeIverksetteRevurdering.LagringFeilet
                             }
                         }
+                    }.map {
+                        iverksattRevurdering
                     }
-                    iverksattRevurdering
                 }
-            }
-        }.getOrHandle {
-            return when (it) {
-                RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-                is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(
-                    it.utbetalingFeilet,
+        }.map {
+            observers.forEach { observer ->
+                observer.handle(
+                    Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(it),
                 )
-                RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
-                RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAnnullertAvEnAnnen
-            }.left()
+            }
+            it
         }
-
-        observers.forEach { observer ->
-            observer.handle(
-                Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering),
-            )
-        }
-
-        return iverksattRevurdering.right()
     }
 
     override fun underkjenn(
