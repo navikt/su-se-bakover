@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.StatistikkService
@@ -45,6 +46,7 @@ object TestServicesBuilder {
         kontrollsamtaleService: KontrollsamtaleService = mock(),
         klageService: KlageService = mock(),
         klagevedtakService: KlagevedtakService = mock(),
+        regulerServices: ReguleringService = mock(),
     ): Services = Services(
         avstemming = avstemming,
         utbetaling = utbetaling,
@@ -66,5 +68,6 @@ object TestServicesBuilder {
         kontrollsamtale = kontrollsamtaleService,
         klageService = klageService,
         klagevedtakService = klagevedtakService,
+        reguleringService = regulerServices,
     )
 }

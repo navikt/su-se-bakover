@@ -70,6 +70,7 @@ import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
 import no.nav.su.se.bakover.web.routes.nøkkeltall.nøkkeltallRoutes
 import no.nav.su.se.bakover.web.routes.person.personRoutes
+import no.nav.su.se.bakover.web.routes.regulering.reguleringRoutes
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
@@ -267,6 +268,7 @@ fun Application.susebakover(
                     dokumentRoutes(accessProtectedServices.brev)
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
                     kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtale)
+                    reguleringRoutes(services.reguleringService)
                 }
             }
         }
@@ -319,7 +321,10 @@ fun Application.susebakover(
             clock = clock,
         ).schedule()
 
-        KlageinstansvedtakJob(klagevedtakService = services.klagevedtakService, leaderPodLookup = clients.leaderPodLookup).schedule()
+        KlageinstansvedtakJob(
+            klagevedtakService = services.klagevedtakService,
+            leaderPodLookup = clients.leaderPodLookup,
+        ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         LokalKvitteringJob(LokalKvitteringService(databaseRepos.utbetaling, utbetalingKvitteringConsumer)).schedule()
 
@@ -339,7 +344,10 @@ fun Application.susebakover(
             jobConfig = applicationConfig.jobConfig.konsistensavstemming,
             clock = clock,
         ).schedule()
-        KlageinstansvedtakJob(klagevedtakService = services.klagevedtakService, leaderPodLookup = clients.leaderPodLookup).schedule()
+        KlageinstansvedtakJob(
+            klagevedtakService = services.klagevedtakService,
+            leaderPodLookup = clients.leaderPodLookup,
+        ).schedule()
     }
 
     PersonhendelseOppgaveJob(

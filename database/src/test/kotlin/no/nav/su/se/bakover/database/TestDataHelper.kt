@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.klage.KlagevedtakPostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
+import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
@@ -326,6 +327,10 @@ internal class TestDataHelper(
         vedtakPostgresRepo = vedtakRepo,
         dbMetrics = dbMetrics,
         klageRepo = klagePostgresRepo,
+    )
+    internal val reguleringRepo = ReguleringPostgresRepo(
+        dataSource = dataSource,
+        sessionFactory = sessionFactory
     )
 
     fun nySakMedNySøknad(
