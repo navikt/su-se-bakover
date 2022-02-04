@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.klage.AvvistKlage
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KanIkkeTolkeKlagevedtak
 import no.nav.su.se.bakover.domain.klage.Klage
@@ -95,9 +95,9 @@ class KlagevedtakServiceImpl(
                 when (it) {
                     is OpprettetKlage,
                     is VilkårsvurdertKlage,
-                    is AvvistKlage,
                     is KlageTilAttestering,
                     is IverksattAvvistKlage,
+                    is AvsluttetKlage,
                     -> {
                         log.error("Støtter kun Vurderte klager, og Oversendte klager i retur fra leggTilNyttKlagevedtak(). klageId: ${it.id} ")
                         throw IllegalStateException("Kan ikke lagre klage, og klageVedtak fra tilstand ${it::class}")

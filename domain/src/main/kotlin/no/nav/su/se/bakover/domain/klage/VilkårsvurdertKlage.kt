@@ -33,6 +33,8 @@ sealed interface VilkårsvurdertKlage : Klage {
         override val datoKlageMottatt: LocalDate,
     ) : VilkårsvurdertKlage {
 
+        override fun erÅpen() = true
+
         override fun vilkårsvurder(
             saksbehandler: NavIdentBruker.Saksbehandler,
             vilkårsvurderinger: VilkårsvurderingerTilKlage,
@@ -68,6 +70,19 @@ sealed interface VilkårsvurdertKlage : Klage {
                 )
             }.right()
         }
+
+        override fun kanAvsluttes() = true
+
+        override fun avslutt(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            begrunnelse: String,
+            tidspunktAvsluttet: Tidspunkt,
+        ) = AvsluttetKlage(
+            forrigeSteg = this,
+            saksbehandler = saksbehandler,
+            begrunnelse = begrunnelse,
+            tidspunktAvsluttet = tidspunktAvsluttet,
+        ).right()
 
         companion object {
             fun create(
@@ -131,6 +146,8 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val datoKlageMottatt: LocalDate,
         ) : Utfylt {
 
+            override fun erÅpen() = true
+
             override fun vilkårsvurder(
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage,
@@ -185,6 +202,19 @@ sealed interface VilkårsvurdertKlage : Klage {
                 ).right()
             }
 
+            override fun kanAvsluttes() = true
+
+            override fun avslutt(
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                begrunnelse: String,
+                tidspunktAvsluttet: Tidspunkt,
+            ) = AvsluttetKlage(
+                forrigeSteg = this,
+                saksbehandler = saksbehandler,
+                begrunnelse = begrunnelse,
+                tidspunktAvsluttet = tidspunktAvsluttet,
+            ).right()
+
             companion object {
                 fun create(
                     id: UUID,
@@ -234,6 +264,8 @@ sealed interface VilkårsvurdertKlage : Klage {
             val vurderinger: VurderingerTilKlage?,
             val klagevedtakshistorikk: Klagevedtakshistorikk,
         ) : Utfylt {
+
+            override fun erÅpen() = true
 
             override fun vilkårsvurder(
                 saksbehandler: NavIdentBruker.Saksbehandler,
@@ -294,6 +326,23 @@ sealed interface VilkårsvurdertKlage : Klage {
                     datoKlageMottatt = datoKlageMottatt,
                     klagevedtakshistorikk = klagevedtakshistorikk,
                 ).right()
+            }
+
+            override fun kanAvsluttes() = klagevedtakshistorikk.isEmpty()
+
+            override fun avslutt(
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                begrunnelse: String,
+                tidspunktAvsluttet: Tidspunkt,
+            ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
+                return if (klagevedtakshistorikk.isEmpty()) {
+                    AvsluttetKlage(
+                        forrigeSteg = this,
+                        saksbehandler = saksbehandler,
+                        begrunnelse = begrunnelse,
+                        tidspunktAvsluttet = tidspunktAvsluttet,
+                    ).right()
+                } else KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
             }
 
             companion object {
@@ -413,6 +462,8 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val datoKlageMottatt: LocalDate,
         ) : Bekreftet() {
 
+            override fun erÅpen() = true
+
             override fun vilkårsvurder(
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage,
@@ -477,6 +528,19 @@ sealed interface VilkårsvurdertKlage : Klage {
                 ).right()
             }
 
+            override fun kanAvsluttes() = true
+
+            override fun avslutt(
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                begrunnelse: String,
+                tidspunktAvsluttet: Tidspunkt,
+            ) = AvsluttetKlage(
+                forrigeSteg = this,
+                saksbehandler = saksbehandler,
+                begrunnelse = begrunnelse,
+                tidspunktAvsluttet = tidspunktAvsluttet,
+            ).right()
+
             companion object {
                 fun create(
                     id: UUID,
@@ -523,6 +587,8 @@ sealed interface VilkårsvurdertKlage : Klage {
             val vurderinger: VurderingerTilKlage?,
             val klagevedtakshistorikk: Klagevedtakshistorikk,
         ) : Bekreftet() {
+
+            override fun erÅpen() = true
 
             override fun vilkårsvurder(
                 saksbehandler: NavIdentBruker.Saksbehandler,
@@ -591,7 +657,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk
+                    klagevedtakshistorikk = klagevedtakshistorikk,
                 )
             }
 
@@ -634,6 +700,23 @@ sealed interface VilkårsvurdertKlage : Klage {
                     datoKlageMottatt = datoKlageMottatt,
                     klagevedtakshistorikk = klagevedtakshistorikk,
                 ).right()
+            }
+
+            override fun kanAvsluttes() = klagevedtakshistorikk.isEmpty()
+
+            override fun avslutt(
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                begrunnelse: String,
+                tidspunktAvsluttet: Tidspunkt,
+            ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
+                return if (klagevedtakshistorikk.isEmpty()) {
+                    AvsluttetKlage(
+                        forrigeSteg = this,
+                        saksbehandler = saksbehandler,
+                        begrunnelse = begrunnelse,
+                        tidspunktAvsluttet = tidspunktAvsluttet,
+                    ).right()
+                } else KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
             }
 
             companion object {

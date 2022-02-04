@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
+import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
@@ -438,6 +439,30 @@ internal fun Route.klageRoutes(
                             "feil_ved_lagring_av_brev_og_klage",
                         )
                         is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrevRequest -> it.feil.toErrorJson()
+                    }
+                }
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        data class Body(val begrunnelse: String)
+        post("$klagePath/{klageId}/avslutt") {
+            call.withKlageId { klageId ->
+                call.withBody<Body> { body ->
+                    klageService.avslutt(
+                        klageId = klageId,
+                        saksbehandler = call.suUserContext.saksbehandler,
+                        begrunnelse = body.begrunnelse,
+                    ).map {
+                        call.svar(Resultat.json(OK, serialize(it.toJson())))
+                    }.mapLeft {
+                        call.svar(
+                            when (it) {
+                                KunneIkkeAvslutteKlage.FantIkkeKlage -> fantIkkeKlage
+                                is KunneIkkeAvslutteKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            },
+                        )
                     }
                 }
             }

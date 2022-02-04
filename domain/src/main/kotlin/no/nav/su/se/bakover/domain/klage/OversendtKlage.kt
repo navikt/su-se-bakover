@@ -36,6 +36,8 @@ data class OversendtKlage private constructor(
     val attesteringer: Attesteringshistorikk,
 ) : Klage {
 
+    override fun erÅpen() = false
+
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
         return vurderinger.fritekstTilBrev.right()
     }
@@ -61,6 +63,13 @@ data class OversendtKlage private constructor(
                 ?: return KunneIkkeLageBrevRequest.FeilVedHentingAvVedtakDato.left(),
         ).right()
     }
+
+    override fun kanAvsluttes() = false
+    override fun avslutt(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        begrunnelse: String,
+        tidspunktAvsluttet: Tidspunkt,
+    ) = KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
 
     companion object {
         fun create(
@@ -110,7 +119,8 @@ data class OversendtKlage private constructor(
                 KlagevedtakUtfall.DELVIS_MEDHOLD,
                 KlagevedtakUtfall.STADFESTELSE,
                 KlagevedtakUtfall.UGUNST,
-                KlagevedtakUtfall.AVVIST -> oppdatertKlage
+                KlagevedtakUtfall.AVVIST,
+                -> oppdatertKlage
                 KlagevedtakUtfall.RETUR -> oppdatertKlage.toBekreftet(oppgaveId)
             }
         }

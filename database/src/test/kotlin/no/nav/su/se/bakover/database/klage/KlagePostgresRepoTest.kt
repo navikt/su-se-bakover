@@ -300,6 +300,30 @@ internal class KlagePostgresRepoTest {
     }
 
     @Test
+    fun `kan lagre og hente en avsluttet klage`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val klageRepo = testDataHelper.klagePostgresRepo
+
+            val urelatertKlage = testDataHelper.nyKlage()
+
+            val klage = testDataHelper.avsluttetKlage()
+            val expectedKlage = klage.copy(
+                forrigeSteg = (klage.forrigeSteg as VurdertKlage.Bekreftet).copy(
+                    // Det finnes bare et felt for saksbehandler i databasetabellen og den blir overskrevet når vi lagrer en avsluttet klage.
+                    saksbehandler = klage.saksbehandler,
+                ),
+            )
+
+            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+                klageRepo.hentKlager(klage.sakId, sessionContext) shouldBe listOf(expectedKlage)
+            }
+            klageRepo.hentKlage(klage.id) shouldBe expectedKlage
+            klageRepo.hentKlage(urelatertKlage.id) shouldBe urelatertKlage
+        }
+    }
+
+    @Test
     fun `henter klagevedtak knyttet til klagen`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
@@ -313,7 +337,7 @@ internal class KlagePostgresRepoTest {
                 opprettet = fixedTidspunkt,
                 klageId = klage.id,
                 utfall = KlagevedtakUtfall.RETUR,
-                vedtaksbrevReferanse = UUID.randomUUID().toString()
+                vedtaksbrevReferanse = UUID.randomUUID().toString(),
             )
 
             val nyOppgave = OppgaveId("123")

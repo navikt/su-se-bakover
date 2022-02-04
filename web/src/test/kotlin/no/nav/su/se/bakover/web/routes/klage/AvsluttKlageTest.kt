@@ -10,11 +10,11 @@ import io.ktor.server.testing.contentType
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
-import no.nav.su.se.bakover.domain.klage.OpprettetKlage
-import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
+import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.service.klage.KlageService
-import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.avsluttetKlage
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -26,22 +26,10 @@ import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
-internal class VilkårsvurderKlageTest {
-
-    //language=JSON
-    private val validBody = """
-        {
-             "vedtakId": null,
-             "innenforFristen": null,
-             "klagesDetPåKonkreteElementerIVedtaket": null,
-             "erUnderskrevet": null,
-             "begrunnelse": null
-        }
-    """.trimIndent()
-
-    private val sakId: UUID = UUID.randomUUID()
-    private val klageId: UUID = UUID.randomUUID()
-    private val uri = "$sakPath/$sakId/klager/$klageId/vilkår/vurderinger"
+internal class AvsluttKlageTest {
+    private val sakId = UUID.randomUUID()
+    private val klageId = UUID.randomUUID()
+    private val uri = "$sakPath/$sakId/klager/$klageId/avslutt"
 
     @Test
     fun `ingen tilgang gir unauthorized`() {
@@ -86,40 +74,44 @@ internal class VilkårsvurderKlageTest {
     }
 
     @Test
+    fun `Sak id må være en uuid`() {
+        verifiserFeilkode(
+            path = klagePath,
+            feilkode = null,
+            status = HttpStatusCode.BadRequest,
+            body = "{\"message\":\"sakId er ikke en gyldig UUID\",\"code\":\"sakId_mangler_eller_feil_format\"}",
+        )
+    }
+
+    @Test
     fun `fant ikke klage`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeVilkårsvurdereKlage.FantIkkeKlage,
+            path = uri,
+            feilkode = KunneIkkeAvslutteKlage.FantIkkeKlage,
             status = HttpStatusCode.NotFound,
             body = "{\"message\":\"Fant ikke klage\",\"code\":\"fant_ikke_klage\"}",
         )
     }
 
     @Test
-    fun `fant ikke vedtak`() {
-        verifiserFeilkode(
-            feilkode = KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak,
-            status = HttpStatusCode.NotFound,
-            body = "{\"message\":\"Fant ikke vedtak\",\"code\":\"fant_ikke_vedtak\"}",
-        )
-    }
-
-    @Test
     fun `ugyldig tilstand`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeVilkårsvurdereKlage.UgyldigTilstand(OpprettetKlage::class, OversendtKlage::class),
+            path = uri,
+            feilkode = KunneIkkeAvslutteKlage.UgyldigTilstand(IverksattAvvistKlage::class),
             status = HttpStatusCode.BadRequest,
-            body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden OversendtKlage\",\"code\":\"ugyldig_tilstand\"}",
+            body = "{\"message\":\"Kan ikke gå fra tilstanden IverksattAvvistKlage til tilstanden AvsluttetKlage\",\"code\":\"ugyldig_tilstand\"}",
         )
     }
 
     private fun verifiserFeilkode(
-        feilkode: KunneIkkeVilkårsvurdereKlage,
+        path: String,
+        feilkode: KunneIkkeAvslutteKlage?,
         status: HttpStatusCode,
         body: String,
     ) {
-        val klageServiceMock = mock<KlageService> {
-            on { vilkårsvurder(any()) } doReturn feilkode.left()
-        }
+        val klageServiceMock = if (feilkode != null) mock<KlageService> {
+            on { avslutt(any(), any(), any()) } doReturn feilkode.left()
+        } else mock()
         withTestApplication(
             {
                 testSusebakover(
@@ -128,8 +120,8 @@ internal class VilkårsvurderKlageTest {
                 )
             },
         ) {
-            defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)) {
-                setBody(validBody)
+            defaultRequest(HttpMethod.Post, path, listOf(Brukerrolle.Saksbehandler)) {
+                setBody("""{"begrunnelse":"Begrunnelse av hvorfor vi avsluttet klagen"}""")
             }
         }.apply {
             response.status() shouldBe status
@@ -139,10 +131,10 @@ internal class VilkårsvurderKlageTest {
     }
 
     @Test
-    fun `kan vilkårsvurdere klage`() {
-        val påbegyntVilkårsvurdertKlage = påbegyntVilkårsvurdertKlage().second
+    fun `kan avslutte klage`() {
+        val klage = avsluttetKlage().second
         val klageServiceMock = mock<KlageService> {
-            on { vilkårsvurder(any()) } doReturn påbegyntVilkårsvurdertKlage.right()
+            on { avslutt(any(), any(), any()) } doReturn klage.right()
         }
         withTestApplication(
             {
@@ -153,7 +145,7 @@ internal class VilkårsvurderKlageTest {
             },
         ) {
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)) {
-                setBody(validBody)
+                setBody("""{"begrunnelse":"Begrunnelse av hvorfor vi avsluttet klagen"}""")
             }
         }.apply {
             response.status() shouldBe HttpStatusCode.OK
@@ -162,23 +154,32 @@ internal class VilkårsvurderKlageTest {
                 //language=JSON
                 """
                 {
-                  "id":"${påbegyntVilkårsvurdertKlage.id}",
-                  "sakid":"${påbegyntVilkårsvurdertKlage.sakId}",
+                  "id":"${klage.id}",
+                  "sakid":"${klage.sakId}",
                   "opprettet":"2021-01-01T01:02:03.456789Z",
                   "journalpostId":"klageJournalpostId",
                   "saksbehandler":"saksbehandler",
                   "datoKlageMottatt":"2021-12-01",
-                  "status":"VILKÅRSVURDERT_PÅBEGYNT",
-                  "vedtakId":null,
-                  "innenforFristen":null,
-                  "klagesDetPåKonkreteElementerIVedtaket":null,
-                  "erUnderskrevet":null,
-                  "begrunnelse":null,
-                  "fritekstTilBrev":null,
-                  "vedtaksvurdering":null,
+                  "status":"VURDERT_BEKREFTET",
+                  "vedtakId":"${(klage.forrigeSteg as VurdertKlage.Bekreftet).vilkårsvurderinger.vedtakId}",
+                  "innenforFristen":"JA",
+                  "klagesDetPåKonkreteElementerIVedtaket":true,
+                  "erUnderskrevet":"JA",
+                  "begrunnelse":"begrunnelse",
+                  "fritekstTilBrev":"fritekstTilBrev",
+                    "vedtaksvurdering":{
+                    "type":"OPPRETTHOLD",
+                    "omgjør":null,
+                    "oppretthold":{
+                      "hjemler":[
+                        "SU_PARAGRAF_3",
+                        "SU_PARAGRAF_4"
+                      ]
+                    }
+                  },
                   "attesteringer":[],
                   "klagevedtakshistorikk": [],
-                  "avsluttet": "KAN_AVSLUTTES"
+                  "avsluttet": "ER_AVSLUTTET"
                 }
                 """.trimIndent(),
                 response.content,

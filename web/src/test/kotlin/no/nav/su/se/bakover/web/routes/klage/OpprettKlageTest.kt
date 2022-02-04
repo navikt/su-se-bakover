@@ -183,7 +183,8 @@ internal class OpprettKlageTest {
                   "fritekstTilBrev":null,
                   "vedtaksvurdering":null,
                   "attesteringer":[],
-                  "klagevedtakshistorikk": []
+                  "klagevedtakshistorikk": [],
+                  "avsluttet": "KAN_AVSLUTTES"
                 }
                 """.trimIndent(),
                 response.content,

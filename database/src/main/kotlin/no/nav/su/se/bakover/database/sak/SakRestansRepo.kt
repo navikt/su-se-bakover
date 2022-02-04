@@ -43,7 +43,7 @@ internal class SakRestansRepo(
                      select sak.sakId, sak.saksnummer, k.id, k.opprettet, k.type as status, 'KLAGE' as type
                      from sak
                               join klage k on sak.sakId = k.sakid
-                     where k.type not like ('iverksatt%') and k.type not like 'oversendt'
+                     where k.type not like ('iverksatt%') and k.type not like 'oversendt' and k.avsluttet is null
                  ),
                  søknader as (
                      select 

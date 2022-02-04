@@ -36,9 +36,11 @@ import no.nav.su.se.bakover.test.utfyltVurdertKlage
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.util.UUID
 
 internal class IverksettAvvistKlageTest {
@@ -82,7 +84,7 @@ internal class IverksettAvvistKlageTest {
     }
 
     @Test
-    fun `en iverksattAvvist klage er en lukket klage`() {
+    fun `er ikke åpen`() {
         val klage = iverksattAvvistKlage().second
         klage.erÅpen() shouldBe false
     }
@@ -244,6 +246,9 @@ internal class IverksettAvvistKlageTest {
             oppgaveService = mock {
                 on { lukkOppgave(any()) } doReturn Unit.right()
             },
+            vedtakServiceMock = mock {
+                doNothing().whenever(it).lagre(any())
+            }
         )
 
         val actual = mocks.service.iverksettAvvistKlage(klage.id, attestant).getOrFail()

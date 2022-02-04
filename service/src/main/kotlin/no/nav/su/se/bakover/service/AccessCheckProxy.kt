@@ -23,11 +23,13 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KanIkkeTolkeKlagevedtak
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
@@ -878,6 +880,19 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeLageBrevutkast, ByteArray> {
                     assertHarTilgangTilKlage(klageId)
                     return services.klageService.brevutkast(klageId, saksbehandler)
+                }
+
+                override fun avslutt(
+                    klageId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    begrunnelse: String,
+                ): Either<KunneIkkeAvslutteKlage, AvsluttetKlage> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.avslutt(
+                        klageId = klageId,
+                        saksbehandler = saksbehandler,
+                        begrunnelse = begrunnelse,
+                    )
                 }
             },
             klagevedtakService = object : KlagevedtakService {

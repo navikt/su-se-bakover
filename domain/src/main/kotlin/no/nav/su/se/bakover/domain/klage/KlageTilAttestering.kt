@@ -50,6 +50,8 @@ sealed class KlageTilAttestering : Klage {
         val fritekstTilBrev: String,
     ) : KlageTilAttestering() {
 
+        override fun erÅpen() = true
+
         override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
             return fritekstTilBrev.right()
         }
@@ -122,6 +124,13 @@ sealed class KlageTilAttestering : Klage {
             }
         }
 
+        override fun kanAvsluttes() = false
+        override fun avslutt(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            begrunnelse: String,
+            tidspunktAvsluttet: Tidspunkt,
+        ) = KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
+
         companion object {
             fun create(
                 id: UUID,
@@ -170,6 +179,8 @@ sealed class KlageTilAttestering : Klage {
         val klagevedtakshistorikk: Klagevedtakshistorikk,
         val vurderinger: VurderingerTilKlage.Utfylt,
     ) : KlageTilAttestering() {
+
+        override fun erÅpen() = true
 
         override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
             return vurderinger.fritekstTilBrev.right()
@@ -245,6 +256,13 @@ sealed class KlageTilAttestering : Klage {
                 klagevedtakshistorikk = klagevedtakshistorikk
             ).right()
         }
+
+        override fun kanAvsluttes() = false
+        override fun avslutt(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            begrunnelse: String,
+            tidspunktAvsluttet: Tidspunkt,
+        ) = KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
 
         companion object {
             fun create(
