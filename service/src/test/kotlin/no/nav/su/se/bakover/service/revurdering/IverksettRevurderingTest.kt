@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.attestant
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.simulertUtbetaling
+import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -52,7 +54,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { genererUtbetalingsRequest(any()) } doReturn simulertUtbetaling.right()
+                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling.right()
                 on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("<xml></xml>").right()
             },
             vedtakRepo = mock {
@@ -65,7 +67,7 @@ internal class IverksettRevurderingTest {
         respone shouldBe expected.right()
 
         verify(serviceAndMocks.revurderingRepo).hent(argThat { it shouldBe revurderingTilAttestering.id })
-        verify(serviceAndMocks.utbetalingService).genererUtbetalingsRequest(
+        verify(serviceAndMocks.utbetalingService).verifiserOgSimulerUtbetaling(
             argThat {
                 it shouldBe UtbetalRequest.NyUtbetaling(
                     request = SimulerUtbetalingRequest.NyUtbetaling(
@@ -91,15 +93,16 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `iverksett - iverksetter opphør av ytelse`() {
-        val revurderingTilAttestering = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second
-        val simulertUtbetaling = simulertUtbetaling()
+        val sakOgRevurdering = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak()
+        val revurderingTilAttestering = sakOgRevurdering.second
+        val simulertOpphør = simulertUtbetalingOpphør(eksisterendeUtbetalinger = sakOgRevurdering.first.utbetalinger).getOrFail()
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn revurderingTilAttestering
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { genererOpphørsRequest(any()) } doReturn simulertUtbetaling.right()
+                on { verifiserOgSimulerOpphør(any()) } doReturn simulertOpphør.right()
                 on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("<xml></xml>").right()
                 on { lagreUtbetaling(any(), anyOrNull()) } doReturn oversendtUtbetalingUtenKvittering()
             },
@@ -114,7 +117,7 @@ internal class IverksettRevurderingTest {
         serviceAndMocks.revurderingService.iverksett(revurderingTilAttestering.id, attestant)
 
         verify(serviceAndMocks.revurderingRepo).hent(revurderingTilAttestering.id)
-        verify(serviceAndMocks.utbetalingService).genererOpphørsRequest(
+        verify(serviceAndMocks.utbetalingService).verifiserOgSimulerOpphør(
             argThat {
                 it shouldBe UtbetalRequest.Opphør(
                     request = SimulerUtbetalingRequest.Opphør(
@@ -132,8 +135,8 @@ internal class IverksettRevurderingTest {
         )
         verify(serviceAndMocks.kontrollsamtaleService).annullerKontrollsamtale(argThat { it shouldBe revurderingTilAttestering.sakId }, anyOrNull())
         verify(serviceAndMocks.revurderingRepo).lagre(any(), anyOrNull())
-        verify(serviceAndMocks.utbetalingService).lagreUtbetaling(argThat { it shouldBe simulertUtbetaling }, anyOrNull())
-        verify(serviceAndMocks.utbetalingService).publiserUtbetaling(simulertUtbetaling)
+        verify(serviceAndMocks.utbetalingService).lagreUtbetaling(argThat { it shouldBe simulertOpphør }, anyOrNull())
+        verify(serviceAndMocks.utbetalingService).publiserUtbetaling(simulertOpphør)
         serviceAndMocks.verifyNoMoreInteractions()
     }
 
@@ -146,7 +149,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { genererOpphørsRequest(any()) } doReturn simulertUtbetaling().right()
+                on { verifiserOgSimulerOpphør(any()) } doReturn simulertUtbetaling().right()
                 on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("<xml></xml>").right()
                 on { lagreUtbetaling(any(), anyOrNull()) } doReturn oversendtUtbetalingUtenKvittering()
             },
@@ -161,10 +164,10 @@ internal class IverksettRevurderingTest {
         serviceAndMocks.revurderingService.iverksett(revurderingTilAttestering.id, attestant)
 
         inOrder(*serviceAndMocks.all()) {
+            verify(serviceAndMocks.utbetalingService).lagreUtbetaling(any(), anyOrNull())
             verify(serviceAndMocks.vedtakRepo).lagre(any(), anyOrNull())
             verify(serviceAndMocks.kontrollsamtaleService).annullerKontrollsamtale(any(), anyOrNull())
             verify(serviceAndMocks.revurderingRepo).lagre(any(), anyOrNull())
-            verify(serviceAndMocks.utbetalingService).lagreUtbetaling(any(), anyOrNull())
             verify(serviceAndMocks.utbetalingService).publiserUtbetaling(any())
         }
     }
@@ -179,7 +182,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { genererUtbetalingsRequest(any()) } doReturn simulertUtbetaling().right()
+                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
                 on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("<xml></xml>").right()
             },
             vedtakRepo = mock {
@@ -193,9 +196,9 @@ internal class IverksettRevurderingTest {
         )
 
         inOrder(*serviceAndMocks.all()) {
+            verify(serviceAndMocks.utbetalingService).lagreUtbetaling(any(), anyOrNull())
             verify(serviceAndMocks.vedtakRepo).lagre(any(), anyOrNull())
             verify(serviceAndMocks.revurderingRepo).lagre(any(), anyOrNull())
-            verify(serviceAndMocks.utbetalingService).lagreUtbetaling(any(), anyOrNull())
             verify(serviceAndMocks.utbetalingService).publiserUtbetaling(any())
         }
     }
@@ -223,7 +226,7 @@ internal class IverksettRevurderingTest {
                 on { hent(any()) } doReturn revurderingTilAttestering().second
             },
             utbetalingService = mock {
-                on { genererUtbetalingsRequest(any()) } doReturn simulertUtbetaling().right()
+                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
             },
             vedtakRepo = mock {
                 on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
@@ -245,7 +248,7 @@ internal class IverksettRevurderingTest {
                 on { hent(any()) } doReturn tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second
             },
             utbetalingService = mock {
-                on { genererOpphørsRequest(any()) } doReturn simulertUtbetaling().right()
+                on { verifiserOgSimulerOpphør(any()) } doReturn simulertUtbetaling().right()
             },
             vedtakRepo = mock {
                 on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
@@ -268,7 +271,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { genererOpphørsRequest(any()) } doReturn simulertUtbetaling().right()
+                on { verifiserOgSimulerOpphør(any()) } doReturn simulertUtbetaling().right()
                 on { publiserUtbetaling(any()) } doReturn UtbetalingFeilet.FantIkkeSak.left()
                 on { lagreUtbetaling(any(), anyOrNull()) } doReturn oversendtUtbetalingUtenKvittering()
             },
@@ -285,7 +288,7 @@ internal class IverksettRevurderingTest {
             attestant = attestant,
         )
 
-        response shouldBe KunneIkkeIverksetteRevurdering.KunneIkkePublisereUtbetaling.left()
+        response shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.FantIkkeSak).left()
     }
 
     @Test
@@ -295,7 +298,7 @@ internal class IverksettRevurderingTest {
                 on { hent(any()) } doReturn revurderingTilAttestering().second
             },
             utbetalingService = mock {
-                on { genererUtbetalingsRequest(any()) } doReturn simulertUtbetaling().right()
+                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
             },
             vedtakRepo = mock {
                 on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
@@ -317,7 +320,7 @@ internal class IverksettRevurderingTest {
                 on { hent(any()) } doReturn revurderingTilAttestering().second
             },
             utbetalingService = mock {
-                on { genererUtbetalingsRequest(any()) } doReturn simulertUtbetaling().right()
+                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
                 on { publiserUtbetaling(any()) } doReturn UtbetalingFeilet.FantIkkeSak.left()
                 on { lagreUtbetaling(any(), anyOrNull()) } doReturn oversendtUtbetalingUtenKvittering()
             },
@@ -334,6 +337,6 @@ internal class IverksettRevurderingTest {
             attestant = attestant,
         )
 
-        response shouldBe KunneIkkeIverksetteRevurdering.KunneIkkePublisereUtbetaling.left()
+        response shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.FantIkkeSak).left()
     }
 }

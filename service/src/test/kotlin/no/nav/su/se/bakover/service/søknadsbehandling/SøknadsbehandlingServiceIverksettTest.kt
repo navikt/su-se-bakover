@@ -119,7 +119,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 on { hent(any()) } doReturn innvilgetTilAttestering
             },
             utbetalingService = mock {
-                on { genererUtbetalingsRequest(any()) } doReturn UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
+                on { verifiserOgSimulerUtbetaling(any()) } doReturn UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
             },
         )
 
@@ -141,7 +141,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 on { hent(any()) } doReturn innvilgetTilAttestering
             },
             utbetalingService = mock {
-                on { genererUtbetalingsRequest(any()) } doReturn UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+                on { verifiserOgSimulerUtbetaling(any()) } doReturn UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
             },
         )
 
@@ -163,7 +163,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 on { hent(any()) } doReturn innvilgetTilAttestering
             },
             utbetalingService = mock {
-                on { genererUtbetalingsRequest(any()) } doReturn simulertUtbetaling().right()
+                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
                 on { publiserUtbetaling(any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
             },
             kontrollsamtaleService = mock {
@@ -192,7 +192,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { genererUtbetalingsRequest(any()) } doReturn simulertUtbetaling.right()
+                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling.right()
                 on { publiserUtbetaling(any()) } doReturn utbetalingsRequest.right()
                 on { lagreUtbetaling(any(), anyOrNull()) } doReturn oversendtUtbetalingUtenKvittering()
             },
@@ -216,7 +216,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         response shouldBe expected.right()
 
         verify(serviceAndMocks.søknadsbehandlingRepo).hent(innvilgetTilAttestering.id)
-        verify(serviceAndMocks.utbetalingService).genererUtbetalingsRequest(
+        verify(serviceAndMocks.utbetalingService).verifiserOgSimulerUtbetaling(
             request = argThat {
                 it shouldBe UtbetalRequest.NyUtbetaling(
                     request = SimulerUtbetalingRequest.NyUtbetaling(
@@ -379,7 +379,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { genererUtbetalingsRequest(any()) } doReturn simulertUtbetaling().right()
+                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
                 on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("<xml></xml>").right()
             },
             kontrollsamtaleService = mock {

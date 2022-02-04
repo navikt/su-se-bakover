@@ -216,17 +216,19 @@ internal class StansAvYtelseServiceTest {
             fraOgMed = 1.mai(2021),
         )
         verify(serviceAndMocks.utbetalingService).simulerStans(
-            request = SimulerUtbetalingRequest.Stans(sakId = sakId,
-            saksbehandler = saksbehandler,
-            stansdato = 1.mai(2021),
-                ),
+            request = SimulerUtbetalingRequest.Stans(
+                sakId = sakId,
+                saksbehandler = saksbehandler,
+                stansdato = 1.mai(2021),
+            ),
         )
         verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
         verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
         verify(serviceAndMocks.observer).handle(
-                argThat { event ->
-                    event shouldBe Event.Statistikk.RevurderingStatistikk.Stans(response)
-                },)
+            argThat { event ->
+                event shouldBe Event.Statistikk.RevurderingStatistikk.Stans(response)
+            },
+        )
         serviceAndMocks.verifyNoMoreInteractions()
     }
 
@@ -311,10 +313,12 @@ internal class StansAvYtelseServiceTest {
         verify(serviceAndMocks.revurderingRepo).hent(simulertStans.id)
         verify(serviceAndMocks.utbetalingService).stansUtbetalinger(
             request = UtbetalRequest.Stans(
-                    request = SimulerUtbetalingRequest.Stans(sakId = simulertStans.sakId,
-            saksbehandler = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
-            stansdato = simulertStans.periode.fraOgMed,
-                    ),simulering = simulertStans.simulering,
+                request = SimulerUtbetalingRequest.Stans(
+                    sakId = simulertStans.sakId,
+                    saksbehandler = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
+                    stansdato = simulertStans.periode.fraOgMed,
+                ),
+                simulering = simulertStans.simulering,
             ),
         )
         verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()

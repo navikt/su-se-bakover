@@ -380,7 +380,7 @@ internal class SøknadsbehandlingServiceImpl(
             when (iverksattBehandling) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
 
-                    val utbetaling = utbetalingService.genererUtbetalingsRequest(
+                    val utbetaling = utbetalingService.verifiserOgSimulerUtbetaling(
                         request = UtbetalRequest.NyUtbetaling(
                             request = SimulerUtbetalingRequest.NyUtbetaling(
                                 sakId = iverksattBehandling.sakId,

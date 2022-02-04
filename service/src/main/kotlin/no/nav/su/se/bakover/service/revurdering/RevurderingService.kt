@@ -256,7 +256,6 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
 sealed class KunneIkkeIverksetteRevurdering {
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
     data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteRevurdering()
-    object KunneIkkePublisereUtbetaling : KunneIkkeIverksetteRevurdering()
     object KunneIkkeGenerereBrev : KunneIkkeIverksetteRevurdering()
     object FantIkkePerson : KunneIkkeIverksetteRevurdering()
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeIverksetteRevurdering()
