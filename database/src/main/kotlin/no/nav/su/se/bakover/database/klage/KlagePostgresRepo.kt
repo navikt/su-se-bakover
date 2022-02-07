@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.database.booleanOrNull
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
+import no.nav.su.se.bakover.database.klage.AvsluttetKlageJson.Companion.toAvsluttetKlageJson
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.Svarord.Companion.tilDatabaseType
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.Tilstand.Companion.databasetype
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.Companion.toJson
@@ -32,9 +33,9 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Hjemler
-import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
@@ -68,6 +69,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 is KlageTilAttestering -> lagreTilAttestering(klage, transaction)
                 is OversendtKlage -> lagreOversendtKlage(klage, transaction)
                 is IverksattAvvistKlage -> lagreIverksattAvvistKlage(klage, transaction)
+                is AvsluttetKlage -> lagreAvsluttetKlage(klage, transaction)
             }
         }
     }
@@ -242,6 +244,26 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         )
     }
 
+    private fun lagreAvsluttetKlage(klage: AvsluttetKlage, session: Session) {
+        // Dette vil overskrive saksbehandler for klagens forrigeSteg, siden vi kun har en enkelt `text` i databasetabellen som representerer en saksbehandler.
+        """
+            UPDATE
+                klage
+            SET
+                saksbehandler=:saksbehandler,
+                avsluttet=to_jsonb(:avsluttet::jsonb)
+            WHERE
+                id=:id
+        """.trimIndent().oppdatering(
+            mapOf(
+                "id" to klage.id,
+                "saksbehandler" to klage.saksbehandler,
+                "avsluttet" to klage.toAvsluttetKlageJson(),
+            ),
+            session,
+        )
+    }
+
     override fun hentKlage(klageId: UUID): Klage? {
         return sessionFactory.withSession { session ->
             "select k.*, s.fnr, s.saksnummer  from klage k inner join sak s on s.id = k.sakId where k.id=:id".trimIndent()
@@ -272,7 +294,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
             """.trimIndent().hentListe(
                 mapOf(
                     "klageid" to klageId,
-                    "type" to KlagevedtakPostgresRepo.KlagevedtakType.PROSESSERT.toString()
+                    "type" to KlagevedtakPostgresRepo.KlagevedtakType.PROSESSERT.toString(),
                 ),
                 session,
             ) {
@@ -344,7 +366,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
             vedtaksvurdering = vedtaksvurdering,
         )
 
-        return when (Tilstand.fromString(row.string("type"))) {
+        val klage = when (Tilstand.fromString(row.string("type"))) {
             Tilstand.OPPRETTET -> OpprettetKlage.create(
                 id = id,
                 opprettet = opprettet,
@@ -548,6 +570,19 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 fritekstTilBrev = fritekstTilBrev!!,
             )
         }
+        val avsluttet = row.stringOrNull("avsluttet")?.let {
+            AvsluttetKlageJson.fromJsonString(it)
+        }
+        return if (avsluttet != null) {
+            AvsluttetKlage(
+                forrigeSteg = klage,
+                saksbehandler = saksbehandler,
+                begrunnelse = avsluttet.begrunnelse,
+                tidspunktAvsluttet = avsluttet.tidspunktAvsluttet,
+            )
+        } else {
+            klage
+        }
     }
 
     private enum class Svarord {
@@ -609,6 +644,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
 
                     is OversendtKlage -> OVERSENDT
                     is IverksattAvvistKlage -> IVERKSATT_AVVIST
+                    is AvsluttetKlage -> this.forrigeSteg.databasetype()
                 }.toString()
             }
 

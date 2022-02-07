@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
+import no.nav.su.se.bakover.test.defaultMock
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -35,6 +36,7 @@ internal class ServiceBuilderTest {
                 klageVedtakRepo = mock(),
                 kontrollsamtaleRepo = mock(),
                 avkortingsvarselRepo = mock(),
+                reguleringRepo = defaultMock(),
                 tilbakekrevingRepo = mock(),
             ),
             clients = Clients(

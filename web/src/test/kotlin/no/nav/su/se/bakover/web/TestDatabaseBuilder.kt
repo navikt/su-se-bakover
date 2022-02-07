@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
+import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
@@ -46,6 +47,7 @@ object TestDatabaseBuilder {
         klageVedtakRepo: KlagevedtakRepo = mock(),
         kontrollsamtaleRepo: KontrollsamtaleRepo = mock(),
         avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
+        reguleringRepo: ReguleringRepo = mock(),
         tilbakekrevingRepo: TilbakekrevingRepo = mock(),
     ): DatabaseRepos {
         return DatabaseRepos(
@@ -69,6 +71,7 @@ object TestDatabaseBuilder {
             klageVedtakRepo = klageVedtakRepo,
             kontrollsamtaleRepo = kontrollsamtaleRepo,
             avkortingsvarselRepo = avkortingsvarselRepo,
+            reguleringRepo = reguleringRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
         )
     }

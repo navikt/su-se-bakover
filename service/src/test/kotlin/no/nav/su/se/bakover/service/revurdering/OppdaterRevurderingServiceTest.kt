@@ -82,11 +82,13 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -803,7 +805,7 @@ internal class OppdaterRevurderingServiceTest {
             sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtakOgRevurderingsvedtak,
         )
 
-        RevurderingServiceMocks(
+        val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn opprettetRevurdering
             },
@@ -814,21 +816,27 @@ internal class OppdaterRevurderingServiceTest {
                     clock = fixedClock,
                 ).right()
             },
-            avkortingsvarselRepo = mock() {
+            avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
-        ).let {
-            it.revurderingService.oppdaterRevurdering(
-                oppdaterRevurderingRequest = OppdaterRevurderingRequest(
-                    revurderingId = opprettetRevurdering.id,
-                    fraOgMed = 1.oktober(2021),
-                    årsak = Revurderingsårsak.Årsak.ANDRE_KILDER.toString(),
-                    begrunnelse = "lol",
-                    saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
-                ),
-            ).getOrFail() shouldBe beOfType<OpprettetRevurdering>()
-        }
+            vilkårsvurderingService = mock {
+                doNothing().whenever(it).lagre(any(), any())
+            },
+            grunnlagService = mock {
+                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
+            }
+        )
+
+        serviceAndMocks.revurderingService.oppdaterRevurdering(
+            oppdaterRevurderingRequest = OppdaterRevurderingRequest(
+                revurderingId = opprettetRevurdering.id,
+                fraOgMed = 1.oktober(2021),
+                årsak = Revurderingsårsak.Årsak.ANDRE_KILDER.toString(),
+                begrunnelse = "lol",
+                saksbehandler = saksbehandler,
+                informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
+            ),
+        ).getOrFail() shouldBe beOfType<OpprettetRevurdering>()
     }
 
     @Test

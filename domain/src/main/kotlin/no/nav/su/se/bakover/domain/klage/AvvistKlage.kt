@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
@@ -133,6 +134,19 @@ data class AvvistKlage private constructor(
     override fun oversend(iverksattAttestering: Attestering.Iverksatt): Either<KunneIkkeOversendeKlage, OversendtKlage> {
         return KunneIkkeOversendeKlage.UgyldigTilstand(this::class, OversendtKlage::class).left()
     }
+
+    override fun kanAvsluttes() = true
+
+    override fun avslutt(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        begrunnelse: String,
+        tidspunktAvsluttet: Tidspunkt,
+    ) = AvsluttetKlage(
+        forrigeSteg = this,
+        saksbehandler = saksbehandler,
+        begrunnelse = begrunnelse,
+        tidspunktAvsluttet = tidspunktAvsluttet,
+    ).right()
 
     companion object {
         fun create(

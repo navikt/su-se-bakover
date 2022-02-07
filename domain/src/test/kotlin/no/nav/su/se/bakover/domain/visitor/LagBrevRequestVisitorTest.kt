@@ -78,7 +78,6 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 internal class LagBrevRequestVisitorTest {
@@ -1004,7 +1003,6 @@ internal class LagBrevRequestVisitorTest {
         val utbetalingId = UUID30.randomUUID()
 
         val (_, revurdering) = iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
-            utbetalingId = utbetalingId,
             fritekstTilBrev = "FRITEKST REVURDERING",
         )
         val opphørsvedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
@@ -1086,8 +1084,8 @@ internal class LagBrevRequestVisitorTest {
         ).getOrFail()
             .tilIverksatt(
                 attestant = attestant,
-                utbetal = { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering -> utbetalingId.right() },
                 hentOpprinneligAvkorting = { null },
+                clock = fixedClock
             )
             .getOrFail()
 

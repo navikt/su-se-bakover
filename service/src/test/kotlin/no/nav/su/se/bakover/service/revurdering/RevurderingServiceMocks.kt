@@ -12,31 +12,36 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
+import java.time.Clock
 
 internal data class RevurderingServiceMocks(
-    val vedtakService: VedtakService = mock(),
-    val utbetalingService: UtbetalingService = mock(),
-    val revurderingRepo: RevurderingRepo = mock(),
-    val oppgaveService: OppgaveService = mock(),
-    val personService: PersonService = mock(),
-    val identClient: IdentClient = mock(),
-    val brevService: BrevService = mock(),
-    val vedtakRepo: VedtakRepo = mock(),
-    val ferdigstillVedtakService: FerdigstillVedtakService = mock(),
-    val grunnlagService: GrunnlagService = mock(),
-    val vilkårsvurderingService: VilkårsvurderingService = mock(),
-    val sakService: SakService = mock(),
-    val kontrollsamtaleService: KontrollsamtaleService = mock(),
+    val vedtakService: VedtakService = defaultMock(),
+    val utbetalingService: UtbetalingService = defaultMock(),
+    val revurderingRepo: RevurderingRepo = defaultMock(),
+    val oppgaveService: OppgaveService = defaultMock(),
+    val personService: PersonService = defaultMock(),
+    val identClient: IdentClient = defaultMock(),
+    val brevService: BrevService = defaultMock(),
+    val vedtakRepo: VedtakRepo = defaultMock(),
+    val ferdigstillVedtakService: FerdigstillVedtakService = defaultMock(),
+    val grunnlagService: GrunnlagService = defaultMock(),
+    val vilkårsvurderingService: VilkårsvurderingService = defaultMock(),
+    val sakService: SakService = defaultMock(),
+    val kontrollsamtaleService: KontrollsamtaleService = defaultMock(),
+    val avkortingsvarselRepo: AvkortingsvarselRepo = defaultMock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
-    val avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
+    val observer: EventObserver = mock(),
     val toggleService: ToggleService = mock(),
+    val clock: Clock = fixedClock,
 ) {
     val revurderingService = RevurderingServiceImpl(
         utbetalingService = utbetalingService,
@@ -45,7 +50,7 @@ internal data class RevurderingServiceMocks(
         personService = personService,
         identClient = identClient,
         brevService = brevService,
-        clock = fixedClock,
+        clock = clock,
         vedtakRepo = vedtakRepo,
         vilkårsvurderingService = vilkårsvurderingService,
         grunnlagService = grunnlagService,
@@ -55,7 +60,7 @@ internal data class RevurderingServiceMocks(
         sessionFactory = sessionFactory,
         avkortingsvarselRepo = avkortingsvarselRepo,
         toggleService = toggleService,
-    )
+    ).apply { addObserver(observer) }
 
     fun all() = listOf(
         vedtakService,
@@ -71,6 +76,7 @@ internal data class RevurderingServiceMocks(
         vilkårsvurderingService,
         sakService,
         avkortingsvarselRepo,
+        kontrollsamtaleService
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {

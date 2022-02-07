@@ -56,6 +56,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.stønadsper
 import no.nav.su.se.bakover.service.søknadsbehandling.testBeregning
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.create
@@ -80,10 +81,12 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -535,7 +538,6 @@ internal class OpprettRevurderingServiceTest {
         }
 
         val mocks = RevurderingServiceMocks(
-            // clock = Clock.fixed(1.januar(2020).startOfDay(zoneIdOslo).instant, zoneIdOslo),
             vedtakService = vedtakServiceMock,
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
@@ -543,9 +545,18 @@ internal class OpprettRevurderingServiceTest {
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
-            avkortingsvarselRepo = mock() {
+            avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
+            revurderingRepo = mock {
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            vilkårsvurderingService = mock {
+                doNothing().whenever(it).lagre(any(), any())
+            },
+            grunnlagService = mock {
+                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
+            }
         )
         val revurderingForFebruar = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(

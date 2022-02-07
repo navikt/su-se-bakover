@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
+import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StatistikkServiceImpl
@@ -50,7 +51,7 @@ object ServiceBuilder {
         )
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak,
-            clock = clock
+            clock = clock,
         ).apply { observers.add(statistikkService) }
         val utbetalingService = UtbetalingServiceImpl(
             utbetalingRepo = databaseRepos.utbetaling,
@@ -139,6 +140,10 @@ object ServiceBuilder {
             toggleService = toggleService,
         ).apply { addObserver(statistikkService) }
 
+        val reguleringService = ReguleringServiceImpl(
+            reguleringRepo = databaseRepos.reguleringRepo,
+        )
+
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
 
         val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
@@ -226,6 +231,7 @@ object ServiceBuilder {
             kontrollsamtale = kontrollsamtaleService,
             klageService = klageService,
             klagevedtakService = klagevedtakService,
+            reguleringService = reguleringService,
             tilbakekrevingService = TilbakekrevingServiceImpl(
                 tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo,
                 tilbakekrevingClient = clients.tilbakekrevingClient

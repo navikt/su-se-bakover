@@ -23,11 +23,13 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KanIkkeTolkeKlagevedtak
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
@@ -102,6 +104,8 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontr
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.regulering.ReguleringService
+import no.nav.su.se.bakover.service.regulering.SakerSomKanReguleres
 import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
@@ -239,14 +243,15 @@ open class AccessCheckProxy(
                     return services.utbetaling.utbetal(request)
                 }
 
-                override fun publiserUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling): Either<UtbetalingFeilet, Utbetalingsrequest> = kastKanKunKallesFraAnnenService()
+                override fun publiserUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling): Either<UtbetalingFeilet, Utbetalingsrequest> =
+                    kastKanKunKallesFraAnnenService()
 
                 override fun lagreUtbetaling(
                     utbetaling: Utbetaling.SimulertUtbetaling,
                     transactionContext: TransactionContext?,
                 ): Utbetaling.OversendtUtbetaling.UtenKvittering = kastKanKunKallesFraAnnenService()
 
-                override fun genererUtbetalingsRequest(
+                override fun verifiserOgSimulerUtbetaling(
                     request: UtbetalRequest.NyUtbetaling,
                 ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> = kastKanKunKallesFraAnnenService()
 
@@ -274,12 +279,9 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun opphør(
+                override fun verifiserOgSimulerOpphør(
                     request: UtbetalRequest.Opphør,
-                ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                    assertHarTilgangTilSak(request.sakId)
-                    return services.utbetaling.opphør(request)
-                }
+                ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> = kastKanKunKallesFraAnnenService()
 
                 override fun hentGjeldendeUtbetaling(
                     sakId: UUID,
@@ -802,7 +804,8 @@ open class AccessCheckProxy(
                     transactionContext: TransactionContext,
                 ): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> = kastKanKunKallesFraAnnenService()
 
-                override fun annullerKontrollsamtale(sakId: UUID): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> = kastKanKunKallesFraAnnenService()
+                override fun annullerKontrollsamtale(sakId: UUID, transactionContext: TransactionContext): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> =
+                    kastKanKunKallesFraAnnenService()
             },
             klageService = object : KlageService {
                 override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
@@ -881,10 +884,28 @@ open class AccessCheckProxy(
                     assertHarTilgangTilKlage(klageId)
                     return services.klageService.brevutkast(klageId, saksbehandler)
                 }
+
+                override fun avslutt(
+                    klageId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    begrunnelse: String,
+                ): Either<KunneIkkeAvslutteKlage, AvsluttetKlage> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.avslutt(
+                        klageId = klageId,
+                        saksbehandler = saksbehandler,
+                        begrunnelse = begrunnelse,
+                    )
+                }
             },
             klagevedtakService = object : KlagevedtakService {
                 override fun lagre(klageVedtak: UprosessertFattetKlageinstansvedtak) = kastKanKunKallesFraAnnenService()
                 override fun håndterUtfallFraKlageinstans(deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KanIkkeTolkeKlagevedtak, UprosessertKlageinstansvedtak>) {
+                    kastKanKunKallesFraAnnenService()
+                }
+            },
+            reguleringService = object : ReguleringService {
+                override fun hentAlleSakerSomKanReguleres(fraDato: LocalDate?): SakerSomKanReguleres {
                     kastKanKunKallesFraAnnenService()
                 }
             },

@@ -109,7 +109,7 @@ internal class UtbetalingServiceImpl(
             }
     }
 
-    override fun genererUtbetalingsRequest(
+    override fun verifiserOgSimulerUtbetaling(
         request: UtbetalRequest.NyUtbetaling,
     ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
         return simulerUtbetaling(request).mapLeft {
@@ -124,9 +124,9 @@ internal class UtbetalingServiceImpl(
         }
     }
 
-    override fun opphør(
+    override fun verifiserOgSimulerOpphør(
         request: UtbetalRequest.Opphør,
-    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+    ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
         return simulerOpphør(request).mapLeft {
             UtbetalingFeilet.KunneIkkeSimulere(it)
         }.flatMap { simulertOpphør ->
@@ -135,7 +135,7 @@ internal class UtbetalingServiceImpl(
                     attestantsSimulering = simulertOpphør,
                 )
             ) return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
-            utbetal(simulertOpphør)
+            simulertOpphør.right()
         }
     }
 

@@ -151,7 +151,8 @@ internal class BekreftVilkårsvurderingerForKlageTest {
                   "vedtaksvurdering":null,
                   "attesteringer":[],
                   "fritekstTilBrev": null,
-                  "klagevedtakshistorikk": []
+                  "klagevedtakshistorikk": [],
+                  "avsluttet": "KAN_AVSLUTTES"
                 }
                     """.trimIndent(),
                     response.content,

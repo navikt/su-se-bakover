@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.klage
 
 import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
@@ -13,6 +14,7 @@ import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.service.klage.KlageService
+import no.nav.su.se.bakover.test.avvistKlage
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -21,6 +23,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class AvvistKlageTest {
@@ -119,6 +122,55 @@ internal class AvvistKlageTest {
             response.status() shouldBe status
             response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             response.content shouldBe body
+        }
+    }
+
+    @Test
+    fun `kan legge fritekst til en avvist klage sitt vedtaksbrev`() {
+        val klage = avvistKlage().second
+        val klageServiceMock = mock<KlageService> {
+            on { leggTilAvvistFritekstTilBrev(any(), any(), any()) } doReturn klage.right()
+        }
+        withTestApplication(
+            {
+                testSusebakover(
+                    services = TestServicesBuilder.services()
+                        .copy(klageService = klageServiceMock),
+                )
+            },
+        ) {
+            defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)) {
+                setBody(validBody)
+            }.apply {
+                response.status() shouldBe HttpStatusCode.OK
+                response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                JSONAssert.assertEquals(
+                    //language=JSON
+                    """
+                {
+                  "id":"${klage.id}",
+                  "sakid":"${klage.sakId}",
+                  "opprettet":"2021-01-01T01:02:03.456789Z",
+                  "journalpostId":"klageJournalpostId",
+                  "saksbehandler":"saksbehandler",
+                  "datoKlageMottatt":"2021-12-01",
+                  "status":"AVVIST",
+                  "vedtakId":"${klage.vilkårsvurderinger.vedtakId}",
+                  "innenforFristen":"NEI",
+                  "klagesDetPåKonkreteElementerIVedtaket":true,
+                  "erUnderskrevet":"JA",
+                  "begrunnelse":"begrunnelse",
+                  "vedtaksvurdering":null,
+                  "attesteringer":[],
+                  "fritekstTilBrev": "dette er en fritekst med person opplysninger",
+                  "klagevedtakshistorikk": [],
+                  "avsluttet": "KAN_AVSLUTTES"
+                }
+                    """.trimIndent(),
+                    response.content,
+                    true,
+                )
+            }
         }
     }
 }

@@ -2,10 +2,12 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
@@ -41,7 +43,7 @@ interface KlageService {
     fun leggTilAvvistFritekstTilBrev(
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekst: String
+        fritekst: String,
     ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage>
 
     fun sendTilAttestering(
@@ -62,6 +64,12 @@ interface KlageService {
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLageBrevutkast, ByteArray>
+
+    fun avslutt(
+        klageId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        begrunnelse: String,
+    ): Either<KunneIkkeAvslutteKlage, AvsluttetKlage>
 }
 
 sealed class KunneIkkeLageBrevutkast {

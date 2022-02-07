@@ -164,6 +164,26 @@ sealed class VurdertKlage : Klage {
         override val datoKlageMottatt: LocalDate,
         override val klagevedtakshistorikk: Klagevedtakshistorikk,
     ) : VurdertKlage() {
+
+        override fun erÅpen() = true
+
+        override fun kanAvsluttes() = klagevedtakshistorikk.isEmpty()
+
+        override fun avslutt(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            begrunnelse: String,
+            tidspunktAvsluttet: Tidspunkt,
+        ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
+            return if (klagevedtakshistorikk.isEmpty()) {
+                AvsluttetKlage(
+                    forrigeSteg = this,
+                    saksbehandler = saksbehandler,
+                    begrunnelse = begrunnelse,
+                    tidspunktAvsluttet = tidspunktAvsluttet,
+                ).right()
+            } else KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
+        }
+
         companion object {
 
             fun create(
@@ -179,7 +199,7 @@ sealed class VurdertKlage : Klage {
                 vurderinger: VurderingerTilKlage.Påbegynt,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
-                klagevedtakshistorikk: Klagevedtakshistorikk
+                klagevedtakshistorikk: Klagevedtakshistorikk,
             ): Påbegynt {
                 return Påbegynt(
                     id = id,
@@ -216,6 +236,8 @@ sealed class VurdertKlage : Klage {
         override val klagevedtakshistorikk: Klagevedtakshistorikk,
     ) : VurdertKlage() {
 
+        override fun erÅpen() = true
+
         override fun bekreftVurderinger(
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, Bekreftet> {
@@ -232,8 +254,25 @@ sealed class VurdertKlage : Klage {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
+                klagevedtakshistorikk = klagevedtakshistorikk,
             ).right()
+        }
+
+        override fun kanAvsluttes() = klagevedtakshistorikk.isEmpty()
+
+        override fun avslutt(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            begrunnelse: String,
+            tidspunktAvsluttet: Tidspunkt,
+        ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
+            return if (klagevedtakshistorikk.isEmpty()) {
+                AvsluttetKlage(
+                    forrigeSteg = this,
+                    saksbehandler = saksbehandler,
+                    begrunnelse = begrunnelse,
+                    tidspunktAvsluttet = tidspunktAvsluttet,
+                ).right()
+            } else KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
         }
 
         companion object {
@@ -250,7 +289,7 @@ sealed class VurdertKlage : Klage {
                 vurderinger: VurderingerTilKlage.Utfylt,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
-                klagevedtakshistorikk: Klagevedtakshistorikk
+                klagevedtakshistorikk: Klagevedtakshistorikk,
             ): Utfylt {
                 return Utfylt(
                     id = id,
@@ -290,6 +329,8 @@ sealed class VurdertKlage : Klage {
         override val datoKlageMottatt: LocalDate,
         override val klagevedtakshistorikk: Klagevedtakshistorikk,
     ) : VurdertKlage() {
+
+        override fun erÅpen() = true
 
         override fun bekreftVurderinger(
             saksbehandler: NavIdentBruker.Saksbehandler,
@@ -335,6 +376,23 @@ sealed class VurdertKlage : Klage {
             }
         }
 
+        override fun kanAvsluttes() = klagevedtakshistorikk.isEmpty()
+
+        override fun avslutt(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            begrunnelse: String,
+            tidspunktAvsluttet: Tidspunkt,
+        ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
+            return if (klagevedtakshistorikk.isEmpty()) {
+                AvsluttetKlage(
+                    forrigeSteg = this,
+                    saksbehandler = saksbehandler,
+                    begrunnelse = begrunnelse,
+                    tidspunktAvsluttet = tidspunktAvsluttet,
+                ).right()
+            } else KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
+        }
+
         companion object {
             fun create(
                 id: UUID,
@@ -349,7 +407,7 @@ sealed class VurdertKlage : Klage {
                 vurderinger: VurderingerTilKlage.Utfylt,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
-                klagevedtakshistorikk: Klagevedtakshistorikk
+                klagevedtakshistorikk: Klagevedtakshistorikk,
             ): Bekreftet {
                 return Bekreftet(
                     id = id,

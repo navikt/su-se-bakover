@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
+import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
@@ -43,5 +44,6 @@ data class DatabaseRepos(
     val klageVedtakRepo: KlagevedtakRepo,
     val kontrollsamtaleRepo: KontrollsamtaleRepo,
     val avkortingsvarselRepo: AvkortingsvarselRepo,
+    val reguleringRepo: ReguleringRepo,
     val tilbakekrevingRepo: TilbakekrevingRepo,
 )

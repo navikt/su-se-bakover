@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.klage.KlagevedtakPostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
+import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
@@ -55,6 +56,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
@@ -240,7 +242,7 @@ internal class TestDataHelper(
     internal val utbetalingRepo = UtbetalingPostgresRepo(
         dataSource = dataSource,
         dbMetrics = dbMetrics,
-        sessionFactory = sessionFactory
+        sessionFactory = sessionFactory,
     )
     internal val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     internal val søknadRepo = SøknadPostgresRepo(
@@ -327,6 +329,10 @@ internal class TestDataHelper(
         vedtakPostgresRepo = vedtakRepo,
         dbMetrics = dbMetrics,
         klageRepo = klagePostgresRepo,
+    )
+    internal val reguleringRepo = ReguleringPostgresRepo(
+        dataSource = dataSource,
+        sessionFactory = sessionFactory
     )
     internal val tilbakekrevingRepo = TilbakekrevingPostgresRepo(sessionFactory = sessionFactory)
 
@@ -483,7 +489,7 @@ internal class TestDataHelper(
             VedtakSomKanRevurderes.from(
                 revurdering = revurdering.tilIverksatt(
                     attestant = attestant,
-                    utbetal = { utbetaling.id.right() },
+                    clock = fixedClock,
                     hentOpprinneligAvkorting = { avkortingid ->
                         avkortingsvarselRepo.hent(id = avkortingid)
                     },
@@ -552,7 +558,7 @@ internal class TestDataHelper(
                 periode = stønadsperiode.periode,
                 vedtakListe = nonEmptyListOf(vedtak.first),
                 clock = clock,
-            )
+            ),
         ).getOrFail().let {
             revurderingRepo.lagre(it)
             it as BeregnetRevurdering.Innvilget
@@ -578,34 +584,6 @@ internal class TestDataHelper(
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "",
             ).getOrFail()
-        }.also {
-            revurderingRepo.lagre(it)
-        }
-    }
-
-    fun tilIverksattRevurdering(): IverksattRevurdering {
-        return when (val tilAttestering = tilAttesteringRevurdering()) {
-            is RevurderingTilAttestering.IngenEndring -> tilAttestering.tilIverksatt(
-                attestant,
-            ).getOrHandle {
-                throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
-            }
-            is RevurderingTilAttestering.Innvilget -> tilAttestering.tilIverksatt(
-                attestant = attestant,
-                utbetal = { UUID30.randomUUID().right() },
-                hentOpprinneligAvkorting = { null },
-            ).getOrHandle {
-                throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
-            }
-            is RevurderingTilAttestering.Opphørt -> tilAttestering.tilIverksatt(
-                attestant = attestant,
-                utbetal = { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering ->
-                    UUID30.randomUUID().right()
-                },
-                hentOpprinneligAvkorting = { null },
-            ).getOrHandle {
-                throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
-            }
         }.also {
             revurderingRepo.lagre(it)
         }
@@ -732,7 +710,7 @@ internal class TestDataHelper(
     fun iverksattRevurderingInnvilget(): IverksattRevurdering.Innvilget {
         return revurderingTilAttesteringInnvilget().tilIverksatt(
             attestant = attestant,
-            utbetal = { UUID30.randomUUID().right() },
+            clock = fixedClock,
             hentOpprinneligAvkorting = { null },
         ).getOrHandle {
             throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
@@ -1212,6 +1190,20 @@ internal class TestDataHelper(
     ): VurdertKlage.Bekreftet {
         return utfyltVurdertKlage(vedtak = vedtak).bekreftVurderinger(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVurdertKlage"),
+        ).orNull()!!.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun avsluttetKlage(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        begrunnelse: String = "Begrunnelse for å avslutte klagen.",
+        tidspunktAvsluttet: Tidspunkt = fixedTidspunkt,
+    ): AvsluttetKlage {
+        return bekreftetVurdertKlage(vedtak = vedtak).avslutt(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerSomAvsluttetKlagen"),
+            begrunnelse = begrunnelse,
+            tidspunktAvsluttet = tidspunktAvsluttet,
         ).orNull()!!.also {
             klagePostgresRepo.lagre(it)
         }

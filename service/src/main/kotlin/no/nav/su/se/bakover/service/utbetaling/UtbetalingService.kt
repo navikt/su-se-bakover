@@ -45,7 +45,7 @@ interface UtbetalingService {
         transactionContext: TransactionContext? = null
     ): Utbetaling.OversendtUtbetaling.UtenKvittering
 
-    fun genererUtbetalingsRequest(
+    fun verifiserOgSimulerUtbetaling(
         request: UtbetalRequest.NyUtbetaling,
     ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling>
 
@@ -65,9 +65,9 @@ interface UtbetalingService {
         request: UtbetalRequest.Gjenopptak,
     ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
-    fun opphør(
+    fun verifiserOgSimulerOpphør(
         request: UtbetalRequest.Opphør,
-    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
+    ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling>
 
     fun hentGjeldendeUtbetaling(
         sakId: UUID,
