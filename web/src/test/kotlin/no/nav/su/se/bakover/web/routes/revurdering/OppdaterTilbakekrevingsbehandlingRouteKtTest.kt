@@ -37,7 +37,6 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
                                         sakId = sak.id,
                                         revurderingId = revurdering.id,
                                         periode = revurdering.periode,
-                                        oversendtTidspunkt = null,
                                     ),
                                 )
                             }.right()

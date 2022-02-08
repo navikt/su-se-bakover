@@ -1173,7 +1173,6 @@ internal class RevurderingJsonTest {
                 sakId = sakId,
                 revurderingId = id,
                 periode = beregning.periode,
-                oversendtTidspunkt = null,
             ),
         )
 

@@ -78,12 +78,6 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
                             "revurderingId" to tilbakrekrevingsbehanding.revurderingId,
                             "fraOgMed" to tilbakrekrevingsbehanding.periode.fraOgMed,
                             "tilOgMed" to tilbakrekrevingsbehanding.periode.tilOgMed,
-                            "oversendtTidspunkt" to when (tilbakrekrevingsbehanding) {
-                                is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.BurdeForstått -> tilbakrekrevingsbehanding.oversendtTidspunkt
-                                is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.Forsto -> tilbakrekrevingsbehanding.oversendtTidspunkt
-                                is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.KunneIkkeForstått -> tilbakrekrevingsbehanding.oversendtTidspunkt
-                                is Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort -> null
-                            },
                             "type" to when (tilbakrekrevingsbehanding) {
                                 is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.BurdeForstått -> Avgjørelsestype.BURDE_FORSTÅTT
                                 is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.Forsto -> Avgjørelsestype.FORSTO
@@ -134,7 +128,6 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
             fraOgMed = localDate("fraOgMed"),
             tilOgMed = localDate("tilOgMed"),
         )
-        val oversendtTidspunkt = tidspunktOrNull("oversendtTidspunkt")
 
         return when (Avgjørelsestype.fromValue(string("type"))) {
             Avgjørelsestype.FORSTO -> Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.Forsto(
@@ -143,7 +136,6 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
                 sakId = sakId,
                 revurderingId = revurderingId,
                 periode = periode,
-                oversendtTidspunkt = oversendtTidspunkt,
             )
             Avgjørelsestype.BURDE_FORSTÅTT -> Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.BurdeForstått(
                 id = id,
@@ -151,7 +143,6 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
                 sakId = sakId,
                 revurderingId = revurderingId,
                 periode = periode,
-                oversendtTidspunkt = oversendtTidspunkt,
             )
             Avgjørelsestype.FORSTO_IKKE_ELLER_KUNNE_IKKE_FORSTÅTT -> Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.KunneIkkeForstått(
                 id = id,
@@ -159,7 +150,6 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
                 sakId = sakId,
                 revurderingId = revurderingId,
                 periode = periode,
-                oversendtTidspunkt = oversendtTidspunkt,
             )
             Avgjørelsestype.IKKE_AVGJORT -> Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort(
                 id = id,

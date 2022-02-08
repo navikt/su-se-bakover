@@ -20,7 +20,6 @@ sealed interface Tilbakekrevingsbehandling {
         val periode: Periode
 
         sealed interface Avgjort : VurderTilbakekreving, FullstendigTilbakekrevingsbehandling {
-            val oversendtTidspunkt: Tidspunkt?
 
             data class Forsto(
                 override val id: UUID,
@@ -28,7 +27,6 @@ sealed interface Tilbakekrevingsbehandling {
                 override val sakId: UUID,
                 override val revurderingId: UUID,
                 override val periode: Periode,
-                override val oversendtTidspunkt: Tidspunkt?,
             ) : Avgjort
 
             data class BurdeForstått(
@@ -37,7 +35,6 @@ sealed interface Tilbakekrevingsbehandling {
                 override val sakId: UUID,
                 override val revurderingId: UUID,
                 override val periode: Periode,
-                override val oversendtTidspunkt: Tidspunkt?,
             ) : Avgjort
 
             data class KunneIkkeForstått(
@@ -46,7 +43,6 @@ sealed interface Tilbakekrevingsbehandling {
                 override val sakId: UUID,
                 override val revurderingId: UUID,
                 override val periode: Periode,
-                override val oversendtTidspunkt: Tidspunkt?,
             ) : Avgjort
         }
 
@@ -64,7 +60,6 @@ sealed interface Tilbakekrevingsbehandling {
                     sakId = sakId,
                     revurderingId = revurderingId,
                     periode = periode,
-                    oversendtTidspunkt = null,
                 )
             }
 
@@ -75,7 +70,6 @@ sealed interface Tilbakekrevingsbehandling {
                     sakId = sakId,
                     revurderingId = revurderingId,
                     periode = periode,
-                    oversendtTidspunkt = null,
                 )
             }
 
@@ -86,7 +80,6 @@ sealed interface Tilbakekrevingsbehandling {
                     sakId = sakId,
                     revurderingId = revurderingId,
                     periode = periode,
-                    oversendtTidspunkt = null,
                 )
             }
         }
