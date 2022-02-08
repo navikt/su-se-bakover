@@ -6,7 +6,7 @@ create table if not exists kravgrunnlag
     type      text        not null
 );
 
-create table if not exists tilbakekrevingsavgjørelse
+create table if not exists tilbakekrevingsbehandling
 (
     id                 uuid primary key,
     opprettet          timestamptz not null,

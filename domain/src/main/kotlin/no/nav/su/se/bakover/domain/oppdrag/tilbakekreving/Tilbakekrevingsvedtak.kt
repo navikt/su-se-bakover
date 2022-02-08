@@ -9,22 +9,22 @@ data class Tilbakekrevingsvedtak private constructor(
     /** Kravgrunnlaget fra kravmeldingen som vi skal ta en avgjørelse på. */
     val kravgrunnlag: Kravgrunnlag,
 
-    val tilbakekrevingsavgjørelse: Tilbakekrevingsavgjørelse,
+    val tilbakekrevingsbehandling: Tilbakekrevingsbehandling,
 
 ) {
     companion object {
         /**
          * @param kravgrunnlag Kravgrunnlaget fra kravmeldingen som vi skal ta en avgjørelse på.
-         * @param tilbakekrevingsavgjørelse Det finnes også en behandler på kravmeldinga (som kommer fra vedtaket/utbetalingslinjene). Disse må stemme overens. Vi skal ikke skille på undergruppene av NavIdentBruker.
+         * @param tilbakekrevingsbehandling Det finnes også en behandler på kravmeldinga (som kommer fra vedtaket/utbetalingslinjene). Disse må stemme overens. Vi skal ikke skille på undergruppene av NavIdentBruker.
          */
         fun tryCreate(
             kravgrunnlag: Kravgrunnlag,
-            tilbakekrevingsavgjørelse: Tilbakekrevingsavgjørelse,
+            tilbakekrevingsbehandling: Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort,
         ): Either<UlikBehandlerIVedtakOgKravgrunnlag, Tilbakekrevingsvedtak> {
             // TODO jah: Verifiser at tilbakekrevingsperiodene stemmer overens med kravgrunnlaget
             return Tilbakekrevingsvedtak(
                 kravgrunnlag = kravgrunnlag,
-                tilbakekrevingsavgjørelse = tilbakekrevingsavgjørelse,
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
             ).right()
         }
     }

@@ -1,15 +1,20 @@
 package no.nav.su.se.bakover.database.tilbakekreving
 
-import no.nav.su.se.bakover.common.periode.Periode
+import kotliquery.Row
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.PostgresSessionFactory
+import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
+import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.tidspunktOrNull
 import no.nav.su.se.bakover.database.uuid
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsavgjørelse
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import java.util.UUID
 
 internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSessionFactory) : TilbakekrevingRepo {
@@ -53,74 +58,131 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         }
     }
 
-    override fun lagreTilbakekrevingsavgjørelse(tilbakekrevingsavgjørelse: Tilbakekrevingsavgjørelse) {
-        sessionFactory.withSession { session ->
-            "insert into tilbakekrevingsavgjørelse (id, opprettet, sakId, revurderingId, periode, oversendtTidspunkt, type) values (:id, :opprettet, :sakId, :periode, :oversendtTidspunkt, :type)".insert(
+    internal fun lagreTilbakekrevingsbehandling(
+        tilbakrekrevingsbehanding: Tilbakekrevingsbehandling,
+        session: Session,
+    ) {
+        when (tilbakrekrevingsbehanding) {
+            is Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving -> {
+                // noop
+            }
+            is Tilbakekrevingsbehandling.VurderTilbakekreving -> {
+                slettForRevurderingId(tilbakrekrevingsbehanding.revurderingId, session)
+
+                "insert into tilbakekrevingsbehandling (id, opprettet, sakId, revurderingId, fraOgMed, tilOgMed, oversendtTidspunkt, type) values (:id, :opprettet, :sakId, :revurderingId, :fraOgMed, :tilOgMed, :oversendtTidspunkt, :type)"
+                    .insert(
+                        mapOf(
+                            "id" to tilbakrekrevingsbehanding.id,
+                            "opprettet" to tilbakrekrevingsbehanding.opprettet,
+                            "sakId" to tilbakrekrevingsbehanding.sakId,
+                            "revurderingId" to tilbakrekrevingsbehanding.revurderingId,
+                            "fraOgMed" to tilbakrekrevingsbehanding.periode.fraOgMed,
+                            "tilOgMed" to tilbakrekrevingsbehanding.periode.tilOgMed,
+                            "oversendtTidspunkt" to when (tilbakrekrevingsbehanding) {
+                                is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.BurdeForstått -> tilbakrekrevingsbehanding.oversendtTidspunkt
+                                is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.Forsto -> tilbakrekrevingsbehanding.oversendtTidspunkt
+                                is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.KunneIkkeForstått -> tilbakrekrevingsbehanding.oversendtTidspunkt
+                                is Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort -> null
+                            },
+                            "type" to when (tilbakrekrevingsbehanding) {
+                                is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.BurdeForstått -> Avgjørelsestype.BURDE_FORSTÅTT
+                                is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.Forsto -> Avgjørelsestype.FORSTO
+                                is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.KunneIkkeForstått -> Avgjørelsestype.FORSTO_IKKE_ELLER_KUNNE_IKKE_FORSTÅTT
+                                is Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort -> Avgjørelsestype.IKKE_AVGJORT
+                            }.toString(),
+                        ),
+                        session,
+                    )
+            }
+        }
+    }
+
+    override fun hentTilbakekrevingsbehandling(saksnummer: Saksnummer): Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort {
+        TODO()
+    }
+
+    internal fun slettForRevurderingId(revurderingId: UUID, session: Session) {
+        """
+                delete from tilbakekrevingsbehandling where revurderingId = :revurderingId
+        """.trimIndent()
+            .oppdatering(
                 mapOf(
-                    "id" to tilbakekrevingsavgjørelse.id,
-                    "opprettet" to tilbakekrevingsavgjørelse.opprettet,
-                    "sakId" to tilbakekrevingsavgjørelse.sakId,
-                    "revurderingId" to tilbakekrevingsavgjørelse.revurderingId,
-                    "fraOgMed" to tilbakekrevingsavgjørelse.periode.fraOgMed,
-                    "tilOgMed" to tilbakekrevingsavgjørelse.periode.tilOgMed,
-                    "oversendtTidspunkt" to tilbakekrevingsavgjørelse.oversendtTidspunkt,
-                    "type" to when (tilbakekrevingsavgjørelse) {
-                        is Tilbakekrevingsavgjørelse.SkalTilbakekreve.Forsto -> Avgjørelsestype.FORSTO
-                        is Tilbakekrevingsavgjørelse.SkalTilbakekreve.BurdeForstått -> Avgjørelsestype.BURDE_FORSTÅTT
-                        is Tilbakekrevingsavgjørelse.SkalIkkeTilbakekreve -> Avgjørelsestype.FORSTO_IKKE_ELLER_KUNNE_IKKE_FORSTÅTT
-                    }.toString(),
+                    "revurderingId" to revurderingId,
                 ),
                 session,
+            )
+    }
+
+    internal fun hentTilbakekrevingsbehandling(revurderingId: UUID, session: Session): Tilbakekrevingsbehandling? {
+        return """
+            select * from tilbakekrevingsbehandling where revurderingId = :revurderingId
+        """.trimIndent()
+            .hent(
+                mapOf("revurderingId" to revurderingId),
+                session,
+            ) {
+                it.toTilbakekrevingsbehandling()
+            }
+    }
+
+    private fun Row.toTilbakekrevingsbehandling(): Tilbakekrevingsbehandling {
+        val id = uuid("id")
+        val opprettet = tidspunkt("opprettet")
+        val revurderingId = uuid("revurderingId")
+        val sakId = uuid("sakId")
+        val periode = no.nav.su.se.bakover.common.periode.Periode.create(
+            fraOgMed = localDate("fraOgMed"),
+            tilOgMed = localDate("tilOgMed"),
+        )
+        val oversendtTidspunkt = tidspunktOrNull("oversendtTidspunkt")
+
+        return when (Avgjørelsestype.fromValue(string("type"))) {
+            Avgjørelsestype.FORSTO -> Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.Forsto(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                revurderingId = revurderingId,
+                periode = periode,
+                oversendtTidspunkt = oversendtTidspunkt,
+            )
+            Avgjørelsestype.BURDE_FORSTÅTT -> Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.BurdeForstått(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                revurderingId = revurderingId,
+                periode = periode,
+                oversendtTidspunkt = oversendtTidspunkt,
+            )
+            Avgjørelsestype.FORSTO_IKKE_ELLER_KUNNE_IKKE_FORSTÅTT -> Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.KunneIkkeForstått(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                revurderingId = revurderingId,
+                periode = periode,
+                oversendtTidspunkt = oversendtTidspunkt,
+            )
+            Avgjørelsestype.IKKE_AVGJORT -> Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                revurderingId = revurderingId,
+                periode = periode,
             )
         }
     }
 
-    override fun hentTilbakekrevingsavgjørelse(): Tilbakekrevingsavgjørelse {
-        TODO()
+    override fun defaultTransactionContext(): TransactionContext {
+        return sessionFactory.newTransactionContext()
     }
 
-    override fun hentUoversendteTilbakekrevingsavgjørelser(sakId: UUID): List<Tilbakekrevingsavgjørelse> {
+    override fun hentIkkeOversendteTilbakekrevingsbehandlinger(sakId: UUID): List<Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort> {
         return sessionFactory.withSession { session ->
-            "select * from tilbakekrevingsavgjørelse where sakId = :sakId and oversendtTidspunkt is null".hentListe(
+            "select * from tilbakekrevingsbehandling where sakId = :sakId and oversendtTidspunkt is null".hentListe(
                 emptyMap(),
                 session,
             ) {
-                val id = it.uuid("id")
-                val opprettet = it.tidspunkt("opprettet")
-                val revurderingId = it.uuid("revurderingId")
-                val periode = Periode.create(
-                    fraOgMed = it.localDate("fraOgMed"),
-                    tilOgMed = it.localDate("tilOgMed"),
-                )
-                val oversendtTidspunkt = it.tidspunktOrNull("oversendtTidspunkt")
-
-                when (Avgjørelsestype.fromValue(it.string("type"))) {
-                    Avgjørelsestype.FORSTO -> Tilbakekrevingsavgjørelse.SkalTilbakekreve.Forsto(
-                        id = id,
-                        opprettet = opprettet,
-                        sakId = sakId,
-                        revurderingId = revurderingId,
-                        periode = periode,
-                        oversendtTidspunkt = oversendtTidspunkt,
-                    )
-                    Avgjørelsestype.BURDE_FORSTÅTT -> Tilbakekrevingsavgjørelse.SkalTilbakekreve.BurdeForstått(
-                        id = id,
-                        opprettet = opprettet,
-                        sakId = sakId,
-                        revurderingId = revurderingId,
-                        periode = periode,
-                        oversendtTidspunkt = oversendtTidspunkt,
-                    )
-                    Avgjørelsestype.FORSTO_IKKE_ELLER_KUNNE_IKKE_FORSTÅTT -> Tilbakekrevingsavgjørelse.SkalIkkeTilbakekreve(
-                        id = id,
-                        opprettet = opprettet,
-                        sakId = sakId,
-                        revurderingId = revurderingId,
-                        periode = periode,
-                        oversendtTidspunkt = oversendtTidspunkt,
-                    )
-                }
-            }
+                it.toTilbakekrevingsbehandling()
+            }.filterIsInstance<Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort>()
         }
     }
 
@@ -139,6 +201,7 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
     }
 
     private enum class Avgjørelsestype(private val value: String) {
+        IKKE_AVGJORT("ikke_avgjort"),
         FORSTO("forsto"),
         BURDE_FORSTÅTT("burde_forstått"),
         FORSTO_IKKE_ELLER_KUNNE_IKKE_FORSTÅTT("forsto_ikke_eller_kunne_ikke_forstått");

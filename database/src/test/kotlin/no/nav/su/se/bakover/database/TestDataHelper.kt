@@ -291,6 +291,7 @@ internal class TestDataHelper(
         avkortingsvarselRepo = avkortingsvarselRepo,
     )
     internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory)
+    internal val tilbakekrevingRepo = TilbakekrevingPostgresRepo(sessionFactory)
     internal val revurderingRepo = RevurderingPostgresRepo(
         dataSource = dataSource,
         fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
@@ -303,6 +304,7 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
         avkortingsvarselRepo = avkortingsvarselRepo,
+        tilbakekrevingRepo = tilbakekrevingRepo,
     )
     internal val vedtakRepo = VedtakPostgresRepo(
         dataSource = dataSource,
@@ -334,7 +336,6 @@ internal class TestDataHelper(
         dataSource = dataSource,
         sessionFactory = sessionFactory
     )
-    internal val tilbakekrevingRepo = TilbakekrevingPostgresRepo(sessionFactory = sessionFactory)
 
     fun nySakMedNySøknad(
         fnr: Fnr = Fnr.generer(),
@@ -566,7 +567,7 @@ internal class TestDataHelper(
     }
 
     private fun simulertRevurdering(): SimulertRevurdering {
-        return beregnetRevurdering().toSimulert(simulering(Fnr.generer())).also {
+        return beregnetRevurdering().toSimulert(simulering(Fnr.generer()), clock).also {
             revurderingRepo.lagre(it)
         }
     }
@@ -667,7 +668,7 @@ internal class TestDataHelper(
     }
 
     fun simulertInnvilgetRevurdering(): SimulertRevurdering.Innvilget {
-        return beregnetInnvilgetRevurdering().toSimulert(simulering(Fnr.generer())).also {
+        return beregnetInnvilgetRevurdering().toSimulert(simulering(Fnr.generer()), clock).also {
             revurderingRepo.lagre(it)
         }
     }

@@ -5,6 +5,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
@@ -13,6 +14,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -21,7 +23,6 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
@@ -37,6 +38,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.test.aktørId
+import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
@@ -47,6 +49,7 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -188,26 +191,15 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
     @Test
     fun `Ikke lov å sende en Simulert Opphørt til attestering`() {
-        val simulertRevurdering = SimulertRevurdering.Opphørt(
-            id = revurderingId,
-            periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
+        val simulertRevurdering = simulertRevurdering(
+            revurderingsperiode = Periode.create(1.august(2021), 31.desember(2021)),
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            beregning = TestBeregning,
-            simulering = mock(),
-            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = mock {
-                on { resultat } doReturn Vilkårsvurderingsresultat.Innvilget(emptySet())
-            },
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-        )
+            vilkårOverrides = listOf(
+                avslåttUførevilkårUtenGrunnlag(
+                    periode = Periode.create(1.august(2021), 31.desember(2021))
+                )
+            )
+        ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
@@ -263,6 +255,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+            tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {

@@ -70,6 +70,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
@@ -126,6 +127,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnla
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereTilbakekrevingsbehandling
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse
@@ -133,6 +135,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjongrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilFormuegrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
+import no.nav.su.se.bakover.service.revurdering.OppdaterTilbakekrevingsbehandlingRequest
 import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -636,6 +639,11 @@ open class AccessCheckProxy(
                     return services.revurdering.sendTilAttestering(request)
                 }
 
+                override fun oppdaterTilbakekrevingsbehandling(request: OppdaterTilbakekrevingsbehandlingRequest): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, SimulertRevurdering> {
+                    assertHarTilgangTilRevurdering(request.revurderingId)
+                    return services.revurdering.oppdaterTilbakekrevingsbehandling(request)
+                }
+
                 override fun lagBrevutkastForRevurdering(
                     revurderingId: UUID,
                     fritekst: String?,
@@ -804,7 +812,10 @@ open class AccessCheckProxy(
                     transactionContext: TransactionContext,
                 ): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> = kastKanKunKallesFraAnnenService()
 
-                override fun annullerKontrollsamtale(sakId: UUID, transactionContext: TransactionContext): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> =
+                override fun annullerKontrollsamtale(
+                    sakId: UUID,
+                    transactionContext: TransactionContext,
+                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> =
                     kastKanKunKallesFraAnnenService()
             },
             klageService = object : KlageService {

@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -163,6 +164,7 @@ internal class RevurderingPostgresRepoTest {
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
         avkorting = beregnet.avkorting.håndter(),
+        tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving,
     )
 
     private fun simulertOpphørt(beregnet: BeregnetRevurdering.Opphørt) = SimulertRevurdering.Opphørt(
@@ -182,6 +184,7 @@ internal class RevurderingPostgresRepoTest {
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
         avkorting = beregnet.avkorting.håndter(),
+        tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving,
     )
 
     @Test
@@ -472,6 +475,7 @@ internal class RevurderingPostgresRepoTest {
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+                tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving
             )
 
             repo.lagre(underkjent)
@@ -508,6 +512,7 @@ internal class RevurderingPostgresRepoTest {
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+                tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving
             )
 
             repo.lagre(underkjent)
@@ -558,6 +563,7 @@ internal class RevurderingPostgresRepoTest {
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
+                tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving
             )
 
             repo.lagre(underkjent)

@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -859,6 +860,7 @@ internal class LagBrevRequestVisitorTest {
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
+            tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving,
         )
 
         val avslåttVedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
@@ -956,6 +958,7 @@ internal class LagBrevRequestVisitorTest {
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
+            tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving,
         )
 
         val opphørsvedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
@@ -1068,7 +1071,7 @@ internal class LagBrevRequestVisitorTest {
             gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                 fraOgMed = revurdering.periode.fraOgMed,
                 clock = fixedClock,
-            ).getOrFail()
+            ).getOrFail(),
         ).getOrFail().let {
             (it as BeregnetRevurdering.Opphørt).toSimulert { sakId, _, opphørsdato ->
                 simulertUtbetalingOpphør(
@@ -1077,15 +1080,19 @@ internal class LagBrevRequestVisitorTest {
                     eksisterendeUtbetalinger = sak.utbetalinger,
                 )
             }.getOrFail()
-        }.prøvOvergangTilSkalIkkeForhåndsvarsles().getOrFail().tilAttestering(
-            attesteringsoppgaveId = oppgaveIdRevurdering,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "FRITEKST REVURDERING",
-        ).getOrFail()
+        }.prøvOvergangTilSkalIkkeForhåndsvarsles().getOrFail()
+            .oppdaterTilbakekrevingsbehandling(
+                tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving,
+            )
+            .tilAttestering(
+                attesteringsoppgaveId = oppgaveIdRevurdering,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "FRITEKST REVURDERING",
+            ).getOrFail()
             .tilIverksatt(
                 attestant = attestant,
                 hentOpprinneligAvkorting = { null },
-                clock = fixedClock
+                clock = fixedClock,
             )
             .getOrFail()
 

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -216,7 +217,8 @@ internal class PersonPostgresRepoTest {
                     vilkårsvurderinger = revurdering.vilkårsvurderinger,
                     informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
                     attesteringer = Attesteringshistorikk.empty(),
-                    avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+                    avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+                    tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving,
                 ),
             ).first
 
@@ -257,7 +259,8 @@ internal class PersonPostgresRepoTest {
                     vilkårsvurderinger = revurdering.vilkårsvurderinger,
                     informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
                     attesteringer = Attesteringshistorikk.empty(),
-                    avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+                    avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+                    tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving
                 ),
             ).first
             val revurderingAvRevurdering = testDataHelper.nyRevurdering(

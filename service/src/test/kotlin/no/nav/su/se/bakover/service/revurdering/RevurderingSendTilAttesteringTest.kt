@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -30,6 +31,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.formueGrunnlagUtenEps0Innvilget
 import no.nav.su.se.bakover.test.formueGrunnlagUtenEpsAvslått
@@ -59,6 +61,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 internal class RevurderingSendTilAttesteringTest {
 
@@ -294,7 +297,7 @@ internal class RevurderingSendTilAttesteringTest {
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn oppgaveIdRevurdering.right()
                 on { lukkOppgave(any()) } doReturn Unit.right()
-            }
+            },
         ).let {
             it.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(
@@ -307,6 +310,100 @@ internal class RevurderingSendTilAttesteringTest {
 
             verify(it.revurderingRepo).lagre(any(), anyOrNull())
             verify(it.toggleService).isEnabled("supstonad.ufore.feilutbetaling")
+        }
+    }
+
+    @Test
+    fun `får ikke sende til attestering dersom tilbakekreving ikke er ferdigbehandlet`() {
+        val revurdering = simulertRevurdering(
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = periode2021,
+                    arbeidsinntekt = 5000.0,
+                ),
+            ),
+        ).second
+
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn revurdering.oppdaterTilbakekrevingsbehandling(
+                    Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        sakId = revurdering.sakId,
+                        revurderingId = revurdering.id,
+                        periode = revurdering.periode,
+                    ),
+                )
+            },
+            toggleService = mock {
+                on { isEnabled(any()) } doReturn true
+            },
+            // TODO må endre rekkefølge slik at disse ikke kalles
+            personService = mock {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+            },
+            // TODO må endre rekkefølge slik at disse ikke kalles
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn oppgaveIdRevurdering.right()
+                on { lukkOppgave(any()) } doReturn Unit.right()
+            },
+        ).let {
+            it.revurderingService.sendTilAttestering(
+                SendTilAttesteringRequest(
+                    revurderingId = revurderingId,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = "Fritekst",
+                    skalFøreTilBrevutsending = true,
+                ),
+            ) shouldBe KunneIkkeSendeRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig.left()
+        }
+    }
+
+    @Test
+    fun `får sende til attestering dersom tilbakekreving er ferdigbehandlet`() {
+        val revurdering = simulertRevurdering(
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = periode2021,
+                    arbeidsinntekt = 5000.0,
+                ),
+            ),
+        ).second
+
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn revurdering.oppdaterTilbakekrevingsbehandling(
+                    Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        sakId = revurdering.sakId,
+                        revurderingId = revurdering.id,
+                        periode = revurdering.periode,
+                    ).burdeForstått(),
+                )
+            },
+            toggleService = mock {
+                on { isEnabled(any()) } doReturn true
+            },
+            // TODO må endre rekkefølge slik at disse ikke kalles
+            personService = mock {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+            },
+            // TODO må endre rekkefølge slik at disse ikke kalles
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn oppgaveIdRevurdering.right()
+                on { lukkOppgave(any()) } doReturn Unit.right()
+            },
+        ).let {
+            it.revurderingService.sendTilAttestering(
+                SendTilAttesteringRequest(
+                    revurderingId = revurderingId,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = "Fritekst",
+                    skalFøreTilBrevutsending = true,
+                ),
+            ).getOrFail() shouldBe beOfType<RevurderingTilAttestering.Innvilget>()
         }
     }
 

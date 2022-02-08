@@ -149,6 +149,11 @@ object DatabaseBuilder {
             avkortingsvarselRepo = avkortingsvarselRepo,
         )
         val klageRepo = KlagePostgresRepo(sessionFactory)
+
+        val tilbakekrevingRepo = TilbakekrevingPostgresRepo(
+            sessionFactory = sessionFactory,
+        )
+
         val revurderingRepo = RevurderingPostgresRepo(
             dataSource = dataSource,
             fradragsgrunnlagPostgresRepo = fradragsgrunnlag,
@@ -161,6 +166,7 @@ object DatabaseBuilder {
             dbMetrics = dbMetrics,
             sessionFactory = sessionFactory,
             avkortingsvarselRepo = avkortingsvarselRepo,
+            tilbakekrevingRepo = tilbakekrevingRepo,
         )
         val vedtakRepo = VedtakPostgresRepo(
             dataSource = dataSource,
@@ -181,7 +187,7 @@ object DatabaseBuilder {
             utbetaling = UtbetalingPostgresRepo(
                 dataSource = dataSource,
                 dbMetrics = dbMetrics,
-                sessionFactory = sessionFactory
+                sessionFactory = sessionFactory,
             ),
             søknad = SøknadPostgresRepo(
                 dataSource = dataSource,
@@ -216,9 +222,7 @@ object DatabaseBuilder {
             kontrollsamtaleRepo = kontrollsamtaleRepo,
             avkortingsvarselRepo = avkortingsvarselRepo,
             reguleringRepo = reguleringRepo,
-            tilbakekrevingRepo = TilbakekrevingPostgresRepo(
-                sessionFactory = sessionFactory
-            )
+            tilbakekrevingRepo = tilbakekrevingRepo,
         )
     }
 }

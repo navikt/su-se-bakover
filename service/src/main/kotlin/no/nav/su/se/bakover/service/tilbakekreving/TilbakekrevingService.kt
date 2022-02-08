@@ -33,10 +33,13 @@ class TilbakekrevingServiceImpl(
      */
     override fun sendTilbakekrevinger(mapper: (RåttKravgrunnlag) -> Kravgrunnlag) {
         tilbakekrevingRepo.hentUbehandlaKravgrunnlag().forEach {
+            val mapped = mapper(it)
             tilbakekrevingClient.avgjørKravgrunnlag(
                 Tilbakekrevingsvedtak.tryCreate(
-                    kravgrunnlag = mapper(it),
-                    tilbakekrevingsavgjørelse = tilbakekrevingRepo.hentTilbakekrevingsavgjørelse() // TODO jah: Må knytte kravgrunnlaget til en revurdering/vedtak. Hente saken?
+                    kravgrunnlag = mapped,
+                    // TODO jah: Må knytte kravgrunnlaget til en revurdering/vedtak. Hente saken?
+                    // TODO kan knyttes direkte mot et vedtak ved å sende med vedtakid som "henvisning" med utbetalingen, i kravgrunnlaget vil "referanse" inneholde verdien fra henvisning send med utbetalingen.
+                    tilbakekrevingsbehandling = tilbakekrevingRepo.hentTilbakekrevingsbehandling(mapped.saksnummer)
                 ).getOrHandle { throw IllegalStateException() },
             )
         }
