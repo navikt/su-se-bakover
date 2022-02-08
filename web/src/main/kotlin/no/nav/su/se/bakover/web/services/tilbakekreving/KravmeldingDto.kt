@@ -176,8 +176,9 @@ internal data class KravmeldingDto(
      *
      * F.eks. 01F49912SX9SRRVGT0J5R4WYFR
      */
-    @field:JsonProperty(value = "referanse")
-    val referanse: String,
+    // TODO send med "henvisning" (referanse til vedtak) på utbetalingslinjer - verdien i "henvisning" vil returneres som "referanse" i kravgunnlaget
+    // @field:JsonProperty(value = "referanse")
+    // val referanse: String,
 
     @field:JsonProperty(value = "tilbakekrevingsPeriode")
     val tilbakekrevingsperioder: List<Tilbakekrevingsperiode>,
