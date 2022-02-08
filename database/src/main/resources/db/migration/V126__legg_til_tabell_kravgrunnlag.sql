@@ -15,5 +15,6 @@ create table if not exists tilbakekrevingsbehandling
     fraOgMed           date        not null,
     tilOgMed           date        not null,
     oversendtTidspunkt timestamptz null,
-    type               text        not null
+    avgjørelse         text        not null,
+    tilstand           text        not null
 );

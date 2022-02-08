@@ -10,82 +10,152 @@ import java.util.UUID
  * @property periode Vi støtter i førsteomgang kun en sammenhengende periode, som kan være hele eller deler av en revurderingsperiode.
  * @property oversendtTidspunkt Tidspunktet vi sendte avgjørelsen til oppdrag, ellers null
  */
+
+data class Forsto(
+    override val id: UUID,
+    override val opprettet: Tidspunkt,
+    override val sakId: UUID,
+    override val revurderingId: UUID,
+    override val periode: Periode,
+) : Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
+    Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving {
+    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag {
+        return AvventerKravgrunnlag(this)
+    }
+}
+
+data class BurdeForstått(
+    override val id: UUID,
+    override val opprettet: Tidspunkt,
+    override val sakId: UUID,
+    override val revurderingId: UUID,
+    override val periode: Periode,
+) : Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
+    Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving {
+    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag {
+        return AvventerKravgrunnlag(this)
+    }
+}
+
+data class KunneIkkeForstå(
+    override val id: UUID,
+    override val opprettet: Tidspunkt,
+    override val sakId: UUID,
+    override val revurderingId: UUID,
+    override val periode: Periode,
+) : Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
+    Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving {
+    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag {
+        return AvventerKravgrunnlag(this)
+    }
+}
+
+data class IkkeAvgjort(
+    override val id: UUID,
+    override val opprettet: Tidspunkt,
+    override val sakId: UUID,
+    override val revurderingId: UUID,
+    override val periode: Periode,
+) : Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.IkkeAvgjort,
+    Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving {
+    fun forsto(): Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort {
+        return Forsto(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            revurderingId = revurderingId,
+            periode = periode,
+        )
+    }
+
+    fun burdeForstått(): Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort {
+        return BurdeForstått(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            revurderingId = revurderingId,
+            periode = periode,
+        )
+    }
+
+    fun kunneIkkeForstå(): Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort {
+        return KunneIkkeForstå(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            revurderingId = revurderingId,
+            periode = periode,
+        )
+    }
+}
+
+data class AvventerKravgrunnlag(
+    override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
+) : Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag {
+    override fun mottattKravgrunnlag(kravgrunnlag: RåttKravgrunnlag): Tilbakekrevingsbehandling.Ferdigbehandlet.MottattKravgrunnlag {
+        return MottattKravgrunnlag(
+            avgjort = avgjort,
+            kravgrunnlag = kravgrunnlag,
+        )
+    }
+}
+
+data class MottattKravgrunnlag(
+    override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
+    override val kravgrunnlag: RåttKravgrunnlag,
+) : Tilbakekrevingsbehandling.Ferdigbehandlet.MottattKravgrunnlag
+
+object IkkeBehovForTilbakekrevingUnderBehandling :
+    Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving {
+    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.IkkeBehovForTilbakekreving {
+        return IkkeBehovForTilbakekrevingFerdigbehandlet
+    }
+}
+
+object IkkeBehovForTilbakekrevingFerdigbehandlet : Tilbakekrevingsbehandling.Ferdigbehandlet.IkkeBehovForTilbakekreving
+
 sealed interface Tilbakekrevingsbehandling {
 
-    sealed interface VurderTilbakekreving : Tilbakekrevingsbehandling {
-        val id: UUID
-        val opprettet: Tidspunkt
-        val sakId: UUID
-        val revurderingId: UUID
-        val periode: Periode
+    sealed interface UnderBehandling : Tilbakekrevingsbehandling {
 
-        sealed interface Avgjort : VurderTilbakekreving, FullstendigTilbakekrevingsbehandling {
+        fun ferdigbehandlet(): Ferdigbehandlet
 
-            data class Forsto(
-                override val id: UUID,
-                override val opprettet: Tidspunkt,
-                override val sakId: UUID,
-                override val revurderingId: UUID,
-                override val periode: Periode,
-            ) : Avgjort
+        sealed interface VurderTilbakekreving : UnderBehandling {
+            val id: UUID
+            val opprettet: Tidspunkt
+            val sakId: UUID
+            val revurderingId: UUID
+            val periode: Periode
 
-            data class BurdeForstått(
-                override val id: UUID,
-                override val opprettet: Tidspunkt,
-                override val sakId: UUID,
-                override val revurderingId: UUID,
-                override val periode: Periode,
-            ) : Avgjort
+            sealed interface Avgjort : VurderTilbakekreving {
+                override fun ferdigbehandlet(): Ferdigbehandlet.AvventerKravgrunnlag
+            }
 
-            data class KunneIkkeForstått(
-                override val id: UUID,
-                override val opprettet: Tidspunkt,
-                override val sakId: UUID,
-                override val revurderingId: UUID,
-                override val periode: Periode,
-            ) : Avgjort
+            sealed interface IkkeAvgjort : VurderTilbakekreving {
+                override fun ferdigbehandlet(): Ferdigbehandlet.AvventerKravgrunnlag {
+                    throw IllegalStateException("Må avgjøres før vurdering kan ferdigbehandles")
+                }
+            }
         }
 
-        data class IkkeAvgjort(
-            override val id: UUID,
-            override val opprettet: Tidspunkt,
-            override val sakId: UUID,
-            override val revurderingId: UUID,
-            override val periode: Periode,
-        ) : VurderTilbakekreving {
-            fun forsto(): Avgjort.Forsto {
-                return Avgjort.Forsto(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    revurderingId = revurderingId,
-                    periode = periode,
-                )
-            }
-
-            fun burdeForstått(): Avgjort.BurdeForstått {
-                return Avgjort.BurdeForstått(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    revurderingId = revurderingId,
-                    periode = periode,
-                )
-            }
-
-            fun kunneIkkeForstå(): Avgjort.KunneIkkeForstått {
-                return Avgjort.KunneIkkeForstått(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    revurderingId = revurderingId,
-                    periode = periode,
-                )
-            }
+        interface IkkeBehovForTilbakekreving : UnderBehandling {
+            override fun ferdigbehandlet(): Ferdigbehandlet.IkkeBehovForTilbakekreving
         }
     }
 
-    object IkkeBehovForTilbakekreving : Tilbakekrevingsbehandling, FullstendigTilbakekrevingsbehandling
-}
+    sealed interface Ferdigbehandlet : Tilbakekrevingsbehandling {
 
-sealed interface FullstendigTilbakekrevingsbehandling
+        interface IkkeBehovForTilbakekreving : Ferdigbehandlet
+
+        sealed interface AvventerKravgrunnlag : Ferdigbehandlet {
+            val avgjort: UnderBehandling.VurderTilbakekreving.Avgjort
+
+            fun mottattKravgrunnlag(kravgrunnlag: RåttKravgrunnlag): MottattKravgrunnlag
+        }
+
+        sealed interface MottattKravgrunnlag : Ferdigbehandlet {
+            val avgjort: UnderBehandling.VurderTilbakekreving.Avgjort
+            val kravgrunnlag: RåttKravgrunnlag
+        }
+    }
+}

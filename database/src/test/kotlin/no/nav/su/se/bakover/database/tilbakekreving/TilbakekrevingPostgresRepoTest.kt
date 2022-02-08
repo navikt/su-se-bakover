@@ -2,12 +2,21 @@ package no.nav.su.se.bakover.database.tilbakekreving
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.oppgaveId
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -58,7 +67,7 @@ internal class TilbakekrevingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val revurdering = testDataHelper.simulertInnvilgetRevurdering()
 
-            (testDataHelper.revurderingRepo.hent(revurdering.id) as SimulertRevurdering).tilbakekrevingsbehandling shouldBe Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving
+            (testDataHelper.revurderingRepo.hent(revurdering.id) as SimulertRevurdering).tilbakekrevingsbehandling shouldBe IkkeBehovForTilbakekrevingUnderBehandling
         }
     }
 
@@ -68,7 +77,7 @@ internal class TilbakekrevingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val revurdering = testDataHelper.simulertInnvilgetRevurdering()
 
-            val ikkeAvgjort = Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort(
+            val ikkeAvgjort = IkkeAvgjort(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 sakId = revurdering.sakId,
@@ -90,6 +99,29 @@ internal class TilbakekrevingPostgresRepoTest {
             val kunneIkkeForstå = ikkeAvgjort.kunneIkkeForstå()
             testDataHelper.revurderingRepo.lagre(revurdering.copy(tilbakekrevingsbehandling = kunneIkkeForstå))
             (testDataHelper.revurderingRepo.hent(revurdering.id) as SimulertRevurdering).tilbakekrevingsbehandling shouldBe kunneIkkeForstå
+
+            val tilAttestering = revurdering.copy(
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
+                tilbakekrevingsbehandling = kunneIkkeForstå,
+            ).tilAttestering(
+                attesteringsoppgaveId = oppgaveId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "njet",
+            ).getOrFail()
+
+            testDataHelper.revurderingRepo.lagre(tilAttestering)
+
+            val iverksatt = tilAttestering.tilIverksatt(
+                attestant = attestant,
+                hentOpprinneligAvkorting = { Avkortingsvarsel.Ingen },
+                clock = fixedClock,
+            ).getOrFail()
+
+            testDataHelper.revurderingRepo.lagre(iverksatt)
+
+            (testDataHelper.revurderingRepo.hent(revurdering.id) as IverksattRevurdering.Innvilget).tilbakekrevingsbehandling shouldBe AvventerKravgrunnlag(
+                avgjort = kunneIkkeForstå,
+            )
         }
     }
 }

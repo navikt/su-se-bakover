@@ -41,7 +41,10 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.FullstendigTilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
@@ -254,7 +257,7 @@ internal class RevurderingPostgresRepo(
         val tilbakekrevingsbehandling = tilbakekrevingRepo.hentTilbakekrevingsbehandling(
             revurderingId = id,
             session = session,
-        ) ?: Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving
+        )
 
         val revurdering = lagRevurdering(
             status = status,
@@ -458,16 +461,24 @@ internal class RevurderingPostgresRepo(
                 tx,
             )
 
-        when (revurdering.tilbakekrevingsbehandling) {
-            Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving -> {
-                tilbakekrevingRepo.slettForRevurderingId(revurderingId = revurdering.id, session = tx)
+        when (val t = revurdering.tilbakekrevingsbehandling) {
+            is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
+                tilbakekrevingRepo.slettForRevurderingId(
+                    revurderingId = revurdering.id,
+                    session = tx,
+                )
             }
-            is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.BurdeForstått,
-            is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.Forsto,
-            is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.KunneIkkeForstått,
-            is Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort,
-            -> {
-                tilbakekrevingRepo.lagreTilbakekrevingsbehandling(revurdering.tilbakekrevingsbehandling, tx)
+            is Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort -> {
+                tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
+                    tilbakrekrevingsbehanding = t,
+                    session = tx,
+                )
+            }
+            is Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.IkkeAvgjort -> {
+                tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
+                    tilbakrekrevingsbehanding = t,
+                    session = tx,
+                )
             }
         }
     }
@@ -582,6 +593,38 @@ internal class RevurderingPostgresRepo(
                 // noop
             }
         }
+
+        when (revurdering) {
+            is IverksattRevurdering.IngenEndring -> {
+                // noop
+            }
+            is IverksattRevurdering.Innvilget -> {
+                when (val tb = revurdering.tilbakekrevingsbehandling) {
+                    is AvventerKravgrunnlag -> {
+                        tilbakekrevingRepo.lagreTilbakekrevingsbehandling(tb, tx)
+                    }
+                    is Tilbakekrevingsbehandling.Ferdigbehandlet.IkkeBehovForTilbakekreving -> {
+                        // noop
+                    }
+                    is MottattKravgrunnlag -> {
+                        throw IllegalStateException("Kan aldri ha mottatt kravgrunnlag før vi har iverksatt")
+                    }
+                }
+            }
+            is IverksattRevurdering.Opphørt -> {
+                when (val tb = revurdering.tilbakekrevingsbehandling) {
+                    is AvventerKravgrunnlag -> {
+                        tilbakekrevingRepo.lagreTilbakekrevingsbehandling(tb, tx)
+                    }
+                    is Tilbakekrevingsbehandling.Ferdigbehandlet.IkkeBehovForTilbakekreving -> {
+                        // noop
+                    }
+                    is MottattKravgrunnlag -> {
+                        throw IllegalStateException("Kan aldri ha mottatt kravgrunnlag før vi har iverksatt")
+                    }
+                }
+            }
+        }
     }
 
     private fun lagre(revurdering: UnderkjentRevurdering, session: TransactionalSession) =
@@ -687,7 +730,7 @@ internal class RevurderingPostgresRepo(
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes?,
         avkorting: AvkortingVedRevurdering?,
-        tilbakekrevingsbehandling: Tilbakekrevingsbehandling,
+        tilbakekrevingsbehandling: Tilbakekrevingsbehandling?,
     ): AbstraktRevurdering {
         return when (status) {
             RevurderingsType.UNDERKJENT_INNVILGET -> UnderkjentRevurdering.Innvilget(
@@ -707,7 +750,8 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling as FullstendigTilbakekrevingsbehandling,
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.UnderBehandling
+                    ?: IkkeBehovForTilbakekrevingUnderBehandling,
             )
             RevurderingsType.UNDERKJENT_OPPHØRT -> UnderkjentRevurdering.Opphørt(
                 id = id,
@@ -726,7 +770,8 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling as FullstendigTilbakekrevingsbehandling,
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.UnderBehandling
+                    ?: IkkeBehovForTilbakekrevingUnderBehandling,
             )
             RevurderingsType.IVERKSATT_INNVILGET -> IverksattRevurdering.Innvilget(
                 id = id,
@@ -745,7 +790,8 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 avkorting = avkorting as AvkortingVedRevurdering.Iverksatt,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling as FullstendigTilbakekrevingsbehandling,
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.Ferdigbehandlet
+                    ?: IkkeBehovForTilbakekrevingFerdigbehandlet,
             )
             RevurderingsType.IVERKSATT_OPPHØRT -> IverksattRevurdering.Opphørt(
                 id = id,
@@ -764,7 +810,8 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 avkorting = avkorting as AvkortingVedRevurdering.Iverksatt,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling as FullstendigTilbakekrevingsbehandling,
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.Ferdigbehandlet
+                    ?: IkkeBehovForTilbakekrevingFerdigbehandlet,
             )
             RevurderingsType.TIL_ATTESTERING_INNVILGET -> RevurderingTilAttestering.Innvilget(
                 id = id,
@@ -783,7 +830,8 @@ internal class RevurderingPostgresRepo(
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling as FullstendigTilbakekrevingsbehandling,
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.UnderBehandling
+                    ?: IkkeBehovForTilbakekrevingUnderBehandling,
             )
             RevurderingsType.TIL_ATTESTERING_OPPHØRT -> RevurderingTilAttestering.Opphørt(
                 id = id,
@@ -802,7 +850,8 @@ internal class RevurderingPostgresRepo(
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling as FullstendigTilbakekrevingsbehandling,
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.UnderBehandling
+                    ?: IkkeBehovForTilbakekrevingUnderBehandling,
             )
             RevurderingsType.SIMULERT_INNVILGET -> SimulertRevurdering.Innvilget(
                 id = id,
@@ -821,7 +870,8 @@ internal class RevurderingPostgresRepo(
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.UnderBehandling
+                    ?: IkkeBehovForTilbakekrevingUnderBehandling,
             )
             RevurderingsType.SIMULERT_OPPHØRT -> SimulertRevurdering.Opphørt(
                 id = id,
@@ -840,7 +890,8 @@ internal class RevurderingPostgresRepo(
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.UnderBehandling
+                    ?: IkkeBehovForTilbakekrevingUnderBehandling,
             )
             RevurderingsType.BEREGNET_INNVILGET -> BeregnetRevurdering.Innvilget(
                 id = id,

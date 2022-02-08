@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
@@ -101,7 +101,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-            tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving
+            tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

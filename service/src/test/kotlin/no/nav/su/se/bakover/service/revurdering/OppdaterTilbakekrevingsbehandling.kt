@@ -4,7 +4,9 @@ import arrow.core.left
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.BurdeForstått
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Forsto
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.KunneIkkeForstå
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
@@ -86,7 +88,7 @@ internal class OppdaterTilbakekrevingsbehandling {
                     saksbehandler = saksbehandler,
                 ),
             ).getOrFail().let { oppdatert ->
-                oppdatert.tilbakekrevingsbehandling shouldBe beOfType<Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.Forsto>()
+                oppdatert.tilbakekrevingsbehandling shouldBe beOfType<Forsto>()
             }
 
             it.revurderingService.oppdaterTilbakekrevingsbehandling(
@@ -96,7 +98,7 @@ internal class OppdaterTilbakekrevingsbehandling {
                     saksbehandler = saksbehandler,
                 ),
             ).getOrFail().let { oppdatert ->
-                oppdatert.tilbakekrevingsbehandling shouldBe beOfType<Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.BurdeForstått>()
+                oppdatert.tilbakekrevingsbehandling shouldBe beOfType<BurdeForstått>()
             }
 
             it.revurderingService.oppdaterTilbakekrevingsbehandling(
@@ -106,7 +108,7 @@ internal class OppdaterTilbakekrevingsbehandling {
                     saksbehandler = saksbehandler,
                 ),
             ).getOrFail().let { oppdatert ->
-                oppdatert.tilbakekrevingsbehandling shouldBe beOfType<Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.KunneIkkeForstått>()
+                oppdatert.tilbakekrevingsbehandling shouldBe beOfType<KunneIkkeForstå>()
             }
         }
     }

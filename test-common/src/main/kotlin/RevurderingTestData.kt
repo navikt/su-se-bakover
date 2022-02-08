@@ -21,6 +21,8 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Forsto
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -375,22 +377,19 @@ fun revurderingTilAttestering(
 private fun oppdaterTilbakekrevingsbehandling(revurdering: SimulertRevurdering): SimulertRevurdering {
     return when (revurdering.simulering.harFeilutbetalinger()) {
         true -> {
-            when (val t = revurdering.tilbakekrevingsbehandling) {
-                is Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving,
-                is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.BurdeForstått,
-                is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.Forsto,
-                is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.KunneIkkeForstått,
-                -> revurdering
-                is Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort -> {
-                    revurdering.oppdaterTilbakekrevingsbehandling(
-                        tilbakekrevingsbehandling = t.forsto(),
-                    )
-                }
-            }
+            revurdering.oppdaterTilbakekrevingsbehandling(
+                tilbakekrevingsbehandling = Forsto(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(fixedClock),
+                    sakId = revurdering.sakId,
+                    revurderingId = revurdering.id,
+                    periode = revurdering.periode,
+                ),
+            )
         }
         false -> {
             revurdering.oppdaterTilbakekrevingsbehandling(
-                tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving,
+                tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
             )
         }
     }
@@ -897,7 +896,7 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     forhåndsvarsel: Forhåndsvarsel? = null,
-    tilbakekrevingsbehandling: Tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving,
+    tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling = IkkeBehovForTilbakekrevingUnderBehandling,
 ): Pair<Sak, SimulertRevurdering.Innvilget> {
 
     return beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
@@ -952,7 +951,7 @@ fun simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
     },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     forhåndsvarsel: Forhåndsvarsel? = null,
-    tilbakekrevingsbehandling: Tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving,
+    tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling = IkkeBehovForTilbakekrevingUnderBehandling,
 ): Pair<Sak, SimulertRevurdering.Opphørt> {
 
     return beregnetRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(

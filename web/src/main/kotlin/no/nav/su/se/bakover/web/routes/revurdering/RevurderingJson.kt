@@ -311,8 +311,8 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         },
         tilbakekrevingsbehandling = when (this) {
             is RevurderingTilAttestering.IngenEndring -> null
-            is RevurderingTilAttestering.Innvilget -> tilbakekrevingsbehandling.fullstendigJson()
-            is RevurderingTilAttestering.Opphørt -> tilbakekrevingsbehandling.fullstendigJson()
+            is RevurderingTilAttestering.Innvilget -> tilbakekrevingsbehandling.toJson()
+            is RevurderingTilAttestering.Opphørt -> tilbakekrevingsbehandling.toJson()
         },
     )
     is IverksattRevurdering -> IverksattRevurderingJson(
@@ -350,8 +350,8 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         },
         tilbakekrevingsbehandling = when (this) {
             is IverksattRevurdering.IngenEndring -> null
-            is IverksattRevurdering.Innvilget -> tilbakekrevingsbehandling.fullstendigJson()
-            is IverksattRevurdering.Opphørt -> tilbakekrevingsbehandling.fullstendigJson()
+            is IverksattRevurdering.Innvilget -> tilbakekrevingsbehandling.toJson()
+            is IverksattRevurdering.Opphørt -> tilbakekrevingsbehandling.toJson()
         },
     )
     is UnderkjentRevurdering -> UnderkjentRevurderingJson(
@@ -389,8 +389,8 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         },
         tilbakekrevingsbehandling = when (this) {
             is UnderkjentRevurdering.IngenEndring -> null
-            is UnderkjentRevurdering.Innvilget -> tilbakekrevingsbehandling.fullstendigJson()
-            is UnderkjentRevurdering.Opphørt -> tilbakekrevingsbehandling.fullstendigJson()
+            is UnderkjentRevurdering.Innvilget -> tilbakekrevingsbehandling.toJson()
+            is UnderkjentRevurdering.Opphørt -> tilbakekrevingsbehandling.toJson()
         },
     )
     is BeregnetRevurdering -> BeregnetRevurderingJson(

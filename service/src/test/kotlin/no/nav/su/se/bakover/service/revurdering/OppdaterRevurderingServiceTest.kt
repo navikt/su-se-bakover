@@ -31,7 +31,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -310,7 +310,7 @@ internal class OppdaterRevurderingServiceTest {
                     vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                     informasjonSomRevurderes = it.informasjonSomRevurderes,
                     avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
-                    tilbakekrevingsbehandling = Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving,
+                    tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
                 )
             }
         }

@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -327,7 +327,7 @@ internal class RevurderingSendTilAttesteringTest {
         RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn revurdering.oppdaterTilbakekrevingsbehandling(
-                    Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort(
+                    IkkeAvgjort(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         sakId = revurdering.sakId,
@@ -374,7 +374,7 @@ internal class RevurderingSendTilAttesteringTest {
         RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn revurdering.oppdaterTilbakekrevingsbehandling(
-                    Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort(
+                    IkkeAvgjort(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         sakId = revurdering.sakId,

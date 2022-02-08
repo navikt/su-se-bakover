@@ -33,7 +33,7 @@ import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeiletException
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -1011,7 +1011,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppdatereTilbakekrevingsbehandling.UgyldigTilstand(fra = revurdering::class).left()
         }
 
-        val ikkeAvgjort = Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort(
+        val ikkeAvgjort = IkkeAvgjort(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             sakId = revurdering.sakId,

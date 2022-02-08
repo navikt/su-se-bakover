@@ -1,6 +1,11 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.FullstendigTilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.BurdeForstått
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Forsto
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.KunneIkkeForstå
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 
 data class TilbakekrevingsbehandlingJson(
@@ -16,45 +21,93 @@ data class TilbakekrevingsbehandlingJson(
 
 fun Tilbakekrevingsbehandling.toJson(): TilbakekrevingsbehandlingJson? {
     return when (this) {
-        is Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving -> {
+        is AvventerKravgrunnlag -> {
+            toJson()
+        }
+        is Tilbakekrevingsbehandling.Ferdigbehandlet.IkkeBehovForTilbakekreving -> {
+            toJson()
+        }
+        is MottattKravgrunnlag -> {
+            toJson()
+        }
+        is BurdeForstått -> {
+            toJson()
+        }
+        is Forsto -> {
+            toJson()
+        }
+        is KunneIkkeForstå -> {
+            toJson()
+        }
+        is IkkeAvgjort -> {
+            toJson()
+        }
+        is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
+            toJson()
+        }
+    }
+}
+
+fun Tilbakekrevingsbehandling.Ferdigbehandlet.toJson(): TilbakekrevingsbehandlingJson? {
+    return when (this) {
+        is AvventerKravgrunnlag -> {
+            this.avgjort.toJson()
+        }
+        is Tilbakekrevingsbehandling.Ferdigbehandlet.IkkeBehovForTilbakekreving -> {
             null
         }
-        is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.BurdeForstått -> {
+        is MottattKravgrunnlag -> {
+            this.avgjort.toJson()
+        }
+    }
+}
+
+fun Tilbakekrevingsbehandling.UnderBehandling.toJson(): TilbakekrevingsbehandlingJson? {
+    return when (this) {
+        is BurdeForstått -> {
+            toJson()
+        }
+        is Forsto -> {
+            toJson()
+        }
+        is KunneIkkeForstå -> {
+            toJson()
+        }
+        is IkkeAvgjort -> {
+            toJson()
+        }
+        is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
+            null
+        }
+    }
+}
+
+fun Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort.toJson(): TilbakekrevingsbehandlingJson {
+    return when (this) {
+        is BurdeForstått -> {
             TilbakekrevingsbehandlingJson(
                 avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.BURDE_FORSTÅTT,
             )
         }
-        is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.Forsto -> {
+        is Forsto -> {
             TilbakekrevingsbehandlingJson(
                 avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.FORSTO,
             )
         }
-        is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.KunneIkkeForstått -> {
+        is KunneIkkeForstå -> {
             TilbakekrevingsbehandlingJson(
                 avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.KUNNE_IKKE_FORSTÅ,
-            )
-        }
-        is Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort -> {
-            TilbakekrevingsbehandlingJson(
-                avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.IKKE_AVGJORT,
             )
         }
     }
 }
 
-fun FullstendigTilbakekrevingsbehandling.fullstendigJson(): TilbakekrevingsbehandlingJson? {
+fun Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.IkkeAvgjort.toJson(): TilbakekrevingsbehandlingJson {
     return when (this) {
-        is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.BurdeForstått -> {
-            this.toJson()
-        }
-        is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.Forsto -> {
-            this.toJson()
-        }
-        is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.KunneIkkeForstått -> {
-            this.toJson()
-        }
-        is Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving -> {
-            this.toJson()
+        is IkkeAvgjort -> {
+            TilbakekrevingsbehandlingJson(
+                avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.IKKE_AVGJORT,
+            )
         }
     }
 }

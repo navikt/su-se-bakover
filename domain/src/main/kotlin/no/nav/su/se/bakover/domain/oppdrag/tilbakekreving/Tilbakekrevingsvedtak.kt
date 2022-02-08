@@ -19,7 +19,7 @@ data class Tilbakekrevingsvedtak private constructor(
          */
         fun tryCreate(
             kravgrunnlag: Kravgrunnlag,
-            tilbakekrevingsbehandling: Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort,
+            tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
         ): Either<UlikBehandlerIVedtakOgKravgrunnlag, Tilbakekrevingsvedtak> {
             // TODO jah: Verifiser at tilbakekrevingsperiodene stemmer overens med kravgrunnlaget
             return Tilbakekrevingsvedtak(

@@ -9,9 +9,13 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.database.tidspunktOrNull
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.BurdeForstått
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Forsto
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.KunneIkkeForstå
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
@@ -59,39 +63,66 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
     }
 
     internal fun lagreTilbakekrevingsbehandling(
-        tilbakrekrevingsbehanding: Tilbakekrevingsbehandling,
+        tilbakrekrevingsbehanding: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving,
         session: Session,
     ) {
-        when (tilbakrekrevingsbehanding) {
-            is Tilbakekrevingsbehandling.IkkeBehovForTilbakekreving -> {
-                // noop
-            }
-            is Tilbakekrevingsbehandling.VurderTilbakekreving -> {
-                slettForRevurderingId(tilbakrekrevingsbehanding.revurderingId, session)
+        slettForRevurderingId(tilbakrekrevingsbehanding.revurderingId, session)
 
-                "insert into tilbakekrevingsbehandling (id, opprettet, sakId, revurderingId, fraOgMed, tilOgMed, oversendtTidspunkt, type) values (:id, :opprettet, :sakId, :revurderingId, :fraOgMed, :tilOgMed, :oversendtTidspunkt, :type)"
-                    .insert(
-                        mapOf(
-                            "id" to tilbakrekrevingsbehanding.id,
-                            "opprettet" to tilbakrekrevingsbehanding.opprettet,
-                            "sakId" to tilbakrekrevingsbehanding.sakId,
-                            "revurderingId" to tilbakrekrevingsbehanding.revurderingId,
-                            "fraOgMed" to tilbakrekrevingsbehanding.periode.fraOgMed,
-                            "tilOgMed" to tilbakrekrevingsbehanding.periode.tilOgMed,
-                            "type" to when (tilbakrekrevingsbehanding) {
-                                is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.BurdeForstått -> Avgjørelsestype.BURDE_FORSTÅTT
-                                is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.Forsto -> Avgjørelsestype.FORSTO
-                                is Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.KunneIkkeForstått -> Avgjørelsestype.FORSTO_IKKE_ELLER_KUNNE_IKKE_FORSTÅTT
-                                is Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort -> Avgjørelsestype.IKKE_AVGJORT
-                            }.toString(),
-                        ),
-                        session,
-                    )
-            }
-        }
+        "insert into tilbakekrevingsbehandling (id, opprettet, sakId, revurderingId, fraOgMed, tilOgMed, oversendtTidspunkt, avgjørelse, tilstand) values (:id, :opprettet, :sakId, :revurderingId, :fraOgMed, :tilOgMed, :oversendtTidspunkt, :avgjorelse, :tilstand)"
+            .insert(
+                mapOf(
+                    "id" to tilbakrekrevingsbehanding.id,
+                    "opprettet" to tilbakrekrevingsbehanding.opprettet,
+                    "sakId" to tilbakrekrevingsbehanding.sakId,
+                    "revurderingId" to tilbakrekrevingsbehanding.revurderingId,
+                    "fraOgMed" to tilbakrekrevingsbehanding.periode.fraOgMed,
+                    "tilOgMed" to tilbakrekrevingsbehanding.periode.tilOgMed,
+                    "avgjorelse" to when (tilbakrekrevingsbehanding) {
+                        is BurdeForstått -> Avgjørelsestype.BURDE_FORSTÅTT
+                        is Forsto -> Avgjørelsestype.FORSTO
+                        is KunneIkkeForstå -> Avgjørelsestype.FORSTO_IKKE_ELLER_KUNNE_IKKE_FORSTÅTT
+                        is IkkeAvgjort -> Avgjørelsestype.IKKE_AVGJORT
+                    }.toString(),
+                    "tilstand" to Tilstand.UNDER_BEHANDLING.toString(),
+                ),
+                session,
+            )
     }
 
-    override fun hentTilbakekrevingsbehandling(saksnummer: Saksnummer): Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort {
+    internal fun lagreTilbakekrevingsbehandling(
+        tilbakrekrevingsbehanding: Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag,
+        session: Session,
+    ) {
+        """
+            update tilbakekrevingsbehandling set tilstand = :tilstand where id = :id
+        """.trimIndent()
+            .oppdatering(
+                mapOf(
+                    "id" to tilbakrekrevingsbehanding.avgjort.id,
+                    "tilstand" to Tilstand.AVVENTER_KRAVGRUNNLAG.toString(),
+                ),
+                session,
+            )
+    }
+
+    internal fun lagreTilbakekrevingsbehandling(
+        tilbakrekrevingsbehanding: Tilbakekrevingsbehandling.Ferdigbehandlet.MottattKravgrunnlag,
+        session: Session,
+    ) {
+        """
+            update tilbakekrevingsbehandling set tilstand = :tilstand and kravgrunnlag = :kravgrunnlag where id = :id
+        """.trimIndent()
+            .oppdatering(
+                mapOf(
+                    "id" to tilbakrekrevingsbehanding.avgjort.id,
+                    "tilstand" to Tilstand.MOTTATT_KRAVGRUNNLAG.toString(),
+                    "kravgrunnlag" to tilbakrekrevingsbehanding.kravgrunnlag,
+                ),
+                session,
+            )
+    }
+
+    override fun hentTilbakekrevingsbehandling(saksnummer: Saksnummer): Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort {
         TODO()
     }
 
@@ -128,30 +159,32 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
             fraOgMed = localDate("fraOgMed"),
             tilOgMed = localDate("tilOgMed"),
         )
+        val tilstand = Tilstand.fromValue(string("tilstand"))
+        val avgjørelse = Avgjørelsestype.fromValue(string("avgjørelse"))
 
-        return when (Avgjørelsestype.fromValue(string("type"))) {
-            Avgjørelsestype.FORSTO -> Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.Forsto(
+        val tilbakekrevingsbehandling = when (avgjørelse) {
+            Avgjørelsestype.FORSTO -> Forsto(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
                 revurderingId = revurderingId,
                 periode = periode,
             )
-            Avgjørelsestype.BURDE_FORSTÅTT -> Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.BurdeForstått(
+            Avgjørelsestype.BURDE_FORSTÅTT -> BurdeForstått(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
                 revurderingId = revurderingId,
                 periode = periode,
             )
-            Avgjørelsestype.FORSTO_IKKE_ELLER_KUNNE_IKKE_FORSTÅTT -> Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort.KunneIkkeForstått(
+            Avgjørelsestype.FORSTO_IKKE_ELLER_KUNNE_IKKE_FORSTÅTT -> KunneIkkeForstå(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
                 revurderingId = revurderingId,
                 periode = periode,
             )
-            Avgjørelsestype.IKKE_AVGJORT -> Tilbakekrevingsbehandling.VurderTilbakekreving.IkkeAvgjort(
+            Avgjørelsestype.IKKE_AVGJORT -> IkkeAvgjort(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -159,20 +192,35 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
                 periode = periode,
             )
         }
+
+        return when {
+            Tilstand.UNDER_BEHANDLING == tilstand -> {
+                tilbakekrevingsbehandling
+            }
+            Tilstand.AVVENTER_KRAVGRUNNLAG == tilstand -> {
+                AvventerKravgrunnlag(tilbakekrevingsbehandling as Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort)
+            }
+            Tilstand.MOTTATT_KRAVGRUNNLAG == tilstand -> {
+                TODO()
+            }
+            else -> {
+                throw IllegalStateException("Kunne ikke utlede tilstand for tilbakekrevingsgrunnlag fra parameterne: $tilstand og $avgjørelse")
+            }
+        }
     }
 
     override fun defaultTransactionContext(): TransactionContext {
         return sessionFactory.newTransactionContext()
     }
 
-    override fun hentIkkeOversendteTilbakekrevingsbehandlinger(sakId: UUID): List<Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort> {
+    override fun hentIkkeOversendteTilbakekrevingsbehandlinger(sakId: UUID): List<Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
         return sessionFactory.withSession { session ->
             "select * from tilbakekrevingsbehandling where sakId = :sakId and oversendtTidspunkt is null".hentListe(
                 emptyMap(),
                 session,
             ) {
                 it.toTilbakekrevingsbehandling()
-            }.filterIsInstance<Tilbakekrevingsbehandling.VurderTilbakekreving.Avgjort>()
+            }.filterIsInstance<Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort>()
         }
     }
 
@@ -202,6 +250,21 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
             fun fromValue(value: String): Avgjørelsestype {
                 return values().firstOrNull { it.value == value }
                     ?: throw IllegalStateException("Ukjent avgjørelsestype: $value")
+            }
+        }
+    }
+
+    private enum class Tilstand(private val value: String) {
+        UNDER_BEHANDLING("under_behandling"),
+        AVVENTER_KRAVGRUNNLAG("avventer_kravgrunnlag"),
+        MOTTATT_KRAVGRUNNLAG("mottatt_kravgrunnlag");
+
+        override fun toString() = value
+
+        companion object {
+            fun fromValue(value: String): Tilstand {
+                return values().firstOrNull { it.value == value }
+                    ?: throw IllegalStateException("Ukjent tilstand: $value")
             }
         }
     }
