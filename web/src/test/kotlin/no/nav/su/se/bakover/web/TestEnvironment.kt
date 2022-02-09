@@ -104,6 +104,7 @@ val applicationConfig = ApplicationConfig(
     jobConfig = ApplicationConfig.JobConfig(
         personhendelse = ApplicationConfig.JobConfig.Personhendelse(null),
         konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Local(),
+        initialDelay = 0
     ),
     kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
         kafkaConfig = emptyMap(),

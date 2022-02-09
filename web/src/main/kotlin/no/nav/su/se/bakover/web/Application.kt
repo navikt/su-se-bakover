@@ -322,18 +322,21 @@ fun Application.susebakover(
         DistribuerDokumentJob(
             brevService = services.brev,
             leaderPodLookup = clients.leaderPodLookup,
+            initialDelay = applicationConfig.jobConfig.initialDelay
         ).schedule()
 
         KonsistensavstemmingJob(
             avstemmingService = services.avstemming,
             leaderPodLookup = clients.leaderPodLookup,
             jobConfig = applicationConfig.jobConfig.konsistensavstemming,
+            initialDelay = applicationConfig.jobConfig.initialDelay,
             clock = clock,
         ).schedule()
 
         KlageinstansvedtakJob(
             klagevedtakService = services.klagevedtakService,
             leaderPodLookup = clients.leaderPodLookup,
+            initialDelay = applicationConfig.jobConfig.initialDelay,
         ).schedule()
 
         TilbakekrevingIbmMqConsumer(
@@ -358,6 +361,7 @@ fun Application.susebakover(
         DistribuerDokumentJob(
             brevService = services.brev,
             leaderPodLookup = clients.leaderPodLookup,
+            initialDelay = applicationConfig.jobConfig.initialDelay,
         ).schedule()
 
         GrensesnittsavstemingJob(
@@ -369,11 +373,13 @@ fun Application.susebakover(
             avstemmingService = services.avstemming,
             leaderPodLookup = clients.leaderPodLookup,
             jobConfig = applicationConfig.jobConfig.konsistensavstemming,
+            initialDelay = applicationConfig.jobConfig.initialDelay,
             clock = clock,
         ).schedule()
         KlageinstansvedtakJob(
             klagevedtakService = services.klagevedtakService,
             leaderPodLookup = clients.leaderPodLookup,
+            initialDelay = applicationConfig.jobConfig.initialDelay,
         ).schedule()
 
         LokalMottaKravgrunnlagJob(
@@ -393,6 +399,7 @@ fun Application.susebakover(
         personhendelseService = personhendelseService,
         leaderPodLookup = clients.leaderPodLookup,
         intervall = applicationConfig.jobConfig.personhendelse.intervall,
+        initialDelay = applicationConfig.jobConfig.initialDelay,
     ).schedule()
 
     KontrollsamtaleinnkallingJob(
