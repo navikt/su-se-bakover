@@ -161,6 +161,9 @@ internal class AvsluttKlageTest {
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
             },
+            oppgaveService = mock {
+                on { lukkOppgave(any()) } doReturn Unit.right()
+            },
         )
         val saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler som avsluttet klagen")
         val begrunnelse = "Begrunnelse for å avslutte klagen"
@@ -183,6 +186,7 @@ internal class AvsluttKlageTest {
             },
             anyOrNull(),
         )
+        verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe klage.oppgaveId })
         mocks.verifyNoMoreInteractions()
     }
 }
