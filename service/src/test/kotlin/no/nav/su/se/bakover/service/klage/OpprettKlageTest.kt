@@ -15,9 +15,11 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.avsluttetKlage
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getHentetJournalpost
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
@@ -75,6 +77,53 @@ internal class OpprettKlageTest {
 
         verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe request.sakId })
         mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `kan opprette en klage med en brukt journalpost-id dersom klagen har blitt avsluttet`() {
+        val avsluttetKlage = avsluttetKlage().second
+        val sak = nySakMedjournalførtSøknadOgOppgave(
+            sakId = avsluttetKlage.sakId,
+            klager = listOf(avsluttetKlage),
+        ).first
+        val mocks = KlageServiceMocks(
+            sakRepoMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak
+            },
+            klageRepoMock = mock {
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            personServiceMock = mock {
+                on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
+            },
+            journalpostClient = mock {
+                on { hentFerdigstiltJournalpost(any(), any()) } doReturn getHentetJournalpost().right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
+            },
+        )
+
+        val request = NyKlageRequest(
+            sakId = UUID.randomUUID(),
+            journalpostId = avsluttetKlage.journalpostId,
+            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
+            datoKlageMottatt = 1.desember(2021),
+        )
+
+        val nyKlage = mocks.service.opprett(request).getOrFail()
+
+        nyKlage shouldBe OpprettetKlage.create(
+            id = nyKlage.id,
+            opprettet = nyKlage.opprettet,
+            sakId = nyKlage.sakId,
+            saksnummer = nyKlage.saksnummer,
+            fnr = nyKlage.fnr,
+            journalpostId = avsluttetKlage.journalpostId,
+            oppgaveId = nyKlage.oppgaveId,
+            datoKlageMottatt = nyKlage.datoKlageMottatt,
+            saksbehandler = nyKlage.saksbehandler,
+        )
     }
 
     @Test
