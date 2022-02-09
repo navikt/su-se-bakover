@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -113,17 +114,8 @@ internal class OpprettKlageTest {
 
         val nyKlage = mocks.service.opprett(request).getOrFail()
 
-        nyKlage shouldBe OpprettetKlage.create(
-            id = nyKlage.id,
-            opprettet = nyKlage.opprettet,
-            sakId = nyKlage.sakId,
-            saksnummer = nyKlage.saksnummer,
-            fnr = nyKlage.fnr,
-            journalpostId = avsluttetKlage.journalpostId,
-            oppgaveId = nyKlage.oppgaveId,
-            datoKlageMottatt = nyKlage.datoKlageMottatt,
-            saksbehandler = nyKlage.saksbehandler,
-        )
+        nyKlage.shouldBeTypeOf<OpprettetKlage>()
+        nyKlage.journalpostId shouldBe avsluttetKlage.journalpostId
     }
 
     @Test
