@@ -8,6 +8,7 @@ internal class TilbakekrevingXmlMapperTest {
 
     @Test
     fun `mapper nyopprettet kravgrunnlag for opphør av ytelse`() {
+        //language=XML
         val inputXml = """
             <?xml version="1.0" encoding="utf-8"?>
             <urn:detaljertKravgrunnlagMelding xmlns:mmel="urn:no:nav:tilbakekreving:typer:v1"
@@ -109,6 +110,7 @@ internal class TilbakekrevingXmlMapperTest {
 
     @Test
     fun `mapper nyopprettet kravgrunnlag for endring av ytelse`() {
+        //language=XML
         val inputXml = """
             <?xml version="1.0" encoding="utf-8"?>
             <urn:detaljertKravgrunnlagMelding xmlns:mmel="urn:no:nav:tilbakekreving:typer:v1"

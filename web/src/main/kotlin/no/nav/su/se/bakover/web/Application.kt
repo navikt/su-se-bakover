@@ -85,6 +85,8 @@ import no.nav.su.se.bakover.web.services.klage.KlageinstansvedtakJob
 import no.nav.su.se.bakover.web.services.kontrollsamtale.KontrollsamtaleinnkallingJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
+import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
+import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingIbmMqConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringService
@@ -286,6 +288,11 @@ fun Application.susebakover(
         personService = services.person,
         clock = clock,
     )
+    val tilbakekrevingConsumer = TilbakekrevingConsumer(
+        tilbakekrevingService = services.tilbakekrevingService,
+        sakService = services.sak,
+        clock = clock,
+    )
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
@@ -329,11 +336,15 @@ fun Application.susebakover(
         TilbakekrevingIbmMqConsumer(
             queueName = applicationConfig.oppdrag.tilbakekreving.mq.mqReplyTo,
             globalJmsContext = jmsConfig.jmsContext,
-            tilbakekrevingService = services.tilbakekrevingService,
-            clock = clock,
+            tilbakekrevingConsumer = tilbakekrevingConsumer,
         )
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
-        LokalKvitteringJob(LokalKvitteringService(databaseRepos.utbetaling, utbetalingKvitteringConsumer)).schedule()
+        LokalKvitteringJob(
+            lokalKvitteringService = LokalKvitteringService(
+                utbetalingRepo = databaseRepos.utbetaling,
+                utbetalingKvitteringConsumer = utbetalingKvitteringConsumer,
+            ),
+        ).schedule()
 
         DistribuerDokumentJob(
             brevService = services.brev,
@@ -354,6 +365,12 @@ fun Application.susebakover(
         KlageinstansvedtakJob(
             klagevedtakService = services.klagevedtakService,
             leaderPodLookup = clients.leaderPodLookup,
+        ).schedule()
+
+        LokalMottaKravgrunnlagJob(
+            tilbakekrevingConsumer = tilbakekrevingConsumer,
+            tilbakekrevingService = services.tilbakekrevingService,
+            revurderingService = services.revurdering,
         ).schedule()
     }
 

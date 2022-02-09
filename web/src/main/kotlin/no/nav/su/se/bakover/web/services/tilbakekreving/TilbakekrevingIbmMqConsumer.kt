@@ -1,11 +1,8 @@
 package no.nav.su.se.bakover.web.services.tilbakekreving
 
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
-import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
-import java.time.Clock
 import java.util.UUID
 import javax.jms.JMSContext
 import javax.jms.Session
@@ -19,11 +16,10 @@ import javax.jms.Session
  *
  * For selve prosessering av kravgrunnlagene, se [TilbakekrevingJob]
  */
-class TilbakekrevingIbmMqConsumer(
+internal class TilbakekrevingIbmMqConsumer(
     queueName: String,
     globalJmsContext: JMSContext,
-    private val tilbakekrevingService: TilbakekrevingService,
-    private val clock: Clock,
+    private val tilbakekrevingConsumer: TilbakekrevingConsumer,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jmsContext = globalJmsContext.createContext(Session.AUTO_ACKNOWLEDGE)
@@ -37,7 +33,7 @@ class TilbakekrevingIbmMqConsumer(
                 log.info("Mottok kravgrunnlag fra køen: $queueName. Se sikkerlogg for meldingsinnhold.")
                 message.getBody(String::class.java).let {
                     sikkerLogg.info("Kravgrunnlag lest fra $queueName, innhold: $it")
-                    tilbakekrevingService.lagreKravgrunnlag(RåttKravgrunnlag.ny(it, clock))
+                    tilbakekrevingConsumer.onMessage(it)
                 }
             } catch (ex: Exception) {
                 log.error("Feil ved prossessering av melding fra: $queueName", ex)

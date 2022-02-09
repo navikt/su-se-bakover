@@ -92,10 +92,14 @@ data class IkkeAvgjort(
 data class AvventerKravgrunnlag(
     override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
 ) : Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag {
-    override fun mottattKravgrunnlag(kravgrunnlag: RåttKravgrunnlag): Tilbakekrevingsbehandling.Ferdigbehandlet.MottattKravgrunnlag {
+    override fun mottattKravgrunnlag(
+        kravgrunnlag: RåttKravgrunnlag,
+        kravgrunnlagMottatt: Tidspunkt,
+    ): Tilbakekrevingsbehandling.Ferdigbehandlet.MottattKravgrunnlag {
         return MottattKravgrunnlag(
             avgjort = avgjort,
             kravgrunnlag = kravgrunnlag,
+            kravgrunnlagMottatt = kravgrunnlagMottatt,
         )
     }
 }
@@ -103,6 +107,7 @@ data class AvventerKravgrunnlag(
 data class MottattKravgrunnlag(
     override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
     override val kravgrunnlag: RåttKravgrunnlag,
+    override val kravgrunnlagMottatt: Tidspunkt,
 ) : Tilbakekrevingsbehandling.Ferdigbehandlet.MottattKravgrunnlag
 
 object IkkeBehovForTilbakekrevingUnderBehandling :
@@ -150,12 +155,13 @@ sealed interface Tilbakekrevingsbehandling {
         sealed interface AvventerKravgrunnlag : Ferdigbehandlet {
             val avgjort: UnderBehandling.VurderTilbakekreving.Avgjort
 
-            fun mottattKravgrunnlag(kravgrunnlag: RåttKravgrunnlag): MottattKravgrunnlag
+            fun mottattKravgrunnlag(kravgrunnlag: RåttKravgrunnlag, kravgrunnlagMottatt: Tidspunkt): MottattKravgrunnlag
         }
 
         sealed interface MottattKravgrunnlag : Ferdigbehandlet {
             val avgjort: UnderBehandling.VurderTilbakekreving.Avgjort
             val kravgrunnlag: RåttKravgrunnlag
+            val kravgrunnlagMottatt: Tidspunkt
         }
     }
 }

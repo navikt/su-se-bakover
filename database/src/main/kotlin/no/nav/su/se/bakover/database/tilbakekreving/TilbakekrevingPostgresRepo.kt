@@ -9,13 +9,14 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.database.tidspunktOrNull
 import no.nav.su.se.bakover.database.uuid
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.BurdeForstått
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Forsto
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.KunneIkkeForstå
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
@@ -23,42 +24,21 @@ import java.util.UUID
 
 internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSessionFactory) : TilbakekrevingRepo {
 
-    override fun lagreKravgrunnlag(kravgrunnlag: RåttKravgrunnlag) {
+    override fun lagreMottattKravgrunnlag(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MottattKravgrunnlag) {
         sessionFactory.withSession { session ->
-            "insert into kravgrunnlag (id, opprettet, melding, type) values (:id, :opprettet, :melding, :type)".insert(
-                mapOf(
-                    "id" to kravgrunnlag.id,
-                    "opprettet" to kravgrunnlag.opprettet,
-                    "melding" to kravgrunnlag.melding,
-                    "type" to when (kravgrunnlag) {
-                        is RåttKravgrunnlag.Ferdigbehandlet -> Kravgrunnlagtype.FERDIGBEHANDLET
-                        is RåttKravgrunnlag.Ubehandlet -> Kravgrunnlagtype.UBEHANDLET
-                    }.toString(),
-                ),
-                session,
-            )
+            lagreTilbakekrevingsbehandling(tilbakekrevingsbehandling, session)
         }
     }
 
-    override fun hentUbehandlaKravgrunnlag(): List<RåttKravgrunnlag> {
+    override fun hentTilbakekrevingsbehandlingerMedUbesvartKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.MottattKravgrunnlag> {
         return sessionFactory.withSession { session ->
-            "select * from kravgrunnlag where type = '${Kravgrunnlagtype.UBEHANDLET}'".hentListe(
-                emptyMap(),
-                session,
-            ) {
-                val id = it.uuid("id")
-                val opprettet = it.tidspunkt("opprettet")
-                val melding = it.string("melding")
-
-                when (Kravgrunnlagtype.fromValue(it.string("type"))) {
-                    Kravgrunnlagtype.UBEHANDLET -> RåttKravgrunnlag.Ubehandlet.persistert(
-                        id = id,
-                        opprettet = opprettet,
-                        melding = melding,
-                    )
-                    Kravgrunnlagtype.FERDIGBEHANDLET -> throw IllegalStateException("Vi ba eksplisitt om kun ubehandla (sjekk sql, skriv tester)")
-                }
-            }
+            "select * from tilbakekrevingsbehandling where tilstand = '${Tilstand.MOTTATT_KRAVGRUNNLAG}' and kravgrunnlagBesvart is null"
+                .hentListe(
+                    emptyMap(),
+                    session,
+                ) {
+                    it.toTilbakekrevingsbehandling()
+                }.filterIsInstance<Tilbakekrevingsbehandling.Ferdigbehandlet.MottattKravgrunnlag>()
         }
     }
 
@@ -110,20 +90,17 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         session: Session,
     ) {
         """
-            update tilbakekrevingsbehandling set tilstand = :tilstand and kravgrunnlag = :kravgrunnlag where id = :id
+            update tilbakekrevingsbehandling set tilstand = :tilstand, kravgrunnlag = :kravgrunnlag, kravgrunnlagMottatt = :kravgrunnlagMottatt where id = :id
         """.trimIndent()
             .oppdatering(
                 mapOf(
                     "id" to tilbakrekrevingsbehanding.avgjort.id,
                     "tilstand" to Tilstand.MOTTATT_KRAVGRUNNLAG.toString(),
-                    "kravgrunnlag" to tilbakrekrevingsbehanding.kravgrunnlag,
+                    "kravgrunnlag" to tilbakrekrevingsbehanding.kravgrunnlag.melding,
+                    "kravgrunnlagMottatt" to tilbakrekrevingsbehanding.kravgrunnlagMottatt,
                 ),
                 session,
             )
-    }
-
-    override fun hentTilbakekrevingsbehandling(saksnummer: Saksnummer): Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort {
-        TODO()
     }
 
     internal fun slettForRevurderingId(revurderingId: UUID, session: Session) {
@@ -161,6 +138,8 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         )
         val tilstand = Tilstand.fromValue(string("tilstand"))
         val avgjørelse = Avgjørelsestype.fromValue(string("avgjørelse"))
+        val kravgrunnlag = stringOrNull("kravgrunnlag")?.let { RåttKravgrunnlag(it) }
+        val kravgrunnlagMottatt = tidspunktOrNull("kravgrunnlagMottatt")
 
         val tilbakekrevingsbehandling = when (avgjørelse) {
             Avgjørelsestype.FORSTO -> Forsto(
@@ -198,10 +177,16 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
                 tilbakekrevingsbehandling
             }
             Tilstand.AVVENTER_KRAVGRUNNLAG == tilstand -> {
-                AvventerKravgrunnlag(tilbakekrevingsbehandling as Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort)
+                AvventerKravgrunnlag(
+                    avgjort = tilbakekrevingsbehandling as Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
+                )
             }
             Tilstand.MOTTATT_KRAVGRUNNLAG == tilstand -> {
-                TODO()
+                MottattKravgrunnlag(
+                    avgjort = tilbakekrevingsbehandling as Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
+                    kravgrunnlag = kravgrunnlag!!,
+                    kravgrunnlagMottatt = kravgrunnlagMottatt!!,
+                )
             }
             else -> {
                 throw IllegalStateException("Kunne ikke utlede tilstand for tilbakekrevingsgrunnlag fra parameterne: $tilstand og $avgjørelse")
@@ -213,28 +198,29 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         return sessionFactory.newTransactionContext()
     }
 
-    override fun hentIkkeOversendteTilbakekrevingsbehandlinger(sakId: UUID): List<Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+    override fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag> {
         return sessionFactory.withSession { session ->
-            "select * from tilbakekrevingsbehandling where sakId = :sakId and oversendtTidspunkt is null".hentListe(
-                emptyMap(),
-                session,
-            ) {
-                it.toTilbakekrevingsbehandling()
-            }.filterIsInstance<Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort>()
+            "select * from tilbakekrevingsbehandling where sakId = :sakId and tilstand = '${Tilstand.AVVENTER_KRAVGRUNNLAG}'"
+                .hentListe(
+                    params = mapOf(
+                        "sakId" to sakId,
+                    ),
+                    session = session,
+                ) {
+                    it.toTilbakekrevingsbehandling()
+                }.filterIsInstance<Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag>()
         }
     }
 
-    private enum class Kravgrunnlagtype(private val value: String) {
-        UBEHANDLET("ubehandlet"),
-        FERDIGBEHANDLET("ferdigbehandlet");
-
-        override fun toString() = value
-
-        companion object {
-            fun fromValue(value: String): Kravgrunnlagtype {
-                return values().firstOrNull { it.value == value }
-                    ?: throw IllegalStateException("Ukjent kravgrunnlagstype: $value")
-            }
+    override fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag> {
+        return sessionFactory.withSession { session ->
+            "select * from tilbakekrevingsbehandling where tilstand = '${Tilstand.AVVENTER_KRAVGRUNNLAG}'"
+                .hentListe(
+                    params = emptyMap(),
+                    session = session,
+                ) {
+                    it.toTilbakekrevingsbehandling()
+                }.filterIsInstance<Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag>()
         }
     }
 

@@ -59,6 +59,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -921,10 +922,21 @@ open class AccessCheckProxy(
                 }
             },
             tilbakekrevingService = object : TilbakekrevingService {
-                override fun lagreKravgrunnlag(kravgrunnlag: RåttKravgrunnlag) = kastKanKunKallesFraAnnenService()
-                override fun sendTilbakekrevinger(
-                    mapper: (RåttKravgrunnlag) -> Kravgrunnlag,
-                ) = kastKanKunKallesFraAnnenService()
+                override fun lagreMottattKravgrunnlag(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MottattKravgrunnlag) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun sendTilbakekrevinger(mapper: (RåttKravgrunnlag) -> Kravgrunnlag) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag> {
+                    kastKanKunKallesFraAnnenService()
+                }
             },
         )
     }

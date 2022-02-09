@@ -1,13 +1,12 @@
 package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.Saksnummer
 import java.util.UUID
 
 interface TilbakekrevingRepo {
-    fun lagreKravgrunnlag(kravgrunnlag: RåttKravgrunnlag)
-    fun hentUbehandlaKravgrunnlag(): List<RåttKravgrunnlag>
-    fun hentIkkeOversendteTilbakekrevingsbehandlinger(sakId: UUID): List<Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort>
-    fun hentTilbakekrevingsbehandling(saksnummer: Saksnummer): Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort
+    fun lagreMottattKravgrunnlag(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MottattKravgrunnlag)
+    fun hentTilbakekrevingsbehandlingerMedUbesvartKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.MottattKravgrunnlag>
+    fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag>
+    fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag>
     fun defaultTransactionContext(): TransactionContext
 }
