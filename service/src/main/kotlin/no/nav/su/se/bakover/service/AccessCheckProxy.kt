@@ -922,7 +922,7 @@ open class AccessCheckProxy(
                 }
             },
             tilbakekrevingService = object : TilbakekrevingService {
-                override fun lagreMottattKravgrunnlag(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MottattKravgrunnlag) {
+                override fun lagreMottattKravgrunnlag(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag) {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -930,11 +930,11 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag> {
+                override fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag> {
+                override fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
                     kastKanKunKallesFraAnnenService()
                 }
             },

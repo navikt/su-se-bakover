@@ -19,7 +19,7 @@ data class Forsto(
     override val periode: Periode,
 ) : Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
     Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving {
-    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag {
+    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
         return AvventerKravgrunnlag(this)
     }
 }
@@ -32,7 +32,7 @@ data class BurdeForstått(
     override val periode: Periode,
 ) : Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
     Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving {
-    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag {
+    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
         return AvventerKravgrunnlag(this)
     }
 }
@@ -45,7 +45,7 @@ data class KunneIkkeForstå(
     override val periode: Periode,
 ) : Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
     Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving {
-    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag {
+    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
         return AvventerKravgrunnlag(this)
     }
 }
@@ -91,11 +91,11 @@ data class IkkeAvgjort(
 
 data class AvventerKravgrunnlag(
     override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
-) : Tilbakekrevingsbehandling.Ferdigbehandlet.AvventerKravgrunnlag {
+) : Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
     override fun mottattKravgrunnlag(
         kravgrunnlag: RåttKravgrunnlag,
         kravgrunnlagMottatt: Tidspunkt,
-    ): Tilbakekrevingsbehandling.Ferdigbehandlet.MottattKravgrunnlag {
+    ): Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag {
         return MottattKravgrunnlag(
             avgjort = avgjort,
             kravgrunnlag = kravgrunnlag,
@@ -108,16 +108,33 @@ data class MottattKravgrunnlag(
     override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
     override val kravgrunnlag: RåttKravgrunnlag,
     override val kravgrunnlagMottatt: Tidspunkt,
-) : Tilbakekrevingsbehandling.Ferdigbehandlet.MottattKravgrunnlag
+) : Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag {
+    override fun kravgrunnlagBesvart(kravgrunnlagBesvart: Tidspunkt): Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.KravgrunnlagBesvart {
+        return KravgrunnlagBesvart(
+            avgjort = avgjort,
+            kravgrunnlag = kravgrunnlag,
+            kravgrunnlagMottatt = kravgrunnlagMottatt,
+            kravgrunnlagBesvart = kravgrunnlagBesvart,
+        )
+    }
+}
+
+data class KravgrunnlagBesvart(
+    override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
+    override val kravgrunnlag: RåttKravgrunnlag,
+    override val kravgrunnlagMottatt: Tidspunkt,
+    override val kravgrunnlagBesvart: Tidspunkt,
+) : Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.KravgrunnlagBesvart
 
 object IkkeBehovForTilbakekrevingUnderBehandling :
     Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving {
-    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.IkkeBehovForTilbakekreving {
+    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving {
         return IkkeBehovForTilbakekrevingFerdigbehandlet
     }
 }
 
-object IkkeBehovForTilbakekrevingFerdigbehandlet : Tilbakekrevingsbehandling.Ferdigbehandlet.IkkeBehovForTilbakekreving
+object IkkeBehovForTilbakekrevingFerdigbehandlet :
+    Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving
 
 sealed interface Tilbakekrevingsbehandling {
 
@@ -133,35 +150,51 @@ sealed interface Tilbakekrevingsbehandling {
             val periode: Periode
 
             sealed interface Avgjort : VurderTilbakekreving {
-                override fun ferdigbehandlet(): Ferdigbehandlet.AvventerKravgrunnlag
+                override fun ferdigbehandlet(): Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag
             }
 
             sealed interface IkkeAvgjort : VurderTilbakekreving {
-                override fun ferdigbehandlet(): Ferdigbehandlet.AvventerKravgrunnlag {
+                override fun ferdigbehandlet(): Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
                     throw IllegalStateException("Må avgjøres før vurdering kan ferdigbehandles")
                 }
             }
         }
 
         interface IkkeBehovForTilbakekreving : UnderBehandling {
-            override fun ferdigbehandlet(): Ferdigbehandlet.IkkeBehovForTilbakekreving
+            override fun ferdigbehandlet(): Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving
         }
     }
 
     sealed interface Ferdigbehandlet : Tilbakekrevingsbehandling {
 
-        interface IkkeBehovForTilbakekreving : Ferdigbehandlet
+        sealed interface UtenKravgrunnlag : Ferdigbehandlet {
 
-        sealed interface AvventerKravgrunnlag : Ferdigbehandlet {
-            val avgjort: UnderBehandling.VurderTilbakekreving.Avgjort
+            interface IkkeBehovForTilbakekreving : UtenKravgrunnlag
 
-            fun mottattKravgrunnlag(kravgrunnlag: RåttKravgrunnlag, kravgrunnlagMottatt: Tidspunkt): MottattKravgrunnlag
+            sealed interface AvventerKravgrunnlag : UtenKravgrunnlag {
+                val avgjort: UnderBehandling.VurderTilbakekreving.Avgjort
+
+                fun mottattKravgrunnlag(
+                    kravgrunnlag: RåttKravgrunnlag,
+                    kravgrunnlagMottatt: Tidspunkt,
+                ): MedKravgrunnlag.MottattKravgrunnlag
+            }
         }
 
-        sealed interface MottattKravgrunnlag : Ferdigbehandlet {
+        sealed interface MedKravgrunnlag : Ferdigbehandlet {
             val avgjort: UnderBehandling.VurderTilbakekreving.Avgjort
             val kravgrunnlag: RåttKravgrunnlag
             val kravgrunnlagMottatt: Tidspunkt
+
+            sealed interface MottattKravgrunnlag : MedKravgrunnlag {
+                fun kravgrunnlagBesvart(
+                    kravgrunnlagBesvart: Tidspunkt,
+                ): KravgrunnlagBesvart
+            }
+
+            sealed interface KravgrunnlagBesvart : MedKravgrunnlag {
+                val kravgrunnlagBesvart: Tidspunkt
+            }
         }
     }
 }

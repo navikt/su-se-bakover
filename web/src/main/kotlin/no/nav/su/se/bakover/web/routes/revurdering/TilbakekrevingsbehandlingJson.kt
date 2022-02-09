@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.BurdeForstått
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Forsto
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.KravgrunnlagBesvart
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.KunneIkkeForstå
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
@@ -24,7 +25,7 @@ fun Tilbakekrevingsbehandling.toJson(): TilbakekrevingsbehandlingJson? {
         is AvventerKravgrunnlag -> {
             toJson()
         }
-        is Tilbakekrevingsbehandling.Ferdigbehandlet.IkkeBehovForTilbakekreving -> {
+        is Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving -> {
             toJson()
         }
         is MottattKravgrunnlag -> {
@@ -45,6 +46,9 @@ fun Tilbakekrevingsbehandling.toJson(): TilbakekrevingsbehandlingJson? {
         is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
             toJson()
         }
+        is KravgrunnlagBesvart -> {
+            toJson()
+        }
     }
 }
 
@@ -53,10 +57,13 @@ fun Tilbakekrevingsbehandling.Ferdigbehandlet.toJson(): Tilbakekrevingsbehandlin
         is AvventerKravgrunnlag -> {
             this.avgjort.toJson()
         }
-        is Tilbakekrevingsbehandling.Ferdigbehandlet.IkkeBehovForTilbakekreving -> {
+        is Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving -> {
             null
         }
         is MottattKravgrunnlag -> {
+            this.avgjort.toJson()
+        }
+        is KravgrunnlagBesvart -> {
             this.avgjort.toJson()
         }
     }

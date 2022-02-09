@@ -13,7 +13,7 @@ import kotlin.concurrent.fixedRateTimer
 class TilbakekrevingJob(
     private val tilbakekrevingService: TilbakekrevingService,
     private val leaderPodLookup: LeaderPodLookup,
-    private val intervall: Long
+    private val intervall: Long,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Prosesseser kravmelding (tilbakekreving)"
@@ -28,7 +28,7 @@ class TilbakekrevingJob(
                 log.info("Kjører skeduleringsjobb '$jobName'")
                 Either.catch {
                     tilbakekrevingService.sendTilbakekrevinger() {
-                        TODO()
+                        KravgrunnlagMapper.mapTilKravgrunnlag(it)
                     }
                 }.mapLeft {
                     log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)

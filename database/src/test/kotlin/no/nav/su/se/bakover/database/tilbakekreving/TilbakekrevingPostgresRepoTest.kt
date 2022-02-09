@@ -101,7 +101,17 @@ internal class TilbakekrevingPostgresRepoTest {
                     mottattKravgrunnlag,
                 )
 
-                // TODO tilstand for besvart kravgrunnlag
+                val besvartKravgrunnlag = mottattKravgrunnlag.kravgrunnlagBesvart(
+                    kravgrunnlagBesvart = fixedTidspunkt,
+                )
+                testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(besvartKravgrunnlag, session)
+                testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(
+                    revurdering.id,
+                    session,
+                ) shouldBe besvartKravgrunnlag
+
+                testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag() shouldBe emptyList()
+                testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandlingerMedUbesvartKravgrunnlag() shouldBe emptyList()
             }
         }
     }

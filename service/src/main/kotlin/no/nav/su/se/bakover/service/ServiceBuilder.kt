@@ -234,7 +234,8 @@ object ServiceBuilder {
             reguleringService = reguleringService,
             tilbakekrevingService = TilbakekrevingServiceImpl(
                 tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo,
-                tilbakekrevingClient = clients.tilbakekrevingClient
+                tilbakekrevingClient = clients.tilbakekrevingClient,
+                clock = clock,
             ),
         )
     }

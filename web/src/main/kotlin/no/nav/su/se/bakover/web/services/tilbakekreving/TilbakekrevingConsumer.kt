@@ -6,7 +6,6 @@ import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -32,7 +31,7 @@ internal class TilbakekrevingConsumer(
     }
 
     internal fun onMessage(xmlMessage: String) {
-        val mottattKravgrunnlag = xmlMapper.readValue<KravmeldingRootDto>(xmlMessage)
+        val mottattKravgrunnlag = KravgrunnlagMapper.mapTilKravmeldingRootDto(xmlMessage)
         val mottattSaksnummer = Saksnummer(mottattKravgrunnlag.kravmeldingDto.fagsystemId.toLong())
         // TODO kan unngås med henvisning/referanse
         val sakIdOgNummer = sakService.hentSakidOgSaksnummer(Fnr(mottattKravgrunnlag.kravmeldingDto.vedtakGjelderId))
@@ -41,7 +40,7 @@ internal class TilbakekrevingConsumer(
         val tilbakekrevingsbehandling =
             tilbakekrevingService.hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(sakIdOgNummer.sakId)
                 .singleOrNull()
-            // TODO midlertidig løsning til henvisning/referanser send med utbetaling er på plass
+                // TODO midlertidig løsning til henvisning/referanser send med utbetaling er på plass
                 ?: throw IllegalStateException("Forventet å finne 1 tilbakekrevingsbehandling som avventer kravgrunnlag for sakId: ${sakIdOgNummer.sakId}, sak:$mottattSaksnummer, men fant ingen eller flere")
 
         tilbakekrevingsbehandling.mottattKravgrunnlag(

@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.KravgrunnlagBesvart
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -603,11 +604,14 @@ internal class RevurderingPostgresRepo(
                     is AvventerKravgrunnlag -> {
                         tilbakekrevingRepo.lagreTilbakekrevingsbehandling(tb, tx)
                     }
-                    is Tilbakekrevingsbehandling.Ferdigbehandlet.IkkeBehovForTilbakekreving -> {
+                    is Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving -> {
                         // noop
                     }
                     is MottattKravgrunnlag -> {
                         throw IllegalStateException("Kan aldri ha mottatt kravgrunnlag før vi har iverksatt")
+                    }
+                    is KravgrunnlagBesvart -> {
+                        throw IllegalStateException("Kan aldri ha besvart kravgrunnlag før vi har iverksatt")
                     }
                 }
             }
@@ -616,11 +620,14 @@ internal class RevurderingPostgresRepo(
                     is AvventerKravgrunnlag -> {
                         tilbakekrevingRepo.lagreTilbakekrevingsbehandling(tb, tx)
                     }
-                    is Tilbakekrevingsbehandling.Ferdigbehandlet.IkkeBehovForTilbakekreving -> {
+                    is Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving -> {
                         // noop
                     }
                     is MottattKravgrunnlag -> {
                         throw IllegalStateException("Kan aldri ha mottatt kravgrunnlag før vi har iverksatt")
+                    }
+                    is KravgrunnlagBesvart -> {
+                        throw IllegalStateException("Kan aldri ha besvart kravgrunnlag før vi har iverksatt")
                     }
                 }
             }

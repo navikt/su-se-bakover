@@ -88,6 +88,7 @@ import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJo
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingIbmMqConsumer
+import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
@@ -96,7 +97,9 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.event.Level
 import java.time.Clock
+import java.time.Duration
 import java.time.format.DateTimeParseException
+import java.time.temporal.ChronoUnit
 
 fun main(args: Array<String>) {
     if (ApplicationConfig.isRunningLocally()) {
@@ -338,6 +341,12 @@ fun Application.susebakover(
             globalJmsContext = jmsConfig.jmsContext,
             tilbakekrevingConsumer = tilbakekrevingConsumer,
         )
+
+        TilbakekrevingJob(
+            tilbakekrevingService = services.tilbakekrevingService,
+            leaderPodLookup = clients.leaderPodLookup,
+            intervall = Duration.of(10, ChronoUnit.MINUTES).toMillis(),
+        ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         LokalKvitteringJob(
             lokalKvitteringService = LokalKvitteringService(
@@ -371,6 +380,12 @@ fun Application.susebakover(
             tilbakekrevingConsumer = tilbakekrevingConsumer,
             tilbakekrevingService = services.tilbakekrevingService,
             revurderingService = services.revurdering,
+        ).schedule()
+
+        TilbakekrevingJob(
+            tilbakekrevingService = services.tilbakekrevingService,
+            leaderPodLookup = clients.leaderPodLookup,
+            intervall = Duration.of(1, ChronoUnit.MINUTES).toMillis(),
         ).schedule()
     }
 
