@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttTilbakekrevingsvedtak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
@@ -101,8 +102,9 @@ internal class TilbakekrevingPostgresRepoTest {
                     mottattKravgrunnlag,
                 )
 
-                val besvartKravgrunnlag = mottattKravgrunnlag.kravgrunnlagBesvart(
-                    kravgrunnlagBesvart = fixedTidspunkt,
+                val besvartKravgrunnlag = mottattKravgrunnlag.sendtTilbakekrevingsvedtak(
+                    tilbakekrevingsvedtak = RåttTilbakekrevingsvedtak("xml"),
+                    tilbakekrevingsvedtakSendt = fixedTidspunkt,
                 )
                 testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(besvartKravgrunnlag, session)
                 testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(

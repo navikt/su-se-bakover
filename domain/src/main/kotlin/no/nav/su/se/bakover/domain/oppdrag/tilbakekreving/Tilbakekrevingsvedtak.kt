@@ -1,33 +1,112 @@
 package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 
-import arrow.core.Either
-import arrow.core.right
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
+import java.math.BigDecimal
 
-/** Beslutningsgrunnlaget til et kravgrunnlag som sendes til Oppdrag. */
-data class Tilbakekrevingsvedtak private constructor(
+sealed interface Tilbakekrevingsvedtak {
+    val aksjonsKode: AksjonsKode
+    val vedtakId: String
+    val hjemmel: TilbakekrevingsHjemmel
+    val renterBeregnes: Boolean
+    val ansvarligEnhet: String
+    val kontrollFelt: String
+    val behandler: NavIdentBruker
+    val tilbakekrevingsperioder: List<Tilbakekrevingsperiode>
 
-    /** Kravgrunnlaget fra kravmeldingen som vi skal ta en avgjørelse på. */
-    val kravgrunnlag: Kravgrunnlag,
+    data class FullTilbakekreving(
+        override val aksjonsKode: AksjonsKode,
+        override val vedtakId: String,
+        override val hjemmel: TilbakekrevingsHjemmel,
+        override val renterBeregnes: Boolean,
+        override val ansvarligEnhet: String,
+        override val kontrollFelt: String,
+        override val behandler: NavIdentBruker,
+        override val tilbakekrevingsperioder: List<Tilbakekrevingsperiode>,
+    ) : Tilbakekrevingsvedtak
 
-    val tilbakekrevingsbehandling: Tilbakekrevingsbehandling,
+    data class IngenTilbakekreving(
+        override val aksjonsKode: AksjonsKode,
+        override val vedtakId: String,
+        override val hjemmel: TilbakekrevingsHjemmel,
+        override val renterBeregnes: Boolean,
+        override val ansvarligEnhet: String,
+        override val kontrollFelt: String,
+        override val behandler: NavIdentBruker,
+        override val tilbakekrevingsperioder: List<Tilbakekrevingsperiode>,
+    ) : Tilbakekrevingsvedtak
 
-) {
-    companion object {
-        /**
-         * @param kravgrunnlag Kravgrunnlaget fra kravmeldingen som vi skal ta en avgjørelse på.
-         * @param tilbakekrevingsbehandling Det finnes også en behandler på kravmeldinga (som kommer fra vedtaket/utbetalingslinjene). Disse må stemme overens. Vi skal ikke skille på undergruppene av NavIdentBruker.
-         */
-        fun tryCreate(
-            kravgrunnlag: Kravgrunnlag,
-            tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
-        ): Either<UlikBehandlerIVedtakOgKravgrunnlag, Tilbakekrevingsvedtak> {
-            // TODO jah: Verifiser at tilbakekrevingsperiodene stemmer overens med kravgrunnlaget
-            return Tilbakekrevingsvedtak(
-                kravgrunnlag = kravgrunnlag,
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
-            ).right()
+    data class Tilbakekrevingsperiode(
+        val periode: Periode,
+        val renterBeregnes: Boolean,
+        val beløpRenter: BigDecimal,
+        val tilbakekrevingsbeløp: List<Tilbakekrevingsbeløp>,
+    ) {
+        sealed interface Tilbakekrevingsbeløp {
+            val kodeKlasse: KlasseKode
+            val beløpTidligereUtbetaling: BigDecimal
+            val beløpNyUtbetaling: BigDecimal
+            val beløpSomSkalTilbakekreves: BigDecimal
+            val beløpSomIkkeTilbakekreves: BigDecimal
+
+            data class TilbakekrevingsbeløpFeilutbetaling(
+                override val kodeKlasse: KlasseKode,
+                override val beløpTidligereUtbetaling: BigDecimal,
+                override val beløpNyUtbetaling: BigDecimal,
+                override val beløpSomSkalTilbakekreves: BigDecimal,
+                override val beløpSomIkkeTilbakekreves: BigDecimal,
+            ) : Tilbakekrevingsbeløp
+
+            data class TilbakekrevingsbeløpYtelse(
+                override val kodeKlasse: KlasseKode,
+                override val beløpTidligereUtbetaling: BigDecimal,
+                override val beløpNyUtbetaling: BigDecimal,
+                override val beløpSomSkalTilbakekreves: BigDecimal,
+                override val beløpSomIkkeTilbakekreves: BigDecimal,
+                val beløpSkatt: BigDecimal,
+                val tilbakekrevingsresultat: Tilbakekrevingsresultat,
+                val tilbakekrevingsÅrsak: TilbakekrevingsÅrsak,
+                val skyld: Skyld,
+            ) : Tilbakekrevingsbeløp
         }
     }
 
-    object UlikBehandlerIVedtakOgKravgrunnlag
+    enum class AksjonsKode(val nummer: String) {
+        FATT_VEDTAK("8")
+    }
+
+    enum class TilbakekrevingsHjemmel {
+        ANNEN
+    }
+
+    enum class Tilbakekrevingsresultat {
+        DELVIS_TILBAKEKREV,
+        FEILREGISTRERT,
+        FORELDET,
+        FULL_TILBAKEKREV,
+        INGEN_TILBAKEKREV
+    }
+
+    enum class TilbakekrevingsÅrsak {
+        ANNET,
+        ARBHOYINNT,
+        BEREGNFEIL,
+        DODSFALL,
+        EKTESKAP,
+        FEILREGEL,
+        FEILUFOREG,
+        FLYTTUTLAND,
+        IKKESJEKKYTELSE,
+        OVERSETTMLD,
+        SAMLIV,
+        UTBFEILMOT
+    }
+
+    enum class Skyld {
+        BRUKER,
+        IKKE_FORDELT,
+        NAV,
+        SKYLDDELING
+    }
 }

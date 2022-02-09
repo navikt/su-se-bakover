@@ -926,7 +926,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun sendTilbakekrevinger(mapper: (RåttKravgrunnlag) -> Kravgrunnlag) {
+                override fun sendTilbakekrevingsvedtak(mapper: (RåttKravgrunnlag) -> Kravgrunnlag) {
                     kastKanKunKallesFraAnnenService()
                 }
 

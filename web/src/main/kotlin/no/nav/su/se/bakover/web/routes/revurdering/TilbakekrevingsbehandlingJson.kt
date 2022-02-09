@@ -4,9 +4,9 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.BurdeForstått
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Forsto
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.KravgrunnlagBesvart
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.KunneIkkeForstå
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.SendtTilbakekrevingsvedtak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 
 data class TilbakekrevingsbehandlingJson(
@@ -46,7 +46,7 @@ fun Tilbakekrevingsbehandling.toJson(): TilbakekrevingsbehandlingJson? {
         is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
             toJson()
         }
-        is KravgrunnlagBesvart -> {
+        is SendtTilbakekrevingsvedtak -> {
             toJson()
         }
     }
@@ -63,7 +63,7 @@ fun Tilbakekrevingsbehandling.Ferdigbehandlet.toJson(): Tilbakekrevingsbehandlin
         is MottattKravgrunnlag -> {
             this.avgjort.toJson()
         }
-        is KravgrunnlagBesvart -> {
+        is SendtTilbakekrevingsvedtak -> {
             this.avgjort.toJson()
         }
     }

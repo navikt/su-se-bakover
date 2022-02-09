@@ -1,11 +1,6 @@
 package no.nav.su.se.bakover.web.services.tilbakekreving
 
 import arrow.core.getOrHandle
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
-import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -22,16 +17,9 @@ internal class TilbakekrevingConsumer(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    companion object {
-        val xmlMapper = XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(false) }).apply {
-            registerModule(KotlinModule.Builder().build())
-            registerModule(JavaTimeModule())
-            disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        }
-    }
-
     internal fun onMessage(xmlMessage: String) {
         val mottattKravgrunnlag = KravgrunnlagMapper.mapTilKravmeldingRootDto(xmlMessage)
+            .getOrHandle { throw it }
         val mottattSaksnummer = Saksnummer(mottattKravgrunnlag.kravmeldingDto.fagsystemId.toLong())
         // TODO kan unngås med henvisning/referanse
         val sakIdOgNummer = sakService.hentSakidOgSaksnummer(Fnr(mottattKravgrunnlag.kravmeldingDto.vedtakGjelderId))

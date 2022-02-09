@@ -57,50 +57,52 @@ internal class TilbakekrevingXmlMapperTest {
                 </urn:detaljertKravgrunnlag>
             </urn:detaljertKravgrunnlagMelding>
         """.trimIndent()
-        TilbakekrevingXmlMapper.toDto(inputXml) shouldBe KravmeldingDto(
-            kravgrunnlagId = "298604",
-            vedtakId = "436204",
-            kodeStatusKrav = "NY",
-            kodeFagområde = "SUUFORE",
-            fagsystemId = "2461",
-            datoVedtakFagsystem = null,
-            vedtakIdOmgjort = "0",
-            vedtakGjelderId = "25077622783",
-            idTypeGjelder = "PERSON",
-            utbetalesTilId = "25077622783",
-            idTypeUtbet = "PERSON",
-            kodeHjemmel = null,
-            renterBeregnes = null,
-            enhetAnsvarlig = "8020",
-            enhetBosted = "8020",
-            enhetBehandl = "8020",
-            kontrollfelt = "2022-02-07-18.39.46.586953",
-            saksbehId = "K231B433",
-            tilbakekrevingsperioder = listOf(
-                KravmeldingDto.Tilbakekrevingsperiode(
-                    periode = KravmeldingDto.Tilbakekrevingsperiode.Periode(
-                        fraOgMed = "2021-10-01",
-                        tilOgMed = "2021-10-31",
-                    ),
-                    skattebeløpPerMåned = "4395.00",
-                    tilbakekrevingsbeløp = listOf(
-                        KravmeldingDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
-                            kodeKlasse = "KL_KODE_FEIL_INNT",
-                            typeKlasse = "FEIL",
-                            belopOpprUtbet = "0.00",
-                            belopNy = "9989.00",
-                            belopTilbakekreves = "0.00",
-                            belopUinnkrevd = "0.00",
-                            skattProsent = "0.0000",
+        KravgrunnlagMapper.mapTilKravmeldingRootDto(inputXml) shouldBe KravmeldingRootDto(
+            kravmeldingDto = KravmeldingDto(
+                kravgrunnlagId = "298604",
+                vedtakId = "436204",
+                kodeStatusKrav = "NY",
+                kodeFagområde = "SUUFORE",
+                fagsystemId = "2461",
+                datoVedtakFagsystem = null,
+                vedtakIdOmgjort = "0",
+                vedtakGjelderId = "25077622783",
+                idTypeGjelder = "PERSON",
+                utbetalesTilId = "25077622783",
+                idTypeUtbet = "PERSON",
+                kodeHjemmel = null,
+                renterBeregnes = null,
+                enhetAnsvarlig = "8020",
+                enhetBosted = "8020",
+                enhetBehandl = "8020",
+                kontrollfelt = "2022-02-07-18.39.46.586953",
+                saksbehId = "K231B433",
+                tilbakekrevingsperioder = listOf(
+                    KravmeldingDto.Tilbakekrevingsperiode(
+                        periode = KravmeldingDto.Tilbakekrevingsperiode.Periode(
+                            fraOgMed = "2021-10-01",
+                            tilOgMed = "2021-10-31",
                         ),
-                        KravmeldingDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
-                            kodeKlasse = "SUUFORE",
-                            typeKlasse = "YTEL",
-                            belopOpprUtbet = "9989.00",
-                            belopNy = "0.00",
-                            belopTilbakekreves = "9989.00",
-                            belopUinnkrevd = "0.00",
-                            skattProsent = "43.9983",
+                        skattebeløpPerMåned = "4395.00",
+                        tilbakekrevingsbeløp = listOf(
+                            KravmeldingDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
+                                kodeKlasse = "KL_KODE_FEIL_INNT",
+                                typeKlasse = "FEIL",
+                                belopOpprUtbet = "0.00",
+                                belopNy = "9989.00",
+                                belopTilbakekreves = "0.00",
+                                belopUinnkrevd = "0.00",
+                                skattProsent = "0.0000",
+                            ),
+                            KravmeldingDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
+                                kodeKlasse = "SUUFORE",
+                                typeKlasse = "YTEL",
+                                belopOpprUtbet = "9989.00",
+                                belopNy = "0.00",
+                                belopTilbakekreves = "9989.00",
+                                belopUinnkrevd = "0.00",
+                                skattProsent = "43.9983",
+                            ),
                         ),
                     ),
                 ),
@@ -185,77 +187,79 @@ internal class TilbakekrevingXmlMapperTest {
             </urn:detaljertKravgrunnlagMelding>
         """.trimIndent()
 
-        TilbakekrevingXmlMapper.toDto(inputXml) shouldBe KravmeldingDto(
-            kravgrunnlagId = "298606",
-            vedtakId = "436206",
-            kodeStatusKrav = "NY",
-            kodeFagområde = "SUUFORE",
-            fagsystemId = "2463",
-            datoVedtakFagsystem = null,
-            vedtakIdOmgjort = "0",
-            vedtakGjelderId = "18108619852",
-            idTypeGjelder = "PERSON",
-            utbetalesTilId = "18108619852",
-            idTypeUtbet = "PERSON",
-            kodeHjemmel = null,
-            renterBeregnes = null,
-            enhetAnsvarlig = "8020",
-            enhetBosted = "8020",
-            enhetBehandl = "8020",
-            kontrollfelt = "2022-02-07-18.39.47.693011",
-            saksbehId = "K231B433",
-            tilbakekrevingsperioder = listOf(
-                KravmeldingDto.Tilbakekrevingsperiode(
-                    periode = KravmeldingDto.Tilbakekrevingsperiode.Periode(
-                        fraOgMed = "2021-10-01",
-                        tilOgMed = "2021-10-31",
-                    ),
-                    skattebeløpPerMåned = "5280.00",
-                    tilbakekrevingsbeløp = listOf(
-                        KravmeldingDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
-                            kodeKlasse = "KL_KODE_FEIL_INNT",
-                            typeKlasse = "FEIL",
-                            belopOpprUtbet = "0.00",
-                            belopNy = "12000.00",
-                            belopTilbakekreves = "0.00",
-                            belopUinnkrevd = "0.00",
-                            skattProsent = "0.0000",
+        KravgrunnlagMapper.mapTilKravmeldingRootDto(inputXml) shouldBe KravmeldingRootDto(
+            kravmeldingDto = KravmeldingDto(
+                kravgrunnlagId = "298606",
+                vedtakId = "436206",
+                kodeStatusKrav = "NY",
+                kodeFagområde = "SUUFORE",
+                fagsystemId = "2463",
+                datoVedtakFagsystem = null,
+                vedtakIdOmgjort = "0",
+                vedtakGjelderId = "18108619852",
+                idTypeGjelder = "PERSON",
+                utbetalesTilId = "18108619852",
+                idTypeUtbet = "PERSON",
+                kodeHjemmel = null,
+                renterBeregnes = null,
+                enhetAnsvarlig = "8020",
+                enhetBosted = "8020",
+                enhetBehandl = "8020",
+                kontrollfelt = "2022-02-07-18.39.47.693011",
+                saksbehId = "K231B433",
+                tilbakekrevingsperioder = listOf(
+                    KravmeldingDto.Tilbakekrevingsperiode(
+                        periode = KravmeldingDto.Tilbakekrevingsperiode.Periode(
+                            fraOgMed = "2021-10-01",
+                            tilOgMed = "2021-10-31",
                         ),
-                        KravmeldingDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
-                            kodeKlasse = "SUUFORE",
-                            typeKlasse = "YTEL",
-                            belopOpprUtbet = "21989.00",
-                            belopNy = "9989.00",
-                            belopTilbakekreves = "12000.00",
-                            belopUinnkrevd = "0.00",
-                            skattProsent = "43.9992",
+                        skattebeløpPerMåned = "5280.00",
+                        tilbakekrevingsbeløp = listOf(
+                            KravmeldingDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
+                                kodeKlasse = "KL_KODE_FEIL_INNT",
+                                typeKlasse = "FEIL",
+                                belopOpprUtbet = "0.00",
+                                belopNy = "12000.00",
+                                belopTilbakekreves = "0.00",
+                                belopUinnkrevd = "0.00",
+                                skattProsent = "0.0000",
+                            ),
+                            KravmeldingDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
+                                kodeKlasse = "SUUFORE",
+                                typeKlasse = "YTEL",
+                                belopOpprUtbet = "21989.00",
+                                belopNy = "9989.00",
+                                belopTilbakekreves = "12000.00",
+                                belopUinnkrevd = "0.00",
+                                skattProsent = "43.9992",
+                            ),
                         ),
                     ),
-                ),
-                KravmeldingDto.Tilbakekrevingsperiode(
-                    periode = KravmeldingDto.Tilbakekrevingsperiode.Periode(
-                        fraOgMed = "2021-11-01",
-                        tilOgMed = "2021-11-30",
-                    ),
-                    skattebeløpPerMåned = "5280.00",
-                    tilbakekrevingsbeløp = listOf(
-                        KravmeldingDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
-                            kodeKlasse = "KL_KODE_FEIL_INNT",
-                            typeKlasse = "FEIL",
-                            belopOpprUtbet = "0.00",
-                            belopNy = "12000.00",
-                            belopTilbakekreves = "0.00",
-                            belopUinnkrevd = "0.00",
-                            skattProsent = "0.0000",
+                    KravmeldingDto.Tilbakekrevingsperiode(
+                        periode = KravmeldingDto.Tilbakekrevingsperiode.Periode(
+                            fraOgMed = "2021-11-01",
+                            tilOgMed = "2021-11-30",
                         ),
-                        KravmeldingDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
-                            kodeKlasse = "SUUFORE",
-                            typeKlasse = "YTEL",
-                            belopOpprUtbet = "21989.00",
-                            belopNy = "9989.00",
-                            belopTilbakekreves = "12000.00",
-                            belopUinnkrevd = "0.00",
-                            skattProsent = "43.9992",
+                        skattebeløpPerMåned = "5280.00",
+                        tilbakekrevingsbeløp = listOf(
+                            KravmeldingDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
+                                kodeKlasse = "KL_KODE_FEIL_INNT",
+                                typeKlasse = "FEIL",
+                                belopOpprUtbet = "0.00",
+                                belopNy = "12000.00",
+                                belopTilbakekreves = "0.00",
+                                belopUinnkrevd = "0.00",
+                                skattProsent = "0.0000",
+                            ),
+                            KravmeldingDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
+                                kodeKlasse = "SUUFORE",
+                                typeKlasse = "YTEL",
+                                belopOpprUtbet = "21989.00",
+                                belopNy = "9989.00",
+                                belopTilbakekreves = "12000.00",
+                                belopUinnkrevd = "0.00",
+                                skattProsent = "43.9992",
+                            ),
                         ),
                     ),
                 ),

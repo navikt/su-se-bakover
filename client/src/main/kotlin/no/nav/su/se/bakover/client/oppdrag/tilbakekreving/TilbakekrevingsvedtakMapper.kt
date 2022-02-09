@@ -1,24 +1,22 @@
-package no.nav.su.se.bakover.web.services.tilbakekreving
+package no.nav.su.se.bakover.client.oppdrag.tilbakekreving
 
-import arrow.core.Either
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.okonomi.tilbakekrevingservice.TilbakekrevingsvedtakRequest
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttTilbakekrevingsvedtak
 
-/** Mapper fra XML til [KravmeldingDto] */
-internal object TilbakekrevingXmlMapper {
+internal object TilbakekrevingsvedtakMapper {
+
     private val xmlMapper = XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(false) }).apply {
         registerModule(KotlinModule.Builder().build())
         registerModule(JavaTimeModule())
         disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     }
 
-    fun toDto(kravgrunnlagXml: String): Either<Throwable, KravmeldingDto> {
-        return Either.catch {
-            xmlMapper.readValue<KravmeldingRootDto>(kravgrunnlagXml).kravmeldingDto
-        }
+    fun map(request: TilbakekrevingsvedtakRequest): RåttTilbakekrevingsvedtak {
+        return RåttTilbakekrevingsvedtak(xmlMapper.writeValueAsString(request))
     }
 }

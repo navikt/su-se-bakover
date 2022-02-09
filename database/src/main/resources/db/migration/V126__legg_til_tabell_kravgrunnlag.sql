@@ -6,10 +6,10 @@ create table if not exists tilbakekrevingsbehandling
     revurderingId      uuid        not null references revurdering (id),
     fraOgMed           date        not null,
     tilOgMed           date        not null,
-    oversendtTidspunkt timestamptz null,
     avgjørelse         text        not null,
     tilstand           text        not null,
     kravgrunnlag       text        null,
     kravgrunnlagMottatt timestamptz null,
-    kravgrunnlagBesvart timestamptz null
+    tilbakekrevingsvedtak   text      null,
+    tilbakekrevingsvedtakSendt  timestamptz null
 );

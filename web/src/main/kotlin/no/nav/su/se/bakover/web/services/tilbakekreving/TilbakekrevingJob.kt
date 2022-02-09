@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.services.tilbakekreving
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import org.slf4j.LoggerFactory
@@ -27,8 +28,9 @@ class TilbakekrevingJob(
             if (isLeaderPod()) {
                 log.info("Kjører skeduleringsjobb '$jobName'")
                 Either.catch {
-                    tilbakekrevingService.sendTilbakekrevinger() {
-                        KravgrunnlagMapper.mapTilKravgrunnlag(it)
+                    tilbakekrevingService.sendTilbakekrevingsvedtak() { råttKravgrunnlag ->
+                        KravgrunnlagMapper.mapTilKravgrunnlag(råttKravgrunnlag)
+                            .getOrHandle { throw it }
                     }
                 }.mapLeft {
                     log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
@@ -39,8 +41,4 @@ class TilbakekrevingJob(
 
     private val hostName = InetAddress.getLocalHost().hostName
     private fun isLeaderPod() = leaderPodLookup.amITheLeader(hostName).isRight()
-    fun onMessage(message: String) {
-        TilbakekrevingXmlMapper.toDto(message)
-        // TODO jah: Hent tilbakekrevingingen aksjonspunkter og merge med denne før man sender til oppdrag
-    }
 }

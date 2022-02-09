@@ -15,10 +15,11 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.BurdeForstått
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Forsto
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.KravgrunnlagBesvart
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.KunneIkkeForstå
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttTilbakekrevingsvedtak
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.SendtTilbakekrevingsvedtak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import java.util.UUID
@@ -31,7 +32,7 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         }
     }
 
-    override fun lagreKravgrunnlagBesvart(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.KravgrunnlagBesvart) {
+    override fun lagreSendtTilbakekrevingsvedtak(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak) {
         sessionFactory.withSession { session ->
             lagreTilbakekrevingsbehandling(tilbakekrevingsbehandling, session)
         }
@@ -39,7 +40,7 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
 
     override fun hentTilbakekrevingsbehandlingerMedUbesvartKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag> {
         return sessionFactory.withSession { session ->
-            "select * from tilbakekrevingsbehandling where tilstand = '${Tilstand.MOTTATT_KRAVGRUNNLAG}' and kravgrunnlagBesvart is null"
+            "select * from tilbakekrevingsbehandling where tilstand = '${Tilstand.MOTTATT_KRAVGRUNNLAG}' and tilbakekrevingsvedtak is null"
                 .hentListe(
                     emptyMap(),
                     session,
@@ -55,7 +56,7 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
     ) {
         slettForRevurderingId(tilbakrekrevingsbehanding.revurderingId, session)
 
-        "insert into tilbakekrevingsbehandling (id, opprettet, sakId, revurderingId, fraOgMed, tilOgMed, oversendtTidspunkt, avgjørelse, tilstand) values (:id, :opprettet, :sakId, :revurderingId, :fraOgMed, :tilOgMed, :oversendtTidspunkt, :avgjorelse, :tilstand)"
+        "insert into tilbakekrevingsbehandling (id, opprettet, sakId, revurderingId, fraOgMed, tilOgMed, avgjørelse, tilstand) values (:id, :opprettet, :sakId, :revurderingId, :fraOgMed, :tilOgMed, :avgjorelse, :tilstand)"
             .insert(
                 mapOf(
                     "id" to tilbakrekrevingsbehanding.id,
@@ -111,17 +112,18 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
     }
 
     internal fun lagreTilbakekrevingsbehandling(
-        tilbakrekrevingsbehanding: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.KravgrunnlagBesvart,
+        tilbakrekrevingsbehanding: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak,
         session: Session,
     ) {
         """
-            update tilbakekrevingsbehandling set tilstand = :tilstand, kravgrunnlagBesvart = :kravgrunnlagBesvart where id = :id
+            update tilbakekrevingsbehandling set tilstand = :tilstand, tilbakekrevingsvedtak = :tilbakekrevingsvedtak, tilbakekrevingsvedtakSendt = :tilbakekrevingsvedtakSendt where id = :id
         """.trimIndent()
             .oppdatering(
                 mapOf(
                     "id" to tilbakrekrevingsbehanding.avgjort.id,
-                    "tilstand" to Tilstand.KRAVGRUNNLAG_BESVART.toString(),
-                    "kravgrunnlagBesvart" to tilbakrekrevingsbehanding.kravgrunnlagBesvart,
+                    "tilstand" to Tilstand.SENDT_TILBAKEKREVINGSVEDTAK.toString(),
+                    "tilbakekrevingsvedtak" to tilbakrekrevingsbehanding.tilbakekrevingsvedtak.melding,
+                    "tilbakekrevingsvedtakSendt" to tilbakrekrevingsbehanding.tilbakekrevingsvedtakSendt,
                 ),
                 session,
             )
@@ -164,7 +166,8 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         val avgjørelse = Avgjørelsestype.fromValue(string("avgjørelse"))
         val kravgrunnlag = stringOrNull("kravgrunnlag")?.let { RåttKravgrunnlag(it) }
         val kravgrunnlagMottatt = tidspunktOrNull("kravgrunnlagMottatt")
-        val kravgrunnlagBesvart = tidspunktOrNull("kravgrunnlagBesvart")
+        val tilbakekrevingsvedtak = stringOrNull("tilbakekrevingsvedtak")?.let { RåttTilbakekrevingsvedtak(it) }
+        val tilbakekrevingsvedtakSendt = tidspunktOrNull("tilbakekrevingsvedtakSendt")
 
         val tilbakekrevingsbehandling = when (avgjørelse) {
             Avgjørelsestype.FORSTO -> Forsto(
@@ -213,12 +216,13 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
                     kravgrunnlagMottatt = kravgrunnlagMottatt!!,
                 )
             }
-            Tilstand.KRAVGRUNNLAG_BESVART -> {
-                KravgrunnlagBesvart(
+            Tilstand.SENDT_TILBAKEKREVINGSVEDTAK -> {
+                SendtTilbakekrevingsvedtak(
                     avgjort = tilbakekrevingsbehandling as Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
                     kravgrunnlag = kravgrunnlag!!,
                     kravgrunnlagMottatt = kravgrunnlagMottatt!!,
-                    kravgrunnlagBesvart = kravgrunnlagBesvart!!,
+                    tilbakekrevingsvedtak = tilbakekrevingsvedtak!!,
+                    tilbakekrevingsvedtakSendt = tilbakekrevingsvedtakSendt!!,
                 )
             }
         }
@@ -274,7 +278,7 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         UNDER_BEHANDLING("under_behandling"),
         AVVENTER_KRAVGRUNNLAG("avventer_kravgrunnlag"),
         MOTTATT_KRAVGRUNNLAG("mottatt_kravgrunnlag"),
-        KRAVGRUNNLAG_BESVART("kravgrunnlag_besvart");
+        SENDT_TILBAKEKREVINGSVEDTAK("sendt_tilbakekrevingsvedtak");
 
         override fun toString() = value
 

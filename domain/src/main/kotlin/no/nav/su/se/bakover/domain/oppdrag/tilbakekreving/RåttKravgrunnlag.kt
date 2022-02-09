@@ -12,3 +12,16 @@ value class RåttKravgrunnlag private constructor(
         }
     }
 }
+
+@JvmInline
+value class RåttTilbakekrevingsvedtak private constructor(
+    val melding: String,
+) {
+    companion object {
+        operator fun invoke(
+            xmlMelding: String,
+        ): RåttTilbakekrevingsvedtak {
+            return RåttTilbakekrevingsvedtak(xmlMelding)
+        }
+    }
+}
