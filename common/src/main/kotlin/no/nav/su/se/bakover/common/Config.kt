@@ -543,14 +543,18 @@ data class ApplicationConfig(
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
             unleash = UnleashConfig.createFromEnvironmentVariables(),
-            jobConfig = JobConfig(
-                personhendelse = JobConfig.Personhendelse(naisCluster()),
-                konsistensavstemming = when (naisCluster()) {
-                    NaisCluster.Dev -> JobConfig.Konsistensavstemming.Dev()
-                    NaisCluster.Prod -> JobConfig.Konsistensavstemming.Prod()
-                    null -> throw IllegalStateException("Kunne ikke identifsiere nais-cluster")
-                },
-            ),
+            jobConfig = naisCluster().let { cluster ->
+                if (cluster == null) throw IllegalStateException("Kunne ikke identifsiere nais-cluster")
+
+                JobConfig(
+                    personhendelse = JobConfig.Personhendelse(cluster),
+                    konsistensavstemming = when (cluster) {
+                        NaisCluster.Dev -> JobConfig.Konsistensavstemming.Dev()
+                        NaisCluster.Prod -> JobConfig.Konsistensavstemming.Prod()
+                    },
+                    initialDelay = Duration.of(5, ChronoUnit.MINUTES).toMillis()
+                )
+            },
             kabalKafkaConfig = KabalKafkaConfig.createFromEnvironmentVariables(),
         )
 
@@ -570,6 +574,7 @@ data class ApplicationConfig(
             jobConfig = JobConfig(
                 personhendelse = JobConfig.Personhendelse(naisCluster()),
                 konsistensavstemming = JobConfig.Konsistensavstemming.Local(),
+                initialDelay = 0
             ),
             kabalKafkaConfig = KabalKafkaConfig.createLocalConfig(),
         ).also {
@@ -593,6 +598,7 @@ data class ApplicationConfig(
     data class JobConfig(
         val personhendelse: Personhendelse,
         val konsistensavstemming: Konsistensavstemming,
+        val initialDelay: Long
     ) {
         data class Personhendelse(private val naisCluster: NaisCluster?) {
             private val PREPROD: Long = Duration.of(10, ChronoUnit.MINUTES).toMillis()

@@ -23,6 +23,7 @@ import kotlin.concurrent.fixedRateTimer
 class KlageinstansvedtakJob(
     private val klagevedtakService: KlagevedtakService,
     private val leaderPodLookup: LeaderPodLookup,
+    private val initialDelay: Long,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Håndter utfall fra Klageinstans"
@@ -59,6 +60,7 @@ class KlageinstansvedtakJob(
             name = jobName,
             daemon = true,
             period = periode,
+            initialDelay = initialDelay
         ) {
             Either.catch {
                 if (leaderPodLookup.erLeaderPod(hostname = hostName)) {

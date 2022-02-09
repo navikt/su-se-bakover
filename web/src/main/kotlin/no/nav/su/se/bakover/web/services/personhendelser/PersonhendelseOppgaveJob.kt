@@ -12,6 +12,7 @@ internal class PersonhendelseOppgaveJob(
     private val personhendelseService: PersonhendelseService,
     private val leaderPodLookup: LeaderPodLookup,
     private val intervall: Long,
+    private val initialDelay: Long,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Opprett personhendelse oppgaver"
@@ -26,6 +27,7 @@ internal class PersonhendelseOppgaveJob(
             name = jobName,
             daemon = true,
             period = intervall,
+            initialDelay = initialDelay
         ) {
             log.info("Kjører skeduleringsjobb '$jobName'")
             Either.catch {
