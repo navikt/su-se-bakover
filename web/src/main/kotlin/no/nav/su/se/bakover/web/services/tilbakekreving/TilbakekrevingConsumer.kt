@@ -18,17 +18,17 @@ internal class TilbakekrevingConsumer(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     internal fun onMessage(xmlMessage: String) {
-        val mottattKravgrunnlag = KravgrunnlagMapper.mapTilKravmeldingRootDto(xmlMessage)
+        val mottattKravgrunnlag = KravgrunnlagMapper.toDto(xmlMessage)
             .getOrHandle { throw it }
-        val mottattSaksnummer = Saksnummer(mottattKravgrunnlag.kravmeldingDto.fagsystemId.toLong())
+        val mottattSaksnummer = Saksnummer(mottattKravgrunnlag.fagsystemId.toLong())
         // TODO kan unngås med henvisning/referanse
-        val sakIdOgNummer = sakService.hentSakidOgSaksnummer(Fnr(mottattKravgrunnlag.kravmeldingDto.vedtakGjelderId))
+        val sakIdOgNummer = sakService.hentSakidOgSaksnummer(Fnr(mottattKravgrunnlag.vedtakGjelderId))
             .getOrHandle { throw IllegalStateException("Fant ikke sak for saksnummer:$mottattSaksnummer") }
 
         val tilbakekrevingsbehandling =
             tilbakekrevingService.hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(sakIdOgNummer.sakId)
                 .singleOrNull()
-                // TODO midlertidig løsning til henvisning/referanser send med utbetaling er på plass
+            // TODO midlertidig løsning til henvisning/referanser send med utbetaling er på plass
                 ?: throw IllegalStateException("Forventet å finne 1 tilbakekrevingsbehandling som avventer kravgrunnlag for sakId: ${sakIdOgNummer.sakId}, sak:$mottattSaksnummer, men fant ingen eller flere")
 
         tilbakekrevingsbehandling.mottattKravgrunnlag(

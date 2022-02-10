@@ -9,12 +9,14 @@ import java.math.BigDecimal
 
 data class Kravgrunnlag(
     val saksnummer: Saksnummer,
+    val kravgrunnlagId: String,
 
     /** Dette er Oppdrag sin ID som er vedlagt i kravgrunnlaget, den er transient i vårt system */
     val vedtakId: String,
 
     /** Denne er generert av Oppdrag og er vedlagt i kravgrunnlaget, den er transient i vårt system*/
     val kontrollfelt: String,
+    val status: KravgrunnlagStatus,
 
     /**
      * Saksbehandleren/Attestanten knyttet til vedtaket/utbetalinga.
@@ -39,5 +41,17 @@ data class Kravgrunnlag(
             val beløpSkalIkkeTilbakekreves: BigDecimal,
             val skatteProsent: BigDecimal,
         )
+    }
+
+    enum class KravgrunnlagStatus {
+        ANNU,
+        ANOM,
+        AVSL,
+        BEHA,
+        ENDR,
+        FEIL,
+        MANU,
+        NY,
+        SPER;
     }
 }

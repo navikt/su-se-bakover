@@ -25,22 +25,24 @@ internal object KravgrunnlagMapper {
         disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     }
 
-    fun mapTilKravmeldingRootDto(xml: String): Either<Throwable, KravmeldingRootDto> {
+    fun toDto(xml: String): Either<Throwable, KravmeldingDto> {
         return Either.catch {
-            xmlMapper.readValue(xml)
+            xmlMapper.readValue<KravmeldingRootDto>(xml).kravmeldingDto
         }
     }
 
-    fun mapTilKravgrunnlag(råttKravgrunnlag: RåttKravgrunnlag): Either<Throwable, Kravgrunnlag> {
-        return mapTilKravmeldingRootDto(råttKravgrunnlag.melding)
+    fun toKravgrunnlg(råttKravgrunnlag: RåttKravgrunnlag): Either<Throwable, Kravgrunnlag> {
+        return toDto(råttKravgrunnlag.melding)
             .mapLeft { it }
             .map { kravgrunnlag ->
                 Kravgrunnlag(
-                    saksnummer = Saksnummer(kravgrunnlag.kravmeldingDto.fagsystemId.toLong()),
-                    vedtakId = kravgrunnlag.kravmeldingDto.vedtakId,
-                    kontrollfelt = kravgrunnlag.kravmeldingDto.kontrollfelt,
-                    behandler = NavIdentBruker.Saksbehandler(kravgrunnlag.kravmeldingDto.saksbehId),
-                    grunnlagsperioder = kravgrunnlag.kravmeldingDto.tilbakekrevingsperioder.map { tilbakekrevingsperiode ->
+                    saksnummer = Saksnummer(kravgrunnlag.fagsystemId.toLong()),
+                    kravgrunnlagId = kravgrunnlag.kravgrunnlagId,
+                    vedtakId = kravgrunnlag.vedtakId,
+                    status = Kravgrunnlag.KravgrunnlagStatus.valueOf(kravgrunnlag.kodeStatusKrav),
+                    kontrollfelt = kravgrunnlag.kontrollfelt,
+                    behandler = NavIdentBruker.Saksbehandler(kravgrunnlag.saksbehId),
+                    grunnlagsperioder = kravgrunnlag.tilbakekrevingsperioder.map { tilbakekrevingsperiode ->
                         Kravgrunnlag.Grunnlagsperiode(
                             periode = Periode.create(
                                 LocalDate.parse(tilbakekrevingsperiode.periode.fraOgMed),
