@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.sak
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.sak.SakBehandlinger
+import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -74,11 +74,11 @@ internal class SakServiceImplTest {
         val nySakMedjournalførtSøknadOgOppgave = nySakMedjournalførtSøknadOgOppgave().second
         val sakRepo: SakRepo = mock {
             on { hentÅpneBehandlinger() } doReturn listOf(
-                SakBehandlinger.ÅpenBehandling(
+                Behandlingsoversikt(
                     saksnummer = Saksnummer(nummer = 2021),
                     behandlingsId = nySakMedjournalførtSøknadOgOppgave.id,
-                    restansType = SakBehandlinger.RestansType.SØKNADSBEHANDLING,
-                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.NY_SØKNAD,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingsoversikt.Behandlingsstatus.NY_SØKNAD,
                     behandlingStartet = nySakMedjournalførtSøknadOgOppgave.opprettet,
                 ),
             )
@@ -88,11 +88,11 @@ internal class SakServiceImplTest {
         val sakMedÅpenSøknad = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakMedÅpenSøknad shouldBe listOf(
-            SakBehandlinger.ÅpenBehandling(
+            Behandlingsoversikt(
                 saksnummer = Saksnummer(nummer = 2021),
                 behandlingsId = nySakMedjournalførtSøknadOgOppgave.id,
-                restansType = SakBehandlinger.RestansType.SØKNADSBEHANDLING,
-                status = SakBehandlinger.ÅpenBehandling.RestansStatus.NY_SØKNAD,
+                behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                status = Behandlingsoversikt.Behandlingsstatus.NY_SØKNAD,
                 behandlingStartet = nySakMedjournalførtSøknadOgOppgave.opprettet,
             ),
         )
@@ -109,25 +109,25 @@ internal class SakServiceImplTest {
 
         val sakRepo: SakRepo = mock {
             on { hentÅpneBehandlinger() } doReturn listOf(
-                SakBehandlinger.ÅpenBehandling(
+                Behandlingsoversikt(
                     saksnummer = saksnr1,
                     behandlingsId = uavklartSøkandsbehandling.id,
-                    restansType = SakBehandlinger.RestansType.SØKNADSBEHANDLING,
-                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDER_BEHANDLING,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = uavklartSøkandsbehandling.opprettet,
                 ),
-                SakBehandlinger.ÅpenBehandling(
+                Behandlingsoversikt(
                     saksnummer = saksnr1,
                     behandlingsId = underkjentSøknadsbehandling.id,
-                    restansType = SakBehandlinger.RestansType.SØKNADSBEHANDLING,
-                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDERKJENT,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingsoversikt.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjentSøknadsbehandling.opprettet,
                 ),
-                SakBehandlinger.ÅpenBehandling(
+                Behandlingsoversikt(
                     saksnummer = saksnr2,
                     behandlingsId = tilAttesteringSøknadsbehandling.id,
-                    restansType = SakBehandlinger.RestansType.SØKNADSBEHANDLING,
-                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.TIL_ATTESTERING,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttesteringSøknadsbehandling.opprettet,
                 ),
             )
@@ -137,25 +137,25 @@ internal class SakServiceImplTest {
         val sakerMedÅpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneBehandlinger shouldBe listOf(
-            SakBehandlinger.ÅpenBehandling(
+            Behandlingsoversikt(
                 saksnummer = saksnr1,
                 behandlingsId = uavklartSøkandsbehandling.id,
-                restansType = SakBehandlinger.RestansType.SØKNADSBEHANDLING,
-                status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDER_BEHANDLING,
+                behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
                 behandlingStartet = uavklartSøkandsbehandling.opprettet,
             ),
-            SakBehandlinger.ÅpenBehandling(
+            Behandlingsoversikt(
                 saksnummer = saksnr1,
                 behandlingsId = underkjentSøknadsbehandling.id,
-                restansType = SakBehandlinger.RestansType.SØKNADSBEHANDLING,
-                status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDERKJENT,
+                behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                status = Behandlingsoversikt.Behandlingsstatus.UNDERKJENT,
                 behandlingStartet = underkjentSøknadsbehandling.opprettet,
             ),
-            SakBehandlinger.ÅpenBehandling(
+            Behandlingsoversikt(
                 saksnummer = saksnr2,
                 behandlingsId = tilAttesteringSøknadsbehandling.id,
-                restansType = SakBehandlinger.RestansType.SØKNADSBEHANDLING,
-                status = SakBehandlinger.ÅpenBehandling.RestansStatus.TIL_ATTESTERING,
+                behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                status = Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING,
                 behandlingStartet = tilAttesteringSøknadsbehandling.opprettet,
             ),
         )
@@ -176,32 +176,32 @@ internal class SakServiceImplTest {
 
         val sakRepo: SakRepo = mock {
             on { hentÅpneBehandlinger() } doReturn listOf(
-                SakBehandlinger.ÅpenBehandling(
+                Behandlingsoversikt(
                     saksnummer = saknr1,
                     behandlingsId = opprettetRevurdering.id,
-                    restansType = SakBehandlinger.RestansType.REVURDERING,
-                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDER_BEHANDLING,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
+                    status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = opprettetRevurdering.opprettet,
                 ),
-                SakBehandlinger.ÅpenBehandling(
+                Behandlingsoversikt(
                     saksnummer = saknr1,
                     behandlingsId = simulertRevurdering.id,
-                    restansType = SakBehandlinger.RestansType.REVURDERING,
-                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDER_BEHANDLING,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
+                    status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = simulertRevurdering.opprettet,
                 ),
-                SakBehandlinger.ÅpenBehandling(
+                Behandlingsoversikt(
                     saksnummer = saknr2,
                     behandlingsId = underkjentInnvilgetRevurdering.id,
-                    restansType = SakBehandlinger.RestansType.REVURDERING,
-                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDERKJENT,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
+                    status = Behandlingsoversikt.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjentInnvilgetRevurdering.opprettet,
                 ),
-                SakBehandlinger.ÅpenBehandling(
+                Behandlingsoversikt(
                     saksnummer = saknr2,
                     behandlingsId = tilAttesteringRevurdering.id,
-                    restansType = SakBehandlinger.RestansType.REVURDERING,
-                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.TIL_ATTESTERING,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
+                    status = Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttesteringRevurdering.opprettet,
                 ),
             )
@@ -211,32 +211,32 @@ internal class SakServiceImplTest {
         val sakerMedÅpneRevurderinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneRevurderinger shouldBe listOf(
-            SakBehandlinger.ÅpenBehandling(
+            Behandlingsoversikt(
                 saksnummer = saknr1,
                 behandlingsId = opprettetRevurdering.id,
-                restansType = SakBehandlinger.RestansType.REVURDERING,
-                status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDER_BEHANDLING,
+                behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
+                status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
                 behandlingStartet = opprettetRevurdering.opprettet,
             ),
-            SakBehandlinger.ÅpenBehandling(
+            Behandlingsoversikt(
                 saksnummer = saknr1,
                 behandlingsId = simulertRevurdering.id,
-                restansType = SakBehandlinger.RestansType.REVURDERING,
-                status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDER_BEHANDLING,
+                behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
+                status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
                 behandlingStartet = simulertRevurdering.opprettet,
             ),
-            SakBehandlinger.ÅpenBehandling(
+            Behandlingsoversikt(
                 saksnummer = saknr2,
                 behandlingsId = underkjentInnvilgetRevurdering.id,
-                restansType = SakBehandlinger.RestansType.REVURDERING,
-                status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDERKJENT,
+                behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
+                status = Behandlingsoversikt.Behandlingsstatus.UNDERKJENT,
                 behandlingStartet = underkjentInnvilgetRevurdering.opprettet,
             ),
-            SakBehandlinger.ÅpenBehandling(
+            Behandlingsoversikt(
                 saksnummer = saknr2,
                 behandlingsId = tilAttesteringRevurdering.id,
-                restansType = SakBehandlinger.RestansType.REVURDERING,
-                status = SakBehandlinger.ÅpenBehandling.RestansStatus.TIL_ATTESTERING,
+                behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
+                status = Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING,
                 behandlingStartet = tilAttesteringRevurdering.opprettet,
             ),
         )

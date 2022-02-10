@@ -70,7 +70,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.sak.SakBehandlinger
+import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
@@ -320,13 +320,13 @@ open class AccessCheckProxy(
                     return services.sak.opprettSak(sak)
                 }
 
-                override fun hentÅpneBehandlingerForAlleSaker(): List<SakBehandlinger.ÅpenBehandling> {
+                override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingsoversikt> {
                     // vi gjør ikke noe assert fordi vi ikke sender noe sensitiv info.
                     // Samtidig som at dem går gjennom hentSak() når de skal saksbehandle
                     return services.sak.hentÅpneBehandlingerForAlleSaker()
                 }
 
-                override fun hentFerdigeBehandlingerForAlleSaker(): List<SakBehandlinger.FerdigBehandling> {
+                override fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingsoversikt> {
                     return services.sak.hentFerdigeBehandlingerForAlleSaker()
                 }
 

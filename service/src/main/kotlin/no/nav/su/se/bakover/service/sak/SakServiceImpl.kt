@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.sak.SakBehandlinger
+import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -54,11 +54,11 @@ internal class SakServiceImpl(
         }
     }
 
-    override fun hentÅpneBehandlingerForAlleSaker(): List<SakBehandlinger.ÅpenBehandling> {
+    override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingsoversikt> {
         return sakRepo.hentÅpneBehandlinger()
     }
 
-    override fun hentFerdigeBehandlingerForAlleSaker(): List<SakBehandlinger.FerdigBehandling> {
+    override fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingsoversikt> {
         return sakRepo.hentFerdigeBehandlinger()
     }
 
