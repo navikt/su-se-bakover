@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.database.stønadsperiode
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.sak.SakBehandlinger
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
-import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 
@@ -100,81 +100,81 @@ internal class SakPostgresRepoTest {
             val klageTilAttestering = testDataHelper.avvistKlageTilAttestering()
             testDataHelper.iverksattAvvistKlage()
 
-            val alleRestanser = repo.hentSakRestanser()
+            val alleRestanser = repo.hentÅpneBehandlinger()
 
             alleRestanser.size shouldBe 10
 
             alleRestanser shouldContainExactlyInAnyOrder listOf(
-                SakRestans(
+                SakBehandlinger.ÅpenBehandling(
                     saksnummer = Saksnummer(nummer = 2021),
                     behandlingsId = sak.søknad.id,
-                    restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
-                    status = SakRestans.RestansStatus.NY_SØKNAD,
+                    restansType = SakBehandlinger.RestansType.SØKNADSBEHANDLING,
+                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.NY_SØKNAD,
                     behandlingStartet = null,
                 ),
-                SakRestans(
+                SakBehandlinger.ÅpenBehandling(
                     saksnummer = Saksnummer(nummer = 2022),
                     behandlingsId = søknadsbehandling.id,
-                    restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
-                    status = SakRestans.RestansStatus.UNDER_BEHANDLING,
+                    restansType = SakBehandlinger.RestansType.SØKNADSBEHANDLING,
+                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDER_BEHANDLING,
                     behandlingStartet = søknadsbehandling.opprettet,
                 ),
-                SakRestans(
+                SakBehandlinger.ÅpenBehandling(
                     saksnummer = Saksnummer(nummer = 2023),
                     behandlingsId = underkjent.id,
-                    restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
-                    status = SakRestans.RestansStatus.UNDERKJENT,
+                    restansType = SakBehandlinger.RestansType.SØKNADSBEHANDLING,
+                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDERKJENT,
                     behandlingStartet = underkjent.opprettet,
                 ),
-                SakRestans(
+                SakBehandlinger.ÅpenBehandling(
                     saksnummer = Saksnummer(nummer = 2024),
                     behandlingsId = tilAttestering.id,
-                    restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
-                    status = SakRestans.RestansStatus.TIL_ATTESTERING,
+                    restansType = SakBehandlinger.RestansType.SØKNADSBEHANDLING,
+                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttestering.opprettet,
                 ),
                 // Vi hopper over 1 saksnummer siden den blir lagret som en del når vi lager en revurdering gjennom
                 // hjelpe funksjoner
-                SakRestans(
+                SakBehandlinger.ÅpenBehandling(
                     saksnummer = Saksnummer(nummer = 2026),
                     behandlingsId = opprettetRevurdering.id,
-                    restansType = SakRestans.RestansType.REVURDERING,
-                    status = SakRestans.RestansStatus.UNDER_BEHANDLING,
+                    restansType = SakBehandlinger.RestansType.REVURDERING,
+                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDER_BEHANDLING,
                     behandlingStartet = opprettetRevurdering.opprettet,
                 ),
-                SakRestans(
+                SakBehandlinger.ÅpenBehandling(
                     saksnummer = Saksnummer(nummer = 2027),
                     behandlingsId = tilAttesteringRevurdering.id,
-                    restansType = SakRestans.RestansType.REVURDERING,
-                    status = SakRestans.RestansStatus.TIL_ATTESTERING,
+                    restansType = SakBehandlinger.RestansType.REVURDERING,
+                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttesteringRevurdering.opprettet,
                 ),
-                SakRestans(
+                SakBehandlinger.ÅpenBehandling(
                     saksnummer = Saksnummer(nummer = 2028),
                     behandlingsId = underkjentRevurdering.id,
-                    restansType = SakRestans.RestansType.REVURDERING,
-                    status = SakRestans.RestansStatus.UNDERKJENT,
+                    restansType = SakBehandlinger.RestansType.REVURDERING,
+                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDERKJENT,
                     behandlingStartet = underkjentRevurdering.opprettet,
                 ),
-                SakRestans(
+                SakBehandlinger.ÅpenBehandling(
                     saksnummer = Saksnummer(nummer = 2030),
                     behandlingsId = opprettetKlage.id,
-                    restansType = SakRestans.RestansType.KLAGE,
-                    status = SakRestans.RestansStatus.UNDER_BEHANDLING,
+                    restansType = SakBehandlinger.RestansType.KLAGE,
+                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDER_BEHANDLING,
                     behandlingStartet = opprettetKlage.opprettet,
                 ),
-                SakRestans(
+                SakBehandlinger.ÅpenBehandling(
                     saksnummer = Saksnummer(nummer = 2031),
                     behandlingsId = vurdertKlage.id,
-                    restansType = SakRestans.RestansType.KLAGE,
-                    status = SakRestans.RestansStatus.UNDER_BEHANDLING,
+                    restansType = SakBehandlinger.RestansType.KLAGE,
+                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.UNDER_BEHANDLING,
                     behandlingStartet = vurdertKlage.opprettet,
                 ),
-                SakRestans(
+                SakBehandlinger.ÅpenBehandling(
                     saksnummer = Saksnummer(nummer = 2032),
                     behandlingsId = klageTilAttestering.id,
-                    restansType = SakRestans.RestansType.KLAGE,
-                    status = SakRestans.RestansStatus.TIL_ATTESTERING,
+                    restansType = SakBehandlinger.RestansType.KLAGE,
+                    status = SakBehandlinger.ÅpenBehandling.RestansStatus.TIL_ATTESTERING,
                     behandlingStartet = klageTilAttestering.opprettet,
                 ),
             )
