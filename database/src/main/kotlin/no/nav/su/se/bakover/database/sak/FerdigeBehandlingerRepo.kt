@@ -96,13 +96,13 @@ internal class FerdigeBehandlingerRepo {
     }
 
     private fun Row.hentStatus(
-        restansType: BehandlingsTypeDB,
+        behandlingsTypeDB: BehandlingsTypeDB,
         erBehandlingAvsluttet: Boolean,
     ): Behandlingsoversikt.Behandlingsstatus {
         if (erBehandlingAvsluttet) {
             return Behandlingsoversikt.Behandlingsstatus.AVSLUTTET
         }
-        return when (restansType) {
+        return when (behandlingsTypeDB) {
             BehandlingsTypeDB.SØKNADSBEHANDLING -> BehandlingsStatus.valueOf(string("resultat"))
                 .tilSakBehandlingStatusEllerResultat()
             BehandlingsTypeDB.REVURDERING -> RevurderingsType.valueOf(string("resultat"))

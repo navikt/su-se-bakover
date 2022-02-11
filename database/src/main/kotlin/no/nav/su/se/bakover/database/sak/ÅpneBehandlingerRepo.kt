@@ -19,7 +19,7 @@ internal class ÅpneBehandlingerRepo(
      * Henter åpne søknadsbehandlinger, åpne revurderinger, åpne klager, og nye søknader
      */
     fun hentÅpneBehandlinger(session: Session): List<Behandlingsoversikt> {
-        return dbMetrics.timeQuery("hentÅpneBehandlinger") {
+        return dbMetrics.timeQuery("hentSakRestanser") {
             //language=sql
             """
                 with sak as (
@@ -92,9 +92,9 @@ internal class ÅpneBehandlingerRepo(
     }
 
     private fun Row.hentÅpenBehandlingStatus(
-        restansType: BehandlingsTypeDB,
+        behandlingsTypeDB: BehandlingsTypeDB,
     ): Behandlingsoversikt.Behandlingsstatus {
-        return when (restansType) {
+        return when (behandlingsTypeDB) {
             BehandlingsTypeDB.SØKNAD -> Behandlingsoversikt.Behandlingsstatus.NY_SØKNAD
             BehandlingsTypeDB.SØKNADSBEHANDLING -> BehandlingsStatus.valueOf(string("status")).tilBehandlingsstatus()
             BehandlingsTypeDB.REVURDERING -> RevurderingsType.valueOf(string("status")).tilBehandlingsstatus()
