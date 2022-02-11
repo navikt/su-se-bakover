@@ -203,4 +203,4 @@ sealed interface KunneIkkeAvslutteKlage {
 }
 
 fun List<Klage>.harEksisterendeJournalpostId(journalpostId: JournalpostId) =
-    this.any { it.journalpostId == journalpostId }
+    this.any { it.journalpostId == journalpostId && it !is AvsluttetKlage }
