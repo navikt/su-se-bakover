@@ -120,6 +120,12 @@ object ServiceBuilder {
             kontrollsamtaleRepo = databaseRepos.kontrollsamtaleRepo,
         )
 
+        val tilbakekrevingService = TilbakekrevingServiceImpl(
+            tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo,
+            tilbakekrevingClient = clients.tilbakekrevingClient,
+            clock = clock,
+        )
+
         val toggleService = ToggleServiceImpl(unleash)
         val revurderingService = RevurderingServiceImpl(
             utbetalingService = utbetalingService,
@@ -138,6 +144,7 @@ object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
             toggleService = toggleService,
+            tilbakekrevingService = tilbakekrevingService,
         ).apply { addObserver(statistikkService) }
 
         val reguleringService = ReguleringServiceImpl(
@@ -232,11 +239,7 @@ object ServiceBuilder {
             klageService = klageService,
             klagevedtakService = klagevedtakService,
             reguleringService = reguleringService,
-            tilbakekrevingService = TilbakekrevingServiceImpl(
-                tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo,
-                tilbakekrevingClient = clients.tilbakekrevingClient,
-                clock = clock,
-            ),
+            tilbakekrevingService = tilbakekrevingService,
         )
     }
 }

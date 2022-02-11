@@ -262,6 +262,9 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
         KunneIkkeSendeRevurderingTilAttestering()
 
     object TilbakekrevingsbehandlingErIkkeFullstendig : KunneIkkeSendeRevurderingTilAttestering()
+    data class SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
+        val revurderingId: UUID
+    ) : KunneIkkeSendeRevurderingTilAttestering()
 }
 
 sealed class KunneIkkeIverksetteRevurdering {

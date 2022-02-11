@@ -78,12 +78,14 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.Event.Statistikk.RevurderingStatistikk.RevurderingAvsluttet
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -105,6 +107,7 @@ internal class RevurderingServiceImpl(
     sakService: SakService,
     private val avkortingsvarselRepo: AvkortingsvarselRepo,
     private val toggleService: ToggleService,
+    private val tilbakekrevingService: TilbakekrevingService,
 ) : RevurderingService {
     private val stansAvYtelseService = StansAvYtelseService(
         utbetalingService = utbetalingService,
@@ -1189,6 +1192,13 @@ internal class RevurderingServiceImpl(
             }
             is VedtakSomKanRevurderes.IngenEndringIYtelse -> tilRevurdering.beregning
         }
+
+        tilbakekrevingService.hentAvventerKravgrunnlag(revurdering.sakId)
+            .ifNotEmpty {
+                return KunneIkkeSendeRevurderingTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
+                    revurderingId = this.first().avgjort.revurderingId
+                ).left()
+            }
 
         return when (revurdering) {
             is BeregnetRevurdering.IngenEndring -> {

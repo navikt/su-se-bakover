@@ -3,20 +3,25 @@ package no.nav.su.se.bakover.domain.revurdering
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
+import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurderingAvslagSpesifiktVilkår
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.simuleringNy
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.utlandsoppholdAvslag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.fail
 
 class RevurderingSimulerTest {
     @Test
@@ -30,7 +35,7 @@ class RevurderingSimulerTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
-                ).getOrFail()
+                ).getOrFail(),
             ).getOrFail().let { beregnet ->
                 (beregnet as BeregnetRevurdering.Opphørt)
                     .toSimulert { sakId, _, opphørsdato ->
@@ -149,6 +154,34 @@ class RevurderingSimulerTest {
                         .let {
                             it.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
                         }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `oppretter tilbakekrevingsbehandling dersom simulering inneholder feilutbetaling som ikke skyldes utlandsopphold`() {
+        beregnetRevurdering(
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = mars(2021),
+                    arbeidsinntekt = 15799.0,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+        ).let { (sak, beregnet) ->
+            (beregnet as BeregnetRevurdering.Innvilget).let {
+                when (
+                    it.toSimulert(
+                        simulering = simuleringNy(
+                            beregning = it.beregning,
+                            eksisterendeUtbetalinger = sak.utbetalinger,
+                        ),
+                        clock = fixedClock,
+                    ).tilbakekrevingsbehandling
+                ) {
+                    is IkkeAvgjort -> {}
+                    else -> fail("Skulle opprettet tilbakekrevingsbehandling")
                 }
             }
         }

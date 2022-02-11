@@ -76,6 +76,9 @@ internal class LagreOgSendForhåndsvarselTest {
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurdering
             },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
+            }
         )
 
         val revurdering = mocks.revurderingService.lagreOgSendForhåndsvarsel(
@@ -127,6 +130,7 @@ internal class LagreOgSendForhåndsvarselTest {
             oppgaveId = argThat { it shouldBe oppgaveIdRevurdering },
             beskrivelse = argThat { it shouldBe "Forhåndsvarsel er sendt." },
         )
+        verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any())
         mocks.verifyNoMoreInteractions()
     }
 
@@ -174,6 +178,9 @@ internal class LagreOgSendForhåndsvarselTest {
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
             },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
+            }
         )
         val response = mocks.revurderingService.lagreOgSendForhåndsvarsel(
             revurderingId = revurderingId,
@@ -193,6 +200,7 @@ internal class LagreOgSendForhåndsvarselTest {
         verify(mocks.brevService).lagreDokument(any(), anyOrNull())
         verify(mocks.oppgaveService).oppdaterOppgave(any(), any())
         verify(mocks.identClient).hentNavnForNavIdent(any())
+        verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any())
         mocks.verifyNoMoreInteractions()
     }
 
@@ -367,6 +375,9 @@ internal class LagreOgSendForhåndsvarselTest {
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
             },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
+            }
         )
         mocks.revurderingService.lagreOgSendForhåndsvarsel(
             revurderingId = revurderingId,
@@ -403,6 +414,7 @@ internal class LagreOgSendForhåndsvarselTest {
             oppgaveId = argThat { it shouldBe simulertRevurdering.oppgaveId },
             beskrivelse = argThat { it shouldBe "Forhåndsvarsel er sendt." },
         )
+        verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any())
         mocks.verifyNoMoreInteractions()
     }
 }

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -42,6 +43,7 @@ internal data class RevurderingServiceMocks(
     val observer: EventObserver = mock(),
     val toggleService: ToggleService = mock(),
     val clock: Clock = fixedClock,
+    val tilbakekrevingService: TilbakekrevingService = defaultMock()
 ) {
     val revurderingService = RevurderingServiceImpl(
         utbetalingService = utbetalingService,
@@ -60,6 +62,7 @@ internal data class RevurderingServiceMocks(
         sessionFactory = sessionFactory,
         avkortingsvarselRepo = avkortingsvarselRepo,
         toggleService = toggleService,
+        tilbakekrevingService = tilbakekrevingService,
     ).apply { addObserver(observer) }
 
     fun all() = listOf(
@@ -76,7 +79,8 @@ internal data class RevurderingServiceMocks(
         vilkårsvurderingService,
         sakService,
         avkortingsvarselRepo,
-        kontrollsamtaleService
+        kontrollsamtaleService,
+        tilbakekrevingService,
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {

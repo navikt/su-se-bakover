@@ -85,6 +85,9 @@ internal class FortsettEtterForhåndsvarslingTest {
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurdering
             },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
+            }
         )
         mocks.revurderingService.fortsettEtterForhåndsvarsling(
             FortsettEtterForhåndsvarslingRequest.FortsettMedSammeOpplysninger(
@@ -128,6 +131,7 @@ internal class FortsettEtterForhåndsvarslingTest {
             },
             anyOrNull(),
         )
+        verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any())
         mocks.verifyNoMoreInteractions()
     }
 
