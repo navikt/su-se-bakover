@@ -104,7 +104,7 @@ val applicationConfig = ApplicationConfig(
     jobConfig = ApplicationConfig.JobConfig(
         personhendelse = ApplicationConfig.JobConfig.Personhendelse(null),
         konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Local(),
-        initialDelay = 0
+        initialDelay = 0,
     ),
     kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
         kafkaConfig = emptyMap(),
@@ -125,6 +125,49 @@ internal fun embeddedPostgres(clock: Clock = fixedClock) = DatabaseBuilder.build
     dbMetrics = dbMetricsStub,
     clock = clock,
 )
+
+data class TestAppEnvironment(
+    val clock: Clock = fixedClock,
+    val databaseRepos: DatabaseRepos = embeddedPostgres(clock),
+    val clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),
+    val unleash: Unleash = FakeUnleash().apply { enableAll() },
+    val services: Services = ServiceBuilder.build(
+        // build actual clients
+        databaseRepos = databaseRepos,
+        clients = clients,
+        behandlingMetrics = mock(),
+        søknadMetrics = mock(),
+        clock = clock,
+        unleash = unleash,
+    ),
+    val accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
+)
+
+internal fun Application.componentTestApplication(
+    clock: Clock = fixedClock,
+    databaseRepos: DatabaseRepos = embeddedPostgres(clock),
+    clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),
+    unleash: Unleash = FakeUnleash().apply { enableAll() },
+    services: Services = ServiceBuilder.build(
+        // build actual clients
+        databaseRepos = databaseRepos,
+        clients = clients,
+        behandlingMetrics = mock(),
+        søknadMetrics = mock(),
+        clock = clock,
+        unleash = unleash,
+    ),
+    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
+) {
+    return susebakover(
+        databaseRepos = databaseRepos,
+        clients = clients,
+        services = services,
+        accessCheckProxy = accessCheckProxy,
+        applicationConfig = applicationConfig,
+        clock = clock,
+    )
+}
 
 internal fun Application.testSusebakover(
     clock: Clock = fixedClock,

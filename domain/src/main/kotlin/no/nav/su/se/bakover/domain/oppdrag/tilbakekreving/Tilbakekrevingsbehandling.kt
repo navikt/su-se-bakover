@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import java.math.BigDecimal
 import java.util.UUID
 
@@ -97,12 +98,45 @@ data class AvventerKravgrunnlag(
     override fun mottattKravgrunnlag(
         kravgrunnlag: RåttKravgrunnlag,
         kravgrunnlagMottatt: Tidspunkt,
+        hentRevurdering: (revurderingId: UUID) -> IverksattRevurdering,
+        kravgrunnlagMapper: (råttKravgrunnlag: RåttKravgrunnlag) -> Kravgrunnlag,
     ): Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag {
+        kontrollerKravgrunnlagMotRevurdering(
+            råttKravgrunnlag = kravgrunnlag,
+            hentRevurdering = hentRevurdering,
+            kravgrunnlagMapper = kravgrunnlagMapper,
+        )
         return MottattKravgrunnlag(
             avgjort = avgjort,
             kravgrunnlag = kravgrunnlag,
             kravgrunnlagMottatt = kravgrunnlagMottatt,
         )
+    }
+
+    private fun kontrollerKravgrunnlagMotRevurdering(
+        råttKravgrunnlag: RåttKravgrunnlag,
+        hentRevurdering: (revurderingId: UUID) -> IverksattRevurdering,
+        kravgrunnlagMapper: (råttKravgrunnlag: RåttKravgrunnlag) -> Kravgrunnlag,
+    ) {
+        val simulering = hentRevurdering(avgjort.revurderingId).let {
+            when (it) {
+                is IverksattRevurdering.IngenEndring -> {
+                    throw IllegalStateException("Tilbakekreving er ikke relevant for ingen endring")
+                }
+                is IverksattRevurdering.Innvilget -> {
+                    it.simulering
+                }
+                is IverksattRevurdering.Opphørt -> {
+                    it.simulering
+                }
+            }
+        }
+
+        val kravgrunnlag = kravgrunnlagMapper(råttKravgrunnlag)
+        val fraSimulering = simulering.hentFeilutbetalteBeløp()
+        val fraKravgrunnlag = kravgrunnlag.hentBeløpSkalTilbakekreves()
+
+        if (fraSimulering != fraKravgrunnlag) throw IllegalStateException("Ikke samsvar mellom perioder og beløp i simulering og kravgrunnlag for revurdering:${avgjort.revurderingId}")
     }
 }
 
@@ -211,7 +245,7 @@ data class MottattKravgrunnlag(
                         }
                     },
                 )
-            }
+            },
         )
     }
 
@@ -228,7 +262,7 @@ data class MottattKravgrunnlag(
 
     override fun sendtTilbakekrevingsvedtak(
         tilbakekrevingsvedtak: RåttTilbakekrevingsvedtak,
-        tilbakekrevingsvedtakSendt: Tidspunkt
+        tilbakekrevingsvedtakSendt: Tidspunkt,
     ): Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak {
         return SendtTilbakekrevingsvedtak(
             avgjort = avgjort,
@@ -299,6 +333,8 @@ sealed interface Tilbakekrevingsbehandling {
                 fun mottattKravgrunnlag(
                     kravgrunnlag: RåttKravgrunnlag,
                     kravgrunnlagMottatt: Tidspunkt,
+                    hentRevurdering: (revurderingId: UUID) -> IverksattRevurdering,
+                    kravgrunnlagMapper: (råttKravgrunnlag: RåttKravgrunnlag) -> Kravgrunnlag,
                 ): MedKravgrunnlag.MottattKravgrunnlag
             }
         }

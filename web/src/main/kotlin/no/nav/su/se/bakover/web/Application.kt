@@ -295,6 +295,7 @@ fun Application.susebakover(
         tilbakekrevingService = services.tilbakekrevingService,
         sakService = services.sak,
         clock = clock,
+        revurderingService = services.revurdering,
     )
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         UtbetalingKvitteringIbmMqConsumer(

@@ -26,19 +26,19 @@ import java.util.UUID
 
 internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSessionFactory) : TilbakekrevingRepo {
 
-    override fun lagreMottattKravgrunnlag(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag) {
+    override fun lagre(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag) {
         sessionFactory.withSession { session ->
             lagreTilbakekrevingsbehandling(tilbakekrevingsbehandling, session)
         }
     }
 
-    override fun lagreSendtTilbakekrevingsvedtak(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak) {
+    override fun lagre(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak) {
         sessionFactory.withSession { session ->
             lagreTilbakekrevingsbehandling(tilbakekrevingsbehandling, session)
         }
     }
 
-    override fun hentTilbakekrevingsbehandlingerMedUbesvartKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag> {
+    override fun hentKravgrunnlagMottatt(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag> {
         return sessionFactory.withSession { session ->
             "select * from tilbakekrevingsbehandling where tilstand = '${Tilstand.MOTTATT_KRAVGRUNNLAG}' and tilbakekrevingsvedtak is null"
                 .hentListe(
@@ -232,7 +232,7 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         return sessionFactory.newTransactionContext()
     }
 
-    override fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
+    override fun hentAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
         return sessionFactory.withSession { session ->
             "select * from tilbakekrevingsbehandling where sakId = :sakId and tilstand = '${Tilstand.AVVENTER_KRAVGRUNNLAG}'"
                 .hentListe(
@@ -246,7 +246,7 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         }
     }
 
-    override fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
+    override fun hentAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
         return sessionFactory.withSession { session ->
             "select * from tilbakekrevingsbehandling where tilstand = '${Tilstand.AVVENTER_KRAVGRUNNLAG}'"
                 .hentListe(

@@ -31,6 +31,12 @@ internal object KravgrunnlagMapper {
         }
     }
 
+    fun toXml(kravmeldingRootDto: KravmeldingRootDto): Either<Throwable, String> {
+        return Either.catch {
+            xmlMapper.writeValueAsString(kravmeldingRootDto)
+        }
+    }
+
     fun toKravgrunnlg(råttKravgrunnlag: RåttKravgrunnlag): Either<Throwable, Kravgrunnlag> {
         return toDto(råttKravgrunnlag.melding)
             .mapLeft { it }

@@ -32,17 +32,64 @@ data class TolketSimulering(
 
     fun harFeilutbetalinger() = simulertePerioder.any { it.harFeilutbetalinger() }
 
+    fun periode(): Periode {
+        return simulertePerioder.let {
+            Periode.create(
+                it.minOf { it.periode.fraOgMed },
+                it.maxOf { it.periode.tilOgMed },
+            )
+        }
+    }
+
+    /**
+     * Sjekk for spesialtilfellet hvor vi har mottatt en tom respons.
+     * @see no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringResponseMapper
+     */
+    private fun tomSimulering(): Boolean {
+        return simulertePerioder.all { it.utbetalinger.all { it is TolketUtbetaling.IngenUtbetaling } }
+    }
+
     /**
      * Identifiser eventuelle utbetalte beløp per periode.
      * Inkluderer kun beløp som er større enn 0.
      */
-    fun hentUtbetalteBeløp(periode: Periode): Månedsbeløp {
-        return Månedsbeløp(
-            simulertePerioder
-                .filter { periode inneholder it.periode }
-                .map { it.hentUtbetaltBeløp() }
-                .filter { it.sum() > 0 },
-        )
+    fun hentUtbetalteBeløp(periode: Periode = periode()): Månedsbeløp {
+        return if (tomSimulering()) {
+            Månedsbeløp(emptyList())
+        } else {
+            return Månedsbeløp(
+                simulertePerioder
+                    .filter { periode inneholder it.periode }
+                    .map { it.hentUtbetaltBeløp() }
+                    .filter { it.sum() > 0 },
+            )
+        }
+    }
+
+    fun hentFeilutbetalteBeløp(periode: Periode = periode()): Månedsbeløp {
+        return if (tomSimulering()) {
+            Månedsbeløp(emptyList())
+        } else {
+            Månedsbeløp(
+                simulertePerioder
+                    .filter { periode inneholder it.periode }
+                    .map { it.hentFeilutbetalteBeløp() }
+                    .filter { it.sum() > 0 },
+            )
+        }
+    }
+
+    fun hentØnsketUtbetaling(periode: Periode = periode()): Månedsbeløp {
+        return if (tomSimulering()) {
+            Månedsbeløp(emptyList())
+        } else {
+            Månedsbeløp(
+                simulertePerioder
+                    .filter { periode inneholder it.periode }
+                    .map { it.hentØnsketUtbetaling() }
+                    .filter { it.sum() > 0 },
+            )
+        }
     }
 }
 
@@ -54,6 +101,14 @@ data class TolketPeriode(
     fun hentUtbetaltBeløp(): MånedBeløp {
         return MånedBeløp(periode, Beløp(utbetalinger.sumOf { it.hentUtbetaltBeløp().sum() }))
     }
+
+    fun hentFeilutbetalteBeløp(): MånedBeløp {
+        return MånedBeløp(periode, Beløp(utbetalinger.sumOf { it.hentFeilutbetaltBeløp().sum() }))
+    }
+
+    fun hentØnsketUtbetaling(): MånedBeløp {
+        return MånedBeløp(periode, Beløp(utbetalinger.sumOf { it.hentØnsketUtbetaling().sum() }))
+    }
 }
 
 sealed class TolketUtbetaling {
@@ -63,6 +118,14 @@ sealed class TolketUtbetaling {
 
     fun hentUtbetaltBeløp(): Beløp {
         return Beløp(tolketDetalj.filterIsInstance<TolketDetalj.TidligereUtbetalt>().sumOf { it.beløp })
+    }
+
+    fun hentFeilutbetaltBeløp(): Beløp {
+        return Beløp(tolketDetalj.filterIsInstance<TolketDetalj.Feilutbetaling>().sumOf { it.beløp })
+    }
+
+    fun hentØnsketUtbetaling(): Beløp {
+        return Beløp(tolketDetalj.filterIsInstance<TolketDetalj.Ordinær>().sumOf { it.beløp })
     }
 
     companion object {

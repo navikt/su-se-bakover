@@ -603,7 +603,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                         sakId = sakId,
                         revurderingId = id,
                         periode = periode,
-                    )
+                    ).forsto()
                 }
                 false -> {
                     IkkeBehovForTilbakekrevingUnderBehandling

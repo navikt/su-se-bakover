@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.Beløp
+import no.nav.su.se.bakover.domain.MånedBeløp
+import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
@@ -27,11 +30,25 @@ data class Kravgrunnlag(
 
     val grunnlagsperioder: List<Grunnlagsperiode>,
 ) {
+
+    fun hentBeløpSkalTilbakekreves(): Månedsbeløp {
+        return Månedsbeløp(
+            grunnlagsperioder
+                .map { it.hentBeløpSkalTilbakekreves() }
+                .filter { it.sum() > 0 },
+        )
+    }
+
     data class Grunnlagsperiode(
         val periode: Periode,
         val beløpSkattMnd: BigDecimal,
         val grunnlagsbeløp: List<Grunnlagsbeløp>,
     ) {
+
+        fun hentBeløpSkalTilbakekreves(): MånedBeløp {
+            return MånedBeløp(periode, Beløp(grunnlagsbeløp.sumOf { it.beløpSkalTilbakekreves.intValueExact() }))
+        }
+
         data class Grunnlagsbeløp(
             val kode: KlasseKode,
             val type: KlasseType,

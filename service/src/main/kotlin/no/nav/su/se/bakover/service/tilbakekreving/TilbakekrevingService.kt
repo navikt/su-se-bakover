@@ -14,7 +14,7 @@ interface TilbakekrevingService {
     /**
      * Lagrer et nytt kravgrunnlag vi har mottatt fra Oppdrag.
      */
-    fun lagreMottattKravgrunnlag(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag)
+    fun lagre(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag)
 
     /**
      * Sender utestående tilbakekrevings-avgjørelser til Oppdrag, så fremt vi har tilstrekkelig data.
@@ -22,8 +22,8 @@ interface TilbakekrevingService {
     fun sendTilbakekrevingsvedtak(mapper: (RåttKravgrunnlag) -> Kravgrunnlag)
 
     // TODO endre dette til å bruke henvisning/referanse send med utbetalingen
-    fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>
-    fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>
+    fun hentAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>
+    fun hentAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>
 }
 
 class TilbakekrevingServiceImpl(
@@ -34,21 +34,21 @@ class TilbakekrevingServiceImpl(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun lagreMottattKravgrunnlag(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag) {
-        return tilbakekrevingRepo.lagreMottattKravgrunnlag(tilbakekrevingsbehandling)
+    override fun lagre(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag) {
+        return tilbakekrevingRepo.lagre(tilbakekrevingsbehandling)
     }
 
     /**
      * Ved å ta inn en mapper gjør det at vi slipper lagre den serialiserte versjonen i databasen samtidig som vi i større grad skiller domenet fra infrastruktur.
      */
     override fun sendTilbakekrevingsvedtak(mapper: (RåttKravgrunnlag) -> Kravgrunnlag) {
-        tilbakekrevingRepo.hentTilbakekrevingsbehandlingerMedUbesvartKravgrunnlag()
+        tilbakekrevingRepo.hentKravgrunnlagMottatt()
             .forEach { tilbakekrevingsbehandling ->
                 val tilbakekrevingsvedtak = tilbakekrevingsbehandling.lagTilbakekrevingsvedtak(mapper)
 
                 tilbakekrevingClient.sendTilbakekrevingsvedtak(tilbakekrevingsvedtak)
                     .map {
-                        tilbakekrevingRepo.lagreSendtTilbakekrevingsvedtak(
+                        tilbakekrevingRepo.lagre(
                             tilbakekrevingsbehandling.sendtTilbakekrevingsvedtak(
                                 tilbakekrevingsvedtak = it,
                                 tilbakekrevingsvedtakSendt = Tidspunkt.now(clock),
@@ -59,11 +59,11 @@ class TilbakekrevingServiceImpl(
             }
     }
 
-    override fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
-        return tilbakekrevingRepo.hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(sakId)
+    override fun hentAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
+        return tilbakekrevingRepo.hentAvventerKravgrunnlag(sakId)
     }
 
-    override fun hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
-        return tilbakekrevingRepo.hentTilbakekrevingsbehandlingerSomAvventerKravgrunnlag()
+    override fun hentAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
+        return tilbakekrevingRepo.hentAvventerKravgrunnlag()
     }
 }
