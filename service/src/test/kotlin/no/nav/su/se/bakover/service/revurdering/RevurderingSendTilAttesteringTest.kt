@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
@@ -285,7 +286,7 @@ internal class RevurderingSendTilAttesteringTest {
             ) shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left()
 
             verify(it.revurderingRepo, never()).lagre(any(), anyOrNull())
-            verify(it.toggleService).isEnabled("supstonad.ufore.feilutbetaling")
+            verify(it.toggleService).isEnabled(ToggleService.toggleForFeilutbetaling)
         }
     }
 
@@ -326,7 +327,7 @@ internal class RevurderingSendTilAttesteringTest {
             ).getOrFail() shouldBe beOfType<RevurderingTilAttestering.Innvilget>()
 
             verify(it.revurderingRepo).lagre(any(), anyOrNull())
-            verify(it.toggleService).isEnabled("supstonad.ufore.feilutbetaling")
+            verify(it.toggleService).isEnabled(ToggleService.toggleForFeilutbetaling)
         }
     }
 

@@ -17,7 +17,6 @@
     "OPPGAVE_CLIENT_ID": "41ca50ba-e44f-4bc8-9e31-b745a0041926",
     "DOKDIST_URL": "http://dokdistfordeling.teamdokumenthandtering.svc.nais.local",
     "SIMULERING_URL": "https://cics-q1.adeo.no/oppdrag/simulerFpServiceWSBinding",
-    "TILBAKEKREVING_URL": "https://cics-q1.adeo.no/oppdrag/K231CW80",
     "STS_URL_SOAP": "https://sts-q1.preprod.local/SecurityTokenServiceProvider/",
     "SKJERMING_URL": "https://skjermede-personer-pip.nais.preprod.local",
     "MQ_QUEUE_MANAGER": "MQLS02",
@@ -27,7 +26,6 @@
     "MQ_SEND_QUEUE_UTBETALING": "QA.Q1_231.OB04_OPPDRAG_XML",
     "MQ_REPLY_TO": "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING",
     "MQ_SEND_QUEUE_AVSTEMMING": "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1",
-    "MQ_KRAVGRUNNLAG_REPLY_TO":"",
     "FRIKORT_SERVICE_USERNAME": "srvfrikortborger",
     "PDL_CLIENT_ID": "api://dev-fss.pdl.pdl-api",
     "KABAL_URL": "https://kabal-api.dev.intern.nav.no",
@@ -35,6 +33,8 @@
     "KAFKA_ONPREM_BROKERS": "b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443",
     "KAFKA_ONPREM_SCHEMA_REGISTRY": "https://kafka-schema-registry.nais.preprod.local",
     "SAF_URL": "https://saf.dev.intern.nav.no",
-    "SAF_CLIENT_ID": "api://dev-fss.teamdokumenthandtering.saf"
+    "SAF_CLIENT_ID": "api://dev-fss.teamdokumenthandtering.saf",
+    "MQ_TILBAKEKREVING_MOTTAK":"QA.Q1_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG",
+    "TILBAKEKREVING_URL": "https://cics-q1.adeo.no/oppdrag/K231CW80"
   }
 }

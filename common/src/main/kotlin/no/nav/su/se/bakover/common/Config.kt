@@ -232,11 +232,11 @@ data class ApplicationConfig(
             }
 
             data class Mq(
-                val mqReplyTo: String,
+                val mottak: String,
             ) {
                 companion object {
                     fun createFromEnvironmentVariables() = Mq(
-                        mqReplyTo = getEnvironmentVariableOrThrow("TODO_MQ_KRAVGRUNNLAG_REPLY_TO"),
+                        mottak = getEnvironmentVariableOrThrow("MQ_TILBAKEKREVING_MOTTAK"),
                     )
                 }
             }
@@ -246,7 +246,7 @@ data class ApplicationConfig(
             ) {
                 companion object {
                     fun createFromEnvironmentVariables() = Soap(
-                        url = getEnvironmentVariableOrThrow("TODO_KRAVGRUNNLAG_SOAP"),
+                        url = getEnvironmentVariableOrThrow("TILBAKEKREVING_URL"),
                     )
                 }
             }
@@ -437,7 +437,10 @@ data class ApplicationConfig(
             companion object {
                 fun createFromEnvironmentVariables() = SafConfig(
                     url = getEnvironmentVariableOrDefault("SAF_URL", "https://saf.dev.intern.nav.no"),
-                    clientId = getEnvironmentVariableOrDefault("SAF_CLIENT_ID", "api:////dev-fss.teamdokumenthandtering.saf/.default"),
+                    clientId = getEnvironmentVariableOrDefault(
+                        "SAF_CLIENT_ID",
+                        "api:////dev-fss.teamdokumenthandtering.saf/.default",
+                    ),
                 )
 
                 fun createLocalConfig() = SafConfig(
@@ -590,7 +593,7 @@ data class ApplicationConfig(
                         NaisCluster.Dev -> JobConfig.Konsistensavstemming.Dev()
                         NaisCluster.Prod -> JobConfig.Konsistensavstemming.Prod()
                     },
-                    initialDelay = Duration.of(5, ChronoUnit.MINUTES).toMillis()
+                    initialDelay = Duration.of(5, ChronoUnit.MINUTES).toMillis(),
                 )
             },
             kabalKafkaConfig = KabalKafkaConfig.createFromEnvironmentVariables(),
@@ -612,7 +615,7 @@ data class ApplicationConfig(
             jobConfig = JobConfig(
                 personhendelse = JobConfig.Personhendelse(naisCluster()),
                 konsistensavstemming = JobConfig.Konsistensavstemming.Local(),
-                initialDelay = 0
+                initialDelay = 0,
             ),
             kabalKafkaConfig = KabalKafkaConfig.createLocalConfig(),
         ).also {
@@ -636,7 +639,7 @@ data class ApplicationConfig(
     data class JobConfig(
         val personhendelse: Personhendelse,
         val konsistensavstemming: Konsistensavstemming,
-        val initialDelay: Long
+        val initialDelay: Long,
     ) {
         data class Personhendelse(private val naisCluster: NaisCluster?) {
             private val PREPROD: Long = Duration.of(10, ChronoUnit.MINUTES).toMillis()

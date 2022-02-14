@@ -67,7 +67,7 @@ val applicationConfig = ApplicationConfig(
         ),
         tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
             mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq(
-                mqReplyTo = "tilbakekrevingMqTestSendQueue",
+                mottak = "tilbakekrevingMqTestSendQueue",
             ),
             soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap(
                 url = "tilbakekrevingUrl",

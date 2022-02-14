@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
+import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
 import no.nav.su.se.bakover.web.features.Authorization
 import no.nav.su.se.bakover.web.features.AuthorizationException
@@ -297,6 +298,7 @@ fun Application.susebakover(
         clock = clock,
         revurderingService = services.revurdering,
     )
+
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
@@ -323,7 +325,7 @@ fun Application.susebakover(
         DistribuerDokumentJob(
             brevService = services.brev,
             leaderPodLookup = clients.leaderPodLookup,
-            initialDelay = applicationConfig.jobConfig.initialDelay
+            initialDelay = applicationConfig.jobConfig.initialDelay,
         ).schedule()
 
         KonsistensavstemmingJob(
@@ -340,17 +342,19 @@ fun Application.susebakover(
             initialDelay = applicationConfig.jobConfig.initialDelay,
         ).schedule()
 
-        TilbakekrevingIbmMqConsumer(
-            queueName = applicationConfig.oppdrag.tilbakekreving.mq.mqReplyTo,
-            globalJmsContext = jmsConfig.jmsContext,
-            tilbakekrevingConsumer = tilbakekrevingConsumer,
-        )
+        if (services.toggles.isEnabled(ToggleService.toggleForFeilutbetaling)) {
+            TilbakekrevingIbmMqConsumer(
+                queueName = applicationConfig.oppdrag.tilbakekreving.mq.mottak,
+                globalJmsContext = jmsConfig.jmsContext,
+                tilbakekrevingConsumer = tilbakekrevingConsumer,
+            )
 
-        TilbakekrevingJob(
-            tilbakekrevingService = services.tilbakekrevingService,
-            leaderPodLookup = clients.leaderPodLookup,
-            intervall = Duration.of(10, ChronoUnit.MINUTES).toMillis(),
-        ).schedule()
+            TilbakekrevingJob(
+                tilbakekrevingService = services.tilbakekrevingService,
+                leaderPodLookup = clients.leaderPodLookup,
+                intervall = Duration.of(10, ChronoUnit.MINUTES).toMillis(),
+            ).schedule()
+        }
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         LokalKvitteringJob(
             lokalKvitteringService = LokalKvitteringService(

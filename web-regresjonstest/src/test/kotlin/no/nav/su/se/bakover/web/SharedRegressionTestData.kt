@@ -7,7 +7,6 @@ import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
-import io.ktor.util.url
 import no.finn.unleash.FakeUnleash
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
@@ -96,7 +95,7 @@ object SharedRegressionTestData {
             ),
             tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
                 mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq(
-                    mqReplyTo = "tilbakekrevingMqTestSendQueue"
+                    mottak = "tilbakekrevingMqTestSendQueue"
                 ),
                 soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap(
                     url = "tilbakekrevingUrl"

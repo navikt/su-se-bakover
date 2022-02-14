@@ -52,8 +52,8 @@ internal class ApplicationConfigTest {
                 stsSoapUrl = "stsSoapUrl",
             ),
             tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
-                mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq("TODO_MQ_KRAVGRUNNLAG_REPLY_TO"),
-                soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap("TODO_KRAVGRUNNLAG_SOAP"),
+                mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq("tilbakekrevingMottak"),
+                soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap("tilbakekrevingUrl"),
             ),
         ),
         database = ApplicationConfig.DatabaseConfig.RotatingCredentials(
@@ -131,7 +131,7 @@ internal class ApplicationConfigTest {
         jobConfig = ApplicationConfig.JobConfig(
             personhendelse = ApplicationConfig.JobConfig.Personhendelse(ApplicationConfig.NaisCluster.Prod),
             konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Prod(),
-            initialDelay = 300000
+            initialDelay = 300000,
         ),
         kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
             kafkaConfig = mapOf(
@@ -196,8 +196,8 @@ internal class ApplicationConfigTest {
                 "SAF_URL" to "safUrl",
                 "SAF_CLIENT_ID" to "safClientId",
                 "HOSTNAME" to "hostname",
-                "TODO_MQ_KRAVGRUNNLAG_REPLY_TO" to "TODO_MQ_KRAVGRUNNLAG_REPLY_TO",
-                "TODO_KRAVGRUNNLAG_SOAP" to "TODO_KRAVGRUNNLAG_SOAP",
+                "MQ_TILBAKEKREVING_MOTTAK" to "tilbakekrevingMottak",
+                "TILBAKEKREVING_URL" to "tilbakekrevingUrl",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -278,7 +278,7 @@ internal class ApplicationConfigTest {
                 jobConfig = ApplicationConfig.JobConfig(
                     personhendelse = ApplicationConfig.JobConfig.Personhendelse(null),
                     konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Local(),
-                    initialDelay = 0
+                    initialDelay = 0,
                 ),
                 kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(emptyMap()),
             )

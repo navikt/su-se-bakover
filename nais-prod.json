@@ -17,7 +17,6 @@
     "OPPGAVE_CLIENT_ID": "50346823-61a0-49e7-ad89-ea2b1a0e90f8",
     "DOKDIST_URL": "http://dokdistfordeling.teamdokumenthandtering.svc.nais.local",
     "SIMULERING_URL": "https://wasapp.adeo.no/cics/services/simulerFpServiceWSBinding",
-    "TILBAKEKREVING_URL": "https://cics.adeo.no/oppdrag/K231CW80",
     "STS_URL_SOAP": "https://sts.adeo.no/SecurityTokenServiceProvider/",
     "SKJERMING_URL": "https://skjermede-personer-pip.nais.adeo.no",
     "MQ_QUEUE_MANAGER": "MPLS02",
@@ -34,6 +33,8 @@
     "KAFKA_ONPREM_BROKERS": "a01apvl00145.adeo.no:8443,a01apvl00146.adeo.no:8443,a01apvl00147.adeo.no:8443,a01apvl00148.adeo.no:8443,a01apvl00149.adeo.no:8443,a01apvl00150.adeo.no:8443",
     "KAFKA_ONPREM_SCHEMA_REGISTRY": "https://kafka-schema-registry.nais.adeo.no",
     "SAF_URL": "https://saf.intern.nav.no",
-    "SAF_CLIENT_ID": "api://prod-fss.teamdokumenthandtering.saf"
+    "SAF_CLIENT_ID": "api://prod-fss.teamdokumenthandtering.saf",
+    "MQ_TILBAKEKREVING_MOTTAK":"TODO",
+    "TILBAKEKREVING_URL": "https://cics.adeo.no/oppdrag/K231CW80"
   }
 }

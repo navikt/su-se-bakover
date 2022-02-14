@@ -1265,7 +1265,7 @@ internal class RevurderingServiceImpl(
     }
 
     private fun feilutbetalingTillatt(): Boolean {
-        return toggleService.isEnabled("supstonad.ufore.feilutbetaling")
+        return toggleService.isEnabled(ToggleService.toggleForFeilutbetaling)
     }
 
     override fun lagBrevutkastForRevurdering(
