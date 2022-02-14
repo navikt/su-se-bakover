@@ -64,7 +64,7 @@ internal fun toUtbetalingRequest(
                                     )
                                 },
                                 /** Referanse til hvilken utbetaling linjen tilhører */
-                                utbetalingsreferanse = utbetaling.id.toString(),
+                                utbetalingId = utbetaling.id.toString(),
                             )
                         }
                         is Utbetalingslinje.Ny -> {
@@ -91,7 +91,7 @@ internal fun toUtbetalingRequest(
                                     grad = it.uføregrad!!.value,
                                 ),
                                 /** Referanse til hvilken utbetaling linjen tilhører */
-                                utbetalingsreferanse = utbetaling.id.toString(),
+                                utbetalingId = utbetaling.id.toString(),
                             )
                         }
                     }

@@ -66,7 +66,7 @@ internal class UtbetalingKvitteringResponseTest {
                             typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
                             grad = 50,
                         ),
-                        utbetalingsreferanse = "123456"
+                        utbetalingId = "1234567"
                     ),
                 ),
             ),
