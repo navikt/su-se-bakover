@@ -33,10 +33,13 @@ internal class SakPostgresRepo(
     private val vedtakPostgresRepo: VedtakPostgresRepo,
     private val dbMetrics: DbMetrics,
     private val klageRepo: KlageRepo,
-    private val ferdigeBehandlingerRepo: FerdigeBehandlingerRepo,
 ) : SakRepo {
 
     private val åpneBehandlingerRepo = ÅpneBehandlingerRepo(
+        dbMetrics = dbMetrics,
+    )
+
+    private val ferdigeBehandlingerRepo = FerdigeBehandlingerRepo(
         dbMetrics = dbMetrics,
     )
 

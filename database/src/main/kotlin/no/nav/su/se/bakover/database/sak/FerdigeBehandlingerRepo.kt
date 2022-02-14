@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.sak
 
 import kotliquery.Row
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
@@ -11,14 +12,17 @@ import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import java.util.UUID
 
-internal class FerdigeBehandlingerRepo {
+internal class FerdigeBehandlingerRepo(
+    private val dbMetrics: DbMetrics,
+) {
 
     /**
      * Henter ut Iverksatte, avslåtte, avsluttede behandlinger.
      */
     fun hentFerdigeBehandlinger(session: Session): List<Behandlingsoversikt> {
-        //language=sql
-        return """
+        return dbMetrics.timeQuery("hentFerdigeBehandlinger") {
+            //language=sql
+            """
             with sak as (
                 select id as sakId, saksnummer
                 from sak
@@ -76,8 +80,9 @@ internal class FerdigeBehandlingerRepo {
                  )
             select *
             from slåttSammen
-        """.trimIndent().hentListe(emptyMap(), session) {
-            it.toBehandlingsoversikt()
+            """.trimIndent().hentListe(emptyMap(), session) {
+                it.toBehandlingsoversikt()
+            }
         }
     }
 
