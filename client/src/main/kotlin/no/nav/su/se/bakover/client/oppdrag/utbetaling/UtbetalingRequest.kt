@@ -110,6 +110,9 @@ data class UtbetalingRequest(
         val grad: Grad?,
         @field:JacksonXmlProperty(localName = "attestant-180")
         val attestant: List<Attestant>,
+        /** [0,30] tegn - en referanse til hvilken utbetaling-id (vår) utbetalingslinjen er koblet til */
+        @field:JacksonXmlProperty(localName = "henvisning")
+        val utbetalingId: String,
     ) {
         enum class KodeEndringLinje(@JsonValue val value: String) {
             NY("NY"),

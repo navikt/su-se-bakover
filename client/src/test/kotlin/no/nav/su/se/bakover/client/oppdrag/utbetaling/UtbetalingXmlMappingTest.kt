@@ -115,6 +115,7 @@ class UtbetalingXmlMappingTest {
                   <attestant-180>
                     <attestantId>A123456</attestantId>
                   </attestant-180>
+                  <henvisning>${utbetaling.id}</henvisning>
                 </oppdrags-linje-150>
                 <oppdrags-linje-150>
                   <kodeEndringLinje>NY</kodeEndringLinje>
@@ -137,6 +138,7 @@ class UtbetalingXmlMappingTest {
                   <attestant-180>
                     <attestantId>A123456</attestantId>
                   </attestant-180>
+                  <henvisning>${utbetaling.id}</henvisning>
                 </oppdrags-linje-150>
                 <oppdrags-linje-150>
                   <kodeEndringLinje>ENDR</kodeEndringLinje>
@@ -159,6 +161,7 @@ class UtbetalingXmlMappingTest {
                   <attestant-180>
                     <attestantId>A123456</attestantId>
                   </attestant-180>
+                  <henvisning>${utbetaling.id}</henvisning>
                 </oppdrags-linje-150>
               </oppdrag-110>
             </Oppdrag>

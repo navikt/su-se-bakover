@@ -9,7 +9,6 @@ internal class UtbetalingKvitteringResponseTest {
 
     @Test
     fun `deserialiserer KvitteringRespons`() {
-
         kvitteringXml().toKvitteringResponse(UtbetalingKvitteringConsumer.xmlMapper) shouldBe UtbetalingKvitteringResponse(
             mmel = UtbetalingKvitteringResponse.Mmel(
                 systemId = "231-OPPD",
@@ -67,6 +66,7 @@ internal class UtbetalingKvitteringResponseTest {
                             typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
                             grad = 50,
                         ),
+                        utbetalingId = "1234567"
                     ),
                 ),
             ),
@@ -125,6 +125,7 @@ internal class UtbetalingKvitteringResponseTest {
             <attestantId>A123456</attestantId>
          </attestant-180>
          <ukjentFeltBørIgnorereres>ukjent</ukjentFeltBørIgnorereres>
+         <henvisning>1234567</henvisning>
       </oppdrags-linje-150>
    </oppdrag-110>
 </Oppdrag>
