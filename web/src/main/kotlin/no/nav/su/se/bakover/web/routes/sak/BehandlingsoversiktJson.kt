@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.routes.sak
 
-import no.nav.su.se.bakover.domain.sak.SakRestans
+import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 
-internal data class SakRestansJson(
+internal data class BehandlingsoversiktJson(
     val saksnummer: String,
     val behandlingId: String,
     val typeBehandling: String,
@@ -10,11 +10,11 @@ internal data class SakRestansJson(
     val behandlingStartet: String?,
 ) {
     companion object {
-        fun List<SakRestans>.toJson() = this.map {
-            SakRestansJson(
+        fun List<Behandlingsoversikt>.toJson() = this.map {
+            BehandlingsoversiktJson(
                 saksnummer = it.saksnummer.toString(),
                 behandlingId = it.behandlingsId.toString(),
-                typeBehandling = it.restansType.toString(),
+                typeBehandling = it.behandlingstype.toString(),
                 status = it.status.toString(),
                 behandlingStartet = it.behandlingStartet?.toString(),
             )

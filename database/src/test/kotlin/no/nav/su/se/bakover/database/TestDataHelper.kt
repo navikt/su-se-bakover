@@ -77,6 +77,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -670,6 +671,25 @@ internal class TestDataHelper(
         }
     }
 
+    fun simulertOpphørtRevurdering(): SimulertRevurdering.Opphørt {
+        return beregnetOpphørtRevurdering().toSimulert { _, _, _ ->
+            Utbetaling.SimulertUtbetaling(
+                id = UUID30.randomUUID(),
+                opprettet = fixedTidspunkt,
+                sakId = UUID.randomUUID(),
+                saksnummer = Saksnummer(nummer = 2021),
+                fnr = Fnr.generer(),
+                utbetalingslinjer = nonEmptyListOf(utbetalingslinje()),
+                type = Utbetaling.UtbetalingsType.OPPHØR,
+                behandler = saksbehandler,
+                avstemmingsnøkkel = avstemmingsnøkkel,
+                simulering = simulering(Fnr.generer()),
+            ).right()
+        }.getOrFail().also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
     /**
      * Setter forhåndsvarsel til SkalIkkeForhåndsvarsel dersom den ikke er satt på dette tidspunktet.
      */
@@ -704,7 +724,17 @@ internal class TestDataHelper(
         }
     }
 
-    @Suppress("unused")
+    /**
+     * Setter forhåndsvarsel til SkalIkkeForhåndsvarsel.
+     */
+    fun revurderingTilAttesteringOpphørt(): RevurderingTilAttestering.Opphørt {
+        return simulertOpphørtRevurdering().prøvOvergangTilSkalIkkeForhåndsvarsles().getOrFail().tilAttestering(
+            attesteringsoppgaveId = oppgaveId,
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = "",
+        ).getOrFail().also { revurderingRepo.lagre(it) }
+    }
+
     fun iverksattRevurderingInnvilget(): IverksattRevurdering.Innvilget {
         return revurderingTilAttesteringInnvilget().tilIverksatt(
             attestant = attestant,
@@ -728,10 +758,32 @@ internal class TestDataHelper(
         }
     }
 
+    fun iverksattRevurderingOpphørt(): IverksattRevurdering.Opphørt {
+        return revurderingTilAttesteringOpphørt().tilIverksatt(
+            attestant,
+            { null },
+            fixedClock,
+        ).getOrFail().also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
     fun underkjentRevurderingFraInnvilget(): UnderkjentRevurdering.Innvilget {
         return revurderingTilAttesteringInnvilget().underkjenn(underkjentAttestering, OppgaveId("oppgaveid")).also {
             revurderingRepo.lagre(it)
         } as UnderkjentRevurdering.Innvilget
+    }
+
+    fun avsluttetRevurdering(): AvsluttetRevurdering {
+        val vedtak = vedtakMedInnvilgetSøknadsbehandling()
+        return nyRevurdering(
+            innvilget = vedtak.first,
+            periode = stønadsperiode.periode,
+        ).avslutt(
+            begrunnelse = "",
+            fritekst = null,
+            tidspunktAvsluttet = fixedTidspunkt,
+        ).getOrFail().also { revurderingRepo.lagre(it) }
     }
 
     /* Kaller lagreNySøknadsbehandling (insert) */
