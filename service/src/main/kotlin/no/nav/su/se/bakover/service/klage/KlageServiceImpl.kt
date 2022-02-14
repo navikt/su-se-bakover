@@ -402,6 +402,7 @@ class KlageServiceImpl(
             )
             ?.tap {
                 klageRepo.lagre(it)
+                oppgaveService.lukkOppgave(it.oppgaveId)
             } ?: return KunneIkkeAvslutteKlage.FantIkkeKlage.left()
     }
 }

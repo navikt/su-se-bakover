@@ -106,6 +106,7 @@ internal class UtbetalingRequestTest {
                             typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
                             grad = 50,
                         ),
+                        utbetalingId = nyUtbetaling.id.toString(),
                     ),
                     UtbetalingRequest.Oppdragslinje(
                         kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.NY,
@@ -128,6 +129,7 @@ internal class UtbetalingRequestTest {
                             typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
                             grad = 70,
                         ),
+                        utbetalingId = nyUtbetaling.id.toString(),
                     ),
                 ),
             ),
@@ -223,6 +225,7 @@ internal class UtbetalingRequestTest {
                             typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
                             grad = 50,
                         ),
+                        utbetalingId = nyUtbetaling.id.toString(),
                     ),
                     UtbetalingRequest.Oppdragslinje(
                         kodeStatusLinje = null,
@@ -245,6 +248,7 @@ internal class UtbetalingRequestTest {
                             typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
                             grad = 50,
                         ),
+                        utbetalingId = nyUtbetaling.id.toString(),
                     ),
                 ),
             ),
@@ -300,7 +304,6 @@ internal class UtbetalingRequestTest {
 
     private fun expected(status: UtbetalingRequest.Oppdragslinje.KodeStatusLinje) = UtbetalingRequest(
         oppdragRequest = UtbetalingRequest.OppdragRequest(
-
             oppdragGjelderId = FNR.toString(),
             saksbehId = SAKSBEHANDLER,
             fagsystemId = saksnummer.toString(),
@@ -343,6 +346,7 @@ internal class UtbetalingRequestTest {
                         typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
                         grad = 70,
                     ),
+                    utbetalingId = nyUtbetaling.id.toString(),
                 ),
             ),
         ),

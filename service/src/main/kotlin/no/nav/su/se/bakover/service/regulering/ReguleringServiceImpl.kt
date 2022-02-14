@@ -99,8 +99,10 @@ class ReguleringServiceImpl(
                 }
                 is Regulering.OpprettetRegulering -> {
                     regulering.leggTilFradrag(request.fradragsgrunnlag)
-                    grunnlagService.lagreFradragsgrunnlag(regulering.id,
-                        fradragsgrunnlag = regulering.grunnlagsdata.fradragsgrunnlag)
+                    grunnlagService.lagreFradragsgrunnlag(
+                        regulering.id,
+                        fradragsgrunnlag = regulering.grunnlagsdata.fradragsgrunnlag
+                    )
                     reguleringRepo.lagre(regulering)
                     regulering.right()
                 }

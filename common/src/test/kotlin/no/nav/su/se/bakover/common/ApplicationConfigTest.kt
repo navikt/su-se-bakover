@@ -127,6 +127,7 @@ internal class ApplicationConfigTest {
         jobConfig = ApplicationConfig.JobConfig(
             personhendelse = ApplicationConfig.JobConfig.Personhendelse(ApplicationConfig.NaisCluster.Prod),
             konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Prod(),
+            initialDelay = 300000
         ),
         kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
             kafkaConfig = mapOf(
@@ -267,6 +268,7 @@ internal class ApplicationConfigTest {
                 jobConfig = ApplicationConfig.JobConfig(
                     personhendelse = ApplicationConfig.JobConfig.Personhendelse(null),
                     konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Local(),
+                    initialDelay = 0
                 ),
                 kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(emptyMap()),
             )

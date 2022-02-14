@@ -64,6 +64,7 @@ internal class LokalKvitteringService(
              <attestant-180>
                 <attestantId>A123456</attestantId>
              </attestant-180>
+             <henvisning>${utbetaling.id}</henvisning>
              <ukjentFeltBørIgnorereres>ukjent</ukjentFeltBørIgnorereres>
           </oppdrags-linje-150>
        </oppdrag-110>

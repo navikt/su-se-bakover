@@ -19,6 +19,7 @@ import kotlin.concurrent.fixedRateTimer
 class DistribuerDokumentJob(
     private val brevService: BrevService,
     private val leaderPodLookup: LeaderPodLookup,
+    private val initialDelay: Long,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Journalfør og bestill brevdistribusjon"
@@ -31,6 +32,7 @@ class DistribuerDokumentJob(
             name = jobName,
             daemon = true,
             period = periode,
+            initialDelay = initialDelay
         ) {
             Either.catch {
                 if (leaderPodLookup.erLeaderPod(hostname = hostName)) {

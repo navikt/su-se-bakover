@@ -20,6 +20,7 @@ internal class KonsistensavstemmingJob(
     private val avstemmingService: AvstemmingService,
     private val leaderPodLookup: LeaderPodLookup,
     private val jobConfig: ApplicationConfig.JobConfig.Konsistensavstemming,
+    private val initialDelay: Long,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -27,7 +28,6 @@ internal class KonsistensavstemmingJob(
 
     // Kjører hver fjerde time for å være rimelig sikker på at jobben faktisk blir kjørt
     private val periode = Duration.of(4, ChronoUnit.HOURS).toMillis()
-    private val initialDelay = Duration.of(5, ChronoUnit.MINUTES).toMillis()
 
     fun schedule() {
         log.info("Schedulerer jobb for konsistensavstemming med start om: $initialDelay ms, intervall: $periode ms")

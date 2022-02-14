@@ -49,7 +49,7 @@ sealed interface Regulering : Behandling {
     ) : Regulering {
 
         fun leggTilFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): OpprettetRegulering =
-        // er det ok å returnere this, eller skal man lage ny OpprettetRegulering som man returnerer her?
+            // er det ok å returnere this, eller skal man lage ny OpprettetRegulering som man returnerer her?
             // samme for beregn og simulering...
             this.copy(
                 grunnlagsdata = Grunnlagsdata.tryCreate(
