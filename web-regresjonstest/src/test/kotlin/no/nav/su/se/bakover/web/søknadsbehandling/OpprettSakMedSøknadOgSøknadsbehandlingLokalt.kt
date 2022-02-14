@@ -1,15 +1,15 @@
-package no.nav.su.se.bakover.web.søknad.ny
+package no.nav.su.se.bakover.web.søknadsbehandling
 
 import ch.qos.logback.classic.util.ContextInitializer
-import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndDockerDb
 
 /**
  * Oppretter en ny sak med en ny digital søknad i den lokale postgres-instansen (bruker de samme endepunktene som frontend).
- * Kan kjøres via ./resetdb_and_create_søknad.sh
+ * Kan kjøres via `./local-db-scripts/create-søknadsbehandling.sh`
  */
 fun main() {
     System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "logback-local.xml")
-    SharedRegressionTestData.withTestApplicationAndDockerDb {
-        nyDigitalSøknad()
+    withTestApplicationAndDockerDb {
+        opprettInnvilgetSøknadsbehandling()
     }
 }

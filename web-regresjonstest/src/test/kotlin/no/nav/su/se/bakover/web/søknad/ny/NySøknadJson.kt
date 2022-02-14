@@ -88,12 +88,12 @@ object NySøknadJson {
             """.trimIndent()
         }
 
-        fun hentSakId(nySøknadResponeJson: String): String {
-            return JSONObject(nySøknadResponeJson).getJSONObject("søknad").get("sakId").toString()
+        fun hentSakId(nySøknadResponseJson: String): String {
+            return JSONObject(nySøknadResponseJson).getJSONObject("søknad").get("sakId").toString()
         }
 
-        fun hentSøknadId(nySøknadResponeJson: String): String {
-            return JSONObject(nySøknadResponeJson).getJSONObject("søknad").get("id").toString()
+        fun hentSøknadId(nySøknadResponseJson: String): String {
+            return JSONObject(nySøknadResponseJson).getJSONObject("søknad").get("id").toString()
         }
     }
 }

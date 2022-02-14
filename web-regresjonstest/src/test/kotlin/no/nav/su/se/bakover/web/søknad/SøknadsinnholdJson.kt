@@ -128,7 +128,7 @@ private fun søknadsinnholdJson(
       },
       "formue":{
         "eierBolig":true,
-        "borIBolig":false,
+        "borIBolig":true,
         "verdiPåBolig":600000,
         "boligBrukesTil":"Mine barn bor der",
         "depositumsBeløp":1000.0,
@@ -137,14 +137,14 @@ private fun søknadsinnholdJson(
         "eiendomBrukesTil":"",
         "kjøretøy":[
           {
-            "verdiPåKjøretøy":25000,
+            "verdiPåKjøretøy":2500,
             "kjøretøyDeEier":"bil"
           }
         ],
-        "innskuddsBeløp":25000,
-        "verdipapirBeløp":25000,
-        "skylderNoenMegPengerBeløp":25000,
-        "kontanterBeløp":25000
+        "innskuddsBeløp":3500,
+        "verdipapirBeløp":4500,
+        "skylderNoenMegPengerBeløp":1200,
+        "kontanterBeløp":1300
       },
       "forNav":$forNav,
       "ektefelle":{
