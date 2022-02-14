@@ -74,6 +74,33 @@ internal class SakPostgresRepoTest {
     }
 
     @Test
+    fun `henter ikke ut lukkede eller avsluttede behandlinger`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.sakRepo
+
+            val sak = testDataHelper.nySakMedNySøknad()
+            testDataHelper.nyLukketSøknadForEksisterendeSak(sak.id)
+            testDataHelper.avsluttetRevurdering()
+            testDataHelper.avsluttetKlage()
+
+            val åpneBehandlinger = repo.hentÅpneBehandlinger()
+
+            åpneBehandlinger.size shouldBe 1
+
+            åpneBehandlinger shouldBe listOf(
+                Behandlingsoversikt(
+                    saksnummer = Saksnummer(2021),
+                    behandlingsId = sak.søknad.id,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    behandlingStartet = null,
+                    status = Behandlingsoversikt.Behandlingsstatus.NY_SØKNAD,
+                ),
+            )
+        }
+    }
+
+    @Test
     fun `Henter alle restanser for alle saker`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)

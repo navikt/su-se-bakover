@@ -17,7 +17,7 @@ internal class FerdigeBehandlingerRepo(
 ) {
 
     /**
-     * Henter ut Iverksatte, avslåtte, avsluttede behandlinger.
+     * Innvilget, avslått, opphørt og avsluttede/lukkede behandlinger.
      */
     fun hentFerdigeBehandlinger(session: Session): List<Behandlingsoversikt> {
         return dbMetrics.timeQuery("hentFerdigeBehandlinger") {
@@ -87,15 +87,15 @@ internal class FerdigeBehandlingerRepo(
     }
 
     private fun Row.toBehandlingsoversikt(): Behandlingsoversikt {
-        val behandlignstype = BehandlingsTypeDB.valueOf(string("type"))
+        val behandlingstype = BehandlingsTypeDB.valueOf(string("type"))
 
         val erAvsluttet = boolean("avsluttet")
 
         return Behandlingsoversikt(
             saksnummer = Saksnummer(long("saksnummer")),
             behandlingsId = UUID.fromString(string("id")),
-            behandlingstype = behandlignstype.toBehandlingstype(),
-            status = hentStatus(behandlignstype, erAvsluttet),
+            behandlingstype = behandlingstype.toBehandlingstype(),
+            status = hentStatus(behandlingstype, erAvsluttet),
             behandlingStartet = tidspunkt("opprettet"),
         )
     }

@@ -159,14 +159,14 @@ internal fun Route.sakRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler) {
-        get("$sakPath/apneBehandlinger") {
+        get("$sakPath/behandlinger/apne") {
             val åpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
             call.svar(Resultat.json(OK, serialize(åpneBehandlinger.toJson())))
         }
     }
 
     authorize(Brukerrolle.Saksbehandler) {
-        get("$sakPath/ferdigeBehandlinger") {
+        get("$sakPath/behandlinger/ferdige") {
             val ferdigeBehandlinger = sakService.hentFerdigeBehandlingerForAlleSaker()
             call.svar(Resultat.json(OK, serialize(ferdigeBehandlinger.toJson())))
         }
