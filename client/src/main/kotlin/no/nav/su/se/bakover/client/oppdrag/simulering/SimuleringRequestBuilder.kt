@@ -115,5 +115,6 @@ internal class SimuleringRequestBuilder(
                 },
             )
         }
+        henvisning = oppdragslinje.utbetalingsreferanse
     }
 }
