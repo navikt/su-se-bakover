@@ -28,7 +28,7 @@ internal class FerdigeBehandlingerRepo {
                             sak.saksnummer,
                             b.id,
                             b.opprettet,
-                            b.status            as resultat,
+                            b.status            as status,
                             'SØKNADSBEHANDLING' as type,
                             b.lukket            as avsluttet
                      from sak
@@ -41,7 +41,7 @@ internal class FerdigeBehandlingerRepo {
                             sak.saksnummer,
                             r.id,
                             r.opprettet,
-                            r.revurderingstype                                         as resultat,
+                            r.revurderingstype                                         as status,
                             'REVURDERING'                                              as type,
                             case when r.avsluttet is not null then true else false end as avsluttet
                      from sak
@@ -55,7 +55,7 @@ internal class FerdigeBehandlingerRepo {
                             sak.saksnummer,
                             k.id,
                             k.opprettet,
-                            k.type                                                     as resultat,
+                            k.type                                                     as status,
                             'KLAGE'                                                    as type,
                             case when k.avsluttet is not null then true else false end as avsluttet
                      from sak
@@ -103,16 +103,16 @@ internal class FerdigeBehandlingerRepo {
             return Behandlingsoversikt.Behandlingsstatus.AVSLUTTET
         }
         return when (behandlingsTypeDB) {
-            BehandlingsTypeDB.SØKNADSBEHANDLING -> BehandlingsStatus.valueOf(string("resultat"))
-                .tilSakBehandlingStatusEllerResultat()
-            BehandlingsTypeDB.REVURDERING -> RevurderingsType.valueOf(string("resultat"))
-                .tilSakBehandlingStatusEllerResultat()
-            BehandlingsTypeDB.KLAGE -> KlagePostgresRepo.Tilstand.fromString(string("resultat"))
-                .tilSakBehandlingStatusEllerResultat()
+            BehandlingsTypeDB.SØKNADSBEHANDLING -> BehandlingsStatus.valueOf(string("status"))
+                .tilBehandlingsoversiktStatus()
+            BehandlingsTypeDB.REVURDERING -> RevurderingsType.valueOf(string("status"))
+                .tilBehandlingsoversiktStatus()
+            BehandlingsTypeDB.KLAGE -> KlagePostgresRepo.Tilstand.fromString(string("status"))
+                .tilBehandlingsoversiktStatus()
         }
     }
 
-    private fun BehandlingsStatus.tilSakBehandlingStatusEllerResultat(): Behandlingsoversikt.Behandlingsstatus {
+    private fun BehandlingsStatus.tilBehandlingsoversiktStatus(): Behandlingsoversikt.Behandlingsstatus {
         return when (this) {
             BehandlingsStatus.OPPRETTET,
             BehandlingsStatus.VILKÅRSVURDERT_INNVILGET,
@@ -132,7 +132,7 @@ internal class FerdigeBehandlingerRepo {
         }
     }
 
-    private fun RevurderingsType.tilSakBehandlingStatusEllerResultat(): Behandlingsoversikt.Behandlingsstatus {
+    private fun RevurderingsType.tilBehandlingsoversiktStatus(): Behandlingsoversikt.Behandlingsstatus {
         return when (this) {
             RevurderingsType.OPPRETTET,
             RevurderingsType.BEREGNET_INNVILGET,
@@ -162,7 +162,7 @@ internal class FerdigeBehandlingerRepo {
         }
     }
 
-    private fun KlagePostgresRepo.Tilstand.tilSakBehandlingStatusEllerResultat(): Behandlingsoversikt.Behandlingsstatus {
+    private fun KlagePostgresRepo.Tilstand.tilBehandlingsoversiktStatus(): Behandlingsoversikt.Behandlingsstatus {
         return when (this) {
             KlagePostgresRepo.Tilstand.OPPRETTET,
             KlagePostgresRepo.Tilstand.VILKÅRSVURDERT_PÅBEGYNT,

@@ -73,12 +73,12 @@ internal class FerdigeBehandlingerRepoTest {
             val iverksattRevurderingInnvilget = testDataHelper.iverksattRevurderingInnvilget()
             val avsluttetRevurdering = testDataHelper.avsluttetRevurdering()
             val iverksattRevurderingOpphørt = testDataHelper.iverksattRevurderingOpphørt()
-            // TODO: legg inn for ingenEndring
 
             val beregnetRevurdering = testDataHelper.beregnetInnvilgetRevurdering()
 
             val ferdigeBehandlinger = repo.hentFerdigeBehandlinger()
 
+            // hver revurdering får en tilhørende iverksatt søknadsbehandling
             ferdigeBehandlinger.size shouldBe 7
 
             ferdigeBehandlinger shouldContainExactlyInAnyOrder listOf(
@@ -158,6 +158,7 @@ internal class FerdigeBehandlingerRepoTest {
 
             val ferdigeBehandlinger = repo.hentFerdigeBehandlinger()
 
+            // hver klage får en tilhørende iverksatt søknadsbehandling
             ferdigeBehandlinger.size shouldBe 8
 
             ferdigeBehandlinger shouldContainExactlyInAnyOrder listOf(
