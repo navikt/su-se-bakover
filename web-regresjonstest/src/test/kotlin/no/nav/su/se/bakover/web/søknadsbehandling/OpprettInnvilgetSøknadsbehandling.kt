@@ -32,6 +32,8 @@ import java.time.LocalDate
  */
 internal fun TestApplicationEngine.opprettInnvilgetSøknadsbehandling(
     fnr: String = Fnr.generer().toString(),
+    fraOgMed: String = LocalDate.now().startOfMonth().toString(),
+    tilOgMed: String = LocalDate.now().startOfMonth().plusMonths(11).endOfMonth().toString(),
 ): String {
     val søknadResponseJson = nyDigitalSøknad(
         fnr = fnr,
@@ -39,6 +41,8 @@ internal fun TestApplicationEngine.opprettInnvilgetSøknadsbehandling(
     return opprettInnvilgetSøknadsbehandling(
         sakId = NySøknadJson.Response.hentSakId(søknadResponseJson),
         søknadId = NySøknadJson.Response.hentSøknadId(søknadResponseJson),
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
     )
 }
 
@@ -49,25 +53,26 @@ internal fun TestApplicationEngine.opprettInnvilgetSøknadsbehandling(
 internal fun TestApplicationEngine.opprettInnvilgetSøknadsbehandling(
     sakId: String,
     søknadId: String,
+    fraOgMed: String = LocalDate.now().startOfMonth().toString(),
+    tilOgMed: String = LocalDate.now().startOfMonth().plusMonths(11).endOfMonth().toString(),
 ): String {
     val nySøknadsbehandlingResponseJson = nySøknadsbehandling(
         sakId = sakId,
         søknadId = søknadId,
     )
     val behandlingId = BehandlingJson.hentBehandlingId(nySøknadsbehandlingResponseJson)
-    val fraOgMed = LocalDate.now().startOfMonth()
-    val tilOgMed = fraOgMed.plusMonths(11).endOfMonth()
+
     leggTilVirkningstidspunkt(
         sakId = sakId,
         behandlingId = behandlingId,
-        fraOgMed = fraOgMed.toString(),
-        tilOgMed = tilOgMed.toString(),
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
     )
     leggTilUføregrunnlag(
         sakId = sakId,
         behandlingId = behandlingId,
-        fraOgMed = fraOgMed.toString(),
-        tilOgMed = tilOgMed.toString(),
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
     )
     leggTilFlyktningstatus(
         sakId = sakId,
@@ -88,8 +93,8 @@ internal fun TestApplicationEngine.opprettInnvilgetSøknadsbehandling(
     leggTilUtenlandsopphold(
         sakId = sakId,
         behandlingId = behandlingId,
-        fraOgMed = fraOgMed.toString(),
-        tilOgMed = tilOgMed.toString(),
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
     )
     taStillingTilEps(
         sakId = sakId,
