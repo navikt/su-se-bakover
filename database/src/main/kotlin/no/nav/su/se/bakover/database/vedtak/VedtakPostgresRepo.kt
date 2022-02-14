@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
+import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.tidspunkt
@@ -29,6 +30,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -48,6 +50,7 @@ internal enum class VedtakType {
     SØKNAD, // Innvilget Søknadsbehandling                  -> EndringIYtelse
     AVSLAG, // Avslått Søknadsbehandling                    -> Avslag
     ENDRING, // Revurdering innvilget                       -> EndringIYtelse
+    REGULERING, // Regulering innvilget                     -> EndringIYtelse
     INGEN_ENDRING, // Revurdering mellom 2% og 10% endring  -> IngenEndringIYtelse
     OPPHØR, // Revurdering ført til opphør                  -> EndringIYtelse
     STANS_AV_YTELSE,
@@ -59,6 +62,7 @@ internal class VedtakPostgresRepo(
     private val dataSource: DataSource,
     private val søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val revurderingRepo: RevurderingPostgresRepo,
+    private val reguleringRepo: ReguleringPostgresRepo,
     private val klageRepo: KlagePostgresRepo,
     private val dbMetrics: DbMetrics,
     private val sessionFactory: PostgresSessionFactory,
@@ -183,6 +187,8 @@ internal class VedtakPostgresRepo(
             is BehandlingVedtakKnytning.ForRevurdering ->
                 revurderingRepo.hent(knytning.revurderingId, session)!!
             is BehandlingVedtakKnytning.ForKlage -> null
+            is BehandlingVedtakKnytning.ForRegulering ->
+                reguleringRepo.hent(knytning.reguleringId)
         }
         val klage: Klage? = (knytning as? BehandlingVedtakKnytning.ForKlage)?.let {
             klageRepo.hentKlage(knytning.klageId)
@@ -201,6 +207,19 @@ internal class VedtakPostgresRepo(
                     id = id,
                     opprettet = opprettet,
                     behandling = behandling as Søknadsbehandling.Iverksatt.Innvilget,
+                    saksbehandler = saksbehandler,
+                    attestant = attestant,
+                    periode = periode!!,
+                    beregning = beregning!!,
+                    simulering = simulering!!,
+                    utbetalingId = utbetalingId!!,
+                )
+            }
+            VedtakType.REGULERING -> {
+                VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering(
+                    id = id,
+                    opprettet = opprettet,
+                    behandling = behandling as Regulering,
                     saksbehandler = saksbehandler,
                     attestant = attestant,
                     periode = periode!!,
@@ -349,6 +368,8 @@ internal class VedtakPostgresRepo(
                             vedtak.beregning
                         is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering ->
                             vedtak.beregning
+                        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering ->
+                            vedtak.beregning
                     },
                     "vedtaktype" to when (vedtak) {
                         is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> VedtakType.GJENOPPTAK_AV_YTELSE
@@ -356,6 +377,7 @@ internal class VedtakPostgresRepo(
                         is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> VedtakType.SØKNAD
                         is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> VedtakType.OPPHØR
                         is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> VedtakType.STANS_AV_YTELSE
+                        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> VedtakType.REGULERING
                     },
                 ),
                 session,
@@ -502,6 +524,8 @@ private fun lagreKlagevedtakKnytningTilBehandling(vedtak: Stønadsvedtak, sessio
             lagreKlagevedtakKnytningTilRevurdering(vedtak, session)
         is Søknadsbehandling ->
             lagreKlagevedtakKnytningTilSøknadsbehandling(vedtak, session)
+        is Regulering ->
+            lagreKlagevedtakKnytningTilRegulering(vedtak, session)
         else ->
             throw IllegalArgumentException("vedtak.behandling er av ukjent type. Den må være en revurdering eller en søknadsbehandling.")
     }
@@ -513,6 +537,17 @@ private fun lagreKlagevedtakKnytningTilRevurdering(vedtak: Stønadsvedtak, sessi
             vedtakId = vedtak.id,
             sakId = vedtak.behandling.sakId,
             revurderingId = vedtak.behandling.id,
+        ),
+        session = session,
+    )
+}
+
+private fun lagreKlagevedtakKnytningTilRegulering(vedtak: Stønadsvedtak, session: Session) {
+    lagreVedtaksknytning(
+        behandlingVedtakKnytning = BehandlingVedtakKnytning.ForRegulering(
+            vedtakId = vedtak.id,
+            sakId = vedtak.behandling.sakId,
+            reguleringId = vedtak.behandling.id,
         ),
         session = session,
     )
@@ -552,14 +587,16 @@ private fun lagreVedtaksknytning(
             sakId,
             søknadsbehandlingId,
             revurderingId,
-            klageId
+            klageId,
+            reguleringId
         ) VALUES (
             :id,
             :vedtakId,
             :sakId,
             :soknadsbehandlingId,
             :revurderingId,
-            :klageId
+            :klageId,
+            :reguleringId
         ) ON CONFLICT ON CONSTRAINT unique_vedtakid DO NOTHING
     """.trimIndent().insert(
         mapOf(
@@ -569,6 +606,7 @@ private fun lagreVedtaksknytning(
             "soknadsbehandlingId" to behandlingVedtakKnytning.søknadsbehandlingId,
             "revurderingId" to behandlingVedtakKnytning.revurderingId,
             "klageId" to behandlingVedtakKnytning.klageId,
+            "reguleringId" to behandlingVedtakKnytning.reguleringId,
         ),
         session,
     )
@@ -588,9 +626,10 @@ private fun hentBehandlingVedtakKnytning(vedtakId: UUID, session: Session): Beha
     val søknadsbehandlingId = it.stringOrNull("søknadsbehandlingId")
     val revurderingId = it.stringOrNull("revurderingId")
     val klageId = it.stringOrNull("klageId")
+    val reguleringId = it.stringOrNull("reguleringId")
 
     when {
-        revurderingId == null && søknadsbehandlingId != null && klageId == null -> {
+        revurderingId == null && søknadsbehandlingId != null && klageId == null && reguleringId == null -> {
             BehandlingVedtakKnytning.ForSøknadsbehandling(
                 id = id,
                 vedtakId = vedtakId,
@@ -598,7 +637,7 @@ private fun hentBehandlingVedtakKnytning(vedtakId: UUID, session: Session): Beha
                 søknadsbehandlingId = UUID.fromString(søknadsbehandlingId),
             )
         }
-        revurderingId != null && søknadsbehandlingId == null && klageId == null -> {
+        revurderingId != null && søknadsbehandlingId == null && klageId == null && reguleringId == null -> {
             BehandlingVedtakKnytning.ForRevurdering(
                 id = id,
                 vedtakId = vedtakId,
@@ -606,7 +645,7 @@ private fun hentBehandlingVedtakKnytning(vedtakId: UUID, session: Session): Beha
                 revurderingId = UUID.fromString(revurderingId),
             )
         }
-        revurderingId == null && søknadsbehandlingId == null && klageId != null -> {
+        revurderingId == null && søknadsbehandlingId == null && klageId != null && reguleringId == null -> {
             BehandlingVedtakKnytning.ForKlage(
                 id = id,
                 vedtakId = vedtakId,
@@ -614,9 +653,17 @@ private fun hentBehandlingVedtakKnytning(vedtakId: UUID, session: Session): Beha
                 klageId = UUID.fromString(klageId),
             )
         }
+        revurderingId == null && søknadsbehandlingId == null && klageId == null && reguleringId != null -> {
+            BehandlingVedtakKnytning.ForRegulering(
+                id = id,
+                vedtakId = vedtakId,
+                sakId = sakId,
+                reguleringId = UUID.fromString(reguleringId),
+            )
+        }
         else -> {
             throw IllegalStateException(
-                "Fant ugyldig behandling-vedtak-knytning. søknadsbehandlingId=$søknadsbehandlingId, revurderingId=$revurderingId, klageId=$klageId. Én og nøyaktig én av dem må være satt.",
+                "Fant ugyldig behandling-vedtak-knytning. søknadsbehandlingId=$søknadsbehandlingId, revurderingId=$revurderingId, klageId=$klageId, reguleringId=$reguleringId. Én og nøyaktig én av dem må være satt.",
             )
         }
     }
@@ -630,6 +677,7 @@ private sealed interface BehandlingVedtakKnytning {
     val søknadsbehandlingId: UUID?
     val revurderingId: UUID?
     val klageId: UUID?
+    val reguleringId: UUID?
 
     data class ForSøknadsbehandling(
         override val id: UUID = UUID.randomUUID(),
@@ -639,6 +687,7 @@ private sealed interface BehandlingVedtakKnytning {
     ) : BehandlingVedtakKnytning {
         override val revurderingId: UUID? = null
         override val klageId: UUID? = null
+        override val reguleringId: UUID? = null
     }
 
     data class ForRevurdering(
@@ -649,6 +698,7 @@ private sealed interface BehandlingVedtakKnytning {
     ) : BehandlingVedtakKnytning {
         override val søknadsbehandlingId: UUID? = null
         override val klageId: UUID? = null
+        override val reguleringId: UUID? = null
     }
 
     data class ForKlage(
@@ -658,6 +708,18 @@ private sealed interface BehandlingVedtakKnytning {
         override val klageId: UUID,
     ) : BehandlingVedtakKnytning {
         override val søknadsbehandlingId: UUID? = null
+        override val revurderingId: UUID? = null
+        override val reguleringId: UUID? = null
+    }
+
+    data class ForRegulering(
+        override val id: UUID = UUID.randomUUID(),
+        override val vedtakId: UUID,
+        override val sakId: UUID,
+        override val reguleringId: UUID,
+    ) : BehandlingVedtakKnytning {
+        override val søknadsbehandlingId: UUID? = null
+        override val klageId: UUID? = null
         override val revurderingId: UUID? = null
     }
 }

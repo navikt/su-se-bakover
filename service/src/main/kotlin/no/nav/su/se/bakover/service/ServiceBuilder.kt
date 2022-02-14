@@ -141,6 +141,11 @@ object ServiceBuilder {
 
         val reguleringService = ReguleringServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
+            utbetalingService = utbetalingService,
+            vedtakService = vedtakService,
+            vilkårsvurderingService = vilkårsvurderingService,
+            grunnlagService = grunnlagService,
+            clock = clock,
         )
 
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)

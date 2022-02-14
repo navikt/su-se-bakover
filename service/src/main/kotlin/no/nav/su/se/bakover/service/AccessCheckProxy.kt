@@ -62,6 +62,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonRepo
+import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -102,8 +103,12 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontr
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.regulering.BeregnRequest
+import no.nav.su.se.bakover.service.regulering.KunneIkkeBeregne
+import no.nav.su.se.bakover.service.regulering.KunneIkkeSimulere
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.service.regulering.SakerSomKanReguleres
+import no.nav.su.se.bakover.service.regulering.SimulerRequest
 import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
@@ -801,7 +806,10 @@ open class AccessCheckProxy(
                     transactionContext: TransactionContext,
                 ): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> = kastKanKunKallesFraAnnenService()
 
-                override fun annullerKontrollsamtale(sakId: UUID, transactionContext: TransactionContext): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> =
+                override fun annullerKontrollsamtale(
+                    sakId: UUID,
+                    transactionContext: TransactionContext,
+                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> =
                     kastKanKunKallesFraAnnenService()
             },
             klageService = object : KlageService {
@@ -902,7 +910,19 @@ open class AccessCheckProxy(
                 }
             },
             reguleringService = object : ReguleringService {
+                override fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, Regulering.OpprettetRegulering> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun hentAlleSakerSomKanReguleres(fraDato: LocalDate?): SakerSomKanReguleres {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun kjørAutomatiskRegulering(fraDato: LocalDate?): Regulering {
+                    return kjørAutomatiskRegulering(fraDato = fraDato)
+                }
+
+                override fun simuler(request: SimulerRequest): Either<KunneIkkeSimulere, Regulering.OpprettetRegulering> {
                     kastKanKunKallesFraAnnenService()
                 }
             },

@@ -15,12 +15,13 @@ import java.time.Clock
 import java.time.LocalDate
 
 data class GjeldendeVedtaksdata(
+    // TODO Finne et bedre navn. Dette er ikke all vedtaksdata, men kun det som kan Revurderes og Reguleres
     val periode: Periode,
     private val vedtakListe: NonEmptyList<VedtakSomKanRevurderes>,
     private val clock: Clock,
 ) {
     val grunnlagsdata: Grunnlagsdata
-    val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
+    val vilkårsvurderinger: Vilkårsvurderinger.Revurdering // TODO. Kan vi bruke denne til Regulering også, eller skal vi lage en ny ReguleringType
 
     private val tidslinje: Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> = vedtakListe
         .lagTidslinje(periode)

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -146,6 +147,24 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                 utbetalingId = utbetalingId,
             )
         }
+
+        fun from(
+            regulering: Regulering.IverksattRegulering,
+            utbetalingId: UUID30,
+            clock: Clock,
+        ): EndringIYtelse.InnvilgetRegulering {
+            return EndringIYtelse.InnvilgetRegulering(
+                id = UUID.randomUUID(),
+                opprettet = Tidspunkt.now(clock),
+                behandling = regulering,
+                periode = regulering.periode,
+                beregning = regulering.beregning!!,
+                simulering = regulering.simulering!!,
+                saksbehandler = regulering.saksbehandler,
+                attestant = NavIdentBruker.Attestant(regulering.saksbehandler.toString()), // TODO dette vil vi ikke...
+                utbetalingId = utbetalingId,
+            )
+        }
     }
 
     sealed interface EndringIYtelse : VedtakSomKanRevurderes {
@@ -182,6 +201,24 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val behandling: IverksattRevurdering.Innvilget,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
+            override val periode: Periode,
+            val beregning: Beregning,
+            override val simulering: Simulering,
+            override val utbetalingId: UUID30,
+        ) : EndringIYtelse {
+            override fun erOpphør() = false
+
+            override fun accept(visitor: VedtakVisitor) {
+                visitor.visit(this)
+            }
+        }
+
+        data class InnvilgetRegulering(
+            override val id: UUID,
+            override val opprettet: Tidspunkt,
+            override val behandling: Regulering,
+            override val saksbehandler: NavIdentBruker.Saksbehandler, // TODO hva skal ligge her på de automatiske (kanskje den som trykker på knappen, eller skal det stå f.eks srvsupstonad)
+            override val attestant: NavIdentBruker.Attestant, // TODO vil egentlig ikke ha denne på regulering
             override val periode: Periode,
             val beregning: Beregning,
             override val simulering: Simulering,

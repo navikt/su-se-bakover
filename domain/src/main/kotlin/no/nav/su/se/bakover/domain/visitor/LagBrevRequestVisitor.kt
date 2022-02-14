@@ -231,6 +231,10 @@ class LagBrevRequestVisitor(
         brevRequest = innvilgetVedtakRevurdering(vedtak)
     }
 
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering) {
+        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
+    }
+
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering) {
         brevRequest = opphørsvedtak(vedtak)
     }

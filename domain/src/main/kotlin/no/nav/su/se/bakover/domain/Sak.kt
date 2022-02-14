@@ -147,7 +147,8 @@ data class Sak(
             periode = månedsperiode,
             vedtakListe = NonEmptyList.fromListUnsafe(
                 vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-                    .filterNot { it is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse || it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse || it is VedtakSomKanRevurderes.IngenEndringIYtelse }.ifEmpty {
+                    .filterNot { it is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse || it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse || it is VedtakSomKanRevurderes.IngenEndringIYtelse }
+                    .ifEmpty {
                         return null
                     },
             ),
@@ -157,6 +158,7 @@ data class Sak(
                 is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> it.beregning
                 is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> it.beregning
                 is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> it.beregning
+                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> it.beregning
                 is VedtakSomKanRevurderes.IngenEndringIYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.IngenEndring")
                 is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.StansAvYtelse")
                 is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.GjenopptakAvYtelse")
@@ -198,6 +200,7 @@ data class Sak(
                     .reduser()
             }.reduser()
     }
+
     fun hentÅpneKlager(): List<Klage> = klager.filter { it.erÅpen() }
 
     fun hentKlage(klageId: UUID): Klage? = klager.find { it.id == klageId }
@@ -221,7 +224,10 @@ data class Sak(
      * problematisk hvis man stanser og gjenopptar på tvers av disse. Ta opp igjen problemstillingen dersom
      * fag trenger å stanse i et slikt tilfelle.
      */
-    private fun ingenKommendeOpphørEllerHull(utbetalingslinjer: List<UtbetalingslinjePåTidslinje>, clock: Clock): Boolean {
+    private fun ingenKommendeOpphørEllerHull(
+        utbetalingslinjer: List<UtbetalingslinjePåTidslinje>,
+        clock: Clock,
+    ): Boolean {
         val kommendeUtbetalingslinjer = utbetalingslinjer.filter { it.periode.tilOgMed.isAfter(LocalDate.now(clock)) }
 
         if (kommendeUtbetalingslinjer.any { it is UtbetalingslinjePåTidslinje.Opphør }) {

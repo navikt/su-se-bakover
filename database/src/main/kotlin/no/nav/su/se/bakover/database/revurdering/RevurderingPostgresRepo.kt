@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.oppdatering
+import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType.Companion.toRevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.tidspunkt
@@ -120,9 +121,18 @@ internal class RevurderingPostgresRepo(
     private val dbMetrics: DbMetrics,
     private val sessionFactory: PostgresSessionFactory,
     private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
+    reguleringPostgresRepo: ReguleringPostgresRepo,
 ) : RevurderingRepo {
     private val vedtakRepo =
-        VedtakPostgresRepo(dataSource, søknadsbehandlingRepo, this, klageRepo, dbMetrics, sessionFactory)
+        VedtakPostgresRepo(
+            dataSource,
+            søknadsbehandlingRepo,
+            this,
+            reguleringPostgresRepo,
+            klageRepo,
+            dbMetrics,
+            sessionFactory,
+        )
 
     private val stansAvYtelseRepo = StansAvYtelsePostgresRepo(
         fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,

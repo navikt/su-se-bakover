@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
 import no.nav.su.se.bakover.domain.regulering.VedtakSomKanReguleres
 import no.nav.su.se.bakover.domain.regulering.VedtakType
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -32,7 +33,14 @@ internal class ReguleringServiceImplTest {
             )
         }
 
-        val reguleringService = ReguleringServiceImpl(reguleringRepoMock)
+        val reguleringService = ReguleringServiceImpl(
+            reguleringRepoMock,
+            utbetalingService = mock(),
+            vedtakService = mock(),
+            vilkårsvurderingService = mock(),
+            grunnlagService = mock(),
+            clock = fixedClock,
+        )
 
         reguleringService.hentAlleSakerSomKanReguleres(1.mai(2021))
             .saker
@@ -49,7 +57,14 @@ internal class ReguleringServiceImplTest {
             )
         }
 
-        val reguleringService = ReguleringServiceImpl(reguleringRepoMock)
+        val reguleringService = ReguleringServiceImpl(
+            reguleringRepoMock,
+            utbetalingService = mock(),
+            vedtakService = mock(),
+            vilkårsvurderingService = mock(),
+            grunnlagService = mock(),
+            clock = fixedClock,
+        )
 
         reguleringService.hentAlleSakerSomKanReguleres(1.mai(2021))
             .saker
@@ -72,7 +87,14 @@ internal class ReguleringServiceImplTest {
             )
         }
 
-        val reguleringService = ReguleringServiceImpl(reguleringRepoMock)
+        val reguleringService = ReguleringServiceImpl(
+            reguleringRepoMock,
+            utbetalingService = mock(),
+            vedtakService = mock(),
+            vilkårsvurderingService = mock(),
+            grunnlagService = mock(),
+            clock = fixedClock,
+        )
 
         reguleringService.hentAlleSakerSomKanReguleres(1.mai(2021))
             .saker

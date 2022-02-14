@@ -148,6 +148,15 @@ object DatabaseBuilder {
             avkortingsvarselRepo = avkortingsvarselRepo,
         )
         val klageRepo = KlagePostgresRepo(sessionFactory)
+        val reguleringRepo = ReguleringPostgresRepo(
+            dataSource = dataSource,
+            fradragsgrunnlagPostgresRepo = fradragsgrunnlag,
+            bosituasjongrunnlagPostgresRepo = bosituasjongrunnlag,
+            uføreVilkårsvurderingPostgresRepo = uføreVilkårsvurderingRepo,
+            formueVilkårsvurderingPostgresRepo = formueVilkårsvurderingRepo,
+            utenlandsoppholdVilkårsvurderingPostgresRepo = utlandsoppholdVilkårsvurderingRepo,
+            sessionFactory = sessionFactory,
+        )
         val revurderingRepo = RevurderingPostgresRepo(
             dataSource = dataSource,
             fradragsgrunnlagPostgresRepo = fradragsgrunnlag,
@@ -160,6 +169,7 @@ object DatabaseBuilder {
             dbMetrics = dbMetrics,
             sessionFactory = sessionFactory,
             avkortingsvarselRepo = avkortingsvarselRepo,
+            reguleringPostgresRepo = reguleringRepo,
         )
         val vedtakRepo = VedtakPostgresRepo(
             dataSource = dataSource,
@@ -168,19 +178,19 @@ object DatabaseBuilder {
             klageRepo = klageRepo,
             dbMetrics = dbMetrics,
             sessionFactory = sessionFactory,
+            reguleringRepo = reguleringRepo,
         )
         val hendelseRepo = PersonhendelsePostgresRepo(dataSource, clock)
         val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource, clock)
         val klageVedtakRepo = KlagevedtakPostgresRepo(sessionFactory)
         val kontrollsamtaleRepo = KontrollsamtalePostgresRepo(sessionFactory)
-        val reguleringRepo = ReguleringPostgresRepo(dataSource, sessionFactory)
 
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
             utbetaling = UtbetalingPostgresRepo(
                 dataSource = dataSource,
                 dbMetrics = dbMetrics,
-                sessionFactory = sessionFactory
+                sessionFactory = sessionFactory,
             ),
             søknad = SøknadPostgresRepo(
                 dataSource = dataSource,

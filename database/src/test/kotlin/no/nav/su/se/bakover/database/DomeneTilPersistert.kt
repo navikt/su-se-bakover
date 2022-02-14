@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -74,6 +75,10 @@ internal inline fun <reified T : Søknadsbehandling> T.persistertVariant(): T {
         }
         else -> null
     } as T
+}
+
+internal inline fun <reified T : Regulering> T.persistertVariant(): T {
+    return this
 }
 
 internal inline fun <reified T : AbstraktRevurdering> T.persistertVariant(): T {
@@ -225,6 +230,12 @@ internal fun VedtakSomKanRevurderes.persistertVariant(): VedtakSomKanRevurderes 
             )
         }
         is VedtakSomKanRevurderes.IngenEndringIYtelse -> {
+            copy(
+                behandling = behandling.persistertVariant(),
+                beregning = beregning.persistertVariant(),
+            )
+        }
+        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> {
             copy(
                 behandling = behandling.persistertVariant(),
                 beregning = beregning.persistertVariant(),

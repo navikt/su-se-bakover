@@ -290,6 +290,16 @@ internal class TestDataHelper(
         avkortingsvarselRepo = avkortingsvarselRepo,
     )
     internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory)
+    internal val reguleringPostgresRepo =
+        ReguleringPostgresRepo(
+            dataSource = dataSource,
+            sessionFactory = sessionFactory,
+            fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
+            bosituasjongrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
+            uføreVilkårsvurderingPostgresRepo = uføreVilkårsvurderingRepo,
+            formueVilkårsvurderingPostgresRepo = formueVilkårsvurderingPostgresRepo,
+            utenlandsoppholdVilkårsvurderingPostgresRepo = utenlandsoppholdVilkårsvurderingRepo,
+        )
     internal val revurderingRepo = RevurderingPostgresRepo(
         dataSource = dataSource,
         fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
@@ -302,6 +312,7 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
         avkortingsvarselRepo = avkortingsvarselRepo,
+        reguleringPostgresRepo = reguleringPostgresRepo,
     )
     internal val vedtakRepo = VedtakPostgresRepo(
         dataSource = dataSource,
@@ -310,6 +321,7 @@ internal class TestDataHelper(
         klageRepo = klagePostgresRepo,
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
+        reguleringRepo = reguleringPostgresRepo,
     )
     internal val personRepo = PersonPostgresRepo(
         dataSource = dataSource,
@@ -331,7 +343,12 @@ internal class TestDataHelper(
     )
     internal val reguleringRepo = ReguleringPostgresRepo(
         dataSource = dataSource,
-        sessionFactory = sessionFactory
+        sessionFactory = sessionFactory,
+        fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
+        bosituasjongrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
+        uføreVilkårsvurderingPostgresRepo = uføreVilkårsvurderingRepo,
+        formueVilkårsvurderingPostgresRepo = formueVilkårsvurderingPostgresRepo,
+        utenlandsoppholdVilkårsvurderingPostgresRepo = utenlandsoppholdVilkårsvurderingRepo,
     )
 
     fun nySakMedNySøknad(
