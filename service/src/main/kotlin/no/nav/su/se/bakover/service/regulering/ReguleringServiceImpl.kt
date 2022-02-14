@@ -17,8 +17,10 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
+import no.nav.su.se.bakover.domain.regulering.Reguleringsjob
 import no.nav.su.se.bakover.domain.regulering.VedtakSomKanReguleres
 import no.nav.su.se.bakover.domain.regulering.VedtakType
+import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
@@ -49,6 +51,7 @@ sealed class KunneIkkeOppretteRegulering {
 
 class ReguleringServiceImpl(
     private val reguleringRepo: ReguleringRepo,
+    private val sakRepo: SakRepo,
     private val utbetalingService: UtbetalingService,
     private val vedtakService: VedtakService,
     private val vilkårsvurderingService: VilkårsvurderingService,
@@ -314,4 +317,21 @@ class ReguleringServiceImpl(
                 )
             }
     }
+
+    fun startRegulering(reguleringsjob: Reguleringsjob) {
+        sakRepo.hentAlleSaksnummer().forEach { saksnummer ->
+            val regulering = reguleringRepo.hent(saksnummer, reguleringsjob.jobnavn)
+            if (regulering != null) return
+
+            val reguleringType = utledAutomatiskEllerManuellRegulering(saksnummer, 1.mai(2022)) ?: return
+
+            when (reguleringType) {
+                ReguleringType.AUTOMATISK -> TODO("Kjør automatisk regulering og lagre iverksatt regulering")
+                ReguleringType.MANUELL -> TODO("Opprett regulering i basen")
+            }
+        }
+    }
+
+    private fun utledAutomatiskEllerManuellRegulering(saksnummer: Saksnummer, fraDato: LocalDate): ReguleringType? =
+        hentAlleSaker(fraDato).find { it.saksnummer == saksnummer }?.reguleringType
 }

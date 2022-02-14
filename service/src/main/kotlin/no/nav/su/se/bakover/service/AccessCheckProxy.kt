@@ -105,6 +105,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.regulering.BeregnRequest
 import no.nav.su.se.bakover.service.regulering.KunneIkkeBeregne
+import no.nav.su.se.bakover.service.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.service.regulering.KunneIkkeSimulere
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.service.regulering.SakerSomKanReguleres
@@ -922,8 +923,23 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun kjørAutomatiskRegulering(fraDato: LocalDate?): Regulering {
+                override fun kjørAutomatiskRegulering(fraDato: LocalDate?): List<Regulering> {
                     return kjørAutomatiskRegulering(fraDato = fraDato)
+                }
+
+                override fun opprettRegulering(
+                    sakId: UUID,
+                    fraDato: LocalDate?,
+                ): Either<KunneIkkeOppretteRegulering, Regulering> {
+                    TODO("Not yet implemented")
+                }
+
+                override fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeOppretteRegulering, Regulering> {
+                    TODO("Not yet implemented")
+                }
+
+                override fun iverksett(reguleringId: UUID): Either<KunneIkkeOppretteRegulering, Regulering> {
+                    TODO("Not yet implemented")
                 }
 
                 override fun simuler(request: SimulerRequest): Either<KunneIkkeSimulere, Regulering.OpprettetRegulering> {

@@ -35,6 +35,7 @@ internal class ReguleringServiceImplTest {
 
         val reguleringService = ReguleringServiceImpl(
             reguleringRepoMock,
+            sakRepo = mock(),
             utbetalingService = mock(),
             vedtakService = mock(),
             vilkårsvurderingService = mock(),
@@ -59,6 +60,7 @@ internal class ReguleringServiceImplTest {
 
         val reguleringService = ReguleringServiceImpl(
             reguleringRepoMock,
+            sakRepo = mock(),
             utbetalingService = mock(),
             vedtakService = mock(),
             vilkårsvurderingService = mock(),
@@ -89,6 +91,7 @@ internal class ReguleringServiceImplTest {
 
         val reguleringService = ReguleringServiceImpl(
             reguleringRepoMock,
+            sakRepo = mock(),
             utbetalingService = mock(),
             vedtakService = mock(),
             vilkårsvurderingService = mock(),

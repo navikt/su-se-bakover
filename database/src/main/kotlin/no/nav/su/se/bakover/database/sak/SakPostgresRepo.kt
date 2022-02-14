@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
@@ -85,7 +86,7 @@ internal class SakPostgresRepo(
                 row.uuidOrNull("id")?.let { id ->
                     SakIdOgNummer(
                         sakId = id,
-                        saksnummer = Saksnummer(row.long("saksnummer"))
+                        saksnummer = Saksnummer(row.long("saksnummer")),
                     )
                 }
             }
@@ -124,6 +125,13 @@ internal class SakPostgresRepo(
         }
     }
 
+    override fun hentAlleSaksnummer(): List<Saksnummer> = sessionFactory.withSession { session ->
+        """ select saksnummer from sak""".hentListe(
+            mapOf(),
+            session,
+        ) { Saksnummer(it.long("saksnummer")) }
+    }
+
     private fun hentSakInternal(fnr: Fnr, sessionContext: SessionContext): Sak? {
         return sessionContext.withSession { session ->
             "select * from sak where fnr=:fnr"
@@ -159,7 +167,7 @@ internal class SakPostgresRepo(
                 utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
                 revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
                 vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
-                klager = klageRepo.hentKlager(sakId, sessionContext)
+                klager = klageRepo.hentKlager(sakId, sessionContext),
             )
         }
     }

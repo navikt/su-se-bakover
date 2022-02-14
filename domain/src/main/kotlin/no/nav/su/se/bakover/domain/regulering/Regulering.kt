@@ -5,6 +5,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -18,8 +19,13 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
+
+enum class Reguleringsjob(val jobnavn: String, val dato: LocalDate) {
+    G_REGULERING_2022("G_REGULERING_2022", 1.mai(2022))
+}
 
 sealed interface Regulering : Behandling {
     val beregning: Beregning?

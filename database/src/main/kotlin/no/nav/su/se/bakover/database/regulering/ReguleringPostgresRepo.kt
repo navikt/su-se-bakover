@@ -64,6 +64,10 @@ internal class ReguleringPostgresRepo(
         }
     }
 
+    override fun hent(saksnummer: Saksnummer, jobnavn: String): Regulering? {
+        TODO("Not yet implemented")
+    }
+
     internal fun hent(id: UUID, session: Session): Regulering? =
         """
             select *
@@ -200,6 +204,10 @@ internal class ReguleringPostgresRepo(
                     it.toVedtakSomKanReguleres()
                 }
         }
+    }
+
+    override fun opprettReguleringsjob(reguleringstype: ReguleringType) {
+        TODO("Not yet implemented")
     }
 
     override fun defaultTransactionContext(): TransactionContext {

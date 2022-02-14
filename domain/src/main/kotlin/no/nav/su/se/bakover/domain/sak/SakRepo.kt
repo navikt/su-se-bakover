@@ -15,4 +15,5 @@ interface SakRepo {
     fun opprettSak(sak: NySak)
     fun hentÅpneBehandlinger(): List<Behandlingsoversikt>
     fun hentFerdigeBehandlinger(): List<Behandlingsoversikt>
+    fun hentAlleSaksnummer(): List<Saksnummer>
 }
