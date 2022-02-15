@@ -225,6 +225,7 @@ fun søknadsbehandlingSimulert(
                 simulering = simuleringNy(
                     eksisterendeUtbetalinger = sak.utbetalinger,
                     beregning = søknadsbehandling.beregning,
+                    uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføre.grunnlag,
                 ),
             )
         Pair(

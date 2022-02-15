@@ -87,6 +87,14 @@ fun nyUtbetalingSimulert(
                 sakId = behandling.sakId,
                 saksnummer = behandling.saksnummer,
                 clock = clock,
+                uføregrunnlag = when (val vv = behandling.vilkårsvurderinger) {
+                    is Vilkårsvurderinger.Revurdering -> {
+                        vv.uføre.grunnlag
+                    }
+                    is Vilkårsvurderinger.Søknadsbehandling -> {
+                        vv.uføre.grunnlag
+                    }
+                },
             ),
         )
     }
