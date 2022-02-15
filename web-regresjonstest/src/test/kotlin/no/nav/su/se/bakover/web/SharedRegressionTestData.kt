@@ -7,6 +7,7 @@ import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
+import io.ktor.server.testing.withTestApplication
 import no.finn.unleash.FakeUnleash
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.migratedDb
+import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.Fnr
@@ -50,8 +52,8 @@ import javax.sql.DataSource
  * TODO jah: Dette er foreløpig en kopi av TestEnvironment.kt og TestClientsBuilder.kt fra web/src/test (på sikt bør det meste av dette slettes derfra)
  * Vurder å trekk ut ting til test-common for de tingene som både web og web-regresjonstest trenger.
  */
-object SharedRegressionTestData {
-    val fnr: String = Fnr.generer().toString()
+internal object SharedRegressionTestData {
+    internal val fnr: String = Fnr.generer().toString()
 
     private const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 
@@ -147,7 +149,7 @@ object SharedRegressionTestData {
         }
     }
 
-    internal fun databaseRepos(
+    private fun databaseRepos(
         dataSource: DataSource = migratedDb(),
         clock: Clock = fixedClock,
     ): DatabaseRepos {
@@ -158,7 +160,46 @@ object SharedRegressionTestData {
         )
     }
 
-    internal fun Application.testSusebakover(
+    /**
+     * Uses the local docker-database as datasource.
+     * @param clock defaults to system UTC
+     */
+    internal fun <R> withTestApplicationAndDockerDb(
+        clock: Clock = Clock.systemUTC(),
+        test: TestApplicationEngine.() -> R,
+    ): R {
+        val dataSource = DatabaseBuilder.newLocalDataSource()
+        DatabaseBuilder.migrateDatabase(dataSource)
+        return withTestApplication(
+            moduleFunction = {
+                testSusebakover(
+                    databaseRepos = databaseRepos(
+                        dataSource = dataSource,
+                        clock = clock,
+                    ),
+                )
+            },
+            test = test,
+        )
+    }
+
+    internal fun withTestApplicationAndEmbeddedDb(test: TestApplicationEngine.() -> Unit) {
+        withMigratedDb { dataSource ->
+            withTestApplication(
+                moduleFunction = {
+                    testSusebakover(
+                        databaseRepos = databaseRepos(
+                            dataSource = dataSource,
+                        ),
+                        clock = fixedClock,
+                    )
+                },
+                test = test,
+            )
+        }
+    }
+
+    private fun Application.testSusebakover(
         clock: Clock = fixedClock,
         databaseRepos: DatabaseRepos = databaseRepos(clock = clock),
         clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),
@@ -187,11 +228,12 @@ object SharedRegressionTestData {
         method: HttpMethod,
         uri: String,
         roller: List<Brukerrolle>,
+        navIdent: String = "Z990Lokal",
         setup: TestApplicationRequest.() -> Unit = {},
     ): TestApplicationCall {
         return handleRequest(method, uri) {
             addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-            addHeader(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = roller).asBearerToken())
+            addHeader(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken())
             setup()
         }
     }

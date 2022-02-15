@@ -23,8 +23,8 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.parameter
 import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.sak.BehandlingsoversiktJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.sak.SakRestansJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -159,9 +159,16 @@ internal fun Route.sakRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler) {
-        get("$sakPath/restanser") {
-            val restanser = sakService.hentRestanserForAlleSaker()
-            call.svar(Resultat.json(OK, serialize(restanser.toJson())))
+        get("$sakPath/behandlinger/apne") {
+            val åpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
+            call.svar(Resultat.json(OK, serialize(åpneBehandlinger.toJson())))
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        get("$sakPath/behandlinger/ferdige") {
+            val ferdigeBehandlinger = sakService.hentFerdigeBehandlingerForAlleSaker()
+            call.svar(Resultat.json(OK, serialize(ferdigeBehandlinger.toJson())))
         }
     }
 }

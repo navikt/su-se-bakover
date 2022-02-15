@@ -1,10 +1,7 @@
 package no.nav.su.se.bakover.web.sak
 
+import no.nav.su.se.bakover.test.jsonAssertEquals
 import no.nav.su.se.bakover.web.SharedRegressionTestData
-import org.skyscreamer.jsonassert.Customization
-import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
-import org.skyscreamer.jsonassert.comparator.CustomComparator
 
 /**
  * Hvis du overskriver en liste, må den wrappes i [].
@@ -20,7 +17,7 @@ fun assertSakJson(
     expectedUtbetalingerKanStansesEllerGjenopptas: String = "INGEN",
     expectedRevurderinger: String = "[]",
     expectedVedtak: String = "[]",
-    expectedKlager: String = "[]"
+    expectedKlager: String = "[]",
 ) {
     // language=JSON
     val expectedSakJson = """
@@ -37,20 +34,18 @@ fun assertSakJson(
         "klager": $expectedKlager
     }
     """.trimIndent()
-    JSONAssert.assertEquals(
-        actualSakJson,
-        expectedSakJson,
-        CustomComparator(
-            JSONCompareMode.STRICT,
-            Customization(
-                "id",
-            ) { _, _ -> true },
-            Customization(
-                "søknader[*].id",
-            ) { _, _ -> true },
-            Customization(
-                "søknader[*].sakId",
-            ) { _, _ -> true },
-        ),
+    jsonAssertEquals(
+        expected = expectedSakJson,
+        actual = actualSakJson,
+        "id",
+        "søknader[*].id",
+        "søknader[*].sakId",
+        "utbetalinger[*].sakId",
+        "vedtak[*].id",
+        "vedtak[*].utbetalingId",
+        "vedtak[*].sakId",
+        "vedtak[*].behandlingId",
+        "behandlinger[*].grunnlagsdataOgVilkårsvurderinger.formue.vurderinger[*].id", // Vi lagrer ikke formuegrunnlag i databasen for søknadsbehandlinger. Så denne vil bli generert på nytt hver gang vi gjør en hentSak etc.
+        "behandlinger[*].grunnlagsdataOgVilkårsvurderinger.formue.vurderinger[*].opprettet", // Vi lagrer ikke formuegrunnlag i databasen for søknadsbehandlinger. Så denne vil bli generert på nytt hver gang vi gjør en hentSak etc.
     )
 }

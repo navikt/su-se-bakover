@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.søknad.ny
 
-import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb
 import no.nav.su.se.bakover.web.sak.assertSakJson
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.søknad.digitalSøknadJson
@@ -19,16 +19,14 @@ internal class NySøknadIT {
     @Test
     fun `ny digital søknad`() {
         val fnr = SharedRegressionTestData.fnr
-        withMigratedDb { dataSource ->
+        withTestApplicationAndEmbeddedDb {
             val actualResponseJson = nyDigitalSøknadOgVerifiser(
                 fnr = fnr,
                 expectedSaksnummerInResponse = 2021, // Første saksnummer er alltid 2021 i en ny-migrert database.
-                dataSource = dataSource,
             )
             val sakId = NySøknadJson.Response.hentSakId(actualResponseJson)
             val actualSakJson = hentSak(
                 sakId = sakId,
-                dataSource = dataSource,
             )
             assertSakJson(
                 actualSakJson = actualSakJson,
@@ -41,17 +39,15 @@ internal class NySøknadIT {
     @Test
     fun `ny papirsøknad`() {
         val fnr = SharedRegressionTestData.fnr
-        withMigratedDb { dataSource ->
+        withTestApplicationAndEmbeddedDb {
             val actualResponseJson = nyPapirsøknadOgVerifiser(
                 fnr = fnr,
                 expectedSaksnummerInResponse = 2021, // Første saksnummer er alltid 2021 i en ny-migrert database.
                 mottaksdato = fixedLocalDate.toString(),
-                dataSource = dataSource,
             )
             val sakId = NySøknadJson.Response.hentSakId(actualResponseJson)
             val actualSakJson = hentSak(
                 sakId = sakId,
-                dataSource = dataSource,
             )
             assertSakJson(
                 actualSakJson = actualSakJson,

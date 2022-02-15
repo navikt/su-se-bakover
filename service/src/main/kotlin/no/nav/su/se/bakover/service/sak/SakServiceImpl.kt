@@ -10,9 +10,9 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
@@ -54,8 +54,12 @@ internal class SakServiceImpl(
         }
     }
 
-    override fun hentRestanserForAlleSaker(): List<SakRestans> {
-        return sakRepo.hentSakRestanser()
+    override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingsoversikt> {
+        return sakRepo.hentÅpneBehandlinger()
+    }
+
+    override fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingsoversikt> {
+        return sakRepo.hentFerdigeBehandlinger()
     }
 
     override fun hentBegrensetSakinfo(fnr: Fnr): Either<FantIkkeSak, BegrensetSakinfo> {
@@ -71,7 +75,7 @@ internal class SakServiceImpl(
                                     (behandling == null || !behandling.erIverksatt)
                                 )
                         },
-                    iverksattInnvilgetStønadsperiode = sak.hentGjeldendeStønadsperiode(clock)
+                    iverksattInnvilgetStønadsperiode = sak.hentGjeldendeStønadsperiode(clock),
                 )
             }
     }

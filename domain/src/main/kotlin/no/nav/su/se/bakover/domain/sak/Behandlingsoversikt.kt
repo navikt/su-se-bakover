@@ -4,23 +4,29 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Saksnummer
 import java.util.UUID
 
-data class SakRestans(
+data class Behandlingsoversikt(
     val saksnummer: Saksnummer,
     val behandlingsId: UUID,
-    val restansType: RestansType,
-    val status: RestansStatus,
+    val behandlingstype: Behandlingstype,
     val behandlingStartet: Tidspunkt?,
+    val status: Behandlingsstatus,
 ) {
-    enum class RestansType {
+
+    enum class Behandlingstype {
         SØKNADSBEHANDLING,
         REVURDERING,
         KLAGE;
     }
 
-    enum class RestansStatus {
+    enum class Behandlingsstatus {
         UNDER_BEHANDLING,
         NY_SØKNAD,
         UNDERKJENT,
-        TIL_ATTESTERING;
+        TIL_ATTESTERING,
+        OPPHØR,
+        AVSLAG,
+        INGEN_ENDRING,
+        INNVILGET,
+        AVSLUTTET;
     }
 }

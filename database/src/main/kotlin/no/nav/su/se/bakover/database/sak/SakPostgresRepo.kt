@@ -21,9 +21,9 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.sak.SakRestans
 import java.util.UUID
 
 internal class SakPostgresRepo(
@@ -35,7 +35,11 @@ internal class SakPostgresRepo(
     private val klageRepo: KlageRepo,
 ) : SakRepo {
 
-    private val sakRestansRepo = SakRestansRepo(
+    private val åpneBehandlingerRepo = ÅpneBehandlingerRepo(
+        dbMetrics = dbMetrics,
+    )
+
+    private val ferdigeBehandlingerRepo = FerdigeBehandlingerRepo(
         dbMetrics = dbMetrics,
     )
 
@@ -108,9 +112,15 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentSakRestanser(): List<SakRestans> {
+    override fun hentÅpneBehandlinger(): List<Behandlingsoversikt> {
         return sessionFactory.withSession { session ->
-            sakRestansRepo.hentSakRestanser(session)
+            åpneBehandlingerRepo.hentÅpneBehandlinger(session)
+        }
+    }
+
+    override fun hentFerdigeBehandlinger(): List<Behandlingsoversikt> {
+        return sessionFactory.withSession { session ->
+            ferdigeBehandlingerRepo.hentFerdigeBehandlinger(session)
         }
     }
 

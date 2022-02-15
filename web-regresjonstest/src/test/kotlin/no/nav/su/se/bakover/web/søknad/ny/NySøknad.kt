@@ -5,41 +5,38 @@ import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.contentType
 import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.web.SharedRegressionTestData
-import no.nav.su.se.bakover.web.SharedRegressionTestData.databaseRepos
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
-import no.nav.su.se.bakover.web.SharedRegressionTestData.testSusebakover
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.comparator.CustomComparator
-import javax.sql.DataSource
 
-fun nyDigitalSøknad(
+/**
+ * Dersom det allerede finnes en sak knyttet til [fnr] opprettes det en ny søknad på den eksisterende saken
+ */
+fun TestApplicationEngine.nyDigitalSøknad(
     fnr: String = SharedRegressionTestData.fnr,
-    dataSource: DataSource,
 ): String {
     return nySøknad(
         requestJson = NySøknadJson.Request.nyDigitalSøknad(
             fnr = fnr,
         ),
         brukerrolle = Brukerrolle.Veileder,
-        dataSource = dataSource,
     )
 }
 
 /**
  * Emulerer at en veileder sender inn en digital søknad
  */
-fun nyDigitalSøknadOgVerifiser(
+fun TestApplicationEngine.nyDigitalSøknadOgVerifiser(
     fnr: String = SharedRegressionTestData.fnr,
     expectedSaksnummerInResponse: Long,
-    dataSource: DataSource,
 ): String {
     return nySøknadOgVerifiser(
         requestJson = NySøknadJson.Request.nyDigitalSøknad(
@@ -50,7 +47,6 @@ fun nyDigitalSøknadOgVerifiser(
             saksnummer = expectedSaksnummerInResponse,
         ),
         brukerrolle = Brukerrolle.Veileder,
-        dataSource = dataSource,
     )
 }
 
@@ -58,11 +54,10 @@ fun nyDigitalSøknadOgVerifiser(
  * Emulerer at en saksbehandler sender inn en papirsøknad
  * TODO jah: Bør teste at veiledere ikke har tilgang til å sende papirsøknader. Og bør vi teste det her eller i web?
  */
-fun nyPapirsøknadOgVerifiser(
+fun TestApplicationEngine.nyPapirsøknadOgVerifiser(
     fnr: String = SharedRegressionTestData.fnr,
     expectedSaksnummerInResponse: Long,
     mottaksdato: String = fixedLocalDate.toString(),
-    dataSource: DataSource,
 ): String {
     return nySøknadOgVerifiser(
         requestJson = NySøknadJson.Request.nyPapirsøknad(
@@ -75,20 +70,17 @@ fun nyPapirsøknadOgVerifiser(
             mottaksdato = mottaksdato,
         ),
         brukerrolle = Brukerrolle.Saksbehandler,
-        dataSource = dataSource,
     )
 }
 
-private fun nySøknadOgVerifiser(
+private fun TestApplicationEngine.nySøknadOgVerifiser(
     requestJson: String,
     expectedResponseJson: String,
     brukerrolle: Brukerrolle, // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
-    dataSource: DataSource,
 ): String {
     return nySøknad(
         requestJson = requestJson,
         brukerrolle = brukerrolle,
-        dataSource = dataSource,
     ).also {
         JSONAssert.assertEquals(
             expectedResponseJson,
@@ -109,29 +101,19 @@ private fun nySøknadOgVerifiser(
 /**
  * Ny søknad har en deterministisk respons, så vi gjør bare assertingen inline.
  */
-private fun nySøknad(
+private fun TestApplicationEngine.nySøknad(
     requestJson: String,
     brukerrolle: Brukerrolle, // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
-    dataSource: DataSource,
 ): String {
-    val repos = databaseRepos(dataSource)
-    return withTestApplication(
-        {
-            testSusebakover(
-                databaseRepos = repos,
-            )
-        },
+    return defaultRequest(
+        HttpMethod.Post,
+        "/soknad",
+        listOf(brukerrolle),
     ) {
-        defaultRequest(
-            HttpMethod.Post,
-            "/soknad",
-            listOf(brukerrolle),
-        ) {
-            addHeader(ContentType, Json.toString())
-            setBody(requestJson)
-        }.apply {
-            response.status() shouldBe HttpStatusCode.Created
-            response.contentType() shouldBe io.ktor.http.ContentType.parse("application/json; charset=UTF-8")
-        }.response.content!!
-    }
+        addHeader(ContentType, Json.toString())
+        setBody(requestJson)
+    }.apply {
+        response.status() shouldBe HttpStatusCode.Created
+        response.contentType() shouldBe io.ktor.http.ContentType.parse("application/json; charset=UTF-8")
+    }.response.content!!
 }

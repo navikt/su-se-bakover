@@ -21,3 +21,8 @@ task<JavaExec>("nySøknad") {
     classpath = project(":web-regresjonstest").sourceSets["test"].runtimeClasspath
     mainClass.set("no.nav.su.se.bakover.web.søknad.ny.OpprettNySakMedSøknadLokaltKt")
 }
+
+task<JavaExec>("nySøknadsbehandling") {
+    classpath = project(":web-regresjonstest").sourceSets["test"].runtimeClasspath
+    mainClass.set("no.nav.su.se.bakover.web.søknadsbehandling.OpprettNySakMedSøknadOgSøknadsbehandlingLokaltKt")
+}

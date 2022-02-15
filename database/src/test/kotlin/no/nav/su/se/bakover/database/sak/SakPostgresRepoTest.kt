@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.database.stønadsperiode
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
-import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 
@@ -74,6 +74,33 @@ internal class SakPostgresRepoTest {
     }
 
     @Test
+    fun `henter ikke ut lukkede eller avsluttede behandlinger`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.sakRepo
+
+            val sak = testDataHelper.nySakMedNySøknad()
+            testDataHelper.nyLukketSøknadForEksisterendeSak(sak.id)
+            testDataHelper.avsluttetRevurdering()
+            testDataHelper.avsluttetKlage()
+
+            val åpneBehandlinger = repo.hentÅpneBehandlinger()
+
+            åpneBehandlinger.size shouldBe 1
+
+            åpneBehandlinger shouldBe listOf(
+                Behandlingsoversikt(
+                    saksnummer = Saksnummer(2021),
+                    behandlingsId = sak.søknad.id,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    behandlingStartet = null,
+                    status = Behandlingsoversikt.Behandlingsstatus.NY_SØKNAD,
+                ),
+            )
+        }
+    }
+
+    @Test
     fun `Henter alle restanser for alle saker`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
@@ -100,81 +127,81 @@ internal class SakPostgresRepoTest {
             val klageTilAttestering = testDataHelper.avvistKlageTilAttestering()
             testDataHelper.iverksattAvvistKlage()
 
-            val alleRestanser = repo.hentSakRestanser()
+            val alleRestanser = repo.hentÅpneBehandlinger()
 
             alleRestanser.size shouldBe 10
 
             alleRestanser shouldContainExactlyInAnyOrder listOf(
-                SakRestans(
+                Behandlingsoversikt(
                     saksnummer = Saksnummer(nummer = 2021),
                     behandlingsId = sak.søknad.id,
-                    restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
-                    status = SakRestans.RestansStatus.NY_SØKNAD,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingsoversikt.Behandlingsstatus.NY_SØKNAD,
                     behandlingStartet = null,
                 ),
-                SakRestans(
+                Behandlingsoversikt(
                     saksnummer = Saksnummer(nummer = 2022),
                     behandlingsId = søknadsbehandling.id,
-                    restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
-                    status = SakRestans.RestansStatus.UNDER_BEHANDLING,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = søknadsbehandling.opprettet,
                 ),
-                SakRestans(
+                Behandlingsoversikt(
                     saksnummer = Saksnummer(nummer = 2023),
                     behandlingsId = underkjent.id,
-                    restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
-                    status = SakRestans.RestansStatus.UNDERKJENT,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingsoversikt.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjent.opprettet,
                 ),
-                SakRestans(
+                Behandlingsoversikt(
                     saksnummer = Saksnummer(nummer = 2024),
                     behandlingsId = tilAttestering.id,
-                    restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
-                    status = SakRestans.RestansStatus.TIL_ATTESTERING,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
+                    status = Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttestering.opprettet,
                 ),
                 // Vi hopper over 1 saksnummer siden den blir lagret som en del når vi lager en revurdering gjennom
                 // hjelpe funksjoner
-                SakRestans(
+                Behandlingsoversikt(
                     saksnummer = Saksnummer(nummer = 2026),
                     behandlingsId = opprettetRevurdering.id,
-                    restansType = SakRestans.RestansType.REVURDERING,
-                    status = SakRestans.RestansStatus.UNDER_BEHANDLING,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
+                    status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = opprettetRevurdering.opprettet,
                 ),
-                SakRestans(
+                Behandlingsoversikt(
                     saksnummer = Saksnummer(nummer = 2027),
                     behandlingsId = tilAttesteringRevurdering.id,
-                    restansType = SakRestans.RestansType.REVURDERING,
-                    status = SakRestans.RestansStatus.TIL_ATTESTERING,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
+                    status = Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = tilAttesteringRevurdering.opprettet,
                 ),
-                SakRestans(
+                Behandlingsoversikt(
                     saksnummer = Saksnummer(nummer = 2028),
                     behandlingsId = underkjentRevurdering.id,
-                    restansType = SakRestans.RestansType.REVURDERING,
-                    status = SakRestans.RestansStatus.UNDERKJENT,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
+                    status = Behandlingsoversikt.Behandlingsstatus.UNDERKJENT,
                     behandlingStartet = underkjentRevurdering.opprettet,
                 ),
-                SakRestans(
+                Behandlingsoversikt(
                     saksnummer = Saksnummer(nummer = 2030),
                     behandlingsId = opprettetKlage.id,
-                    restansType = SakRestans.RestansType.KLAGE,
-                    status = SakRestans.RestansStatus.UNDER_BEHANDLING,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.KLAGE,
+                    status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = opprettetKlage.opprettet,
                 ),
-                SakRestans(
+                Behandlingsoversikt(
                     saksnummer = Saksnummer(nummer = 2031),
                     behandlingsId = vurdertKlage.id,
-                    restansType = SakRestans.RestansType.KLAGE,
-                    status = SakRestans.RestansStatus.UNDER_BEHANDLING,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.KLAGE,
+                    status = Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING,
                     behandlingStartet = vurdertKlage.opprettet,
                 ),
-                SakRestans(
+                Behandlingsoversikt(
                     saksnummer = Saksnummer(nummer = 2032),
                     behandlingsId = klageTilAttestering.id,
-                    restansType = SakRestans.RestansType.KLAGE,
-                    status = SakRestans.RestansStatus.TIL_ATTESTERING,
+                    behandlingstype = Behandlingsoversikt.Behandlingstype.KLAGE,
+                    status = Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING,
                     behandlingStartet = klageTilAttestering.opprettet,
                 ),
             )
