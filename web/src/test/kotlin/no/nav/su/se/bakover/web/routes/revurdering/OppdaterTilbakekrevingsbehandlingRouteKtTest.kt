@@ -7,7 +7,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Forsto
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.simulertRevurdering
@@ -31,7 +31,7 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
                         revurdering = mock {
                             on { oppdaterTilbakekrevingsbehandling(any()) } doReturn simulertRevurdering().let { (sak, revurdering) ->
                                 revurdering.oppdaterTilbakekrevingsbehandling(
-                                    tilbakekrevingsbehandling = Forsto(
+                                    tilbakekrevingsbehandling = Tilbakekrev(
                                         id = UUID.randomUUID(),
                                         opprettet = fixedTidspunkt,
                                         sakId = sak.id,
@@ -53,7 +53,7 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
                 setBody(
                     """
                     {
-                        "avgjørelse":"FORSTO"
+                        "avgjørelse":"TILBAKEKREV"
                     }
                     """.trimIndent(),
                 )
@@ -79,7 +79,7 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
                     setBody(
                         """
                         {
-                            "avgjørelse":"FORSTO"
+                            "avgjørelse":"IKKE_TILBAKEKREV"
                         }
                         """.trimIndent(),
                     )

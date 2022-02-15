@@ -13,10 +13,10 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Forsto
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -1172,7 +1172,7 @@ internal class RevurderingJsonTest {
             ),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             tilbakekrevingsbehandling = AvventerKravgrunnlag(
-                avgjort = Forsto(
+                avgjort = Tilbakekrev(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     sakId = sakId,
@@ -1232,7 +1232,7 @@ internal class RevurderingJsonTest {
                 "attesteringer": [{"attestant":"attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}],
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": {
-                  "avgjørelse": "FORSTO"
+                  "avgjørelse": "TILBAKEKREV"
                 }
             }
             """.trimIndent()

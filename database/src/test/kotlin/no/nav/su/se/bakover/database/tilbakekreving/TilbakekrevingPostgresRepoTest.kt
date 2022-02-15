@@ -51,24 +51,17 @@ internal class TilbakekrevingPostgresRepoTest {
                 testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
                 testDataHelper.tilbakekrevingRepo.hentKravgrunnlagMottatt() shouldBe emptyList()
 
-                val forsto = ikkeAvgjort.forsto()
+                val forsto = ikkeAvgjort.tilbakekrev()
                 testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(forsto, session)
                 testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(revurdering.id, session) shouldBe forsto
 
                 testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
                 testDataHelper.tilbakekrevingRepo.hentKravgrunnlagMottatt() shouldBe emptyList()
 
-                val burdeForstått = ikkeAvgjort.burdeForstått()
-                testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(burdeForstått, session)
-                testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(
-                    revurdering.id,
-                    session,
-                ) shouldBe burdeForstått
-
                 testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
                 testDataHelper.tilbakekrevingRepo.hentKravgrunnlagMottatt() shouldBe emptyList()
 
-                val kunneIkkeForstå = ikkeAvgjort.kunneIkkeForstå()
+                val kunneIkkeForstå = ikkeAvgjort.ikkeTilbakekrev()
                 testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(kunneIkkeForstå, session)
                 testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(
                     revurdering.id,

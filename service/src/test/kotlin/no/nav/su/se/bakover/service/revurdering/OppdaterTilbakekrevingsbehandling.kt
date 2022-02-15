@@ -4,9 +4,8 @@ import arrow.core.left
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.BurdeForstått
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Forsto
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.KunneIkkeForstå
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
@@ -33,7 +32,7 @@ internal class OppdaterTilbakekrevingsbehandling {
             it.revurderingService.oppdaterTilbakekrevingsbehandling(
                 request = OppdaterTilbakekrevingsbehandlingRequest(
                     revurderingId = UUID.randomUUID(),
-                    avgjørelse = OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.FORSTO,
+                    avgjørelse = OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.TILBAKEKREV,
                     saksbehandler = saksbehandler,
                 ),
             ) shouldBe KunneIkkeOppdatereTilbakekrevingsbehandling.FantIkkeRevurdering.left()
@@ -56,7 +55,7 @@ internal class OppdaterTilbakekrevingsbehandling {
                 it.revurderingService.oppdaterTilbakekrevingsbehandling(
                     request = OppdaterTilbakekrevingsbehandlingRequest(
                         revurderingId = UUID.randomUUID(),
-                        avgjørelse = OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.FORSTO,
+                        avgjørelse = OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.TILBAKEKREV,
                         saksbehandler = saksbehandler,
                     ),
                 ) shouldBe KunneIkkeOppdatereTilbakekrevingsbehandling.UgyldigTilstand(
@@ -84,31 +83,21 @@ internal class OppdaterTilbakekrevingsbehandling {
             it.revurderingService.oppdaterTilbakekrevingsbehandling(
                 request = OppdaterTilbakekrevingsbehandlingRequest(
                     revurderingId = UUID.randomUUID(),
-                    avgjørelse = OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.FORSTO,
+                    avgjørelse = OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.TILBAKEKREV,
                     saksbehandler = saksbehandler,
                 ),
             ).getOrFail().let { oppdatert ->
-                oppdatert.tilbakekrevingsbehandling shouldBe beOfType<Forsto>()
+                oppdatert.tilbakekrevingsbehandling shouldBe beOfType<Tilbakekrev>()
             }
 
             it.revurderingService.oppdaterTilbakekrevingsbehandling(
                 request = OppdaterTilbakekrevingsbehandlingRequest(
                     revurderingId = UUID.randomUUID(),
-                    avgjørelse = OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.BURDE_FORSTÅTT,
+                    avgjørelse = OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.IKKE_TILBAKEKREV,
                     saksbehandler = saksbehandler,
                 ),
             ).getOrFail().let { oppdatert ->
-                oppdatert.tilbakekrevingsbehandling shouldBe beOfType<BurdeForstått>()
-            }
-
-            it.revurderingService.oppdaterTilbakekrevingsbehandling(
-                request = OppdaterTilbakekrevingsbehandlingRequest(
-                    revurderingId = UUID.randomUUID(),
-                    avgjørelse = OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.KUNNE_IKKE_FORSTÅ,
-                    saksbehandler = saksbehandler,
-                ),
-            ).getOrFail().let { oppdatert ->
-                oppdatert.tilbakekrevingsbehandling shouldBe beOfType<KunneIkkeForstå>()
+                oppdatert.tilbakekrevingsbehandling shouldBe beOfType<IkkeTilbakekrev>()
             }
         }
     }

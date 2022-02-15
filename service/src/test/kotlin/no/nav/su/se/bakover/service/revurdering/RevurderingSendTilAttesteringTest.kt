@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Forsto
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -401,7 +401,7 @@ internal class RevurderingSendTilAttesteringTest {
                         sakId = revurdering.sakId,
                         revurderingId = revurdering.id,
                         periode = revurdering.periode,
-                    ).burdeForstått(),
+                    ).tilbakekrev(),
                 )
             },
             toggleService = mock {
@@ -540,7 +540,7 @@ internal class RevurderingSendTilAttesteringTest {
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any()) } doReturn listOf(
                     AvventerKravgrunnlag(
-                        avgjort = Forsto(
+                        avgjort = Tilbakekrev(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             sakId = sakId,

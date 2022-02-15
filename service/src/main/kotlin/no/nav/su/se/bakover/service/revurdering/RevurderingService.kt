@@ -575,8 +575,7 @@ data class OppdaterTilbakekrevingsbehandlingRequest(
     val saksbehandler: NavIdentBruker.Saksbehandler,
 ) {
     enum class Avgjørelse {
-        FORSTO,
-        BURDE_FORSTÅTT,
-        KUNNE_IKKE_FORSTÅ
+        TILBAKEKREV,
+        IKKE_TILBAKEKREV
     }
 }

@@ -14,7 +14,7 @@ import java.util.UUID
  * @property oversendtTidspunkt Tidspunktet vi sendte avgjørelsen til oppdrag, ellers null
  */
 
-data class Forsto(
+data class Tilbakekrev(
     override val id: UUID,
     override val opprettet: Tidspunkt,
     override val sakId: UUID,
@@ -27,20 +27,7 @@ data class Forsto(
     }
 }
 
-data class BurdeForstått(
-    override val id: UUID,
-    override val opprettet: Tidspunkt,
-    override val sakId: UUID,
-    override val revurderingId: UUID,
-    override val periode: Periode,
-) : Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
-    Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving {
-    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
-        return AvventerKravgrunnlag(this)
-    }
-}
-
-data class KunneIkkeForstå(
+data class IkkeTilbakekrev(
     override val id: UUID,
     override val opprettet: Tidspunkt,
     override val sakId: UUID,
@@ -61,8 +48,8 @@ data class IkkeAvgjort(
     override val periode: Periode,
 ) : Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.IkkeAvgjort,
     Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving {
-    fun forsto(): Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort {
-        return Forsto(
+    fun tilbakekrev(): Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort {
+        return Tilbakekrev(
             id = id,
             opprettet = opprettet,
             sakId = sakId,
@@ -71,18 +58,8 @@ data class IkkeAvgjort(
         )
     }
 
-    fun burdeForstått(): Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort {
-        return BurdeForstått(
-            id = id,
-            opprettet = opprettet,
-            sakId = sakId,
-            revurderingId = revurderingId,
-            periode = periode,
-        )
-    }
-
-    fun kunneIkkeForstå(): Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort {
-        return KunneIkkeForstå(
+    fun ikkeTilbakekrev(): Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort {
+        return IkkeTilbakekrev(
             id = id,
             opprettet = opprettet,
             sakId = sakId,
@@ -153,13 +130,10 @@ data class MottattKravgrunnlag(
          * Forskjellig resultat basert på valgene som er gjort i løpet av denne behandlingen, pt kun 1 valg.
          */
         return when (avgjort) {
-            is BurdeForstått -> {
+            is Tilbakekrev -> {
                 fullTilbakekreving(kravgrunnlag)
             }
-            is Forsto -> {
-                fullTilbakekreving(kravgrunnlag)
-            }
-            is KunneIkkeForstå -> {
+            is IkkeTilbakekrev -> {
                 ingenTilbakekreving(kravgrunnlag)
             }
         }

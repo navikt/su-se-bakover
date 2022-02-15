@@ -12,14 +12,13 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.tidspunktOrNull
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.BurdeForstått
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Forsto
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.KunneIkkeForstå
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttTilbakekrevingsvedtak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.SendtTilbakekrevingsvedtak
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import java.util.UUID
@@ -66,9 +65,8 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
                     "fraOgMed" to tilbakrekrevingsbehanding.periode.fraOgMed,
                     "tilOgMed" to tilbakrekrevingsbehanding.periode.tilOgMed,
                     "avgjorelse" to when (tilbakrekrevingsbehanding) {
-                        is BurdeForstått -> Avgjørelsestype.BURDE_FORSTÅTT
-                        is Forsto -> Avgjørelsestype.FORSTO
-                        is KunneIkkeForstå -> Avgjørelsestype.FORSTO_IKKE_ELLER_KUNNE_IKKE_FORSTÅTT
+                        is Tilbakekrev -> Avgjørelsestype.TILBAKEKREV
+                        is IkkeTilbakekrev -> Avgjørelsestype.IKKE_TILBAKEKREV
                         is IkkeAvgjort -> Avgjørelsestype.IKKE_AVGJORT
                     }.toString(),
                     "tilstand" to Tilstand.UNDER_BEHANDLING.toString(),
@@ -170,21 +168,14 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         val tilbakekrevingsvedtakSendt = tidspunktOrNull("tilbakekrevingsvedtakSendt")
 
         val tilbakekrevingsbehandling = when (avgjørelse) {
-            Avgjørelsestype.FORSTO -> Forsto(
+            Avgjørelsestype.TILBAKEKREV -> Tilbakekrev(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
                 revurderingId = revurderingId,
                 periode = periode,
             )
-            Avgjørelsestype.BURDE_FORSTÅTT -> BurdeForstått(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                revurderingId = revurderingId,
-                periode = periode,
-            )
-            Avgjørelsestype.FORSTO_IKKE_ELLER_KUNNE_IKKE_FORSTÅTT -> KunneIkkeForstå(
+            Avgjørelsestype.IKKE_TILBAKEKREV -> IkkeTilbakekrev(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -260,9 +251,8 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
 
     private enum class Avgjørelsestype(private val value: String) {
         IKKE_AVGJORT("ikke_avgjort"),
-        FORSTO("forsto"),
-        BURDE_FORSTÅTT("burde_forstått"),
-        FORSTO_IKKE_ELLER_KUNNE_IKKE_FORSTÅTT("forsto_ikke_eller_kunne_ikke_forstått");
+        TILBAKEKREV("tilbakekrev"),
+        IKKE_TILBAKEKREV("ikke_tilbakekrev");
 
         override fun toString() = value
 

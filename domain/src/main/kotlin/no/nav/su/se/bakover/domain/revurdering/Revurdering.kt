@@ -29,11 +29,10 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.BurdeForstått
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Forsto
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.KunneIkkeForstå
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.beregning.BeregnRevurderingStrategyDecider
@@ -962,9 +961,8 @@ sealed class SimulertRevurdering : Revurdering() {
             }
 
             val gyldigTilbakekrevingsbehandling = when (tilbakekrevingsbehandling) {
-                is BurdeForstått,
-                is Forsto,
-                is KunneIkkeForstå,
+                is Tilbakekrev,
+                is IkkeTilbakekrev,
                 is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving,
                 -> {
                     tilbakekrevingsbehandling
@@ -1092,9 +1090,8 @@ sealed class SimulertRevurdering : Revurdering() {
             }
 
             val gyldigTilbakekrevingsbehandling = when (tilbakekrevingsbehandling) {
-                is BurdeForstått,
-                is Forsto,
-                is KunneIkkeForstå,
+                is Tilbakekrev,
+                is IkkeTilbakekrev,
                 is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving,
                 -> {
                     tilbakekrevingsbehandling

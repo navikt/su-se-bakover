@@ -21,8 +21,8 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Forsto
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -378,7 +378,7 @@ private fun oppdaterTilbakekrevingsbehandling(revurdering: SimulertRevurdering):
     return when (revurdering.simulering.harFeilutbetalinger()) {
         true -> {
             revurdering.oppdaterTilbakekrevingsbehandling(
-                tilbakekrevingsbehandling = Forsto(
+                tilbakekrevingsbehandling = Tilbakekrev(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
                     sakId = revurdering.sakId,

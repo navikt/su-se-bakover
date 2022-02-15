@@ -1024,14 +1024,11 @@ internal class RevurderingServiceImpl(
 
         val oppdatert = revurdering.oppdaterTilbakekrevingsbehandling(
             when (request.avgjørelse) {
-                OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.FORSTO -> {
-                    ikkeAvgjort.forsto()
+                OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.TILBAKEKREV -> {
+                    ikkeAvgjort.tilbakekrev()
                 }
-                OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.BURDE_FORSTÅTT -> {
-                    ikkeAvgjort.burdeForstått()
-                }
-                OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.KUNNE_IKKE_FORSTÅ -> {
-                    ikkeAvgjort.kunneIkkeForstå()
+                OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse.IKKE_TILBAKEKREV -> {
+                    ikkeAvgjort.ikkeTilbakekrev()
                 }
             },
         )

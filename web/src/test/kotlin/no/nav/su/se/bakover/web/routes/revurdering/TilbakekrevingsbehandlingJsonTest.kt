@@ -32,26 +32,18 @@ internal class TilbakekrevingsbehandlingJsonTest {
 
         val forsto = """
             {
-                "avgjørelse":"FORSTO"
+                "avgjørelse":"TILBAKEKREV"
             }
         """.trimIndent()
 
-        JSONAssert.assertEquals(forsto, serialize(this.ikkeAvgjort.forsto().toJson()), true)
-
-        val burdeForstått = """
-            {
-                "avgjørelse":"BURDE_FORSTÅTT"
-            }
-        """.trimIndent()
-
-        JSONAssert.assertEquals(burdeForstått, serialize(this.ikkeAvgjort.burdeForstått().toJson()), true)
+        JSONAssert.assertEquals(forsto, serialize(this.ikkeAvgjort.tilbakekrev().toJson()), true)
 
         val kunneIkkeForstått = """
             {
-                "avgjørelse":"KUNNE_IKKE_FORSTÅ"
+                "avgjørelse":"IKKE_TILBAKEKREV"
             }
         """.trimIndent()
 
-        JSONAssert.assertEquals(kunneIkkeForstått, serialize(this.ikkeAvgjort.kunneIkkeForstå().toJson()), true)
+        JSONAssert.assertEquals(kunneIkkeForstått, serialize(this.ikkeAvgjort.ikkeTilbakekrev().toJson()), true)
     }
 }
