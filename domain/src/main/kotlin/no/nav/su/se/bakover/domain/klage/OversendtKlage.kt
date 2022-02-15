@@ -30,7 +30,7 @@ data class OversendtKlage private constructor(
     override val oppgaveId: OppgaveId,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val datoKlageMottatt: LocalDate,
-    val klagevedtakshistorikk: Klagevedtakshistorikk,
+    val klageinstanshendelser: Klageinstanshendelser,
     val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
     val vurderinger: VurderingerTilKlage.Utfylt,
     val attesteringer: Attesteringshistorikk,
@@ -85,7 +85,7 @@ data class OversendtKlage private constructor(
             vurderinger: VurderingerTilKlage.Utfylt,
             attesteringer: Attesteringshistorikk,
             datoKlageMottatt: LocalDate,
-            klagevedtakshistorikk: Klagevedtakshistorikk,
+            klageinstanshendelser: Klageinstanshendelser,
         ): OversendtKlage {
             return OversendtKlage(
                 id = id,
@@ -100,28 +100,28 @@ data class OversendtKlage private constructor(
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk,
+                klageinstanshendelser = klageinstanshendelser,
             )
         }
     }
 
-    override fun leggTilNyttKlagevedtak(
-        uprosessertKlageinstansVedtak: UprosessertKlageinstansvedtak,
-        lagOppgaveCallback: () -> Either<Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId>,
-    ): Either<Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak, Klage> {
+    override fun leggTilNyKlageinstanshendelse(
+        tolketKlageinstanshendelse: TolketKlageinstanshendelse,
+        lagOppgaveCallback: () -> Either<Klage.KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId>,
+    ): Either<Klage.KunneIkkeLeggeTilNyKlageinstansHendelse, Klage> {
         return lagOppgaveCallback().map { oppgaveId ->
-            val oppdatertKlage = leggTilKlagevedtakshistorikk(uprosessertKlageinstansVedtak.tilProsessert(oppgaveId))
+            val oppdatertKlage = leggTilProsessertKlageinstanshendelse(tolketKlageinstanshendelse.tilProsessert(oppgaveId))
 
-            when (uprosessertKlageinstansVedtak.utfall) {
-                KlagevedtakUtfall.TRUKKET,
-                KlagevedtakUtfall.OPPHEVET,
-                KlagevedtakUtfall.MEDHOLD,
-                KlagevedtakUtfall.DELVIS_MEDHOLD,
-                KlagevedtakUtfall.STADFESTELSE,
-                KlagevedtakUtfall.UGUNST,
-                KlagevedtakUtfall.AVVIST,
+            when (tolketKlageinstanshendelse.utfall) {
+                KlageinstansUtfall.TRUKKET,
+                KlageinstansUtfall.OPPHEVET,
+                KlageinstansUtfall.MEDHOLD,
+                KlageinstansUtfall.DELVIS_MEDHOLD,
+                KlageinstansUtfall.STADFESTELSE,
+                KlageinstansUtfall.UGUNST,
+                KlageinstansUtfall.AVVIST,
                 -> oppdatertKlage
-                KlagevedtakUtfall.RETUR -> oppdatertKlage.toBekreftet(oppgaveId)
+                KlageinstansUtfall.RETUR -> oppdatertKlage.toBekreftet(oppgaveId)
             }
         }
     }
@@ -140,11 +140,11 @@ data class OversendtKlage private constructor(
             vurderinger = vurderinger,
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
-            klagevedtakshistorikk = klagevedtakshistorikk,
+            klageinstanshendelser = klageinstanshendelser,
         )
 
-    private fun leggTilKlagevedtakshistorikk(prosessertKlageinstansVedtak: ProsessertKlageinstansvedtak): OversendtKlage =
-        this.copy(klagevedtakshistorikk = this.klagevedtakshistorikk.leggTilNyttVedtak(prosessertKlageinstansVedtak))
+    private fun leggTilProsessertKlageinstanshendelse(hendelse: ProsessertKlageinstanshendelse): OversendtKlage =
+        this.copy(klageinstanshendelser = this.klageinstanshendelser.leggTilNyttVedtak(hendelse))
 }
 
 sealed class KunneIkkeOversendeKlage {

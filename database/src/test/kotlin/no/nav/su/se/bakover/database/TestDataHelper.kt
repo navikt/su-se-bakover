@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRe
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
-import no.nav.su.se.bakover.database.klage.KlagevedtakPostgresRepo
+import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
@@ -62,10 +62,10 @@ import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
-import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
+import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
-import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
@@ -294,7 +294,8 @@ internal class TestDataHelper(
         utenlandsoppholdVilkårsvurderingRepo = utenlandsoppholdVilkårsvurderingRepo,
         avkortingsvarselRepo = avkortingsvarselRepo,
     )
-    internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory)
+    internal val klageinstanshendelsePostgresRepo = KlageinstanshendelsePostgresRepo(sessionFactory)
+    internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory, klageinstanshendelsePostgresRepo)
     internal val revurderingRepo = RevurderingPostgresRepo(
         dataSource = dataSource,
         fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
@@ -324,8 +325,6 @@ internal class TestDataHelper(
     internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
     internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource, fixedClock)
 
-    internal val klagevedtakPostgresRepo = KlagevedtakPostgresRepo(sessionFactory)
-
     internal val sakRepo = SakPostgresRepo(
         sessionFactory = sessionFactory,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
@@ -336,7 +335,7 @@ internal class TestDataHelper(
     )
     internal val reguleringRepo = ReguleringPostgresRepo(
         dataSource = dataSource,
-        sessionFactory = sessionFactory
+        sessionFactory = sessionFactory,
     )
 
     fun nySakMedNySøknad(
@@ -1500,17 +1499,18 @@ internal class TestDataHelper(
         ).getOrFail().also { klagePostgresRepo.lagre(it) }
     }
 
-    fun uprosessertKlagevedtak(
+    fun uprosessertKlageinstanshendelse(
         id: UUID = UUID.randomUUID(),
         klageId: UUID = UUID.randomUUID(),
-        utfall: KlagevedtakUtfall = KlagevedtakUtfall.STADFESTELSE,
+        utfall: KlageinstansUtfall = KlageinstansUtfall.STADFESTELSE,
         opprettet: Tidspunkt = fixedTidspunkt,
     ): Pair<UUID, UUID> {
-        klagevedtakPostgresRepo.lagre(
-            UprosessertFattetKlageinstansvedtak(
+        klageinstanshendelsePostgresRepo.lagre(
+            UprosessertKlageinstanshendelse(
                 id = id,
                 opprettet = opprettet,
-                metadata = UprosessertFattetKlageinstansvedtak.Metadata(
+                metadata = UprosessertKlageinstanshendelse.Metadata(
+                    topic = "klage.behandling-events.v1",
                     hendelseId = UUID.randomUUID().toString(),
                     offset = 0,
                     partisjon = 0,

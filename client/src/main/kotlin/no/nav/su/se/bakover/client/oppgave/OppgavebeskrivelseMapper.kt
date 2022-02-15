@@ -1,11 +1,18 @@
 package no.nav.su.se.bakover.client.oppgave
 
-import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
+import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient.Companion.toOppgaveFormat
+import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 
 object OppgavebeskrivelseMapper {
-    fun map(utfall: KlagevedtakUtfall): String = "Utfall: ${utfall.toReadableName()}\n\n${utfall.LukkBeskrivelse()}"
+    fun map(config: OppgaveConfig.Klage.Klageinstanshendelse): String {
+        return "Utfall: ${config.utfall.toReadableName()}" +
+            "\nRelevante JournalpostIDer: ${config.journalpostIDer.joinToString(", ")}" +
+            "\nKlageinstans sin behandling ble avsluttet den ${config.avsluttetTidspunkt.toOppgaveFormat()}" +
+            "\n\n${config.utfall.LukkBeskrivelse()}"
+    }
 
     fun map(hendelse: Personhendelse.Hendelse) = when (hendelse) {
         is Personhendelse.Hendelse.Dødsfall -> {
@@ -37,29 +44,32 @@ object OppgavebeskrivelseMapper {
         SivilstandTyper.GJENLEVENDE_PARTNER -> "Gjenlevende partner"
     }
 
-    private fun KlagevedtakUtfall.toReadableName() = when (this) {
-        KlagevedtakUtfall.TRUKKET -> "Trukket"
-        KlagevedtakUtfall.RETUR -> "Retur"
-        KlagevedtakUtfall.OPPHEVET -> "Opphevet"
-        KlagevedtakUtfall.MEDHOLD -> "Medhold"
-        KlagevedtakUtfall.DELVIS_MEDHOLD -> "Delvis medhold"
-        KlagevedtakUtfall.STADFESTELSE -> "Stadfestelse"
-        KlagevedtakUtfall.UGUNST -> "Ugunst"
-        KlagevedtakUtfall.AVVIST -> "Avvist"
+    private fun KlageinstansUtfall.toReadableName() = when (this) {
+        KlageinstansUtfall.TRUKKET -> "Trukket"
+        KlageinstansUtfall.RETUR -> "Retur"
+        KlageinstansUtfall.OPPHEVET -> "Opphevet"
+        KlageinstansUtfall.MEDHOLD -> "Medhold"
+        KlageinstansUtfall.DELVIS_MEDHOLD -> "Delvis medhold"
+        KlageinstansUtfall.STADFESTELSE -> "Stadfestelse"
+        KlageinstansUtfall.UGUNST -> "Ugunst"
+        KlageinstansUtfall.AVVIST -> "Avvist"
     }
-    private fun KlagevedtakUtfall.LukkBeskrivelse() = when (this) {
+
+    private fun KlageinstansUtfall.LukkBeskrivelse() = when (this) {
         /*
         * Informasjonsoppgaver som må lukkes manuelt.
         * */
-        KlagevedtakUtfall.STADFESTELSE,
-        KlagevedtakUtfall.TRUKKET,
-        KlagevedtakUtfall.AVVIST -> "Denne oppgaven er kun til opplysning og må lukkes manuelt."
+        KlageinstansUtfall.STADFESTELSE,
+        KlageinstansUtfall.TRUKKET,
+        KlageinstansUtfall.AVVIST,
+        -> "Denne oppgaven er kun til opplysning og må lukkes manuelt."
         /* Oppgaver som krever ytterligere handlinger og må lukkes manuelt. */
-        KlagevedtakUtfall.UGUNST,
-        KlagevedtakUtfall.OPPHEVET,
-        KlagevedtakUtfall.MEDHOLD,
-        KlagevedtakUtfall.DELVIS_MEDHOLD -> "Klagen krever ytterligere saksbehandling. Denne oppgaven må lukkes manuelt."
+        KlageinstansUtfall.UGUNST,
+        KlageinstansUtfall.OPPHEVET,
+        KlageinstansUtfall.MEDHOLD,
+        KlageinstansUtfall.DELVIS_MEDHOLD,
+        -> "Klagen krever ytterligere saksbehandling. Denne oppgaven må lukkes manuelt."
         /* Oppgaver som krever ytterligere handling. Oppgaver lukkes automatisk av `su-se-bakover` */
-        KlagevedtakUtfall.RETUR -> "Klagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk."
+        KlageinstansUtfall.RETUR -> "Klagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk."
     }
 }

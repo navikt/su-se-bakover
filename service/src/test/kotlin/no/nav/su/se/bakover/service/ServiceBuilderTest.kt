@@ -33,7 +33,7 @@ internal class ServiceBuilderTest {
                 nøkkeltallRepo = mock(),
                 sessionFactory = mock(),
                 klageRepo = mock(),
-                klageVedtakRepo = mock(),
+                klageinstanshendelseRepo = mock(),
                 kontrollsamtaleRepo = mock(),
                 avkortingsvarselRepo = mock(),
                 reguleringRepo = defaultMock(),

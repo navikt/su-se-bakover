@@ -128,17 +128,17 @@ sealed interface Klage {
     }
 
     /** @return [OversendtKlage] eller [VurdertKlage.Bekreftet] */
-    fun leggTilNyttKlagevedtak(
-        uprosessertKlageinstansVedtak: UprosessertKlageinstansvedtak,
-        lagOppgaveCallback: () -> Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId>,
-    ): Either<KunneIkkeLeggeTilNyttKlageinstansVedtak, Klage> {
-        return KunneIkkeLeggeTilNyttKlageinstansVedtak.MåVæreEnOversendtKlage(menVar = this::class).left()
+    fun leggTilNyKlageinstanshendelse(
+        tolketKlageinstanshendelse: TolketKlageinstanshendelse,
+        lagOppgaveCallback: () -> Either<KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId>,
+    ): Either<KunneIkkeLeggeTilNyKlageinstansHendelse, Klage> {
+        return KunneIkkeLeggeTilNyKlageinstansHendelse.MåVæreEnOversendtKlage(menVar = this::class).left()
     }
 
-    sealed interface KunneIkkeLeggeTilNyttKlageinstansVedtak {
-        data class MåVæreEnOversendtKlage(val menVar: KClass<out Klage>) : KunneIkkeLeggeTilNyttKlageinstansVedtak
-        object KunneIkkeHenteAktørId : KunneIkkeLeggeTilNyttKlageinstansVedtak
-        data class KunneIkkeLageOppgave(val feil: OppgaveFeil) : KunneIkkeLeggeTilNyttKlageinstansVedtak
+    sealed interface KunneIkkeLeggeTilNyKlageinstansHendelse {
+        data class MåVæreEnOversendtKlage(val menVar: KClass<out Klage>) : KunneIkkeLeggeTilNyKlageinstansHendelse
+        object KunneIkkeHenteAktørId : KunneIkkeLeggeTilNyKlageinstansHendelse
+        data class KunneIkkeLageOppgave(val feil: OppgaveFeil) : KunneIkkeLeggeTilNyKlageinstansHendelse
     }
 
     companion object {

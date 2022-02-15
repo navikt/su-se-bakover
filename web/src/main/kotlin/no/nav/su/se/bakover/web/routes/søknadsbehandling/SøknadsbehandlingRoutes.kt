@@ -71,12 +71,14 @@ import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSakId
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.util.UUID
 
 internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
 internal fun Route.søknadsbehandlingRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
+    clock: Clock
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -452,7 +454,7 @@ internal fun Route.søknadsbehandlingRoutes(
                 søknadsbehandlingService.iverksett(
                     IverksettRequest(
                         behandlingId = behandlingId,
-                        attestering = Attestering.Iverksatt(Attestant(navIdent), Tidspunkt.now()),
+                        attestering = Attestering.Iverksatt(Attestant(navIdent), Tidspunkt.now(clock)),
                     ),
                 ).fold(
                     {
