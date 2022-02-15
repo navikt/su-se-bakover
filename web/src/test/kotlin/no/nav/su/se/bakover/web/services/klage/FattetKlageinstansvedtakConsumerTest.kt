@@ -49,8 +49,6 @@ internal class FattetKlageinstansvedtakConsumerTest {
         FattetKlageinstansvedtakConsumer(
             consumer = kafkaConsumer,
             klagevedtakService = klagevedtakService,
-            periode = 1,
-            initialDelay = 0,
             topicName = TOPIC1,
             pollTimeoutDuration = Duration.ofMillis(1000),
             clock = fixedClock,
@@ -115,8 +113,6 @@ internal class FattetKlageinstansvedtakConsumerTest {
         FattetKlageinstansvedtakConsumer(
             consumer = kafkaConsumer,
             klagevedtakService = klagevedtakService,
-            periode = 1,
-            initialDelay = 0,
             topicName = TOPIC2,
             pollTimeoutDuration = Duration.ofMillis(1000),
             clock = fixedClock,
