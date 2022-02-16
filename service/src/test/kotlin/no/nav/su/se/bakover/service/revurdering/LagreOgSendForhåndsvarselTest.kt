@@ -57,7 +57,7 @@ internal class LagreOgSendForhåndsvarselTest {
     @Test
     fun `forhåndsvarsler en simulert-revurdering`() {
         val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
-            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
+            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021)),
         ).second
 
         val mocks = RevurderingServiceMocks(
@@ -78,7 +78,7 @@ internal class LagreOgSendForhåndsvarselTest {
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
-            }
+            },
         )
 
         val revurdering = mocks.revurderingService.lagreOgSendForhåndsvarsel(
@@ -138,15 +138,19 @@ internal class LagreOgSendForhåndsvarselTest {
     fun `forhåndsvarsler ikke en allerede forhåndsvarslet revurdering`() {
         val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             forhåndsvarsel = Forhåndsvarsel.UnderBehandling.Sendt,
-            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
+            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021)),
         ).second
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn simulertRevurdering
-        }
-
         RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn simulertRevurdering
+            },
+            personService = mock {
+                on { hentPerson(any()) } doReturn BehandlingTestUtils.person.right()
+            },
+            identClient = mock {
+                on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
+            },
         ).lagreOgSendForhåndsvarsel(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
@@ -159,7 +163,7 @@ internal class LagreOgSendForhåndsvarselTest {
     fun `kan endre fra ingen forhåndsvarsel til forhåndsvarsel`() {
         val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
+            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021)),
         ).second
 
         val mocks = RevurderingServiceMocks(
@@ -180,7 +184,7 @@ internal class LagreOgSendForhåndsvarselTest {
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
-            }
+            },
         )
         val response = mocks.revurderingService.lagreOgSendForhåndsvarsel(
             revurderingId = revurderingId,
@@ -262,7 +266,7 @@ internal class LagreOgSendForhåndsvarselTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
         )
         testForhåndsvarslerIkkeGittRevurdering(opprettet)
 
@@ -281,7 +285,7 @@ internal class LagreOgSendForhåndsvarselTest {
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
+            avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,
         )
         testForhåndsvarslerIkkeGittRevurdering(beregnet)
     }
@@ -290,7 +294,7 @@ internal class LagreOgSendForhåndsvarselTest {
     fun `forhåndsvarsel - hent person feilet`() {
         val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             forhåndsvarsel = null,
-            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
+            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021)),
         ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -317,7 +321,7 @@ internal class LagreOgSendForhåndsvarselTest {
     fun `forhåndsvarsel - generering av dokument feiler`() {
         val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             forhåndsvarsel = null,
-            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
+            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021)),
         ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -356,7 +360,7 @@ internal class LagreOgSendForhåndsvarselTest {
     @Test
     fun `forhåndsvarsel - oppdatering av oppgave feiler`() {
         val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
-            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
+            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021)),
         ).second
         val mocks = RevurderingServiceMocks(
             revurderingRepo = mock {
@@ -377,7 +381,7 @@ internal class LagreOgSendForhåndsvarselTest {
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
-            }
+            },
         )
         mocks.revurderingService.lagreOgSendForhåndsvarsel(
             revurderingId = revurderingId,

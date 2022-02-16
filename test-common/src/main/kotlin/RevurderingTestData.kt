@@ -999,23 +999,23 @@ private fun <T : SimulertRevurdering> T.prøvÅLeggTilForhåndsvarselPåSimulert
     @Suppress("UNCHECKED_CAST")
     return when (forhåndsvarsel) {
         is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet -> {
-            this.prøvOvergangTilSendt().orNull()!!.prøvOvergangTilAvsluttet(forhåndsvarsel.begrunnelse)
+            this.forhåndsvarselSendt().orNull()!!.prøvOvergangTilAvsluttet(forhåndsvarsel.begrunnelse)
                 .orNull()!!
         }
         is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget -> {
-            this.prøvOvergangTilSendt().orNull()!!
+            this.forhåndsvarselSendt().orNull()!!
                 .prøvOvergangTilEndreGrunnlaget(forhåndsvarsel.begrunnelse).orNull()!!
         }
         is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag -> {
-            this.prøvOvergangTilSendt().orNull()!!
+            this.forhåndsvarselSendt().orNull()!!
                 .prøvOvergangTilAvsluttet(forhåndsvarsel.begrunnelse)
                 .orNull()!!
         }
         Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles -> {
-            this.prøvOvergangTilSkalIkkeForhåndsvarsles().orNull()!!
+            this.ikkeSendForhåndsvarsel().orNull()!!
         }
         Forhåndsvarsel.UnderBehandling.Sendt -> {
-            this.prøvOvergangTilSendt().orNull()!!
+            this.forhåndsvarselSendt().orNull()!!
         }
         null -> this
     } as T
@@ -1084,7 +1084,7 @@ fun tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
-        val attestert = revurdering.prøvOvergangTilSkalIkkeForhåndsvarsles().orNull()!!.tilAttestering(
+        val attestert = revurdering.ikkeSendForhåndsvarsel().orNull()!!.tilAttestering(
             attesteringsoppgaveId = OppgaveId("attestering"),
             saksbehandler = saksbehandler,
             fritekstTilBrev = fritekstTilBrev,

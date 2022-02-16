@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.flatten
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
@@ -11,11 +10,9 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
@@ -880,90 +877,89 @@ internal class RevurderingServiceImpl(
         }
         return when (forhåndsvarselhandling) {
             Forhåndsvarselhandling.INGEN_FORHÅNDSVARSEL -> {
-                revurdering.prøvOvergangTilSkalIkkeForhåndsvarsles().mapLeft {
-                    KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling
-                }.tap {
-                    revurderingRepo.lagre(it)
-                }
+                revurdering.ikkeSendForhåndsvarsel()
+                    .mapLeft {
+                        KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling
+                    }.tap {
+                        revurderingRepo.lagre(it)
+                    }
             }
             Forhåndsvarselhandling.FORHÅNDSVARSLE -> {
-                revurdering.prøvOvergangTilSendt().mapLeft {
-                    KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling
-                }.flatMap { simulertRevurdering ->
-                    Either.catch {
-                        sessionFactory.withTransactionContext { transactionContext ->
-                            skedulerForhåndsvarselsbrev(
-                                revurderingId = simulertRevurdering.id,
-                                sakId = simulertRevurdering.sakId,
-                                fnr = simulertRevurdering.fnr,
-                                saksbehandler = simulertRevurdering.saksbehandler,
-                                fritekst = fritekst,
-                                transactionContext = transactionContext,
-                                saksnummer = simulertRevurdering.saksnummer,
-                            ).map {
-                                revurderingRepo.lagre(simulertRevurdering, transactionContext)
-                                prøvÅOppdatereOppgaveEtterViHarSendtForhåndsvarsel(
-                                    revurderingId = simulertRevurdering.id,
-                                    oppgaveId = simulertRevurdering.oppgaveId,
-                                ).tapLeft {
-                                    throw KunneIkkeOppdatereOppgave()
+                hentPersonOgSaksbehandlerNavn(
+                    fnr = revurdering.fnr,
+                    saksbehandler = saksbehandler,
+                ).mapLeft {
+                    when (it) {
+                        KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson -> {
+                            KunneIkkeForhåndsvarsle.FantIkkePerson
+                        }
+                        KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
+                            KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler
+                        }
+                    }
+                }.flatMap { (person, saksbehandlerNavn) ->
+                    revurdering.lagForhåndsvarsel(
+                        person = person,
+                        saksbehandlerNavn = saksbehandlerNavn,
+                        fritekst = fritekst,
+                        clock = clock,
+                    ).mapLeft {
+                        KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling
+                    }.flatMap { forhåndsvarselBrev ->
+                        forhåndsvarselBrev.tilDokument {
+                            brevService.lagBrev(it)
+                                .mapLeft {
+                                    LagBrevRequest.KunneIkkeGenererePdf
                                 }
-                                log.info("Forhåndsvarsel sendt for revurdering ${simulertRevurdering.id}")
-                                simulertRevurdering
-                            }
+                        }.mapLeft {
+                            KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument
+                        }.flatMap { dokumentUtenMetadata ->
+                            revurdering.forhåndsvarselSendt()
+                                .mapLeft {
+                                    KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling
+                                }
+                                .flatMap { simulertRevurdering ->
+                                    Either.catch {
+                                        sessionFactory.withTransactionContext { tx ->
+                                            brevService.lagreDokument(
+                                                dokument = dokumentUtenMetadata.leggTilMetadata(
+                                                    Dokument.Metadata(
+                                                        sakId = simulertRevurdering.sakId,
+                                                        revurderingId = simulertRevurdering.id,
+                                                        bestillBrev = true,
+                                                    ),
+                                                ),
+                                                transactionContext = tx,
+                                            )
+                                            revurderingRepo.lagre(
+                                                revurdering = simulertRevurdering,
+                                                transactionContext = tx,
+                                            )
+                                            prøvÅOppdatereOppgaveEtterViHarSendtForhåndsvarsel(
+                                                revurderingId = simulertRevurdering.id,
+                                                oppgaveId = simulertRevurdering.oppgaveId,
+                                            ).tapLeft {
+                                                throw KunneIkkeOppdatereOppgave()
+                                            }
+                                            log.info("Forhåndsvarsel sendt for revurdering ${simulertRevurdering.id}")
+                                            simulertRevurdering
+                                        }
+                                    }.mapLeft {
+                                        if (it is KunneIkkeOppdatereOppgave) {
+                                            KunneIkkeForhåndsvarsle.KunneIkkeOppdatereOppgave
+                                        } else {
+                                            throw it
+                                        }
+                                    }
+                                }
                         }
-                    }.mapLeft {
-                        if (it is KunneIkkeOppdatereOppgave) {
-                            KunneIkkeForhåndsvarsle.KunneIkkeOppdatereOppgave
-                        } else {
-                            throw it
-                        }
-                    }.flatten()
+                    }
                 }
             }
         }
     }
 
     private class KunneIkkeOppdatereOppgave : RuntimeException()
-
-    private fun skedulerForhåndsvarselsbrev(
-        revurderingId: UUID,
-        sakId: UUID,
-        fnr: Fnr,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekst: String,
-        transactionContext: TransactionContext,
-        saksnummer: Saksnummer,
-    ): Either<KunneIkkeForhåndsvarsle, Unit> {
-        val personOgSaksbehandlerNavn =
-            hentPersonOgSaksbehandlerNavn(fnr, saksbehandler).getOrHandle {
-                return when (it) {
-                    KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson -> KunneIkkeForhåndsvarsle.FantIkkePerson.left()
-                    KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler.left()
-                }
-            }
-
-        val dokument = LagBrevRequest.Forhåndsvarsel(
-            person = personOgSaksbehandlerNavn.first,
-            saksbehandlerNavn = personOgSaksbehandlerNavn.second,
-            fritekst = fritekst,
-            dagensDato = LocalDate.now(clock),
-            saksnummer = saksnummer,
-        ).tilDokument {
-            brevService.lagBrev(it).mapLeft { LagBrevRequest.KunneIkkeGenererePdf }
-        }.map {
-            it.leggTilMetadata(
-                metadata = Dokument.Metadata(
-                    sakId = sakId,
-                    revurderingId = revurderingId,
-                    bestillBrev = true,
-                ),
-            )
-        }.getOrHandle { return KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument.left() }
-        brevService.lagreDokument(dokument, transactionContext)
-
-        return Unit.right()
-    }
 
     private fun prøvÅOppdatereOppgaveEtterViHarSendtForhåndsvarsel(
         revurderingId: UUID,
@@ -1193,7 +1189,7 @@ internal class RevurderingServiceImpl(
         tilbakekrevingService.hentAvventerKravgrunnlag(revurdering.sakId)
             .ifNotEmpty {
                 return KunneIkkeSendeRevurderingTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
-                    revurderingId = this.first().avgjort.revurderingId
+                    revurderingId = this.first().avgjort.revurderingId,
                 ).left()
             }
 

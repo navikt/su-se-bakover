@@ -157,7 +157,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val repo = testDataHelper.revurderingRepo
             val simulert = testDataHelper.simulertInnvilgetRevurdering()
             val simulertIngenForhåndsvarsel =
-                simulert.prøvOvergangTilSkalIkkeForhåndsvarsles().orNull()!!.also {
+                simulert.ikkeSendForhåndsvarsel().orNull()!!.also {
                     repo.lagre(it)
                 }
             (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
@@ -171,7 +171,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val repo = testDataHelper.revurderingRepo
             val simulert = testDataHelper.simulertInnvilgetRevurdering()
             val simulertIngenForhåndsvarsel =
-                simulert.prøvOvergangTilSendt().orNull()!!.also {
+                simulert.forhåndsvarselSendt().orNull()!!.also {
                     repo.lagre(it)
                 }
             (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
@@ -185,7 +185,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val repo = testDataHelper.revurderingRepo
             val simulert = testDataHelper.simulertInnvilgetRevurdering()
             val simulertIngenForhåndsvarsel =
-                simulert.prøvOvergangTilSendt().orNull()!!.prøvOvergangTilAvsluttet("").orNull()!!.also {
+                simulert.forhåndsvarselSendt().orNull()!!.prøvOvergangTilAvsluttet("").orNull()!!.also {
                     repo.lagre(it)
                 }
             (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()

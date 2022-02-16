@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
@@ -845,9 +847,27 @@ sealed class SimulertRevurdering : Revurdering() {
 
     fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
 
-    abstract fun prøvOvergangTilSkalIkkeForhåndsvarsles(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
+    abstract fun ikkeSendForhåndsvarsel(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
 
-    abstract fun prøvOvergangTilSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
+    fun lagForhåndsvarsel(
+        person: Person,
+        saksbehandlerNavn: String,
+        fritekst: String,
+        clock: Clock,
+    ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, LagBrevRequest.Forhåndsvarsel> {
+        return forhåndsvarsel.prøvOvergangTilSendt()
+            .map {
+                LagBrevRequest.Forhåndsvarsel(
+                    person = person,
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    fritekst = fritekst,
+                    dagensDato = LocalDate.now(clock),
+                    saksnummer = saksnummer,
+                )
+            }
+    }
+
+    abstract fun forhåndsvarselSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
 
     abstract fun prøvOvergangTilAvsluttet(
         begrunnelse: String,
@@ -912,12 +932,13 @@ sealed class SimulertRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
-        override fun prøvOvergangTilSkalIkkeForhåndsvarsles(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Innvilget> {
+        override fun ikkeSendForhåndsvarsel(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Innvilget> {
             return forhåndsvarsel.prøvOvergangTilSkalIkkeForhåndsvarsles().map { this.copy(forhåndsvarsel = it) }
         }
 
-        override fun prøvOvergangTilSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Innvilget> {
-            return forhåndsvarsel.prøvOvergangTilSendt().map { this.copy(forhåndsvarsel = it) }
+        override fun forhåndsvarselSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering.Innvilget> {
+            return forhåndsvarsel.prøvOvergangTilSendt()
+                .map { copy(forhåndsvarsel = it) }
         }
 
         override fun prøvOvergangTilAvsluttet(
@@ -1031,12 +1052,13 @@ sealed class SimulertRevurdering : Revurdering() {
             }
         }
 
-        override fun prøvOvergangTilSkalIkkeForhåndsvarsles(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {
+        override fun ikkeSendForhåndsvarsel(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {
             return forhåndsvarsel.prøvOvergangTilSkalIkkeForhåndsvarsles().map { this.copy(forhåndsvarsel = it) }
         }
 
-        override fun prøvOvergangTilSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {
-            return forhåndsvarsel.prøvOvergangTilSendt().map { this.copy(forhåndsvarsel = it) }
+        override fun forhåndsvarselSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering.Opphørt> {
+            return forhåndsvarsel.prøvOvergangTilSendt()
+                .map { copy(forhåndsvarsel = it) }
         }
 
         override fun prøvOvergangTilAvsluttet(

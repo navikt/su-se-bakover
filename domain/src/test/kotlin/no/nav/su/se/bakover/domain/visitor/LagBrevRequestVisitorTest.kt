@@ -1081,7 +1081,7 @@ internal class LagBrevRequestVisitorTest {
                     eksisterendeUtbetalinger = sak.utbetalinger,
                 )
             }.getOrFail()
-        }.prøvOvergangTilSkalIkkeForhåndsvarsles().getOrFail()
+        }.ikkeSendForhåndsvarsel().getOrFail()
             .oppdaterTilbakekrevingsbehandling(
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling
             )

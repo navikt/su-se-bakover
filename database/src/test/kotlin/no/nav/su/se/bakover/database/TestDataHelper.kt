@@ -698,7 +698,7 @@ internal class TestDataHelper(
      */
     fun revurderingTilAttesteringInnvilget(): RevurderingTilAttestering.Innvilget {
         val simulert: SimulertRevurdering.Innvilget = simulertInnvilgetRevurdering().let {
-            if (it.forhåndsvarsel == null) it.prøvOvergangTilSkalIkkeForhåndsvarsles().orNull()!! else it
+            if (it.forhåndsvarsel == null) it.ikkeSendForhåndsvarsel().orNull()!! else it
         }
         return simulert.tilAttestering(
             attesteringsoppgaveId = oppgaveId,
@@ -731,7 +731,7 @@ internal class TestDataHelper(
      * Setter forhåndsvarsel til SkalIkkeForhåndsvarsel.
      */
     fun revurderingTilAttesteringOpphørt(): RevurderingTilAttestering.Opphørt {
-        return simulertOpphørtRevurdering().prøvOvergangTilSkalIkkeForhåndsvarsles().getOrFail().tilAttestering(
+        return simulertOpphørtRevurdering().ikkeSendForhåndsvarsel().getOrFail().tilAttestering(
             attesteringsoppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",

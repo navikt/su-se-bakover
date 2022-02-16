@@ -335,7 +335,7 @@ internal class RevurderingPostgresRepoTest {
                     attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = "fritekst",
-                ).orNull()!!
+                ).getOrFail()
 
             repo.lagre(tilAttestering)
 
@@ -365,7 +365,7 @@ internal class RevurderingPostgresRepoTest {
                 attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                 saksbehandler = Saksbehandler("Ny saksbehandler"),
                 fritekstTilBrev = "fritekst",
-            ).orNull()!!
+            ).getOrFail()
 
             repo.lagre(tilAttestering)
 
@@ -412,7 +412,7 @@ internal class RevurderingPostgresRepoTest {
                     attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = "",
-                ).orNull()!!
+                ).getOrFail()
             repo.lagre(tilAttestering)
 
             val attestering = Attestering.Underkjent(
@@ -449,7 +449,7 @@ internal class RevurderingPostgresRepoTest {
                     attesteringsoppgaveId = opprettet.oppgaveId,
                     saksbehandler = opprettet.saksbehandler,
                     fritekstTilBrev = opprettet.fritekstTilBrev,
-                ).orNull()!!
+                ).getOrFail()
             repo.lagre(tilAttestering)
 
             val underkjent = UnderkjentRevurdering.Opphørt(
@@ -539,7 +539,7 @@ internal class RevurderingPostgresRepoTest {
                     attesteringsoppgaveId = opprettet.oppgaveId,
                     saksbehandler = opprettet.saksbehandler,
                     fritekstTilBrev = opprettet.fritekstTilBrev,
-                ).orNull()!!
+                ).getOrFail()
             repo.lagre(tilAttestering)
 
             val underkjent = IverksattRevurdering.Opphørt(
@@ -734,7 +734,7 @@ internal class RevurderingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
             val simulert = testDataHelper.simulertInnvilgetRevurdering()
-            val expected = simulert.prøvOvergangTilSkalIkkeForhåndsvarsles().orNull()!!.also {
+            val expected = simulert.ikkeSendForhåndsvarsel().getOrFail().also {
                 repo.lagre(it)
             }
 
@@ -750,7 +750,7 @@ internal class RevurderingPostgresRepoTest {
             val repo = testDataHelper.revurderingRepo
             val simulert = testDataHelper.simulertInnvilgetRevurdering()
             val simulertIngenForhåndsvarsel =
-                simulert.prøvOvergangTilSendt().orNull()!!.also {
+                simulert.forhåndsvarselSendt().getOrFail().also {
                     repo.lagre(it)
                 }
             (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
@@ -764,13 +764,13 @@ internal class RevurderingPostgresRepoTest {
             val repo = testDataHelper.revurderingRepo
             val simulert = testDataHelper.simulertInnvilgetRevurdering()
             val simulertIngenForhåndsvarsel =
-                simulert.prøvOvergangTilSendt().orNull()!!
-                    .prøvOvergangTilFortsettMedSammeGrunnlag("").orNull()!!
+                simulert.forhåndsvarselSendt().getOrFail()
+                    .prøvOvergangTilFortsettMedSammeGrunnlag("").getOrFail()
                     .tilAttestering(
                         attesteringsoppgaveId = OppgaveId(value = "attesteringsoppgaveId"),
                         saksbehandler = Saksbehandler(navIdent = "nySaksbehandler"),
                         fritekstTilBrev = "Fortsetter etter forhåndsvarsel",
-                    ).orNull()!!
+                    ).getOrFail()
                     .also {
                         repo.lagre(it)
                     }
@@ -785,7 +785,7 @@ internal class RevurderingPostgresRepoTest {
             val repo = testDataHelper.revurderingRepo
             val simulert = testDataHelper.simulertInnvilgetRevurdering()
             val simulertIngenForhåndsvarsel =
-                simulert.prøvOvergangTilSendt().orNull()!!.prøvOvergangTilEndreGrunnlaget("").orNull()!!.also {
+                simulert.forhåndsvarselSendt().getOrFail().prøvOvergangTilEndreGrunnlaget("").getOrFail().also {
                     repo.lagre(it)
                 }
             (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
