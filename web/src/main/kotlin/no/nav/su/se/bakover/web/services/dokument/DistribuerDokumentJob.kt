@@ -26,7 +26,8 @@ class DistribuerDokumentJob(
     private val periode = Duration.of(1, ChronoUnit.MINUTES).toMillis()
 
     fun schedule() {
-        log.info("Starter skeduleringsjobb '$jobName' med intervall: $periode ms. Mitt hostnavn er $hostName. Jeg er ${if (leaderPodLookup.erLeaderPod(hostname = hostName)) "" else "ikke "}leder.")
+        // Avventer kall til erLeaderPod i tilfelle den ikke er startet enda.
+        log.info("Starter skeduleringsjobb '$jobName' med intervall: $periode ms. Mitt hostnavn er $hostName.")
 
         fixedRateTimer(
             name = jobName,
