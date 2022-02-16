@@ -47,6 +47,11 @@ sealed class BrevTemplate(
         brevTittel = "Varsel om at vi vil ta opp stønaden din til ny vurdering"
     )
 
+    object ForhåndsvarselTilbakekreving : BrevTemplate(
+        pdfTemplate = PdfTemplate.ForhåndsvarselTilbakekreving,
+        brevTittel = "Varsel om mulig tilbakekreving"
+    )
+
     object InnkallingTilKontrollsamtale : BrevTemplate(
         pdfTemplate = PdfTemplate.InnkallingTilKontrollsamtale,
         brevTittel = "Supplerende stønad ufør flyktning – innkalling til samtale"

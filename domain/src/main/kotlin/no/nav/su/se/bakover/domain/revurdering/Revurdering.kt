@@ -854,17 +854,45 @@ sealed class SimulertRevurdering : Revurdering() {
         saksbehandlerNavn: String,
         fritekst: String,
         clock: Clock,
-    ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, LagBrevRequest.Forhåndsvarsel> {
-        return forhåndsvarsel.prøvOvergangTilSendt()
+    ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, LagBrevRequest> {
+        return forhåndsvarsel.prøvOvergangTilSendt() // brukes for å verifisere tilstanden på forhåndsvarsel, resultatet ignoreres
             .map {
-                LagBrevRequest.Forhåndsvarsel(
-                    person = person,
-                    saksbehandlerNavn = saksbehandlerNavn,
-                    fritekst = fritekst,
-                    dagensDato = LocalDate.now(clock),
-                    saksnummer = saksnummer,
-                )
+                if (lagForhåndsvarselForTilbakekreving()) {
+                    LagBrevRequest.ForhåndsvarselTilbakekreving(
+                        person = person,
+                        saksbehandlerNavn = saksbehandlerNavn,
+                        fritekst = fritekst,
+                        dagensDato = LocalDate.now(clock),
+                        saksnummer = saksnummer,
+                        bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum()
+                    )
+                } else {
+                    LagBrevRequest.Forhåndsvarsel(
+                        person = person,
+                        saksbehandlerNavn = saksbehandlerNavn,
+                        fritekst = fritekst,
+                        dagensDato = LocalDate.now(clock),
+                        saksnummer = saksnummer,
+                    )
+                }
             }
+    }
+
+    private fun lagForhåndsvarselForTilbakekreving(): Boolean {
+        return when (tilbakekrevingsbehandling) {
+            is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
+                false
+            }
+            is IkkeTilbakekrev -> {
+                false
+            }
+            is Tilbakekrev -> {
+                true
+            }
+            is IkkeAvgjort -> {
+                throw IllegalStateException("Må ta stilling til tilbakekreving før forhåndsvarsel kan sendes!")
+            }
+        }
     }
 
     abstract fun forhåndsvarselSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>

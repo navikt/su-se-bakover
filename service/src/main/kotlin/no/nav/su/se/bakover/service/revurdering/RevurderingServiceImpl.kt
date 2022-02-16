@@ -84,7 +84,6 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 internal class RevurderingServiceImpl(
@@ -979,27 +978,40 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         fritekst: String,
     ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
-        val revurdering = hent(revurderingId)
-            .getOrHandle { return KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering.left() }
+        return hent(revurderingId)
+            .mapLeft {
+                KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering
+            }
+            .flatMap { revurdering ->
+                if (revurdering !is SimulertRevurdering) return KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast.left()
 
-        val personOgSaksbehandlerNavn =
-            hentPersonOgSaksbehandlerNavn(revurdering.fnr, revurdering.saksbehandler).getOrHandle {
-                return when (it) {
-                    KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
-                    KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+                hentPersonOgSaksbehandlerNavn(
+                    fnr = revurdering.fnr,
+                    saksbehandler = revurdering.saksbehandler,
+                ).mapLeft {
+                    when (it) {
+                        KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson -> {
+                            KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
+                        }
+                        KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
+                            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                        }
+                    }
+                }.flatMap { (person, saksbehandlerNavn) ->
+                    revurdering.lagForhåndsvarsel(
+                        person = person,
+                        saksbehandlerNavn = saksbehandlerNavn,
+                        fritekst = fritekst,
+                        clock = clock,
+                    ).mapLeft {
+                        KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast
+                    }.flatMap {
+                        brevService.lagBrev(it).mapLeft {
+                            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast
+                        }
+                    }
                 }
             }
-
-        val brevRequest = LagBrevRequest.Forhåndsvarsel(
-            person = personOgSaksbehandlerNavn.first,
-            fritekst = fritekst,
-            saksbehandlerNavn = personOgSaksbehandlerNavn.second,
-            dagensDato = LocalDate.now(clock),
-            saksnummer = revurdering.saksnummer,
-        )
-
-        return brevService.lagBrev(brevRequest)
-            .mapLeft { KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast }
     }
 
     override fun oppdaterTilbakekrevingsbehandling(request: OppdaterTilbakekrevingsbehandlingRequest): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, SimulertRevurdering> {

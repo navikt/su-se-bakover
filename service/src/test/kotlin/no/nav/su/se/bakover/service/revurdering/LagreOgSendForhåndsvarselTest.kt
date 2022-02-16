@@ -34,23 +34,30 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.test.aktørId
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
+import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksbehandlerNavn
+import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doReturnConsecutively
+import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
+import java.time.LocalDate
 
 internal class LagreOgSendForhåndsvarselTest {
 
@@ -420,5 +427,72 @@ internal class LagreOgSendForhåndsvarselTest {
         )
         verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any())
         mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `velger forhåndsvarselbrev basert på underliggende revurdering`() {
+        val simulertMedTilbakekreving = simulertRevurdering(
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt1000(
+                    periode = periode2021,
+                ),
+            ),
+        ).second
+
+        val simulertUtenTilbakekreving = simulertRevurdering().second
+
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturnConsecutively listOf(
+                    simulertMedTilbakekreving,
+                    simulertUtenTilbakekreving,
+                )
+            },
+            personService = mock {
+                on { hentPerson(any()) } doReturn BehandlingTestUtils.person.right()
+            },
+            brevService = mock {
+                on { lagBrev(any()) } doReturn "".toByteArray().right()
+            },
+            identClient = mock {
+                on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
+            },
+        ).let {
+            inOrder(
+                it.brevService,
+            ) {
+                it.revurderingService.lagBrevutkastForForhåndsvarsling(
+                    revurderingId = simulertMedTilbakekreving.id,
+                    fritekst = "det kreves",
+                )
+                verify(it.brevService).lagBrev(
+                    argThat {
+                        it shouldBe LagBrevRequest.ForhåndsvarselTilbakekreving(
+                            person = BehandlingTestUtils.person,
+                            dagensDato = LocalDate.now(fixedClock),
+                            saksnummer = simulertMedTilbakekreving.saksnummer,
+                            saksbehandlerNavn = "saksbehandler",
+                            fritekst = "det kreves",
+                            bruttoTilbakekreving = simulertMedTilbakekreving.simulering.hentFeilutbetalteBeløp().sum()
+                        )
+                    },
+                )
+                it.revurderingService.lagBrevutkastForForhåndsvarsling(
+                    revurderingId = simulertUtenTilbakekreving.id,
+                    fritekst = "ikkeno kreving",
+                )
+                verify(it.brevService).lagBrev(
+                    argThat {
+                        it shouldBe LagBrevRequest.Forhåndsvarsel(
+                            person = BehandlingTestUtils.person,
+                            dagensDato = LocalDate.now(fixedClock),
+                            saksnummer = simulertMedTilbakekreving.saksnummer,
+                            saksbehandlerNavn = "saksbehandler",
+                            fritekst = "ikkeno kreving",
+                        )
+                    },
+                )
+            }
+        }
     }
 }

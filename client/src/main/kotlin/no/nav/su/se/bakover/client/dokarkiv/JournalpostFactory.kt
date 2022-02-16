@@ -24,6 +24,7 @@ object JournalpostFactory {
         BrevTemplate.TrukketSøknad,
         BrevTemplate.AvvistSøknadFritekst,
         BrevTemplate.Forhåndsvarsel,
+        BrevTemplate.ForhåndsvarselTilbakekreving,
         BrevTemplate.Revurdering.AvsluttRevurdering,
         BrevTemplate.InnkallingTilKontrollsamtale,
         BrevTemplate.Klage.Oppretthold,

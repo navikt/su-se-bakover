@@ -236,6 +236,34 @@ interface LagBrevRequest {
         }
     }
 
+    data class ForhåndsvarselTilbakekreving(
+        override val person: Person,
+        override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
+        private val saksbehandlerNavn: String,
+        private val fritekst: String,
+        private val bruttoTilbakekreving: Int
+    ) : LagBrevRequest {
+        override val brevInnhold = BrevInnhold.ForhåndsvarselTilbakekreving(
+            personalia = lagPersonalia(),
+            saksbehandlerNavn = saksbehandlerNavn,
+            fritekst = fritekst,
+            bruttoTilbakekreving = bruttoTilbakekreving,
+        )
+
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
+            return genererDokument(genererPdf).map {
+                Dokument.UtenMetadata.Informasjon(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
+            }
+        }
+    }
+
     /**
      * Brev for når en revurdering er forhåndsvarslet
      * hvis revurderingen ikke er forhåndsvarslet, er det ikke noe brev.
