@@ -23,57 +23,57 @@ internal class FerdigeBehandlingerRepo(
         return dbMetrics.timeQuery("hentFerdigeBehandlinger") {
             //language=sql
             """
-        with sak as (
-            select id as sakId, saksnummer
-            from sak
-        ),
-             behandlinger as (
-                 select sak.sakId,
-                        sak.saksnummer,
-                        b.id,
-                        b.status            as status,
-                        'SØKNADSBEHANDLING' as type,
-                        (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(b.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet
-                 from sak
-                          join behandling b on b.sakid = sak.sakId
-                 where b.status like ('IVERKSATT%')
-             ),
-             revurderinger as (
-                 select sak.sakId,
-                        sak.saksnummer,
-                        r.id,
-                        r.revurderingstype                                         as status,
-                        'REVURDERING'                                              as type,
-                        (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(r.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet
-                 from sak
-                          join behandling_vedtak bv on bv.sakid = sak.sakId
-                          join revurdering r on r.vedtaksomrevurderesid = bv.vedtakid
-                 where r.revurderingstype like ('IVERKSATT%')
-             ),
-             klage as (
-                 select sak.sakId,
-                        sak.saksnummer,
-                        k.id,
-                        k.type                                                     as status,
-                        'KLAGE'                                                    as type,
-                        (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(k.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet
-                 from sak
-                          join klage k on sak.sakId = k.sakid
-                 where k.type like ('iverksatt%')
-                    or k.type like 'oversendt'
-             ),
-             slåttSammen as (
-                 select *
-                 from behandlinger
-                 union
-                 select *
-                 from revurderinger
-                 union
-                 select *
-                 from klage
-             )
-        select *
-        from slåttSammen
+            with sak as (
+                select id as sakId, saksnummer
+                from sak
+            ),
+                 behandlinger as (
+                     select sak.sakId,
+                            sak.saksnummer,
+                            b.id,
+                            b.status            as status,
+                            'SØKNADSBEHANDLING' as type,
+                            (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(b.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet
+                     from sak
+                              join behandling b on b.sakid = sak.sakId
+                     where b.status like ('IVERKSATT%')
+                 ),
+                 revurderinger as (
+                     select sak.sakId,
+                            sak.saksnummer,
+                            r.id,
+                            r.revurderingstype                                         as status,
+                            'REVURDERING'                                              as type,
+                            (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(r.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet
+                     from sak
+                              join behandling_vedtak bv on bv.sakid = sak.sakId
+                              join revurdering r on r.vedtaksomrevurderesid = bv.vedtakid
+                     where r.revurderingstype like ('IVERKSATT%')
+                 ),
+                 klage as (
+                     select sak.sakId,
+                            sak.saksnummer,
+                            k.id,
+                            k.type                                                     as status,
+                            'KLAGE'                                                    as type,
+                            (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(k.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet
+                     from sak
+                              join klage k on sak.sakId = k.sakid
+                     where k.type like ('iverksatt%')
+                        or k.type like 'oversendt'
+                 ),
+                 slåttSammen as (
+                     select *
+                     from behandlinger
+                     union
+                     select *
+                     from revurderinger
+                     union
+                     select *
+                     from klage
+                 )
+            select *
+            from slåttSammen
             """.trimIndent().hentListe(emptyMap(), session) {
                 it.toBehandlingsoversikt()
             }
