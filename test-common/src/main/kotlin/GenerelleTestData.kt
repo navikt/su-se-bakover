@@ -23,7 +23,7 @@ import java.time.temporal.TemporalUnit
 val fixedClock: Clock =
     Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 
-/** Fixed UTC clock at 2021-02-01T01:02:03.456789000Z */
+/** Fixed UTC clock at 2021-02-08T01:02:03.456789000Z */
 val enUkeEtterFixedClock: Clock = fixedClock.plus(7, ChronoUnit.DAYS)
 
 /**
@@ -42,8 +42,8 @@ fun Clock.plus(amountToAdd: Long, unit: TemporalUnit): Clock =
 val fixedTidspunkt: Tidspunkt = Tidspunkt.now(fixedClock)
 
 /**
- * Fixed Tidspunkt at 2021-02-01T01:02:03.456789000Z
- * Correlates with `enUkeEtterFixedClock`
+ * Fixed Tidspunkt at 2021-02-08T01:02:03.456789000Z
+ * Correlates with [enUkeEtterFixedClock]
  */
 val enUkeEtterFixedTidspunkt: Tidspunkt = Tidspunkt.now(enUkeEtterFixedClock)
 
