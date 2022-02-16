@@ -58,8 +58,6 @@ internal class PersonhendelseConsumerTest {
         PersonhendelseConsumer(
             consumer = kafkaConsumer,
             personhendelseService = personhendelseService,
-            periode = 1,
-            initialDelay = 0,
             topicName = TOPIC1,
             pollTimeoutDuration = Duration.ofMillis(1000),
         )
@@ -97,8 +95,6 @@ internal class PersonhendelseConsumerTest {
         PersonhendelseConsumer(
             consumer = kafkaConsumer,
             personhendelseService = personhendelseService,
-            periode = 1,
-            initialDelay = 0,
             topicName = TOPIC2,
             pollTimeoutDuration = Duration.ofMillis(1000),
         )
