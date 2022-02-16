@@ -27,6 +27,8 @@ data class Behandlingsoversikt(
         AVSLAG,
         INGEN_ENDRING,
         INNVILGET,
-        AVSLUTTET;
+        STANS,
+        GJENOPPTAK,
+        OVERSENDT;
     }
 }
