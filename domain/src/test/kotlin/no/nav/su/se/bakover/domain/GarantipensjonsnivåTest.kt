@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.domain.beregning.Garantipensjonsnivå
 import org.junit.jupiter.api.Test
 
 internal class GarantipensjonsnivåTest {

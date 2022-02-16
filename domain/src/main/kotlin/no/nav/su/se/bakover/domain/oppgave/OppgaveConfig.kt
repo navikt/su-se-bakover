@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.domain.oppgave
 
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Behandlingstype
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Oppgavetype
-import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
+import no.nav.su.se.bakover.domain.person.AktørId
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

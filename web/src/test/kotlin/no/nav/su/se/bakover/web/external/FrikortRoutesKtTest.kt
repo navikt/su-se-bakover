@@ -9,7 +9,7 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.person.Fnr
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.web.DEFAULT_CALL_ID
 import no.nav.su.se.bakover.web.TestServicesBuilder

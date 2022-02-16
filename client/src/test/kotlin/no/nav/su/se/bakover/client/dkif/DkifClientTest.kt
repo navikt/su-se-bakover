@@ -7,7 +7,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
-import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.person.Fnr
 import org.junit.jupiter.api.Test
 
 class DkifClientTest : WiremockBase {

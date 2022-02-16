@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KanIkkeTolkeKlagevedtak
 import no.nav.su.se.bakover.domain.klage.KlageRepo
@@ -15,6 +14,7 @@ import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.AktørId
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService

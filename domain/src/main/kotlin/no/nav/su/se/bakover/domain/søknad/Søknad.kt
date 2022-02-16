@@ -1,9 +1,9 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover.domain.søknad
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate

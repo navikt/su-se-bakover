@@ -7,7 +7,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.contentType
-import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
 internal fun TestApplicationEngine.iverksett(

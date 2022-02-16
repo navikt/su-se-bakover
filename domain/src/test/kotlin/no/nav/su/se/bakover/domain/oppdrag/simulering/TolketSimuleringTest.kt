@@ -13,9 +13,9 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.domain.Beløp
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.MånedBeløp
 import no.nav.su.se.bakover.domain.Månedsbeløp
+import no.nav.su.se.bakover.domain.person.Fnr
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test

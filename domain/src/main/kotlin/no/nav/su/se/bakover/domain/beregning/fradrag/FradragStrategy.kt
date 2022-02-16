@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.Garantipensjonsnivå
+import no.nav.su.se.bakover.domain.beregning.Garantipensjonsnivå
 import no.nav.su.se.bakover.domain.beregning.Sats
 
 enum class FradragStrategyName {

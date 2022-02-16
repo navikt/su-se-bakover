@@ -1,6 +1,7 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover.domain.søknad
 
-import no.nav.su.se.bakover.domain.Boforhold.OppgittAdresse.IngenAdresse.IngenAdresseGrunn
+import no.nav.su.se.bakover.domain.person.Fnr
+import no.nav.su.se.bakover.domain.søknad.Boforhold.OppgittAdresse.IngenAdresse.IngenAdresseGrunn
 import java.time.LocalDate
 import java.time.Month.FEBRUARY
 import java.time.Month.JANUARY

@@ -5,8 +5,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt

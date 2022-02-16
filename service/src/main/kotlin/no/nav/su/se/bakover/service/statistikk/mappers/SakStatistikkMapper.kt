@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.statistikk.mappers
 
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.person.AktørId
+import no.nav.su.se.bakover.domain.sak.Sak
 import no.nav.su.se.bakover.service.statistikk.Statistikk
 import java.time.Clock
 

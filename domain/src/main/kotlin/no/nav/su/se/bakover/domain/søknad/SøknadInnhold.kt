@@ -1,7 +1,8 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover.domain.søknad
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.su.se.bakover.domain.person.Fnr
 import java.time.LocalDate
 
 data class SøknadInnhold(

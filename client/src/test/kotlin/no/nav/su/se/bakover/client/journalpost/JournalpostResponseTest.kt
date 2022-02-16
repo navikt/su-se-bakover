@@ -3,11 +3,11 @@ package no.nav.su.se.bakover.client.journalpost
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
 import no.nav.su.se.bakover.domain.journalpost.Tema
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import org.junit.jupiter.api.Test
 
 internal class JournalpostResponseTest {

@@ -8,7 +8,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontrollsamtale

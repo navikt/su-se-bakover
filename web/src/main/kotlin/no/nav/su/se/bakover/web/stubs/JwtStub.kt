@@ -4,7 +4,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.stubs.AuthStubCommonConfig
-import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
 import org.jetbrains.annotations.TestOnly
 import java.time.Instant
 import java.time.temporal.ChronoUnit

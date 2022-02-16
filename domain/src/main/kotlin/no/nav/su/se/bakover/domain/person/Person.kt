@@ -1,6 +1,5 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover.domain.person
 
-import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import java.time.LocalDate
 import java.time.Period
 

@@ -3,12 +3,8 @@ package no.nav.su.se.bakover.domain.søknad
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.domain.Boforhold
-import no.nav.su.se.bakover.domain.InnlagtPåInstitusjon
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.fnrUnder67
+import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert

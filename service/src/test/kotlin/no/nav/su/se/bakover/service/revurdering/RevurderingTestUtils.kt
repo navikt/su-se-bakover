@@ -7,9 +7,9 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
+import no.nav.su.se.bakover.domain.bruker.IdentClient
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering

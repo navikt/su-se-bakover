@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dkif.Kontaktinformasjon
-import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.person.Fnr
 
 object DkifClientStub : DigitalKontaktinformasjon {
     override fun hentKontaktinformasjon(fnr: Fnr): Either<DigitalKontaktinformasjon.KunneIkkeHenteKontaktinformasjon, Kontaktinformasjon> {

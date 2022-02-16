@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web
 
 import no.nav.su.se.bakover.common.auditLogg
-import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.person.Fnr
 import java.lang.String.join
 import java.util.UUID
 

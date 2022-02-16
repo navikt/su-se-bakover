@@ -15,7 +15,7 @@ import io.ktor.routing.RoutingResolveContext
 import io.ktor.routing.application
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelinePhase
-import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
 import org.slf4j.LoggerFactory
 
 class AuthorizationException(override val message: String) : RuntimeException(message)

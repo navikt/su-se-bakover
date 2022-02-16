@@ -9,7 +9,7 @@ import io.ktor.routing.post
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.mapBoth
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize

@@ -7,11 +7,11 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteJournalpost
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveResultat

@@ -4,13 +4,13 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Ident
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Telefonnummer
+import no.nav.su.se.bakover.domain.person.AktørId
+import no.nav.su.se.bakover.domain.person.Fnr
+import no.nav.su.se.bakover.domain.person.Ident
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.person.Telefonnummer
 import java.time.LocalDate
 
 object PersonOppslagStub :

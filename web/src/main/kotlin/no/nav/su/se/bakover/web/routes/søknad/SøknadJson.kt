@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
-import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
 import java.time.format.DateTimeFormatter
 

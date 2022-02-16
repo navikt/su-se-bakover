@@ -17,11 +17,11 @@ import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker.Attestant
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.sak.Sak
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest

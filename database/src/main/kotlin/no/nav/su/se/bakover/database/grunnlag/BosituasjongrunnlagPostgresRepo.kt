@@ -12,9 +12,9 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.database.withTransaction
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.BosituasjongrunnlagRepo
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.person.Fnr
 import java.util.UUID
 import javax.sql.DataSource
 

@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.personhendelse
 
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.Fnr
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.time.LocalDate
 import java.util.UUID
 

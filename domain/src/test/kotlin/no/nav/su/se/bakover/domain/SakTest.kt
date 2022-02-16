@@ -17,6 +17,9 @@ import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.domain.person.Fnr
+import no.nav.su.se.bakover.domain.sak.KanStansesEllerGjenopptas
+import no.nav.su.se.bakover.domain.sak.Sak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock

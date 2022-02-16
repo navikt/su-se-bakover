@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.person.IdentClient
+import no.nav.su.se.bakover.domain.bruker.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils

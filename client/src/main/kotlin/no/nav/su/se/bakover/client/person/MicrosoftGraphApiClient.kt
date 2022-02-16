@@ -12,9 +12,9 @@ import com.github.kittinunf.fuel.httpGet
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.fromResult
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.person.IdentClient
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
+import no.nav.su.se.bakover.domain.bruker.IdentClient
+import no.nav.su.se.bakover.domain.bruker.KunneIkkeHenteNavnForNavIdent
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

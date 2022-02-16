@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.service.sak
 
 import arrow.core.Either
-import no.nav.su.se.bakover.domain.BegrensetSakinfo
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NySak
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.person.Fnr
+import no.nav.su.se.bakover.domain.sak.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.NySak
+import no.nav.su.se.bakover.domain.sak.Sak
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.util.UUID
 
 interface SakService {

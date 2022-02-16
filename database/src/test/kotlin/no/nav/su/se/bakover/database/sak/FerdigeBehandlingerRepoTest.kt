@@ -4,8 +4,8 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 

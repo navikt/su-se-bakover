@@ -3,13 +3,13 @@ package no.nav.su.se.bakover.domain.klage
 import arrow.core.Either
 import arrow.core.left
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.bruker.KunneIkkeHenteNavnForNavIdent
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
+import no.nav.su.se.bakover.domain.person.Fnr
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.Person
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.time.LocalDate
 import java.util.UUID
 

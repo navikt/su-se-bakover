@@ -5,10 +5,10 @@ import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.innvilgetBeregning
 import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.person.Fnr
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering

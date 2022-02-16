@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.domain.brev
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getDistinkteParagrafer
+import no.nav.su.se.bakover.domain.person.Fnr
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 

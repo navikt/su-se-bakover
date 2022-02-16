@@ -1,9 +1,8 @@
 package no.nav.su.se.bakover.domain.søknad
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.BrevConfig
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

@@ -5,7 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjongrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService

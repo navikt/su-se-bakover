@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.søknad
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
-import no.nav.su.se.bakover.domain.Søknad
 import java.util.UUID
 
 interface SøknadRepo {

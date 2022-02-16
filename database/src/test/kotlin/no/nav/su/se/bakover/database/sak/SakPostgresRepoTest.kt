@@ -7,10 +7,10 @@ import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.TestDataHelper.Companion.søknadNy
 import no.nav.su.se.bakover.database.stønadsperiode
 import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.Sak
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 

@@ -6,9 +6,9 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.fnrUnder67
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker
+import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknad.fnrUnder67
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.sakId
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.søknadId

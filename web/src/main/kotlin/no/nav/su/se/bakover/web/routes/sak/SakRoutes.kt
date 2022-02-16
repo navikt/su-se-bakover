@@ -12,9 +12,9 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
+import no.nav.su.se.bakover.domain.person.Fnr
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat

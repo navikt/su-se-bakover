@@ -11,10 +11,10 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService

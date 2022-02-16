@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknad.LukketJson.Companion.toLukketJson
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknadInternal
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import java.util.UUID
 import javax.sql.DataSource

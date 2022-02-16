@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 
 object JournalpostFactory {
     fun lagJournalpost(

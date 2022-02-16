@@ -1,15 +1,15 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover.domain.brev
 
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
-import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
+import no.nav.su.se.bakover.domain.person.Fnr
 
 /**
  * TODO John Andre Hestad: Det skal være mulig å bygge en testJar og importere denne fra gradle.
  */
-object VedtakInnholdTestdataBuilder {
+object BrevInnholdTestdataBuilder {
 
     fun build(): BrevInnhold = BrevInnhold.InnvilgetVedtak(
         personalia = BrevInnhold.Personalia(

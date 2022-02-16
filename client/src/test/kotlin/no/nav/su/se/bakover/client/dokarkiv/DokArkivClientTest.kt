@@ -13,11 +13,11 @@ import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.VedtakInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.brev.BrevInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.søknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
@@ -38,7 +38,7 @@ internal class DokArkivClientTest : WiremockBase {
         søknadInnhold = søknadInnhold,
         clock = fixedClock,
     )
-    private val vedtakInnhold = VedtakInnholdTestdataBuilder.build()
+    private val innholdVedtaksbrev = BrevInnholdTestdataBuilder.build()
 
     private val pdf = PdfGeneratorStub.genererPdf(søknadPdfInnhold).orNull()!!
     private val fnr = søknadInnhold.personopplysninger.fnr
@@ -137,7 +137,7 @@ internal class DokArkivClientTest : WiremockBase {
                               "filtype": "JSON",
                               "fysiskDokument": "${
         Base64.getEncoder()
-            .encodeToString(objectMapper.writeValueAsString(vedtakInnhold).toByteArray())}",
+            .encodeToString(objectMapper.writeValueAsString(innholdVedtaksbrev).toByteArray())}",
                               "variantformat": "ORIGINAL"
                             }
                           ]
@@ -226,7 +226,7 @@ internal class DokArkivClientTest : WiremockBase {
             Journalpost.Vedtakspost.from(
                 person = person,
                 saksnummer = Saksnummer(saksnummer),
-                brevInnhold = VedtakInnholdTestdataBuilder.build(),
+                brevInnhold = BrevInnholdTestdataBuilder.build(),
                 pdf = pdf,
             )
         ) shouldBe(

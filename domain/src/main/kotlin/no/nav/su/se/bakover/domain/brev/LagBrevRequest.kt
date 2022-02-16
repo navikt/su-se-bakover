@@ -7,8 +7,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.domain.Grunnbeløp
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -16,6 +14,8 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.get
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale

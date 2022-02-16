@@ -9,7 +9,7 @@ import com.github.kittinunf.fuel.httpGet
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.getOrCreateCorrelationId
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.person.Fnr
 import org.slf4j.LoggerFactory
 
 internal const val dkifPath = "/api/v1/personer/kontaktinformasjon"

@@ -4,7 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert

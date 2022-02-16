@@ -9,8 +9,8 @@ import io.ktor.routing.Route
 import io.ktor.routing.patch
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseRequest

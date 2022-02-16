@@ -7,10 +7,10 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.vedtak.VedtakType
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
 import no.nav.su.se.bakover.domain.regulering.VedtakSomKanReguleres
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.time.LocalDate
 import javax.sql.DataSource
 

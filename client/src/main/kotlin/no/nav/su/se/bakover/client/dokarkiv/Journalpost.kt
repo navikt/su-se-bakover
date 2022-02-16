@@ -2,12 +2,12 @@ package no.nav.su.se.bakover.client.dokarkiv
 
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Behandlingstema
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.søknad.SøknadInnhold
 import java.util.Base64
 
 sealed class Journalpost {

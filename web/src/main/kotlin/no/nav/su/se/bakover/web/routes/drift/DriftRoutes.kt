@@ -7,7 +7,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.patch
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.drift.FixSøknaderResponseJson.Companion.toJson

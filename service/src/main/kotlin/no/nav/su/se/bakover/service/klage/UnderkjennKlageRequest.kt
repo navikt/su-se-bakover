@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.klage
 
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker
 import java.util.UUID
 
 data class UnderkjennKlageRequest(

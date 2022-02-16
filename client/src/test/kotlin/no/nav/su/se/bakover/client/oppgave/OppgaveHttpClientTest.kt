@@ -18,13 +18,13 @@ import no.nav.su.se.bakover.client.argThat
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
-import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.AktørId
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

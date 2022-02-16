@@ -14,11 +14,11 @@ import io.ktor.server.testing.contentType
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
+import no.nav.su.se.bakover.domain.person.AktørId
+import no.nav.su.se.bakover.domain.person.Fnr
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer

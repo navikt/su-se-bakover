@@ -1,7 +1,6 @@
-package no.nav.su.se.bakover.domain.person
+package no.nav.su.se.bakover.domain.bruker
 
 import arrow.core.Either
-import no.nav.su.se.bakover.domain.NavIdentBruker
 
 interface IdentClient {
     fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<KunneIkkeHenteNavnForNavIdent, String>

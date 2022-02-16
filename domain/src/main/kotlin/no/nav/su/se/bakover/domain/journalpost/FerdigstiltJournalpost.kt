@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.journalpost
 
-import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 
 // TODO - Gjøre noe fine ting mellom denne og eksisterende journalpost
 data class FerdigstiltJournalpost private constructor(

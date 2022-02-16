@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage

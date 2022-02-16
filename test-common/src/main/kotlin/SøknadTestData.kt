@@ -1,17 +1,17 @@
 package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.UUIDFactory
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.ForNav
-import no.nav.su.se.bakover.domain.Personopplysninger
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.SakFactory
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.Fnr
+import no.nav.su.se.bakover.domain.sak.Sak
+import no.nav.su.se.bakover.domain.sak.SakFactory
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.søknad.ForNav
+import no.nav.su.se.bakover.domain.søknad.Personopplysninger
+import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknad.SøknadInnholdTestdataBuilder
 import java.util.LinkedList
 import java.util.UUID
 

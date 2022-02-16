@@ -5,7 +5,7 @@ import io.ktor.http.ContentType
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.post
-import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.audit

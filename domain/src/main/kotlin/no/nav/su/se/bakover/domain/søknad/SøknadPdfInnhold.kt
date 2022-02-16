@@ -3,9 +3,8 @@ package no.nav.su.se.bakover.domain.søknad
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

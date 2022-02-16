@@ -12,11 +12,11 @@ import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC

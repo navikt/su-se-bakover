@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker
 import java.util.UUID
 
 /**

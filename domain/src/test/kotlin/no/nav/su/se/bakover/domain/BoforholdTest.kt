@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.søknad.Boforhold
 import org.junit.jupiter.api.Test
 
 internal class BoforholdTest() {

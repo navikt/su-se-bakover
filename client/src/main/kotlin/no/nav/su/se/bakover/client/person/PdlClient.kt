@@ -20,14 +20,14 @@ import no.nav.su.se.bakover.client.person.Variables.Companion.FOLKEREGISTERIDENT
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Telefonnummer
 import no.nav.su.se.bakover.domain.Tema
+import no.nav.su.se.bakover.domain.person.AktørId
+import no.nav.su.se.bakover.domain.person.Fnr
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.IkkeTilgangTilPerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.Ukjent
+import no.nav.su.se.bakover.domain.person.Telefonnummer
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.time.LocalDate

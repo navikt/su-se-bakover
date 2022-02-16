@@ -2,14 +2,14 @@ package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.ddMMyyyy
-import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Ident
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Person.Navn
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.BrevConfig
 import no.nav.su.se.bakover.domain.brev.BrevInnhold.Personalia
+import no.nav.su.se.bakover.domain.person.AktørId
+import no.nav.su.se.bakover.domain.person.Fnr
+import no.nav.su.se.bakover.domain.person.Ident
+import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.person.Person.Navn
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.test.fixedLocalDate
 import org.junit.jupiter.api.Test
 

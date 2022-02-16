@@ -6,7 +6,7 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

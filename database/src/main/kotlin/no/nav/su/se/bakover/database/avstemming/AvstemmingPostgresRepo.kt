@@ -18,10 +18,10 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
 import no.nav.su.se.bakover.database.utbetaling.toUtbetaling
 import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.time.LocalDate
 import javax.sql.DataSource
 

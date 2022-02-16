@@ -8,12 +8,12 @@ import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
 import no.nav.su.se.bakover.domain.journalpost.Tema
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test

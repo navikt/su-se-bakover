@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.oppdrag.simulering
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Månedsbeløp
+import no.nav.su.se.bakover.domain.person.Fnr
 import java.time.LocalDate
 
 data class Simulering(

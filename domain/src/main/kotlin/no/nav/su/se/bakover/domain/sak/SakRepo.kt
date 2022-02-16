@@ -1,10 +1,7 @@
 package no.nav.su.se.bakover.domain.sak
 
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NySak
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.person.Fnr
 import java.util.UUID
 
 interface SakRepo {

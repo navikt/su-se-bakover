@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.søknadsbehandling
 import io.ktor.server.testing.TestApplicationEngine
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.startOfMonth
-import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.person.Fnr
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad

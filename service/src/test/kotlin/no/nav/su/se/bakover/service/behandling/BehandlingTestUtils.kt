@@ -1,12 +1,5 @@
 package no.nav.su.se.bakover.service.behandling
 
-import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Ident
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Person.Navn
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.FastOppholdINorge
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning
@@ -16,8 +9,15 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Formue.Verd
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.LovligOpphold
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.AktørId
+import no.nav.su.se.bakover.domain.person.Fnr
+import no.nav.su.se.bakover.domain.person.Ident
+import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.person.Person.Navn
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.test.generer
 import java.util.UUID
 

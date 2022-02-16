@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.behandling
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert

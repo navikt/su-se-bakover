@@ -6,11 +6,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.person.Fnr
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.IkkeTilgangTilPerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.Ukjent
+import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat

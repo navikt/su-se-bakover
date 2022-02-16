@@ -11,7 +11,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.bruker.Brukerrolle
 import no.nav.su.se.bakover.web.LoggingTest.Companion.konfigurerLogback
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.junit.jupiter.api.AfterAll

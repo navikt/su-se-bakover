@@ -10,12 +10,12 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.database.withTestContext
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
-import no.nav.su.se.bakover.domain.NySak
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.bruker.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.sak.NySak
+import no.nav.su.se.bakover.domain.sak.Sak
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 

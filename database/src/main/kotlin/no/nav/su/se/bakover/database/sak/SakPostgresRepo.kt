@@ -16,14 +16,14 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
 import no.nav.su.se.bakover.database.uuidOrNull
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NySak
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.person.Fnr
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.NySak
+import no.nav.su.se.bakover.domain.sak.Sak
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.util.UUID
 
 internal class SakPostgresRepo(
