@@ -30,7 +30,8 @@ class KontrollsamtaleinnkallingJob(
     private val initialDelay = if (isProd) ChronoUnit.MILLIS.between(nå, iMorgenKlokka7) else 0
 
     fun schedule() {
-        log.info("Starter skeduleringsjobb '$jobName' med intervall: $periode ms og initialDelay: $initialDelay ms. Mitt hostnavn er $hostName. Jeg er ${if (leaderPodLookup.erLeaderPod(hostname = hostName)) "" else "ikke "}leder.")
+        // Avventer kall til erLeaderPod i tilfelle den ikke er startet enda.
+        log.info("Starter skeduleringsjobb '$jobName' med intervall: $periode ms og initialDelay: $initialDelay ms. Mitt hostnavn er $hostName.")
 
         fixedRateTimer(
             name = jobName,

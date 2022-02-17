@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -55,7 +56,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
     override val saksbehandler: NavIdentBruker.Saksbehandler
     override val attestant: NavIdentBruker.Attestant
     override val periode: Periode
-    override val behandling: Behandling
+    override val behandling: BehandlingMedAttestering
 
     override fun erOpphør(): Boolean
 
@@ -151,7 +152,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
     sealed interface EndringIYtelse : VedtakSomKanRevurderes {
         abstract override val id: UUID
         abstract override val opprettet: Tidspunkt
-        abstract override val behandling: Behandling
+        abstract override val behandling: BehandlingMedAttestering
         abstract override val saksbehandler: NavIdentBruker.Saksbehandler
         abstract override val attestant: NavIdentBruker.Attestant
         abstract override val periode: Periode

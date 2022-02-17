@@ -1,6 +1,11 @@
 package no.nav.su.se.bakover.web.services.klage
 
 import arrow.core.Either
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.service.klage.KlagevedtakService
 import no.nav.su.se.bakover.service.toggles.ToggleService
@@ -11,16 +16,14 @@ import org.apache.kafka.common.TopicPartition
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Duration
-import kotlin.concurrent.timer
+import kotlin.time.Duration.Companion.seconds
 
 internal class FattetKlageinstansvedtakConsumer(
     private val consumer: Consumer<String, String>,
     private val klagevedtakService: KlagevedtakService,
-    periode: Long = Duration.ofSeconds(600).toMillis(),
-    initialDelay: Long = 0,
     topicName: String = "klage.vedtak-fattet.v1",
-    private val pollTimeoutDuration: Duration = Duration.ofMillis(5000),
-    private val maxBatchSize: Int? = null,
+    // Vi ønsker ikke holde tråden i live for lenge ved en avslutting av applikasjonen.
+    private val pollTimeoutDuration: Duration = Duration.ofMillis(500),
     private val clock: Clock,
     private val toggleService: ToggleService,
 ) {
@@ -30,26 +33,23 @@ internal class FattetKlageinstansvedtakConsumer(
         log.info("Fattet klagevedtak: Setter opp Kafka-Consumer som lytter på $topicName fra Kabal/Klageinstans")
         consumer.subscribe(listOf(topicName))
 
-        timer(
-            name = "FattetKlagevedtakConsumer",
-            daemon = true,
-            period = periode,
-            initialDelay = initialDelay,
-        ) {
-            if (toggleService.isEnabled("supstonad.ufore.klage-kafka")) {
-                Either.catch {
-                    do {
+        CoroutineScope(Dispatchers.IO).launch {
+            while (this.isActive) {
+                if (toggleService.isEnabled("supstonad.ufore.klage-kafka")) {
+                    Either.catch {
                         val messages = consumer.poll(pollTimeoutDuration)
                         if (!messages.isEmpty) {
                             consume(messages)
                         }
-                    } while (messages.count() == maxBatchSize)
-                }.mapLeft {
-                    // Dette vil føre til en timeout, siden vi ikke gjør noen commit. Da vil vi ikke få noen meldinger i mellomtiden.
-                    log.error("Fattet klagevedtak: Ukjent feil ved konsumering av klagevedtak.", it)
+                    }.mapLeft {
+                        // Dette vil føre til en timeout, siden vi ikke gjør noen commit. Da vil vi ikke få noen meldinger i mellomtiden.
+                        log.error("Fattet klagevedtak: Ukjent feil ved konsumering av klagevedtak.", it)
+                        delay(5.seconds)
+                    }
+                } else {
+                    log.debug("Fattet klagevedtak: Konsumerer ikke klage sin kafka-topic. Kan slåes på med Unleash sitt felt 'klage-kafka'")
+                    delay(5.seconds)
                 }
-            } else {
-                log.debug("Fattet klagevedtak: Konsumerer ikke klage sin kafka-topic. Kan slåes på med Unleash sitt felt 'klage-kafka'")
             }
         }
     }
