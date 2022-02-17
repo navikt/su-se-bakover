@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
-import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
+import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import java.time.LocalDate
 import java.util.UUID
 
@@ -26,12 +26,12 @@ sealed class Personhendelse {
         override val hendelse: Hendelse,
         override val metadata: Metadata,
     ) : Personhendelse() {
-        fun tilknyttSak(id: UUID, sakIdOgNummer: SakIdOgNummer) = TilknyttetSak.IkkeSendtTilOppgave(
+        fun tilknyttSak(id: UUID, sakIdSaksnummerFnr: SakIdSaksnummerFnr) = TilknyttetSak.IkkeSendtTilOppgave(
             endringstype = endringstype,
             hendelse = hendelse,
             id = id,
-            sakId = sakIdOgNummer.sakId,
-            saksnummer = sakIdOgNummer.saksnummer,
+            sakId = sakIdSaksnummerFnr.sakId,
+            saksnummer = sakIdSaksnummerFnr.saksnummer,
             metadata = metadata,
             antallFeiledeForsøk = 0
         )

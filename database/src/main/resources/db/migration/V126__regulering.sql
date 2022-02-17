@@ -7,20 +7,18 @@ create table if not exists regulering
     beregning        jsonb,
     simulering       jsonb,
     saksbehandler    text                     not null,
-    reguleringStatus text, -- OPPRETTET / IVERKSATT
-    reguleringType   text  -- AUTOMATISK / MANUELL
+    reguleringStatus text, -- OPPRETTET / IVERKSATT / FEIL (står i loggen :-) )
+    reguleringType   text, -- AUTOMATISK / MANUELL
+    jobbnavn         text
 );
 
-create table if not exists regulering_jobb
-(
-    id              uuid primary key,
-    opprettet       timestamptz              not null,
-    sakId           uuid references sak (id) NOT NULL,
-    reguleringsType text                     not null, -- AUTOMATISK / MANUELL
-    status          text                     not null, -- OK / Ikke ok må tas manuelt / Tryna
-    behandletDato   date,
-    navn            text                     not null  -- gregulering2022   reguleringjuli2022
-);
+-- create table if not exists regulering_jobb
+-- (
+--     id              uuid primary key,
+--     opprettet       timestamptz              not null,
+--     navn            text,
+--     dato            date
+-- );
 
 alter table behandling_vedtak
     add column if not exists reguleringId uuid references regulering (id);

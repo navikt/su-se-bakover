@@ -36,10 +36,9 @@ enum class VedtakType {
 
 interface ReguleringRepo {
     fun hent(id: UUID): Regulering?
-    fun hent(saksnummer: Saksnummer, jobnavn: String): Regulering?
+    fun hent(saksnummer: Saksnummer, jobbnavn: String): Regulering?
+    fun hent(jobbnavn: Reguleringsjobb): List<Regulering>
     fun lagre(regulering: Regulering, sessionContext: TransactionContext = defaultTransactionContext())
     fun hentVedtakSomKanReguleres(fraOgMed: LocalDate): List<VedtakSomKanReguleres>
-    fun opprettReguleringsjob(reguleringstype: ReguleringType)
-
     fun defaultTransactionContext(): TransactionContext
 }

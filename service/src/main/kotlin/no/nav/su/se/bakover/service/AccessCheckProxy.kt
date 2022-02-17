@@ -63,6 +63,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.Reguleringsjobb
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -72,7 +73,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
-import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
+import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
@@ -105,7 +106,8 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.regulering.BeregnRequest
 import no.nav.su.se.bakover.service.regulering.KunneIkkeBeregne
-import no.nav.su.se.bakover.service.regulering.KunneIkkeOppretteRegulering
+import no.nav.su.se.bakover.service.regulering.KunneIkkeIverksetteRegulering
+import no.nav.su.se.bakover.service.regulering.KunneIkkeLeggeTilFradrag
 import no.nav.su.se.bakover.service.regulering.KunneIkkeSimulere
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.service.regulering.SakerSomKanReguleres
@@ -316,7 +318,7 @@ open class AccessCheckProxy(
                         }
                 }
 
-                override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakIdOgNummer> {
+                override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakIdSaksnummerFnr> {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -916,34 +918,31 @@ open class AccessCheckProxy(
             },
             reguleringService = object : ReguleringService {
                 override fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, Regulering.OpprettetRegulering> {
-                    kastKanKunKallesFraAnnenService()
+                    return beregn(request)
                 }
 
                 override fun hentAlleSakerSomKanReguleres(fraDato: LocalDate?): SakerSomKanReguleres {
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun kjørAutomatiskRegulering(fraDato: LocalDate?): List<Regulering> {
-                    return kjørAutomatiskRegulering(fraDato = fraDato)
+                override fun startRegulering(reguleringsjobb: Reguleringsjobb) {
+                    return startRegulering(reguleringsjobb)
                 }
 
-                override fun opprettRegulering(
-                    sakId: UUID,
-                    fraDato: LocalDate?,
-                ): Either<KunneIkkeOppretteRegulering, Regulering> {
-                    TODO("Not yet implemented")
+                override fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering> {
+                    return leggTilFradrag(request)
                 }
 
-                override fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeOppretteRegulering, Regulering> {
-                    TODO("Not yet implemented")
-                }
-
-                override fun iverksett(reguleringId: UUID): Either<KunneIkkeOppretteRegulering, Regulering> {
-                    TODO("Not yet implemented")
+                override fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering> {
+                    return iverksett(reguleringId)
                 }
 
                 override fun simuler(request: SimulerRequest): Either<KunneIkkeSimulere, Regulering.OpprettetRegulering> {
                     kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentStatus(reguleringsjobb: Reguleringsjobb): List<Regulering> {
+                    return hentStatus(reguleringsjobb)
                 }
             },
         )

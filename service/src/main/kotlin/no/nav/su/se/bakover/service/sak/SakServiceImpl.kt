@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
-import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
+import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
@@ -38,7 +38,7 @@ internal class SakServiceImpl(
         return sakRepo.hentSak(saksnummer)?.right() ?: FantIkkeSak.left()
     }
 
-    override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakIdOgNummer> {
+    override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakIdSaksnummerFnr> {
         return sakRepo.hentSakIdOgNummerForIdenter(personidenter = nonEmptyListOf(fnr.toString()))?.right()
             ?: FantIkkeSak.left()
     }

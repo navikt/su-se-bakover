@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
-import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
+import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 
@@ -42,7 +42,11 @@ internal class SakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
             val nySak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            repo.hentSakIdOgNummerForIdenter(nonEmptyListOf(nySak.fnr.toString())) shouldBe SakIdOgNummer(nySak.id, nySak.saksnummer)
+            repo.hentSakIdOgNummerForIdenter(nonEmptyListOf(nySak.fnr.toString())) shouldBe SakIdSaksnummerFnr(
+                nySak.id,
+                nySak.saksnummer,
+                nySak.fnr,
+            )
         }
     }
 
@@ -52,8 +56,16 @@ internal class SakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
             val nySak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            repo.hentSakIdOgNummerForIdenter(nonEmptyListOf("1234567890123", nySak.fnr.toString())) shouldBe SakIdOgNummer(nySak.id, nySak.saksnummer)
-            repo.hentSakIdOgNummerForIdenter(nonEmptyListOf(nySak.fnr.toString(), "1234567890123")) shouldBe SakIdOgNummer(nySak.id, nySak.saksnummer)
+            repo.hentSakIdOgNummerForIdenter(nonEmptyListOf("1234567890123", nySak.fnr.toString())) shouldBe SakIdSaksnummerFnr(
+                nySak.id,
+                nySak.saksnummer,
+                nySak.fnr,
+            )
+            repo.hentSakIdOgNummerForIdenter(nonEmptyListOf(nySak.fnr.toString(), "1234567890123")) shouldBe SakIdSaksnummerFnr(
+                nySak.id,
+                nySak.saksnummer,
+                nySak.fnr,
+            )
         }
     }
 
@@ -69,7 +81,7 @@ internal class SakPostgresRepoTest {
                     nySak.fnr.toString(),
                     "1234567890123",
                 ),
-            ) shouldBe SakIdOgNummer(nySak.id, nySak.saksnummer)
+            ) shouldBe SakIdSaksnummerFnr(nySak.id, nySak.saksnummer, nySak.fnr)
         }
     }
 

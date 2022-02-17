@@ -10,4 +10,5 @@ internal fun Route.reguleringRoutes(
 ) {
     hentListeAvVedtakSomKanReguleres(reguleringService)
     oppdaterReguleringer(reguleringService)
+    reguleringOversiktRoutes(reguleringService)
 }

@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
+import no.nav.su.se.bakover.domain.regulering.Reguleringsjobb
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import java.time.LocalDate
 import java.util.UUID
@@ -31,6 +32,7 @@ data class SimulerRequest(
 )
 
 sealed class KunneIkkeBeregne {
+    object BeregningFeilet : KunneIkkeBeregne()
     object FantIkkeRegulering : KunneIkkeBeregne()
     data class UgyldigTilstand(
         val status: KClass<out Regulering>,
@@ -46,12 +48,43 @@ sealed class KunneIkkeSimulere {
     ) : KunneIkkeSimulere()
 }
 
+sealed class KunneIkkeIverksetteRegulering {
+    object ReguleringErAlleredeIverksatt : KunneIkkeIverksetteRegulering()
+    object FantIkkeRegulering : KunneIkkeIverksetteRegulering()
+}
+
+sealed class KunneIkkeLeggeTilFradrag {
+    object ReguleringErAlleredeIverksatt : KunneIkkeLeggeTilFradrag()
+    object FantIkkeRegulering : KunneIkkeLeggeTilFradrag()
+}
+
+sealed class KunneIkkeOppretteRegulering {
+    object FantIkkeSak : KunneIkkeOppretteRegulering()
+    object FantIkkeRegulering : KunneIkkeOppretteRegulering()
+    object FantIngenVedtak : KunneIkkeOppretteRegulering()
+    object UgyldigPeriode : KunneIkkeOppretteRegulering()
+    object TidslinjeForVedtakErIkkeKontinuerlig : KunneIkkeOppretteRegulering()
+    object GrunnlagErIkkeKonsistent : KunneIkkeOppretteRegulering()
+    object KunneIkkeLageFradragsgrunnlag : KunneIkkeOppretteRegulering()
+    object ReguleringErAlleredeIverksatt : KunneIkkeOppretteRegulering()
+}
+
+sealed class KunneIkkeHenteGjeldendeVedtaksdata {
+    object FantIngenVedtak : KunneIkkeHenteGjeldendeVedtaksdata()
+    object FantIkkeSak : KunneIkkeHenteGjeldendeVedtaksdata()
+    object UgyldigPeriode : KunneIkkeHenteGjeldendeVedtaksdata()
+    object TidslinjeForVedtakErIkkeKontinuerlig : KunneIkkeHenteGjeldendeVedtaksdata()
+    object GrunnlagErIkkeKonsistent : KunneIkkeHenteGjeldendeVedtaksdata()
+}
+
+object KunneIkkeUtbetale
+
 interface ReguleringService {
     fun hentAlleSakerSomKanReguleres(fraDato: LocalDate?): SakerSomKanReguleres
-    fun kjørAutomatiskRegulering(fraDato: LocalDate?): List<Regulering>
-    fun opprettRegulering(sakId: UUID, fraDato: LocalDate?): Either<KunneIkkeOppretteRegulering, Regulering>
-    fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeOppretteRegulering, Regulering>
-    fun iverksett(reguleringId: UUID): Either<KunneIkkeOppretteRegulering, Regulering>
+    fun startRegulering(reguleringsjobb: Reguleringsjobb)
+    fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering>
+    fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering>
     fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, Regulering.OpprettetRegulering>
     fun simuler(request: SimulerRequest): Either<KunneIkkeSimulere, Regulering.OpprettetRegulering>
+    fun hentStatus(reguleringsjobb: Reguleringsjobb): List<Regulering>
 }

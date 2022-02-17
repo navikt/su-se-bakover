@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
@@ -23,16 +22,21 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
-enum class Reguleringsjob(val jobnavn: String, val dato: LocalDate) {
-    G_REGULERING_2022("G_REGULERING_2022", 1.mai(2022))
+enum class Reguleringsjobb(val jobbnavn: String, val dato: LocalDate) {
+    G_REGULERING_2021("G_REGULERING_2021", 1.mai(2021)),
+    G_REGULERING_2022("G_REGULERING_2022", 1.mai(2022)),
+    SATS_REGULERING_2022("SATS_REGULERING_2022", 1.mai(2022))
 }
 
 sealed interface Regulering : Behandling {
     val beregning: Beregning?
     val simulering: Simulering?
     val saksbehandler: NavIdentBruker.Saksbehandler
+    val reguleringType: ReguleringType
+    val jobbnavn: Reguleringsjobb
 
     sealed class KunneIkkeBeregne {
+        object BeregningFeilet : KunneIkkeBeregne()
         data class IkkeLovÅBeregneIDenneStatusen(val status: KClass<out Regulering>) :
             KunneIkkeBeregne()
     }
@@ -52,6 +56,8 @@ sealed interface Regulering : Behandling {
         override val beregning: Beregning?,
         override val simulering: Simulering?,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val reguleringType: ReguleringType,
+        override val jobbnavn: Reguleringsjobb,
     ) : Regulering {
 
         fun leggTilFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): OpprettetRegulering =
@@ -65,30 +71,34 @@ sealed interface Regulering : Behandling {
             )
 
         override fun beregn(clock: Clock, begrunnelse: String?): Either<KunneIkkeBeregne, OpprettetRegulering> =
-            this.copy(
-                beregning = gjørBeregning(
-                    regulering = this,
-                    begrunnelse = begrunnelse,
-                    clock = clock,
-                ),
-            ).right()
+            gjørBeregning(
+                regulering = this,
+                begrunnelse = begrunnelse,
+                clock = clock,
+            ).map { this.copy(beregning = it) }
 
         fun leggTilSimulering(simulering: Simulering): OpprettetRegulering =
             this.copy(
                 simulering = simulering,
             )
 
-        fun tilIverksatt(reguleringType: ReguleringType): IverksattRegulering = IverksattRegulering(
+        fun tilIverksatt(): IverksattRegulering = IverksattRegulering(
             opprettetRegulering = this,
-            reguleringType = reguleringType,
         )
+
+        // fun oppdaterForventetInntekt(uførhet: Vilkår.Uførhet): OpprettetRegulering =
+        //     this.copy(
+        //         vilkårsvurderinger = vilkårsvurderinger.copy(
+        //             uføre = uførhet
+        //         )
+        //     )
 
         private fun gjørBeregning(
             regulering: OpprettetRegulering,
             begrunnelse: String?,
             clock: Clock,
-        ): Beregning {
-            return BeregningStrategyFactory(clock).beregn(
+        ): Either<KunneIkkeBeregne.BeregningFeilet, Beregning> = Either.catch {
+            BeregningStrategyFactory(clock).beregn(
                 grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
                     grunnlagsdata = regulering.grunnlagsdata,
                     vilkårsvurderinger = regulering.vilkårsvurderinger,
@@ -96,12 +106,11 @@ sealed interface Regulering : Behandling {
                 beregningsPeriode = regulering.periode,
                 begrunnelse = begrunnelse,
             )
-        }
+        }.mapLeft { KunneIkkeBeregne.BeregningFeilet }
     }
 
     data class IverksattRegulering(
         val opprettetRegulering: OpprettetRegulering,
-        val reguleringType: ReguleringType,
         // TODO Her vil vi egentlig si at simulering og beregning ikke kan være nullable
     ) : Regulering by opprettetRegulering {
         // fun lagre status iverksatt og vedtak

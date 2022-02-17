@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
+import no.nav.su.se.bakover.domain.regulering.Reguleringsjobb
 import no.nav.su.se.bakover.domain.regulering.VedtakSomKanReguleres
 import no.nav.su.se.bakover.domain.regulering.VedtakType.AVSLAG
 import no.nav.su.se.bakover.domain.regulering.VedtakType.AVVIST_KLAGE
@@ -64,9 +65,35 @@ internal class ReguleringPostgresRepo(
         }
     }
 
-    override fun hent(saksnummer: Saksnummer, jobnavn: String): Regulering? {
-        TODO("Not yet implemented")
+    override fun hent(saksnummer: Saksnummer, jobbnavn: String): Regulering? {
+        return dataSource.withSession { session ->
+            hent(saksnummer, jobbnavn, session)
+        }
     }
+
+    override fun hent(jobbnavn: Reguleringsjobb): List<Regulering> = dataSource.withSession { session ->
+        """ select * from regulering r left join sak s on r.sakid = s.id
+            where jobbnavn = :jobbnavn 
+        """.trimIndent().hentListe(
+            mapOf("jobbnavn" to jobbnavn.jobbnavn),
+            session,
+        ) { it.toRegulering(session) }
+    }
+
+    internal fun hent(saksnummer: Saksnummer, jobbnavn: String, session: Session): Regulering? =
+        """
+            select *
+            from regulering r
+            
+            inner join sak s
+            on s.id = r.sakId
+            
+            where s.saksnummer = :saksnummer
+            and r.jobbnavn = :jobbnavn
+        """.trimIndent()
+            .hent(mapOf("saksnummer" to saksnummer.nummer, "jobbnavn" to jobbnavn), session) { row ->
+                row.toRegulering(session)
+            }
 
     internal fun hent(id: UUID, session: Session): Regulering? =
         """
@@ -102,7 +129,8 @@ internal class ReguleringPostgresRepo(
                 simulering,
                 saksbehandler,
                 reguleringStatus,
-                reguleringType
+                reguleringType,
+                jobbnavn
             ) values (
                 :id,
                 :sakId,
@@ -112,7 +140,8 @@ internal class ReguleringPostgresRepo(
                 to_json(:simulering::json),
                 :saksbehandler,
                 '${ReguleringStatus.OPPRETTET}',
-                null
+                :reguleringType,
+                :jobbnavn
             )
                 ON CONFLICT(id) do update set
                 id=:id,
@@ -123,7 +152,8 @@ internal class ReguleringPostgresRepo(
                 simulering=to_json(:simulering::json),
                 saksbehandler=:saksbehandler,
                 reguleringStatus='${ReguleringStatus.OPPRETTET}',
-                reguleringType=null
+                reguleringType=:reguleringType,
+                jobbnavn=:jobbnavn
         """.trimIndent()
             .insert(
                 mapOf(
@@ -134,6 +164,8 @@ internal class ReguleringPostgresRepo(
                     "saksbehandler" to regulering.saksbehandler.navIdent,
                     "beregning" to regulering.beregning,
                     "simulering" to regulering.simulering?.let { serialize(it) },
+                    "reguleringType" to regulering.reguleringType.toString(),
+                    "jobbnavn" to regulering.jobbnavn.toString(),
                 ),
                 session,
             )
@@ -147,14 +179,12 @@ internal class ReguleringPostgresRepo(
     private fun lagreIntern(regulering: Regulering.IverksattRegulering, session: TransactionalSession) {
         """
             update regulering set
-                reguleringStatus='${ReguleringStatus.IVERKSATT}',
-                reguleringType=:reguleringType
+                reguleringStatus='${ReguleringStatus.IVERKSATT}'
               where id=:id
         """.trimIndent()
             .insert(
                 mapOf(
                     "id" to regulering.id,
-                    "reguleringType" to regulering.reguleringType.toString(),
                 ),
                 session,
             )
@@ -206,10 +236,6 @@ internal class ReguleringPostgresRepo(
         }
     }
 
-    override fun opprettReguleringsjob(reguleringstype: ReguleringType) {
-        TODO("Not yet implemented")
-    }
-
     override fun defaultTransactionContext(): TransactionContext {
         return sessionFactory.newTransactionContext()
     }
@@ -221,6 +247,7 @@ internal class ReguleringPostgresRepo(
         val saksnummer = Saksnummer(long("saksnummer"))
         val fnr = Fnr(string("fnr"))
         val status = ReguleringStatus.valueOf(string("reguleringStatus"))
+        val jobbnavn = Reguleringsjobb.valueOf(string("jobbnavn"))
         val reguleringType = ReguleringType.valueOf(string("reguleringType"))
 
         val beregning = deserialiserBeregning(stringOrNull("beregning"))
@@ -254,6 +281,7 @@ internal class ReguleringPostgresRepo(
             beregning = beregning,
             simulering = simulering,
             reguleringType = reguleringType,
+            jobbnavn = jobbnavn,
         )
     }
 
@@ -308,6 +336,7 @@ internal class ReguleringPostgresRepo(
         beregning: Beregning?,
         simulering: Simulering?,
         reguleringType: ReguleringType,
+        jobbnavn: Reguleringsjobb,
     ): Regulering {
         return when (status) {
             ReguleringStatus.OPPRETTET -> Regulering.OpprettetRegulering(
@@ -322,6 +351,8 @@ internal class ReguleringPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 beregning = beregning,
                 simulering = simulering,
+                reguleringType = reguleringType,
+                jobbnavn = jobbnavn,
             )
             ReguleringStatus.IVERKSATT -> Regulering.IverksattRegulering(
                 opprettetRegulering = Regulering.OpprettetRegulering(
@@ -336,8 +367,9 @@ internal class ReguleringPostgresRepo(
                     vilkårsvurderinger = vilkårsvurderinger,
                     beregning = beregning,
                     simulering = simulering,
+                    reguleringType = reguleringType,
+                    jobbnavn = jobbnavn,
                 ),
-                reguleringType = reguleringType,
             )
         }
     }

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
+import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuidOrNull
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.Fnr
@@ -23,7 +24,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
-import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
+import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import java.util.UUID
 
@@ -72,11 +73,11 @@ internal class SakPostgresRepo(
     /***
      * @param personidenter Inneholder alle identer til brukeren, f.eks fnr og aktørid.
      */
-    override fun hentSakIdOgNummerForIdenter(personidenter: NonEmptyList<String>): SakIdOgNummer? {
+    override fun hentSakIdOgNummerForIdenter(personidenter: NonEmptyList<String>): SakIdSaksnummerFnr? {
         return sessionFactory.withSession { session ->
             """
                 SELECT
-                    id, saksnummer
+                    id, saksnummer, fnr
                 FROM sak
                 WHERE fnr = ANY (:fnrs)
             """.trimIndent().hent(
@@ -84,9 +85,10 @@ internal class SakPostgresRepo(
                 session,
             ) { row ->
                 row.uuidOrNull("id")?.let { id ->
-                    SakIdOgNummer(
+                    SakIdSaksnummerFnr(
                         sakId = id,
                         saksnummer = Saksnummer(row.long("saksnummer")),
+                        fnr = Fnr(row.string("fnr")),
                     )
                 }
             }
@@ -125,11 +127,14 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentAlleSaksnummer(): List<Saksnummer> = sessionFactory.withSession { session ->
-        """ select saksnummer from sak""".hentListe(
+    override fun hentAlleIdFnrOgSaksnummer(): List<SakIdSaksnummerFnr> = sessionFactory.withSession { session ->
+        """ select id, saksnummer, fnr from sak
+        """.trimMargin().hentListe(
             mapOf(),
             session,
-        ) { Saksnummer(it.long("saksnummer")) }
+        ) {
+            SakIdSaksnummerFnr(it.uuid("id"), Saksnummer(it.long("saksnummer")), Fnr(it.string("fnr")))
+        }
     }
 
     private fun hentSakInternal(fnr: Fnr, sessionContext: SessionContext): Sak? {

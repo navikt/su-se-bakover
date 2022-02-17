@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.math.roundToInt
 
 /**
 Et inngangsvilkår er de vilkårene som kan føre til avslag før det beregnes?
@@ -444,6 +445,14 @@ sealed class Vilkår {
                 return fromVurderingsperioder(vurderingsperioder = vurderingsperioder.slåSammenVurderingsperiode())
             }
 
+            fun regulerForventetInntekt() {
+                Vurdert.tryCreate(
+                    vurderingsperioder = vurderingsperioder.map {
+                        it.reguler()
+                    }
+                )
+            }
+
             companion object {
 
                 fun tryCreate(
@@ -678,6 +687,21 @@ sealed class Vurderingsperiode {
             return this.copy(
                 periode = stønadsperiode.periode,
                 grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
+            )
+        }
+
+        fun reguler(): Uføre {
+            return copy(
+                id = UUID.randomUUID(),
+                opprettet = Tidspunkt.now(),
+                resultat = resultat,
+                grunnlag = grunnlag?.copy(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(),
+                    forventetInntekt = (grunnlag.forventetInntekt * 1.1).roundToInt()
+                ),
+                periode = periode,
+                begrunnelse = begrunnelse,
             )
         }
 
