@@ -25,6 +25,8 @@ internal class KlageinstanshendelseDtoTest {
                 kildeReferanse = kildeReferanse,
                 type = "KLAGEBEHANDLING_AVSLUTTET",
                 journalpostReferanser = listOf("123", "456"),
+                // Legger på en time for emulere tidssonen Europe/Oslo i januar. Skal være 1 time etter UTC.
+                avsluttetTidspunkt = "2021-01-01T02:02:03.456789",
             ),
         ) shouldBe TolketKlageinstanshendelse(
             id = id,
@@ -48,6 +50,7 @@ internal class KlageinstanshendelseDtoTest {
                 kildeReferanse = kildeReferanse,
                 type = "ANKEBEHANDLING_OPPRETTET",
                 journalpostReferanser = listOf("123", "456"),
+                avsluttetTidspunkt = "2021-01-01T01:02:03.456789Z",
             ),
         ) shouldBe KunneIkkeTolkeKlageinstanshendelse.AnkehendelserStøttesIkke.left()
     }
@@ -64,6 +67,7 @@ internal class KlageinstanshendelseDtoTest {
                 kildeReferanse = kildeReferanse,
                 type = "ANKEBEHANDLING_AVSLUTTET",
                 journalpostReferanser = listOf("123", "456"),
+                avsluttetTidspunkt = "2021-01-01T01:02:03.456789+01:00",
             ),
         ) shouldBe KunneIkkeTolkeKlageinstanshendelse.AnkehendelserStøttesIkke.left()
     }
@@ -73,19 +77,24 @@ internal class KlageinstanshendelseDtoTest {
         kildeReferanse: UUID = UUID.randomUUID(),
         type: String,
         journalpostReferanser: List<String> = listOf("123", "456"),
-    ) =
+        avsluttetTidspunkt: String,
+    ) = //language=JSON
         """
             {
               "eventId": "$eventId",
               "kildeReferanse":"$kildeReferanse",
               "kilde":"SUPSTONAD",
-              "kabalReferanse":"123456",
+              "kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a",
               "type":"$type",
               "detaljer":{
-                "avsluttet":"2021-01-01T01:02:03.456789000Z",
-                "utfall":"STADFESTELSE",
-                "journalpostReferanser":[${journalpostReferanser.joinToString(",")}]
-              }
+                "klagebehandlingAvsluttet":{
+                  "avsluttet":"$avsluttetTidspunkt",
+                  "utfall":"STADFESTELSE",
+                  "journalpostReferanser":[${journalpostReferanser.joinToString(",")}]
+                }
+              },
+              "ankebehandlingOpprettet": null,
+              "ankebehandlingAvsluttet": null
             }
         """.trimIndent()
 }

@@ -8,12 +8,15 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.toTidspunkt
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KunneIkkeTolkeKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import org.slf4j.LoggerFactory
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.format.DateTimeParseException
 import java.util.UUID
 
 /**
@@ -75,7 +78,7 @@ sealed interface KlageinstanshendelseDto {
 
     data class KlagebehandlingAvsluttetDetaljer(
         override val kildeReferanse: String,
-        val detaljer: Detaljer,
+        val detaljer: DetaljerWrapper,
     ) : KlageinstanshendelseDto {
         override fun toDomain(
             id: UUID,
@@ -85,16 +88,20 @@ sealed interface KlageinstanshendelseDto {
                 TolketKlageinstanshendelse(
                     id = id,
                     opprettet = opprettet,
-                    avsluttetTidspunkt = Instant.parse(detaljer.avsluttet).toTidspunkt(),
+                    avsluttetTidspunkt = parseKabalDatetime(detaljer.klagebehandlingAvsluttet.avsluttet),
                     klageId = UUID.fromString(kildeReferanse),
-                    utfall = detaljer.utfall.toDomain(),
-                    journalpostIDer = detaljer.journalpostReferanser.map { JournalpostId(it) },
+                    utfall = detaljer.klagebehandlingAvsluttet.utfall.toDomain(),
+                    journalpostIDer = detaljer.klagebehandlingAvsluttet.journalpostReferanser.map { JournalpostId(it) },
                 )
             }.mapLeft {
                 log.error("Kunne ikke tolke klageinstanshendelse.", it)
                 KunneIkkeTolkeKlageinstanshendelse.UgyldigeVerdier
             }
         }
+
+        data class DetaljerWrapper(
+            val klagebehandlingAvsluttet: Detaljer,
+        )
 
         data class Detaljer(
             val avsluttet: String,
@@ -137,5 +144,15 @@ sealed interface KlageinstanshendelseDto {
             UGUNST -> KlageinstansUtfall.UGUNST
             AVVIST -> KlageinstansUtfall.AVVIST
         }
+    }
+}
+
+private fun parseKabalDatetime(isoString: String): Tidspunkt {
+    return try {
+        // Dersom Kabal begynner å legge på tidssone, skal vi kunne parse den direkte til en [Instant].
+        Instant.parse(isoString).toTidspunkt()
+    } catch (e: DateTimeParseException) {
+        // Kabal sender i skrivende stund en ISOstreng uten tidssoneinformasjon (LocalDateTime). Deres default tidssone er i skrivende stund CET.
+        LocalDateTime.parse(isoString).toTidspunkt(zoneIdOslo)
     }
 }
