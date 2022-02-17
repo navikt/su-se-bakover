@@ -80,8 +80,8 @@ import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
 import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
-import no.nav.su.se.bakover.web.services.klage.FattetKlageinstansvedtakConsumer
-import no.nav.su.se.bakover.web.services.klage.KlageinstansvedtakJob
+import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseConsumer
+import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseJob
 import no.nav.su.se.bakover.web.services.kontrollsamtale.KontrollsamtaleinnkallingJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
@@ -299,11 +299,10 @@ fun Application.susebakover(
             consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
             personhendelseService = personhendelseService,
         )
-        FattetKlageinstansvedtakConsumer(
+        KlageinstanshendelseConsumer(
             consumer = KafkaConsumer(applicationConfig.kabalKafkaConfig.kafkaConfig),
-            klagevedtakService = services.klagevedtakService,
+            klageinstanshendelseService = services.klageinstanshendelseService,
             clock = clock,
-            toggleService = services.toggles,
         )
 
         DistribuerDokumentJob(
@@ -320,8 +319,8 @@ fun Application.susebakover(
             clock = clock,
         ).schedule()
 
-        KlageinstansvedtakJob(
-            klagevedtakService = services.klagevedtakService,
+        KlageinstanshendelseJob(
+            klageinstanshendelseService = services.klageinstanshendelseService,
             leaderPodLookup = clients.leaderPodLookup,
             initialDelay = applicationConfig.jobConfig.initialDelay,
         ).schedule()
@@ -346,8 +345,8 @@ fun Application.susebakover(
             initialDelay = applicationConfig.jobConfig.initialDelay,
             clock = clock,
         ).schedule()
-        KlageinstansvedtakJob(
-            klagevedtakService = services.klagevedtakService,
+        KlageinstanshendelseJob(
+            klageinstanshendelseService = services.klageinstanshendelseService,
             leaderPodLookup = clients.leaderPodLookup,
             initialDelay = applicationConfig.jobConfig.initialDelay,
         ).schedule()

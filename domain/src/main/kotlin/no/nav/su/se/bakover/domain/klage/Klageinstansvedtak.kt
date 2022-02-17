@@ -1,21 +1,26 @@
 package no.nav.su.se.bakover.domain.klage
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
 
-data class Klagevedtakshistorikk private constructor(
-    private val underlying: List<ProsessertKlageinstansvedtak>
-) : List<ProsessertKlageinstansvedtak> by underlying {
+/**
+ * Et overbygg av en liste med [ProsessertKlageinstanshendelse]
+ * Holder hendelsene sortert på opprettet-tidspunkt.
+ */
+data class Klageinstanshendelser private constructor(
+    private val underlying: List<ProsessertKlageinstanshendelse>
+) : List<ProsessertKlageinstanshendelse> by underlying {
     companion object {
-        fun empty() = Klagevedtakshistorikk(emptyList())
+        fun empty() = Klageinstanshendelser(emptyList())
 
-        fun create(vedtattUtfall: List<ProsessertKlageinstansvedtak>): Klagevedtakshistorikk {
-            return Klagevedtakshistorikk(vedtattUtfall.sortedBy { it.opprettet.instant })
+        fun create(vedtattUtfall: List<ProsessertKlageinstanshendelse>): Klageinstanshendelser {
+            return Klageinstanshendelser(vedtattUtfall.sortedBy { it.opprettet.instant })
         }
     }
 
-    fun leggTilNyttVedtak(vedtattUtfall: ProsessertKlageinstansvedtak): Klagevedtakshistorikk {
+    fun leggTilNyttVedtak(vedtattUtfall: ProsessertKlageinstanshendelse): Klageinstanshendelser {
         assert(this.all { it.opprettet.instant < vedtattUtfall.opprettet.instant }) {
             "Kan ikke legge til ett vedtak som er eldre enn det forrige vedtaket"
         }
@@ -24,36 +29,35 @@ data class Klagevedtakshistorikk private constructor(
     }
 }
 
-/**
- * Representerer ett fattet klagevedtak av Kabal.
- */
-data class UprosessertKlageinstansvedtak(
+data class TolketKlageinstanshendelse(
     val id: UUID,
     val opprettet: Tidspunkt,
+    val avsluttetTidspunkt: Tidspunkt,
     val klageId: UUID,
-    val utfall: KlagevedtakUtfall,
-    val vedtaksbrevReferanse: String,
+    val utfall: KlageinstansUtfall,
+    val journalpostIDer: List<JournalpostId>,
 ) {
-    fun tilProsessert(oppgaveId: OppgaveId?) = ProsessertKlageinstansvedtak(
+    fun tilProsessert(oppgaveId: OppgaveId?) = ProsessertKlageinstanshendelse(
         id = id,
         opprettet = opprettet,
         klageId = klageId,
         utfall = utfall,
-        vedtaksbrevReferanse = vedtaksbrevReferanse,
+        journalpostIDer = journalpostIDer,
         oppgaveId = oppgaveId,
     )
 }
 
-data class ProsessertKlageinstansvedtak(
+data class ProsessertKlageinstanshendelse(
     val id: UUID,
     val opprettet: Tidspunkt,
     val klageId: UUID,
-    val utfall: KlagevedtakUtfall,
-    val vedtaksbrevReferanse: String,
+    val utfall: KlageinstansUtfall,
+    /** Dersom Klageinstansen har sendt ut et eller flere brev */
+    val journalpostIDer: List<JournalpostId>,
     val oppgaveId: OppgaveId?,
 )
 
-enum class KlagevedtakUtfall {
+enum class KlageinstansUtfall {
     TRUKKET,
     RETUR,
     OPPHEVET,
@@ -64,7 +68,9 @@ enum class KlagevedtakUtfall {
     AVVIST
 }
 
-sealed interface KanIkkeTolkeKlagevedtak {
-    object KunneIkkeDeserialisere : KanIkkeTolkeKlagevedtak
-    object UgyldigeVerdier : KanIkkeTolkeKlagevedtak
+sealed interface KunneIkkeTolkeKlageinstanshendelse {
+    object KunneIkkeDeserialisere : KunneIkkeTolkeKlageinstanshendelse
+    object UgyldigeVerdier : KunneIkkeTolkeKlageinstanshendelse
+    // TODO jah: Vi bør legge inn støtte for anke hendelser når de begynner å dukke opp.
+    object AnkehendelserStøttesIkke : KunneIkkeTolkeKlageinstanshendelse
 }

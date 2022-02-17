@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRe
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
-import no.nav.su.se.bakover.database.klage.KlagevedtakPostgresRepo
+import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
 import no.nav.su.se.bakover.database.kontrollsamtale.KontrollsamtalePostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
@@ -147,7 +147,9 @@ object DatabaseBuilder {
             utenlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
             avkortingsvarselRepo = avkortingsvarselRepo,
         )
-        val klageRepo = KlagePostgresRepo(sessionFactory)
+
+        val klageinstanshendelseRepo = KlageinstanshendelsePostgresRepo(sessionFactory)
+        val klageRepo = KlagePostgresRepo(sessionFactory, klageinstanshendelseRepo)
         val revurderingRepo = RevurderingPostgresRepo(
             dataSource = dataSource,
             fradragsgrunnlagPostgresRepo = fradragsgrunnlag,
@@ -171,7 +173,6 @@ object DatabaseBuilder {
         )
         val hendelseRepo = PersonhendelsePostgresRepo(dataSource, clock)
         val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource, clock)
-        val klageVedtakRepo = KlagevedtakPostgresRepo(sessionFactory)
         val kontrollsamtaleRepo = KontrollsamtalePostgresRepo(sessionFactory)
         val reguleringRepo = ReguleringPostgresRepo(dataSource, sessionFactory)
 
@@ -211,7 +212,7 @@ object DatabaseBuilder {
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
             klageRepo = klageRepo,
-            klageVedtakRepo = klageVedtakRepo,
+            klageinstanshendelseRepo = klageinstanshendelseRepo,
             kontrollsamtaleRepo = kontrollsamtaleRepo,
             avkortingsvarselRepo = avkortingsvarselRepo,
             reguleringRepo = reguleringRepo,

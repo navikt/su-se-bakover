@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
-import no.nav.su.se.bakover.service.klage.KlagevedtakServiceImpl
+import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
@@ -177,8 +177,8 @@ object ServiceBuilder {
             journalpostClient = clients.journalpostClient,
             clock = clock,
         )
-        val klagevedtakService = KlagevedtakServiceImpl(
-            klagevedtakRepo = databaseRepos.klageVedtakRepo,
+        val klageinstanshendelseService = KlageinstanshendelseServiceImpl(
+            klageinstanshendelseRepo = databaseRepos.klageinstanshendelseRepo,
             klageRepo = databaseRepos.klageRepo,
             oppgaveService = oppgaveService,
             personService = personService,
@@ -229,7 +229,7 @@ object ServiceBuilder {
             ),
             kontrollsamtale = kontrollsamtaleService,
             klageService = klageService,
-            klagevedtakService = klagevedtakService,
+            klageinstanshendelseService = klageinstanshendelseService,
             reguleringService = reguleringService,
         )
     }
