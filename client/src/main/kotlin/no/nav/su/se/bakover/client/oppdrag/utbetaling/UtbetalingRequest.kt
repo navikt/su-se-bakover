@@ -103,16 +103,18 @@ data class UtbetalingRequest(
         val saksbehId: String,
         /** Fødselsnummer eller Organisasjonsnummer [9,11] tegn */
         val utbetalesTilId: String,
+        /** [0,30] tegn - en referanse til hvilken utbetaling-id (vår) utbetalingslinjen er koblet til */
+        @field:JacksonXmlProperty(localName = "henvisning")
+        val utbetalingId: String,
         /** Makslengde 30 tegn */
+        @field:JacksonXmlProperty(localName = "refDelytelseId") // TODO vurder prop order, virker som rekkefølgen er avhengig av om feltet er annotert eller ei.
         val refDelytelseId: String?,
+        @field:JacksonXmlProperty(localName = "refFagsystemId") // TODO vurder prop order, virker som rekkefølgen er avhengig av om feltet er annotert eller ei.
         val refFagsystemId: String?,
         @field:JacksonXmlProperty(localName = "grad-170")
         val grad: Grad?,
         @field:JacksonXmlProperty(localName = "attestant-180")
         val attestant: List<Attestant>,
-        /** [0,30] tegn - en referanse til hvilken utbetaling-id (vår) utbetalingslinjen er koblet til */
-        @field:JacksonXmlProperty(localName = "henvisning")
-        val utbetalingId: String,
     ) {
         enum class KodeEndringLinje(@JsonValue val value: String) {
             NY("NY"),

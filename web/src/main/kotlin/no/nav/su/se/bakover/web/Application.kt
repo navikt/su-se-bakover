@@ -94,7 +94,6 @@ import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJo
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
-import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.event.Level
 import java.time.Clock
@@ -313,12 +312,10 @@ fun Application.susebakover(
         PersonhendelseConsumer(
             consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
             personhendelseService = personhendelseService,
-            maxBatchSize = applicationConfig.kafkaConfig.consumerCfg.kafkaConfig[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] as? Int,
         )
         FattetKlageinstansvedtakConsumer(
             consumer = KafkaConsumer(applicationConfig.kabalKafkaConfig.kafkaConfig),
             klagevedtakService = services.klagevedtakService,
-            maxBatchSize = applicationConfig.kabalKafkaConfig.kafkaConfig[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] as? Int,
             clock = clock,
             toggleService = services.toggles,
         )

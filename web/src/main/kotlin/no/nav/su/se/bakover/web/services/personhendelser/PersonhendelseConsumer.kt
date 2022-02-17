@@ -1,6 +1,11 @@
 package no.nav.su.se.bakover.web.services.personhendelser
 
 import arrow.core.Either
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
@@ -11,17 +16,15 @@ import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.common.TopicPartition
 import org.slf4j.LoggerFactory
 import java.time.Duration
-import kotlin.concurrent.timer
+import kotlin.time.Duration.Companion.seconds
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
 class PersonhendelseConsumer(
     private val consumer: Consumer<String, EksternPersonhendelse>,
     private val personhendelseService: PersonhendelseService,
-    periode: Long = Duration.ofSeconds(120L).toMillis(),
-    initialDelay: Long = 0,
     topicName: String = "aapen-person-pdl-leesah-v1",
-    private val pollTimeoutDuration: Duration = Duration.ofMillis(5000),
-    private val maxBatchSize: Int? = null,
+    // Vi ønsker ikke holde tråden i live for lenge ved en avslutting av applikasjonen.
+    private val pollTimeoutDuration: Duration = Duration.ofMillis(500),
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -29,22 +32,18 @@ class PersonhendelseConsumer(
         log.info("Personhendelse: Setter opp Kafka-Consumer som lytter på $topicName fra PDL")
         consumer.subscribe(listOf(topicName))
 
-        timer(
-            name = "PersonhendelseConsumer",
-            daemon = true,
-            period = periode,
-            initialDelay = initialDelay,
-        ) {
-            Either.catch {
-                do {
+        CoroutineScope(Dispatchers.IO).launch {
+            while (this.isActive) {
+                Either.catch {
                     val messages = consumer.poll(pollTimeoutDuration)
                     if (!messages.isEmpty) {
                         consume(messages)
                     }
-                } while (messages.count() == maxBatchSize)
-            }.mapLeft {
-                // Dette vil føre til en timeout, siden vi ikke gjør noen commit. Da vil vi ikke få noen meldinger i mellomtiden.
-                log.error("Personhendelse: Ukjent feil ved konsumering av personhendelser.", it)
+                }.mapLeft {
+                    // Dette vil føre til en timeout, siden vi ikke gjør noen commit. Da vil vi ikke få noen meldinger i mellomtiden.
+                    log.error("Personhendelse: Ukjent feil ved konsumering av personhendelser.", it)
+                    delay(5.seconds)
+                }
             }
         }
     }
