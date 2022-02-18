@@ -8,7 +8,7 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
     clock: Clock,
 ) {
-    søknadsbehandlingRoutes(søknadsbehandlingService)
+    søknadsbehandlingRoutes(søknadsbehandlingService, clock)
 
     leggTilUføregrunnlagRoutes(søknadsbehandlingService)
 

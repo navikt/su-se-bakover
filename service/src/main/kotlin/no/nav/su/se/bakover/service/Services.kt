@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.klage.KlageService
-import no.nav.su.se.bakover.service.klage.KlagevedtakService
+import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -43,7 +43,7 @@ data class Services(
     val avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService,
     val kontrollsamtale: KontrollsamtaleService,
     val klageService: KlageService,
-    val klagevedtakService: KlagevedtakService,
+    val klageinstanshendelseService: KlageinstanshendelseService,
     val reguleringService: ReguleringService,
     val tilbakekrevingService: TilbakekrevingService,
 )

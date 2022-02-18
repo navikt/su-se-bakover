@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.domain.grunnlag.UføreVilkårsvurderingRepo
 import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
-import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
+import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
@@ -44,7 +44,7 @@ object TestDatabaseBuilder {
         nøkkeltallRepo: NøkkeltallRepo = mock(),
         sessionFactory: TestSessionFactory = TestSessionFactory(),
         klageRepo: KlageRepo = mock(),
-        klageVedtakRepo: KlagevedtakRepo = mock(),
+        klageinstanshendelseRepo: KlageinstanshendelseRepo = mock(),
         kontrollsamtaleRepo: KontrollsamtaleRepo = mock(),
         avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
         reguleringRepo: ReguleringRepo = mock(),
@@ -68,7 +68,7 @@ object TestDatabaseBuilder {
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
             klageRepo = klageRepo,
-            klageVedtakRepo = klageVedtakRepo,
+            klageinstanshendelseRepo = klageinstanshendelseRepo,
             kontrollsamtaleRepo = kontrollsamtaleRepo,
             avkortingsvarselRepo = avkortingsvarselRepo,
             reguleringRepo = reguleringRepo,

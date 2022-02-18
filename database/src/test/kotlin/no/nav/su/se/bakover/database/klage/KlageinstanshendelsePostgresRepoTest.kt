@@ -5,25 +5,27 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
-import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstansvedtak
-import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
+import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
+import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstanshendelse
+import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.postgresql.util.PSQLException
 import java.util.UUID
 
-internal class KlagevedtakPostgresRepoTest {
+internal class KlageinstanshendelsePostgresRepoTest {
 
     @Test
-    fun `kan opprette uprosessert klagevedtak`() {
+    fun `kan opprette uprosessert klageinstanshendelse`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val klagevedtakRepo = testDataHelper.klagevedtakPostgresRepo
-            val uprosessertFattetKlageinstansvedtak = UprosessertFattetKlageinstansvedtak(
+            val klageinstanshendelsePostgresRepo = testDataHelper.klageinstanshendelsePostgresRepo
+            val uprosessertKlageinstanshendelse = UprosessertKlageinstanshendelse(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                metadata = UprosessertFattetKlageinstansvedtak.Metadata(
+                metadata = UprosessertKlageinstanshendelse.Metadata(
+                    topic = "klage.vedtak-fattet.v1",
                     hendelseId = UUID.randomUUID().toString(),
                     offset = 1,
                     partisjon = 2,
@@ -31,9 +33,9 @@ internal class KlagevedtakPostgresRepoTest {
                     value = "{}",
                 ),
             ).also {
-                klagevedtakRepo.lagre(it)
+                klageinstanshendelsePostgresRepo.lagre(it)
             }
-            klagevedtakRepo.hentUbehandlaKlagevedtak() shouldBe listOf(uprosessertFattetKlageinstansvedtak)
+            klageinstanshendelsePostgresRepo.hentUbehandlaKlageinstanshendelser() shouldBe listOf(uprosessertKlageinstanshendelse)
         }
     }
 
@@ -41,11 +43,12 @@ internal class KlagevedtakPostgresRepoTest {
     fun `Dedup på metadata's hendelseId`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val klagevedtakRepo = testDataHelper.klagevedtakPostgresRepo
-            val uprosessertFattetKlageinstansvedtak = UprosessertFattetKlageinstansvedtak(
+            val klageinstanshendelsePostgresRepo = testDataHelper.klageinstanshendelsePostgresRepo
+            val uprosessertKlageinstanshendelse = UprosessertKlageinstanshendelse(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                metadata = UprosessertFattetKlageinstansvedtak.Metadata(
+                metadata = UprosessertKlageinstanshendelse.Metadata(
+                    topic = "klage.behandling-events.v1",
                     hendelseId = UUID.randomUUID().toString(),
                     offset = 1,
                     partisjon = 2,
@@ -53,10 +56,10 @@ internal class KlagevedtakPostgresRepoTest {
                     value = "{}",
                 ),
             ).also {
-                klagevedtakRepo.lagre(it)
-                klagevedtakRepo.lagre(it.copy(id = UUID.randomUUID()))
+                klageinstanshendelsePostgresRepo.lagre(it)
+                klageinstanshendelsePostgresRepo.lagre(it.copy(id = UUID.randomUUID()))
             }
-            klagevedtakRepo.hentUbehandlaKlagevedtak() shouldBe listOf(uprosessertFattetKlageinstansvedtak)
+            klageinstanshendelsePostgresRepo.hentUbehandlaKlageinstanshendelser() shouldBe listOf(uprosessertKlageinstanshendelse)
         }
     }
 
@@ -64,11 +67,12 @@ internal class KlagevedtakPostgresRepoTest {
     fun `Konflikt på duplikat id`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val klagevedtakRepo = testDataHelper.klagevedtakPostgresRepo
-            UprosessertFattetKlageinstansvedtak(
+            val klageinstanshendelsePostgresRepo = testDataHelper.klageinstanshendelsePostgresRepo
+            UprosessertKlageinstanshendelse(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                metadata = UprosessertFattetKlageinstansvedtak.Metadata(
+                metadata = UprosessertKlageinstanshendelse.Metadata(
+                    topic = "klage.behandling-events.v1",
                     hendelseId = UUID.randomUUID().toString(),
                     offset = 1,
                     partisjon = 2,
@@ -76,9 +80,9 @@ internal class KlagevedtakPostgresRepoTest {
                     value = "{}",
                 ),
             ).also {
-                klagevedtakRepo.lagre(it)
+                klageinstanshendelsePostgresRepo.lagre(it)
                 shouldThrow<PSQLException> {
-                    klagevedtakRepo.lagre(it)
+                    klageinstanshendelsePostgresRepo.lagre(it)
                 }.message shouldContain "duplicate key value violates unique constraint \"klagevedtak_pkey\""
             }
         }
@@ -88,14 +92,15 @@ internal class KlagevedtakPostgresRepoTest {
     fun `Endrer og lagrer type til PROSESSERT`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val klagevedtakRepo = testDataHelper.klagevedtakPostgresRepo
+            val klageinstanshendelsePostgresRepo = testDataHelper.klageinstanshendelsePostgresRepo
             val id = UUID.randomUUID()
             val klage = testDataHelper.oversendtKlage()
 
-            UprosessertFattetKlageinstansvedtak(
+            UprosessertKlageinstanshendelse(
                 id = id,
                 opprettet = fixedTidspunkt,
-                metadata = UprosessertFattetKlageinstansvedtak.Metadata(
+                metadata = UprosessertKlageinstanshendelse.Metadata(
+                    topic = "klage.behandling-events.v1",
                     hendelseId = UUID.randomUUID().toString(),
                     offset = 1,
                     partisjon = 2,
@@ -103,18 +108,18 @@ internal class KlagevedtakPostgresRepoTest {
                     value = "{\"kildeReferanse\": ${klage.id}}",
                 ),
             ).also {
-                klagevedtakRepo.lagre(it)
-                klagevedtakRepo.lagre(
-                    ProsessertKlageinstansvedtak(
+                klageinstanshendelsePostgresRepo.lagre(it)
+                klageinstanshendelsePostgresRepo.lagre(
+                    ProsessertKlageinstanshendelse(
                         id = it.id,
                         opprettet = fixedTidspunkt,
                         klageId = klage.id,
-                        utfall = KlagevedtakUtfall.STADFESTELSE,
-                        vedtaksbrevReferanse = UUID.randomUUID().toString(),
-                        oppgaveId = null
-                    )
+                        utfall = KlageinstansUtfall.STADFESTELSE,
+                        journalpostIDer = listOf(JournalpostId(UUID.randomUUID().toString())),
+                        oppgaveId = null,
+                    ),
                 )
-                klagevedtakRepo.hentUbehandlaKlagevedtak() shouldBe emptyList()
+                klageinstanshendelsePostgresRepo.hentUbehandlaKlageinstanshendelser() shouldBe emptyList()
             }
         }
     }

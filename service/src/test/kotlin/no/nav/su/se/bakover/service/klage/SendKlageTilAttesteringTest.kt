@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
-import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
+import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -318,7 +318,7 @@ internal class SendKlageTilAttesteringTest {
                     attesteringer = attesteringer,
                     datoKlageMottatt = 1.desember(2021),
                     fritekstTilBrev = fritekstTilBrev,
-                    klagevedtakshistorikk = Klagevedtakshistorikk.empty()
+                    klageinstanshendelser = Klageinstanshendelser.empty()
                 )
                 it shouldBe expectedKlage
             }
