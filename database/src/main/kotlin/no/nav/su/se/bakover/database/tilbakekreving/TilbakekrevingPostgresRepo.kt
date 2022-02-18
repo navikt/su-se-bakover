@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.tilbakekreving
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
@@ -234,6 +235,28 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
                 ) {
                     it.toTilbakekrevingsbehandling()
                 }.filterIsInstance<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>()
+        }
+    }
+
+    // TODO klarer vi å lage noe berdre test-support som lar oss teste denne typen sqls uten å kode seg ihjel? Mulig å bridge oppsett for testdata og TestDataHelper for db?
+    override fun hentAvventerKravgrunnlag(utbetalingId: UUID30): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag? {
+        return sessionFactory.withSession { session ->
+            """
+                select t.* from tilbakekrevingsbehandling t
+                    join behandling_vedtak bv on bv.revurderingid = t.revurderingid
+                    join vedtak v on v.id = bv.vedtakid
+                    join utbetaling u on u.id = v.utbetalingid
+                where u.id = :utbetalingId
+                    and t.tilstand = '${Tilstand.AVVENTER_KRAVGRUNNLAG}'
+            """.trimIndent()
+                .hent(
+                    params = mapOf(
+                        "utbetalingId" to utbetalingId,
+                    ),
+                    session = session,
+                ) {
+                    it.toTilbakekrevingsbehandling()
+                } as? Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag
         }
     }
 

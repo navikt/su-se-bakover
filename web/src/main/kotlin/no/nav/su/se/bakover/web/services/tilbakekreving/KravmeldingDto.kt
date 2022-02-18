@@ -175,10 +175,12 @@ internal data class KravmeldingDto(
      * 19 - Referanse - X(30) - Henvisning fra nyeste oppdragslinje
      *
      * F.eks. 01F49912SX9SRRVGT0J5R4WYFR
+     *
+     * En referanse til utbetalingId (vår) som førte til opprettelse/endring av dette kravgrunnlaget
+     * @see [no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.utbetalingId]
      */
-    // TODO send med "henvisning" (referanse til vedtak) på utbetalingslinjer - verdien i "henvisning" vil returneres som "referanse" i kravgunnlaget
-    // @field:JsonProperty(value = "referanse")
-    // val referanse: String,
+    @field:JsonProperty(value = "referanse")
+    val utbetalingId: String,
 
     @field:JsonProperty(value = "tilbakekrevingsPeriode")
     val tilbakekrevingsperioder: List<Tilbakekrevingsperiode>,

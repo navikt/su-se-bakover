@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
@@ -31,6 +30,7 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import java.util.UUID
 
 internal class FortsettEtterForhåndsvarslingTest {
 
@@ -86,7 +86,7 @@ internal class FortsettEtterForhåndsvarslingTest {
                 on { hent(any()) } doReturn simulertRevurdering
             },
             tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             }
         )
         mocks.revurderingService.fortsettEtterForhåndsvarsling(
@@ -131,7 +131,7 @@ internal class FortsettEtterForhåndsvarslingTest {
             },
             anyOrNull(),
         )
-        verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any())
+        verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
         mocks.verifyNoMoreInteractions()
     }
 

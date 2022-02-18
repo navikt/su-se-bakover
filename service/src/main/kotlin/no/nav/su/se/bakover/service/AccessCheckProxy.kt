@@ -742,6 +742,10 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
+                override fun hentForRevurderingId(revurderingId: UUID): Vedtak? {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun hentJournalpostId(vedtakId: UUID): JournalpostId? {
                     kastKanKunKallesFraAnnenService()
                 }
@@ -754,6 +758,10 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     fraOgMed: LocalDate,
                 ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes? {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -935,6 +943,10 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentAvventerKravgrunnlag(utbetalingId: UUID30): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag? {
                     kastKanKunKallesFraAnnenService()
                 }
 

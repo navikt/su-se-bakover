@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.tilbakekreving
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
@@ -88,7 +89,7 @@ internal class TilbakekrevingPostgresRepoTest {
                     kravgrunnlag = RåttKravgrunnlag("xml"),
                     kravgrunnlagMottatt = fixedTidspunkt,
                     hentRevurdering = { iverksattRevurdering().second },
-                    kravgrunnlagMapper = { matchendeKravgrunnlag(revurdering, revurdering.simulering, fixedClock) },
+                    kravgrunnlagMapper = { matchendeKravgrunnlag(revurdering, revurdering.simulering, UUID30.randomUUID(), fixedClock) },
                 )
                 testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(mottattKravgrunnlag, session)
                 testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(

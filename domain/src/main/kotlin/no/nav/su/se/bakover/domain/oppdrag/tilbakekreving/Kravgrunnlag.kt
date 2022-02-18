@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.MånedBeløp
@@ -27,7 +28,7 @@ data class Kravgrunnlag(
      * Oppdrag har ikke skillet mellom saksbehandler/attestant (men bruker ofte ordet saksbehandler).
      */
     val behandler: NavIdentBruker,
-
+    val utbetalingId: UUID30,
     val grunnlagsperioder: List<Grunnlagsperiode>,
 ) {
 

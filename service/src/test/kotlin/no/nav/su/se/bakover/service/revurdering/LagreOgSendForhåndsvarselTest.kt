@@ -58,6 +58,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import java.time.LocalDate
+import java.util.UUID
 
 internal class LagreOgSendForhåndsvarselTest {
 
@@ -84,7 +85,7 @@ internal class LagreOgSendForhåndsvarselTest {
                 on { hent(any()) } doReturn simulertRevurdering
             },
             tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
         )
 
@@ -137,7 +138,7 @@ internal class LagreOgSendForhåndsvarselTest {
             oppgaveId = argThat { it shouldBe oppgaveIdRevurdering },
             beskrivelse = argThat { it shouldBe "Forhåndsvarsel er sendt." },
         )
-        verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any())
+        verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
         mocks.verifyNoMoreInteractions()
     }
 
@@ -190,7 +191,7 @@ internal class LagreOgSendForhåndsvarselTest {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
             },
             tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
         )
         val response = mocks.revurderingService.lagreOgSendForhåndsvarsel(
@@ -211,7 +212,7 @@ internal class LagreOgSendForhåndsvarselTest {
         verify(mocks.brevService).lagreDokument(any(), anyOrNull())
         verify(mocks.oppgaveService).oppdaterOppgave(any(), any())
         verify(mocks.identClient).hentNavnForNavIdent(any())
-        verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any())
+        verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
         mocks.verifyNoMoreInteractions()
     }
 
@@ -387,7 +388,7 @@ internal class LagreOgSendForhåndsvarselTest {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
             },
             tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
         )
         mocks.revurderingService.lagreOgSendForhåndsvarsel(
@@ -425,7 +426,7 @@ internal class LagreOgSendForhåndsvarselTest {
             oppgaveId = argThat { it shouldBe simulertRevurdering.oppgaveId },
             beskrivelse = argThat { it shouldBe "Forhåndsvarsel er sendt." },
         )
-        verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any())
+        verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
         mocks.verifyNoMoreInteractions()
     }
 

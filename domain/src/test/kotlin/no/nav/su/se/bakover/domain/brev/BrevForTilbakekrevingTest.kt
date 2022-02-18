@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.requireType
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertRevurdering
 import org.junit.jupiter.api.Nested
@@ -261,10 +262,5 @@ class BrevForTilbakekrevingTest {
             },
             clock = clock,
         )
-    }
-
-    inline fun <reified T> requireType(any: Any): T {
-        require(any is T) { "Feil type, forventet objekt av ${T::class}, men var ${any::class}" }
-        return any
     }
 }

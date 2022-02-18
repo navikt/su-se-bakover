@@ -177,7 +177,7 @@ internal class RevurderingSendTilAttesteringTest {
                 on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
             },
             tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             }
         ).let { mocks ->
             val actual = mocks.revurderingService.sendTilAttestering(
@@ -193,7 +193,7 @@ internal class RevurderingSendTilAttesteringTest {
 
             inOrder(*mocks.all()) {
                 verify(mocks.revurderingRepo).hent(argThat { it shouldBe revurdering.id })
-                verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any())
+                verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
                 verify(mocks.personService).hentAktørId(argThat { it shouldBe revurdering.fnr })
                 mocks.verifyNoMoreInteractions()
             }
@@ -219,7 +219,7 @@ internal class RevurderingSendTilAttesteringTest {
                 on { opprettOppgave(any()) } doReturn OppgaveFeil.KunneIkkeOppretteOppgave.left()
             },
             tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             }
         ).let { mocks ->
             val actual = mocks.revurderingService.sendTilAttestering(
@@ -237,7 +237,7 @@ internal class RevurderingSendTilAttesteringTest {
                 *mocks.all(),
             ) {
                 verify(mocks.revurderingRepo).hent(revurderingId)
-                verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any())
+                verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
                 verify(mocks.personService).hentAktørId(argThat { it shouldBe fnr })
                 verify(mocks.oppgaveService).opprettOppgave(
                     argThat {
@@ -273,7 +273,7 @@ internal class RevurderingSendTilAttesteringTest {
                 on { isEnabled(any()) } doReturn false
             },
             tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             }
         ).let {
             it.revurderingService.sendTilAttestering(
@@ -314,7 +314,7 @@ internal class RevurderingSendTilAttesteringTest {
                 on { lukkOppgave(any()) } doReturn Unit.right()
             },
             tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             }
         ).let {
             it.revurderingService.sendTilAttestering(
@@ -367,7 +367,7 @@ internal class RevurderingSendTilAttesteringTest {
                 on { lukkOppgave(any()) } doReturn Unit.right()
             },
             tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             }
         ).let {
             it.revurderingService.sendTilAttestering(
@@ -417,7 +417,7 @@ internal class RevurderingSendTilAttesteringTest {
                 on { lukkOppgave(any()) } doReturn Unit.right()
             },
             tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any()) } doReturn emptyList()
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             }
         ).let {
             it.revurderingService.sendTilAttestering(
@@ -538,7 +538,7 @@ internal class RevurderingSendTilAttesteringTest {
                 on { hent(any()) } doReturn simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
             },
             tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any()) } doReturn listOf(
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn listOf(
                     AvventerKravgrunnlag(
                         avgjort = Tilbakekrev(
                             id = UUID.randomUUID(),

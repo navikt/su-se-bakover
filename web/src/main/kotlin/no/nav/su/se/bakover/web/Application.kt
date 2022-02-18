@@ -293,9 +293,8 @@ fun Application.susebakover(
     )
     val tilbakekrevingConsumer = TilbakekrevingConsumer(
         tilbakekrevingService = services.tilbakekrevingService,
-        sakService = services.sak,
-        clock = clock,
         revurderingService = services.revurdering,
+        clock = clock,
     )
 
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
@@ -387,7 +386,7 @@ fun Application.susebakover(
         LokalMottaKravgrunnlagJob(
             tilbakekrevingConsumer = tilbakekrevingConsumer,
             tilbakekrevingService = services.tilbakekrevingService,
-            revurderingService = services.revurdering,
+            vedtakService = services.vedtakService,
         ).schedule()
 
         TilbakekrevingJob(

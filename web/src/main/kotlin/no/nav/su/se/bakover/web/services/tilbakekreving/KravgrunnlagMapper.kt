@@ -7,6 +7,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -48,6 +49,7 @@ internal object KravgrunnlagMapper {
                     status = Kravgrunnlag.KravgrunnlagStatus.valueOf(kravgrunnlag.kodeStatusKrav),
                     kontrollfelt = kravgrunnlag.kontrollfelt,
                     behandler = NavIdentBruker.Saksbehandler(kravgrunnlag.saksbehId),
+                    utbetalingId = UUID30.fromString(kravgrunnlag.utbetalingId),
                     grunnlagsperioder = kravgrunnlag.tilbakekrevingsperioder.map { tilbakekrevingsperiode ->
                         Kravgrunnlag.Grunnlagsperiode(
                             periode = Periode.create(

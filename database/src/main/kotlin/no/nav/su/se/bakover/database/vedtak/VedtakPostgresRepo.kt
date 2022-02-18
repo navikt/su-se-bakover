@@ -77,6 +77,20 @@ internal class VedtakPostgresRepo(
         }
     }
 
+    override fun hentForRevurderingId(revurderingId: UUID): Vedtak? {
+        return sessionFactory.withSession { session ->
+            """
+                select v.* from vedtak v
+                join behandling_vedtak bv on bv.vedtakid = v.id
+                join revurdering r on r.id = bv.revurderingId
+                where r.id = :revurderingId;
+            """.trimIndent()
+                .hent(mapOf("revurderingId" to revurderingId), session) {
+                    it.toVedtak(session)
+                }
+        }
+    }
+
     override fun hentForSakId(sakId: UUID): List<Vedtak> {
         return dbMetrics.timeQuery("hentVedtakForSakId") {
             dataSource.withSession { session -> hentForSakId(sakId, session) }

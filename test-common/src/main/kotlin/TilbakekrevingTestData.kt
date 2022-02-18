@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
@@ -19,6 +20,7 @@ import java.time.Clock
 fun matchendeKravgrunnlag(
     revurdering: Revurdering,
     simulering: Simulering,
+    utbetalingId: UUID30,
     clock: Clock,
 ): Kravgrunnlag {
     return simulering.tolk().let {
@@ -29,6 +31,7 @@ fun matchendeKravgrunnlag(
             kontrollfelt = Tidspunkt.now(clock).toOppdragTimestamp(),
             status = Kravgrunnlag.KravgrunnlagStatus.NY,
             behandler = NavIdentBruker.Saksbehandler("K231B433"),
+            utbetalingId = utbetalingId,
             grunnlagsperioder = it.simulertePerioder
                 .filter { it.harFeilutbetalinger() }
                 .map { periode ->
