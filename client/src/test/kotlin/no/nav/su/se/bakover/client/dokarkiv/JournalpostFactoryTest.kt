@@ -105,7 +105,7 @@ internal class JournalpostFactoryTest {
     @Test
     fun `lager vedtakspost for opphørsvedtak`() {
         val brevdata = mock<BrevInnhold> {
-            on { brevTemplate } doReturn BrevTemplate.Opphørsvedtak
+            on { brevTemplate } doReturn BrevTemplate.Opphør.Opphørsvedtak
             on { toJson() } doReturn ""
         }
 

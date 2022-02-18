@@ -881,7 +881,7 @@ internal class LagBrevRequestVisitorTest {
         ).apply { avslåttVedtak.accept(this) }
 
         brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
-        brevRevurdering.brevRequest shouldBe LagBrevRequest.Revurdering.Inntekt(
+        brevRevurdering.brevRequest shouldBe LagBrevRequest.Inntekt(
             person = person,
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,

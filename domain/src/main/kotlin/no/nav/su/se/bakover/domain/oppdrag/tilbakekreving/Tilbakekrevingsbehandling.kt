@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
@@ -331,6 +334,35 @@ sealed interface Tilbakekrevingsbehandling {
                 val tilbakekrevingsvedtak: RåttTilbakekrevingsvedtak
                 val tilbakekrevingsvedtakSendt: Tidspunkt
             }
+        }
+    }
+}
+
+fun Tilbakekrevingsbehandling.tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+    return when (this) {
+        is MottattKravgrunnlag -> {
+            this.avgjort.right()
+        }
+        is SendtTilbakekrevingsvedtak -> {
+            this.avgjort.right()
+        }
+        is AvventerKravgrunnlag -> {
+            this.avgjort.right()
+        }
+        is Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving -> {
+            Unit.left()
+        }
+        is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
+            Unit.left()
+        }
+        is IkkeTilbakekrev -> {
+            this.right()
+        }
+        is Tilbakekrev -> {
+            this.right()
+        }
+        is IkkeAvgjort -> {
+            Unit.left()
         }
     }
 }

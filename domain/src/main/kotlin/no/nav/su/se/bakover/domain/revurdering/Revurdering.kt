@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekre
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.tilbakekrevingErVurdert
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.beregning.BeregnRevurderingStrategyDecider
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -864,7 +865,7 @@ sealed class SimulertRevurdering : Revurdering() {
                         fritekst = fritekst,
                         dagensDato = LocalDate.now(clock),
                         saksnummer = saksnummer,
-                        bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum()
+                        bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
                     )
                 } else {
                     LagBrevRequest.Forhåndsvarsel(
@@ -876,6 +877,10 @@ sealed class SimulertRevurdering : Revurdering() {
                     )
                 }
             }
+    }
+
+    fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+        return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
     }
 
     private fun lagForhåndsvarselForTilbakekreving(): Boolean {
@@ -1235,6 +1240,10 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
         override val skalFøreTilUtsendingAvVedtaksbrev = true
 
+        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
+        }
+
         fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
             hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
@@ -1309,6 +1318,10 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
                 OpphørVedRevurdering.Nei -> emptyList()
             }
+        }
+
+        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
         }
 
         fun tilIverksatt(
@@ -1524,6 +1537,10 @@ sealed class IverksattRevurdering : Revurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
+
+        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
+        }
     }
 
     data class Opphørt(
@@ -1571,6 +1588,10 @@ sealed class IverksattRevurdering : Revurdering() {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsdato
                 OpphørVedRevurdering.Nei -> null
             }
+        }
+
+        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
         }
     }
 
@@ -1662,6 +1683,10 @@ sealed class UnderkjentRevurdering : Revurdering() {
 
         fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
 
+        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
+        }
+
         fun tilAttestering(
             oppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
@@ -1724,6 +1749,10 @@ sealed class UnderkjentRevurdering : Revurdering() {
         }
 
         fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
+
+        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
+        }
 
         object KanIkkeSendeEnOpphørtGReguleringTilAttestering
 
