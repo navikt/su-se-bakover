@@ -18,7 +18,7 @@ data class FormueVerdierForBrev(
     val pengerSøkerSkyldes: Int,
 )
 
-fun Formuegrunnlag.tilFormueVerdierForBrev(): FormueForBrev {
+fun Formuegrunnlag.tilFormueForBrev(): FormueForBrev {
     return FormueForBrev(
         søkersFormue = this.søkersFormue.tilFormueVerdierForBrev(),
         epsFormue = this.epsFormue?.tilFormueVerdierForBrev(),

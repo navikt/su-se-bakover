@@ -107,7 +107,7 @@ interface LagBrevRequest {
                 ?.datoForSisteEndringAvSats(avslag.beregning.periode.tilOgMed)?.ddMMyyyy(),
             fritekst = fritekst,
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
-            formueVerdier = avslag.formuegrunnlag?.tilFormueVerdierForBrev(),
+            formueVerdier = avslag.formuegrunnlag?.tilFormueForBrev(),
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
