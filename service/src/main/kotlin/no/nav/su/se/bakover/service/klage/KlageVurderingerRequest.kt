@@ -110,7 +110,7 @@ data class KlageVurderingerRequest(
         return Domain(
             klageId = klageId,
             vurderinger = VurderingerTilKlage.create(
-                fritekstTilBrev = fritekstTilBrev,
+                fritekstTilOversendelsesbrev = fritekstTilBrev,
                 vedtaksvurdering = toVedtaksvurdering().getOrHandle { return it.left() },
             ),
             saksbehandler = saksbehandler,

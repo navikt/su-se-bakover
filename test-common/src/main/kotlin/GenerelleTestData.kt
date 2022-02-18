@@ -80,7 +80,7 @@ val stønadsperiode2021 = Stønadsperiode.create(periode2021, "stønadsperiode20
 val attestant = NavIdentBruker.Attestant("attestant")
 const val attestantNavn = "Att E. Stant"
 
-fun attesteringIverksatt(clock: Clock) = Attestering.Iverksatt(
+fun attesteringIverksatt(clock: Clock = fixedClock) = Attestering.Iverksatt(
     attestant = attestant,
     opprettet = Tidspunkt.now(clock),
 )

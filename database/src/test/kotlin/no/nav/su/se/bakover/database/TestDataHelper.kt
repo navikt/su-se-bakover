@@ -1257,10 +1257,10 @@ internal class TestDataHelper(
         return bekreftetVilkårsvurdertKlageTilVurdering(vedtak = vedtak).vurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
             vurderinger = VurderingerTilKlage.Påbegynt.create(
-                fritekstTilBrev = "Friteksten til brevet er som følge: ",
+                fritekstTilOversendelsesbrev = "Friteksten til brevet er som følge: ",
                 vedtaksvurdering = null,
             ),
-        ).getOrFail().let {
+        ).let {
             if (it !is VurdertKlage.Påbegynt) throw IllegalStateException("Forventet en Påbegynt vurdert klage. fikk ${it::class} ved opprettelse av test data")
             it
         }.also {
@@ -1274,14 +1274,14 @@ internal class TestDataHelper(
         return påbegyntVurdertKlage(vedtak = vedtak).vurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
             vurderinger = VurderingerTilKlage.Utfylt(
-                fritekstTilBrev = "Friteksten til brevet er som følge: ",
+                fritekstTilOversendelsesbrev = "Friteksten til brevet er som følge: ",
                 vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold(
                     hjemler = Hjemler.Utfylt.create(
                         nonEmptyListOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4),
                     ),
                 ),
             ),
-        ).getOrFail().let {
+        ).let {
             if (it !is VurdertKlage.Utfylt) throw IllegalStateException("Forventet en Påbegynt vurdert klage. fikk ${it::class} ved opprettelse av test data")
             it
         }.also {
@@ -1294,7 +1294,7 @@ internal class TestDataHelper(
     ): VurdertKlage.Bekreftet {
         return utfyltVurdertKlage(vedtak = vedtak).bekreftVurderinger(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVurdertKlage"),
-        ).orNull()!!.also {
+        ).also {
             klagePostgresRepo.lagre(it)
         }
     }
@@ -1318,10 +1318,10 @@ internal class TestDataHelper(
         saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerAvvistKlage"),
         fritekstTilBrev: String = "en god, og lang fritekst",
     ): AvvistKlage {
-        return bekreftetAvvistVilkårsvurdertKlage(vedtak).leggTilAvvistFritekstTilBrev(
+        return bekreftetAvvistVilkårsvurdertKlage(vedtak).leggTilFritekstTilAvvistVedtaksbrev(
             saksbehandler,
             fritekstTilBrev,
-        ).getOrFail().also {
+        ).also {
             klagePostgresRepo.lagre(it)
         }
     }
@@ -1366,10 +1366,7 @@ internal class TestDataHelper(
                 grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                 kommentar = "underkjennelseskommentar",
             ),
-        ) { oppgaveId.right() }.orNull()!!.let {
-            if (it !is VurdertKlage.Bekreftet) throw IllegalStateException("Forventet VurdertKlage.Bekreftet ved opprettelse av test data. fikk ${it::class} ved opprettelse av test-data")
-            it
-        }.also {
+        ) { oppgaveId.right() }.orNull()!!.also {
             klagePostgresRepo.lagre(it)
         }
     }

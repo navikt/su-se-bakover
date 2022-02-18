@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
 import java.util.UUID
 
-data class OpprettetKlage private constructor(
+data class OpprettetKlage(
     override val id: UUID,
     override val opprettet: Tidspunkt,
     override val sakId: UUID,
@@ -25,30 +25,6 @@ data class OpprettetKlage private constructor(
     override val saksbehandler: NavIdentBruker.Saksbehandler,
 ) : Klage {
 
-    companion object {
-        fun create(
-            id: UUID,
-            opprettet: Tidspunkt,
-            sakId: UUID,
-            saksnummer: Saksnummer,
-            fnr: Fnr,
-            journalpostId: JournalpostId,
-            oppgaveId: OppgaveId,
-            datoKlageMottatt: LocalDate,
-            saksbehandler: NavIdentBruker.Saksbehandler,
-        ): OpprettetKlage = OpprettetKlage(
-            id = id,
-            opprettet = opprettet,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            fnr = fnr,
-            journalpostId = journalpostId,
-            oppgaveId = oppgaveId,
-            datoKlageMottatt = datoKlageMottatt,
-            saksbehandler = saksbehandler,
-        )
-    }
-
     override fun erÅpen() = true
 
     override fun kanAvsluttes() = true
@@ -58,7 +34,7 @@ data class OpprettetKlage private constructor(
         begrunnelse: String,
         tidspunktAvsluttet: Tidspunkt,
     ) = AvsluttetKlage(
-        forrigeSteg = this,
+        underliggendeKlage = this,
         saksbehandler = saksbehandler,
         begrunnelse = begrunnelse,
         tidspunktAvsluttet = tidspunktAvsluttet,
@@ -67,7 +43,7 @@ data class OpprettetKlage private constructor(
     override fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkårsvurderinger: VilkårsvurderingerTilKlage,
-    ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+    ): Either<Nothing, VilkårsvurdertKlage> {
         return when (vilkårsvurderinger) {
             is VilkårsvurderingerTilKlage.Utfylt -> vilkårsvurder(saksbehandler, vilkårsvurderinger)
             is VilkårsvurderingerTilKlage.Påbegynt -> vilkårsvurder(saksbehandler, vilkårsvurderinger)
@@ -78,7 +54,7 @@ data class OpprettetKlage private constructor(
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
     ): VilkårsvurdertKlage.Påbegynt {
-        return VilkårsvurdertKlage.Påbegynt.create(
+        return VilkårsvurdertKlage.Påbegynt(
             id = id,
             opprettet = opprettet,
             sakId = sakId,
@@ -111,6 +87,7 @@ data class OpprettetKlage private constructor(
             attesteringer = Attesteringshistorikk.empty(),
             datoKlageMottatt = datoKlageMottatt,
             klageinstanshendelser = Klageinstanshendelser.empty(),
+            fritekstTilAvvistVedtaksbrev = null,
         )
     }
 }

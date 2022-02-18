@@ -61,6 +61,7 @@ import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withKlageId
 import no.nav.su.se.bakover.web.withSakId
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -82,6 +83,7 @@ private enum class Svarord {
 
 internal fun Route.klageRoutes(
     klageService: KlageService,
+    clock: Clock,
 ) {
     authorize(Brukerrolle.Saksbehandler) {
         post(klagePath) {
@@ -94,6 +96,7 @@ internal fun Route.klageRoutes(
                             saksbehandler = call.suUserContext.saksbehandler,
                             journalpostId = JournalpostId(body.journalpostId),
                             datoKlageMottatt = body.datoKlageMottatt,
+                            clock = clock,
                         ),
                     ).map {
                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))

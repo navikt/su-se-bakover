@@ -161,7 +161,7 @@ internal class AvsluttKlageTest {
                   "saksbehandler":"saksbehandler",
                   "datoKlageMottatt":"2021-12-01",
                   "status":"VURDERT_BEKREFTET",
-                  "vedtakId":"${(klage.forrigeSteg as VurdertKlage.Bekreftet).vilkårsvurderinger.vedtakId}",
+                  "vedtakId":"${(klage.hentUnderliggendeKlage() as VurdertKlage.Bekreftet).vilkårsvurderinger.vedtakId}",
                   "innenforFristen":"JA",
                   "klagesDetPåKonkreteElementerIVedtaket":true,
                   "erUnderskrevet":"JA",

@@ -163,7 +163,7 @@ internal class OversendKlageTest {
                     person = person,
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
-                    fritekst = klage.vurderinger.fritekstTilBrev,
+                    fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
@@ -211,7 +211,7 @@ internal class OversendKlageTest {
                     person = person,
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
-                    fritekst = klage.vurderinger.fritekstTilBrev,
+                    fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
@@ -265,7 +265,7 @@ internal class OversendKlageTest {
                     person = person,
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
-                    fritekst = klage.vurderinger.fritekstTilBrev,
+                    fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
                     saksnummer = sak.saksnummer,
@@ -273,17 +273,8 @@ internal class OversendKlageTest {
             },
         )
         verify(mocks.vedtakServiceMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
-        val expectedKlage = OversendtKlage.create(
-            id = klage.id,
-            opprettet = klage.opprettet,
-            sakId = klage.sakId,
-            saksnummer = klage.saksnummer,
-            fnr = klage.fnr,
-            journalpostId = klage.journalpostId,
-            oppgaveId = klage.oppgaveId,
-            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            vilkårsvurderinger = klage.vilkårsvurderinger,
-            vurderinger = klage.vurderinger,
+        val expectedKlage = OversendtKlage(
+            forrigeSteg = klage,
             attesteringer = Attesteringshistorikk.create(
                 listOf(
                     Attestering.Iverksatt(
@@ -292,7 +283,6 @@ internal class OversendKlageTest {
                     ),
                 ),
             ),
-            datoKlageMottatt = 1.desember(2021),
             klageinstanshendelser = Klageinstanshendelser.empty(),
         )
         verify(mocks.klageClient).sendTilKlageinstans(
@@ -453,7 +443,7 @@ internal class OversendKlageTest {
         mocks.service.oversend(
             klageId = klage.id,
             attestant = NavIdentBruker.Attestant("attestant"),
-        ) shouldBe KunneIkkeOversendeKlage.UgyldigTilstand(klage::class, OversendtKlage::class).left()
+        ) shouldBe KunneIkkeOversendeKlage.UgyldigTilstand(klage::class).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
@@ -497,17 +487,8 @@ internal class OversendKlageTest {
             klageId = klage.id,
             attestant = attestant,
         ).getOrHandle { fail(it.toString()) }.also {
-            expectedKlage = OversendtKlage.create(
-                id = it.id,
-                opprettet = fixedTidspunkt,
-                sakId = klage.sakId,
-                saksnummer = klage.saksnummer,
-                fnr = klage.fnr,
-                journalpostId = klage.journalpostId,
-                oppgaveId = klage.oppgaveId,
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                vilkårsvurderinger = klage.vilkårsvurderinger,
-                vurderinger = klage.vurderinger,
+            expectedKlage = OversendtKlage(
+                forrigeSteg = klage,
                 attesteringer = Attesteringshistorikk.create(
                     listOf(
                         Attestering.Iverksatt(
@@ -516,7 +497,6 @@ internal class OversendKlageTest {
                         ),
                     ),
                 ),
-                datoKlageMottatt = 1.desember(2021),
                 klageinstanshendelser = Klageinstanshendelser.empty(),
             )
             it shouldBe expectedKlage
@@ -532,7 +512,7 @@ internal class OversendKlageTest {
                     person = person,
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
-                    fritekst = klage.vurderinger.fritekstTilBrev,
+                    fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
                     saksnummer = klage.saksnummer,

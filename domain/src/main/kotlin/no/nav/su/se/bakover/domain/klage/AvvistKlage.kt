@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
@@ -18,16 +18,47 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
+interface AvvistKlageFelter : VilkårsvurdertKlageFelter {
+    override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
+    val fritekstTilVedtaksbrev: String
+}
+
 /**
  * Representerer en klage når minst et av formkravene er besvart 'nei/false', og det har blitt lagret minst en gang
  * forrige-klasse: [VilkårsvurdertKlage.Bekreftet.Avvist]
  * neste-klasse: [KlageTilAttestering.Avvist]
+ *
+ * @param oppgaveId Må ha mulighet til å legge inn ny oppgaveId når man kommer fra attesteringssteget
+ * @param attesteringer Må ha mulighet til å legge inn ny attestent når man kommer fra attesteringssteget
  */
-data class AvvistKlage private constructor(
+data class AvvistKlage(
     private val forrigeSteg: VilkårsvurdertKlage.Bekreftet.Avvist,
-    val fritekstTilBrev: String,
-) : VilkårsvurdertKlage by forrigeSteg {
-    override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt = forrigeSteg.vilkårsvurderinger
+    override val saksbehandler: NavIdentBruker.Saksbehandler,
+    override val fritekstTilVedtaksbrev: String,
+    override val oppgaveId: OppgaveId = forrigeSteg.oppgaveId,
+    override val attesteringer: Attesteringshistorikk = forrigeSteg.attesteringer,
+) : Klage, AvvistKlageFelter, KanLeggeTilFritekstTilAvvistBrev, VilkårsvurdertKlage.BekreftetFelter by forrigeSteg {
+
+    override fun erÅpen() = true
+
+    override fun bekreftVilkårsvurderinger(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, VilkårsvurdertKlage.Bekreftet.Avvist> {
+        return VilkårsvurdertKlage.Bekreftet.Avvist(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            journalpostId = journalpostId,
+            oppgaveId = oppgaveId,
+            saksbehandler = saksbehandler,
+            vilkårsvurderinger = vilkårsvurderinger,
+            attesteringer = attesteringer,
+            datoKlageMottatt = datoKlageMottatt,
+            fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
+        ).right()
+    }
 
     override fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -48,8 +79,9 @@ data class AvvistKlage private constructor(
                 datoKlageMottatt = datoKlageMottatt,
                 vurderinger = null,
                 klageinstanshendelser = Klageinstanshendelser.empty(),
+                fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
             )
-            is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt.create(
+            is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -66,7 +98,7 @@ data class AvvistKlage private constructor(
     }
 
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
-        return fritekstTilBrev.right()
+        return fritekstTilVedtaksbrev.right()
     }
 
     override fun lagBrevRequest(
@@ -83,30 +115,20 @@ data class AvvistKlage private constructor(
             saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrHandle {
                 return KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(it).left()
             },
-            fritekst = this.fritekstTilBrev,
+            fritekst = this.fritekstTilVedtaksbrev,
             saksnummer = this.saksnummer,
         ).right()
     }
 
-    override fun vurder(
+    override fun leggTilFritekstTilAvvistVedtaksbrev(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        vurderinger: VurderingerTilKlage,
-    ): Either<KunneIkkeVurdereKlage.UgyldigTilstand, VurdertKlage> {
-        return KunneIkkeVurdereKlage.UgyldigTilstand(this::class, VurdertKlage::class).left()
-    }
-
-    override fun bekreftVurderinger(saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, VurdertKlage.Bekreftet> {
-        return KunneIkkeBekrefteKlagesteg.UgyldigTilstand(this::class, VurdertKlage.Bekreftet::class).left()
-    }
-
-    override fun leggTilAvvistFritekstTilBrev(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekst: String,
-    ): Either<KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand, AvvistKlage> {
-        return create(
-            forrigeSteg = forrigeSteg.copy(saksbehandler = saksbehandler),
-            fritekstTilBrev = fritekst,
-        ).right()
+        fritekstTilAvvistVedtaksbrev: String,
+    ): AvvistKlage {
+        return AvvistKlage(
+            forrigeSteg = forrigeSteg,
+            saksbehandler = saksbehandler,
+            fritekstTilVedtaksbrev = fritekstTilAvvistVedtaksbrev,
+        )
     }
 
     override fun sendTilAttestering(
@@ -114,25 +136,12 @@ data class AvvistKlage private constructor(
         opprettOppgave: () -> Either<KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave, OppgaveId>,
     ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering.Avvist> {
         return opprettOppgave().map { oppgaveId ->
-            KlageTilAttestering.Avvist.create(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                journalpostId = journalpostId,
+            KlageTilAttestering.Avvist(
+                forrigeSteg = this,
                 oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderinger,
-                attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt,
-                fritekstTilBrev = fritekstTilBrev,
             )
         }
-    }
-
-    override fun oversend(iverksattAttestering: Attestering.Iverksatt): Either<KunneIkkeOversendeKlage, OversendtKlage> {
-        return KunneIkkeOversendeKlage.UgyldigTilstand(this::class, OversendtKlage::class).left()
     }
 
     override fun kanAvsluttes() = true
@@ -142,26 +151,16 @@ data class AvvistKlage private constructor(
         begrunnelse: String,
         tidspunktAvsluttet: Tidspunkt,
     ) = AvsluttetKlage(
-        forrigeSteg = this,
+        underliggendeKlage = this,
         saksbehandler = saksbehandler,
         begrunnelse = begrunnelse,
         tidspunktAvsluttet = tidspunktAvsluttet,
     ).right()
-
-    companion object {
-        fun create(
-            forrigeSteg: VilkårsvurdertKlage.Bekreftet.Avvist,
-            fritekstTilBrev: String,
-        ): AvvistKlage {
-            return AvvistKlage(
-                forrigeSteg, fritekstTilBrev,
-            )
-        }
-    }
 }
 
-sealed class KunneIkkeLeggeTilFritekstForAvvist {
-    object FantIkkeKlage : KunneIkkeLeggeTilFritekstForAvvist()
-    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) :
-        KunneIkkeLeggeTilFritekstForAvvist()
+sealed interface KunneIkkeLeggeTilFritekstForAvvist {
+    object FantIkkeKlage : KunneIkkeLeggeTilFritekstForAvvist
+    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeLeggeTilFritekstForAvvist {
+        val til = AvvistKlage::class
+    }
 }

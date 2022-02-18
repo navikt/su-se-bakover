@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.test.avvistKlage
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
+import no.nav.su.se.bakover.test.createBekreftetVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
@@ -250,7 +251,7 @@ internal class BekreftVilkårsvurdertKlageTest {
             klageId = klage.id,
             saksbehandler = NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene"),
         ).orNull()!!.also {
-            expectedKlage = VilkårsvurdertKlage.Bekreftet.create(
+            expectedKlage = createBekreftetVilkårsvurdertKlage(
                 id = it.id,
                 opprettet = fixedTidspunkt,
                 sakId = klage.sakId,
@@ -263,7 +264,8 @@ internal class BekreftVilkårsvurdertKlageTest {
                 vurderinger = vurderingerTilKlage,
                 attesteringer = attesteringer,
                 datoKlageMottatt = 1.desember(2021),
-                klageinstanshendelser = Klageinstanshendelser.empty()
+                klageinstanshendelser = Klageinstanshendelser.empty(),
+                fritekstTilBrev = klage.getFritekstTilBrev().orNull(),
             )
             it shouldBe expectedKlage
         }
@@ -276,7 +278,7 @@ internal class BekreftVilkårsvurdertKlageTest {
             },
             argThat {
                 it shouldBe TestSessionFactory.transactionContext
-            }
+            },
         )
         mocks.verifyNoMoreInteractions()
     }

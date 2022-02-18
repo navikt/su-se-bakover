@@ -10,11 +10,13 @@ import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeTolkeKlageinstanshendelse
+import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.service.argShouldBe
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -90,19 +92,18 @@ internal class KlageinstanshendelseServiceImplTest {
                 )
             },
         )
-        TestSessionFactory().withTransactionContext { tx ->
-            verify(klageinstanshendelseRepoMock).lagre(
-                mappedKlageinstanshendelse.tilProsessert(OppgaveId("212121")),
-                tx,
-            )
-        }
+        verify(klageinstanshendelseRepoMock).lagre(
+            mappedKlageinstanshendelse.tilProsessert(OppgaveId("212121")),
+            TestSessionFactory.transactionContext,
+        )
     }
 
     @Test
     fun `RETUR setter vedtaket som prosessert og lager ny oppgave for klagen`() {
-        val id = UUID.randomUUID()
+        val klage = oversendtKlage().second
+        val klageinstansId = UUID.randomUUID()
         val klageinstanshendelseRepoMock: KlageinstanshendelseRepo = mock {
-            on { hentUbehandlaKlageinstanshendelser() } doReturn listOf(uprosessertKlageinstanshendelse(id))
+            on { hentUbehandlaKlageinstanshendelser() } doReturn listOf(uprosessertKlageinstanshendelse(klageinstansId))
         }
         val klageRepoMock: KlageRepo = mock {
             on { hentKlage(any()) } doReturn klage
@@ -115,7 +116,7 @@ internal class KlageinstanshendelseServiceImplTest {
             on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("212121").right()
         }
         val mappedKlageinstanshendelse = TolketKlageinstanshendelse(
-            id = id,
+            id = klageinstansId,
             opprettet = fixedTidspunkt,
             avsluttetTidspunkt = fixedTidspunkt,
             klageId = klage.id,
@@ -128,7 +129,9 @@ internal class KlageinstanshendelseServiceImplTest {
             klageRepo = klageRepoMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
-        ).håndterUtfallFraKlageinstans { _, _, _ -> mappedKlageinstanshendelse.right() }
+        ).håndterUtfallFraKlageinstans { _, _, _ ->
+            mappedKlageinstanshendelse.right()
+        }
         verify(klageinstanshendelseRepoMock).hentUbehandlaKlageinstanshendelser()
         verify(klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(personServiceMock).hentAktørIdMedSystembruker(klage.fnr)
@@ -145,34 +148,30 @@ internal class KlageinstanshendelseServiceImplTest {
                 )
             },
         )
-        TestSessionFactory().withTransactionContext { tx ->
-            verify(klageRepoMock).lagre(
-                VurdertKlage.Bekreftet.create(
-                    id = klage.id,
-                    opprettet = klage.opprettet,
-                    sakId = klage.sakId,
-                    saksnummer = klage.saksnummer,
-                    fnr = klage.fnr,
-                    journalpostId = klage.journalpostId,
-                    oppgaveId = OppgaveId("212121"),
-                    saksbehandler = klage.saksbehandler,
-                    vilkårsvurderinger = klage.vilkårsvurderinger,
-                    vurderinger = klage.vurderinger,
-                    attesteringer = klage.attesteringer,
-                    datoKlageMottatt = klage.datoKlageMottatt,
-                    klageinstanshendelser = Klageinstanshendelser.create(
-                        listOf(
-                            mappedKlageinstanshendelse.tilProsessert(OppgaveId("212121")),
+        verify(klageRepoMock).lagre(
+            argThat {
+                it as VurdertKlage.Bekreftet
+                it.oppgaveId shouldBe OppgaveId("212121")
+                it.saksbehandler shouldBe klage.saksbehandler
+                it.klageinstanshendelser shouldBe Klageinstanshendelser.create(
+                    listOf(
+                        ProsessertKlageinstanshendelse(
+                            id = klageinstansId,
+                            opprettet = fixedTidspunkt,
+                            klageId = klage.id,
+                            utfall = KlageinstansUtfall.RETUR,
+                            journalpostIDer = listOf(JournalpostId("123456")),
+                            oppgaveId = OppgaveId("212121"),
                         ),
                     ),
-                ),
-                tx,
-            )
-            verify(klageinstanshendelseRepoMock).lagre(
-                mappedKlageinstanshendelse.tilProsessert(OppgaveId("212121")),
-                tx,
-            )
-        }
+                )
+            },
+            argShouldBe(TestSessionFactory.transactionContext),
+        )
+        verify(klageinstanshendelseRepoMock).lagre(
+            mappedKlageinstanshendelse.tilProsessert(OppgaveId("212121")),
+            TestSessionFactory.transactionContext,
+        )
     }
 
     private fun uprosessertKlageinstanshendelse(id: UUID) = UprosessertKlageinstanshendelse(

@@ -6,24 +6,24 @@ import arrow.core.Either
  * Støtter kun opprettholdelse i MVP, men vi har støtte for å lagre alle feltene.
  * Validerer at vi kan bekrefte eller sende til attestering.
  */
-sealed class VurderingerTilKlage {
+sealed interface VurderingerTilKlage {
 
-    abstract val fritekstTilBrev: String?
-    abstract val vedtaksvurdering: Vedtaksvurdering?
+    val fritekstTilOversendelsesbrev: String?
+    val vedtaksvurdering: Vedtaksvurdering?
 
     companion object {
 
         fun empty(): Påbegynt {
             // Går via create for å verifisere at vi bruker de samme reglene.
             return create(
-                fritekstTilBrev = null,
+                fritekstTilOversendelsesbrev = null,
                 vedtaksvurdering = null,
             ) as Påbegynt
         }
 
         /**
          * [VurderingerTilKlage.Påbegynt] dersom minst en av disse er oppfylt:
-         * 1. fritekstTilBrev er null
+         * 1. fritekstTilOversendelsesbrev er null
          * 2. vedtaksvurdering er null
          * 3. vedtaksvurdering er [Vedtaksvurdering.Påbegynt]
          *
@@ -32,11 +32,11 @@ sealed class VurderingerTilKlage {
          * @param vedtaksvurdering En [VurderingerTilKlage.Påbegynt] kan inneholde enten en [Vedtaksvurdering.Påbegynt] eller [Vedtaksvurdering.Utfylt]
          * */
         fun create(
-            fritekstTilBrev: String?,
+            fritekstTilOversendelsesbrev: String?,
             vedtaksvurdering: Vedtaksvurdering?,
         ): VurderingerTilKlage {
             return Påbegynt.create(
-                fritekstTilBrev = fritekstTilBrev,
+                fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
                 vedtaksvurdering = vedtaksvurdering,
             )
         }
@@ -44,19 +44,19 @@ sealed class VurderingerTilKlage {
 
     /**
      * Påbegynt dersom en av disse er oppfylt:
-     * 1. fritekstTilBrev er null
+     * 1. fritekstTilOversendelsesbrev er null
      * 2. vedtaksvurdering er null
      * 3. vedtaksvurdering er [Vedtaksvurdering.Påbegynt]
      */
     data class Påbegynt private constructor(
-        override val fritekstTilBrev: String?,
+        override val fritekstTilOversendelsesbrev: String?,
         override val vedtaksvurdering: Vedtaksvurdering?,
-    ) : VurderingerTilKlage() {
+    ) : VurderingerTilKlage {
 
         companion object {
             /**
              * [VurderingerTilKlage.Påbegynt] dersom minst en av disse er oppfylt:
-             * 1. fritekstTilBrev er null
+             * 1. fritekstTilOversendelsesbrev er null
              * 2. vedtaksvurdering er null
              * 3. vedtaksvurdering er [Vedtaksvurdering.Påbegynt]
              *
@@ -65,19 +65,19 @@ sealed class VurderingerTilKlage {
              * @param vedtaksvurdering En [VurderingerTilKlage.Påbegynt] kan inneholde enten en [Vedtaksvurdering.Påbegynt] eller [Vedtaksvurdering.Utfylt]
              * */
             fun create(
-                fritekstTilBrev: String?,
+                fritekstTilOversendelsesbrev: String?,
                 vedtaksvurdering: Vedtaksvurdering?,
             ): VurderingerTilKlage {
                 val erUtfylt =
-                    fritekstTilBrev != null && vedtaksvurdering != null && vedtaksvurdering is Vedtaksvurdering.Utfylt
+                    fritekstTilOversendelsesbrev != null && vedtaksvurdering != null && vedtaksvurdering is Vedtaksvurdering.Utfylt
                 return if (erUtfylt) {
                     Utfylt(
-                        fritekstTilBrev = fritekstTilBrev!!,
+                        fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev!!,
                         vedtaksvurdering = vedtaksvurdering!! as Vedtaksvurdering.Utfylt,
                     )
                 } else {
                     Påbegynt(
-                        fritekstTilBrev = fritekstTilBrev,
+                        fritekstTilOversendelsesbrev = fritekstTilOversendelsesbrev,
                         vedtaksvurdering = vedtaksvurdering,
                     )
                 }
@@ -86,11 +86,11 @@ sealed class VurderingerTilKlage {
     }
 
     data class Utfylt(
-        override val fritekstTilBrev: String,
+        override val fritekstTilOversendelsesbrev: String,
         override val vedtaksvurdering: Vedtaksvurdering.Utfylt,
-    ) : VurderingerTilKlage()
+    ) : VurderingerTilKlage
 
-    sealed class Vedtaksvurdering {
+    sealed interface Vedtaksvurdering {
 
         companion object {
 
@@ -114,8 +114,8 @@ sealed class VurderingerTilKlage {
             }
         }
 
-        sealed class Påbegynt : Vedtaksvurdering() {
-            data class Omgjør private constructor(val årsak: Årsak?, val utfall: Utfall?) : Påbegynt() {
+        sealed interface Påbegynt : Vedtaksvurdering {
+            data class Omgjør private constructor(val årsak: Årsak?, val utfall: Utfall?) : Påbegynt {
 
                 companion object {
                     /**
@@ -142,12 +142,12 @@ sealed class VurderingerTilKlage {
                 }
             }
 
-            data class Oppretthold(val hjemler: Hjemler.IkkeUtfylt) : Påbegynt()
+            data class Oppretthold(val hjemler: Hjemler.IkkeUtfylt) : Påbegynt
         }
 
-        sealed class Utfylt : Vedtaksvurdering() {
-            data class Omgjør(val årsak: Årsak, val utfall: Utfall) : Utfylt()
-            data class Oppretthold(val hjemler: Hjemler.Utfylt) : Utfylt()
+        sealed interface Utfylt : Vedtaksvurdering {
+            data class Omgjør(val årsak: Årsak, val utfall: Utfall) : Utfylt
+            data class Oppretthold(val hjemler: Hjemler.Utfylt) : Utfylt
         }
 
         enum class Årsak {
