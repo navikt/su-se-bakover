@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
-import java.lang.IllegalStateException
 import java.util.UUID
 
 data class Formuegrunnlag private constructor(
@@ -233,12 +232,11 @@ sealed class KunneIkkeLageFormueVerdier {
 fun List<Formuegrunnlag>.harEpsFormue() = this.any { it.epsFormue != null }
 
 /**
- * Kaster exception dersom det finnes mer enn 1 element i listen,
- * eller dersom listen er tom
+ * @throws IllegalStateException dersom antall elementer i listen ikke tilsvarer 1
  */
 fun List<Formuegrunnlag>.firstOrThrowIfMultipleOrEmpty(): Formuegrunnlag {
-    if (this.size > 1) {
-        throw IllegalStateException("Det finnes flere enn 1 element i listen.")
+    if (this.size != 1) {
+        throw IllegalStateException("Antall elementer i listen tilsvarer ikke 1")
     }
     return this.first()
 }

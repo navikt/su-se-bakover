@@ -322,12 +322,9 @@ class LagBrevRequestVisitor(
                 fritekst = fritekst,
                 uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføre.grunnlag,
                 saksnummer = søknadsbehandling.saksnummer,
-                formuegrunnlag = when (søknadsbehandling.vilkårsvurderinger.formue) {
-                    Vilkår.Formue.IkkeVurdert -> null
-                    is Vilkår.Formue.Vurdert -> {
-                        if (avslagsgrunner.contains(Avslagsgrunn.FORMUE)) søknadsbehandling.vilkårsvurderinger.formue.grunnlag.firstOrThrowIfMultipleOrEmpty() else null
-                    }
-                },
+                formuegrunnlag = søknadsbehandling.vilkårsvurderinger.formue.hentFormueGrunnlagForSøknadsbehandling(
+                    avslagsgrunner,
+                ),
             )
         }
 
@@ -655,12 +652,9 @@ class LagBrevRequestVisitor(
                 },
                 uføregrunnlag = vedtak.behandling.vilkårsvurderinger.hentUføregrunnlag(),
                 saksnummer = vedtak.behandling.saksnummer,
-                formuegrunnlag = when (vedtak.behandling.vilkårsvurderinger.formue) {
-                    Vilkår.Formue.IkkeVurdert -> null
-                    is Vilkår.Formue.Vurdert -> {
-                        if (vedtak.avslagsgrunner.contains(Avslagsgrunn.FORMUE)) vedtak.behandling.vilkårsvurderinger.formue.grunnlag.firstOrThrowIfMultipleOrEmpty() else null
-                    }
-                },
+                formuegrunnlag = vedtak.behandling.vilkårsvurderinger.formue.hentFormueGrunnlagForSøknadsbehandling(
+                    vedtak.avslagsgrunner,
+                ),
             )
         }
 
@@ -725,4 +719,11 @@ class LagBrevRequestVisitor(
         dagensDato = LocalDate.now(clock),
         saksnummer = saksnummer,
     )
+}
+
+private fun Vilkår.Formue.hentFormueGrunnlagForSøknadsbehandling(avslagsgrunner: List<Avslagsgrunn>): Formuegrunnlag? {
+    return when (this) {
+        Vilkår.Formue.IkkeVurdert -> null
+        is Vilkår.Formue.Vurdert -> if (avslagsgrunner.contains(Avslagsgrunn.FORMUE)) this.grunnlag.firstOrThrowIfMultipleOrEmpty() else null
+    }
 }
