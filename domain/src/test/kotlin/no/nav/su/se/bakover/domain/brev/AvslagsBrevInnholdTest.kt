@@ -29,6 +29,7 @@ class AvslagsBrevInnholdTest {
         fritekst = "Fritekst til brevet",
         satsGjeldendeFraDato = "01.01.2020",
         forventetInntektStørreEnn0 = false,
+        formueVerdier = null,
     )
 
     @Test
@@ -56,7 +57,8 @@ class AvslagsBrevInnholdTest {
               "satsBeløp": null,
               "satsGjeldendeFraDato": "01.01.2020",
               "fritekst": "Fritekst til brevet",
-              "forventetInntektStørreEnn0": false
+              "forventetInntektStørreEnn0": false,
+              "formueVerdier": null
             }
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, actualJson, true)
@@ -92,5 +94,143 @@ class AvslagsBrevInnholdTest {
             Avslagsgrunn.FORMUE,
             Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER,
         ).getDistinkteParagrafer() shouldBe listOf(1, 2, 4, 8, 12)
+    }
+
+    @Test
+    fun `jsonformat for avslagsvedtak pga formue stemmer med pdfgen`() {
+        val annetVedtak = avslagsvedtak.copy(
+            avslagsgrunner = listOf(Avslagsgrunn.FORMUE),
+            formueVerdier = FormueForBrev(
+                søkersFormue = FormueVerdierForBrev(
+                    verdiSekundærBoliger = 1,
+                    verdiSekundærKjøretøyer = 2,
+                    pengerIBanken = 3,
+                    depositumskonto = 4,
+                    pengerIKontanter = 5,
+                    aksjerOgVerdiPapir = 6,
+                    pengerSøkerSkyldes = 7,
+                ),
+                epsFormue = null,
+                totalt = 8,
+            ),
+        )
+
+        val actualJson = objectMapper.writeValueAsString(annetVedtak)
+        //language=json
+        val expectedJson = """
+            {
+              "personalia": {
+                  "dato":"01.01.2020",
+                  "fødselsnummer": "12345678901",
+                  "fornavn": "Tore",
+                  "etternavn": "Strømøy",
+                  "saksnummer": 2021
+              },
+              "avslagsgrunner": ["FORMUE"],
+              "harFlereAvslagsgrunner": false,
+              "halvGrunnbeløp": 10,
+              "harEktefelle": false,
+              "beregningsperioder": [],
+              "avslagsparagrafer": [8],
+              "saksbehandlerNavn": "Sak Sakesen",
+              "attestantNavn": "Att Attestantsen",
+              "sats": "lav",
+              "satsBeløp": null,
+              "satsGjeldendeFraDato": "01.01.2020",
+              "fritekst": "Fritekst til brevet",
+              "forventetInntektStørreEnn0": false,
+              "formueVerdier": {
+                "søkersFormue": {
+                "verdiSekundærBoliger": 1,
+                "verdiSekundærKjøretøyer": 2,
+                "pengerIBanken": 3,
+                "depositumskonto": 4,
+                "pengerIKontanter": 5,
+                "aksjerOgVerdiPapir": 6,
+                "pengerSøkerSkyldes": 7
+                },
+                "epsFormue": null,
+                "totalt": 8
+              }
+            }
+        """.trimIndent()
+        JSONAssert.assertEquals(expectedJson, actualJson, true)
+    }
+
+    @Test
+    fun `jsonformat for avslagsvedtak pga formue med EPS stemmer med pdfgen`() {
+        val annetVedtak = avslagsvedtak.copy(
+            avslagsgrunner = listOf(Avslagsgrunn.FORMUE),
+            formueVerdier = FormueForBrev(
+                søkersFormue = FormueVerdierForBrev(
+                    verdiSekundærBoliger = 1,
+                    verdiSekundærKjøretøyer = 1,
+                    pengerIBanken = 1,
+                    depositumskonto = 0,
+                    pengerIKontanter = 1,
+                    aksjerOgVerdiPapir = 1,
+                    pengerSøkerSkyldes = 1,
+                ),
+                epsFormue = FormueVerdierForBrev(
+                    verdiSekundærBoliger = 1,
+                    verdiSekundærKjøretøyer = 1,
+                    pengerIBanken = 1,
+                    depositumskonto = 0,
+                    pengerIKontanter = 1,
+                    aksjerOgVerdiPapir = 1,
+                    pengerSøkerSkyldes = 1,
+                ),
+                totalt = 12,
+            ),
+        )
+
+        val actualJson = objectMapper.writeValueAsString(annetVedtak)
+        //language=json
+        val expectedJson = """
+            {
+              "personalia": {
+                  "dato":"01.01.2020",
+                  "fødselsnummer": "12345678901",
+                  "fornavn": "Tore",
+                  "etternavn": "Strømøy",
+                  "saksnummer": 2021
+              },
+              "avslagsgrunner": ["FORMUE"],
+              "harFlereAvslagsgrunner": false,
+              "halvGrunnbeløp": 10,
+              "harEktefelle": false,
+              "beregningsperioder": [],
+              "avslagsparagrafer": [8],
+              "saksbehandlerNavn": "Sak Sakesen",
+              "attestantNavn": "Att Attestantsen",
+              "sats": "lav",
+              "satsBeløp": null,
+              "satsGjeldendeFraDato": "01.01.2020",
+              "fritekst": "Fritekst til brevet",
+              "forventetInntektStørreEnn0": false,
+              "formueVerdier": {
+                "søkersFormue": {
+                    "verdiSekundærBoliger": 1,
+                    "verdiSekundærKjøretøyer": 1,
+                    "pengerIBanken": 1,
+                    "depositumskonto": 0,
+                    "pengerIKontanter": 1,
+                    "aksjerOgVerdiPapir": 1,
+                    "pengerSøkerSkyldes": 1
+                },
+                "epsFormue": {
+                    "verdiSekundærBoliger": 1,
+                    "verdiSekundærKjøretøyer": 1,
+                    "pengerIBanken": 1,
+                    "depositumskonto": 0,
+                    "pengerIKontanter": 1,
+                    "aksjerOgVerdiPapir": 1,
+                    "pengerSøkerSkyldes": 1
+                },
+                "totalt": 12
+              }
+            }
+        """.trimIndent()
+        JSONAssert.assertEquals(expectedJson, actualJson, true)
     }
 }
