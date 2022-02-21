@@ -19,7 +19,9 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.satsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
 import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
@@ -43,6 +45,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingVisitor
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakVisitor
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
@@ -461,6 +464,9 @@ class LagBrevRequestVisitor(
                 fritekst = fritekst,
                 uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføre.grunnlag,
                 saksnummer = søknadsbehandling.saksnummer,
+                formuegrunnlag = søknadsbehandling.vilkårsvurderinger.formue.hentFormueGrunnlagForSøknadsbehandling(
+                    avslagsgrunner,
+                ),
             )
         }
 
@@ -698,6 +704,7 @@ class LagBrevRequestVisitor(
         beregning: Beregning?,
         fritekst: String,
         uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        formuegrunnlag: Formuegrunnlag?,
         saksnummer: Saksnummer,
     ) = LagBrevRequest.AvslagBrevRequest(
         person = personOgNavn.person,
@@ -706,6 +713,7 @@ class LagBrevRequestVisitor(
             avslagsgrunner = avslagsgrunner,
             harEktefelle = harEktefelle,
             beregning = beregning,
+            formuegrunnlag = formuegrunnlag,
         ),
         saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
         attestantNavn = personOgNavn.attestantNavn,
@@ -863,6 +871,9 @@ class LagBrevRequestVisitor(
                 },
                 uføregrunnlag = vedtak.behandling.vilkårsvurderinger.hentUføregrunnlag(),
                 saksnummer = vedtak.behandling.saksnummer,
+                formuegrunnlag = vedtak.behandling.vilkårsvurderinger.formue.hentFormueGrunnlagForSøknadsbehandling(
+                    vedtak.avslagsgrunner,
+                ),
             )
         }
 
@@ -927,4 +938,11 @@ class LagBrevRequestVisitor(
         dagensDato = LocalDate.now(clock),
         saksnummer = saksnummer,
     )
+}
+
+private fun Vilkår.Formue.hentFormueGrunnlagForSøknadsbehandling(avslagsgrunner: List<Avslagsgrunn>): Formuegrunnlag? {
+    return when (this) {
+        Vilkår.Formue.IkkeVurdert -> null
+        is Vilkår.Formue.Vurdert -> if (avslagsgrunner.contains(Avslagsgrunn.FORMUE)) this.grunnlag.firstOrThrowIfMultipleOrEmpty() else null
+    }
 }

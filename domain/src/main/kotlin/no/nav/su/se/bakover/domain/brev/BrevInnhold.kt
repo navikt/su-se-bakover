@@ -30,6 +30,7 @@ abstract class BrevInnhold {
         val satsGjeldendeFraDato: String?,
         val fritekst: String,
         val forventetInntektStørreEnn0: Boolean,
+        val formueVerdier: FormueForBrev?,
     ) : BrevInnhold() {
         @Suppress("unused")
         @JsonInclude
