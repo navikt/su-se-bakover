@@ -23,7 +23,7 @@ class DistribuerDokumentJob(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Journalfør og bestill brevdistribusjon"
-    private val periode = Duration.of(1, ChronoUnit.MINUTES).toMillis()
+    private val periode = Duration.of(15, ChronoUnit.MINUTES).toMillis()
 
     fun schedule() {
         // Avventer kall til erLeaderPod i tilfelle den ikke er startet enda.

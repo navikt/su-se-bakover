@@ -23,7 +23,7 @@ class KontrollsamtaleinnkallingJob(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Utsendelse av kontrollsamtaleinnkallelser"
-    private val periode = if (isProd) Duration.of(1, ChronoUnit.DAYS).toMillis() else Duration.of(5, ChronoUnit.MINUTES).toMillis()
+    private val periode = if (isProd) Duration.of(1, ChronoUnit.DAYS).toMillis() else Duration.of(15, ChronoUnit.MINUTES).toMillis()
 
     private val nå = LocalDateTime.now(clock)
     private val iMorgenKlokka7 = nå.plusDays(1).withHour(7).withMinute(0).withSecond(0)
