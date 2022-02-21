@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
+import no.nav.su.se.bakover.domain.journalpost.JournalpostType
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
 import no.nav.su.se.bakover.domain.journalpost.Tema
 import org.junit.jupiter.api.AfterAll
@@ -53,6 +54,7 @@ internal class JournalpostHttpClientTest {
                 "journalpost": {
                   "tema": "SUP",
                   "journalstatus": "FERDIGSTILT",
+                  "journalposttype": "U",
                   "sak": {
                   "fagsakId": "2021"
                   }
@@ -81,8 +83,42 @@ internal class JournalpostHttpClientTest {
         client.hentFerdigstiltJournalpost(Saksnummer(2021), JournalpostId("j")) shouldBe FerdigstiltJournalpost.create(
             tema = Tema.SUP,
             journalstatus = JournalpostStatus.FERDIGSTILT,
+            journalpostType = JournalpostType.UTGÅENDE_DOKUMENT,
             saksnummer = Saksnummer(2021),
         ).right()
+    }
+
+    @Test
+    fun `feil ved deserialisering av response`() {
+        //language=JSON
+        val suksessResponseJson =
+            """
+            {
+              "data": null
+            }
+            """.trimIndent()
+
+        WiremockBase.wireMockServer.stubFor(
+            wiremockBuilderOnBehalfOf("Bearer token")
+                .willReturn(WireMock.ok(suksessResponseJson)),
+        )
+
+        val oAuthMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
+        }
+
+        val client = JournalpostHttpClient(
+            safConfig = ApplicationConfig.ClientsConfig.SafConfig(
+                url = WiremockBase.wireMockServer.baseUrl(),
+                clientId = "clientId",
+            ),
+            oAuth = oAuthMock,
+        )
+
+        client.hentFerdigstiltJournalpost(
+            Saksnummer(2021),
+            JournalpostId("j"),
+        ) shouldBe KunneIkkeHenteJournalpost.TekniskFeil.left()
     }
 
     @Test

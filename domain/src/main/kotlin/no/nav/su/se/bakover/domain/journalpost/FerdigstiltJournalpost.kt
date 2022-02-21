@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 data class FerdigstiltJournalpost private constructor(
     private val tema: Tema,
     private val journalstatus: JournalpostStatus,
+    private val journalpostType: JournalpostType,
     private val saksnummer: Saksnummer,
 ) {
 
@@ -13,9 +14,10 @@ data class FerdigstiltJournalpost private constructor(
         fun create(
             tema: Tema,
             journalstatus: JournalpostStatus,
+            journalpostType: JournalpostType,
             saksnummer: Saksnummer,
         ): FerdigstiltJournalpost {
-            return FerdigstiltJournalpost(tema, journalstatus, saksnummer)
+            return FerdigstiltJournalpost(tema, journalstatus, journalpostType, saksnummer)
         }
     }
 }
@@ -26,4 +28,15 @@ enum class Tema {
 
 enum class JournalpostStatus {
     FERDIGSTILT
+}
+
+enum class JournalpostType(val value: String) {
+    UTGÅENDE_DOKUMENT("U");
+
+    companion object {
+        fun fromString(value: String): JournalpostType {
+            return values().find { it.value == value }
+                ?: throw IllegalArgumentException("Journalposttypen $value er ikke støtte for")
+        }
+    }
 }
