@@ -3,15 +3,38 @@ package no.nav.su.se.bakover.web.services.tilbakekreving
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonRootName
 
+sealed class TilbakekrevingsmeldingDto
+
+@JsonRootName("endringKravOgVedtakstatus")
+internal data class KravgrunnlagStatusendringRootDto(
+    @field:JsonProperty(value = "kravOgVedtakstatus")
+    val endringKravOgVedtakstatus: KravgrunnlagStatusendringDto,
+) : TilbakekrevingsmeldingDto()
+
+internal data class KravgrunnlagStatusendringDto(
+    @field:JsonProperty(value = "vedtakId")
+    val vedtakId: String,
+    @field:JsonProperty(value = "kodeStatusKrav")
+    val kodeStatusKrav: String,
+    @field:JsonProperty(value = "kodeFagomraade")
+    val kodeFagområde: String,
+    @field:JsonProperty(value = "fagsystemId")
+    val fagsystemId: String,
+    @field:JsonProperty(value = "vedtakGjelderId")
+    val vedtakGjelderId: String,
+    @field:JsonProperty(value = "typeGjelderId")
+    val idTypeGjelder: String,
+)
+
 /**
  * Melding som oppdrag legger på køen er wrappet i en "dobbel" root.
  * Kan hende det finnes noen triks for å strippe bort rot-noden i xml.
  */
 @JsonRootName(value = "detaljertKravgrunnlagMelding")
-internal data class KravmeldingRootDto(
+internal data class KravgrunnlagRootDto(
     @field:JsonProperty(value = "detaljertKravgrunnlag")
-    val kravmeldingDto: KravmeldingDto,
-)
+    val kravgrunnlagDto: KravgrunnlagDto,
+) : TilbakekrevingsmeldingDto()
 
 /**
  * Representerer kravmeldingen (XML) som oppdrag legger på kravgrunnlagskøen.
@@ -21,7 +44,7 @@ internal data class KravmeldingRootDto(
  *
  * Feltene er dokumenter som: Nr - Datafelt - Format - Kommentar
  */
-internal data class KravmeldingDto(
+internal data class KravgrunnlagDto(
     /**
      * 1 - Kravgrunnlag-id - 9(10) - Identifikasjon av tilbakekrevingsgrunnlaget
      *

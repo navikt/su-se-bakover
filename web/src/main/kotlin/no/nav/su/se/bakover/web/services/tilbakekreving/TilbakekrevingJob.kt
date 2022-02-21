@@ -29,7 +29,7 @@ class TilbakekrevingJob(
                 log.info("Kjører skeduleringsjobb '$jobName'")
                 Either.catch {
                     tilbakekrevingService.sendTilbakekrevingsvedtak() { råttKravgrunnlag ->
-                        KravgrunnlagMapper.toKravgrunnlg(råttKravgrunnlag)
+                        TilbakekrevingsmeldingMapper.toKravgrunnlg(råttKravgrunnlag)
                             .getOrHandle { throw it }
                     }
                 }.mapLeft {

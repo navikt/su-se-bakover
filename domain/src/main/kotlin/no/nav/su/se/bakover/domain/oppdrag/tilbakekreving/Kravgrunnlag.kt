@@ -11,6 +11,8 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import java.math.BigDecimal
 
+sealed class Tilbakekrevingsmelding
+
 data class Kravgrunnlag(
     val saksnummer: Saksnummer,
     val kravgrunnlagId: String,
@@ -30,7 +32,7 @@ data class Kravgrunnlag(
     val behandler: NavIdentBruker,
     val utbetalingId: UUID30,
     val grunnlagsperioder: List<Grunnlagsperiode>,
-) {
+) : Tilbakekrevingsmelding() {
 
     fun hentBeløpSkalTilbakekreves(): Månedsbeløp {
         return Månedsbeløp(

@@ -83,9 +83,9 @@ internal class LokalMottaKravgrunnlagJob(
             utbetalingId = utbetalingId,
             clock = Clock.systemUTC(),
         )
-        return KravgrunnlagMapper.toXml(
-            KravmeldingRootDto(
-                kravmeldingDto = KravmeldingDto(
+        return TilbakekrevingsmeldingMapper.toXml(
+            KravgrunnlagRootDto(
+                kravgrunnlagDto = KravgrunnlagDto(
                     kravgrunnlagId = kravgrunnlag.kravgrunnlagId,
                     vedtakId = kravgrunnlag.vedtakId,
                     kodeStatusKrav = kravgrunnlag.status.toString(),
@@ -106,14 +106,14 @@ internal class LokalMottaKravgrunnlagJob(
                     saksbehId = kravgrunnlag.behandler.toString(),
                     utbetalingId = kravgrunnlag.utbetalingId.toString(),
                     tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map {
-                        KravmeldingDto.Tilbakekrevingsperiode(
-                            periode = KravmeldingDto.Tilbakekrevingsperiode.Periode(
+                        KravgrunnlagDto.Tilbakekrevingsperiode(
+                            periode = KravgrunnlagDto.Tilbakekrevingsperiode.Periode(
                                 fraOgMed = it.periode.fraOgMed.toString(),
                                 tilOgMed = it.periode.tilOgMed.toString(),
                             ),
                             skattebeløpPerMåned = it.beløpSkattMnd.toString(),
                             tilbakekrevingsbeløp = it.grunnlagsbeløp.map {
-                                KravmeldingDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
+                                KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
                                     kodeKlasse = it.kode.toString(),
                                     typeKlasse = it.type.toString(),
                                     belopOpprUtbet = it.beløpTidligereUtbetaling.toString(),
@@ -190,15 +190,15 @@ internal fun matchendeKravgrunnlagDto(
     simulering: Simulering,
     utbetalingId: UUID30,
     clock: Clock,
-): KravmeldingRootDto {
+): KravgrunnlagRootDto {
     val kravgrunnlag = matchendeKravgrunnlag(
         revurdering = revurdering,
         simulering = simulering,
         utbetalingId = utbetalingId,
         clock = clock,
     )
-    return KravmeldingRootDto(
-        kravmeldingDto = KravmeldingDto(
+    return KravgrunnlagRootDto(
+        kravgrunnlagDto = KravgrunnlagDto(
             kravgrunnlagId = kravgrunnlag.kravgrunnlagId,
             vedtakId = kravgrunnlag.vedtakId,
             kodeStatusKrav = kravgrunnlag.status.toString(),
@@ -219,14 +219,14 @@ internal fun matchendeKravgrunnlagDto(
             saksbehId = kravgrunnlag.behandler.toString(),
             utbetalingId = kravgrunnlag.utbetalingId.toString(),
             tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map {
-                KravmeldingDto.Tilbakekrevingsperiode(
-                    periode = KravmeldingDto.Tilbakekrevingsperiode.Periode(
+                KravgrunnlagDto.Tilbakekrevingsperiode(
+                    periode = KravgrunnlagDto.Tilbakekrevingsperiode.Periode(
                         fraOgMed = it.periode.fraOgMed.toString(),
                         tilOgMed = it.periode.tilOgMed.toString(),
                     ),
                     skattebeløpPerMåned = it.beløpSkattMnd.toString(),
                     tilbakekrevingsbeløp = it.grunnlagsbeløp.map {
-                        KravmeldingDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
+                        KravgrunnlagDto.Tilbakekrevingsperiode.Tilbakekrevingsbeløp(
                             kodeKlasse = it.kode.toString(),
                             typeKlasse = it.type.toString(),
                             belopOpprUtbet = it.beløpTidligereUtbetaling.toString(),

@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.services.tilbakekreving
 
-import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Sak
@@ -26,8 +25,10 @@ internal class TilbakekrevingConsumerTest {
             revurderingService = mock(),
             clock = fixedClock,
         ).let {
-            assertThrows<MismatchedInputException> {
+            assertThrows<IllegalArgumentException> {
                 it.onMessage("""<bogus>xml</bogus>""")
+            }.also {
+                it.message shouldContain "Ukjent meldingstype"
             }
         }
     }
@@ -96,7 +97,7 @@ internal class TilbakekrevingConsumerTest {
             clock = fixedClock,
         ).let {
             it.onMessage(
-                KravgrunnlagMapper.toXml(
+                TilbakekrevingsmeldingMapper.toXml(
                     matchendeKravgrunnlagDto(
                         revurdering = vedtak.behandling,
                         simulering = vedtak.simulering,
