@@ -820,14 +820,11 @@ internal class RevurderingServiceImpl(
                                     behandlingId = revurderingId,
                                     fradragsgrunnlag = beregnetRevurdering.grunnlagsdata.fradragsgrunnlag,
                                 )
-                                when (leggTilVarselForBeløpsendringUnder10Prosent) {
-                                    true -> {
-                                        identifiserFeilOgLagResponse(simulert)
-                                            .leggTil(Varselmelding.BeløpsendringUnder10Prosent)
-                                    }
-                                    false -> {
-                                        identifiserFeilOgLagResponse(simulert)
-                                    }
+                                if (leggTilVarselForBeløpsendringUnder10Prosent && !simulert.opphørSkyldesVilkår()) {
+                                    identifiserFeilOgLagResponse(simulert)
+                                        .leggTil(Varselmelding.BeløpsendringUnder10Prosent)
+                                } else {
+                                    identifiserFeilOgLagResponse(simulert)
                                 }
                             }
                     }

@@ -1085,6 +1085,10 @@ sealed class SimulertRevurdering : Revurdering() {
             }
         }
 
+        fun opphørSkyldesVilkår(): Boolean {
+            return VurderOpphørVedRevurdering.Vilkårsvurderinger(vilkårsvurderinger).resultat is OpphørVedRevurdering.Ja
+        }
+
         override fun ikkeSendForhåndsvarsel(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {
             return forhåndsvarsel.prøvOvergangTilSkalIkkeForhåndsvarsles().map { this.copy(forhåndsvarsel = it) }
         }

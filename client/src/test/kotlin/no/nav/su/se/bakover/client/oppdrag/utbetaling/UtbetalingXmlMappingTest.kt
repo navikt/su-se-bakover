@@ -130,8 +130,8 @@ class UtbetalingXmlMappingTest {
                   <saksbehId>SU</saksbehId>
                   <utbetalesTilId>$fnr</utbetalesTilId>
                   <henvisning>${utbetaling.id}</henvisning>
-                  <refDelytelseId>${førsteUtbetalingsLinje.id}</refDelytelseId>
                   <refFagsystemId>$saksnummer</refFagsystemId>
+                  <refDelytelseId>${førsteUtbetalingsLinje.id}</refDelytelseId>
                   <grad-170>
                     <typeGrad>UFOR</typeGrad>
                     <grad>60</grad>

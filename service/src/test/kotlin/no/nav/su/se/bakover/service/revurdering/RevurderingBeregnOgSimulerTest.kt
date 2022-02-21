@@ -15,9 +15,7 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
@@ -25,7 +23,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.beregnetRevurdering
@@ -36,7 +33,6 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nyUtbetalingSimulert
 import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
@@ -44,6 +40,7 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.simulertUtbetaling
+import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.utlandsoppholdAvslag
@@ -93,7 +90,7 @@ internal class RevurderingBeregnOgSimulerTest {
             },
             grunnlagService = mock {
                 doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
-            }
+            },
         )
 
         val response = serviceAndMocks.revurderingService.beregnOgSimuler(
@@ -108,36 +105,88 @@ internal class RevurderingBeregnOgSimulerTest {
 
     @Test
     fun `legger ved varsel dersom beløpsendring er mindre enn 10 prosent av gjeldende utbetaling`() {
-        val (sak, revurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak()
+        val (sak, revurdering) = opprettetRevurdering()
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn revurdering
-        }
-        val simulertUtbetaling = mock<Utbetaling.SimulertUtbetaling> {
-            on { simulering } doReturn mock()
-        }
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerUtbetaling(any()) } doReturn simulertUtbetaling.right()
-            on { hentUtbetalinger(any()) } doReturn sak.utbetalinger
-        }
-
-        val response = RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            utbetalingService = utbetalingServiceMock,
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(revurderingId) } doReturn revurdering
+            },
+            utbetalingService = mock {
+                on { simulerUtbetaling(any()) } doReturn nyUtbetalingSimulert(
+                    sakOgBehandling = sak to revurdering,
+                    beregning = revurdering.beregn(
+                        eksisterendeUtbetalinger = sak.utbetalinger,
+                        clock = fixedClock,
+                        gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                            fraOgMed = revurdering.periode.fraOgMed,
+                            clock = fixedClock,
+                        ).getOrFail(),
+                    ).getOrFail().beregning,
+                    clock = fixedClock,
+                ).right()
+                on { hentUtbetalinger(any()) } doReturn sak.utbetalinger
+            },
             vedtakService = mock {
                 on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
                     revurdering.periode.fraOgMed,
                     fixedClock,
                 ).getOrFail().right()
             },
-        ).beregnOgSimuler(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-        ).getOrFail()
+            grunnlagService = mock {
+                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
+            },
+        ).let {
+            val response = it.revurderingService.beregnOgSimuler(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+            ).getOrFail()
 
-        response.feilmeldinger shouldBe emptyList()
-        response.varselmeldinger shouldBe listOf(Varselmelding.BeløpsendringUnder10Prosent)
+            response.revurdering shouldBe beOfType<SimulertRevurdering.Innvilget>()
+            response.feilmeldinger shouldBe emptyList()
+            response.varselmeldinger shouldBe listOf(Varselmelding.BeløpsendringUnder10Prosent)
+        }
+    }
+
+    @Test
+    fun `legger ikke ved varsel dersom beløpsendring er mindre enn 10 prosent av gjeldende utbetaling, men opphør pga vilkår`() {
+        val (sak, revurdering) = opprettetRevurdering(
+            vilkårOverrides = listOf(
+                avslåttUførevilkårUtenGrunnlag(
+                    periode = periode2021,
+                ),
+            ),
+        )
+
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(revurderingId) } doReturn revurdering
+            },
+            utbetalingService = mock {
+                on { simulerOpphør(any()) } doReturn simulertUtbetalingOpphør(
+                    opphørsdato = revurdering.periode.fraOgMed,
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                ).getOrFail().right()
+                on { hentUtbetalinger(any()) } doReturn sak.utbetalinger
+            },
+            vedtakService = mock {
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
+                    revurdering.periode.fraOgMed,
+                    fixedClock,
+                ).getOrFail().right()
+            },
+            grunnlagService = mock {
+                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
+            },
+        ).let {
+            val response = it.revurderingService.beregnOgSimuler(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+            ).getOrFail()
+
+            response.revurdering shouldBe beOfType<SimulertRevurdering.Opphørt>()
+            response.feilmeldinger shouldBe emptyList()
+            response.varselmeldinger shouldBe emptyList()
+        }
     }
 
     @Test
@@ -180,7 +229,7 @@ internal class RevurderingBeregnOgSimulerTest {
             },
             grunnlagService = mock {
                 doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
-            }
+            },
         )
         val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
             revurderingId = opprettetRevurdering.id,
@@ -323,7 +372,7 @@ internal class RevurderingBeregnOgSimulerTest {
             },
             grunnlagService = mock {
                 doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
-            }
+            },
         )
 
         val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
@@ -422,7 +471,7 @@ internal class RevurderingBeregnOgSimulerTest {
             },
             grunnlagService = mock {
                 doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
-            }
+            },
         )
         val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
             revurderingId = opprettet.id,
@@ -444,7 +493,7 @@ internal class RevurderingBeregnOgSimulerTest {
                         saksbehandler = NavIdentBruker.Saksbehandler("s1"),
                         opphørsdato = opprettet.periode.fraOgMed,
                     )
-                }
+                },
             )
             verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
@@ -513,14 +562,23 @@ internal class RevurderingBeregnOgSimulerTest {
                 on { hentUtbetalinger(any()) } doReturn sakEtterRevurdering2.utbetalinger
             },
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sakEtterRevurdering2.kopierGjeldendeVedtaksdata(fraOgMed = revurderingsperiode2.fraOgMed, clock = tikkendeKlokke).getOrFail().right()
+                on {
+                    kopierGjeldendeVedtaksdata(
+                        any(),
+                        any(),
+                    )
+                } doReturn sakEtterRevurdering2.kopierGjeldendeVedtaksdata(
+                    fraOgMed = revurderingsperiode2.fraOgMed,
+                    clock = tikkendeKlokke,
+                ).getOrFail().right()
             },
             grunnlagService = mock {
                 doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
-            }
+            },
         )
 
-        val actual = serviceAndMocks.revurderingService.beregnOgSimuler(revurdering2.id, saksbehandler).getOrFail().revurdering
+        val actual =
+            serviceAndMocks.revurderingService.beregnOgSimuler(revurdering2.id, saksbehandler).getOrFail().revurdering
 
         (actual as SimulertRevurdering.Innvilget).let { simulert ->
             simulert.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }

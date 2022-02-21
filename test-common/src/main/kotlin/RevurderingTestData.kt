@@ -294,6 +294,7 @@ fun simulertRevurdering(
                         sakId = beregnet.sakId,
                         saksnummer = beregnet.saksnummer,
                         clock = clock,
+                        uføregrunnlag = beregnet.vilkårsvurderinger.uføre.grunnlag
                     ),
                     clock = clock,
                 )
@@ -915,6 +916,7 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
                 fnr = revurdering.fnr,
                 sakId = revurdering.sakId,
                 saksnummer = revurdering.saksnummer,
+                uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
             ),
             clock = clock,
         ).prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
