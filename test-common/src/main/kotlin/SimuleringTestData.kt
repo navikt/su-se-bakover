@@ -72,6 +72,16 @@ fun simuleringNy(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     clock: Clock = fixedClock,
+    // TODO default her bør fjernes og sendes inn fra behandlingen
+    uføregrunnlag: List<Grunnlag.Uføregrunnlag> = listOf(
+        Grunnlag.Uføregrunnlag(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(clock),
+            periode = beregning.periode,
+            uføregrad = Uføregrad.parse(50),
+            forventetInntekt = 0,
+        ),
+    ),
 ): Simulering {
     return Utbetalingsstrategi.Ny(
         sakId = sakId,
@@ -81,15 +91,7 @@ fun simuleringNy(
         behandler = saksbehandler,
         beregning = beregning,
         clock = clock,
-        uføregrunnlag = listOf(
-            Grunnlag.Uføregrunnlag(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(clock),
-                periode = beregning.periode,
-                uføregrad = Uføregrad.parse(50),
-                forventetInntekt = 0,
-            ),
-        ),
+        uføregrunnlag = uføregrunnlag,
     ).generate().let {
         SimuleringStub(
             clock = nåtidForSimuleringStub, // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
