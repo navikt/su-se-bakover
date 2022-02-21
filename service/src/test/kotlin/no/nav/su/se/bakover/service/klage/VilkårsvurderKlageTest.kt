@@ -8,10 +8,10 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
-import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
+import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
+import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
-import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
+import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
@@ -113,13 +113,14 @@ internal class VilkårsvurderKlageTest {
 
     @Test
     fun `kan ikke vilkårsvurdere fra vurdert, som er tidligere oversendt, til avvist`() {
-        val klage = oversendtKlage().second.leggTilNyttKlagevedtak(
-            UprosessertKlageinstansvedtak(
+        val klage = oversendtKlage().second.leggTilNyKlageinstanshendelse(
+            TolketKlageinstanshendelse(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
+                avsluttetTidspunkt = fixedTidspunkt,
                 klageId = UUID.randomUUID(),
-                utfall = KlagevedtakUtfall.RETUR,
-                vedtaksbrevReferanse = "",
+                utfall = KlageinstansUtfall.RETUR,
+                journalpostIDer = emptyList(),
             ),
             lagOppgaveCallback = { OppgaveId("o").right() },
         ).getOrFail()
@@ -140,13 +141,14 @@ internal class VilkårsvurderKlageTest {
 
     @Test
     fun `kan ikke vilkårsvurdere fra bekreftet vilkårsvurdert(TilVurdering), som er tidligere oversendt, til avvist`() {
-        val klage = oversendtKlage().second.leggTilNyttKlagevedtak(
-            UprosessertKlageinstansvedtak(
+        val klage = oversendtKlage().second.leggTilNyKlageinstanshendelse(
+            TolketKlageinstanshendelse(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
+                avsluttetTidspunkt = fixedTidspunkt,
                 klageId = UUID.randomUUID(),
-                utfall = KlagevedtakUtfall.RETUR,
-                vedtaksbrevReferanse = "",
+                utfall = KlageinstansUtfall.RETUR,
+                journalpostIDer = emptyList(),
             ),
             lagOppgaveCallback = { OppgaveId("o").right() },
         ).getOrFail()
@@ -497,7 +499,7 @@ internal class VilkårsvurderKlageTest {
                 vurderinger = vurderingerTilKlage,
                 attesteringer = attesteringer,
                 datoKlageMottatt = 1.desember(2021),
-                klagevedtakshistorikk = Klagevedtakshistorikk.empty()
+                klageinstanshendelser = Klageinstanshendelser.empty()
             )
             it shouldBe expectedKlage
         }

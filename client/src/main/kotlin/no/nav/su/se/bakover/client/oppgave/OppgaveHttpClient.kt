@@ -113,10 +113,10 @@ internal class OppgaveHttpClient(
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
                 } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
-            is OppgaveConfig.Klage.Vedtak ->
+            is OppgaveConfig.Klage.Klageinstanshendelse ->
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\n${OppgavebeskrivelseMapper.map(config.utfall)}"
+                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\n${OppgavebeskrivelseMapper.map(config)}"
             is OppgaveConfig.Klage ->
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
@@ -304,7 +304,7 @@ internal class OppgaveHttpClient(
     }
 
     companion object {
-        private fun Tidspunkt.toOppgaveFormat() = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+        internal fun Tidspunkt.toOppgaveFormat() = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
             .withZone(zoneIdOslo).format(this)
     }
 }

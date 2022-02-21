@@ -53,7 +53,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger = null,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
+                    klageinstanshendelser = Klageinstanshendelser.empty(),
                 )
                 is VilkårsvurderingerTilKlage.Påbegynt -> create(
                     id = id,
@@ -166,7 +166,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
                         vurderinger = null,
-                        klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
+                        klageinstanshendelser = Klageinstanshendelser.empty(),
                     )
                     is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
                         id = id,
@@ -262,7 +262,7 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
             val vurderinger: VurderingerTilKlage?,
-            val klagevedtakshistorikk: Klagevedtakshistorikk,
+            val klageinstanshendelser: Klageinstanshendelser,
         ) : Utfylt {
 
             override fun erÅpen() = true
@@ -272,7 +272,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                 vilkårsvurderinger: VilkårsvurderingerTilKlage,
             ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
 
-                if (klagevedtakshistorikk.isNotEmpty() && vilkårsvurderinger.erAvvist()) {
+                if (klageinstanshendelser.isNotEmpty() && vilkårsvurderinger.erAvvist()) {
                     return KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
                 }
 
@@ -289,7 +289,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
-                        klagevedtakshistorikk = klagevedtakshistorikk,
+                        klageinstanshendelser = klageinstanshendelser,
                         vurderinger = vurderinger,
                     )
                     is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
@@ -324,18 +324,18 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk,
+                    klageinstanshendelser = klageinstanshendelser,
                 ).right()
             }
 
-            override fun kanAvsluttes() = klagevedtakshistorikk.isEmpty()
+            override fun kanAvsluttes() = klageinstanshendelser.isEmpty()
 
             override fun avslutt(
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 begrunnelse: String,
                 tidspunktAvsluttet: Tidspunkt,
             ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
-                return if (klagevedtakshistorikk.isEmpty()) {
+                return if (klageinstanshendelser.isEmpty()) {
                     AvsluttetKlage(
                         forrigeSteg = this,
                         saksbehandler = saksbehandler,
@@ -359,7 +359,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger: VurderingerTilKlage?,
                     attesteringer: Attesteringshistorikk,
                     datoKlageMottatt: LocalDate,
-                    klagevedtakshistorikk: Klagevedtakshistorikk,
+                    klageinstanshendelser: Klageinstanshendelser,
                 ): TilVurdering {
                     return TilVurdering(
                         id = id,
@@ -374,7 +374,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                         vurderinger = vurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
-                        klagevedtakshistorikk = klagevedtakshistorikk,
+                        klageinstanshendelser = klageinstanshendelser,
                     )
                 }
             }
@@ -394,7 +394,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                 vurderinger: VurderingerTilKlage?,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
-                klagevedtakshistorikk: Klagevedtakshistorikk,
+                klageinstanshendelser: Klageinstanshendelser,
             ): Utfylt {
                 if (vilkårsvurderinger.erAvvist()) {
                     return Avvist.create(
@@ -425,7 +425,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk,
+                    klageinstanshendelser = klageinstanshendelser,
                 )
             }
         }
@@ -482,7 +482,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
                         vurderinger = null,
-                        klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
+                        klageinstanshendelser = Klageinstanshendelser.empty(),
                     )
                     is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
                         id = id,
@@ -585,7 +585,7 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
             val vurderinger: VurderingerTilKlage?,
-            val klagevedtakshistorikk: Klagevedtakshistorikk,
+            val klageinstanshendelser: Klageinstanshendelser,
         ) : Bekreftet() {
 
             override fun erÅpen() = true
@@ -594,7 +594,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage,
             ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
-                if (klagevedtakshistorikk.isNotEmpty() && vilkårsvurderinger.erAvvist()) {
+                if (klageinstanshendelser.isNotEmpty() && vilkårsvurderinger.erAvvist()) {
                     return KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
                 }
 
@@ -612,7 +612,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
                         vurderinger = vurderinger,
-                        klagevedtakshistorikk = klagevedtakshistorikk,
+                        klageinstanshendelser = klageinstanshendelser,
                     )
                     is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
                         id = id,
@@ -657,7 +657,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk,
+                    klageinstanshendelser = klageinstanshendelser,
                 )
             }
 
@@ -678,7 +678,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk,
+                    klageinstanshendelser = klageinstanshendelser,
                 )
             }
 
@@ -698,18 +698,18 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk,
+                    klageinstanshendelser = klageinstanshendelser,
                 ).right()
             }
 
-            override fun kanAvsluttes() = klagevedtakshistorikk.isEmpty()
+            override fun kanAvsluttes() = klageinstanshendelser.isEmpty()
 
             override fun avslutt(
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 begrunnelse: String,
                 tidspunktAvsluttet: Tidspunkt,
             ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
-                return if (klagevedtakshistorikk.isEmpty()) {
+                return if (klageinstanshendelser.isEmpty()) {
                     AvsluttetKlage(
                         forrigeSteg = this,
                         saksbehandler = saksbehandler,
@@ -733,7 +733,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger: VurderingerTilKlage?,
                     attesteringer: Attesteringshistorikk,
                     datoKlageMottatt: LocalDate,
-                    klagevedtakshistorikk: Klagevedtakshistorikk,
+                    klageinstanshendelser: Klageinstanshendelser,
                 ): TilVurdering {
                     return TilVurdering(
                         id = id,
@@ -748,7 +748,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                         vurderinger = vurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
-                        klagevedtakshistorikk = klagevedtakshistorikk,
+                        klageinstanshendelser = klageinstanshendelser,
                     )
                 }
             }
@@ -768,7 +768,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                 vurderinger: VurderingerTilKlage?,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
-                klagevedtakshistorikk: Klagevedtakshistorikk,
+                klageinstanshendelser: Klageinstanshendelser,
             ): Bekreftet {
                 if (vilkårsvurderinger.erAvvist()) {
                     return Avvist.create(
@@ -799,7 +799,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk,
+                    klageinstanshendelser = klageinstanshendelser,
                 )
             }
         }

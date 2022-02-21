@@ -26,7 +26,7 @@ sealed class VurdertKlage : Klage {
     abstract val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
     abstract val vurderinger: VurderingerTilKlage
     abstract val attesteringer: Attesteringshistorikk
-    abstract val klagevedtakshistorikk: Klagevedtakshistorikk
+    abstract val klageinstanshendelser: Klageinstanshendelser
 
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
         return vurderinger.fritekstTilBrev.orEmpty().right()
@@ -58,7 +58,7 @@ sealed class VurdertKlage : Klage {
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkårsvurderinger: VilkårsvurderingerTilKlage,
     ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
-        if (klagevedtakshistorikk.isNotEmpty() && vilkårsvurderinger.erAvvist()) {
+        if (klageinstanshendelser.isNotEmpty() && vilkårsvurderinger.erAvvist()) {
             return KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
         }
         return when (vilkårsvurderinger) {
@@ -88,7 +88,7 @@ sealed class VurdertKlage : Klage {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
+                klageinstanshendelser = klageinstanshendelser
             )
         }.right()
     }
@@ -111,7 +111,7 @@ sealed class VurdertKlage : Klage {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
+                klageinstanshendelser = klageinstanshendelser
             )
             is VurderingerTilKlage.Utfylt -> Utfylt.create(
                 id = id,
@@ -126,7 +126,7 @@ sealed class VurdertKlage : Klage {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
+                klageinstanshendelser = klageinstanshendelser
             )
         }.right()
     }
@@ -145,7 +145,7 @@ sealed class VurdertKlage : Klage {
             vurderinger = vurderinger,
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
-            klagevedtakshistorikk = klagevedtakshistorikk
+            klageinstanshendelser = klageinstanshendelser
         ).right()
     }
 
@@ -162,19 +162,19 @@ sealed class VurdertKlage : Klage {
         override val vurderinger: VurderingerTilKlage.Påbegynt,
         override val attesteringer: Attesteringshistorikk,
         override val datoKlageMottatt: LocalDate,
-        override val klagevedtakshistorikk: Klagevedtakshistorikk,
+        override val klageinstanshendelser: Klageinstanshendelser,
     ) : VurdertKlage() {
 
         override fun erÅpen() = true
 
-        override fun kanAvsluttes() = klagevedtakshistorikk.isEmpty()
+        override fun kanAvsluttes() = klageinstanshendelser.isEmpty()
 
         override fun avslutt(
             saksbehandler: NavIdentBruker.Saksbehandler,
             begrunnelse: String,
             tidspunktAvsluttet: Tidspunkt,
         ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
-            return if (klagevedtakshistorikk.isEmpty()) {
+            return if (klageinstanshendelser.isEmpty()) {
                 AvsluttetKlage(
                     forrigeSteg = this,
                     saksbehandler = saksbehandler,
@@ -199,7 +199,7 @@ sealed class VurdertKlage : Klage {
                 vurderinger: VurderingerTilKlage.Påbegynt,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
-                klagevedtakshistorikk: Klagevedtakshistorikk,
+                klageinstanshendelser: Klageinstanshendelser,
             ): Påbegynt {
                 return Påbegynt(
                     id = id,
@@ -214,7 +214,7 @@ sealed class VurdertKlage : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk
+                    klageinstanshendelser = klageinstanshendelser
                 )
             }
         }
@@ -233,7 +233,7 @@ sealed class VurdertKlage : Klage {
         override val vurderinger: VurderingerTilKlage.Utfylt,
         override val attesteringer: Attesteringshistorikk,
         override val datoKlageMottatt: LocalDate,
-        override val klagevedtakshistorikk: Klagevedtakshistorikk,
+        override val klageinstanshendelser: Klageinstanshendelser,
     ) : VurdertKlage() {
 
         override fun erÅpen() = true
@@ -254,18 +254,18 @@ sealed class VurdertKlage : Klage {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk,
+                klageinstanshendelser = klageinstanshendelser,
             ).right()
         }
 
-        override fun kanAvsluttes() = klagevedtakshistorikk.isEmpty()
+        override fun kanAvsluttes() = klageinstanshendelser.isEmpty()
 
         override fun avslutt(
             saksbehandler: NavIdentBruker.Saksbehandler,
             begrunnelse: String,
             tidspunktAvsluttet: Tidspunkt,
         ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
-            return if (klagevedtakshistorikk.isEmpty()) {
+            return if (klageinstanshendelser.isEmpty()) {
                 AvsluttetKlage(
                     forrigeSteg = this,
                     saksbehandler = saksbehandler,
@@ -289,7 +289,7 @@ sealed class VurdertKlage : Klage {
                 vurderinger: VurderingerTilKlage.Utfylt,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
-                klagevedtakshistorikk: Klagevedtakshistorikk,
+                klageinstanshendelser: Klageinstanshendelser,
             ): Utfylt {
                 return Utfylt(
                     id = id,
@@ -304,7 +304,7 @@ sealed class VurdertKlage : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk
+                    klageinstanshendelser = klageinstanshendelser
                 )
             }
         }
@@ -327,7 +327,7 @@ sealed class VurdertKlage : Klage {
         override val vurderinger: VurderingerTilKlage.Utfylt,
         override val attesteringer: Attesteringshistorikk,
         override val datoKlageMottatt: LocalDate,
-        override val klagevedtakshistorikk: Klagevedtakshistorikk,
+        override val klageinstanshendelser: Klageinstanshendelser,
     ) : VurdertKlage() {
 
         override fun erÅpen() = true
@@ -348,7 +348,7 @@ sealed class VurdertKlage : Klage {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
+                klageinstanshendelser = klageinstanshendelser
             ).right()
         }
 
@@ -371,19 +371,19 @@ sealed class VurdertKlage : Klage {
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     fritekstTilBrev = vurderinger.fritekstTilBrev,
-                    klagevedtakshistorikk = klagevedtakshistorikk,
+                    klageinstanshendelser = klageinstanshendelser,
                 )
             }
         }
 
-        override fun kanAvsluttes() = klagevedtakshistorikk.isEmpty()
+        override fun kanAvsluttes() = klageinstanshendelser.isEmpty()
 
         override fun avslutt(
             saksbehandler: NavIdentBruker.Saksbehandler,
             begrunnelse: String,
             tidspunktAvsluttet: Tidspunkt,
         ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
-            return if (klagevedtakshistorikk.isEmpty()) {
+            return if (klageinstanshendelser.isEmpty()) {
                 AvsluttetKlage(
                     forrigeSteg = this,
                     saksbehandler = saksbehandler,
@@ -407,7 +407,7 @@ sealed class VurdertKlage : Klage {
                 vurderinger: VurderingerTilKlage.Utfylt,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
-                klagevedtakshistorikk: Klagevedtakshistorikk,
+                klageinstanshendelser: Klageinstanshendelser,
             ): Bekreftet {
                 return Bekreftet(
                     id = id,
@@ -422,7 +422,7 @@ sealed class VurdertKlage : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk
+                    klageinstanshendelser = klageinstanshendelser
                 )
             }
         }

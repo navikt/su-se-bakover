@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
+import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequest
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
@@ -293,7 +293,7 @@ internal class OversendKlageTest {
                 ),
             ),
             datoKlageMottatt = 1.desember(2021),
-            klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
+            klageinstanshendelser = Klageinstanshendelser.empty(),
         )
         verify(mocks.klageClient).sendTilKlageinstans(
             klage = argThat { it shouldBe expectedKlage },
@@ -517,7 +517,7 @@ internal class OversendKlageTest {
                     ),
                 ),
                 datoKlageMottatt = 1.desember(2021),
-                klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
+                klageinstanshendelser = Klageinstanshendelser.empty(),
             )
             it shouldBe expectedKlage
         }

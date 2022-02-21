@@ -38,9 +38,11 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.InnvilgetVedtak
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
 import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
@@ -168,6 +170,81 @@ internal class LagBrevRequestVisitorTest {
                         avslagsgrunner = listOf(Avslagsgrunn.UFØRHET),
                         harEktefelle = false,
                         beregning = null,
+                        formuegrunnlag = null,
+                    ),
+                    saksbehandlerNavn = "-",
+                    attestantNavn = "-",
+                    fritekst = "",
+                    forventetInntektStørreEnn0 = false,
+                    dagensDato = fixedLocalDate,
+                    saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                ).right()
+
+                it.brevRequest.map { brevRequest ->
+                    brevRequest.tilDokument { generertPdf.right() }
+                        .map { dokument ->
+                            assertDokument<Dokument.UtenMetadata.Vedtak>(dokument, brevRequest)
+                        }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `lager request for vilkårsvurdert avslag pga formue`() {
+        val vilkårsvurdertAvslagPgaFormue = vilkårsvurdertInnvilget.tilVilkårsvurdert(
+            vilkårsvurdertInnvilget.behandlingsinformasjon.copy(
+                formue = Behandlingsinformasjon.Formue(
+                    status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
+                    verdier = Behandlingsinformasjon.Formue.Verdier(
+                        verdiIkkePrimærbolig = 100000,
+                        verdiEiendommer = 100000,
+                        verdiKjøretøy = 10000,
+                        innskudd = 10000,
+                        verdipapir = 1000,
+                        pengerSkyldt = 100000,
+                        kontanter = 100000,
+                        depositumskonto = 0,
+                    ),
+                    epsVerdier = null, begrunnelse = null,
+                ),
+            ),
+            vilkårsvurdertInnvilget.grunnlagsdata,
+            fixedClock,
+        )
+        vilkårsvurdertAvslagPgaFormue.let { søknadsbehandling ->
+            LagBrevRequestVisitor(
+                hentPerson = { person.right() },
+                hentNavn = { hentNavn(it) },
+                hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+                clock = fixedClock,
+            ).apply { søknadsbehandling.accept(this) }.let {
+                it.brevRequest shouldBe AvslagBrevRequest(
+                    person = person,
+                    avslag = Avslag(
+                        opprettet = fixedTidspunkt,
+                        avslagsgrunner = listOf(Avslagsgrunn.FORMUE),
+                        harEktefelle = false,
+                        beregning = null,
+                        formuegrunnlag = Formuegrunnlag.create(
+                            id = søknadsbehandling.vilkårsvurderinger.formue.grunnlag.firstOrThrowIfMultipleOrEmpty().id,
+                            periode = søknadsbehandling.vilkårsvurderinger.formue.grunnlag.firstOrThrowIfMultipleOrEmpty().periode,
+                            opprettet = fixedTidspunkt,
+                            epsFormue = null,
+                            søkersFormue = Formuegrunnlag.Verdier.create(
+                                verdiIkkePrimærbolig = 100000,
+                                verdiEiendommer = 100000,
+                                verdiKjøretøy = 10000,
+                                innskudd = 10000,
+                                verdipapir = 1000,
+                                pengerSkyldt = 100000,
+                                kontanter = 100000,
+                                depositumskonto = 0,
+                            ),
+                            begrunnelse = null,
+                            behandlingsPeriode = søknadsbehandling.periode,
+                            bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon.first() as Grunnlag.Bosituasjon.Fullstendig,
+                        ),
                     ),
                     saksbehandlerNavn = "-",
                     attestantNavn = "-",
@@ -248,6 +325,7 @@ internal class LagBrevRequestVisitorTest {
                         avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
                         harEktefelle = false,
                         beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
+                        formuegrunnlag = null,
                     ),
                     saksbehandlerNavn = "-",
                     attestantNavn = "-",
@@ -318,6 +396,7 @@ internal class LagBrevRequestVisitorTest {
                             avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
                             harEktefelle = false,
                             beregning = null,
+                            formuegrunnlag = null,
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = "-",
@@ -366,6 +445,7 @@ internal class LagBrevRequestVisitorTest {
                             avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
                             harEktefelle = false,
                             beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
+                            formuegrunnlag = null,
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = "-",
@@ -439,6 +519,7 @@ internal class LagBrevRequestVisitorTest {
                             avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
                             harEktefelle = false,
                             beregning = null,
+                            formuegrunnlag = null,
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
@@ -496,6 +577,7 @@ internal class LagBrevRequestVisitorTest {
                             avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
                             harEktefelle = false,
                             beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
+                            formuegrunnlag = null,
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
@@ -572,6 +654,7 @@ internal class LagBrevRequestVisitorTest {
                             avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
                             harEktefelle = false,
                             beregning = null,
+                            formuegrunnlag = null,
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
@@ -624,6 +707,7 @@ internal class LagBrevRequestVisitorTest {
                             avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
                             harEktefelle = false,
                             beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
+                            formuegrunnlag = null,
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
@@ -759,6 +843,7 @@ internal class LagBrevRequestVisitorTest {
                 avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
                 harEktefelle = false,
                 beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
+                formuegrunnlag = null,
             ),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
@@ -806,6 +891,89 @@ internal class LagBrevRequestVisitorTest {
                 avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
                 harEktefelle = false,
                 beregning = null,
+                formuegrunnlag = null,
+            ),
+            saksbehandlerNavn = saksbehandlerNavn,
+            attestantNavn = attestantNavn,
+            fritekst = "Fritekst!",
+            forventetInntektStørreEnn0 = false,
+            dagensDato = fixedLocalDate,
+            saksnummer = søknadsbehandling.saksnummer,
+        ).right()
+    }
+
+    @Test
+    fun `lager request for vedtak med avslått formue`() {
+        val søknadsbehandling = (
+            vilkårsvurdertInnvilget.tilVilkårsvurdert(
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
+                    formue = Behandlingsinformasjon.Formue(
+                        status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
+                        verdier = Behandlingsinformasjon.Formue.Verdier(
+                            verdiIkkePrimærbolig = 100000,
+                            verdiEiendommer = 100000,
+                            verdiKjøretøy = 100000,
+                            innskudd = 100000,
+                            verdipapir = 100000,
+                            pengerSkyldt = 100000,
+                            kontanter = 100000,
+                            depositumskonto = 0,
+                        ),
+                        epsVerdier = null, begrunnelse = null,
+                    ),
+                ),
+                clock = fixedClock,
+            ) as Søknadsbehandling.Vilkårsvurdert.Avslag
+            )
+            .tilAttestering(saksbehandler, "Fritekst!")
+            .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
+
+        val avslåttVedtak = Avslagsvedtak.fromSøknadsbehandlingUtenBeregning(
+            avslag = søknadsbehandling,
+            clock = fixedClock,
+        )
+
+        val brevSøknadsbehandling = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+            clock = fixedClock,
+        ).apply { søknadsbehandling.accept(this) }
+
+        val brevVedtak = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+            clock = fixedClock,
+        ).apply { avslåttVedtak.accept(this) }
+
+        brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
+        brevSøknadsbehandling.brevRequest shouldBe AvslagBrevRequest(
+            person = person,
+            avslag = Avslag(
+                opprettet = fixedTidspunkt,
+                avslagsgrunner = listOf(Avslagsgrunn.FORMUE),
+                harEktefelle = false,
+                beregning = null,
+                formuegrunnlag = Formuegrunnlag.create(
+                    id = søknadsbehandling.vilkårsvurderinger.formue.grunnlag.firstOrThrowIfMultipleOrEmpty().id,
+                    opprettet = søknadsbehandling.vilkårsvurderinger.formue.grunnlag.firstOrThrowIfMultipleOrEmpty().opprettet,
+                    periode = søknadsbehandling.vilkårsvurderinger.formue.grunnlag.firstOrThrowIfMultipleOrEmpty().periode,
+                    epsFormue = null,
+                    søkersFormue = Formuegrunnlag.Verdier.create(
+                        verdiIkkePrimærbolig = 100000,
+                        verdiEiendommer = 100000,
+                        verdiKjøretøy = 100000,
+                        innskudd = 100000,
+                        verdipapir = 100000,
+                        pengerSkyldt = 100000,
+                        kontanter = 100000,
+                        depositumskonto = 0,
+                    ),
+                    begrunnelse = null,
+                    bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon.first() as Grunnlag.Bosituasjon.Fullstendig,
+                    behandlingsPeriode = søknadsbehandling.periode,
+                ),
             ),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
