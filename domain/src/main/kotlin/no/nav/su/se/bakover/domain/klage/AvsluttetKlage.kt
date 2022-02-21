@@ -84,8 +84,8 @@ data class AvsluttetKlage(
         iverksattAttestering: Attestering.Iverksatt,
     ) = KunneIkkeOversendeKlage.UgyldigTilstand(this::class, OversendtKlage::class).left()
 
-    override fun leggTilNyttKlagevedtak(
-        uprosessertKlageinstansVedtak: UprosessertKlageinstansvedtak,
-        lagOppgaveCallback: () -> Either<Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak, OppgaveId>,
-    ) = Klage.KunneIkkeLeggeTilNyttKlageinstansVedtak.MåVæreEnOversendtKlage(menVar = this::class).left()
+    override fun leggTilNyKlageinstanshendelse(
+        tolketKlageinstanshendelse: TolketKlageinstanshendelse,
+        lagOppgaveCallback: () -> Either<Klage.KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId>,
+    ) = Klage.KunneIkkeLeggeTilNyKlageinstansHendelse.MåVæreEnOversendtKlage(menVar = this::class).left()
 }

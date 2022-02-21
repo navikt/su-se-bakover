@@ -47,7 +47,7 @@ data class AvvistKlage private constructor(
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
                 vurderinger = null,
-                klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
+                klageinstanshendelser = Klageinstanshendelser.empty(),
             )
             is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt.create(
                 id = id,

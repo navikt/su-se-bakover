@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
-import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
+import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
@@ -241,7 +241,7 @@ internal class AvvistKlageTest {
                 vurderinger = null,
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
-                klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
+                klageinstanshendelser = Klageinstanshendelser.empty(),
             )
         }
 

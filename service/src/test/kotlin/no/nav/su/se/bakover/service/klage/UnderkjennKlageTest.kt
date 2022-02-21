@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
+import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
@@ -308,7 +308,7 @@ internal class UnderkjennKlageTest {
                     ),
                 ),
                 datoKlageMottatt = 1.desember(2021),
-                klagevedtakshistorikk = Klagevedtakshistorikk.empty()
+                klageinstanshendelser = Klageinstanshendelser.empty()
             )
             it shouldBe expectedKlage
         }

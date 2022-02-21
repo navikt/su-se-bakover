@@ -176,7 +176,7 @@ sealed class KlageTilAttestering : Klage {
         override val datoKlageMottatt: LocalDate,
         override val attesteringer: Attesteringshistorikk,
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-        val klagevedtakshistorikk: Klagevedtakshistorikk,
+        val klageinstanshendelser: Klageinstanshendelser,
         val vurderinger: VurderingerTilKlage.Utfylt,
     ) : KlageTilAttestering() {
 
@@ -229,7 +229,7 @@ sealed class KlageTilAttestering : Klage {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk
+                    klageinstanshendelser = klageinstanshendelser
                 )
             }
         }
@@ -253,7 +253,7 @@ sealed class KlageTilAttestering : Klage {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer.leggTilNyAttestering(iverksattAttestering),
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
+                klageinstanshendelser = klageinstanshendelser
             ).right()
         }
 
@@ -278,7 +278,7 @@ sealed class KlageTilAttestering : Klage {
                 vurderinger: VurderingerTilKlage.Utfylt,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
-                klagevedtakshistorikk: Klagevedtakshistorikk,
+                klageinstanshendelser: Klageinstanshendelser,
             ): Vurdert {
                 return Vurdert(
                     id = id,
@@ -293,7 +293,7 @@ sealed class KlageTilAttestering : Klage {
                     attesteringer = attesteringer,
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
-                    klagevedtakshistorikk = klagevedtakshistorikk,
+                    klageinstanshendelser = klageinstanshendelser,
                 )
             }
         }
@@ -314,7 +314,7 @@ sealed class KlageTilAttestering : Klage {
             attesteringer: Attesteringshistorikk,
             datoKlageMottatt: LocalDate,
             fritekstTilBrev: String,
-            klagevedtakshistorikk: Klagevedtakshistorikk?,
+            klageinstanshendelser: Klageinstanshendelser?,
         ): KlageTilAttestering {
             if (vilkårsvurderinger.erAvvist()) {
                 return Avvist.create(
@@ -348,8 +348,8 @@ sealed class KlageTilAttestering : Klage {
                 },
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
-                klagevedtakshistorikk = klagevedtakshistorikk
-                    ?: throw IllegalArgumentException("Ugyldig argumenter for lage en Vurdert klage. Klagevedtakhistorikk på være fyllt ut"),
+                klageinstanshendelser = klageinstanshendelser
+                    ?: throw IllegalArgumentException("Ugyldig argumenter for lage en Vurdert klage. `klageinstanshendelser` på være utfylt"),
             )
         }
     }

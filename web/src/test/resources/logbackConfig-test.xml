@@ -18,8 +18,6 @@
     <logger name="org.apache" level="WARN"/>
     <logger name="io.confluent" level="WARN"/>
     <logger name="state.change.logger" level="WARN"/>
-    <!-- Denne spammer veldig når vi kjører Kafka-testene (vil dessverre ikke filtere ut sikkerloggen) -->
-    <logger name="no.nav.su.se.bakover.web.services.klage.FattetKlagevedtakConsumer" level="OFF"/>
 
     <!-- WEB -->
     <logger name="ktor.test" level="WARN"/>
