@@ -80,16 +80,19 @@ internal class JournalpostHttpClient(
             client.send(req, HttpResponse.BodyHandlers.ofString()).let {
                 val body = it.body()
                 if (it.isSuccess()) {
-                    try {
+                    Either.catch {
                         val journalpostHttpResponse = objectMapper.readValue<JournalpostHttpResponse>(body)
                         if (journalpostHttpResponse.hasErrors()) {
                             return journalpostHttpResponse.tilKunneIkkeHenteJournalpost(request.variables.journalpostId)
                                 .left()
                         }
                         return journalpostHttpResponse.data.right()
-                    } catch (e: Exception) {
+                    }.mapLeft { exception ->
                         log.error("Feil i kallet mot SAF. status: ${it.statusCode()} for journalpostId: ${request.variables.journalpostId}. Se sikker logg for innholdet av body, og exception")
-                        sikkerLogg.info("Feil i kallet mot SAF for journalpostId: ${request.variables.journalpostId}. status: ${it.statusCode()}, body: $body, exception: $e")
+                        sikkerLogg.info(
+                            "Feil i kallet mot SAF for journalpostId: ${request.variables.journalpostId}. status: ${it.statusCode()}, body: $body",
+                            exception,
+                        )
                         return KunneIkkeHenteJournalpost.TekniskFeil.left()
                     }
                 }
