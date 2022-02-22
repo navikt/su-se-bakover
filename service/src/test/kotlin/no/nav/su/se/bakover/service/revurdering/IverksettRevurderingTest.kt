@@ -53,7 +53,7 @@ internal class IverksettRevurderingTest {
                 sakOgVedtakSomKanRevurderes = sakOgVedtak,
                 grunnlagsdataOverrides = grunnlagsdata,
             ).second as IverksattRevurdering.Innvilget
-            ).copy(tilbakekrevingsbehandling = revurderingTilAttestering.tilbakekrevingsbehandling.ferdigbehandlet())
+            ).copy(tilbakekrevingsbehandling = revurderingTilAttestering.tilbakekrevingsbehandling.fullførBehandling())
 
         val simulertUtbetaling = simulertUtbetaling()
 

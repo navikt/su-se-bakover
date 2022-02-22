@@ -472,13 +472,13 @@ internal class RevurderingPostgresRepo(
             is Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort -> {
                 tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
                     tilbakrekrevingsbehanding = t,
-                    session = tx,
+                    tx = tx,
                 )
             }
             is Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.IkkeAvgjort -> {
                 tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
                     tilbakrekrevingsbehanding = t,
-                    session = tx,
+                    tx = tx,
                 )
             }
         }
@@ -600,36 +600,36 @@ internal class RevurderingPostgresRepo(
                 // noop
             }
             is IverksattRevurdering.Innvilget -> {
-                when (val tb = revurdering.tilbakekrevingsbehandling) {
-                    is AvventerKravgrunnlag -> {
-                        tilbakekrevingRepo.lagreTilbakekrevingsbehandling(tb, tx)
-                    }
-                    is Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving -> {
-                        // noop
-                    }
-                    is MottattKravgrunnlag -> {
-                        throw IllegalStateException("Kan aldri ha mottatt kravgrunnlag før vi har iverksatt")
-                    }
-                    is SendtTilbakekrevingsvedtak -> {
-                        throw IllegalStateException("Kan aldri ha besvart kravgrunnlag før vi har iverksatt")
-                    }
-                }
+                oppdaterTilbakekrevingsbehandlingVedIverksettelse(
+                    tilbakekrevingsbehandling = revurdering.tilbakekrevingsbehandling,
+                    tx = tx,
+                )
             }
             is IverksattRevurdering.Opphørt -> {
-                when (val tb = revurdering.tilbakekrevingsbehandling) {
-                    is AvventerKravgrunnlag -> {
-                        tilbakekrevingRepo.lagreTilbakekrevingsbehandling(tb, tx)
-                    }
-                    is Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving -> {
-                        // noop
-                    }
-                    is MottattKravgrunnlag -> {
-                        throw IllegalStateException("Kan aldri ha mottatt kravgrunnlag før vi har iverksatt")
-                    }
-                    is SendtTilbakekrevingsvedtak -> {
-                        throw IllegalStateException("Kan aldri ha besvart kravgrunnlag før vi har iverksatt")
-                    }
-                }
+                oppdaterTilbakekrevingsbehandlingVedIverksettelse(
+                    tilbakekrevingsbehandling = revurdering.tilbakekrevingsbehandling,
+                    tx = tx,
+                )
+            }
+        }
+    }
+
+    private fun oppdaterTilbakekrevingsbehandlingVedIverksettelse(
+        tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
+        tx: Session,
+    ) {
+        when (tilbakekrevingsbehandling) {
+            is AvventerKravgrunnlag -> {
+                tilbakekrevingRepo.lagreTilbakekrevingsbehandling(tilbakekrevingsbehandling, tx)
+            }
+            is Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving -> {
+                // noop
+            }
+            is MottattKravgrunnlag -> {
+                throw IllegalStateException("Kan aldri ha mottatt kravgrunnlag før vi har iverksatt")
+            }
+            is SendtTilbakekrevingsvedtak -> {
+                throw IllegalStateException("Kan aldri ha besvart kravgrunnlag før vi har iverksatt")
             }
         }
     }

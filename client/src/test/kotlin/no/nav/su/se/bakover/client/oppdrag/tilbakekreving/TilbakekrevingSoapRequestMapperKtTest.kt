@@ -14,10 +14,7 @@ internal class TilbakekrevingSoapRequestMapperKtTest {
     @Test
     fun `mapper full tilbakekreving`() {
         val tilbakekrevingsvedtak = Tilbakekrevingsvedtak.FullTilbakekreving(
-            aksjonsKode = Tilbakekrevingsvedtak.AksjonsKode.FATT_VEDTAK,
             vedtakId = "436204",
-            hjemmel = Tilbakekrevingsvedtak.TilbakekrevingsHjemmel.ANNEN,
-            renterBeregnes = false,
             ansvarligEnhet = "8020",
             kontrollFelt = "2022-02-07-18.39.46.586953",
             behandler = saksbehandler,
@@ -41,8 +38,7 @@ internal class TilbakekrevingSoapRequestMapperKtTest {
                             beløpSomSkalTilbakekreves = BigDecimal(9989),
                             beløpSomIkkeTilbakekreves = BigDecimal(0.00),
                             beløpSkatt = BigDecimal(4395.00),
-                            tilbakekrevingsresultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREV,
-                            tilbakekrevingsÅrsak = Tilbakekrevingsvedtak.TilbakekrevingsÅrsak.ANNET,
+                            tilbakekrevingsresultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING,
                             skyld = Tilbakekrevingsvedtak.Skyld.BRUKER,
                         ),
                     ),
@@ -100,10 +96,7 @@ internal class TilbakekrevingSoapRequestMapperKtTest {
     @Test
     fun `mapper ingen tilbakekreving`() {
         val tilbakekrevingsvedtak = Tilbakekrevingsvedtak.IngenTilbakekreving(
-            aksjonsKode = Tilbakekrevingsvedtak.AksjonsKode.FATT_VEDTAK,
             vedtakId = "436204",
-            hjemmel = Tilbakekrevingsvedtak.TilbakekrevingsHjemmel.ANNEN,
-            renterBeregnes = false,
             ansvarligEnhet = "8020",
             kontrollFelt = "2022-02-07-18.39.46.586953",
             behandler = saksbehandler,
@@ -127,8 +120,7 @@ internal class TilbakekrevingSoapRequestMapperKtTest {
                             beløpSomSkalTilbakekreves = BigDecimal(0.00),
                             beløpSomIkkeTilbakekreves = BigDecimal(9989),
                             beløpSkatt = BigDecimal(4395.00),
-                            tilbakekrevingsresultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREV,
-                            tilbakekrevingsÅrsak = Tilbakekrevingsvedtak.TilbakekrevingsÅrsak.ANNET,
+                            tilbakekrevingsresultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING,
                             skyld = Tilbakekrevingsvedtak.Skyld.IKKE_FORDELT,
                         ),
                     ),

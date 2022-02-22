@@ -50,29 +50,33 @@ internal class TilbakekrevingPostgresRepoTest {
                 ) shouldBe ikkeAvgjort
 
                 testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-                testDataHelper.tilbakekrevingRepo.hentKravgrunnlagMottatt() shouldBe emptyList()
+                testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
 
                 val forsto = ikkeAvgjort.tilbakekrev()
-                testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(forsto, session)
+                testDataHelper.sessionFactory.withTransaction { tx ->
+                    testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(forsto, tx)
+                }
                 testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(revurdering.id, session) shouldBe forsto
 
                 testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-                testDataHelper.tilbakekrevingRepo.hentKravgrunnlagMottatt() shouldBe emptyList()
+                testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
 
                 testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-                testDataHelper.tilbakekrevingRepo.hentKravgrunnlagMottatt() shouldBe emptyList()
+                testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
 
                 val kunneIkkeForstå = ikkeAvgjort.ikkeTilbakekrev()
-                testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(kunneIkkeForstå, session)
+                testDataHelper.sessionFactory.withTransaction { tx ->
+                    testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(kunneIkkeForstå, tx)
+                }
                 testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(
                     revurdering.id,
                     session,
                 ) shouldBe kunneIkkeForstå
 
                 testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-                testDataHelper.tilbakekrevingRepo.hentKravgrunnlagMottatt() shouldBe emptyList()
+                testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
 
-                val avventerKravgrunnlag = kunneIkkeForstå.ferdigbehandlet()
+                val avventerKravgrunnlag = kunneIkkeForstå.fullførBehandling()
                 testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(avventerKravgrunnlag, session)
                 testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(
                     revurdering.id,
@@ -82,7 +86,7 @@ internal class TilbakekrevingPostgresRepoTest {
                 testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe listOf(
                     avventerKravgrunnlag,
                 )
-                testDataHelper.tilbakekrevingRepo.hentKravgrunnlagMottatt() shouldBe emptyList()
+                testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
 
                 // TODO klarer vi å gjøre noe bedre enn å bare jukse her?
                 val mottattKravgrunnlag = avventerKravgrunnlag.mottattKravgrunnlag(
@@ -105,7 +109,7 @@ internal class TilbakekrevingPostgresRepoTest {
                 ) shouldBe mottattKravgrunnlag
 
                 testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-                testDataHelper.tilbakekrevingRepo.hentKravgrunnlagMottatt() shouldBe listOf(
+                testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe listOf(
                     mottattKravgrunnlag,
                 )
 
@@ -123,7 +127,7 @@ internal class TilbakekrevingPostgresRepoTest {
                 ) shouldBe besvartKravgrunnlag
 
                 testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-                testDataHelper.tilbakekrevingRepo.hentKravgrunnlagMottatt() shouldBe emptyList()
+                testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
             }
         }
     }

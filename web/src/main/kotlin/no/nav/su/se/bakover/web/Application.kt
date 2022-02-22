@@ -347,7 +347,7 @@ fun Application.susebakover(
             TilbakekrevingJob(
                 tilbakekrevingService = services.tilbakekrevingService,
                 leaderPodLookup = clients.leaderPodLookup,
-                intervall = Duration.of(10, ChronoUnit.MINUTES).toMillis(),
+                intervall = Duration.of(15, ChronoUnit.MINUTES),
             ).schedule()
         }
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
@@ -391,7 +391,7 @@ fun Application.susebakover(
         TilbakekrevingJob(
             tilbakekrevingService = services.tilbakekrevingService,
             leaderPodLookup = clients.leaderPodLookup,
-            intervall = Duration.of(1, ChronoUnit.MINUTES).toMillis(),
+            intervall = Duration.of(1, ChronoUnit.MINUTES),
         ).schedule()
     }
 

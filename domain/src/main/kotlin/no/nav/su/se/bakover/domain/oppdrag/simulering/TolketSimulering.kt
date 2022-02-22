@@ -45,7 +45,7 @@ data class TolketSimulering(
      * Sjekk for spesialtilfellet hvor vi har mottatt en tom respons.
      * @see no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringResponseMapper
      */
-    private fun tomSimulering(): Boolean {
+    private fun erTomSimulering(): Boolean {
         return simulertePerioder.all { it.utbetalinger.all { it is TolketUtbetaling.IngenUtbetaling } }
     }
 
@@ -54,7 +54,7 @@ data class TolketSimulering(
      * Inkluderer kun beløp som er større enn 0.
      */
     fun hentUtbetalteBeløp(periode: Periode = periode()): Månedsbeløp {
-        return if (tomSimulering()) {
+        return if (erTomSimulering()) {
             Månedsbeløp(emptyList())
         } else {
             return Månedsbeløp(
@@ -67,7 +67,7 @@ data class TolketSimulering(
     }
 
     fun hentFeilutbetalteBeløp(periode: Periode = periode()): Månedsbeløp {
-        return if (tomSimulering()) {
+        return if (erTomSimulering()) {
             Månedsbeløp(emptyList())
         } else {
             Månedsbeløp(
@@ -80,7 +80,7 @@ data class TolketSimulering(
     }
 
     fun hentØnsketUtbetaling(periode: Periode = periode()): Månedsbeløp {
-        return if (tomSimulering()) {
+        return if (erTomSimulering()) {
             Månedsbeløp(emptyList())
         } else {
             Månedsbeløp(

@@ -49,10 +49,7 @@ internal class TilbakekrevingSoapClientTest {
             clock = fixedClock,
         ).sendTilbakekrevingsvedtak(
             Tilbakekrevingsvedtak.FullTilbakekreving(
-                aksjonsKode = Tilbakekrevingsvedtak.AksjonsKode.FATT_VEDTAK,
                 vedtakId = "12345",
-                hjemmel = Tilbakekrevingsvedtak.TilbakekrevingsHjemmel.ANNEN,
-                renterBeregnes = false,
                 ansvarligEnhet = "1111",
                 kontrollFelt = "2222",
                 behandler = NavIdentBruker.Saksbehandler("jab"),
@@ -84,10 +81,7 @@ internal class TilbakekrevingSoapClientTest {
             clock = fixedClock,
         ).sendTilbakekrevingsvedtak(
             Tilbakekrevingsvedtak.FullTilbakekreving(
-                aksjonsKode = Tilbakekrevingsvedtak.AksjonsKode.FATT_VEDTAK,
                 vedtakId = "12345",
-                hjemmel = Tilbakekrevingsvedtak.TilbakekrevingsHjemmel.ANNEN,
-                renterBeregnes = false,
                 ansvarligEnhet = "1111",
                 kontrollFelt = "2222",
                 behandler = NavIdentBruker.Saksbehandler("jab"),
@@ -129,10 +123,7 @@ internal class TilbakekrevingSoapClientTest {
             clock = fixedClock,
         ).sendTilbakekrevingsvedtak(
             Tilbakekrevingsvedtak.FullTilbakekreving(
-                aksjonsKode = Tilbakekrevingsvedtak.AksjonsKode.FATT_VEDTAK,
                 vedtakId = "12345",
-                hjemmel = Tilbakekrevingsvedtak.TilbakekrevingsHjemmel.ANNEN,
-                renterBeregnes = false,
                 ansvarligEnhet = "1111",
                 kontrollFelt = "2222",
                 behandler = NavIdentBruker.Saksbehandler("jab"),

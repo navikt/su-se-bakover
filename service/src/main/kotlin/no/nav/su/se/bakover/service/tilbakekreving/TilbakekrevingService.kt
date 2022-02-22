@@ -40,7 +40,7 @@ class TilbakekrevingServiceImpl(
      * Ved å ta inn en mapper gjør det at vi slipper lagre den serialiserte versjonen i databasen samtidig som vi i større grad skiller domenet fra infrastruktur.
      */
     override fun sendTilbakekrevingsvedtak(mapper: (RåttKravgrunnlag) -> Kravgrunnlag) {
-        tilbakekrevingRepo.hentKravgrunnlagMottatt()
+        tilbakekrevingRepo.hentMottattKravgrunnlag()
             .forEach { tilbakekrevingsbehandling ->
                 val tilbakekrevingsvedtak = tilbakekrevingsbehandling.lagTilbakekrevingsvedtak(mapper)
 

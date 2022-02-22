@@ -748,7 +748,6 @@ sealed class BeregnetRevurdering : Revurdering() {
                     }
                 }
 
-            // TODO håndter kombinasjon av avkorting og tilbakekreving (sannsynligvis ikke lov)
             val tilbakekrevingsbehandling = when (simulertUtbetaling.simulering.harFeilutbetalinger()) {
                 true -> {
                     IkkeAvgjort(
@@ -763,6 +762,11 @@ sealed class BeregnetRevurdering : Revurdering() {
                     IkkeBehovForTilbakekrevingUnderBehandling
                 }
             }
+
+            unngåNyAvkortingOgNyTilbakekrevingPåSammeTid(
+                avkorting = håndtertAvkorting,
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+            )
 
             return SimulertRevurdering.Opphørt(
                 id = id,
@@ -783,6 +787,37 @@ sealed class BeregnetRevurdering : Revurdering() {
                 avkorting = håndtertAvkorting,
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling,
             ).right()
+        }
+
+        private fun unngåNyAvkortingOgNyTilbakekrevingPåSammeTid(
+            avkorting: AvkortingVedRevurdering.Håndtert,
+            tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
+        ) {
+            val førerTilAvkorting = when (avkorting) {
+                is AvkortingVedRevurdering.Håndtert.AnnullerUtestående,
+                AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+                is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres,
+                -> {
+                    false
+                }
+                is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel,
+                is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående,
+                -> {
+                    true
+                }
+            }
+            val måBehandleTilbakekreving = when (tilbakekrevingsbehandling) {
+                is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
+                    false
+                }
+                is IkkeTilbakekrev,
+                is Tilbakekrev,
+                is IkkeAvgjort,
+                -> {
+                    true
+                }
+            }
+            if (førerTilAvkorting && måBehandleTilbakekreving) throw IllegalStateException("Kan ikke håndtere avkorting og tilbakekreving på samme tid.")
         }
 
         private fun lagAvkortingsvarsel(simulertUtbetaling: Utbetaling.SimulertUtbetaling): Avkortingsvarsel {
@@ -1280,7 +1315,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     ),
                 ),
                 avkorting = avkorting.iverksett(id),
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling.ferdigbehandlet(),
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling.fullførBehandling(),
             )
         }
     }
@@ -1360,7 +1395,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     ),
                 ),
                 avkorting = avkorting.iverksett(id),
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling.ferdigbehandlet(),
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling.fullførBehandling(),
             )
         }
     }

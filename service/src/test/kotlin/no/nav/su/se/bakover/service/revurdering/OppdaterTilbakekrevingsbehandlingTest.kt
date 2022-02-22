@@ -21,7 +21,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.util.UUID
 
-internal class OppdaterTilbakekrevingsbehandling {
+internal class OppdaterTilbakekrevingsbehandlingTest {
     @Test
     fun `fant ikke revurdering`() {
         RevurderingServiceMocks(

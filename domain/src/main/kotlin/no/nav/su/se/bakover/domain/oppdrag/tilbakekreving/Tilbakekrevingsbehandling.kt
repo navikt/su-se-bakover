@@ -25,7 +25,7 @@ data class Tilbakekrev(
     override val periode: Periode,
 ) : Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
     Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving {
-    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
+    override fun fullførBehandling(): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
         return AvventerKravgrunnlag(this)
     }
 }
@@ -38,7 +38,7 @@ data class IkkeTilbakekrev(
     override val periode: Periode,
 ) : Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
     Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving {
-    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
+    override fun fullførBehandling(): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
         return AvventerKravgrunnlag(this)
     }
 }
@@ -144,10 +144,7 @@ data class MottattKravgrunnlag(
 
     private fun fullTilbakekreving(kravgrunnlag: Kravgrunnlag): Tilbakekrevingsvedtak.FullTilbakekreving {
         return Tilbakekrevingsvedtak.FullTilbakekreving(
-            aksjonsKode = Tilbakekrevingsvedtak.AksjonsKode.FATT_VEDTAK,
             vedtakId = kravgrunnlag.vedtakId,
-            hjemmel = Tilbakekrevingsvedtak.TilbakekrevingsHjemmel.ANNEN,
-            renterBeregnes = false,
             ansvarligEnhet = "8020",
             kontrollFelt = kravgrunnlag.kontrollfelt,
             behandler = kravgrunnlag.behandler,
@@ -166,8 +163,7 @@ data class MottattKravgrunnlag(
                                     beløpSomSkalTilbakekreves = it.beløpSkalTilbakekreves,
                                     beløpSomIkkeTilbakekreves = BigDecimal.ZERO,
                                     beløpSkatt = grunnlagsperiode.beløpSkattMnd,
-                                    tilbakekrevingsresultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREV,
-                                    tilbakekrevingsÅrsak = Tilbakekrevingsvedtak.TilbakekrevingsÅrsak.ANNET,
+                                    tilbakekrevingsresultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING,
                                     skyld = Tilbakekrevingsvedtak.Skyld.BRUKER,
                                 )
                             }
@@ -186,10 +182,7 @@ data class MottattKravgrunnlag(
 
     private fun ingenTilbakekreving(kravgrunnlag: Kravgrunnlag): Tilbakekrevingsvedtak.IngenTilbakekreving {
         return Tilbakekrevingsvedtak.IngenTilbakekreving(
-            aksjonsKode = Tilbakekrevingsvedtak.AksjonsKode.FATT_VEDTAK,
             vedtakId = kravgrunnlag.vedtakId,
-            hjemmel = Tilbakekrevingsvedtak.TilbakekrevingsHjemmel.ANNEN,
-            renterBeregnes = false,
             ansvarligEnhet = "8020",
             kontrollFelt = kravgrunnlag.kontrollfelt,
             behandler = kravgrunnlag.behandler,
@@ -208,8 +201,7 @@ data class MottattKravgrunnlag(
                                     beløpSomSkalTilbakekreves = BigDecimal.ZERO,
                                     beløpSomIkkeTilbakekreves = it.beløpSkalTilbakekreves,
                                     beløpSkatt = BigDecimal.ZERO,
-                                    tilbakekrevingsresultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREV,
-                                    tilbakekrevingsÅrsak = Tilbakekrevingsvedtak.TilbakekrevingsÅrsak.ANNET,
+                                    tilbakekrevingsresultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING,
                                     skyld = Tilbakekrevingsvedtak.Skyld.IKKE_FORDELT,
                                 )
                             }
@@ -227,7 +219,6 @@ data class MottattKravgrunnlag(
     }
 
     private fun mapDelkomponentForFeilutbetaling(it: Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp): Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp {
-        require(it.kode == KlasseKode.KL_KODE_FEIL_INNT)
         return Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpFeilutbetaling(
             kodeKlasse = it.kode,
             beløpTidligereUtbetaling = it.beløpTidligereUtbetaling,
@@ -258,7 +249,7 @@ data class SendtTilbakekrevingsvedtak(
 
 object IkkeBehovForTilbakekrevingUnderBehandling :
     Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving {
-    override fun ferdigbehandlet(): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving {
+    override fun fullførBehandling(): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving {
         return IkkeBehovForTilbakekrevingFerdigbehandlet
     }
 }
@@ -270,7 +261,7 @@ sealed interface Tilbakekrevingsbehandling {
 
     sealed interface UnderBehandling : Tilbakekrevingsbehandling {
 
-        fun ferdigbehandlet(): Ferdigbehandlet
+        fun fullførBehandling(): Ferdigbehandlet
 
         sealed interface VurderTilbakekreving : UnderBehandling {
             val id: UUID
@@ -280,18 +271,18 @@ sealed interface Tilbakekrevingsbehandling {
             val periode: Periode
 
             sealed interface Avgjort : VurderTilbakekreving {
-                override fun ferdigbehandlet(): Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag
+                override fun fullførBehandling(): Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag
             }
 
             sealed interface IkkeAvgjort : VurderTilbakekreving {
-                override fun ferdigbehandlet(): Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
+                override fun fullførBehandling(): Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
                     throw IllegalStateException("Må avgjøres før vurdering kan ferdigbehandles")
                 }
             }
         }
 
         interface IkkeBehovForTilbakekreving : UnderBehandling {
-            override fun ferdigbehandlet(): Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving
+            override fun fullførBehandling(): Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving
         }
     }
 

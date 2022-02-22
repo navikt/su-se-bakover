@@ -24,7 +24,7 @@ internal class TilbakekrevingServiceImplTest {
     fun `kaster exception hvis oversendelse av tilbakekrevingsvedtak feiler`() {
         TilbakekrevingServiceImpl(
             tilbakekrevingRepo = mock() {
-                on { hentKravgrunnlagMottatt() } doReturn listOf(
+                on { hentMottattKravgrunnlag() } doReturn listOf(
                     MottattKravgrunnlag(
                         avgjort = Tilbakekrev(
                             id = UUID.randomUUID(),

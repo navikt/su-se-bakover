@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -40,7 +41,7 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         }
     }
 
-    override fun hentKravgrunnlagMottatt(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag> {
+    override fun hentMottattKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag> {
         return sessionFactory.withSession { session ->
             "select * from tilbakekrevingsbehandling where tilstand = '${Tilstand.MOTTATT_KRAVGRUNNLAG}' and tilbakekrevingsvedtakForsendelse is null"
                 .hentListe(
@@ -54,9 +55,9 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
 
     internal fun lagreTilbakekrevingsbehandling(
         tilbakrekrevingsbehanding: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving,
-        session: Session,
+        tx: TransactionalSession,
     ) {
-        slettForRevurderingId(tilbakrekrevingsbehanding.revurderingId, session)
+        slettForRevurderingId(tilbakrekrevingsbehanding.revurderingId, tx)
 
         "insert into tilbakekrevingsbehandling (id, opprettet, sakId, revurderingId, fraOgMed, tilOgMed, avgjørelse, tilstand) values (:id, :opprettet, :sakId, :revurderingId, :fraOgMed, :tilOgMed, :avgjorelse, :tilstand)"
             .insert(
@@ -74,7 +75,7 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
                     }.toString(),
                     "tilstand" to Tilstand.UNDER_BEHANDLING.toString(),
                 ),
-                session,
+                tx,
             )
     }
 

@@ -9,6 +9,54 @@ import no.nav.tilbakekreving.typer.v1.PeriodeDto
 import java.math.BigInteger
 import javax.xml.datatype.DatatypeFactory
 
+internal enum class AksjonsKode(val nummer: String) {
+    FATT_VEDTAK("8")
+}
+
+internal enum class TilbakekrevingsHjemmel {
+    ANNEN
+}
+
+internal enum class Tilbakekrevingsresultat {
+    FULL_TILBAKEKREV,
+    INGEN_TILBAKEKREV;
+
+    companion object {
+        fun fra(tilbakekrevingsresultat: Tilbakekrevingsvedtak.Tilbakekrevingsresultat): Tilbakekrevingsresultat {
+            return when (tilbakekrevingsresultat) {
+                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING -> {
+                    FULL_TILBAKEKREV
+                }
+                Tilbakekrevingsvedtak.Tilbakekrevingsresultat.INGEN_TILBAKEKREVING -> {
+                    INGEN_TILBAKEKREV
+                }
+            }
+        }
+    }
+}
+
+internal enum class TilbakekrevingsÅrsak {
+    ANNET;
+}
+
+enum class Skyld {
+    BRUKER,
+    IKKE_FORDELT;
+
+    companion object {
+        fun fra(skyld: Tilbakekrevingsvedtak.Skyld): Skyld {
+            return when (skyld) {
+                Tilbakekrevingsvedtak.Skyld.BRUKER -> {
+                    BRUKER
+                }
+                Tilbakekrevingsvedtak.Skyld.IKKE_FORDELT -> {
+                    IKKE_FORDELT
+                }
+            }
+        }
+    }
+}
+
 // Se: https://confluence.adeo.no/display/OKSY/Detaljer+om+de+enkelte+ID-koder
 // Kan låne litt herfra: https://github.com/navikt/permittering-refusjon-tilbakekreving/blob/4fdaddaf255d5753ac00fee56c5a9918065fdc8f/src/main/kotlin/no/nav/permittering/refusjon/tilbakekreving/behandling/vedtak/TilbakekrevingVedtakHurtigspor.kt
 fun mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtak: Tilbakekrevingsvedtak): TilbakekrevingsvedtakRequest {
@@ -19,7 +67,7 @@ fun mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtak: Tilbakekrevingsvedt
             // 7 - midlertidig lagring
             // 8 - fatte vedtak
             // Aksjonskode 7 vil ikke kunne benyttes i fase 1.
-            this.kodeAksjon = tilbakekrevingsvedtak.aksjonsKode.nummer
+            this.kodeAksjon = AksjonsKode.FATT_VEDTAK.nummer
 
             // 2 - 441 - Vedtak-id - 9(10) - Krav - Identifikasjon av tilbakekrevingsvedtaket
             this.vedtakId = BigInteger(tilbakekrevingsvedtak.vedtakId)
@@ -29,16 +77,11 @@ fun mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtak: Tilbakekrevingsvedt
 
             // 4 - 441 - Kode-hjemmel - X(20) - Krav - Lovhjemmel om tilbakekrevingsvedtaket
             // TODO jah: Dette må mappes fra domenet. Gjenbruk de SU Alder bruker i dag.
-            this.kodeHjemmel = tilbakekrevingsvedtak.hjemmel.name
+            this.kodeHjemmel = TilbakekrevingsHjemmel.ANNEN.toString()
 
             // 5 - 441 - Renter-beregnes - X(01) - Betinget krav - 'J' Dersom det skal beregnes renter på kravet
             // TODO jah: Verifiser med fag/juridisk/økonomi at vi ikke skal beregne med renter
-            this.renterBeregnes = tilbakekrevingsvedtak.renterBeregnes.let {
-                when (it) {
-                    true -> "J"
-                    false -> "N"
-                }
-            }
+            this.renterBeregnes = "N"
 
             // 6 - 441 - Enhet-ansvarlig - X(13) - Krav - Ansvarlig enhet
             this.enhetAnsvarlig = tilbakekrevingsvedtak.ansvarligEnhet
@@ -70,12 +113,7 @@ private fun mapTilbakekrevingsperioder(tilbakekrevingsperioder: List<Tilbakekrev
                 tom = datatypeFactory.newXMLGregorianCalendar(it.periode.tilOgMed.toString())
             }
             // 3 - 442 - Renter-beregnes - X(01) - Valgfritt - 'J' dersom det skal beregnes retner på kravet (nytt felt)
-            renterBeregnes = it.renterBeregnes.let {
-                when (it) {
-                    true -> "J"
-                    false -> "N"
-                }
-            }
+            renterBeregnes = "N"
 
             // 4 - 442 - Belop-renter - Evt. beregnede renter i fagrutinen (nytt felt)
             belopRenter = it.beløpRenter
@@ -87,7 +125,6 @@ private fun mapTilbakekrevingsperioder(tilbakekrevingsperioder: List<Tilbakekrev
 }
 
 private fun mapTilbakekrevingsbeløp(tilbakekrevingsbeløp: List<Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp>): List<TilbakekrevingsbelopDto> {
-    // TODO jah: utgrei om vi skal filtrere på klassekoder/typer.
     return tilbakekrevingsbeløp.map {
         TilbakekrevingsbelopDto().apply {
 
@@ -116,9 +153,9 @@ private fun mapTilbakekrevingsbeløp(tilbakekrevingsbeløp: List<Tilbakekrevings
                 is Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse -> {
                     this.belopSkatt = it.beløpSkatt
 
-                    this.kodeResultat = it.tilbakekrevingsresultat.toString()
-                    this.kodeAarsak = it.tilbakekrevingsÅrsak.toString()
-                    this.kodeSkyld = it.skyld.toString()
+                    this.kodeResultat = Tilbakekrevingsresultat.fra(it.tilbakekrevingsresultat).toString()
+                    this.kodeAarsak = TilbakekrevingsÅrsak.ANNET.toString()
+                    this.kodeSkyld = Skyld.fra(it.skyld).toString()
 
                     return@map this
                 }
