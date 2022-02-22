@@ -97,6 +97,7 @@ internal class PdlClient(
             adressebeskyttelse = person.adressebeskyttelse.firstOrNull()?.gradering,
             vergemålEllerFremtidsfullmakt = person.vergemaalEllerFremtidsfullmakt.isNotEmpty(),
             fullmakt = person.fullmakt.isNotEmpty(),
+            dødsdato = person.doedsfall.firstOrNull()?.doedsdato
         ).right()
     }
 
@@ -245,6 +246,7 @@ data class HentPerson(
     val adressebeskyttelse: List<Adressebeskyttelse>,
     val vergemaalEllerFremtidsfullmakt: List<VergemaalEllerFremtidsfullmakt>,
     val fullmakt: List<Fullmakt>,
+    val doedsfall: List<Doedsfall>,
 )
 
 data class NavnResponse(
@@ -311,3 +313,7 @@ data class Fullmakt(
         FULLMEKTIG
     }
 }
+
+data class Doedsfall(
+    val doedsdato: LocalDate,
+)

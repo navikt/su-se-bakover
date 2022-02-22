@@ -49,6 +49,7 @@ object PersonOppslagStub :
         ),
         vergemål = null,
         fullmakt = null,
+        dødsdato = null,
     )
 
     override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =

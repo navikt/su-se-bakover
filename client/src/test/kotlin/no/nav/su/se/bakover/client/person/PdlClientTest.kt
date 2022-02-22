@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -318,7 +319,12 @@ internal class PdlClientTest : WiremockBase {
                   "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": []
+                  "fullmakt": [],
+                  "doedsfall": [
+                    {
+                      "doedsdato": "2021-12-21"
+                    }    
+                  ]
                 },
                 "hentIdenter": {
                   "identer": [
@@ -379,6 +385,7 @@ internal class PdlClientTest : WiremockBase {
                 type = SivilstandTyper.GIFT,
                 relatertVedSivilstand = "12345678901",
             ),
+            dødsdato = 21.desember(2021),
         ).right()
     }
 
@@ -468,7 +475,12 @@ internal class PdlClientTest : WiremockBase {
                   "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": []
+                  "fullmakt": [],
+                  "doedsfall": [
+                    {
+                      "doedsdato": "2021-12-21"
+                    }    
+                  ]
                 },
                 "hentIdenter": {
                   "identer": [
@@ -537,6 +549,7 @@ internal class PdlClientTest : WiremockBase {
                 type = SivilstandTyper.GIFT,
                 relatertVedSivilstand = "12345678901",
             ),
+            dødsdato = 21.desember(2021),
         ).right()
     }
 
@@ -625,7 +638,8 @@ internal class PdlClientTest : WiremockBase {
                   "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": []
+                  "fullmakt": [],
+                  "doedsfall": []
                 },
                 "hentIdenter": {
                   "identer": [
@@ -702,6 +716,7 @@ internal class PdlClientTest : WiremockBase {
                 type = SivilstandTyper.GIFT,
                 relatertVedSivilstand = "12345678901",
             ),
+            dødsdato = null,
         ).right()
     }
 
@@ -731,7 +746,8 @@ internal class PdlClientTest : WiremockBase {
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": [],
-                  "sivilstand": []
+                  "sivilstand": [],
+                  "doedsfall": []
                 },
                 "hentIdenter": {
                   "identer": [
@@ -776,6 +792,7 @@ internal class PdlClientTest : WiremockBase {
             vergemålEllerFremtidsfullmakt = false,
             fullmakt = false,
             sivilstand = null,
+            dødsdato = null,
         ).right()
     }
 
@@ -805,7 +822,8 @@ internal class PdlClientTest : WiremockBase {
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": [],
-                  "sivilstand": []
+                  "sivilstand": [],
+                  "doedsfall": []
                 },
                 "hentIdenter": {
                   "identer": [
@@ -855,6 +873,7 @@ internal class PdlClientTest : WiremockBase {
             vergemålEllerFremtidsfullmakt = false,
             fullmakt = false,
             sivilstand = null,
+            dødsdato = null,
         ).right()
     }
 
@@ -878,7 +897,8 @@ internal class PdlClientTest : WiremockBase {
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": [],
-                  "sivilstand": []
+                  "sivilstand": [],
+                  "doedsfall": []
                 },
                 "hentIdenter": {
                   "identer": [
