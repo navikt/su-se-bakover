@@ -642,7 +642,7 @@ data class ApplicationConfig(
         val initialDelay: Long,
     ) {
         data class Personhendelse(private val naisCluster: NaisCluster?) {
-            private val PREPROD: Long = Duration.of(10, ChronoUnit.MINUTES).toMillis()
+            private val PREPROD: Long = Duration.of(15, ChronoUnit.MINUTES).toMillis()
             private val PROD: Long = Duration.of(1, ChronoUnit.DAYS).toMillis()
 
             val intervall
