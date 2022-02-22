@@ -123,7 +123,6 @@ object ServiceBuilder {
         val tilbakekrevingService = TilbakekrevingServiceImpl(
             tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo,
             tilbakekrevingClient = clients.tilbakekrevingClient,
-            clock = clock,
         )
 
         val toggleService = ToggleServiceImpl(unleash)

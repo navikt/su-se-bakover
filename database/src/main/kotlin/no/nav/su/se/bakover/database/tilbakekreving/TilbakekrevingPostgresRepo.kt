@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.database.tilbakekreving
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
@@ -16,8 +18,8 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåTilbakekrevingsvedtakForsendelse
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttTilbakekrevingsvedtak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.SendtTilbakekrevingsvedtak
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
@@ -40,7 +42,7 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
 
     override fun hentKravgrunnlagMottatt(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag> {
         return sessionFactory.withSession { session ->
-            "select * from tilbakekrevingsbehandling where tilstand = '${Tilstand.MOTTATT_KRAVGRUNNLAG}' and tilbakekrevingsvedtak is null"
+            "select * from tilbakekrevingsbehandling where tilstand = '${Tilstand.MOTTATT_KRAVGRUNNLAG}' and tilbakekrevingsvedtakForsendelse is null"
                 .hentListe(
                     emptyMap(),
                     session,
@@ -115,14 +117,17 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         session: Session,
     ) {
         """
-            update tilbakekrevingsbehandling set tilstand = :tilstand, tilbakekrevingsvedtak = :tilbakekrevingsvedtak, tilbakekrevingsvedtakSendt = :tilbakekrevingsvedtakSendt where id = :id
+            update tilbakekrevingsbehandling set tilstand = :tilstand, tilbakekrevingsvedtakForsendelse = :tilbakekrevingsvedtakForsendelse where id = :id
         """.trimIndent()
             .oppdatering(
                 mapOf(
                     "id" to tilbakrekrevingsbehanding.avgjort.id,
                     "tilstand" to Tilstand.SENDT_TILBAKEKREVINGSVEDTAK.toString(),
-                    "tilbakekrevingsvedtak" to tilbakrekrevingsbehanding.tilbakekrevingsvedtak.melding,
-                    "tilbakekrevingsvedtakSendt" to tilbakrekrevingsbehanding.tilbakekrevingsvedtakSendt,
+                    "tilbakekrevingsvedtakForsendelse" to objectMapper.writeValueAsString(
+                        RåTilbakekrevingsvedtakForsendelseDb.fra(
+                            tilbakrekrevingsbehanding.tilbakekrevingsvedtakForsendelse,
+                        ),
+                    ),
                 ),
                 session,
             )
@@ -165,8 +170,16 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         val avgjørelse = Avgjørelsestype.fromValue(string("avgjørelse"))
         val kravgrunnlag = stringOrNull("kravgrunnlag")?.let { RåttKravgrunnlag(it) }
         val kravgrunnlagMottatt = tidspunktOrNull("kravgrunnlagMottatt")
-        val tilbakekrevingsvedtak = stringOrNull("tilbakekrevingsvedtak")?.let { RåttTilbakekrevingsvedtak(it) }
-        val tilbakekrevingsvedtakSendt = tidspunktOrNull("tilbakekrevingsvedtakSendt")
+        val tilbakekrevingsvedtakForsendelse =
+            stringOrNull("tilbakekrevingsvedtakForsendelse")?.let { forsendelseJson ->
+                objectMapper.readValue<RåTilbakekrevingsvedtakForsendelseDb>(forsendelseJson).let {
+                    RåTilbakekrevingsvedtakForsendelse(
+                        requestXml = it.requestXml,
+                        tidspunkt = it.requestSendt,
+                        responseXml = it.responseXml,
+                    )
+                }
+            }
 
         val tilbakekrevingsbehandling = when (avgjørelse) {
             Avgjørelsestype.TILBAKEKREV -> Tilbakekrev(
@@ -213,8 +226,7 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
                     avgjort = tilbakekrevingsbehandling as Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
                     kravgrunnlag = kravgrunnlag!!,
                     kravgrunnlagMottatt = kravgrunnlagMottatt!!,
-                    tilbakekrevingsvedtak = tilbakekrevingsvedtak!!,
-                    tilbakekrevingsvedtakSendt = tilbakekrevingsvedtakSendt!!,
+                    tilbakekrevingsvedtakForsendelse = tilbakekrevingsvedtakForsendelse!!,
                 )
             }
         }

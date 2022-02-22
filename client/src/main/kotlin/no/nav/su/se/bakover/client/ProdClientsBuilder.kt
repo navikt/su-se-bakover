@@ -112,12 +112,13 @@ data class ProdClientsBuilder(
             klageClient = klageClient,
             journalpostClient = journalpostClient,
             tilbakekrevingClient = TilbakekrevingSoapClient(
-                TilbakekrevingSoapClientConfig(
+                tilbakekrevingPortType = TilbakekrevingSoapClientConfig(
                     tilbakekrevingServiceUrl = applicationConfig.oppdrag.tilbakekreving.soap.url,
                     stsSoapUrl = applicationConfig.oppdrag.simulering.stsSoapUrl,
                     disableCNCheck = true,
                     serviceUser = serviceUser,
-                ).tilbakekrevingSoapService()
+                ).tilbakekrevingSoapService(),
+                clock = clock,
             ),
         )
     }

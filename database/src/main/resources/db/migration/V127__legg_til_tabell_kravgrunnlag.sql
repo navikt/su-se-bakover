@@ -10,6 +10,5 @@ create table if not exists tilbakekrevingsbehandling
     tilstand           text        not null,
     kravgrunnlag       text        null,
     kravgrunnlagMottatt timestamptz null,
-    tilbakekrevingsvedtak   text      null,
-    tilbakekrevingsvedtakSendt  timestamptz null
+    tilbakekrevingsvedtakForsendelse   text      null
 );

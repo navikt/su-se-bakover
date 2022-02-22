@@ -6,8 +6,8 @@ import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåTilbakekrevingsvedtakForsendelse
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttTilbakekrevingsvedtak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -89,7 +89,14 @@ internal class TilbakekrevingPostgresRepoTest {
                     kravgrunnlag = RåttKravgrunnlag("xml"),
                     kravgrunnlagMottatt = fixedTidspunkt,
                     hentRevurdering = { iverksattRevurdering().second },
-                    kravgrunnlagMapper = { matchendeKravgrunnlag(revurdering, revurdering.simulering, UUID30.randomUUID(), fixedClock) },
+                    kravgrunnlagMapper = {
+                        matchendeKravgrunnlag(
+                            revurdering,
+                            revurdering.simulering,
+                            UUID30.randomUUID(),
+                            fixedClock,
+                        )
+                    },
                 )
                 testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(mottattKravgrunnlag, session)
                 testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(
@@ -103,8 +110,11 @@ internal class TilbakekrevingPostgresRepoTest {
                 )
 
                 val besvartKravgrunnlag = mottattKravgrunnlag.sendtTilbakekrevingsvedtak(
-                    tilbakekrevingsvedtak = RåttTilbakekrevingsvedtak("xml"),
-                    tilbakekrevingsvedtakSendt = fixedTidspunkt,
+                    tilbakekrevingsvedtakForsendelse = RåTilbakekrevingsvedtakForsendelse(
+                        "requestXml",
+                        fixedTidspunkt,
+                        "responseXml",
+                    ),
                 )
                 testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(besvartKravgrunnlag, session)
                 testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(

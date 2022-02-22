@@ -84,7 +84,7 @@ class StubClientsBuilder(
             kafkaPublisher = KafkaPublisherStub.also { log.warn("********** Using stub for ${KafkaPublisher::class.java} **********") },
             klageClient = KlageClientStub.also { log.warn("********** Using stub for ${KlageClientStub::class.java} **********") },
             journalpostClient = JournalpostClientStub.also { log.warn("********** Using stub for ${JournalpostClientStub::class.java} **********") },
-            tilbakekrevingClient = TilbakekrevingClientStub.also { log.warn("********** Using stub for ${TilbakekrevingClient::class.java} **********") },
+            tilbakekrevingClient = TilbakekrevingClientStub(clock).also { log.warn("********** Using stub for ${TilbakekrevingClient::class.java} **********") },
         )
     }
 }

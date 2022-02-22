@@ -261,7 +261,7 @@ data class TestClientsBuilder(
         kafkaPublisher = KafkaPublisherStub,
         klageClient = KlageClientStub,
         journalpostClient = JournalpostClientStub,
-        tilbakekrevingClient = TilbakekrevingClientStub,
+        tilbakekrevingClient = TilbakekrevingClientStub(clock),
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

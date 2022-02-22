@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.tilbakekreving
 
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
@@ -8,7 +7,6 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import org.slf4j.LoggerFactory
-import java.time.Clock
 import java.util.UUID
 
 interface TilbakekrevingService {
@@ -30,7 +28,6 @@ interface TilbakekrevingService {
 class TilbakekrevingServiceImpl(
     private val tilbakekrevingRepo: TilbakekrevingRepo,
     private val tilbakekrevingClient: TilbakekrevingClient,
-    private val clock: Clock,
 ) : TilbakekrevingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -48,15 +45,19 @@ class TilbakekrevingServiceImpl(
                 val tilbakekrevingsvedtak = tilbakekrevingsbehandling.lagTilbakekrevingsvedtak(mapper)
 
                 tilbakekrevingClient.sendTilbakekrevingsvedtak(tilbakekrevingsvedtak)
-                    .map {
-                        tilbakekrevingRepo.lagre(
-                            tilbakekrevingsbehandling.sendtTilbakekrevingsvedtak(
-                                tilbakekrevingsvedtak = it,
-                                tilbakekrevingsvedtakSendt = Tidspunkt.now(clock),
-                            ),
-                        )
-                        log.info("Besvart kravgrunnlag for tilbakekrevingsbehandling: ${tilbakekrevingsbehandling.avgjort.id}, revurdering: ${tilbakekrevingsbehandling.avgjort.revurderingId}")
-                    }
+                    .fold(
+                        {
+                            throw RuntimeException("Feil ved oversendelse av tilbakekrevingsvedtak for tilbakekrevingsbehandling:${tilbakekrevingsbehandling.avgjort.id}, revurdering: ${tilbakekrevingsbehandling.avgjort.revurderingId}, feil:$it")
+                        },
+                        {
+                            tilbakekrevingRepo.lagre(
+                                tilbakekrevingsbehandling.sendtTilbakekrevingsvedtak(
+                                    tilbakekrevingsvedtakForsendelse = it,
+                                ),
+                            )
+                            log.info("Besvart kravgrunnlag for tilbakekrevingsbehandling: ${tilbakekrevingsbehandling.avgjort.id}, revurdering: ${tilbakekrevingsbehandling.avgjort.revurderingId}")
+                        },
+                    )
             }
     }
 

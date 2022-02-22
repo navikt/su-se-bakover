@@ -238,15 +238,13 @@ data class MottattKravgrunnlag(
     }
 
     override fun sendtTilbakekrevingsvedtak(
-        tilbakekrevingsvedtak: RåttTilbakekrevingsvedtak,
-        tilbakekrevingsvedtakSendt: Tidspunkt,
+        tilbakekrevingsvedtakForsendelse: RåTilbakekrevingsvedtakForsendelse,
     ): Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak {
         return SendtTilbakekrevingsvedtak(
             avgjort = avgjort,
             kravgrunnlag = kravgrunnlag,
             kravgrunnlagMottatt = kravgrunnlagMottatt,
-            tilbakekrevingsvedtak = tilbakekrevingsvedtak,
-            tilbakekrevingsvedtakSendt = tilbakekrevingsvedtakSendt,
+            tilbakekrevingsvedtakForsendelse = tilbakekrevingsvedtakForsendelse,
         )
     }
 }
@@ -255,8 +253,7 @@ data class SendtTilbakekrevingsvedtak(
     override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
     override val kravgrunnlag: RåttKravgrunnlag,
     override val kravgrunnlagMottatt: Tidspunkt,
-    override val tilbakekrevingsvedtak: RåttTilbakekrevingsvedtak,
-    override val tilbakekrevingsvedtakSendt: Tidspunkt,
+    override val tilbakekrevingsvedtakForsendelse: RåTilbakekrevingsvedtakForsendelse,
 ) : Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak
 
 object IkkeBehovForTilbakekrevingUnderBehandling :
@@ -325,14 +322,12 @@ sealed interface Tilbakekrevingsbehandling {
                 fun lagTilbakekrevingsvedtak(mapper: (RåttKravgrunnlag) -> Kravgrunnlag): Tilbakekrevingsvedtak
 
                 fun sendtTilbakekrevingsvedtak(
-                    tilbakekrevingsvedtak: RåttTilbakekrevingsvedtak,
-                    tilbakekrevingsvedtakSendt: Tidspunkt,
+                    tilbakekrevingsvedtakForsendelse: RåTilbakekrevingsvedtakForsendelse,
                 ): SendtTilbakekrevingsvedtak
             }
 
             sealed interface SendtTilbakekrevingsvedtak : MedKravgrunnlag {
-                val tilbakekrevingsvedtak: RåttTilbakekrevingsvedtak
-                val tilbakekrevingsvedtakSendt: Tidspunkt
+                val tilbakekrevingsvedtakForsendelse: RåTilbakekrevingsvedtakForsendelse
             }
         }
     }
