@@ -73,7 +73,7 @@ internal class ÅpneBehandlingerRepo(
                  )
             select *
             from slåttSammen
-                        """.hentListe(emptyMap(), session) {
+            """.hentListe(emptyMap(), session) {
                 it.toBehandlingsoversikt()
             }
         }

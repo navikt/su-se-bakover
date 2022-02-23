@@ -33,7 +33,7 @@ internal class AvstemmingPostgresRepo(
             """
             insert into avstemming (id, opprettet, fom, tom, utbetalinger, avstemmingXmlRequest)
             values (:id, :opprettet, :fom, :tom, to_json(:utbetalinger::json), :avstemmingXmlRequest)
-        """.insert(
+            """.insert(
                 mapOf(
                     "id" to avstemming.id,
                     "opprettet" to avstemming.opprettet,
@@ -55,7 +55,7 @@ internal class AvstemmingPostgresRepo(
             """
             insert into konsistensavstemming (id, opprettet, løpendeFraOgMed, opprettetTilOgMed, utbetalinger, avstemmingXmlRequest)
             values (:id, :opprettet, :lopendeFraOgMed, :opprettetTilOgMed, to_json(:utbetalinger::json), :avstemmingXmlRequest)
-        """.insert(
+            """.insert(
                 mapOf(
                     "id" to avstemming.id,
                     "opprettet" to avstemming.opprettet,
@@ -109,7 +109,7 @@ internal class AvstemmingPostgresRepo(
         dataSource.withSession { session ->
             """
             select * from avstemming order by tom desc limit 1
-        """.hent(emptyMap(), session) {
+            """.hent(emptyMap(), session) {
                 it.toGrensesnittsavstemming(session)
             }
         }

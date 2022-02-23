@@ -207,7 +207,7 @@ internal class SøknadsbehandlingJsonTest {
           "erLukket": false,
           "simuleringForAvkortingsvarsel": null
         }
-        """
+            """
 
         val serialize = serialize(behandlingWithNulls.toJson())
         JSONAssert.assertEquals(expectedNullsJson, serialize, true)

@@ -85,7 +85,8 @@ internal class AvkortingsvarselPostgresRepo(
                 :revurderingId,
                 to_jsonb(:simulering::json), 
                 :status
-             )""".trimMargin()
+             )
+        """.trimMargin()
             .insert(
                 mapOf(
                     "id" to id,
