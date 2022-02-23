@@ -8,6 +8,7 @@ import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
+import java.time.Duration
 
 // Environment bruker static context og er ikke thread safe
 @Execution(value = ExecutionMode.SAME_THREAD)
@@ -99,7 +100,7 @@ internal class ApplicationConfigTest {
                     "key.serializer" to StringSerializer::class.java,
                     "value.serializer" to StringSerializer::class.java,
                 ),
-                retryTaskInterval = 15_000L,
+                retryTaskInterval = Duration.ofSeconds(15),
             ),
             consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(
                 mapOf(
@@ -124,11 +125,6 @@ internal class ApplicationConfigTest {
             ),
         ),
         unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
-        jobConfig = ApplicationConfig.JobConfig(
-            personhendelse = ApplicationConfig.JobConfig.Personhendelse(ApplicationConfig.NaisCluster.Prod),
-            konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Prod(),
-            initialDelay = 300000
-        ),
         kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
             kafkaConfig = mapOf(
                 "bootstrap.servers" to "brokers",
@@ -265,11 +261,6 @@ internal class ApplicationConfigTest {
                     consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
                 ),
                 unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
-                jobConfig = ApplicationConfig.JobConfig(
-                    personhendelse = ApplicationConfig.JobConfig.Personhendelse(null),
-                    konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Local(),
-                    initialDelay = 0
-                ),
                 kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(emptyMap()),
             )
         }
