@@ -122,11 +122,6 @@ internal object SharedRegressionTestData {
             consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
         ),
         unleash = ApplicationConfig.UnleashConfig("https://localhost", "su-se-bakover"),
-        jobConfig = ApplicationConfig.JobConfig(
-            personhendelse = ApplicationConfig.JobConfig.Personhendelse(null),
-            konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Local(),
-            initialDelay = 0
-        ),
         kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
             kafkaConfig = emptyMap(),
         ),

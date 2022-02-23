@@ -43,7 +43,6 @@ import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
-import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
 import no.nav.su.se.bakover.web.features.Authorization
 import no.nav.su.se.bakover.web.features.AuthorizationException
@@ -77,19 +76,6 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbehandligRoutes
 import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.routes.toggleRoutes
-import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
-import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
-import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
-import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseConsumer
-import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseJob
-import no.nav.su.se.bakover.web.services.kontrollsamtale.KontrollsamtaleinnkallingJob
-import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
-import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringService
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
-import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.event.Level
 import java.time.Clock
 import java.time.format.DateTimeParseException
@@ -272,99 +258,14 @@ fun Application.susebakover(
             }
         }
     }
-    val utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
-        utbetalingService = services.utbetaling,
-        ferdigstillVedtakService = services.ferdigstillVedtak,
+    startJobberOgConsumers(
+        services = services,
+        clients = clients,
+        databaseRepos = databaseRepos,
+        applicationConfig = applicationConfig,
+        jmsConfig = jmsConfig,
         clock = clock,
     )
-    val personhendelseService = PersonhendelseService(
-        sakRepo = databaseRepos.sak,
-        personhendelseRepo = databaseRepos.personhendelseRepo,
-        oppgaveServiceImpl = services.oppgave,
-        personService = services.person,
-        clock = clock,
-    )
-    if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
-        UtbetalingKvitteringIbmMqConsumer(
-            kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
-            globalJmsContext = jmsConfig.jmsContext,
-            kvitteringConsumer = utbetalingKvitteringConsumer,
-        )
-        GrensesnittsavstemingJob(
-            avstemmingService = services.avstemming,
-            leaderPodLookup = clients.leaderPodLookup,
-        ).schedule()
-
-        PersonhendelseConsumer(
-            consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
-            personhendelseService = personhendelseService,
-        )
-        KlageinstanshendelseConsumer(
-            consumer = KafkaConsumer(applicationConfig.kabalKafkaConfig.kafkaConfig),
-            klageinstanshendelseService = services.klageinstanshendelseService,
-            clock = clock,
-        )
-
-        DistribuerDokumentJob(
-            brevService = services.brev,
-            leaderPodLookup = clients.leaderPodLookup,
-            initialDelay = applicationConfig.jobConfig.initialDelay
-        ).schedule()
-
-        KonsistensavstemmingJob(
-            avstemmingService = services.avstemming,
-            leaderPodLookup = clients.leaderPodLookup,
-            jobConfig = applicationConfig.jobConfig.konsistensavstemming,
-            initialDelay = applicationConfig.jobConfig.initialDelay,
-            clock = clock,
-        ).schedule()
-
-        KlageinstanshendelseJob(
-            klageinstanshendelseService = services.klageinstanshendelseService,
-            leaderPodLookup = clients.leaderPodLookup,
-            initialDelay = applicationConfig.jobConfig.initialDelay,
-        ).schedule()
-    } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
-        LokalKvitteringJob(LokalKvitteringService(databaseRepos.utbetaling, utbetalingKvitteringConsumer)).schedule()
-
-        DistribuerDokumentJob(
-            brevService = services.brev,
-            leaderPodLookup = clients.leaderPodLookup,
-            initialDelay = applicationConfig.jobConfig.initialDelay,
-        ).schedule()
-
-        GrensesnittsavstemingJob(
-            avstemmingService = services.avstemming,
-            leaderPodLookup = clients.leaderPodLookup,
-        ).schedule()
-
-        KonsistensavstemmingJob(
-            avstemmingService = services.avstemming,
-            leaderPodLookup = clients.leaderPodLookup,
-            jobConfig = applicationConfig.jobConfig.konsistensavstemming,
-            initialDelay = applicationConfig.jobConfig.initialDelay,
-            clock = clock,
-        ).schedule()
-        KlageinstanshendelseJob(
-            klageinstanshendelseService = services.klageinstanshendelseService,
-            leaderPodLookup = clients.leaderPodLookup,
-            initialDelay = applicationConfig.jobConfig.initialDelay,
-        ).schedule()
-    }
-
-    PersonhendelseOppgaveJob(
-        personhendelseService = personhendelseService,
-        leaderPodLookup = clients.leaderPodLookup,
-        intervall = applicationConfig.jobConfig.personhendelse.intervall,
-        initialDelay = applicationConfig.jobConfig.initialDelay,
-    ).schedule()
-
-    KontrollsamtaleinnkallingJob(
-        isProd = applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod,
-        leaderPodLookup = clients.leaderPodLookup,
-        kontrollsamtaleService = services.kontrollsamtale,
-        clock = clock,
-    ).schedule()
 }
 
 fun Route.withAccessProtectedServices(

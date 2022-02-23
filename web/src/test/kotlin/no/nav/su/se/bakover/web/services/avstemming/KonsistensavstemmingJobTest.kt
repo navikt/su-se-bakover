@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.services.avstemming
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookupFeil
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
@@ -29,7 +28,7 @@ internal class KonsistensavstemmingJobTest {
                 on { amITheLeader(any()) } doReturn false.right()
             },
             jobName = "konsistensavstemming",
-            jobConfig = ApplicationConfig.JobConfig.Konsistensavstemming.Local(),
+            kjøreplan = emptySet(),
             clock = fixedClock,
         ).let {
             it.run()
@@ -46,9 +45,7 @@ internal class KonsistensavstemmingJobTest {
                 on { amITheLeader(any()) } doReturn false.right()
             },
             jobName = "konsistensavstemming",
-            jobConfig = ApplicationConfig.JobConfig.Konsistensavstemming.Local(
-                kjøreplan = setOf(LocalDate.now(fixedClock)),
-            ),
+            kjøreplan = setOf(LocalDate.now(fixedClock)),
             clock = fixedClock,
         ).let {
             it.run()
@@ -76,9 +73,7 @@ internal class KonsistensavstemmingJobTest {
                 on { amITheLeader(any()) } doReturn true.right()
             },
             jobName = "konsistensavstemming",
-            jobConfig = ApplicationConfig.JobConfig.Konsistensavstemming.Local(
-                kjøreplan = setOf(LocalDate.now(fixedClock)),
-            ),
+            kjøreplan = setOf(LocalDate.now(fixedClock)),
             clock = fixedClock,
         ).let {
             it.run()
@@ -107,9 +102,7 @@ internal class KonsistensavstemmingJobTest {
                 on { amITheLeader(any()) } doReturn true.right()
             },
             jobName = "konsistensavstemming",
-            jobConfig = ApplicationConfig.JobConfig.Konsistensavstemming.Local(
-                kjøreplan = setOf(LocalDate.now(fixedClock)),
-            ),
+            kjøreplan = setOf(LocalDate.now(fixedClock)),
             clock = fixedClock,
         ).let {
             it.run()
@@ -128,9 +121,7 @@ internal class KonsistensavstemmingJobTest {
                 on { amITheLeader(any()) } doReturn LeaderPodLookupFeil.UkjentSvarFraLeaderElectorContainer.left()
             },
             jobName = "konsistensavstemming",
-            jobConfig = ApplicationConfig.JobConfig.Konsistensavstemming.Local(
-                kjøreplan = setOf(LocalDate.now(fixedClock)),
-            ),
+            kjøreplan = setOf(LocalDate.now(fixedClock)),
             clock = fixedClock,
         ).let {
             it.run()

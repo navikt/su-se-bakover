@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.services.avstemming
 
 import arrow.core.Either
 import arrow.core.firstOrNone
-import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
@@ -12,36 +11,38 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.time.Clock
 import java.time.Duration
-import java.time.temporal.ChronoUnit
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.concurrent.fixedRateTimer
 
+/**
+ * @param periode Kjører hver fjerde time for å være rimelig sikker på at jobben faktisk blir kjørt
+ */
 internal class KonsistensavstemmingJob(
     private val avstemmingService: AvstemmingService,
     private val leaderPodLookup: LeaderPodLookup,
-    private val jobConfig: ApplicationConfig.JobConfig.Konsistensavstemming,
-    private val initialDelay: Long,
+    private val kjøreplan: Set<LocalDate>,
+    private val initialDelay: Duration,
+    private val periode: Duration,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
+
     private val jobName = this::class.simpleName!!
 
-    // Kjører hver fjerde time for å være rimelig sikker på at jobben faktisk blir kjørt
-    private val periode = Duration.of(4, ChronoUnit.HOURS).toMillis()
-
     fun schedule() {
-        log.info("Schedulerer jobb for konsistensavstemming med start om: $initialDelay ms, intervall: $periode ms")
+        log.info("Schedulerer jobb for konsistensavstemming med start om: $initialDelay, periode: $periode")
         fixedRateTimer(
             name = jobName,
             daemon = true,
-            initialDelay = initialDelay,
-            period = periode,
+            initialDelay = initialDelay.toMillis(),
+            period = periode.toMillis(),
         ) {
             Konsistensavstemming(
                 avstemmingService = avstemmingService,
                 leaderPodLookup = leaderPodLookup,
                 jobName = jobName,
-                jobConfig = jobConfig,
+                kjøreplan = kjøreplan,
                 clock = clock,
             ).run()
         }
@@ -51,7 +52,7 @@ internal class KonsistensavstemmingJob(
         val avstemmingService: AvstemmingService,
         val leaderPodLookup: LeaderPodLookup,
         val jobName: String,
-        val jobConfig: ApplicationConfig.JobConfig.Konsistensavstemming,
+        val kjøreplan: Set<LocalDate>,
         val clock: Clock,
     ) {
         private val log = LoggerFactory.getLogger(this::class.java)
@@ -59,16 +60,16 @@ internal class KonsistensavstemmingJob(
         fun run() {
             Either.catch {
                 val idag = idag(clock.withZone(zoneIdOslo))
-                jobConfig.kjøreplan.firstOrNone { it == idag }
+                kjøreplan.firstOrNone { it == idag }
                     .fold(
                         {
-                            log.info("Kjøreplan: ${jobConfig.kjøreplan} inneholder ikke dato: $idag, hopper over konsistensavstemming.")
+                            log.info("Kjøreplan: $kjøreplan inneholder ikke dato: $idag, hopper over konsistensavstemming.")
                         },
                         {
                             if (leaderPodLookup.erLeaderPod()) {
                                 if (!avstemmingService.konsistensavstemmingUtførtForOgPåDato(idag)) {
                                     MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
-                                    log.info("Kjøreplan: ${jobConfig.kjøreplan} inneholder dato: $idag, utfører konsistensavstemming.")
+                                    log.info("Kjøreplan: $kjøreplan inneholder dato: $idag, utfører konsistensavstemming.")
                                     avstemmingService.konsistensavstemming(idag)
                                         .fold(
                                             { log.error("$jobName feilet: $it") },

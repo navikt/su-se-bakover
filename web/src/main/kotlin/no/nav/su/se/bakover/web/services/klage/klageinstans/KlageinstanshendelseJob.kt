@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.web.services.erLeaderPod
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
 import java.time.Duration
-import java.time.temporal.ChronoUnit
 import kotlin.concurrent.fixedRateTimer
 
 /*
@@ -16,22 +15,23 @@ import kotlin.concurrent.fixedRateTimer
 class KlageinstanshendelseJob(
     private val klageinstanshendelseService: KlageinstanshendelseService,
     private val leaderPodLookup: LeaderPodLookup,
-    private val initialDelay: Long,
+    private val initialDelay: Duration,
+    private val periode: Duration,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
+
     private val jobName = "Håndter utfall fra Klageinstans"
-    private val periode = Duration.of(10, ChronoUnit.MINUTES).toMillis()
 
     private val hostName = InetAddress.getLocalHost().hostName
 
     fun schedule() {
-        log.info("Starter skeduleringsjobb '$jobName' med intervall: $periode ms. Mitt hostnavn er $hostName.")
+        log.info("Starter skeduleringsjobb '$jobName' med periode: $periode ms. Mitt hostnavn er $hostName.")
 
         fixedRateTimer(
             name = jobName,
             daemon = true,
-            period = periode,
-            initialDelay = initialDelay,
+            period = periode.toMillis(),
+            initialDelay = initialDelay.toMillis(),
         ) {
             Either.catch {
                 if (leaderPodLookup.erLeaderPod(hostname = hostName)) {

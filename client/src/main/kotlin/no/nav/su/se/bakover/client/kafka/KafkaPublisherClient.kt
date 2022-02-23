@@ -50,11 +50,11 @@ internal class KafkaPublisherClient(
 
     private fun retryTask(kafkaConfig: ApplicationConfig.KafkaConfig.ProducerCfg): Timer {
         val period = kafkaConfig.retryTaskInterval
-        log.info("Konfigurerer retry task med intervall $period ms for KafkaPublisherClient")
+        log.info("Konfigurerer retry task med periode $period for KafkaPublisherClient")
         return timer(
             name = "KafkaPublisherClient retry task",
             daemon = true,
-            period = Duration.ofMillis(period).toMillis()
+            period = period.toMillis(),
         ) {
             failed.poll()?.let {
                 log.info("Fant ${failed.size + 1} kafkameldinger som har feilet. Forsøker å sende første melding i køen på nytt.")

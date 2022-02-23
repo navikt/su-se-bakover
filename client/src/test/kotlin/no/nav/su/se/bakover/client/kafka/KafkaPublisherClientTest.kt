@@ -9,12 +9,13 @@ import org.apache.kafka.common.errors.TopicAuthorizationException
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import java.time.Duration
 
 internal class KafkaPublisherClientTest {
 
     private val config = ApplicationConfig.KafkaConfig.ProducerCfg(
         kafkaConfig = mapOf(),
-        retryTaskInterval = 1L
+        retryTaskInterval = Duration.ofMillis(1),
     )
 
     @Test
