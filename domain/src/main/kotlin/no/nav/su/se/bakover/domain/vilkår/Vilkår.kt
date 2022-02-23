@@ -34,7 +34,6 @@ import java.util.UUID
 
 /**
 Et inngangsvilkår er de vilkårene som kan føre til avslag før det beregnes?
-
 Her har vi utelatt for høy inntekt (SU<0) og su under minstegrense (SU<2%)
  */
 sealed class Inngangsvilkår {

@@ -25,7 +25,7 @@ internal class MånedsberegningJsonTest {
                 "epsInputFradrag": [],
                 "merknader": []
             }
-        """
+            """
 
         internal val månedsberegning = MånedsberegningFactory.ny(
             periode = Periode.create(1.januar(2020), 31.januar(2020)),

@@ -98,7 +98,7 @@ internal class SakPostgresRepo(
                 """
             with inserted_sak as (insert into sak (id, fnr, opprettet) values (:sakId, :fnr, :opprettet))
             insert into søknad (id, sakId, søknadInnhold, opprettet) values (:soknadId, :sakId, to_json(:soknad::json), :opprettet)
-        """.insert(
+                """.insert(
                     mapOf(
                         "sakId" to sak.id,
                         "fnr" to sak.fnr,

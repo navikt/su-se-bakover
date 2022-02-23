@@ -76,7 +76,7 @@ internal class BeregningJsonTest {
                 }],
                 "begrunnelse": null
             }
-        """
+            """
     }
 
     @Test
