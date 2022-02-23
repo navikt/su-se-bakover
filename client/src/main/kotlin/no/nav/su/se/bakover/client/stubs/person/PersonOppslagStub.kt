@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
@@ -49,7 +50,7 @@ object PersonOppslagStub :
         ),
         vergemål = null,
         fullmakt = null,
-        dødsdato = null,
+        dødsdato = 21.januar(2021),
     )
 
     override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =
