@@ -125,7 +125,8 @@ internal class PersonRoutesKtTest {
                         "språk": "nb"
                     },
                     "fullmakt": null,
-                    "vergemål": null
+                    "vergemål": null,
+                    "dødsdato": "2021-01-21"
                 }
             """.trimIndent()
 

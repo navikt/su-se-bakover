@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -318,7 +320,12 @@ internal class PdlClientTest : WiremockBase {
                   "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": []
+                  "fullmakt": [],
+                  "doedsfall": [
+                    {
+                      "doedsdato": "2021-12-21"
+                    }    
+                  ]
                 },
                 "hentIdenter": {
                   "identer": [
@@ -379,6 +386,7 @@ internal class PdlClientTest : WiremockBase {
                 type = SivilstandTyper.GIFT,
                 relatertVedSivilstand = "12345678901",
             ),
+            dødsdato = 21.desember(2021),
         ).right()
     }
 
@@ -468,7 +476,12 @@ internal class PdlClientTest : WiremockBase {
                   "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": []
+                  "fullmakt": [],
+                  "doedsfall": [
+                    {
+                      "doedsdato": "2021-12-21"
+                    }    
+                  ]
                 },
                 "hentIdenter": {
                   "identer": [
@@ -537,6 +550,7 @@ internal class PdlClientTest : WiremockBase {
                 type = SivilstandTyper.GIFT,
                 relatertVedSivilstand = "12345678901",
             ),
+            dødsdato = 21.desember(2021),
         ).right()
     }
 
@@ -625,7 +639,8 @@ internal class PdlClientTest : WiremockBase {
                   "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": []
+                  "fullmakt": [],
+                  "doedsfall": []
                 },
                 "hentIdenter": {
                   "identer": [
@@ -702,6 +717,7 @@ internal class PdlClientTest : WiremockBase {
                 type = SivilstandTyper.GIFT,
                 relatertVedSivilstand = "12345678901",
             ),
+            dødsdato = null,
         ).right()
     }
 
@@ -731,7 +747,8 @@ internal class PdlClientTest : WiremockBase {
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": [],
-                  "sivilstand": []
+                  "sivilstand": [],
+                  "doedsfall": []
                 },
                 "hentIdenter": {
                   "identer": [
@@ -776,6 +793,7 @@ internal class PdlClientTest : WiremockBase {
             vergemålEllerFremtidsfullmakt = false,
             fullmakt = false,
             sivilstand = null,
+            dødsdato = null,
         ).right()
     }
 
@@ -805,7 +823,8 @@ internal class PdlClientTest : WiremockBase {
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": [],
-                  "sivilstand": []
+                  "sivilstand": [],
+                  "doedsfall": []
                 },
                 "hentIdenter": {
                   "identer": [
@@ -855,6 +874,7 @@ internal class PdlClientTest : WiremockBase {
             vergemålEllerFremtidsfullmakt = false,
             fullmakt = false,
             sivilstand = null,
+            dødsdato = null,
         ).right()
     }
 
@@ -878,7 +898,8 @@ internal class PdlClientTest : WiremockBase {
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": [],
-                  "sivilstand": []
+                  "sivilstand": [],
+                  "doedsfall": []
                 },
                 "hentIdenter": {
                   "identer": [
@@ -908,6 +929,89 @@ internal class PdlClientTest : WiremockBase {
             ),
         )
         client.personForSystembruker(Fnr("07028820547")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
+    }
+
+    @Test
+    fun `henter første dødsdato som ikke er null`() {
+        //language=JSON
+        val suksessResponseJson =
+            """
+            {
+              "data": {
+                "hentPerson": {
+                  "navn": [{
+                "fornavn": "NYDELIG",
+                "mellomnavn": null,
+                "etternavn": "KRONJUVEL",
+                "metadata": {
+                  "master": "Freg"
+                 }
+                }],
+                  "telefonnummer": [],
+                  "bostedsadresse": [],
+                  "kontaktadresse": [],
+                  "oppholdsadresse": [],
+                  "statsborgerskap": [],
+                  "kjoenn": [],
+                  "foedsel": [],
+                  "adressebeskyttelse": [],
+                  "vergemaalEllerFremtidsfullmakt": [],
+                  "fullmakt": [],
+                  "sivilstand": [],
+                  "doedsfall": [
+                    {
+                      "doedsdato": null
+                    },
+                     {
+                      "doedsdato": "2022-02-22"
+                     }
+                  ]
+                },
+                "hentIdenter": {
+                  "identer": [
+                    {
+                      "ident": "07028820547",
+                      "gruppe": "FOLKEREGISTERIDENT"
+                    },
+                    {
+                      "ident": "2751637578706",
+                      "gruppe": "AKTORID"
+                    }
+                  ]
+                }
+              }
+            }
+            """.trimIndent()
+        wireMockServer.stubFor(
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token()}")
+                .willReturn(WireMock.ok(suksessResponseJson)),
+        )
+
+        val client = PdlClient(
+            PdlClientConfig(
+                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
+                tokenOppslag = tokenOppslag,
+                azureAd = mock(),
+            ),
+        )
+        client.personForSystembruker(Fnr("07028820547")) shouldBe PdlData(
+            ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
+            navn = PdlData.Navn(
+                fornavn = "NYDELIG",
+                mellomnavn = null,
+                etternavn = "KRONJUVEL",
+            ),
+            telefonnummer = null,
+            kjønn = null,
+            fødselsdato = null,
+            adresse = emptyList(),
+            statsborgerskap = null,
+            adressebeskyttelse = null,
+            vergemålEllerFremtidsfullmakt = false,
+            fullmakt = false,
+            sivilstand = null,
+            dødsdato = 22.februar(2022),
+        ).right()
     }
 
     private fun wiremockBuilderSystembruker(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
