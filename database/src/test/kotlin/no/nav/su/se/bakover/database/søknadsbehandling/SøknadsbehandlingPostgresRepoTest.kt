@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.database.stønadsperiode
 import no.nav.su.se.bakover.database.underkjentAttestering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
@@ -531,8 +532,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     ),
                 ),
             )
-
-            testDataHelper.uføreVilkårsvurderingRepo.lagre(iverksatt.id, vurderingUførhet)
+            dataSource.withTransaction { tx ->
+                testDataHelper.uføreVilkårsvurderingRepo.lagre(iverksatt.id, vurderingUførhet, tx)
+            }
 
             repo.hent(iverksatt.id).also {
                 it shouldBe Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
@@ -647,13 +649,11 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             val repo = SøknadsbehandlingPostgresRepo(
                 dataSource = mock(),
-                fradragsgrunnlagPostgresRepo = mock(),
-                bosituasjongrunnlagRepo = mock(),
-                uføreVilkårsvurderingRepo = mock(),
                 dbMetrics = mock(),
                 sessionFactory = PostgresSessionFactory(dataSource),
-                utenlandsoppholdVilkårsvurderingRepo = mock(),
                 avkortingsvarselRepo = avkortingsvarselRepoMock,
+                grunnlagsdataOgVilkårsvurderingerPostgresRepo = mock(),
+                clock = mock(),
             )
 
             repo.lagre(
@@ -705,13 +705,11 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             val repo = SøknadsbehandlingPostgresRepo(
                 dataSource = mock(),
-                fradragsgrunnlagPostgresRepo = mock(),
-                bosituasjongrunnlagRepo = mock(),
-                uføreVilkårsvurderingRepo = mock(),
                 dbMetrics = mock(),
                 sessionFactory = PostgresSessionFactory(dataSource),
-                utenlandsoppholdVilkårsvurderingRepo = mock(),
                 avkortingsvarselRepo = avkortingsvarselRepoMock,
+                grunnlagsdataOgVilkårsvurderingerPostgresRepo = mock(),
+                clock = mock(),
             )
 
             repo.lagre(

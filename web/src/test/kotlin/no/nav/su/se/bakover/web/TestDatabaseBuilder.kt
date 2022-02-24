@@ -3,9 +3,6 @@ package no.nav.su.se.bakover.web
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
-import no.nav.su.se.bakover.domain.grunnlag.FormueVilkårsvurderingRepo
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagRepo
-import no.nav.su.se.bakover.domain.grunnlag.UføreVilkårsvurderingRepo
 import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
@@ -35,9 +32,6 @@ object TestDatabaseBuilder {
         søknadsbehandling: SøknadsbehandlingRepo = mock(),
         revurderingRepo: RevurderingRepo = mock(),
         vedtakRepo: VedtakRepo = mock(),
-        grunnlagRepo: GrunnlagRepo = mock(),
-        uføreVilkårsvurderingRepo: UføreVilkårsvurderingRepo = mock(),
-        formueVilkårsvurderingRepo: FormueVilkårsvurderingRepo = mock(),
         personhendelseRepo: PersonhendelseRepo = mock(),
         dokumentRepo: DokumentRepo = mock(),
         nøkkeltallRepo: NøkkeltallRepo = mock(),
@@ -58,9 +52,6 @@ object TestDatabaseBuilder {
             søknadsbehandling = søknadsbehandling,
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,
-            grunnlagRepo = grunnlagRepo,
-            uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
-            formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
             personhendelseRepo = personhendelseRepo,
             dokumentRepo = dokumentRepo,
             nøkkeltallRepo = nøkkeltallRepo,

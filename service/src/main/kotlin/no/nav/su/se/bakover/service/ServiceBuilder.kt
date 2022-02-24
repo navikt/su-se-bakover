@@ -8,8 +8,6 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagServiceImpl
-import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleServiceImpl
@@ -94,15 +92,6 @@ object ServiceBuilder {
             behandlingMetrics = behandlingMetrics,
         )
 
-        val grunnlagService = GrunnlagServiceImpl(
-            grunnlagRepo = databaseRepos.grunnlagRepo,
-        )
-
-        val vilkårsvurderingService = VilkårsvurderingServiceImpl(
-            uføreVilkårsvurderingRepo = databaseRepos.uføreVilkårsvurderingRepo,
-            formueVilkårsvurderingRepo = databaseRepos.formueVilkårsvurderingRepo,
-        )
-
         val vedtakService = VedtakServiceImpl(
             vedtakRepo = databaseRepos.vedtakRepo,
             sakService = sakService,
@@ -129,8 +118,6 @@ object ServiceBuilder {
             brevService = brevService,
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
-            vilkårsvurderingService = vilkårsvurderingService,
-            grunnlagService = grunnlagService,
             vedtakService = vedtakService,
             sakService = sakService,
             kontrollsamtaleService = kontrollsamtaleService,
@@ -156,7 +143,6 @@ object ServiceBuilder {
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
             ferdigstillVedtakService = ferdigstillVedtakService,
-            grunnlagService = grunnlagService,
             sakService = sakService,
             kontrollsamtaleService = kontrollsamtaleService,
             sessionFactory = databaseRepos.sessionFactory,
@@ -216,7 +202,6 @@ object ServiceBuilder {
             ferdigstillVedtak = ferdigstillVedtakService,
             revurdering = revurderingService,
             vedtakService = vedtakService,
-            grunnlagService = grunnlagService,
             nøkkeltallService = nøkkelTallService,
             avslåSøknadManglendeDokumentasjonService = AvslåSøknadManglendeDokumentasjonServiceImpl(
                 clock = clock,

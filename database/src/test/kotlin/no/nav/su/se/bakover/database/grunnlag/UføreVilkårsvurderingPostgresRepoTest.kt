@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -39,9 +39,8 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                 ),
             )
 
-            testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
-
-            dataSource.withSession { session ->
+            dataSource.withTransaction { session ->
+                testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet, session)
                 testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
             }
         }
@@ -73,9 +72,8 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                 ),
             )
 
-            testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
-
-            dataSource.withSession { session ->
+            dataSource.withTransaction { session ->
+                testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet, session)
                 testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
             }
         }
@@ -107,15 +105,10 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                 ),
             )
 
-            testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
-
-            dataSource.withSession { session ->
+            dataSource.withTransaction { session ->
+                testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet, session)
                 testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
-            }
-
-            testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
-
-            dataSource.withSession { session ->
+                testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet, session)
                 testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
             }
         }
@@ -128,15 +121,14 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
             val søknadsbehandling = testDataHelper.nySøknadsbehandling()
             val (vilkår, grunnlag) = innvilgetUførevilkår().let { it to it.grunnlag }
 
-            testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vilkår)
-
-            dataSource.withSession { session ->
+            dataSource.withTransaction { session ->
+                testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vilkår, session)
                 testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vilkår
-            }
-
-            testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, Vilkår.Uførhet.IkkeVurdert)
-
-            dataSource.withSession { session ->
+                testDataHelper.uføreVilkårsvurderingRepo.lagre(
+                    behandlingId = søknadsbehandling.id,
+                    vilkår = Vilkår.Uførhet.IkkeVurdert,
+                    tx = session,
+                )
                 testDataHelper.uføreVilkårsvurderingRepo.hent(
                     behandlingId = søknadsbehandling.id,
                     session = session,

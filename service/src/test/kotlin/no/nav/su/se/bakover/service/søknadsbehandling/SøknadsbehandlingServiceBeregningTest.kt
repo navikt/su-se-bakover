@@ -21,12 +21,10 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
 import java.util.UUID
 
 class SøknadsbehandlingServiceBeregningTest {
@@ -58,9 +56,6 @@ class SøknadsbehandlingServiceBeregningTest {
             avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
-            grunnlagService = mock {
-                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
-            }
         ).let {
             val beregnet = it.søknadsbehandlingService.beregn(
                 SøknadsbehandlingService.BeregnRequest(
@@ -91,10 +86,6 @@ class SøknadsbehandlingServiceBeregningTest {
             }
 
             verify(it.søknadsbehandlingRepo).hent(vilkårsvurdert.id)
-            verify(it.grunnlagService).lagreFradragsgrunnlag(
-                vilkårsvurdert.id,
-                vilkårsvurdert.grunnlagsdata.fradragsgrunnlag,
-            )
             verify(it.søknadsbehandlingRepo).defaultTransactionContext()
             verify(it.søknadsbehandlingRepo).lagre(eq(beregnet), anyOrNull())
             it.verifyNoMoreInteractions()
@@ -142,9 +133,6 @@ class SøknadsbehandlingServiceBeregningTest {
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn vilkårsvurdert
             },
-            grunnlagService = mock {
-                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
-            }
         ).let {
             vilkårsvurdert.avkorting shouldBe beOfType<AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting>()
 
@@ -166,7 +154,6 @@ class SøknadsbehandlingServiceBeregningTest {
                 .any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldBe true
 
             verify(it.søknadsbehandlingRepo).hent(vilkårsvurdert.id)
-            verify(it.grunnlagService).lagreFradragsgrunnlag(beregnet.id, beregnet.grunnlagsdata.fradragsgrunnlag)
             verify(it.søknadsbehandlingRepo).defaultTransactionContext()
             verify(it.søknadsbehandlingRepo).lagre(eq(beregnet), anyOrNull())
             it.verifyNoMoreInteractions()
@@ -205,9 +192,6 @@ class SøknadsbehandlingServiceBeregningTest {
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn vilkårsvurdert
             },
-            grunnlagService = mock {
-                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
-            }
         ).let {
             vilkårsvurdert.avkorting shouldBe beOfType<AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting>()
 
@@ -231,7 +215,6 @@ class SøknadsbehandlingServiceBeregningTest {
                 .any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldBe true
 
             verify(it.søknadsbehandlingRepo).hent(vilkårsvurdert.id)
-            verify(it.grunnlagService).lagreFradragsgrunnlag(beregnet.id, beregnet.grunnlagsdata.fradragsgrunnlag)
             verify(it.søknadsbehandlingRepo).defaultTransactionContext()
             verify(it.søknadsbehandlingRepo).lagre(eq(beregnet), anyOrNull())
             it.verifyNoMoreInteractions()

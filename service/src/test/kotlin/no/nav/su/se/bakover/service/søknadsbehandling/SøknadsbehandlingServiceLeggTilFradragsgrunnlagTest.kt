@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -38,11 +37,8 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService>()
-
         val søknadsbehandlingService = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            grunnlagService = grunnlagServiceMock,
         )
 
         val fradragsgrunnlag = listOf(
@@ -82,10 +78,6 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
         )
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })
-        verify(grunnlagServiceMock).lagreFradragsgrunnlag(
-            argThat { it shouldBe behandling.id },
-            argThat { it shouldBe request.fradragsgrunnlag },
-        )
         verify(søknadsbehandlingRepoMock).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock).lagre(
             argThat {
@@ -93,7 +85,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             },
             anyOrNull()
         )
-        verifyNoMoreInteractions(søknadsbehandlingRepoMock, grunnlagServiceMock)
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
 
     @Test
@@ -102,11 +94,8 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             on { hent(any()) } doReturn null
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService>()
-
         val søknadsbehandlingService = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            grunnlagService = grunnlagServiceMock,
         )
         val søknadsbehandlingId = UUID.randomUUID()
         val request = LeggTilFradragsgrunnlagRequest(
@@ -128,11 +117,10 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
 
         inOrder(
             søknadsbehandlingRepoMock,
-            grunnlagServiceMock,
         ) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe søknadsbehandlingId })
         }
-        verifyNoMoreInteractions(søknadsbehandlingRepoMock, grunnlagServiceMock)
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
 
     @Test
@@ -143,11 +131,8 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             on { hent(any()) } doReturn uavklart
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService>()
-
         val søknadsbehandlingService = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            grunnlagService = grunnlagServiceMock,
         )
 
         val request = LeggTilFradragsgrunnlagRequest(
@@ -172,7 +157,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })
 
-        verifyNoMoreInteractions(søknadsbehandlingRepoMock, grunnlagServiceMock)
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
 
     @Test
@@ -184,11 +169,8 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService>()
-
         val søknadsbehandlingService = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            grunnlagService = grunnlagServiceMock,
         )
 
         val request = LeggTilFradragsgrunnlagRequest(
@@ -212,7 +194,5 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
         ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })
-
-        verifyNoMoreInteractions(søknadsbehandlingRepoMock, grunnlagServiceMock)
     }
 }
