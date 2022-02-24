@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import java.sql.Array
-import java.util.UUID
 import javax.sql.DataSource
 
 private fun sjekkUgyldigParameternavn(params: Map<String, Any?>) {
@@ -65,8 +64,6 @@ internal fun <T> String.hentListe(
     return session.run(queryOf(this, params).map { row -> rowMapping(row) }.asList)
 }
 
-internal fun Row.uuid(name: String) = UUID.fromString(string(name))
-internal fun Row.uuidOrNull(name: String) = stringOrNull(name)?.let { uuid(name) }
 internal fun Row.uuid30(name: String) = UUID30.fromString(string(name))
 internal fun Row.uuid30OrNull(name: String) = stringOrNull(name)?.let { UUID30.fromString(it) }
 internal fun Row.tidspunkt(name: String) = this.instant(name).toTidspunkt()
