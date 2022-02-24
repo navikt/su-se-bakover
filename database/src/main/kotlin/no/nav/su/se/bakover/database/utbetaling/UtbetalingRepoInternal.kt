@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
