@@ -5,6 +5,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.errors.AuthorizationException
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.util.LinkedList
@@ -14,9 +15,9 @@ import kotlin.concurrent.timer
 
 internal class KafkaPublisherClient(
     private val producerConfig: ApplicationConfig.KafkaConfig.ProducerCfg,
+    private val log: Logger = LoggerFactory.getLogger(KafkaPublisherClient::class.java),
     private val initProducer: () -> Producer<String, String> = { KafkaProducer(producerConfig.kafkaConfig) }
 ) : KafkaPublisher {
-    private val log = LoggerFactory.getLogger(this::class.java)
     private var producer: Producer<String, String> = initProducer()
     private val failed: Queue<ProducerRecord<String, String>> = LinkedList()
 
