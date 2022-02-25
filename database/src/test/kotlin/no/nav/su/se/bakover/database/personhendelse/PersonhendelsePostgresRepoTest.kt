@@ -44,7 +44,7 @@ internal class PersonhendelsePostgresRepoTest {
                     key = "someKey",
                 ),
             )
-            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             val id = UUID.randomUUID()
             repo.lagre(hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer)))
 
@@ -82,7 +82,7 @@ internal class PersonhendelsePostgresRepoTest {
                     key = "someKey",
                 ),
             )
-            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             val id = UUID.randomUUID()
 
             repo.lagre(hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer)))
@@ -126,7 +126,7 @@ internal class PersonhendelsePostgresRepoTest {
                     key = "someKey",
                 ),
             )
-            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             val id = UUID.randomUUID()
 
             repo.lagre(hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer)))
@@ -165,10 +165,10 @@ internal class PersonhendelsePostgresRepoTest {
                 ),
             )
 
-            val sak1 = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val sak1 = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             val id1 = UUID.randomUUID()
 
-            val sak2 = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val sak2 = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             val id2 = UUID.randomUUID()
 
             repo.lagre(hendelse.tilknyttSak(id1, SakIdOgNummer(sak1.id, sak1.saksnummer)))
@@ -209,7 +209,7 @@ internal class PersonhendelsePostgresRepoTest {
                 ),
             )
             val id = UUID.randomUUID()
-            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
 
             val hendelseKnyttetTilSak = hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer))
             repo.lagre(hendelseKnyttetTilSak)
@@ -254,7 +254,7 @@ internal class PersonhendelsePostgresRepoTest {
                     key = "someKey",
                 ),
             )
-            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
 
             val hendelse1KnyttetTilSak = hendelse1.tilknyttSak(id1, SakIdOgNummer(sak.id, sak.saksnummer))
             repo.lagre(hendelse1KnyttetTilSak)
@@ -306,7 +306,7 @@ internal class PersonhendelsePostgresRepoTest {
                 ),
             )
 
-            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
 
             val hendelse1TilknyttetSak = hendelse1.tilknyttSak(hendelseId1, SakIdOgNummer(sak.id, sak.saksnummer))
             val hendelse2TilknyttetSak = hendelse2.tilknyttSak(hendelseId2, SakIdOgNummer(sak.id, sak.saksnummer))
@@ -342,7 +342,7 @@ internal class PersonhendelsePostgresRepoTest {
                 ),
             )
             val id = UUID.randomUUID()
-            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
 
             val hendelseKnyttetTilSak = hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer))
             repo.lagre(hendelseKnyttetTilSak)

@@ -7,6 +7,8 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
+import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.stønadsperiode2022
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
@@ -16,9 +18,8 @@ internal class AvkortingsvarselPostgresRepoTest {
     fun `avkortingsvarsel for utenlandsopphold`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val revurdering = testDataHelper.nyRevurdering(innvilget = vedtak, vedtak.periode)
+            val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
+            val revurdering = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
 
             testDataHelper.sessionFactory.withTransaction { tx ->
 
@@ -59,14 +60,13 @@ internal class AvkortingsvarselPostgresRepoTest {
     fun `avkorting for utenlandsopphold`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val revurdering = testDataHelper.nyRevurdering(innvilget = vedtak, vedtak.periode)
-            val nySøknadsbehandling = testDataHelper.nySøknadsbehandling(sak = sak)
+            val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+                stønadsperiode = stønadsperiode2021,
+            )
+            val revurdering = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
 
-            testDataHelper.sessionFactory.withTransaction { tx ->
-
-                val avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+            val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes =
+                Avkortingsvarsel.Utenlandsopphold.Opprettet(
                     id = UUID.randomUUID(),
                     sakId = sak.id,
                     revurderingId = revurdering.id,
@@ -74,26 +74,34 @@ internal class AvkortingsvarselPostgresRepoTest {
                     simulering = simuleringFeilutbetaling(),
                 ).skalAvkortes()
 
+            testDataHelper.sessionFactory.withTransaction {
                 testDataHelper.avkortingsvarselRepo.lagre(
                     avkortingsvarsel = avkortingsvarsel,
-                    tx = tx,
+                    tx = it,
                 )
-
                 testDataHelper.avkortingsvarselRepo.hent(
                     id = avkortingsvarsel.id,
-                    session = tx,
+                    session = it,
                 ) shouldBe avkortingsvarsel
+            }
 
-                val avkortet = avkortingsvarsel.avkortet(nySøknadsbehandling.id)
+            val nySøknadsbehandling =
+                testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart(
+                    sakId = sak.id,
+                    stønadsperiode = stønadsperiode2022,
+                ).second
 
+            val avkortet: Avkortingsvarsel.Utenlandsopphold.Avkortet = avkortingsvarsel.avkortet(nySøknadsbehandling.id)
+
+            testDataHelper.sessionFactory.withTransaction {
                 testDataHelper.avkortingsvarselRepo.lagre(
                     avkortingsvarsel = avkortet,
-                    tx = tx,
+                    tx = it,
                 )
 
                 testDataHelper.avkortingsvarselRepo.hent(
                     id = avkortingsvarsel.id,
-                    session = tx,
+                    session = it,
                 ) shouldBe avkortet
             }
         }
@@ -103,10 +111,14 @@ internal class AvkortingsvarselPostgresRepoTest {
     fun `ikke lov å avkorte etter at det er annullert for utenlandsopphold`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val revurdering = testDataHelper.nyRevurdering(innvilget = vedtak, vedtak.periode)
-            val nySøknadsbehandling = testDataHelper.nySøknadsbehandling(sak = sak)
+            val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+                stønadsperiode = stønadsperiode2021,
+            )
+            val revurdering = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
+            val nySøknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart(
+                sakId = sak.id,
+                stønadsperiode = stønadsperiode2022,
+            ).second
 
             testDataHelper.sessionFactory.withTransaction { tx ->
 
@@ -156,12 +168,17 @@ internal class AvkortingsvarselPostgresRepoTest {
     fun `henter bare utestående avkortinger for sak`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val revurdering1 = testDataHelper.nyRevurdering(innvilget = vedtak, vedtak.periode)
-            val revurdering2 = testDataHelper.nyRevurdering(innvilget = vedtak, vedtak.periode)
-            val revurdering3 = testDataHelper.nyRevurdering(innvilget = vedtak, vedtak.periode)
-            val nySøknadsbehandling = testDataHelper.nySøknadsbehandling(sak = sak)
+            val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+                stønadsperiode = stønadsperiode2021,
+            )
+            val revurdering1 = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
+            val revurdering2 = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
+            val revurdering3 = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
+            val nySøknadsbehandling =
+                testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart(
+                    sakId = sak.id,
+                    stønadsperiode = stønadsperiode2022,
+                ).second
 
             val opprettet = Avkortingsvarsel.Utenlandsopphold.Opprettet(
                 id = UUID.randomUUID(),
@@ -214,11 +231,10 @@ internal class AvkortingsvarselPostgresRepoTest {
     fun `kaster exception hvis det finnes flere utestående avkortinger`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val revurdering1 = testDataHelper.nyRevurdering(innvilget = vedtak, vedtak.periode)
-            val revurdering2 = testDataHelper.nyRevurdering(innvilget = vedtak, vedtak.periode)
-            val revurdering3 = testDataHelper.nyRevurdering(innvilget = vedtak, vedtak.periode)
+            val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
+            val revurdering1 = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
+            val revurdering2 = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
+            val revurdering3 = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
 
             val opprettet = Avkortingsvarsel.Utenlandsopphold.Opprettet(
                 id = UUID.randomUUID(),

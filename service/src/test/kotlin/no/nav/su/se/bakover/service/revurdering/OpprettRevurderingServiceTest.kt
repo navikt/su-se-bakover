@@ -75,7 +75,7 @@ import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt12000
 import no.nav.su.se.bakover.test.utlandsoppholdAvslag
 import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurdering
-import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -98,7 +98,7 @@ internal class OpprettRevurderingServiceTest {
 
     private fun createInnvilgetBehandling() = søknadsbehandlingIverksattInnvilget(
         stønadsperiode = stønadsperiodeNesteMånedOgTreMånederFram,
-        vilkårsvurderinger = vilkårsvurderingerInnvilget(
+        vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(
             periode = periodeNesteMånedOgTreMånederFram,
             uføre = vilkårsvurderingUføre,
         ),

@@ -13,8 +13,7 @@ internal class PostgresTransactionContextTest {
     @Test
     fun `commits transaction and Starts and closes only one connection`() {
         withMigratedDb { dataSource ->
-            val sak = TestDataHelper(dataSource).nySakMedJournalførtSøknadOgOppgave()
-            val søknad = sak.søknader.first() as Søknad.Journalført.MedOppgave.IkkeLukket
+            val (_, søknad) = TestDataHelper(dataSource).persisterJournalførtSøknadMedOppgave()
             withTestContext(dataSource, 1) { spiedDataSource ->
                 val testDataHelper = TestDataHelper(spiedDataSource)
                 testDataHelper.sessionFactory.withTransactionContext { context ->
@@ -47,8 +46,7 @@ internal class PostgresTransactionContextTest {
     @Test
     fun `throw should rollback`() {
         withMigratedDb { dataSource ->
-            val sak = TestDataHelper(dataSource).nySakMedJournalførtSøknadOgOppgave()
-            val søknad = sak.søknader.first() as Søknad.Journalført.MedOppgave.IkkeLukket
+            val (_, søknad) = TestDataHelper(dataSource).persisterJournalførtSøknadMedOppgave()
 
             withTestContext(dataSource, 1) { spiedDataSource ->
                 val testDataHelper = TestDataHelper(spiedDataSource)

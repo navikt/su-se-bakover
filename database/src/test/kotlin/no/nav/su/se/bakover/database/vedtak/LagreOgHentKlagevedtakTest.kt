@@ -13,7 +13,7 @@ internal class LagreOgHentKlagevedtakTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo
-            val vedtak = testDataHelper.vedtakForIverksattAvvistKlage()
+            val vedtak = testDataHelper.persisterVedtakForKlageIverksattAvvist()
 
             dataSource.withSession {
                 (vedtakRepo.hent(vedtak.id, it) as Klagevedtak.Avvist).shouldBeEqualComparingPublicFieldsAndInterface(vedtak)

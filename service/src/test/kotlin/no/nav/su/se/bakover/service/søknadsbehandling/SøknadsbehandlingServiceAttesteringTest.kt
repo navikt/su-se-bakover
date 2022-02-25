@@ -98,7 +98,6 @@ class SøknadsbehandlingServiceAttesteringTest {
     fun `sjekk at vi sender inn riktig oppgaveId ved lukking av oppgave ved attestering`() {
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn simulertBehandling
-            on { hentEventuellTidligereAttestering(any()) } doReturn null
         }
 
         val personServiceMock: PersonService = mock {
@@ -144,7 +143,6 @@ class SøknadsbehandlingServiceAttesteringTest {
         inOrder(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
             verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
             verify(personServiceMock).hentAktørId(fnr)
-            verify(søknadsbehandlingRepoMock).hentEventuellTidligereAttestering(simulertBehandling.id)
             verify(oppgaveServiceMock).opprettOppgave(
                 config = OppgaveConfig.AttesterSøknadsbehandling(
                     søknadId = søknadId,
@@ -218,7 +216,6 @@ class SøknadsbehandlingServiceAttesteringTest {
     fun `svarer med feil dersom man ikke får til å opprette oppgave til attestant`() {
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn simulertBehandling
-            on { hentEventuellTidligereAttestering(simulertBehandling.id) } doReturn null
         }
 
         val personServiceMock: PersonService = mock {
@@ -240,7 +237,6 @@ class SøknadsbehandlingServiceAttesteringTest {
 
         verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
         verify(personServiceMock).hentAktørId(simulertBehandling.fnr)
-        verify(søknadsbehandlingRepoMock).hentEventuellTidligereAttestering(simulertBehandling.id)
         verify(oppgaveServiceMock).opprettOppgave(
             argThat {
                 it shouldBe OppgaveConfig.AttesterSøknadsbehandling(
@@ -259,7 +255,6 @@ class SøknadsbehandlingServiceAttesteringTest {
     fun `sender til attestering selv om lukking av eksisterende oppgave feiler`() {
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn simulertBehandling
-            on { hentEventuellTidligereAttestering(any()) } doReturn null
         }
 
         val personServiceMock: PersonService = mock {
@@ -307,7 +302,6 @@ class SøknadsbehandlingServiceAttesteringTest {
         inOrder(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
             verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
             verify(personServiceMock).hentAktørId(fnr)
-            verify(søknadsbehandlingRepoMock).hentEventuellTidligereAttestering(simulertBehandling.id)
             verify(oppgaveServiceMock).opprettOppgave(
                 config = OppgaveConfig.AttesterSøknadsbehandling(
                     søknadId = søknadId,

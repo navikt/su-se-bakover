@@ -244,7 +244,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     sakId = søknad.sakId,
                     søknad = søknad,
                     oppgaveId = søknad.oppgaveId,
-                    behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
                     fnr = søknad.søknadInnhold.personopplysninger.fnr,
                     avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke()
                 )

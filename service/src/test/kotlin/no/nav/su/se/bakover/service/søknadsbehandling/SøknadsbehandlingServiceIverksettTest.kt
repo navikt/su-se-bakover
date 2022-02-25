@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
+import arrow.core.orNull
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
@@ -9,6 +10,7 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
@@ -17,6 +19,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
@@ -34,7 +37,6 @@ import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringNy
 import no.nav.su.se.bakover.test.simulertUtbetaling
-import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -467,16 +469,35 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 },
             )
 
-            val response = serviceAndMocks.søknadsbehandlingService.iverksett(
+            val actual = serviceAndMocks.søknadsbehandlingService.iverksett(
                 SøknadsbehandlingService.IverksettRequest(
                     behandlingId = innvilgetTilAttestering.id,
                     attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
                 ),
+            ).orNull() as Søknadsbehandling.Iverksatt.Innvilget
+
+            val expected = Søknadsbehandling.Iverksatt.Innvilget(
+                id = actual.id,
+                opprettet = actual.opprettet,
+                sakId = actual.sakId,
+                saksnummer = actual.saksnummer,
+                søknad = actual.søknad,
+                oppgaveId = actual.oppgaveId,
+                behandlingsinformasjon = actual.behandlingsinformasjon,
+                fnr = actual.fnr,
+                beregning = actual.beregning,
+                simulering = actual.simulering,
+                saksbehandler = actual.saksbehandler,
+                attesteringer = Attesteringshistorikk.empty()
+                    .leggTilNyAttestering(Attestering.Iverksatt(attestant, fixedTidspunkt)),
+                fritekstTilBrev = actual.fritekstTilBrev,
+                stønadsperiode = actual.stønadsperiode,
+                grunnlagsdata = actual.grunnlagsdata,
+                vilkårsvurderinger = actual.vilkårsvurderinger,
+                avkorting = actual.avkorting,
             )
 
-            val expected = søknadsbehandlingIverksattInnvilget().second.copy(id = innvilgetTilAttestering.id)
-
-            response shouldBe expected.right()
+            actual shouldBe expected
 
             verify(serviceAndMocks.søknadsbehandlingRepo).hent(innvilgetTilAttestering.id)
             verify(serviceAndMocks.utbetalingService).verifiserOgSimulerUtbetaling(

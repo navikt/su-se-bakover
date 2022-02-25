@@ -126,7 +126,6 @@ internal class SøknadsbehandlingServiceImpl(
                 søknad = søknad,
                 oppgaveId = søknad.oppgaveId,
                 fnr = søknad.søknadInnhold.personopplysninger.fnr,
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
                 avkorting = avkorting.kanIkke(),
             ),
         )
@@ -254,8 +253,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
         val eksisterendeOppgaveId: OppgaveId = søknadsbehandling.oppgaveId
 
-        val tilordnetRessurs: NavIdentBruker.Attestant? =
-            søknadsbehandlingRepo.hentEventuellTidligereAttestering(søknadsbehandling.id)?.attestant
+        val tilordnetRessurs: NavIdentBruker.Attestant? = søknadsbehandling.attesteringer.lastOrNull()?.attestant
 
         val nyOppgaveId: OppgaveId = oppgaveService.opprettOppgave(
             OppgaveConfig.AttesterSøknadsbehandling(

@@ -36,8 +36,8 @@ internal class NøkkeltallPostgresRepoTest {
     fun `to søknader knyttet til en sak`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val nySak = testDataHelper.nySakMedNySøknad()
-            testDataHelper.nySøknadForEksisterendeSak(nySak.id)
+            val nySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+            testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(nySak.id)
 
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
             nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
@@ -61,8 +61,8 @@ internal class NøkkeltallPostgresRepoTest {
     fun `en avslått og en innvilget søknad i to forskjellige saker`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            testDataHelper.nyIverksattAvslagUtenBeregning()
-            testDataHelper.nyIverksattInnvilget()
+            testDataHelper.persisterVedtakMedAvslåttSøknadsbehandlingUtenBeregning()
+            testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
             nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
@@ -86,10 +86,10 @@ internal class NøkkeltallPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
-            val nySak = testDataHelper.nySakMedNySøknad()
-            testDataHelper.nyLukketSøknadForEksisterendeSak(nySak.id)
-            testDataHelper.nyLukketSøknadForEksisterendeSak(nySak.id)
-            testDataHelper.nyLukketSøknadForEksisterendeSak(nySak.id)
+            val nySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+            testDataHelper.persisterLukketJournalførtSøknadMedOppgave(nySak.id)
+            testDataHelper.persisterLukketJournalførtSøknadMedOppgave(nySak.id)
+            testDataHelper.persisterLukketJournalførtSøknadMedOppgave(nySak.id)
 
             nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
@@ -113,7 +113,7 @@ internal class NøkkeltallPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
-            testDataHelper.nySakMedNySøknad(
+            testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave(
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(
                     forNav = ForNav.Papirsøknad(
                         mottaksdatoForSøknad = fixedLocalDate,
@@ -145,20 +145,17 @@ internal class NøkkeltallPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
-            val sakId = testDataHelper.nySakMedNySøknad().id
-            val sak = testDataHelper.sakRepo.hentSak(sakId)!!
-
-            testDataHelper.nyLukketSøknadsbehandlingOgSøknadForEksisterendeSak(sak)
+            testDataHelper.persisterSøknadsbehandlingAvsluttet()
 
             nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(
-                    totaltAntall = 2,
+                    totaltAntall = 1,
                     iverksatteAvslag = 0,
                     iverksatteInnvilget = 0,
-                    ikkePåbegynt = 1,
+                    ikkePåbegynt = 0,
                     påbegynt = 0,
                     lukket = 1,
-                    digitalsøknader = 2,
+                    digitalsøknader = 1,
                     papirsøknader = 0,
                 ),
                 antallUnikePersoner = 1,

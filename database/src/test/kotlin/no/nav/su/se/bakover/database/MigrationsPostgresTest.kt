@@ -8,7 +8,7 @@ internal class MigrationsPostgresTest {
     @Test
     fun `rader skal ikke lekke ut av withMigratedDb`() {
         withMigratedDb { dataSource ->
-            TestDataHelper(dataSource).nySakMedJournalførtSøknadOgOppgave()
+            TestDataHelper(dataSource).persisterJournalførtSøknadMedOppgave()
             dataSource.withSession { session ->
                 "select count(1) from sak".antall(session = session) shouldBe 1
             }

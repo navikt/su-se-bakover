@@ -30,7 +30,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -53,7 +53,7 @@ internal class StatusovergangTest {
 
     private val vilkårsvurdertInnvilget: Søknadsbehandling.Vilkårsvurdert.Innvilget =
         søknadsbehandlingVilkårsvurdertInnvilget(
-            vilkårsvurderinger = vilkårsvurderingerInnvilget(
+            vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(
                 uføre = innvilgetUførevilkårForventetInntekt12000(),
             ),
         ).second

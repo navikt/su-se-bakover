@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
@@ -22,8 +23,10 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.nyRevurdering(
-                innvilget = testDataHelper.vedtakMedInnvilgetSøknadsbehandling(periode2021).first,
+            val revurdering = testDataHelper.persisterRevurderingOpprettet(
+                innvilget = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+                    stønadsperiode = stønadsperiode2021,
+                ).second,
                 periode = periode2021,
             ).persistertVariant()
 
@@ -51,7 +54,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.beregnetInnvilgetRevurdering().persistertVariant()
+            val revurdering = testDataHelper.persisterRevurderingBeregnetInnvilget().persistertVariant()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -77,7 +80,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.beregnetOpphørtRevurdering().persistertVariant()
+            val revurdering = testDataHelper.persisterRevurderingBeregnetOpphørt().persistertVariant()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -104,7 +107,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.beregnetIngenEndringRevurdering().persistertVariant()
+            val revurdering = testDataHelper.persisterRevurderingBeregningIngenEndring().persistertVariant()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -130,7 +133,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.simulertInnvilgetRevurdering().persistertVariant()
+            val revurdering = testDataHelper.persisterRevurderingSimulertInnvilget().persistertVariant()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -155,7 +158,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val simulert = testDataHelper.simulertInnvilgetRevurdering()
+            val simulert = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
                 simulert.prøvOvergangTilSkalIkkeForhåndsvarsles().orNull()!!.also {
                     repo.lagre(it)
@@ -169,7 +172,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val simulert = testDataHelper.simulertInnvilgetRevurdering()
+            val simulert = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
                 simulert.prøvOvergangTilSendt().orNull()!!.also {
                     repo.lagre(it)
@@ -183,7 +186,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val simulert = testDataHelper.simulertInnvilgetRevurdering()
+            val simulert = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
                 simulert.prøvOvergangTilSendt().orNull()!!.prøvOvergangTilAvsluttet("").orNull()!!.also {
                     repo.lagre(it)
@@ -198,7 +201,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.simulertInnvilgetRevurdering().persistertVariant()
+            val revurdering = testDataHelper.persisterRevurderingSimulertInnvilget().persistertVariant()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -224,7 +227,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.underkjentRevurderingFraInnvilget().persistertVariant()
+            val revurdering = testDataHelper.persisterRevurderingUnderkjentInnvilget().persistertVariant()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -237,10 +240,10 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
                 underliggendeRevurdering = revurdering.copy(
                     avkorting = AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
-                        håndtert = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
-                    )
-                )
-            )
+                        håndtert = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+                    ),
+                ),
+            ).persistertVariant()
         }
     }
 }
