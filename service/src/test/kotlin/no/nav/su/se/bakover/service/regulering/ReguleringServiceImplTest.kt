@@ -38,8 +38,6 @@ internal class ReguleringServiceImplTest {
             sakRepo = mock(),
             utbetalingService = mock(),
             vedtakService = mock(),
-            vilkårsvurderingService = mock(),
-            grunnlagService = mock(),
             clock = fixedClock,
         )
 
@@ -63,8 +61,6 @@ internal class ReguleringServiceImplTest {
             sakRepo = mock(),
             utbetalingService = mock(),
             vedtakService = mock(),
-            vilkårsvurderingService = mock(),
-            grunnlagService = mock(),
             clock = fixedClock,
         )
 
@@ -94,8 +90,6 @@ internal class ReguleringServiceImplTest {
             sakRepo = mock(),
             utbetalingService = mock(),
             vedtakService = mock(),
-            vilkårsvurderingService = mock(),
-            grunnlagService = mock(),
             clock = fixedClock,
         )
 

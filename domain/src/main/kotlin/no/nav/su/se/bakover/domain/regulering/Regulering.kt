@@ -34,6 +34,7 @@ sealed interface Regulering : Behandling {
     val saksbehandler: NavIdentBruker.Saksbehandler
     val reguleringType: ReguleringType
     val jobbnavn: Reguleringsjobb
+    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger
 
     sealed class KunneIkkeBeregne {
         object BeregningFeilet : KunneIkkeBeregne()
@@ -53,6 +54,7 @@ sealed interface Regulering : Behandling {
         override val periode: Periode,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger,
         override val beregning: Beregning?,
         override val simulering: Simulering?,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -99,7 +101,7 @@ sealed interface Regulering : Behandling {
             clock: Clock,
         ): Either<KunneIkkeBeregne.BeregningFeilet, Beregning> = Either.catch {
             BeregningStrategyFactory(clock).beregn(
-                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                     grunnlagsdata = regulering.grunnlagsdata,
                     vilkårsvurderinger = regulering.vilkårsvurderinger,
                 ),

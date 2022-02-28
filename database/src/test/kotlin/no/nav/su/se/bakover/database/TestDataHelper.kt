@@ -277,16 +277,11 @@ internal class TestDataHelper(
     )
     internal val klageinstanshendelsePostgresRepo = KlageinstanshendelsePostgresRepo(sessionFactory)
     internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory, klageinstanshendelsePostgresRepo)
-    internal val reguleringPostgresRepo =
-        ReguleringPostgresRepo(
-            dataSource = dataSource,
-            sessionFactory = sessionFactory,
-            fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
-            bosituasjongrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
-            uføreVilkårsvurderingPostgresRepo = uføreVilkårsvurderingRepo,
-            formueVilkårsvurderingPostgresRepo = formueVilkårsvurderingPostgresRepo,
-            utenlandsoppholdVilkårsvurderingPostgresRepo = utenlandsoppholdVilkårsvurderingRepo,
-        )
+    internal val reguleringRepo = ReguleringPostgresRepo(
+        dataSource = dataSource,
+        sessionFactory = sessionFactory,
+        grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
+    )
     internal val revurderingRepo = RevurderingPostgresRepo(
         dataSource = dataSource,
         grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
@@ -295,7 +290,7 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
         avkortingsvarselRepo = avkortingsvarselRepo,
-        reguleringPostgresRepo = reguleringPostgresRepo,
+        reguleringPostgresRepo = reguleringRepo,
     )
     internal val vedtakRepo = VedtakPostgresRepo(
         dataSource = dataSource,
@@ -304,7 +299,7 @@ internal class TestDataHelper(
         klageRepo = klagePostgresRepo,
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
-        reguleringRepo = reguleringPostgresRepo,
+        reguleringRepo = reguleringRepo,
     )
     internal val personRepo = PersonPostgresRepo(
         dataSource = dataSource,
@@ -321,15 +316,6 @@ internal class TestDataHelper(
         vedtakPostgresRepo = vedtakRepo,
         dbMetrics = dbMetrics,
         klageRepo = klagePostgresRepo,
-    )
-    internal val reguleringRepo = ReguleringPostgresRepo(
-        dataSource = dataSource,
-        sessionFactory = sessionFactory,
-        fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
-        bosituasjongrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
-        uføreVilkårsvurderingPostgresRepo = uføreVilkårsvurderingRepo,
-        formueVilkårsvurderingPostgresRepo = formueVilkårsvurderingPostgresRepo,
-        utenlandsoppholdVilkårsvurderingPostgresRepo = utenlandsoppholdVilkårsvurderingRepo,
     )
 
     fun nySakMedNySøknad(

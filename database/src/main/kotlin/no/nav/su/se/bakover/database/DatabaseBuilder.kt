@@ -136,11 +136,7 @@ object DatabaseBuilder {
         val klageRepo = KlagePostgresRepo(sessionFactory, klageinstanshendelseRepo)
         val reguleringRepo = ReguleringPostgresRepo(
             dataSource = dataSource,
-            fradragsgrunnlagPostgresRepo = fradragsgrunnlag,
-            bosituasjongrunnlagPostgresRepo = bosituasjongrunnlag,
-            uføreVilkårsvurderingPostgresRepo = uføreVilkårsvurderingRepo,
-            formueVilkårsvurderingPostgresRepo = formueVilkårsvurderingRepo,
-            utenlandsoppholdVilkårsvurderingPostgresRepo = utlandsoppholdVilkårsvurderingRepo,
+            grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
             sessionFactory = sessionFactory,
         )
         val revurderingRepo = RevurderingPostgresRepo(

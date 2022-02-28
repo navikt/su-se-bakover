@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
@@ -27,9 +28,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
-import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -49,8 +48,6 @@ class ReguleringServiceImpl(
     private val sakRepo: SakRepo,
     private val utbetalingService: UtbetalingService,
     private val vedtakService: VedtakService,
-    private val vilkårsvurderingService: VilkårsvurderingService,
-    private val grunnlagService: GrunnlagService,
     private val clock: Clock,
 ) : ReguleringService {
 
@@ -116,10 +113,6 @@ class ReguleringServiceImpl(
                 }
                 is Regulering.OpprettetRegulering -> {
                     regulering.leggTilFradrag(request.fradragsgrunnlag)
-                    grunnlagService.lagreFradragsgrunnlag(
-                        regulering.id,
-                        fradragsgrunnlag = regulering.grunnlagsdata.fradragsgrunnlag,
-                    )
                     reguleringRepo.lagre(regulering)
                     regulering.right()
                 }
@@ -244,6 +237,14 @@ class ReguleringServiceImpl(
                         .map { it.periode.tilOgMed }
                 ).minByOrNull { it }!!
 
+        val grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+            grunnlagsdata =
+            Grunnlagsdata.tryCreate(
+                fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
+                bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
+            ).getOrHandle { return KunneIkkeOppretteRegulering.KunneIkkeLageFradragsgrunnlag.left() },
+            vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
+        )
         return Regulering.OpprettetRegulering(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
@@ -252,11 +253,9 @@ class ReguleringServiceImpl(
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             fnr = request.fnr,
             periode = Periode.create(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
-            grunnlagsdata = Grunnlagsdata.tryCreate(
-                fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
-                bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
-            ).getOrHandle { return KunneIkkeOppretteRegulering.KunneIkkeLageFradragsgrunnlag.left() },
-            vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
+            grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
+            vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             beregning = null,
             simulering = null,
             reguleringType = reguleringType,
@@ -368,15 +367,6 @@ class ReguleringServiceImpl(
 
     private fun lagreHeleRegulering(regulering: Regulering.OpprettetRegulering) {
         reguleringRepo.lagre(regulering)
-        vilkårsvurderingService.lagre(
-            behandlingId = regulering.id,
-            vilkårsvurderinger = regulering.vilkårsvurderinger,
-        )
-        grunnlagService.lagreFradragsgrunnlag(
-            behandlingId = regulering.id,
-            fradragsgrunnlag = regulering.grunnlagsdata.fradragsgrunnlag,
-        )
-        grunnlagService.lagreBosituasjongrunnlag(regulering.id, regulering.grunnlagsdata.bosituasjon)
     }
 
     private fun utledAutomatiskEllerManuellRegulering(gjeldendeVedtaksdata: GjeldendeVedtaksdata): ReguleringType =

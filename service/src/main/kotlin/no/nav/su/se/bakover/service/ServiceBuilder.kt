@@ -131,8 +131,6 @@ object ServiceBuilder {
             sakRepo = databaseRepos.sak,
             utbetalingService = utbetalingService,
             vedtakService = vedtakService,
-            vilkårsvurderingService = vilkårsvurderingService,
-            grunnlagService = grunnlagService,
             clock = clock,
         )
 

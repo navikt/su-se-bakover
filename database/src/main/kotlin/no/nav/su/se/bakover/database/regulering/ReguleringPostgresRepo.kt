@@ -12,11 +12,7 @@ import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTr
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
-import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -28,6 +24,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
@@ -51,11 +48,7 @@ import javax.sql.DataSource
 // TODO Vurdere om vi skal lage et felles repo for alle grunnlag, så vi slipper å sende inn alle sammen
 internal class ReguleringPostgresRepo(
     private val dataSource: DataSource,
-    private val fradragsgrunnlagPostgresRepo: FradragsgrunnlagPostgresRepo,
-    private val bosituasjongrunnlagPostgresRepo: BosituasjongrunnlagPostgresRepo,
-    private val uføreVilkårsvurderingPostgresRepo: UføreVilkårsvurderingPostgresRepo,
-    private val formueVilkårsvurderingPostgresRepo: FormueVilkårsvurderingPostgresRepo,
-    private val utenlandsoppholdVilkårsvurderingPostgresRepo: UtenlandsoppholdVilkårsvurderingPostgresRepo,
+    private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
     private val sessionFactory: PostgresSessionFactory,
 ) : ReguleringRepo {
     override fun hent(id: UUID): Regulering? {
@@ -168,9 +161,9 @@ internal class ReguleringPostgresRepo(
                 ),
                 session,
             )
-        utenlandsoppholdVilkårsvurderingPostgresRepo.lagre(
+        grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
             behandlingId = regulering.id,
-            vilkår = regulering.vilkårsvurderinger.utenlandsopphold,
+            grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
             tx = session,
         )
     }
@@ -254,17 +247,8 @@ internal class ReguleringPostgresRepo(
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
 
-        val fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(id, session)
-        val bosituasjonsgrunnlag = bosituasjongrunnlagPostgresRepo.hentBosituasjongrunnlag(id, session)
-        val grunnlagsdata = Grunnlagsdata.create(
-            fradragsgrunnlag = fradragsgrunnlag,
-            bosituasjon = bosituasjonsgrunnlag,
-        )
-        val vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-            uføre = uføreVilkårsvurderingPostgresRepo.hent(id, session),
-            formue = formueVilkårsvurderingPostgresRepo.hent(id, session),
-            utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(id, session),
-        )
+        val grunnlagsdataOgVilkårsvurderinger =
+            grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(id, session)
 
         return lagRegulering(
             status = status,
@@ -275,8 +259,9 @@ internal class ReguleringPostgresRepo(
             saksbehandler = saksbehandler,
             fnr = fnr,
             periode = periode,
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
+            grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
+            vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             beregning = beregning,
             simulering = simulering,
             reguleringType = reguleringType,
@@ -332,6 +317,7 @@ internal class ReguleringPostgresRepo(
         periode: Periode,
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger,
         beregning: Beregning?,
         simulering: Simulering?,
         reguleringType: ReguleringType,
@@ -348,6 +334,7 @@ internal class ReguleringPostgresRepo(
                 periode = periode,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 beregning = beregning,
                 simulering = simulering,
                 reguleringType = reguleringType,
@@ -364,6 +351,7 @@ internal class ReguleringPostgresRepo(
                     periode = periode,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     beregning = beregning,
                     simulering = simulering,
                     reguleringType = reguleringType,
