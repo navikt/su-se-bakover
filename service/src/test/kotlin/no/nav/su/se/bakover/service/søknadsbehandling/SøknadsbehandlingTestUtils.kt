@@ -10,8 +10,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.fnr
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
-import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -48,7 +46,6 @@ internal fun createSøknadsbehandlingService(
     clock: Clock = fixedClock,
     vedtakRepo: VedtakRepo = mock(),
     ferdigstillVedtakService: FerdigstillVedtakService = mock(),
-    grunnlagService: GrunnlagService = mock(),
     sakService: SakService = mock(),
     kontrollsamtaleService: KontrollsamtaleService = mock(),
     sessionFactory: SessionFactory = TestSessionFactory(),
@@ -64,7 +61,6 @@ internal fun createSøknadsbehandlingService(
     clock = clock,
     vedtakRepo = vedtakRepo,
     ferdigstillVedtakService = ferdigstillVedtakService,
-    grunnlagService = grunnlagService,
     sakService = sakService,
     kontrollsamtaleService = kontrollsamtaleService,
     sessionFactory = sessionFactory,
@@ -83,8 +79,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val clock: Clock = fixedClock,
     val vedtakRepo: VedtakRepo = defaultMock(),
     val ferdigstillVedtakService: FerdigstillVedtakService = defaultMock(),
-    val vilkårsvurderingService: VilkårsvurderingService = defaultMock(),
-    val grunnlagService: GrunnlagService = defaultMock(),
     val sakService: SakService = defaultMock(),
     val kontrollsamtaleService: KontrollsamtaleService = defaultMock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
@@ -101,7 +95,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
         clock = clock,
         vedtakRepo = vedtakRepo,
         ferdigstillVedtakService = ferdigstillVedtakService,
-        grunnlagService = grunnlagService,
         sakService = sakService,
         kontrollsamtaleService = kontrollsamtaleService,
         sessionFactory = sessionFactory,
@@ -120,8 +113,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
             brevService,
             vedtakRepo,
             ferdigstillVedtakService,
-            vilkårsvurderingService,
-            grunnlagService,
             sakService,
             kontrollsamtaleService,
             avkortingsvarselRepo
@@ -140,8 +131,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
             brevService,
             vedtakRepo,
             ferdigstillVedtakService,
-            vilkårsvurderingService,
-            grunnlagService,
             sakService,
             kontrollsamtaleService,
             avkortingsvarselRepo

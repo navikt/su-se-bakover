@@ -19,11 +19,7 @@ import no.nav.su.se.bakover.database.avkorting.toDb
 import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
-import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -110,11 +106,7 @@ enum class RevurderingsType {
 
 internal class RevurderingPostgresRepo(
     private val dataSource: DataSource,
-    private val fradragsgrunnlagPostgresRepo: FradragsgrunnlagPostgresRepo,
-    private val bosituasjonsgrunnlagPostgresRepo: BosituasjongrunnlagPostgresRepo,
-    private val uføreVilkårsvurderingRepo: UføreVilkårsvurderingPostgresRepo,
-    private val utlandsoppholdVilkårsvurderingRepo: UtenlandsoppholdVilkårsvurderingPostgresRepo,
-    private val formueVilkårsvurderingRepo: FormueVilkårsvurderingPostgresRepo,
+    private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
     søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     klageRepo: KlagePostgresRepo,
     private val dbMetrics: DbMetrics,
@@ -134,19 +126,11 @@ internal class RevurderingPostgresRepo(
         )
 
     private val stansAvYtelseRepo = StansAvYtelsePostgresRepo(
-        fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
-        bosituasjonsgrunnlagPostgresRepo = bosituasjonsgrunnlagPostgresRepo,
-        uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
-        formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
-        utlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
+        grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
     )
 
     private val gjenopptakAvYtelseRepo = GjenopptakAvYtelsePostgresRepo(
-        fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
-        bosituasjonsgrunnlagPostgresRepo = bosituasjonsgrunnlagPostgresRepo,
-        uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
-        formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
-        utlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
+        grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
     )
 
     override fun hent(id: UUID): AbstraktRevurdering? {
@@ -196,6 +180,12 @@ internal class RevurderingPostgresRepo(
             is IverksattRevurdering -> lagre(revurdering, session)
             is UnderkjentRevurdering -> lagre(revurdering, session)
             is AvsluttetRevurdering -> lagre(revurdering, session)
+        }.also {
+            grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
+                behandlingId = revurdering.id,
+                grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
+                tx = session,
+            )
         }
     }
 
@@ -240,17 +230,7 @@ internal class RevurderingPostgresRepo(
             InformasjonSomRevurderes.create(objectMapper.readValue<Map<Revurderingsteg, Vurderingstatus>>(it))
         }
 
-        val fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(id, session)
-        val bosituasjonsgrunnlag = bosituasjonsgrunnlagPostgresRepo.hentBosituasjongrunnlag(id, session)
-        val grunnlagsdata = Grunnlagsdata.create(
-            fradragsgrunnlag = fradragsgrunnlag,
-            bosituasjon = bosituasjonsgrunnlag,
-        )
-        val vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-            uføre = uføreVilkårsvurderingRepo.hent(id, session),
-            formue = formueVilkårsvurderingRepo.hent(id, session),
-            utenlandsopphold = utlandsoppholdVilkårsvurderingRepo.hent(id, session),
-        )
+        val (grunnlagsdata, vilkårsvurderinger) = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(id, session)
 
         val avkorting = stringOrNull("avkorting")?.let {
             objectMapper.readValue<AvkortingVedRevurderingDb>(it).toDomain()
@@ -387,11 +367,6 @@ internal class RevurderingPostgresRepo(
                 ),
                 session,
             )
-        utlandsoppholdVilkårsvurderingRepo.lagre(
-            behandlingId = revurdering.id,
-            vilkår = revurdering.vilkårsvurderinger.utenlandsopphold,
-            tx = session,
-        )
     }
 
     private fun lagre(revurdering: BeregnetRevurdering, tx: TransactionalSession) =

@@ -13,10 +13,8 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksbehandler
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.attestant
@@ -90,10 +88,6 @@ internal class RevurderingIngenEndringTest {
                     argThat { it shouldBe revurdering.periode.fraOgMed },
                 )
                 verify(it.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
-                verify(it.grunnlagService).lagreFradragsgrunnlag(
-                    argThat { it shouldBe revurderingId },
-                    argThat { it shouldBe actual.revurdering.grunnlagsdata.fradragsgrunnlag },
-                )
                 it.verifyNoMoreInteractions()
             }
         }

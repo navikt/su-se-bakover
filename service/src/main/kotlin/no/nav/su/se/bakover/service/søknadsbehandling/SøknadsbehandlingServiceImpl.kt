@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
@@ -46,7 +45,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -81,7 +79,6 @@ internal class SøknadsbehandlingServiceImpl(
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
     private val ferdigstillVedtakService: FerdigstillVedtakService,
-    private val grunnlagService: GrunnlagService,
     private val sakService: SakService,
     private val kontrollsamtaleService: KontrollsamtaleService,
     private val sessionFactory: SessionFactory,
@@ -215,11 +212,6 @@ internal class SøknadsbehandlingServiceImpl(
                 }
             }
         }.map {
-            // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
-            grunnlagService.lagreFradragsgrunnlag(
-                behandlingId = it.id,
-                fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-            )
             søknadsbehandlingRepo.lagre(it)
             it
         }
@@ -530,14 +522,6 @@ internal class SøknadsbehandlingServiceImpl(
             SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
-            grunnlagService.lagreBosituasjongrunnlag(
-                behandlingId = it.id,
-                bosituasjongrunnlag = it.grunnlagsdata.bosituasjon,
-            )
-            grunnlagService.lagreFradragsgrunnlag(
-                behandlingId = it.id,
-                fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-            )
             it
         }
     }
@@ -605,9 +589,6 @@ internal class SøknadsbehandlingServiceImpl(
         return søknadsbehandling.oppdaterBosituasjon(bosituasjon, clock).mapLeft {
             KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(it)
         }.map {
-            // TODO jah: Legg til Søknadsbehandling.leggTilBosituasjonEpsgrunnlag(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
-            grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
-            grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
             søknadsbehandlingRepo.lagre(it)
             it
         }
@@ -631,36 +612,13 @@ internal class SøknadsbehandlingServiceImpl(
             ),
         ).mapLeft {
             return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
-        }.map {
-            // TODO jah: Legg til Søknadsbehandling.fullførBosituasjongrunnlag(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
-            grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
-            grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
-            return when (it) {
-                is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
-                        bosituasjon = listOf(bosituasjon),
-                        fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ).getOrHandle {
-                        return KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it).left()
-                    },
-                )
-                is Søknadsbehandling.Vilkårsvurdert.Innvilget -> it.copy(
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
-                        bosituasjon = listOf(bosituasjon),
-                        fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ).getOrHandle {
-                        return KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it).left()
-                    },
-                )
-                is Søknadsbehandling.Vilkårsvurdert.Uavklart -> it.copy(
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
-                        bosituasjon = listOf(bosituasjon),
-                        fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ).getOrHandle {
-                        return KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it).left()
-                    },
-                )
-            }.right()
+        }.map { vilkårsvurdert ->
+            return vilkårsvurdert.oppdaterBosituasjon(bosituasjon, clock).mapLeft {
+                KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it)
+            }.map {
+                søknadsbehandlingRepo.lagre(it)
+                it
+            }
         }
     }
 
@@ -676,7 +634,6 @@ internal class SøknadsbehandlingServiceImpl(
             return it.toService().left()
         }
 
-        grunnlagService.lagreFradragsgrunnlag(behandling.id, request.fradragsgrunnlag)
         søknadsbehandlingRepo.lagre(oppdatertBehandling)
 
         return oppdatertBehandling.right()

@@ -180,7 +180,7 @@ interface SøknadsbehandlingService {
 
         object KlarteIkkeLagreBosituasjon : KunneIkkeFullføreBosituasjonGrunnlag()
         object KlarteIkkeHentePersonIPdl : KunneIkkeFullføreBosituasjonGrunnlag()
-        data class KunneIkkeEndreBosituasjongrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
+        data class KunneIkkeEndreBosituasjongrunnlag(val feil: Søknadsbehandling.KunneIkkeOppdatereBosituasjon) :
             KunneIkkeFullføreBosituasjonGrunnlag()
     }
 

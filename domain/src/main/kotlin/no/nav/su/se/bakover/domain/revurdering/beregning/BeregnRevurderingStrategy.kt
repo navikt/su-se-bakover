@@ -80,7 +80,7 @@ private fun gjørBeregning(
     clock: Clock,
 ): Beregning {
     return BeregningStrategyFactory(clock).beregn(
-        GrunnlagsdataOgVilkårsvurderinger(
+        GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = revurdering.grunnlagsdata,
             vilkårsvurderinger = revurdering.vilkårsvurderinger,
         ),

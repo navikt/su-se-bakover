@@ -62,6 +62,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     val erIverksatt: Boolean by lazy { this is Iverksatt.Avslag || this is Iverksatt.Innvilget }
     val erLukket: Boolean by lazy { this is LukketSøknadsbehandling }
 
+    val grunnlagsdataOgVilkårsvurderinger by lazy {
+        GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
+        )
+    }
+
     sealed class KunneIkkeLukkeSøknadsbehandling {
         object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
         object KanIkkeLukkeEnIverksattSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
@@ -332,10 +339,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         clock: Clock,
     ): Beregning {
         return BeregningStrategyFactory(clock).beregn(
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
-                grunnlagsdata = søknadsbehandling.grunnlagsdata,
-                vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger,
-            ),
+            grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
             beregningsPeriode = søknadsbehandling.periode,
             begrunnelse = begrunnelse,
         )

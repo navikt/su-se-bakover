@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
+import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -82,17 +83,18 @@ data class Sak(
         )
     }
 
+    @TestOnly
     fun hentGjeldendeVilkårOgGrunnlag(
         periode: Periode,
         clock: Clock,
-    ): GrunnlagsdataOgVilkårsvurderinger {
+    ): GrunnlagsdataOgVilkårsvurderinger.Revurdering {
         return hentGjeldendeVedtaksdata(
             periode = periode,
             clock = clock,
         ).fold(
-            { GrunnlagsdataOgVilkårsvurderinger.IkkeVurdert },
+            { GrunnlagsdataOgVilkårsvurderinger.Revurdering.IkkeVurdert },
             {
-                GrunnlagsdataOgVilkårsvurderinger(
+                GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                     grunnlagsdata = it.grunnlagsdata,
                     vilkårsvurderinger = it.vilkårsvurderinger,
                 )

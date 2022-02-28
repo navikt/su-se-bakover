@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevurderingService
@@ -51,14 +50,12 @@ import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doReturnConsecutively
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import org.mockito.kotlin.whenever
 import java.util.UUID
 
 internal class RegulerGrunnbeløpServiceImplTest {
@@ -83,11 +80,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 opprettetRevurdering.copy(grunnlagsdata = Grunnlagsdata.IkkeVurdert),
             )
         }
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            vilkårsvurderingService = vilkårsvurderingServiceMock,
         ).leggTilUføregrunnlag(
             LeggTilUførevurderingerRequest(
                 behandlingId = revurderingId,
@@ -125,11 +120,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             },
             anyOrNull()
         )
-        verify(vilkårsvurderingServiceMock).lagre(
-            argThat { it shouldBe opprettetRevurdering.id },
-            any(),
-        )
-        verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock)
     }
 
     @Test
@@ -148,9 +138,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             },
             utbetalingService = mock {
                 on { hentUtbetalinger(any()) } doReturn sak.utbetalinger
-            },
-            grunnlagService = mock {
-                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
             },
             vedtakService = mock {
                 on {
@@ -178,10 +165,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             )
             verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
-            verify(serviceAndMocks.grunnlagService).lagreFradragsgrunnlag(
-                argThat { it shouldBe revurdering.id },
-                argThat { it shouldBe revurdering.grunnlagsdata.fradragsgrunnlag },
-            )
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }
