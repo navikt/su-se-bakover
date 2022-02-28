@@ -10,29 +10,14 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.database.withTransaction
-import no.nav.su.se.bakover.domain.grunnlag.FormueVilkårsvurderingRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import java.util.UUID
-import javax.sql.DataSource
 
 internal class FormueVilkårsvurderingPostgresRepo(
-    private val dataSource: DataSource,
     private val formuegrunnlagPostgresRepo: FormuegrunnlagPostgresRepo,
     private val dbMetrics: DbMetrics,
-) : FormueVilkårsvurderingRepo {
-
-    override fun lagre(behandlingId: UUID, vilkår: Vilkår.Formue) {
-        dataSource.withTransaction { tx ->
-            lagre(
-                behandlingId = behandlingId,
-                vilkår = vilkår,
-                tx = tx,
-            )
-        }
-    }
-
+) {
     internal fun lagre(behandlingId: UUID, vilkår: Vilkår.Formue, tx: TransactionalSession) {
         slettForBehandlingId(behandlingId, tx)
         when (vilkår) {

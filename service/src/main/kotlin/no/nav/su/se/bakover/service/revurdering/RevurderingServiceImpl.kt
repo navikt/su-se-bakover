@@ -65,9 +65,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
-import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -95,8 +93,6 @@ internal class RevurderingServiceImpl(
     private val brevService: BrevService,
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
-    private val vilkårsvurderingService: VilkårsvurderingService,
-    private val grunnlagService: GrunnlagService,
     private val vedtakService: VedtakService,
     private val kontrollsamtaleService: KontrollsamtaleService,
     private val sessionFactory: SessionFactory,
@@ -266,18 +262,6 @@ internal class RevurderingServiceImpl(
             ).also {
                 revurderingRepo.lagre(it)
 
-                vilkårsvurderingService.lagre(
-                    behandlingId = it.id,
-                    vilkårsvurderinger = it.vilkårsvurderinger,
-                )
-
-                grunnlagService.lagreFradragsgrunnlag(
-                    behandlingId = it.id,
-                    fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                )
-
-                grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)
-
                 observers.forEach { observer ->
                     observer.handle(
                         Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(
@@ -366,8 +350,6 @@ internal class RevurderingServiceImpl(
         return revurdering.oppdaterUføreOgMarkerSomVurdert(uførevilkår).mapLeft {
             KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(fra = it.fra, til = it.til)
         }.map {
-            // TODO jah: Flytt denne inn i revurderingRepo.lagre
-            vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
             revurderingRepo.lagre(it)
             identifiserFeilOgLagResponse(it)
         }
@@ -435,8 +417,6 @@ internal class RevurderingServiceImpl(
                 )
             }
         }.map {
-            // TODO jah: Flytt denne inn i revurderingRepo.lagre
-            grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
             revurderingRepo.lagre(it)
             identifiserFeilOgLagResponse(it)
         }
@@ -467,8 +447,6 @@ internal class RevurderingServiceImpl(
                 )
             }
         }.map {
-            // TODO jah: Flytt denne inn i revurderingRepo.lagre
-            grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)
             revurderingRepo.lagre(it)
             identifiserFeilOgLagResponse(it)
         }
@@ -486,8 +464,6 @@ internal class RevurderingServiceImpl(
         return revurdering.oppdaterFormueOgMarkerSomVurdert(vilkår).mapLeft {
             KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(fra = it.fra, til = it.til)
         }.map {
-            // TODO jah: Flytt denne inn i revurderingRepo.lagre
-            vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
             revurderingRepo.lagre(it)
             identifiserFeilOgLagResponse(it)
         }
@@ -701,9 +677,6 @@ internal class RevurderingServiceImpl(
             ).left()
         }.map {
             revurderingRepo.lagre(it)
-            vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
-            grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
-            grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)
             it
         }
     }
@@ -755,11 +728,6 @@ internal class RevurderingServiceImpl(
                 when (beregnetRevurdering) {
                     is BeregnetRevurdering.IngenEndring -> {
                         revurderingRepo.lagre(beregnetRevurdering)
-                        // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
-                        grunnlagService.lagreFradragsgrunnlag(
-                            behandlingId = revurderingId,
-                            fradragsgrunnlag = beregnetRevurdering.grunnlagsdata.fradragsgrunnlag,
-                        )
                         when (leggTilVarselForBeløpsendringUnder10Prosent) {
                             true -> {
                                 identifiserFeilOgLagResponse(beregnetRevurdering)
@@ -785,11 +753,6 @@ internal class RevurderingServiceImpl(
                         }.map {
                             beregnetRevurdering.toSimulert(it.simulering, clock).let { simulert ->
                                 revurderingRepo.lagre(simulert)
-                                // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
-                                grunnlagService.lagreFradragsgrunnlag(
-                                    behandlingId = revurderingId,
-                                    fradragsgrunnlag = beregnetRevurdering.grunnlagsdata.fradragsgrunnlag,
-                                )
                                 when (leggTilVarselForBeløpsendringUnder10Prosent) {
                                     true -> {
                                         identifiserFeilOgLagResponse(simulert)
@@ -815,11 +778,6 @@ internal class RevurderingServiceImpl(
                         }.mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }
                             .map { simulert ->
                                 revurderingRepo.lagre(simulert)
-                                // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
-                                grunnlagService.lagreFradragsgrunnlag(
-                                    behandlingId = revurderingId,
-                                    fradragsgrunnlag = beregnetRevurdering.grunnlagsdata.fradragsgrunnlag,
-                                )
                                 if (leggTilVarselForBeløpsendringUnder10Prosent && !simulert.opphørSkyldesVilkår()) {
                                     identifiserFeilOgLagResponse(simulert)
                                         .leggTil(Varselmelding.BeløpsendringUnder10Prosent)

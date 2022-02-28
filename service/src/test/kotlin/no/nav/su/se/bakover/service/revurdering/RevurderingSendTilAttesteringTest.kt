@@ -464,7 +464,7 @@ internal class RevurderingSendTilAttesteringTest {
                 simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
                     stønadsperiode = stønadsperiode,
                     revurderingsperiode = revurderingsperiode,
-                    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+                    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                         grunnlagsdataEnsligUtenFradrag(periode = revurderingsperiode),
                         vilkårsvurderinger,
                     ),
@@ -501,7 +501,7 @@ internal class RevurderingSendTilAttesteringTest {
                 stønadsperiode = stønadsperiode,
                 revurderingsperiode = revurderingsperiode,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataEnsligMedFradrag(periode = revurderingsperiode).let {
-                    GrunnlagsdataOgVilkårsvurderinger(
+                    GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                         it,
                         vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                             periode = stønadsperiode.periode,

@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormuegrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
@@ -119,7 +119,6 @@ import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -166,21 +165,6 @@ internal fun utbetalingslinje(periode: Periode = stønadsperiode.periode) =
         beløp = 25000,
         uføregrad = Uføregrad.parse(50),
     )
-
-internal fun utbetalingslinje(
-    beløp: Int = 25000,
-    fraOgMed: LocalDate = 1.januar(2020),
-    tilOgMed: LocalDate = 31.desember(2020),
-): Utbetalingslinje.Ny {
-    return Utbetalingslinje.Ny(
-        opprettet = fixedTidspunkt,
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
-        forrigeUtbetalingslinjeId = null,
-        beløp = beløp,
-        uføregrad = Uføregrad.parse(50),
-    )
-}
 
 internal fun oversendtUtbetalingUtenKvittering(
     søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
@@ -258,19 +242,12 @@ internal class TestDataHelper(
     internal val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
     internal val utenlandsoppholdgrunnlagPostgresRepo = UtenlandsoppholdgrunnlagPostgresRepo()
     internal val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(
-        dataSource = dataSource,
         dbMetrics = dbMetrics,
     )
     internal val bosituasjongrunnlagPostgresRepo = BosituasjongrunnlagPostgresRepo(
-        dataSource = dataSource,
         dbMetrics = dbMetrics,
     )
-    internal val grunnlagRepo = GrunnlagPostgresRepo(
-        fradragsgrunnlagRepo = fradragsgrunnlagPostgresRepo,
-        bosituasjongrunnlagRepo = bosituasjongrunnlagPostgresRepo,
-    )
     internal val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(
-        dataSource = dataSource,
         uføregrunnlagRepo = uføregrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
     )
@@ -281,30 +258,30 @@ internal class TestDataHelper(
     internal val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(sessionFactory)
     internal val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo()
     internal val formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(
-        dataSource = dataSource,
         formuegrunnlagPostgresRepo = formuegrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
     )
+    internal val grunnlagsdataOgVilkårsvurderingerPostgresRepo = GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
+        bosituasjongrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
+        fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
+        uføreVilkårsvurderingPostgresRepo = uføreVilkårsvurderingRepo,
+        formueVilkårsvurderingPostgresRepo = formueVilkårsvurderingPostgresRepo,
+        utenlandsoppholdVilkårsvurderingPostgresRepo = utenlandsoppholdVilkårsvurderingRepo,
+    )
     internal val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(
         dataSource = dataSource,
-        fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
-        bosituasjongrunnlagRepo = bosituasjongrunnlagPostgresRepo,
-        uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
+        grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
-        utenlandsoppholdVilkårsvurderingRepo = utenlandsoppholdVilkårsvurderingRepo,
         avkortingsvarselRepo = avkortingsvarselRepo,
+        clock = clock,
     )
     internal val klageinstanshendelsePostgresRepo = KlageinstanshendelsePostgresRepo(sessionFactory)
     internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory, klageinstanshendelsePostgresRepo)
     internal val tilbakekrevingRepo = TilbakekrevingPostgresRepo(sessionFactory)
     internal val revurderingRepo = RevurderingPostgresRepo(
         dataSource = dataSource,
-        fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
-        bosituasjonsgrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
-        uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
-        utlandsoppholdVilkårsvurderingRepo = utenlandsoppholdVilkårsvurderingRepo,
-        formueVilkårsvurderingRepo = formueVilkårsvurderingPostgresRepo,
+        grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         klageRepo = klagePostgresRepo,
         dbMetrics = dbMetrics,
@@ -541,11 +518,6 @@ internal class TestDataHelper(
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
         ).also {
-            lagreVilkårOgGrunnlag(
-                behandlingId = it.id,
-                vilkårsvurderinger = vilkårsvurderinger,
-                grunnlagsdata = grunnlagsdata,
-            )
             revurderingRepo.lagre(it)
         }
     }
@@ -567,36 +539,6 @@ internal class TestDataHelper(
         ).getOrFail().let {
             revurderingRepo.lagre(it)
             it as BeregnetRevurdering.Innvilget
-        }
-    }
-
-    private fun simulertRevurdering(): SimulertRevurdering {
-        return beregnetRevurdering().toSimulert(simulering(Fnr.generer()), clock).also {
-            revurderingRepo.lagre(it)
-        }
-    }
-
-    fun tilAttesteringRevurdering(): RevurderingTilAttestering {
-        val simulert = simulertRevurdering()
-        return when (simulert) {
-            is SimulertRevurdering.Innvilget -> simulert.tilAttestering(
-                attesteringsoppgaveId = oppgaveId,
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = "",
-            ).getOrFail()
-            is SimulertRevurdering.Opphørt -> simulert.tilAttestering(
-                attesteringsoppgaveId = oppgaveId,
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = "",
-            ).getOrFail()
-        }.also {
-            revurderingRepo.lagre(it)
-        }
-    }
-
-    fun underkjentRevurdering(): UnderkjentRevurdering {
-        return tilAttesteringRevurdering().underkjenn(underkjentAttestering, OppgaveId("oppgaveid")).also {
-            revurderingRepo.lagre(it)
         }
     }
 
@@ -962,7 +904,6 @@ internal class TestDataHelper(
                 false -> bosituasjongrunnlagEpsUførFlyktning(id = UUID.randomUUID(), periode = periode, epsFnr = epsFnr)
             },
         ),
-        // søknadsbehandling benytter enn så lenge fradrag rett fra beregning
         fradragsgrunnlag = emptyList(),
     )
 
@@ -988,11 +929,6 @@ internal class TestDataHelper(
             behandlingsinformasjon,
             clock = fixedClock,
         ).also {
-            lagreVilkårOgGrunnlag(
-                behandlingId = it.id,
-                vilkårsvurderinger = vilkårsvurderinger,
-                grunnlagsdata = grunnlagsdata,
-            )
             søknadsbehandlingRepo.lagre(it)
         } as Søknadsbehandling.Vilkårsvurdert.Innvilget
     }
@@ -1027,24 +963,6 @@ internal class TestDataHelper(
         )
     }
 
-    internal fun lagreVilkårOgGrunnlag(
-        behandlingId: UUID,
-        vilkårsvurderinger: Vilkårsvurderinger,
-        grunnlagsdata: Grunnlagsdata,
-    ) {
-        bosituasjongrunnlagPostgresRepo.lagreBosituasjongrunnlag(behandlingId, grunnlagsdata.bosituasjon)
-        fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(behandlingId, grunnlagsdata.fradragsgrunnlag)
-        when (vilkårsvurderinger) {
-            is Vilkårsvurderinger.Revurdering -> {
-                uføreVilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.uføre)
-                formueVilkårsvurderingPostgresRepo.lagre(behandlingId, vilkårsvurderinger.formue)
-            }
-            is Vilkårsvurderinger.Søknadsbehandling -> {
-                formueVilkårsvurderingPostgresRepo.lagre(behandlingId, vilkårsvurderinger.formue)
-            }
-        }
-    }
-
     internal fun nyAvslåttVilkårsvurdering(
         grunnlagsdata: Grunnlagsdata = Grunnlagsdata.create(
             bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = stønadsperiode.periode)),
@@ -1063,7 +981,6 @@ internal class TestDataHelper(
             )
             .also {
                 søknadsbehandlingRepo.lagre(it)
-                lagreVilkårOgGrunnlag(it.id, vilkårsvurderinger, grunnlagsdata)
             } as Søknadsbehandling.Vilkårsvurdert.Avslag
     }
 

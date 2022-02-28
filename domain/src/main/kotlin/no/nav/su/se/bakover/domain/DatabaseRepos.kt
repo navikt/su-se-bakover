@@ -3,9 +3,6 @@ package no.nav.su.se.bakover.domain
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
-import no.nav.su.se.bakover.domain.grunnlag.FormueVilkårsvurderingRepo
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagRepo
-import no.nav.su.se.bakover.domain.grunnlag.UføreVilkårsvurderingRepo
 import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
@@ -33,9 +30,6 @@ data class DatabaseRepos(
     val søknadsbehandling: SøknadsbehandlingRepo,
     val revurderingRepo: RevurderingRepo,
     val vedtakRepo: VedtakRepo,
-    val grunnlagRepo: GrunnlagRepo,
-    val uføreVilkårsvurderingRepo: UføreVilkårsvurderingRepo,
-    val formueVilkårsvurderingRepo: FormueVilkårsvurderingRepo,
     val personhendelseRepo: PersonhendelseRepo,
     val dokumentRepo: DokumentRepo,
     val nøkkeltallRepo: NøkkeltallRepo,

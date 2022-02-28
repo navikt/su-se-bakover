@@ -62,6 +62,10 @@ fun Nel<Vurderingsperiode>.erLik(other: Nel<Vurderingsperiode>): Boolean {
 sealed class Vilkårsvurderinger {
     abstract val vilkår: Set<Vilkår>
 
+    abstract val uføre: Vilkår.Uførhet
+    abstract val formue: Vilkår.Formue
+    abstract val utenlandsopphold: UtenlandsoppholdVilkår
+
     val periode: Periode?
         get() {
             return vilkår.flatMap { vilkår ->
@@ -120,13 +124,13 @@ sealed class Vilkårsvurderinger {
     abstract fun erLik(other: Vilkårsvurderinger): Boolean
 
     data class Søknadsbehandling(
-        val uføre: Vilkår.Uførhet = Vilkår.Uførhet.IkkeVurdert,
-        val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
+        override val uføre: Vilkår.Uførhet = Vilkår.Uførhet.IkkeVurdert,
+        override val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
         val flyktning: FlyktningVilkår = FlyktningVilkår.IkkeVurdert,
         val lovligOpphold: LovligOppholdVilkår = LovligOppholdVilkår.IkkeVurdert,
         val fastOpphold: FastOppholdINorgeVilkår = FastOppholdINorgeVilkår.IkkeVurdert,
         val institusjonsopphold: InstitusjonsoppholdVilkår = InstitusjonsoppholdVilkår.IkkeVurdert,
-        val utenlandsopphold: UtenlandsoppholdVilkår = UtenlandsoppholdVilkår.IkkeVurdert,
+        override val utenlandsopphold: UtenlandsoppholdVilkår = UtenlandsoppholdVilkår.IkkeVurdert,
         val personligOppmøte: PersonligOppmøteVilkår = PersonligOppmøteVilkår.IkkeVurdert,
     ) : Vilkårsvurderinger() {
         override val vilkår: Set<Vilkår>
@@ -262,9 +266,9 @@ sealed class Vilkårsvurderinger {
     }
 
     data class Revurdering(
-        val uføre: Vilkår.Uførhet,
-        val formue: Vilkår.Formue,
-        val utenlandsopphold: UtenlandsoppholdVilkår,
+        override val uføre: Vilkår.Uførhet,
+        override val formue: Vilkår.Formue,
+        override val utenlandsopphold: UtenlandsoppholdVilkår,
     ) : Vilkårsvurderinger() {
         override val vilkår: Set<Vilkår>
             get() {

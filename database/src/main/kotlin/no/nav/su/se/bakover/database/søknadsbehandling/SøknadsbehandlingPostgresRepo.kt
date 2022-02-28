@@ -17,10 +17,7 @@ import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avkorting.toDb
 import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
-import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -37,7 +34,6 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
@@ -46,20 +42,17 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.util.UUID
 import javax.sql.DataSource
 
 internal class SøknadsbehandlingPostgresRepo(
     private val dataSource: DataSource,
-    private val fradragsgrunnlagPostgresRepo: FradragsgrunnlagPostgresRepo,
-    private val bosituasjongrunnlagRepo: BosituasjongrunnlagPostgresRepo,
-    private val uføreVilkårsvurderingRepo: UføreVilkårsvurderingPostgresRepo,
+    private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
     private val dbMetrics: DbMetrics,
     private val sessionFactory: PostgresSessionFactory,
-    private val utenlandsoppholdVilkårsvurderingRepo: UtenlandsoppholdVilkårsvurderingPostgresRepo,
     private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
+    private val clock: Clock,
 ) : SøknadsbehandlingRepo {
     override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext) {
         sessionContext.withTransaction { tx ->
@@ -71,6 +64,12 @@ internal class SøknadsbehandlingPostgresRepo(
                 is Søknadsbehandling.Underkjent -> lagre(søknadsbehandling, tx)
                 is Søknadsbehandling.Iverksatt -> lagre(søknadsbehandling, tx)
                 is LukketSøknadsbehandling -> lagre(søknadsbehandling, tx)
+            }.also {
+                grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
+                    behandlingId = søknadsbehandling.id,
+                    grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
+                    tx = tx,
+                )
             }
         }
     }
@@ -232,23 +231,20 @@ internal class SøknadsbehandlingPostgresRepo(
         val stønadsperiode = stringOrNull("stønadsperiode")?.let { objectMapper.readValue<Stønadsperiode>(it) }
 
         val fnr = Fnr(string("fnr"))
-        val grunnlagsdata = Grunnlagsdata.create(
-            fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
-            bosituasjon = bosituasjongrunnlagRepo.hentBosituasjongrunnlag(behandlingId, session),
-        )
-
-        val vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-            uføre = uføreVilkårsvurderingRepo.hent(behandlingId, session),
-            utenlandsopphold = utenlandsoppholdVilkårsvurderingRepo.hent(behandlingId, session),
-        ).let { vv ->
+        val (grunnlagsdata, vilkårsvurderinger) = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForSøknadsbehandling(
+            behandlingId,
+            session,
+        ).let { grunnlagsdataOgVilkårsvurderinger ->
             stønadsperiode?.let {
-                vv.oppdater(
-                    stønadsperiode = stønadsperiode,
-                    behandlingsinformasjon = behandlingsinformasjon,
-                    grunnlagsdata = grunnlagsdata,
-                    clock = Clock.systemUTC(),
+                grunnlagsdataOgVilkårsvurderinger.copy(
+                    vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.oppdater(
+                        stønadsperiode = stønadsperiode,
+                        behandlingsinformasjon = behandlingsinformasjon,
+                        grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
+                        clock = clock,
+                    ),
                 )
-            } ?: vv
+            } ?: grunnlagsdataOgVilkårsvurderinger
         }
 
         val avkorting = stringOrNull("avkorting")?.let {
@@ -548,18 +544,6 @@ internal class SøknadsbehandlingPostgresRepo(
                     where id = :id    
         """.trimIndent()
             .oppdatering(defaultParams(søknadsbehandling), tx)
-
-        utenlandsoppholdVilkårsvurderingRepo.lagre(
-            behandlingId = søknadsbehandling.id,
-            vilkår = søknadsbehandling.vilkårsvurderinger.utenlandsopphold,
-            tx = tx,
-        )
-
-        uføreVilkårsvurderingRepo.lagre(
-            behandlingId = søknadsbehandling.id,
-            vilkår = søknadsbehandling.vilkårsvurderinger.uføre,
-            tx = tx,
-        )
     }
 
     private fun lagre(søknadsbehandling: Søknadsbehandling.Beregnet, tx: TransactionalSession) {

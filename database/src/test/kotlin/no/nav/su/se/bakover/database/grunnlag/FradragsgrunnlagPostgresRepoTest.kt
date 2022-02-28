@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
@@ -19,7 +20,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
     fun `lagrer, henter og erstatter fradragsgrunnlag`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.grunnlagRepo
+            val grunnlagRepo = testDataHelper.fradragsgrunnlagPostgresRepo
             val behandling = testDataHelper.nySøknadsbehandling()
 
             val fradragsgrunnlag1 = lagFradragsgrunnlag(
@@ -39,43 +40,47 @@ internal class FradragsgrunnlagPostgresRepoTest {
                 tilhører = FradragTilhører.EPS,
             )
 
-            grunnlagRepo.lagreFradragsgrunnlag(
-                behandlingId = behandling.id,
-                fradragsgrunnlag = listOf(
-                    fradragsgrunnlag1,
-                    fradragsgrunnlag2,
-                ),
-            )
+            dataSource.withTransaction { tx ->
+                grunnlagRepo.lagreFradragsgrunnlag(
+                    behandlingId = behandling.id,
+                    fradragsgrunnlag = listOf(
+                        fradragsgrunnlag1,
+                        fradragsgrunnlag2,
+                    ),
+                    tx,
+                )
 
-            testDataHelper.fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandling.id) shouldBe listOf(
-                fradragsgrunnlag1.copy(
-                    fradrag = PersistertFradrag(
-                        fradragstype = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 5000.0,
-                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
-                        utenlandskInntekt = UtenlandskInntekt.create(
-                            beløpIUtenlandskValuta = 5, valuta = "DKK", kurs = 10.5,
+                testDataHelper.fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandling.id, tx) shouldBe listOf(
+                    fradragsgrunnlag1.copy(
+                        fradrag = PersistertFradrag(
+                            fradragstype = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 5000.0,
+                            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                            utenlandskInntekt = UtenlandskInntekt.create(
+                                beløpIUtenlandskValuta = 5, valuta = "DKK", kurs = 10.5,
+                            ),
+                            tilhører = FradragTilhører.BRUKER,
                         ),
-                        tilhører = FradragTilhører.BRUKER,
                     ),
-                ),
-                fradragsgrunnlag2.copy(
-                    fradrag = PersistertFradrag(
-                        fradragstype = Fradragstype.Kontantstøtte,
-                        månedsbeløp = 15000.0,
-                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.EPS,
+                    fradragsgrunnlag2.copy(
+                        fradrag = PersistertFradrag(
+                            fradragstype = Fradragstype.Kontantstøtte,
+                            månedsbeløp = 15000.0,
+                            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.EPS,
+                        ),
                     ),
-                ),
-            )
+                )
 
-            grunnlagRepo.lagreFradragsgrunnlag(
-                behandlingId = behandling.id,
-                fradragsgrunnlag = emptyList(),
-            )
+                grunnlagRepo.lagreFradragsgrunnlag(
+                    behandlingId = behandling.id,
+                    fradragsgrunnlag = emptyList(),
+                    tx = tx,
+                )
 
-            testDataHelper.fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandling.id) shouldBe emptyList()
+                testDataHelper.fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandling.id, tx) shouldBe emptyList()
+            }
         }
     }
 }

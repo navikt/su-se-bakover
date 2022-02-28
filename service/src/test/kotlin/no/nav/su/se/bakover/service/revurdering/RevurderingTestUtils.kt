@@ -18,8 +18,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
-import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -102,8 +100,6 @@ internal object RevurderingTestUtils {
         brevService: BrevService = mock(),
         clock: Clock = fixedClock,
         vedtakRepo: VedtakRepo = mock(),
-        vilkårsvurderingService: VilkårsvurderingService = mock(),
-        grunnlagService: GrunnlagService = mock(),
         sakService: SakService = mock(),
         kontrollsamtaleService: KontrollsamtaleService = mock(),
         sessionFactory: SessionFactory = TestSessionFactory(),
@@ -120,8 +116,6 @@ internal object RevurderingTestUtils {
             brevService = brevService,
             clock = clock,
             vedtakRepo = vedtakRepo,
-            vilkårsvurderingService = vilkårsvurderingService,
-            grunnlagService = grunnlagService,
             vedtakService = vedtakService,
             sakService = sakService,
             kontrollsamtaleService = kontrollsamtaleService,

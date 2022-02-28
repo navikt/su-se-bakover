@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.revurdering
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.januar
@@ -34,6 +35,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.fixedClock
@@ -68,22 +70,30 @@ internal class RevurderingPostgresRepoTest {
         ),
     )
 
-    private fun opprettet(vedtak: VedtakSomKanRevurderes.EndringIYtelse) = OpprettetRevurdering(
-        id = UUID.randomUUID(),
-        periode = periode2021,
-        opprettet = fixedTidspunkt,
-        tilRevurdering = vedtak,
-        saksbehandler = saksbehandler,
-        oppgaveId = oppgaveId,
-        fritekstTilBrev = "",
-        revurderingsårsak = revurderingsårsak,
-        forhåndsvarsel = null,
-        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
-        informasjonSomRevurderes = informasjonSomRevurderes,
-        attesteringer = Attesteringshistorikk.empty(),
-        avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
-    )
+    private fun opprettet(vedtak: VedtakSomKanRevurderes.EndringIYtelse): OpprettetRevurdering {
+        val x = GjeldendeVedtaksdata(
+            periode = periode2021,
+            vedtakListe = nonEmptyListOf(vedtak),
+            clock = fixedClock,
+        )
+
+        return OpprettetRevurdering(
+            id = UUID.randomUUID(),
+            periode = periode2021,
+            opprettet = fixedTidspunkt,
+            tilRevurdering = vedtak,
+            saksbehandler = saksbehandler,
+            oppgaveId = oppgaveId,
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
+            grunnlagsdata = x.grunnlagsdata,
+            vilkårsvurderinger = x.vilkårsvurderinger,
+            informasjonSomRevurderes = informasjonSomRevurderes,
+            attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
+        )
+    }
 
     private fun beregnetIngenEndring(
         opprettet: OpprettetRevurdering,

@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
@@ -90,7 +89,6 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
@@ -770,21 +768,6 @@ open class AccessCheckProxy(
                     vedtakId: UUID,
                 ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata> {
                     return services.vedtakService.historiskGrunnlagForVedtaksperiode(sakId, vedtakId)
-                }
-            },
-            grunnlagService = object : GrunnlagService {
-                override fun lagreFradragsgrunnlag(
-                    behandlingId: UUID,
-                    fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-                ) {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun lagreBosituasjongrunnlag(
-                    behandlingId: UUID,
-                    bosituasjongrunnlag: List<Grunnlag.Bosituasjon>,
-                ) {
-                    kastKanKunKallesFraAnnenService()
                 }
             },
             nøkkeltallService = object : NøkkeltallService {

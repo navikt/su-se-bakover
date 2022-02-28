@@ -40,7 +40,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevurderingService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsak
 import no.nav.su.se.bakover.service.søknadsbehandling.testBeregning
@@ -73,11 +72,8 @@ internal class RevurderingLeggTilFormueServiceTest {
             on { hent(revurderingId) } doReturn opprettetRevurdering
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
-
         val actual = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            vilkårsvurderingService = vilkårsvurderingServiceMock,
         ).leggTilFormuegrunnlag(
             request = LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
@@ -157,11 +153,6 @@ internal class RevurderingLeggTilFormueServiceTest {
             },
             anyOrNull()
         )
-        verify(vilkårsvurderingServiceMock).lagre(
-            argThat { it shouldBe revurderingId },
-            argThat { it shouldBe expectedVilkårsvurderinger },
-        )
-        verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock)
     }
 
     @Test
@@ -182,11 +173,8 @@ internal class RevurderingLeggTilFormueServiceTest {
             )
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
-
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            vilkårsvurderingService = vilkårsvurderingServiceMock,
         ).leggTilFormuegrunnlag(
             request = LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
@@ -207,11 +195,9 @@ internal class RevurderingLeggTilFormueServiceTest {
 
         inOrder(
             revurderingRepoMock,
-            vilkårsvurderingServiceMock,
         ) {
             verify(revurderingRepoMock).hent(revurderingId)
         }
-        verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock)
     }
 
     @Test
@@ -220,11 +206,8 @@ internal class RevurderingLeggTilFormueServiceTest {
             on { hent(revurderingId) } doReturn opprettetRevurdering
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
-
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            vilkårsvurderingService = vilkårsvurderingServiceMock,
         ).leggTilFormuegrunnlag(
             request = LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
@@ -245,11 +228,10 @@ internal class RevurderingLeggTilFormueServiceTest {
 
         inOrder(
             revurderingRepoMock,
-            vilkårsvurderingServiceMock,
         ) {
             verify(revurderingRepoMock).hent(revurderingId)
         }
-        verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock)
+        verifyNoMoreInteractions(revurderingRepoMock)
     }
 
     @Test
@@ -258,11 +240,8 @@ internal class RevurderingLeggTilFormueServiceTest {
             on { hent(revurderingId) } doReturn opprettetRevurdering
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
-
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            vilkårsvurderingService = vilkårsvurderingServiceMock,
         ).leggTilFormuegrunnlag(
             request = LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
@@ -283,11 +262,10 @@ internal class RevurderingLeggTilFormueServiceTest {
 
         inOrder(
             revurderingRepoMock,
-            vilkårsvurderingServiceMock,
         ) {
             verify(revurderingRepoMock).hent(revurderingId)
         }
-        verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock)
+        verifyNoMoreInteractions(revurderingRepoMock)
     }
 
     @Test
@@ -296,11 +274,8 @@ internal class RevurderingLeggTilFormueServiceTest {
             on { hent(revurderingId) } doReturn opprettetRevurdering
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
-
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            vilkårsvurderingService = vilkårsvurderingServiceMock,
         ).leggTilFormuegrunnlag(
             request = LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
@@ -327,11 +302,10 @@ internal class RevurderingLeggTilFormueServiceTest {
 
         inOrder(
             revurderingRepoMock,
-            vilkårsvurderingServiceMock,
         ) {
             verify(revurderingRepoMock).hent(revurderingId)
         }
-        verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock)
+        verifyNoMoreInteractions(revurderingRepoMock)
     }
 
     @Test
@@ -340,11 +314,8 @@ internal class RevurderingLeggTilFormueServiceTest {
             on { hent(revurderingId) } doReturn null
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
-
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            vilkårsvurderingService = vilkårsvurderingServiceMock,
         ).leggTilFormuegrunnlag(
             request = LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
@@ -365,17 +336,16 @@ internal class RevurderingLeggTilFormueServiceTest {
 
         inOrder(
             revurderingRepoMock,
-            vilkårsvurderingServiceMock,
         ) {
             verify(revurderingRepoMock).hent(revurderingId)
         }
-        verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock)
+        verifyNoMoreInteractions(revurderingRepoMock)
     }
 
     @Test
     fun `når formue blir avslått, og uførhet er det også, får vi feil om at utfallet ikke støttes pga opphør av flere vilkår`() {
         val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                 grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -502,11 +472,8 @@ internal class RevurderingLeggTilFormueServiceTest {
             on { hent(revurderingId) } doReturn revurderingTilAttestering
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
-
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            vilkårsvurderingService = vilkårsvurderingServiceMock,
         ).leggTilFormuegrunnlag(
             request = LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
@@ -530,11 +497,10 @@ internal class RevurderingLeggTilFormueServiceTest {
 
         inOrder(
             revurderingRepoMock,
-            vilkårsvurderingServiceMock,
         ) {
             verify(revurderingRepoMock).hent(revurderingId)
         }
-        verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock)
+        verifyNoMoreInteractions(revurderingRepoMock)
     }
 
     private val fnr = Fnr.generer()

@@ -1216,7 +1216,7 @@ internal class LagBrevRequestVisitorTest {
 
         val (sak, revurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
             revurderingsperiode = opphørsperiode,
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
                 grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = listOf(
                         fradragsgrunnlagArbeidsinntekt(

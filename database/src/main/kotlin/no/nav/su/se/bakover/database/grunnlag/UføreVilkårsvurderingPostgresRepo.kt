@@ -11,29 +11,14 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.database.withTransaction
-import no.nav.su.se.bakover.domain.grunnlag.UføreVilkårsvurderingRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import java.util.UUID
-import javax.sql.DataSource
 
 internal class UføreVilkårsvurderingPostgresRepo(
-    private val dataSource: DataSource,
     private val uføregrunnlagRepo: UføregrunnlagPostgresRepo,
     private val dbMetrics: DbMetrics,
-) : UføreVilkårsvurderingRepo {
-
-    override fun lagre(behandlingId: UUID, vilkår: Vilkår.Uførhet) {
-        dataSource.withTransaction { tx ->
-            lagre(
-                behandlingId = behandlingId,
-                vilkår = vilkår,
-                tx = tx,
-            )
-        }
-    }
-
+) {
     internal fun lagre(behandlingId: UUID, vilkår: Vilkår.Uførhet, tx: TransactionalSession) {
         slettForBehandlingId(behandlingId, tx)
         when (vilkår) {

@@ -51,8 +51,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.formueVilkår
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
-import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periodeNesteMånedOgTreMånederFram
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
@@ -83,13 +81,11 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -360,14 +356,10 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
         }
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
-        val grunnlagServiceMock = mock<GrunnlagService>()
 
         val mocks = RevurderingServiceMocks(
             vedtakService = vedtakServiceMock,
             revurderingRepo = revurderingRepoMock,
-            grunnlagService = grunnlagServiceMock,
-            vilkårsvurderingService = vilkårsvurderingServiceMock,
             avkortingsvarselRepo = mock() {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
@@ -422,18 +414,6 @@ internal class OppdaterRevurderingServiceTest {
             verify(mocks.avkortingsvarselRepo).hentUtestående(any())
             verify(revurderingRepoMock).defaultTransactionContext()
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual }, anyOrNull())
-            verify(vilkårsvurderingServiceMock).lagre(
-                behandlingId = argThat { it shouldBe actual.id },
-                vilkårsvurderinger = argThat { it shouldBe actual.vilkårsvurderinger },
-            )
-            verify(grunnlagServiceMock).lagreFradragsgrunnlag(
-                behandlingId = argThat { it shouldBe actual.id },
-                fradragsgrunnlag = argThat { it shouldBe actual.grunnlagsdata.fradragsgrunnlag },
-            )
-            verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
-                behandlingId = argThat { it shouldBe actual.id },
-                bosituasjongrunnlag = argThat { actual.grunnlagsdata.bosituasjon },
-            )
         }
         mocks.verifyNoMoreInteractions()
     }
@@ -469,9 +449,6 @@ internal class OppdaterRevurderingServiceTest {
             on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn gjeldendeVedtaksdata.right()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
-        val grunnlagServiceMock = mock<GrunnlagService>()
-
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
                 // simuler at det er gjort endringer før oppdatering
@@ -483,8 +460,6 @@ internal class OppdaterRevurderingServiceTest {
         val mocks = RevurderingServiceMocks(
             vedtakService = vedtakServiceMock,
             revurderingRepo = revurderingRepoMock,
-            grunnlagService = grunnlagServiceMock,
-            vilkårsvurderingService = vilkårsvurderingServiceMock,
             avkortingsvarselRepo = mock() {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
@@ -516,9 +491,6 @@ internal class OppdaterRevurderingServiceTest {
             verify(mocks.avkortingsvarselRepo).hentUtestående(any())
             verify(revurderingRepoMock).defaultTransactionContext()
             verify(revurderingRepoMock).lagre(eq(actual), anyOrNull())
-            verify(vilkårsvurderingServiceMock).lagre(actual.id, actual.vilkårsvurderinger)
-            verify(grunnlagServiceMock).lagreFradragsgrunnlag(actual.id, actual.grunnlagsdata.fradragsgrunnlag)
-            verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
         }
         mocks.verifyNoMoreInteractions()
     }
@@ -717,7 +689,7 @@ internal class OppdaterRevurderingServiceTest {
         val vedtattRevurdering = vedtakRevurderingIverksattInnvilget(
             revurderingsperiode = periodeMedEPS,
             sakOgVedtakSomKanRevurderes = vedtattSøknadsbehandling,
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
                 grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
@@ -821,12 +793,6 @@ internal class OppdaterRevurderingServiceTest {
             avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
-            vilkårsvurderingService = mock {
-                doNothing().whenever(it).lagre(any(), any())
-            },
-            grunnlagService = mock {
-                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
-            }
         )
 
         serviceAndMocks.revurderingService.oppdaterRevurdering(

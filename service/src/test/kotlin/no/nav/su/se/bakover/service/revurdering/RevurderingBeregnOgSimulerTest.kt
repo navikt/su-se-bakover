@@ -50,12 +50,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
 
 internal class RevurderingBeregnOgSimulerTest {
 
@@ -87,9 +85,6 @@ internal class RevurderingBeregnOgSimulerTest {
                     opprettet.periode.fraOgMed,
                     fixedClock,
                 ).getOrFail().right()
-            },
-            grunnlagService = mock {
-                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
             },
         )
 
@@ -132,9 +127,6 @@ internal class RevurderingBeregnOgSimulerTest {
                     fixedClock,
                 ).getOrFail().right()
             },
-            grunnlagService = mock {
-                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
-            },
         ).let {
             val response = it.revurderingService.beregnOgSimuler(
                 revurderingId = revurderingId,
@@ -173,9 +165,6 @@ internal class RevurderingBeregnOgSimulerTest {
                     revurdering.periode.fraOgMed,
                     fixedClock,
                 ).getOrFail().right()
-            },
-            grunnlagService = mock {
-                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
             },
         ).let {
             val response = it.revurderingService.beregnOgSimuler(
@@ -227,9 +216,6 @@ internal class RevurderingBeregnOgSimulerTest {
                     fixedClock,
                 ).getOrFail().right()
             },
-            grunnlagService = mock {
-                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
-            },
         )
         val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
             revurderingId = opprettetRevurdering.id,
@@ -261,10 +247,6 @@ internal class RevurderingBeregnOgSimulerTest {
             )
             verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
-            verify(serviceAndMocks.grunnlagService).lagreFradragsgrunnlag(
-                argThat { it shouldBe opprettetRevurdering.id },
-                argThat { it shouldBe opprettetRevurdering.grunnlagsdata.fradragsgrunnlag },
-            )
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }
@@ -370,9 +352,6 @@ internal class RevurderingBeregnOgSimulerTest {
                     clock = fixedClock,
                 ).getOrFail().right()
             },
-            grunnlagService = mock {
-                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
-            },
         )
 
         val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
@@ -403,10 +382,6 @@ internal class RevurderingBeregnOgSimulerTest {
             )
             verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
-            verify(serviceAndMocks.grunnlagService).lagreFradragsgrunnlag(
-                argThat { it shouldBe underkjent.id },
-                argThat { it shouldBe underkjent.grunnlagsdata.fradragsgrunnlag },
-            )
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }
@@ -469,9 +444,6 @@ internal class RevurderingBeregnOgSimulerTest {
                     clock = fixedClock,
                 ).getOrFail().right()
             },
-            grunnlagService = mock {
-                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
-            },
         )
         val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
             revurderingId = opprettet.id,
@@ -497,10 +469,6 @@ internal class RevurderingBeregnOgSimulerTest {
             )
             verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
-            verify(serviceAndMocks.grunnlagService).lagreFradragsgrunnlag(
-                argThat { it shouldBe opprettet.id },
-                argThat { it shouldBe opprettet.grunnlagsdata.fradragsgrunnlag },
-            )
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }
@@ -571,9 +539,6 @@ internal class RevurderingBeregnOgSimulerTest {
                     fraOgMed = revurderingsperiode2.fraOgMed,
                     clock = tikkendeKlokke,
                 ).getOrFail().right()
-            },
-            grunnlagService = mock {
-                doNothing().whenever(it).lagreFradragsgrunnlag(any(), any())
             },
         )
 

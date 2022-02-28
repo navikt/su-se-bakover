@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.test.generer
@@ -18,7 +19,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
     fun `lagrer og henter bor alene`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.grunnlagRepo
+            val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -27,8 +28,10 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 periode = periode,
                 begrunnelse = null,
             )
-            grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
-            grunnlagRepo.hentBosituasjongrunnlag(id).shouldBe(listOf(bosituasjon))
+            dataSource.withTransaction {
+                grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon), it)
+                grunnlagRepo.hentBosituasjongrunnlag(id, it).shouldBe(listOf(bosituasjon))
+            }
         }
     }
 
@@ -36,7 +39,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
     fun `lagrer og henter bor med voksne`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.grunnlagRepo
+            val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
@@ -45,8 +48,10 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 periode = periode,
                 begrunnelse = null,
             )
-            grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
-            grunnlagRepo.hentBosituasjongrunnlag(id).shouldBe(listOf(bosituasjon))
+            dataSource.withTransaction {
+                grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon), it)
+                grunnlagRepo.hentBosituasjongrunnlag(id, it).shouldBe(listOf(bosituasjon))
+            }
         }
     }
 
@@ -54,7 +59,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
     fun `lagrer og henter har ikke eps`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.grunnlagRepo
+            val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
             val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
@@ -62,8 +67,10 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
             )
-            grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
-            grunnlagRepo.hentBosituasjongrunnlag(id).shouldBe(listOf(bosituasjon))
+            dataSource.withTransaction {
+                grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon), it)
+                grunnlagRepo.hentBosituasjongrunnlag(id, it).shouldBe(listOf(bosituasjon))
+            }
         }
     }
 
@@ -71,7 +78,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
     fun `lagrer og henter har eps ikke valgt uføre flykting`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.grunnlagRepo
+            val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
             val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
@@ -80,8 +87,10 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 periode = periode,
                 fnr = Fnr.generer(),
             )
-            grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
-            grunnlagRepo.hentBosituasjongrunnlag(id).shouldBe(listOf(bosituasjon))
+            dataSource.withTransaction {
+                grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon), it)
+                grunnlagRepo.hentBosituasjongrunnlag(id, it).shouldBe(listOf(bosituasjon))
+            }
         }
     }
 
@@ -89,7 +98,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
     fun `lagrer og henter eps 67+`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.grunnlagRepo
+            val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
@@ -99,8 +108,10 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 fnr = Fnr.generer(),
                 begrunnelse = null,
             )
-            grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
-            grunnlagRepo.hentBosituasjongrunnlag(id).shouldBe(listOf(bosituasjon))
+            dataSource.withTransaction {
+                grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon), it)
+                grunnlagRepo.hentBosituasjongrunnlag(id, it).shouldBe(listOf(bosituasjon))
+            }
         }
     }
 
@@ -108,7 +119,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
     fun `lagrer og henter eps under 67 ufør flyktning`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.grunnlagRepo
+            val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
@@ -118,8 +129,10 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 fnr = Fnr.generer(),
                 begrunnelse = null,
             )
-            grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
-            grunnlagRepo.hentBosituasjongrunnlag(id).shouldBe(listOf(bosituasjon))
+            dataSource.withTransaction {
+                grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon), it)
+                grunnlagRepo.hentBosituasjongrunnlag(id, it).shouldBe(listOf(bosituasjon))
+            }
         }
     }
 
@@ -127,7 +140,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
     fun `lagrer og henter eps under 67 ikke ufør flyktning`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.grunnlagRepo
+            val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
@@ -137,8 +150,10 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 fnr = Fnr.generer(),
                 begrunnelse = null,
             )
-            grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
-            grunnlagRepo.hentBosituasjongrunnlag(id).shouldBe(listOf(bosituasjon))
+            dataSource.withTransaction {
+                grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon), it)
+                grunnlagRepo.hentBosituasjongrunnlag(id, it).shouldBe(listOf(bosituasjon))
+            }
         }
     }
 }
