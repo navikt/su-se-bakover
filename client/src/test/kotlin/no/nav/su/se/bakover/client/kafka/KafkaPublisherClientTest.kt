@@ -9,18 +9,20 @@ import org.apache.kafka.common.errors.TopicAuthorizationException
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import org.slf4j.helpers.NOPLogger
+import java.time.Duration
 
 internal class KafkaPublisherClientTest {
 
     private val config = ApplicationConfig.KafkaConfig.ProducerCfg(
         kafkaConfig = mapOf(),
-        retryTaskInterval = 1L
+        retryTaskInterval = Duration.ofMillis(1),
     )
 
     @Test
     fun `publiserer meldinger til kafka`() {
         val producers: MutableList<MockProducer<String, String>> = mutableListOf()
-        KafkaPublisherClient(config) { autoProducer(producers) }.publiser(
+        KafkaPublisherClient(producerConfig = config, log = NOPLogger.NOP_LOGGER) { autoProducer(producers) }.publiser(
             topic = "happy",
             melding = "path"
         )
@@ -34,7 +36,7 @@ internal class KafkaPublisherClientTest {
     fun `fanger exception hvis kall til send() feiler`() {
         val producers: MutableList<MockProducer<String, String>> = mutableListOf()
         assertDoesNotThrow {
-            KafkaPublisherClient(config) {
+            KafkaPublisherClient(producerConfig = config, log = NOPLogger.NOP_LOGGER) {
                 autoProducer(producers).apply {
                     sendException = IllegalStateException()
                 }
@@ -51,7 +53,7 @@ internal class KafkaPublisherClientTest {
     fun `overlever ukjente feil i callback`() {
         val producers: MutableList<MockProducer<String, String>> = mutableListOf()
         assertDoesNotThrow {
-            KafkaPublisherClient(config) { manualProducer(producers) }.publiser(
+            KafkaPublisherClient(producerConfig = config, log = NOPLogger.NOP_LOGGER) { manualProducer(producers) }.publiser(
                 topic = "not so happy",
                 melding = "path"
             )
@@ -66,7 +68,7 @@ internal class KafkaPublisherClientTest {
     @Test
     fun `stenger eksisterende producer og oppretter ny dersom callback responderer med authorization-exception`() {
         val producers: MutableList<MockProducer<String, String>> = mutableListOf()
-        KafkaPublisherClient(config) { manualProducer(producers) }.publiser(
+        KafkaPublisherClient(producerConfig = config, log = NOPLogger.NOP_LOGGER) { manualProducer(producers) }.publiser(
             topic = "not so happy",
             melding = "path"
         )
@@ -85,7 +87,7 @@ internal class KafkaPublisherClientTest {
     @Test
     fun `forsøker å sende meldinger som har feilet på nytt`() {
         val producers: MutableList<MockProducer<String, String>> = mutableListOf()
-        KafkaPublisherClient(config) { manualProducer(producers) }.publiser(
+        KafkaPublisherClient(producerConfig = config, log = NOPLogger.NOP_LOGGER) { manualProducer(producers) }.publiser(
             topic = "not so happy",
             melding = "path"
         )

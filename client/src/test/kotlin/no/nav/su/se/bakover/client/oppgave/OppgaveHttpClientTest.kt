@@ -65,7 +65,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": null
-                }""".trimMargin()
+                }
+            """.trimMargin()
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedSaksbehandlingRequest)).willReturn(
@@ -166,7 +167,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": "$saksbehandler"
-                }""".trimMargin()
+                }
+            """.trimMargin()
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedSaksbehandlingRequest)).willReturn(
@@ -244,7 +246,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": null
-                }""".trimMargin()
+                }
+            """.trimMargin()
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest)).willReturn(
@@ -648,7 +651,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": null
-                }""".trimMargin()
+                }
+            """.trimMargin()
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedSaksbehandlingRequest)).willReturn(
@@ -740,7 +744,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": null
-                }""".trimMargin()
+                }
+            """.trimMargin()
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest)).willReturn(
@@ -952,7 +957,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": null
-                }""".trimMargin()
+                }
+            """.trimMargin()
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest)).willReturn(
@@ -1030,7 +1036,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                   "fristFerdigstillelse": "2021-01-31",
                   "prioritet": "NORM",
                   "tilordnetRessurs": null
-                }""".trimMargin()
+                }
+            """.trimMargin()
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest)).willReturn(
@@ -1108,7 +1115,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                   "fristFerdigstillelse": "2021-01-31",
                   "prioritet": "NORM",
                   "tilordnetRessurs": null
-                }""".trimMargin()
+                }
+            """.trimMargin()
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest)).willReturn(

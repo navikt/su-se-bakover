@@ -3,9 +3,12 @@ package no.nav.su.se.bakover.common
 import no.nav.su.se.bakover.common.periode.Periode
 import java.time.Clock
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.Month
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Date
 import java.util.Locale
 
 val zoneIdOslo: ZoneId = ZoneId.of("Europe/Oslo")
@@ -42,3 +45,21 @@ fun Tidspunkt.between(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt) =
 
 fun LocalDate.ddMMyyyy(): String = this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
 fun LocalDate.toBrevformat(): String = this.format(DateTimeFormatter.ofPattern("d. LLLL yyyy", Locale("nb", "NO")))
+fun ZonedDateTime.next(atTime: LocalTime): Date {
+    return if (this.toLocalTime().isAfter(atTime)) {
+        Date.from(
+            this.plusDays(1)
+                .withHour(atTime.hour)
+                .withMinute(atTime.minute)
+                .withSecond(atTime.second)
+                .toInstant(),
+        )
+    } else {
+        Date.from(
+            this.withHour(atTime.hour)
+                .withMinute(atTime.minute)
+                .withSecond(atTime.second)
+                .toInstant(),
+        )
+    }
+}

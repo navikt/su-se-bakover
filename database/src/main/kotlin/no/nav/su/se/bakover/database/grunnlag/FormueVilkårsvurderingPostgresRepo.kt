@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.grunnlag.FormueVilkårsvurderingRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkår

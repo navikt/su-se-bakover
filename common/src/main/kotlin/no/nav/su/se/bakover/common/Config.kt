@@ -16,7 +16,6 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
 import java.time.Duration
-import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 private object EnvironmentConfig {
@@ -39,10 +38,6 @@ private object EnvironmentConfig {
         return env[environmentVariableName] ?: null
     }
 
-    fun exists(environmentVariableName: String): Boolean {
-        return env[environmentVariableName] != null
-    }
-
     private fun throwMissingEnvironmentVariable(environmentVariableName: String): Nothing {
         throw IllegalStateException("Mangler environment variabelen '$environmentVariableName'. Dersom du prøver kjøre lokalt må den legges til i '.env'-fila. Se eksempler i '.env.template'.")
     }
@@ -61,7 +56,6 @@ data class ApplicationConfig(
     val clientsConfig: ClientsConfig,
     val kafkaConfig: KafkaConfig,
     val unleash: UnleashConfig,
-    val jobConfig: JobConfig,
     val kabalKafkaConfig: KabalKafkaConfig,
 ) {
     enum class RuntimeEnvironment {
@@ -186,7 +180,7 @@ data class ApplicationConfig(
         val simulering: SimuleringConfig,
         val tilbakekreving: TilbakekrevingConfig,
     ) {
-        data class UtbetalingConfig(
+        data class UtbetalingConfig constructor(
             val mqSendQueue: String,
             val mqReplyTo: String,
         ) {
@@ -198,7 +192,7 @@ data class ApplicationConfig(
             }
         }
 
-        data class AvstemmingConfig(
+        data class AvstemmingConfig constructor(
             val mqSendQueue: String,
         ) {
             companion object {
@@ -208,7 +202,7 @@ data class ApplicationConfig(
             }
         }
 
-        data class SimuleringConfig(
+        data class SimuleringConfig constructor(
             val url: String,
             val stsSoapUrl: String,
         ) {
@@ -437,10 +431,7 @@ data class ApplicationConfig(
             companion object {
                 fun createFromEnvironmentVariables() = SafConfig(
                     url = getEnvironmentVariableOrDefault("SAF_URL", "https://saf.dev.intern.nav.no"),
-                    clientId = getEnvironmentVariableOrDefault(
-                        "SAF_CLIENT_ID",
-                        "api:////dev-fss.teamdokumenthandtering.saf/.default",
-                    ),
+                    clientId = getEnvironmentVariableOrDefault("SAF_CLIENT_ID", "api:////dev-fss.teamdokumenthandtering.saf/.default"),
                 )
 
                 fun createLocalConfig() = SafConfig(
@@ -494,7 +485,7 @@ data class ApplicationConfig(
 
         data class ProducerCfg(
             val kafkaConfig: Map<String, Any>,
-            val retryTaskInterval: Long = 15_000L,
+            val retryTaskInterval: Duration = Duration.of(15, ChronoUnit.SECONDS),
         )
 
         data class ConsumerCfg(
@@ -584,18 +575,6 @@ data class ApplicationConfig(
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
             unleash = UnleashConfig.createFromEnvironmentVariables(),
-            jobConfig = naisCluster().let { cluster ->
-                if (cluster == null) throw IllegalStateException("Kunne ikke identifsiere nais-cluster")
-
-                JobConfig(
-                    personhendelse = JobConfig.Personhendelse(cluster),
-                    konsistensavstemming = when (cluster) {
-                        NaisCluster.Dev -> JobConfig.Konsistensavstemming.Dev()
-                        NaisCluster.Prod -> JobConfig.Konsistensavstemming.Prod()
-                    },
-                    initialDelay = Duration.of(5, ChronoUnit.MINUTES).toMillis(),
-                )
-            },
             kabalKafkaConfig = KabalKafkaConfig.createFromEnvironmentVariables(),
         )
 
@@ -612,11 +591,6 @@ data class ApplicationConfig(
             clientsConfig = ClientsConfig.createLocalConfig(),
             kafkaConfig = KafkaConfig.createLocalConfig(),
             unleash = UnleashConfig.createFromEnvironmentVariables(),
-            jobConfig = JobConfig(
-                personhendelse = JobConfig.Personhendelse(naisCluster()),
-                konsistensavstemming = JobConfig.Konsistensavstemming.Local(),
-                initialDelay = 0,
-            ),
             kabalKafkaConfig = KabalKafkaConfig.createLocalConfig(),
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
@@ -635,49 +609,6 @@ data class ApplicationConfig(
         fun isNotProd() = isRunningLocally() || naisCluster() == NaisCluster.Dev
         fun fnrKode6() = getEnvironmentVariableOrNull("FNR_KODE6")
     }
-
-    data class JobConfig(
-        val personhendelse: Personhendelse,
-        val konsistensavstemming: Konsistensavstemming,
-        val initialDelay: Long,
-    ) {
-        data class Personhendelse(private val naisCluster: NaisCluster?) {
-            private val PREPROD: Long = Duration.of(15, ChronoUnit.MINUTES).toMillis()
-            private val PROD: Long = Duration.of(1, ChronoUnit.DAYS).toMillis()
-
-            val intervall
-                get() = when (naisCluster) {
-                    NaisCluster.Prod -> PROD
-                    else -> PREPROD
-                }
-        }
-
-        sealed class Konsistensavstemming {
-            abstract val kjøreplan: Set<LocalDate>
-
-            data class Prod(
-                override val kjøreplan: Set<LocalDate> = setOf(
-                    22.november(2021),
-                    5.januar(2022),
-                    28.januar(2022),
-                    25.februar(2022),
-                    25.mars(2022),
-                    26.april(2022),
-                    27.mai(2022),
-                    29.juni(2022),
-                    29.juli(2022),
-                    30.august(2022),
-                    29.september(2022),
-                    28.oktober(2022),
-                    21.november(2022),
-                ),
-            ) : Konsistensavstemming()
-
-            data class Dev(override val kjøreplan: Set<LocalDate> = emptySet()) : Konsistensavstemming()
-            data class Local(override val kjøreplan: Set<LocalDate> = emptySet()) : Konsistensavstemming()
-        }
-    }
-
     data class KabalKafkaConfig(
         val kafkaConfig: Map<String, Any>,
     ) {

@@ -122,7 +122,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                         "informasjonSomRevurderes": ["Inntekt"]
                     }
 
-                """.trimMargin(),
+                    """.trimMargin(),
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK

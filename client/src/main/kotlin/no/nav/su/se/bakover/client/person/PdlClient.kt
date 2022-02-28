@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.client.person.Variables.Companion.FOLKEREGISTERIDENT
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Telefonnummer
@@ -97,6 +98,19 @@ internal class PdlClient(
             adressebeskyttelse = person.adressebeskyttelse.firstOrNull()?.gradering,
             vergemålEllerFremtidsfullmakt = person.vergemaalEllerFremtidsfullmakt.isNotEmpty(),
             fullmakt = person.fullmakt.isNotEmpty(),
+            dødsdato = person.doedsfall.let { doedsfall ->
+                if (doedsfall.isEmpty()) {
+                    null
+                } else {
+                    doedsfall.firstNotNullOfOrNull { it.doedsdato }.let {
+                        if (it == null) {
+                            log.error("Hentet en person som er registrert død, uten dødsdato. Se sikker logg for innhold")
+                            sikkerLogg.error("Hentet en person som er registrert død, uten dødsdato", person)
+                        }
+                        it
+                    }
+                }
+            },
         ).right()
     }
 
@@ -245,6 +259,7 @@ data class HentPerson(
     val adressebeskyttelse: List<Adressebeskyttelse>,
     val vergemaalEllerFremtidsfullmakt: List<VergemaalEllerFremtidsfullmakt>,
     val fullmakt: List<Fullmakt>,
+    val doedsfall: List<Doedsfall>,
 )
 
 data class NavnResponse(
@@ -311,3 +326,7 @@ data class Fullmakt(
         FULLMEKTIG
     }
 }
+
+data class Doedsfall(
+    val doedsdato: LocalDate?,
+)

@@ -17,17 +17,17 @@ internal class PersonPostgresRepo(
         return dbMetrics.timeQuery("hentFnrForSak") {
             dataSource.withSession { session ->
                 """
-                SELECT
+                  SELECT
                     s.fnr søkersFnr,
                     eps_fnr epsFnr
-                FROM sak s
-                 LEFT JOIN behandling b ON b.sakid = s.id
-                 LEFT JOIN behandling_vedtak bv on bv.sakId = s.id
-                 LEFT JOIN revurdering r ON r.vedtaksomrevurderesid = bv.vedtakid
-                 LEFT JOIN grunnlag_bosituasjon gb ON gb.behandlingId IN (b.id, r.id)
-               WHERE s.id=:sakId
-|           """
-                    .trimMargin()
+                  FROM sak s
+                    LEFT JOIN behandling b ON b.sakid = s.id
+                    LEFT JOIN behandling_vedtak bv on bv.sakId = s.id
+                    LEFT JOIN revurdering r ON r.vedtaksomrevurderesid = bv.vedtakid
+                    LEFT JOIN grunnlag_bosituasjon gb ON gb.behandlingId IN (b.id, r.id)
+                  WHERE s.id=:sakId
+                """
+                    .trimIndent()
                     .hentListe(mapOf("sakId" to sakId), session) {
                         listOfNotNull(
                             it.stringOrNull("epsFnr"),

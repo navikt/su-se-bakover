@@ -1,7 +1,7 @@
 plugins {
     kotlin("jvm")
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
-    id("org.jmailen.kotlinter") version "3.8.0"
+    id("org.jmailen.kotlinter") version "3.9.0"
 }
 
 version = "0.0.1"
@@ -38,7 +38,7 @@ subprojects {
         implementation("com.networknt:json-schema-validator:1.0.66")
         implementation("no.finn.unleash:unleash-client-java:4.4.1")
 
-        implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.4.0")
+        implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.5.0")
         implementation("io.confluent:kafka-avro-serializer:6.2.1")
         implementation("org.apache.avro:avro:1.11.0")
 

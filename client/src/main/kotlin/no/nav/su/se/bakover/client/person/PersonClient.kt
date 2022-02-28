@@ -72,6 +72,7 @@ internal class PersonClient(
             kontaktinfo = kontaktinfo(pdlData.ident.fnr),
             vergemål = pdlData.vergemålEllerFremtidsfullmakt,
             fullmakt = pdlData.fullmakt,
+            dødsdato = pdlData.dødsdato
         )
 
     private fun toPoststed(postnummer: String) = Person.Poststed(
