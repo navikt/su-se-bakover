@@ -39,7 +39,7 @@ internal class RevurderingLeggTilUføregrunnlagTest {
     @Test
     fun `avslår uførhet, med avslått formue, gir feilmelding om at utfallet ikke støttes`() {
         val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                 grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(

@@ -228,7 +228,7 @@ internal class LagBrevutkastForRevurderingTest {
         }
 
         val (sak, revurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                 grunnlagsdata = grunnlagsdataEnsligMedFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(),
             ),
@@ -295,7 +295,7 @@ internal class LagBrevutkastForRevurderingTest {
     @Test
     fun `uavklarte vilkår kaster exception`() {
         val (sak, revurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.IkkeVurdert,
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering.IkkeVurdert,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn revurdering

@@ -18,11 +18,9 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
 import java.util.UUID
 
 internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
@@ -65,9 +63,6 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
             søknadsbehandlingRepo = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
-            grunnlagService = mock {
-                doNothing().whenever(it).lagreBosituasjongrunnlag(any(), any())
-            }
         ).let { it ->
             val response = it.søknadsbehandlingService.oppdaterStønadsperiode(
                 SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
@@ -91,18 +86,6 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
                     }
                 },
                 anyOrNull(),
-            )
-            verify(it.grunnlagService).lagreBosituasjongrunnlag(
-                argThat { it shouldBe vilkårsvurdert.id },
-                argThat { bosituasjon ->
-                    bosituasjon.all { it.periode == nyStønadsperiode.periode } shouldBe true
-                },
-            )
-            verify(it.grunnlagService).lagreFradragsgrunnlag(
-                argThat { it shouldBe vilkårsvurdert.id },
-                argThat { fradrag ->
-                    fradrag.all { it.periode == nyStønadsperiode.periode } shouldBe true
-                },
             )
             it.verifyNoMoreInteractions()
         }

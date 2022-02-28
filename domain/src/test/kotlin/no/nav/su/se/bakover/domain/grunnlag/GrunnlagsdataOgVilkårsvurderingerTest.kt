@@ -26,7 +26,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     @Test
     fun `grunnlagsdata og vilkårsvurderinger med ulike perioder kaster exception`() {
         shouldThrow<IllegalArgumentException> {
-            GrunnlagsdataOgVilkårsvurderinger(
+            GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                 grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = nonEmptyListOf(
                         fradragsgrunnlagArbeidsinntekt1000(
@@ -64,7 +64,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
 
     @Test
     fun `grunnlagsdata og vilkårsvurderinger med like perioder kaster ikke exception`() {
-        GrunnlagsdataOgVilkårsvurderinger(
+        GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt1000(
@@ -101,7 +101,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
 
     @Test
     fun `ikke vurdert grunnlagsdata og innvilget vilkårsvurderinger kaster ikke exception`() {
-        GrunnlagsdataOgVilkårsvurderinger(
+        GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
                 uføre = innvilgetUførevilkårForventetInntekt0(
@@ -118,7 +118,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
 
     @Test
     fun `innvilget grunnlagsdata og ikke vurdert vilkårsvurderinger kaster ikke exception`() {
-        GrunnlagsdataOgVilkårsvurderinger(
+        GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt1000(
@@ -146,7 +146,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
 
     @Test
     fun `ikke vurdert grunnlagsdata og ikke vurdert vilkårsvurderinger kaster ikke exception`() {
-        GrunnlagsdataOgVilkårsvurderinger(
+        GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         )

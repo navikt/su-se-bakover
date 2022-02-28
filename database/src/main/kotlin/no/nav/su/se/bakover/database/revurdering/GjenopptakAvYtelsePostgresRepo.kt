@@ -3,22 +3,14 @@ package no.nav.su.se.bakover.database.revurdering
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.TransactionalSession
-import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 
 internal class GjenopptakAvYtelsePostgresRepo(
-    private val fradragsgrunnlagPostgresRepo: FradragsgrunnlagPostgresRepo,
-    private val bosituasjonsgrunnlagPostgresRepo: BosituasjongrunnlagPostgresRepo,
-    private val uføreVilkårsvurderingRepo: UføreVilkårsvurderingPostgresRepo,
-    private val formueVilkårsvurderingRepo: FormueVilkårsvurderingPostgresRepo,
-    private val utlandsoppholdVilkårsvurderingRepo: UtenlandsoppholdVilkårsvurderingPostgresRepo,
+    private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
 ) {
     internal fun lagre(revurdering: GjenopptaYtelseRevurdering, tx: TransactionalSession) {
         when (revurdering) {
@@ -73,29 +65,9 @@ internal class GjenopptakAvYtelsePostgresRepo(
                         ),
                         tx,
                     )
-                fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(
+                grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
                     behandlingId = revurdering.id,
-                    fradragsgrunnlag = revurdering.grunnlagsdata.fradragsgrunnlag,
-                    tx = tx,
-                )
-                bosituasjonsgrunnlagPostgresRepo.lagreBosituasjongrunnlag(
-                    behandlingId = revurdering.id,
-                    grunnlag = revurdering.grunnlagsdata.bosituasjon,
-                    tx = tx,
-                )
-                uføreVilkårsvurderingRepo.lagre(
-                    behandlingId = revurdering.id,
-                    vilkår = revurdering.vilkårsvurderinger.uføre,
-                    tx = tx,
-                )
-                formueVilkårsvurderingRepo.lagre(
-                    behandlingId = revurdering.id,
-                    vilkår = revurdering.vilkårsvurderinger.formue,
-                    tx = tx,
-                )
-                utlandsoppholdVilkårsvurderingRepo.lagre(
-                    behandlingId = revurdering.id,
-                    vilkår = revurdering.vilkårsvurderinger.utenlandsopphold,
+                    grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
                     tx = tx,
                 )
             }

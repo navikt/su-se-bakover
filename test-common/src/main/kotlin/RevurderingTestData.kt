@@ -137,11 +137,11 @@ fun opprettRevurderingFraSaksopplysninger(
     }
         ?: throw IllegalStateException("Fant ingen gjelende vedtak for fra og med dato for revurderingen: ${revurderingsperiode.fraOgMed}")
 
-    val grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+    val grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
         grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
         vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
     ).let {
-        GrunnlagsdataOgVilkårsvurderinger(
+        GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = grunnlagsdataOverrides.fold(it.grunnlagsdata) { acc, grunnlag ->
                 when (grunnlag) {
                     is Grunnlag.Bosituasjon -> {

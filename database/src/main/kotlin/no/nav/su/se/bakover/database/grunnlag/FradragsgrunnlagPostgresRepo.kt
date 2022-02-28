@@ -12,30 +12,14 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.grunnlag.FradragsgrunnlagRepo
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.util.UUID
-import javax.sql.DataSource
 
 internal class FradragsgrunnlagPostgresRepo(
-    private val dataSource: DataSource,
     private val dbMetrics: DbMetrics,
-) : FradragsgrunnlagRepo {
-
-    override fun lagreFradragsgrunnlag(behandlingId: UUID, fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) {
-        dataSource.withTransaction { tx ->
-            lagreFradragsgrunnlag(
-                behandlingId = behandlingId,
-                fradragsgrunnlag = fradragsgrunnlag,
-                tx = tx,
-            )
-        }
-    }
-
+) {
     internal fun lagreFradragsgrunnlag(
         behandlingId: UUID,
         fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
@@ -44,12 +28,6 @@ internal class FradragsgrunnlagPostgresRepo(
         slettForBehandlingId(behandlingId, tx)
         fradragsgrunnlag.forEach {
             lagre(it, behandlingId, tx)
-        }
-    }
-
-    internal fun hentFradragsgrunnlag(behandlingId: UUID): List<Grunnlag.Fradragsgrunnlag> {
-        return dataSource.withSession { session ->
-            hentFradragsgrunnlag(behandlingId, session)
         }
     }
 

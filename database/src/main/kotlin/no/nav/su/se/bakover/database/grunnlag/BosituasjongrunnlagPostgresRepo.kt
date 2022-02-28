@@ -9,18 +9,13 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.grunnlag.BosituasjongrunnlagRepo
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.util.UUID
-import javax.sql.DataSource
 
 internal class BosituasjongrunnlagPostgresRepo(
-    private val dataSource: DataSource,
     private val dbMetrics: DbMetrics,
-) : BosituasjongrunnlagRepo {
+) {
 
     private enum class Bosituasjonstype {
         ALENE,
@@ -79,17 +74,11 @@ internal class BosituasjongrunnlagPostgresRepo(
         }
     }
 
-    override fun lagreBosituasjongrunnlag(behandlingId: UUID, grunnlag: List<Grunnlag.Bosituasjon>) {
-        dataSource.withTransaction { tx ->
-            lagreBosituasjongrunnlag(
-                behandlingId = behandlingId,
-                grunnlag = grunnlag,
-                tx = tx,
-            )
-        }
-    }
-
-    internal fun lagreBosituasjongrunnlag(behandlingId: UUID, grunnlag: List<Grunnlag.Bosituasjon>, tx: TransactionalSession) {
+    internal fun lagreBosituasjongrunnlag(
+        behandlingId: UUID,
+        grunnlag: List<Grunnlag.Bosituasjon>,
+        tx: TransactionalSession,
+    ) {
         slettForBehandlingId(behandlingId, tx)
         grunnlag.forEach { bosituasjon ->
             lagre(behandlingId, bosituasjon, tx)
@@ -169,12 +158,6 @@ internal class BosituasjongrunnlagPostgresRepo(
                 ),
                 tx,
             )
-    }
-
-    override fun hentBosituasjongrunnlag(behandlingId: UUID): List<Grunnlag.Bosituasjon> {
-        return dataSource.withSession { session ->
-            hentBosituasjongrunnlag(behandlingId, session)
-        }
     }
 
     internal fun hentBosituasjongrunnlag(behandlingId: UUID, session: Session): List<Grunnlag.Bosituasjon> {

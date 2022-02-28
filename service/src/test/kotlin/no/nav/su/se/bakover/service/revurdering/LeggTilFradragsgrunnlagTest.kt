@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
@@ -46,11 +45,8 @@ internal class LeggTilFradragsgrunnlagTest {
             on { hent(any()) } doReturn eksisterendeRevurdering
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService>()
-
         val revurderingService = RevurderingTestUtils.createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            grunnlagService = grunnlagServiceMock,
         )
 
         val request = LeggTilFradragsgrunnlagRequest(
@@ -72,19 +68,14 @@ internal class LeggTilFradragsgrunnlagTest {
 
         inOrder(
             revurderingRepoMock,
-            grunnlagServiceMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe eksisterendeRevurdering.id })
 
-            verify(grunnlagServiceMock).lagreFradragsgrunnlag(
-                argThat { it shouldBe eksisterendeRevurdering.id },
-                argThat { it shouldBe request.fradragsgrunnlag },
-            )
             verify(revurderingRepoMock).defaultTransactionContext()
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
         }
 
-        verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)
+        verifyNoMoreInteractions(revurderingRepoMock)
     }
 
     @Test
@@ -93,11 +84,8 @@ internal class LeggTilFradragsgrunnlagTest {
             on { hent(any()) } doReturn null
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService>()
-
         val revurderingService = RevurderingTestUtils.createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            grunnlagService = grunnlagServiceMock,
         )
 
         val request = LeggTilFradragsgrunnlagRequest(
@@ -119,12 +107,11 @@ internal class LeggTilFradragsgrunnlagTest {
 
         inOrder(
             revurderingRepoMock,
-            grunnlagServiceMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
         }
 
-        verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)
+        verifyNoMoreInteractions(revurderingRepoMock)
     }
 
     @Test
@@ -135,11 +122,8 @@ internal class LeggTilFradragsgrunnlagTest {
             on { hent(any()) } doReturn eksisterendeRevurdering
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService>()
-
         val revurderingService = RevurderingTestUtils.createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            grunnlagService = grunnlagServiceMock,
         )
 
         val request = LeggTilFradragsgrunnlagRequest(
@@ -165,12 +149,11 @@ internal class LeggTilFradragsgrunnlagTest {
 
         inOrder(
             revurderingRepoMock,
-            grunnlagServiceMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe eksisterendeRevurdering.id })
         }
 
-        verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)
+        verifyNoMoreInteractions(revurderingRepoMock)
     }
 
     @Test
@@ -178,7 +161,7 @@ internal class LeggTilFradragsgrunnlagTest {
         val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
         val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
             revurderingsperiode = revurderingsperiode,
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
                 vilkårsvurderinger = vilkårsvurderingerInnvilget(periode = revurderingsperiode),
                 grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = listOf(

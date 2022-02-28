@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
@@ -101,7 +100,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående)
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående),
         ).tilAttestering(Saksbehandler("saksa"), "")
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -195,7 +194,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående)
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående),
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
@@ -221,12 +220,9 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             )
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService>()
-
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             clock = fixedClock,
-            grunnlagService = grunnlagServiceMock,
         ).leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(behandlingId = behandlingId, epsFnr = null),
         ).orNull()!!
@@ -246,16 +242,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         verify(søknadsbehandlingRepoMock).lagre(
             any(),
             anyOrNull(),
-        ) // Testene til søknadsbehandling vilkårsvurder dekker dette
-        verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
-            argThat { it shouldBe behandlingId },
-            argThat { it shouldBe listOf(bosituasjon.copy(id = it.first().id, opprettet = it.first().opprettet)) },
         )
-        verify(grunnlagServiceMock).lagreFradragsgrunnlag(
-            argThat { it shouldBe behandlingId },
-            argThat { it shouldBe emptyList() }
-        )
-        verifyNoMoreInteractions(søknadsbehandlingRepoMock, grunnlagServiceMock)
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
 
     @Test
@@ -286,7 +274,6 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             )
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService>()
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
         }
@@ -294,7 +281,6 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
             clock = fixedClock,
-            grunnlagService = grunnlagServiceMock,
         ).leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(behandlingId = uavklart.id, epsFnr = bosituasjon.fnr),
         ).orNull()!!
@@ -315,16 +301,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         verify(søknadsbehandlingRepoMock).lagre(
             any(),
             anyOrNull(),
-        ) // Testene til søknadsbehandling vilkårsvurder dekker dette
-        verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
-            argThat { it shouldBe uavklart.id },
-            argThat { it shouldBe listOf(bosituasjon.copy(id = it.first().id, opprettet = it.first().opprettet)) },
         )
-        verify(grunnlagServiceMock).lagreFradragsgrunnlag(
-            argThat { it shouldBe uavklart.id },
-            argThat { it shouldBe emptyList() }
-        )
-        verifyNoMoreInteractions(søknadsbehandlingRepoMock, grunnlagServiceMock, personServiceMock)
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock, personServiceMock)
     }
 
     @Test
@@ -401,7 +379,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående)
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående),
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -428,12 +406,9 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             )
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService>()
-
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             clock = fixedClock,
-            grunnlagService = grunnlagServiceMock,
         ).fullførBosituasjongrunnlag(
             FullførBosituasjonRequest(
                 behandlingId = behandlingId,
@@ -453,16 +428,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe behandlingId })
-        verify(søknadsbehandlingRepoMock).defaultTransactionContext()
-        verify(søknadsbehandlingRepoMock).lagre(any(), anyOrNull())
-        verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
-            argThat { it shouldBe behandlingId },
-            argThat { it shouldBe listOf(bosituasjon.copy(id = it.first().id, opprettet = it.first().opprettet)) },
-        )
-        verify(grunnlagServiceMock).lagreFradragsgrunnlag(
-            argThat { it shouldBe behandlingId },
-            argThat { it shouldBe emptyList() }
-        )
-        verifyNoMoreInteractions(søknadsbehandlingRepoMock, grunnlagServiceMock)
+        verify(søknadsbehandlingRepoMock, Times(2)).defaultTransactionContext()
+        verify(søknadsbehandlingRepoMock, Times(2)).lagre(any(), anyOrNull())
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
 }
