@@ -22,10 +22,12 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -63,7 +65,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": null
-                }""".trimMargin()
+                }
+            """.trimMargin()
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedSaksbehandlingRequest)).willReturn(
@@ -92,10 +95,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "status": "OPPRETTET",
                                                       "metadata": {}
                                                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     )
-                    .withStatus(201)
-            )
+                    .withStatus(201),
+            ),
         )
 
         val oathMock = mock<OAuth> {
@@ -164,7 +167,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": "$saksbehandler"
-                }""".trimMargin()
+                }
+            """.trimMargin()
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedSaksbehandlingRequest)).willReturn(
@@ -194,10 +198,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "status": "OPPRETTET",
                                                       "metadata": {}
                                                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     )
-                    .withStatus(201)
-            )
+                    .withStatus(201),
+            ),
         )
         val oathMock = mock<OAuth> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
@@ -242,7 +246,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": null
-                }""".trimMargin()
+                }
+            """.trimMargin()
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest)).willReturn(
@@ -270,10 +275,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "status": "OPPRETTET",
                                                       "metadata": {}
                                                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     )
-                    .withStatus(201)
-            )
+                    .withStatus(201),
+            ),
         )
 
         val oathMock = mock<OAuth> {
@@ -362,10 +367,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "opprettetTidspunkt": "2019-01-04T09:53:39.329+02:02",
                                       "endretTidspunkt": "2019-08-25T11:45:38+02:00"
                                     }
-                            """.trimIndent()
+                            """.trimIndent(),
                         )
-                        .withStatus(200)
-                )
+                        .withStatus(200),
+                ),
         )
 
         wireMockServer.stubFor(
@@ -385,10 +390,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
                               "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId",
                               "status": "FERDIGSTILT"
                             }
-                            """.trimIndent()
+                            """.trimIndent(),
                         )
-                        .withStatus(200)
-                )
+                        .withStatus(200),
+                ),
         )
 
         val oathMock = mock<OAuth> {
@@ -419,9 +424,9 @@ internal class OppgaveHttpClientTest : WiremockBase {
                               "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---",
                               "status": "FERDIGSTILT"
                             }
-                        """.trimIndent()
-                    )
-                )
+                        """.trimIndent(),
+                    ),
+                ),
         )
     }
 
@@ -462,10 +467,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "opprettetTidspunkt": "2019-01-04T09:53:39.329+02:02",
                                       "endretTidspunkt": "2019-08-25T11:45:38+02:00"
                                     }
-                            """.trimIndent()
+                            """.trimIndent(),
                         )
-                        .withStatus(200)
-                )
+                        .withStatus(200),
+                ),
         )
 
         wireMockServer.stubFor(
@@ -485,10 +490,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
                               "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId",
                               "status": "FERDIGSTILT"
                             }
-                            """.trimIndent()
+                            """.trimIndent(),
                         )
-                        .withStatus(200)
-                )
+                        .withStatus(200),
+                ),
         )
 
         val tokenoppslagMock = mock<TokenOppslag> {
@@ -520,9 +525,9 @@ internal class OppgaveHttpClientTest : WiremockBase {
                               "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---",
                               "status": "FERDIGSTILT"
                             }
-                        """.trimIndent()
-                    )
-                )
+                        """.trimIndent(),
+                    ),
+                ),
         )
     }
 
@@ -564,10 +569,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "opprettetTidspunkt": "2019-01-04T09:53:39.329+02:02",
                                       "endretTidspunkt": "2019-08-25T11:45:38+02:00"
                                     }
-                            """.trimIndent()
+                            """.trimIndent(),
                         )
-                        .withStatus(200)
-                )
+                        .withStatus(200),
+                ),
         )
 
         wireMockServer.stubFor(
@@ -587,10 +592,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
                               "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
-                            """.trimIndent()
+                            """.trimIndent(),
                         )
-                        .withStatus(200)
-                )
+                        .withStatus(200),
+                ),
         )
 
         val oathMock = mock<OAuth> {
@@ -621,9 +626,9 @@ internal class OppgaveHttpClientTest : WiremockBase {
                               "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
-                        """.trimIndent()
-                    )
-                )
+                        """.trimIndent(),
+                    ),
+                ),
         )
     }
 
@@ -646,7 +651,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": null
-                }""".trimMargin()
+                }
+            """.trimMargin()
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedSaksbehandlingRequest)).willReturn(
@@ -674,10 +680,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "status": "OPPRETTET",
                                                       "metadata": {}
                                                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     )
-                    .withStatus(201)
-            )
+                    .withStatus(201),
+            ),
         )
 
         val oathMock = mock<OAuth> {
@@ -699,7 +705,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         client.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
-                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null, clock = fixedClock
+                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null, clock = fixedClock,
             ),
         ) shouldBe OppgaveId("111").right()
 
@@ -711,7 +717,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         client.opprettOppgaveMedSystembruker(
             OppgaveConfig.Revurderingsbehandling(
-                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null, clock = fixedClock
+                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null, clock = fixedClock,
             ),
         ) shouldBe OppgaveId("111").right()
 
@@ -738,7 +744,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": null
-                }""".trimMargin()
+                }
+            """.trimMargin()
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest)).willReturn(
@@ -766,10 +773,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "status": "OPPRETTET",
                                                       "metadata": {}
                                                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     )
-                    .withStatus(201)
-            )
+                    .withStatus(201),
+            ),
         )
 
         val oathMock = mock<OAuth> {
@@ -789,7 +796,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 saksnummer = saksnummer,
                 aktørId = AktørId(aktørId),
                 tilordnetRessurs = null,
-                clock = fixedClock
+                clock = fixedClock,
             ),
         ) shouldBe OppgaveId("111").right()
     }
@@ -865,10 +872,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "opprettetTidspunkt": "2019-01-04T09:53:39.329+02:02",
                                       "endretTidspunkt": "2019-08-25T11:45:38+02:00"
                                     }
-                            """.trimIndent()
+                            """.trimIndent(),
                         )
-                        .withStatus(200)
-                )
+                        .withStatus(200),
+                ),
         )
 
         wireMockServer.stubFor(
@@ -884,10 +891,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
                               "beskrivelse": "--- 01.01.2021 02:02 - en beskrivelse ---",
                               "status": "AAPNET"
                             }
-                            """.trimIndent()
+                            """.trimIndent(),
                         )
-                        .withStatus(200)
-                )
+                        .withStatus(200),
+                ),
         )
 
         val oauthMock = mock<OAuth> {
@@ -904,7 +911,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
             clock = fixedClock,
         )
 
-        client.oppdaterOppgave(oppgaveId = OppgaveId(oppgaveId.toString()), beskrivelse = "en beskrivelse") shouldBe Unit.right()
+        client.oppdaterOppgave(
+            oppgaveId = OppgaveId(oppgaveId.toString()),
+            beskrivelse = "en beskrivelse",
+        ) shouldBe Unit.right()
 
         val expectedBody =
             """
@@ -923,9 +933,246 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 .withHeader("Accept", WireMock.equalTo("application/json"))
                 .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
                 .withRequestBody(
-                    equalToJson(expectedBody)
-                )
+                    equalToJson(expectedBody),
+                ),
         )
+    }
+
+    @Test
+    fun `oppretter STADFESTELSE-oppgave for klageinstanshendelse`() {
+        //language=JSON
+        val expectedAttesteringRequest =
+            """
+                {
+                    "journalpostId": null,
+                    "saksreferanse": "$saksnummer",
+                    "aktoerId": "$aktørId",
+                    "tema": "SUP",
+                    "behandlesAvApplikasjon": "SUPSTONAD",
+                    "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Stadfestelse\nRelevante JournalpostIDer: 123, 456\nKlageinstans sin behandling ble avsluttet den 01.01.2021 02:02\n\nDenne oppgaven er kun til opplysning og må lukkes manuelt.",
+                    "oppgavetype": "VUR_KONS_YTE",
+                    "behandlingstema": "ab0431",
+                    "behandlingstype": "ae0058",
+                    "aktivDato": "2021-01-01",
+                    "fristFerdigstillelse": "2021-01-31",
+                    "prioritet": "NORM",
+                    "tilordnetRessurs": null
+                }
+            """.trimMargin()
+
+        wireMockServer.stubFor(
+            stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest)).willReturn(
+                aResponse()
+                    .withBody(
+                        //language=JSON
+                        """
+                            {
+                                 "id": 111,
+                                  "tildeltEnhetsnr": "4811",
+                                  "saksreferanse": "$søknadId",
+                                  "aktoerId": "$aktørId",
+                                  "tema": "SUP",
+                                  "behandlesAvApplikasjon": "SUPSTONAD",
+                                  "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId ",
+                                  "behandlingstema": "ab0431",
+                                  "oppgavetype": "ATT",
+                                  "behandlingstype": "ae0034",
+                                  "versjon": 1,
+                                  "fristFerdigstillelse": "2020-06-06",
+                                  "aktivDato": "2020-06-06",
+                                  "opprettetTidspunkt": "2020-08-20T15:14:23.498+02:00",
+                                  "opprettetAv": "srvsupstonad",
+                                  "prioritet": "NORM",
+                                  "status": "OPPRETTET",
+                                  "metadata": {}
+                            }
+                        """.trimIndent(),
+                    )
+                    .withStatus(201),
+            ),
+        )
+
+        val oathMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
+        }
+        val client = OppgaveHttpClient(
+            connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
+                clientId = "oppgaveClientId",
+                url = wireMockServer.baseUrl(),
+            ),
+            exchange = oathMock,
+            tokenoppslagForSystembruker = mock(),
+            clock = fixedClock,
+        )
+        client.opprettOppgave(
+            OppgaveConfig.Klage.Klageinstanshendelse.Informasjon(
+                saksnummer = saksnummer,
+                aktørId = AktørId(aktørId),
+                tilordnetRessurs = null,
+                clock = fixedClock,
+                utfall = KlageinstansUtfall.STADFESTELSE,
+                avsluttetTidspunkt = fixedTidspunkt,
+                journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
+            ),
+        ) shouldBe OppgaveId("111").right()
+    }
+
+    @Test
+    fun `oppretter MEDHOLD-oppgave for klageinstanshendelse`() {
+        //language=JSON
+        val expectedAttesteringRequest =
+            """
+                {
+                  "journalpostId": null,
+                  "saksreferanse": "$saksnummer",
+                  "aktoerId": "$aktørId",
+                  "tema": "SUP",
+                  "behandlesAvApplikasjon": "SUPSTONAD",
+                  "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Retur\nRelevante JournalpostIDer: 123, 456\nKlageinstans sin behandling ble avsluttet den 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk.",
+                  "oppgavetype": "BEH_SAK",
+                  "behandlingstema": "ab0431",
+                  "behandlingstype": "ae0058",
+                  "aktivDato": "2021-01-01",
+                  "fristFerdigstillelse": "2021-01-31",
+                  "prioritet": "NORM",
+                  "tilordnetRessurs": null
+                }
+            """.trimMargin()
+
+        wireMockServer.stubFor(
+            stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest)).willReturn(
+                aResponse()
+                    .withBody(
+                        //language=JSON
+                        """
+                        {
+                          "id": 111,
+                           "tildeltEnhetsnr": "4811",
+                           "saksreferanse": "$søknadId",
+                           "aktoerId": "$aktørId",
+                           "tema": "SUP",
+                           "behandlesAvApplikasjon": "SUPSTONAD",
+                           "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId ",
+                           "behandlingstema": "ab0431",
+                           "oppgavetype": "ATT",
+                           "behandlingstype": "ae0034",
+                           "versjon": 1,
+                           "fristFerdigstillelse": "2020-06-06",
+                           "aktivDato": "2020-06-06",
+                           "opprettetTidspunkt": "2020-08-20T15:14:23.498+02:00",
+                           "opprettetAv": "srvsupstonad",
+                           "prioritet": "NORM",
+                           "status": "OPPRETTET",
+                           "metadata": {}
+                        }
+                        """.trimIndent(),
+                    )
+                    .withStatus(201),
+            ),
+        )
+
+        val oathMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
+        }
+        val client = OppgaveHttpClient(
+            connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
+                clientId = "oppgaveClientId",
+                url = wireMockServer.baseUrl(),
+            ),
+            exchange = oathMock,
+            tokenoppslagForSystembruker = mock(),
+            clock = fixedClock,
+        )
+        client.opprettOppgave(
+            OppgaveConfig.Klage.Klageinstanshendelse.Handling(
+                saksnummer = saksnummer,
+                aktørId = AktørId(aktørId),
+                tilordnetRessurs = null,
+                clock = fixedClock,
+                utfall = KlageinstansUtfall.RETUR,
+                avsluttetTidspunkt = fixedTidspunkt,
+                journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
+            ),
+        ) shouldBe OppgaveId("111").right()
+    }
+
+    @Test
+    fun `oppretter RETUR-oppgave for klageinstanshendelse`() {
+        //language=JSON
+        val expectedAttesteringRequest =
+            """
+                {
+                  "journalpostId": null,
+                  "saksreferanse": "$saksnummer",
+                  "aktoerId": "$aktørId",
+                  "tema": "SUP",
+                  "behandlesAvApplikasjon": "SUPSTONAD",
+                  "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer\nUtfall: Medhold\nRelevante JournalpostIDer: 123, 456\nKlageinstans sin behandling ble avsluttet den 01.01.2021 02:02\n\nKlagen krever ytterligere saksbehandling. Denne oppgaven må lukkes manuelt.",
+                  "oppgavetype": "BEH_SAK",
+                  "behandlingstema": "ab0431",
+                  "behandlingstype": "ae0058",
+                  "aktivDato": "2021-01-01",
+                  "fristFerdigstillelse": "2021-01-31",
+                  "prioritet": "NORM",
+                  "tilordnetRessurs": null
+                }
+            """.trimMargin()
+
+        wireMockServer.stubFor(
+            stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest)).willReturn(
+                aResponse()
+                    .withBody(
+                        //language=JSON
+                        """
+                        {
+                          "id": 111,
+                           "tildeltEnhetsnr": "4811",
+                           "saksreferanse": "$søknadId",
+                           "aktoerId": "$aktørId",
+                           "tema": "SUP",
+                           "behandlesAvApplikasjon": "SUPSTONAD",
+                           "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId ",
+                           "behandlingstema": "ab0431",
+                           "oppgavetype": "ATT",
+                           "behandlingstype": "ae0034",
+                           "versjon": 1,
+                           "fristFerdigstillelse": "2020-06-06",
+                           "aktivDato": "2020-06-06",
+                           "opprettetTidspunkt": "2020-08-20T15:14:23.498+02:00",
+                           "opprettetAv": "srvsupstonad",
+                           "prioritet": "NORM",
+                           "status": "OPPRETTET",
+                           "metadata": {}
+                        }
+                        """.trimIndent(),
+                    )
+                    .withStatus(201),
+            ),
+        )
+
+        val oathMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
+        }
+        val client = OppgaveHttpClient(
+            connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
+                clientId = "oppgaveClientId",
+                url = wireMockServer.baseUrl(),
+            ),
+            exchange = oathMock,
+            tokenoppslagForSystembruker = mock(),
+            clock = fixedClock,
+        )
+        client.opprettOppgave(
+            OppgaveConfig.Klage.Klageinstanshendelse.Handling(
+                saksnummer = saksnummer,
+                aktørId = AktørId(aktørId),
+                tilordnetRessurs = null,
+                clock = fixedClock,
+                utfall = KlageinstansUtfall.MEDHOLD,
+                avsluttetTidspunkt = fixedTidspunkt,
+                journalpostIDer = listOf(JournalpostId("123"), JournalpostId("456")),
+            ),
+        ) shouldBe OppgaveId("111").right()
     }
 
     private val stubMapping = WireMock.post(urlPathEqualTo(oppgavePath))

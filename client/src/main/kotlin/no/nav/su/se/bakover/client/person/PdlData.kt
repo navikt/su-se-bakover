@@ -17,6 +17,7 @@ internal data class PdlData(
     val adressebeskyttelse: String?,
     val vergemålEllerFremtidsfullmakt: Boolean,
     val fullmakt: Boolean,
+    val dødsdato: LocalDate?,
 ) {
     internal data class Ident(
         val fnr: Fnr,

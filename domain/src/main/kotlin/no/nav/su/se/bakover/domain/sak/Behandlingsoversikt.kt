@@ -4,6 +4,9 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Saksnummer
 import java.util.UUID
 
+/**
+ * @param behandlingStartet Dette skulle egentlig vært sistEndret
+ */
 data class Behandlingsoversikt(
     val saksnummer: Saksnummer,
     val behandlingsId: UUID,
@@ -27,6 +30,8 @@ data class Behandlingsoversikt(
         AVSLAG,
         INGEN_ENDRING,
         INNVILGET,
-        AVSLUTTET;
+        STANS,
+        GJENOPPTAK,
+        OVERSENDT;
     }
 }

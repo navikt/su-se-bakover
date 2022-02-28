@@ -6,28 +6,26 @@ import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.web.services.erLeaderPod
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
+import java.time.Duration
 import kotlin.concurrent.fixedRateTimer
 
 internal class PersonhendelseOppgaveJob(
     private val personhendelseService: PersonhendelseService,
     private val leaderPodLookup: LeaderPodLookup,
-    private val intervall: Long,
-    private val initialDelay: Long,
+    private val periode: Duration,
+    private val initialDelay: Duration,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Opprett personhendelse oppgaver"
 
     fun schedule() {
-        log.info(
-            "Starter skeduleringsjobb '$jobName' med intervall: $intervall. Mitt hostnavn er $hostName. Jeg er ${
-            if (leaderPodLookup.erLeaderPod(hostname = hostName)) "" else "ikke "
-            }leder.",
-        )
+        // Avventer kall til erLeaderPod i tilfelle den ikke er startet enda.
+        log.info("Starter skeduleringsjobb '$jobName' med initialDelay: $initialDelay og periode: $periode. Mitt hostnavn er $hostName.")
         fixedRateTimer(
             name = jobName,
             daemon = true,
-            period = intervall,
-            initialDelay = initialDelay
+            period = periode.toMillis(),
+            initialDelay = initialDelay.toMillis(),
         ) {
             log.info("Kjører skeduleringsjobb '$jobName'")
             Either.catch {

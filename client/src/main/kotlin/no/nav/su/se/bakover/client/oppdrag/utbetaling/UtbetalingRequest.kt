@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
@@ -13,6 +14,22 @@ data class UtbetalingRequest(
     val oppdragRequest: OppdragRequest,
 ) {
 
+    /**
+     * Rekke følge må samsvare med prop-order for [no.trygdeetaten.skjema.oppdrag.Oppdrag110]
+     */
+    @JsonPropertyOrder(
+        "kodeAksjon",
+        "kodeEndring",
+        "kodeFagomraade",
+        "fagsystemId",
+        "utbetFrekvens",
+        "oppdragGjelderId",
+        "datoOppdragGjelderFom",
+        "saksbehId",
+        "avstemming",
+        "oppdragsEnheter",
+        "oppdragslinjer",
+    )
     data class OppdragRequest(
         val kodeAksjon: KodeAksjon,
         val kodeEndring: KodeEndring,
@@ -79,6 +96,29 @@ data class UtbetalingRequest(
         val tidspktMelding: String,
     )
 
+    /**
+     * Rekke følge må samsvare med prop-order for [no.trygdeetaten.skjema.oppdrag.OppdragsLinje150]
+     */
+    @JsonPropertyOrder(
+        "kodeEndringLinje",
+        "kodeStatusLinje",
+        "datoStatusFom",
+        "delytelseId",
+        "kodeKlassifik",
+        "datoVedtakFom",
+        "datoVedtakTom",
+        "sats",
+        "fradragTillegg",
+        "typeSats",
+        "brukKjoreplan",
+        "saksbehId",
+        "utbetalesTilId",
+        "utbetalingId",
+        "refFagsystemId",
+        "refDelytelseId",
+        "grad",
+        "attestant",
+    )
     data class Oppdragslinje(
         val kodeEndringLinje: KodeEndringLinje,
         val kodeStatusLinje: KodeStatusLinje?,
@@ -103,6 +143,9 @@ data class UtbetalingRequest(
         val saksbehId: String,
         /** Fødselsnummer eller Organisasjonsnummer [9,11] tegn */
         val utbetalesTilId: String,
+        /** [0,30] tegn - en referanse til hvilken utbetaling-id (vår) utbetalingslinjen er koblet til */
+        @field:JacksonXmlProperty(localName = "henvisning")
+        val utbetalingId: String,
         /** Makslengde 30 tegn */
         val refDelytelseId: String?,
         val refFagsystemId: String?,
@@ -110,9 +153,6 @@ data class UtbetalingRequest(
         val grad: Grad?,
         @field:JacksonXmlProperty(localName = "attestant-180")
         val attestant: List<Attestant>,
-        /** [0,30] tegn - en referanse til hvilken utbetaling-id (vår) utbetalingslinjen er koblet til */
-        @field:JacksonXmlProperty(localName = "henvisning")
-        val utbetalingId: String,
     ) {
         enum class KodeEndringLinje(@JsonValue val value: String) {
             NY("NY"),

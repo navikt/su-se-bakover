@@ -7,13 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag.Companion.equals
-import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag.Companion.equals
-import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge.Companion.equals
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning.Companion.equals
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold.Companion.equals
 import java.util.UUID
 
 data class Formuegrunnlag private constructor(
@@ -236,3 +230,13 @@ sealed class KunneIkkeLageFormueVerdier {
 }
 
 fun List<Formuegrunnlag>.harEpsFormue() = this.any { it.epsFormue != null }
+
+/**
+ * @throws IllegalStateException dersom antall elementer i listen ikke tilsvarer 1
+ */
+fun List<Formuegrunnlag>.firstOrThrowIfMultipleOrEmpty(): Formuegrunnlag {
+    if (this.size != 1) {
+        throw IllegalStateException("Antall elementer i listen tilsvarer ikke 1")
+    }
+    return this.first()
+}

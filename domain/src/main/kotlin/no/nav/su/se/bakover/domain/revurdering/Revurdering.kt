@@ -959,6 +959,10 @@ sealed class SimulertRevurdering : Revurdering() {
             }
         }
 
+        fun opphørSkyldesVilkår(): Boolean {
+            return VurderOpphørVedRevurdering.Vilkårsvurderinger(vilkårsvurderinger).resultat is OpphørVedRevurdering.Ja
+        }
+
         override fun prøvOvergangTilSkalIkkeForhåndsvarsles(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {
             return forhåndsvarsel.prøvOvergangTilSkalIkkeForhåndsvarsles().map { this.copy(forhåndsvarsel = it) }
         }
@@ -1089,12 +1093,12 @@ sealed class RevurderingTilAttestering : Revurdering() {
         fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
             hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
-            clock: Clock
+            clock: Clock,
         ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Innvilget> = validerTilIverksettOvergang(
             attestant = attestant,
             hentOpprinneligAvkorting = hentOpprinneligAvkorting,
             saksbehandler = saksbehandler,
-            avkorting = avkorting
+            avkorting = avkorting,
         ).map {
             IverksattRevurdering.Innvilget(
                 id = id,
@@ -1163,12 +1167,12 @@ sealed class RevurderingTilAttestering : Revurdering() {
         fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
             hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
-            clock: Clock
+            clock: Clock,
         ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Opphørt> = validerTilIverksettOvergang(
             attestant = attestant,
             hentOpprinneligAvkorting = hentOpprinneligAvkorting,
             saksbehandler = saksbehandler,
-            avkorting = avkorting
+            avkorting = avkorting,
         ).map {
             IverksattRevurdering.Opphørt(
                 id = id,
@@ -1717,7 +1721,7 @@ private fun validerTilIverksettOvergang(
     attestant: NavIdentBruker.Attestant,
     hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
     saksbehandler: Saksbehandler,
-    avkorting: AvkortingVedRevurdering.Håndtert
+    avkorting: AvkortingVedRevurdering.Håndtert,
 ): Either<RevurderingTilAttestering.KunneIkkeIverksetteRevurdering, Unit> {
     if (saksbehandler.navIdent == attestant.navIdent) {
         return RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()

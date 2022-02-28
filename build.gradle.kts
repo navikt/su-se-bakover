@@ -1,7 +1,7 @@
 plugins {
     kotlin("jvm")
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
-    id("org.jmailen.kotlinter") version "3.8.0"
+    id("org.jmailen.kotlinter") version "3.9.0"
 }
 
 version = "0.0.1"
@@ -38,7 +38,7 @@ subprojects {
         implementation("com.networknt:json-schema-validator:1.0.66")
         implementation("no.finn.unleash:unleash-client-java:4.4.1")
 
-        implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.4.0")
+        implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.5.0")
         implementation("io.confluent:kafka-avro-serializer:6.2.1")
         implementation("org.apache.avro:avro:1.11.0")
 
@@ -48,7 +48,7 @@ subprojects {
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
         testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
         testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
-        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.2.2")
+        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.2.3")
         testImplementation("io.kotest:kotest-extensions:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
         testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
@@ -93,7 +93,7 @@ subprojects {
     }
 
     tasks.withType<Wrapper> {
-        gradleVersion = "7.3.3"
+        gradleVersion = "7.4"
     }
 
     // Run `./gradlew allDeps` to get a dependency graph

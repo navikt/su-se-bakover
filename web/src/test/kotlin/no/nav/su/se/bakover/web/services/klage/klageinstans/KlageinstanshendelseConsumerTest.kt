@@ -1,12 +1,11 @@
-package no.nav.su.se.bakover.web.services.klage
+package no.nav.su.se.bakover.web.services.klage.klageinstans
 
 import io.kotest.matchers.shouldBe
 import no.nav.common.JAAS_PLAIN_LOGIN
 import no.nav.common.JAAS_REQUIRED
 import no.nav.common.KafkaEnvironment
-import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
-import no.nav.su.se.bakover.service.klage.KlagevedtakService
-import no.nav.su.se.bakover.service.toggles.ToggleService
+import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse
+import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.apache.kafka.clients.CommonClientConfigs
@@ -29,6 +28,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.timeout
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import org.slf4j.helpers.NOPLogger
 import java.time.Duration
 import java.util.UUID
 
@@ -37,7 +37,7 @@ private const val TOPIC1 = "kafkaTopic1"
 private const val TOPIC2 = "kafkaTopic2"
 
 @Isolated
-internal class FattetKlageinstansvedtakConsumerTest {
+internal class KlageinstansBehandlingshendelseConsumerTest {
 
     private val PARTITION = 0
     private val key = UUID.randomUUID().toString()
@@ -45,48 +45,46 @@ internal class FattetKlageinstansvedtakConsumerTest {
     @Test
     fun `Lagrer aktuelle og forkaster uaktuelle`() {
         val kafkaConsumer = kafkaConsumer(kafkaServer, "$TOPIC1-consumer-group")
-        val klagevedtakService = mock<KlagevedtakService>()
-        FattetKlageinstansvedtakConsumer(
+        val klageinstanshendelseService = mock<KlageinstanshendelseService>()
+        KlageinstanshendelseConsumer(
             consumer = kafkaConsumer,
-            klagevedtakService = klagevedtakService,
-            periode = 1,
-            initialDelay = 0,
+            klageinstanshendelseService = klageinstanshendelseService,
             topicName = TOPIC1,
             pollTimeoutDuration = Duration.ofMillis(1000),
             clock = fixedClock,
-            toggleService = object : ToggleService {
-                override fun isEnabled(toggleName: String) = true
-            },
+            log = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
+            sikkerLogg = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
         )
         val producer = kafkaProducer(kafkaServer)
         listOf(
-            producer.send(genererFattetKlagevedtaksmelding(TOPIC1, 0, "SUPSTONAD")),
-            producer.send(genererFattetKlagevedtaksmelding(TOPIC1, 1, "ANNENSTONAD")),
-            producer.send(genererFattetKlagevedtaksmelding(TOPIC1, 2, "SUPSTONAD")),
+            producer.send(genererKlageinstanshendelseMelding(TOPIC1, 0, "SUPSTONAD")),
+            producer.send(genererKlageinstanshendelseMelding(TOPIC1, 1, "ANNENSTONAD")),
+            producer.send(genererKlageinstanshendelseMelding(TOPIC1, 2, "SUPSTONAD")),
         ).forEach {
             // Venter til alle meldingene er sendt før vi prøver consume
             it.get()
         }
-        val hendelser = argumentCaptor<UprosessertFattetKlageinstansvedtak>()
+        val hendelser = argumentCaptor<UprosessertKlageinstanshendelse>()
         // Kunne alternativt brukt awaitility for å vente til currentOffset ble 3
-        verify(klagevedtakService, timeout(20000).times(2)).lagre(any())
+        verify(klageinstanshendelseService, timeout(20000).times(2)).lagre(any())
         currentOffset(TOPIC1) shouldBe 3 // last offset (2) + 1
         listOf(
-            producer.send(genererFattetKlagevedtaksmelding(TOPIC1, 3, "ANNENSTONAD")),
-            producer.send(genererFattetKlagevedtaksmelding(TOPIC1, 4, "SUPSTONAD")),
-            producer.send(genererFattetKlagevedtaksmelding(TOPIC1, 5, "ANNENSTONAD")),
+            producer.send(genererKlageinstanshendelseMelding(TOPIC1, 3, "ANNENSTONAD")),
+            producer.send(genererKlageinstanshendelseMelding(TOPIC1, 4, "SUPSTONAD")),
+            producer.send(genererKlageinstanshendelseMelding(TOPIC1, 5, "ANNENSTONAD")),
         ).forEach {
             // Venter til alle meldingene er sendt før vi prøver consume
             it.get()
         }
 
-        verify(klagevedtakService, timeout(20000).times(3)).lagre(hendelser.capture())
+        verify(klageinstanshendelseService, timeout(20000).times(3)).lagre(hendelser.capture())
         hendelser.allValues.size shouldBe 3
-        hendelser.allValues.forEachIndexed { index, klagevedtak ->
-            UprosessertFattetKlageinstansvedtak(
-                id = klagevedtak.id,
+        hendelser.allValues.forEachIndexed { index, uprosessertKlageinstanshendelse ->
+            UprosessertKlageinstanshendelse(
+                id = uprosessertKlageinstanshendelse.id,
                 opprettet = fixedTidspunkt,
-                metadata = UprosessertFattetKlageinstansvedtak.Metadata(
+                metadata = UprosessertKlageinstanshendelse.Metadata(
+                    topic = TOPIC1,
                     hendelseId = index.toString(),
                     offset = index.toLong(),
                     partisjon = PARTITION,
@@ -104,38 +102,35 @@ internal class FattetKlageinstansvedtakConsumerTest {
                 ),
             )
         }
-        verifyNoMoreInteractions(klagevedtakService)
+        verifyNoMoreInteractions(klageinstanshendelseService)
         currentOffset(TOPIC1) shouldBe 6 // last offset (5) + 1
     }
 
     @Test
     fun `Fant ikke kilde comitter siste leste melding og kaller en rebalance`() {
         val kafkaConsumer = kafkaConsumer(kafkaServer, "$TOPIC2-consumer-group")
-        val klagevedtakService = mock<KlagevedtakService>()
-        FattetKlageinstansvedtakConsumer(
+        val klageinstanshendelseService = mock<KlageinstanshendelseService>()
+        KlageinstanshendelseConsumer(
             consumer = kafkaConsumer,
-            klagevedtakService = klagevedtakService,
-            periode = 1,
-            initialDelay = 0,
+            klageinstanshendelseService = klageinstanshendelseService,
             topicName = TOPIC2,
             pollTimeoutDuration = Duration.ofMillis(1000),
             clock = fixedClock,
-            toggleService = object : ToggleService {
-                override fun isEnabled(toggleName: String) = true
-            },
+            log = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
+            sikkerLogg = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
         )
         val producer = kafkaProducer(kafkaServer)
 
         listOf(
-            producer.send(genererFattetKlagevedtaksmelding(TOPIC2, 0)),
+            producer.send(genererKlageinstanshendelseMelding(TOPIC2, 0)),
             // Tvinger en FantIkkeKilde.left()
             producer.send(ProducerRecord(TOPIC2, PARTITION, 1L, key, "{}")),
-            producer.send(genererFattetKlagevedtaksmelding(TOPIC2, 2)),
+            producer.send(genererKlageinstanshendelseMelding(TOPIC2, 2)),
         ).forEach { it.get() }
-        // Venter først akkurat til vi har fått et kall til klagevedtakService (som forventet)
-        verify(klagevedtakService, timeout(20000)).lagre(any())
+        // Venter først akkurat til vi har fått et kall til klageinstanshendelseService (som forventet)
+        verify(klageinstanshendelseService, timeout(20000)).lagre(any())
         Thread.sleep(2000) // Venter deretter en liten stund til for å verifisere at det ikke kommer fler kall.
-        verifyNoMoreInteractions(klagevedtakService)
+        verifyNoMoreInteractions(klageinstanshendelseService)
         currentOffset(TOPIC2) shouldBe 1 // last offset (0) + 1
     }
 
@@ -144,12 +139,12 @@ internal class FattetKlageinstansvedtakConsumerTest {
             .partitionsToOffsetAndMetadata().get()[TopicPartition(topic, PARTITION)]!!.offset()
     }
 
-    private fun genererFattetKlagevedtaksmelding(
+    private fun genererKlageinstanshendelseMelding(
         topic: String,
         offset: Long,
-        kilde: String = "SUPSTONAD"
+        kilde: String = "SUPSTONAD",
     ): ProducerRecord<String, String> {
-        val fattetKlagevedtaksmelding = """
+        val melding = """
             {
               "eventId": "$offset",
               "kildeReferanse":"$offset",
@@ -159,7 +154,7 @@ internal class FattetKlageinstansvedtakConsumerTest {
               "kabalReferanse":"$offset"
             }
         """.trimIndent()
-        return ProducerRecord(topic, PARTITION, offset, offset.toString(), fattetKlagevedtaksmelding)
+        return ProducerRecord(topic, PARTITION, offset, offset.toString(), melding)
     }
 
     companion object {

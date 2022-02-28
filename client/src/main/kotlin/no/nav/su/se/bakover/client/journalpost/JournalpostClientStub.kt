@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
+import no.nav.su.se.bakover.domain.journalpost.JournalpostType
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
 import no.nav.su.se.bakover.domain.journalpost.Tema
 
@@ -18,6 +19,7 @@ object JournalpostClientStub : JournalpostClient {
         return FerdigstiltJournalpost.create(
             tema = Tema.SUP,
             journalstatus = JournalpostStatus.FERDIGSTILT,
+            journalpostType = JournalpostType.UTGÅENDE_DOKUMENT,
             saksnummer = saksnummer,
         ).right()
     }

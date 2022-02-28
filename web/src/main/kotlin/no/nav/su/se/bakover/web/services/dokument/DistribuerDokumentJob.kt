@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.net.InetAddress
 import java.time.Duration
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.concurrent.fixedRateTimer
 
@@ -19,20 +18,21 @@ import kotlin.concurrent.fixedRateTimer
 class DistribuerDokumentJob(
     private val brevService: BrevService,
     private val leaderPodLookup: LeaderPodLookup,
-    private val initialDelay: Long,
+    private val initialDelay: Duration,
+    private val periode: Duration,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Journalfør og bestill brevdistribusjon"
-    private val periode = Duration.of(1, ChronoUnit.MINUTES).toMillis()
 
     fun schedule() {
-        log.info("Starter skeduleringsjobb '$jobName' med intervall: $periode ms. Mitt hostnavn er $hostName. Jeg er ${if (leaderPodLookup.erLeaderPod(hostname = hostName)) "" else "ikke "}leder.")
+        // Avventer kall til erLeaderPod i tilfelle den ikke er startet enda.
+        log.info("Starter skeduleringsjobb '$jobName' med initialDelay $initialDelay og periode $periode. Mitt hostnavn er $hostName.")
 
         fixedRateTimer(
             name = jobName,
             daemon = true,
-            period = periode,
-            initialDelay = initialDelay
+            period = periode.toMillis(),
+            initialDelay = initialDelay.toMillis(),
         ) {
             Either.catch {
                 if (leaderPodLookup.erLeaderPod(hostname = hostName)) {

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
 import arrow.core.Either
 import org.slf4j.LoggerFactory
+import java.time.Duration
 import kotlin.concurrent.fixedRateTimer
 
 /**
@@ -10,17 +11,19 @@ import kotlin.concurrent.fixedRateTimer
  */
 internal class LokalKvitteringJob(
     private val lokalKvitteringService: LokalKvitteringService,
+    private val periode: Duration,
+    private val initialDelay: Duration,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun schedule() {
-        val delayISekunder = 10L
-        log.error("Lokal jobb: Startet skedulert jobb for kvitteringer og ferdigstillelse av innvilgelser som kjører hvert $delayISekunder sekund")
+        log.error("Lokal jobb: Startet skedulert jobb for kvitteringer og ferdigstillelse av innvilgelser. initialDelay: $initialDelay, periode: $periode")
         val jobName = "local-ferdigstill-utbetaling"
         fixedRateTimer(
             name = jobName,
             daemon = true,
-            period = 1000L * delayISekunder,
+            period = periode.toMillis(),
+            initialDelay = initialDelay.toMillis(),
         ) {
             Either.catch {
                 lokalKvitteringService.run()

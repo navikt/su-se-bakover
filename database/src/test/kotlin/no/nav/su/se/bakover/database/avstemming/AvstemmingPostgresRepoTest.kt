@@ -84,7 +84,7 @@ internal class AvstemmingPostgresRepoTest {
                 """
                     insert into utbetaling (id, opprettet, sakId, fnr, type, behandler, avstemmingsnøkkel, simulering, utbetalingsrequest)
                     values (:id, :opprettet, :sakId, :fnr, :type, :behandler, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json))
-                 """.insert(
+                """.insert(
                     mapOf(
                         "id" to UUID30.randomUUID(),
                         "opprettet" to fixedTidspunkt,

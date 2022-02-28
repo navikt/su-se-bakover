@@ -126,6 +126,9 @@ query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
             gyldigFraOgMed
             gyldigTilOgMed
         }
+        doedsfall{
+            doedsdato
+        }
     }
     hentIdenter(ident: $ident, grupper: $identGrupper, historikk: $historikk) {
         identer {

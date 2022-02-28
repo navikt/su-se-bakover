@@ -4,10 +4,10 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import java.util.UUID
 
 /**
- * Representerer foreløpig kun et uprosessert fattet klagevedtak (Kabal).
+ * Representerer en uprosessert klageinstanshendelse (Kabal).
  * Vi har filtrert ut hendelser som ikke angår Supplerende Stønad Uføre.
  */
-data class UprosessertFattetKlageinstansvedtak(
+data class UprosessertKlageinstanshendelse(
     val id: UUID,
     val opprettet: Tidspunkt,
     val metadata: Metadata,
@@ -16,6 +16,7 @@ data class UprosessertFattetKlageinstansvedtak(
      * Et offset er kun unikt kombinert med partisjonen (direkte tilknyttet Kafka)
      * */
     data class Metadata(
+        val topic: String,
         val hendelseId: String,
         val offset: Long,
         val partisjon: Int,

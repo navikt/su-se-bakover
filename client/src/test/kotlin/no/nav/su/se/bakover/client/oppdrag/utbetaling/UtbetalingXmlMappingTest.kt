@@ -108,6 +108,7 @@ class UtbetalingXmlMappingTest {
                   <brukKjoreplan>N</brukKjoreplan>
                   <saksbehId>SU</saksbehId>
                   <utbetalesTilId>$fnr</utbetalesTilId>
+                  <henvisning>${utbetaling.id}</henvisning>
                   <grad-170>
                     <typeGrad>UFOR</typeGrad>
                     <grad>50</grad>
@@ -115,7 +116,6 @@ class UtbetalingXmlMappingTest {
                   <attestant-180>
                     <attestantId>A123456</attestantId>
                   </attestant-180>
-                  <henvisning>${utbetaling.id}</henvisning>
                 </oppdrags-linje-150>
                 <oppdrags-linje-150>
                   <kodeEndringLinje>NY</kodeEndringLinje>
@@ -129,8 +129,9 @@ class UtbetalingXmlMappingTest {
                   <brukKjoreplan>N</brukKjoreplan>
                   <saksbehId>SU</saksbehId>
                   <utbetalesTilId>$fnr</utbetalesTilId>
-                  <refDelytelseId>${førsteUtbetalingsLinje.id}</refDelytelseId>
+                  <henvisning>${utbetaling.id}</henvisning>
                   <refFagsystemId>$saksnummer</refFagsystemId>
+                  <refDelytelseId>${førsteUtbetalingsLinje.id}</refDelytelseId>
                   <grad-170>
                     <typeGrad>UFOR</typeGrad>
                     <grad>60</grad>
@@ -138,7 +139,6 @@ class UtbetalingXmlMappingTest {
                   <attestant-180>
                     <attestantId>A123456</attestantId>
                   </attestant-180>
-                  <henvisning>${utbetaling.id}</henvisning>
                 </oppdrags-linje-150>
                 <oppdrags-linje-150>
                   <kodeEndringLinje>ENDR</kodeEndringLinje>
@@ -154,6 +154,7 @@ class UtbetalingXmlMappingTest {
                   <brukKjoreplan>N</brukKjoreplan>
                   <saksbehId>SU</saksbehId>
                   <utbetalesTilId>$fnr</utbetalesTilId>
+                  <henvisning>${utbetaling.id}</henvisning>
                   <grad-170>
                     <typeGrad>UFOR</typeGrad>
                     <grad>60</grad>
@@ -161,7 +162,6 @@ class UtbetalingXmlMappingTest {
                   <attestant-180>
                     <attestantId>A123456</attestantId>
                   </attestant-180>
-                  <henvisning>${utbetaling.id}</henvisning>
                 </oppdrags-linje-150>
               </oppdrag-110>
             </Oppdrag>

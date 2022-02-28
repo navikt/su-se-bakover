@@ -1,16 +1,12 @@
 package no.nav.su.se.bakover.web.services.avstemming
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.web.services.erLeaderPod
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.time.Duration
-import java.time.LocalTime
-import java.time.ZonedDateTime
-import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.UUID
 import kotlin.concurrent.fixedRateTimer
@@ -18,44 +14,26 @@ import kotlin.concurrent.fixedRateTimer
 internal class GrensesnittsavstemingJob(
     private val avstemmingService: AvstemmingService,
     private val leaderPodLookup: LeaderPodLookup,
+    private val starttidspunkt: Date,
+    private val periode: Duration,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
+
     private val jobName = this::class.simpleName!!
-    private val periode = Duration.of(1, ChronoUnit.DAYS).toMillis()
-    private val avstemmingstidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 0, 0))
 
     fun schedule() {
-        log.info("Scheduling grensesnittsavstemming at time $avstemmingstidspunkt, with interval $periode ms")
+        log.info("Scheduling grensesnittsavstemming at time $starttidspunkt, with period $periode")
         fixedRateTimer(
             name = jobName,
             daemon = true,
-            startAt = avstemmingstidspunkt,
-            period = periode,
+            startAt = starttidspunkt,
+            period = periode.toMillis(),
         ) {
             Grensesnittsavstemming(
                 avstemmingService = avstemmingService,
                 leaderPodLookup = leaderPodLookup,
                 jobName = jobName,
             ).run()
-        }
-    }
-
-    private fun ZonedDateTime.next(atTime: LocalTime): Date {
-        return if (this.toLocalTime().isAfter(atTime)) {
-            Date.from(
-                this.plusDays(1)
-                    .withHour(atTime.hour)
-                    .withMinute(atTime.minute)
-                    .withSecond(atTime.second)
-                    .toInstant(),
-            )
-        } else {
-            Date.from(
-                this.withHour(atTime.hour)
-                    .withMinute(atTime.minute)
-                    .withSecond(atTime.second)
-                    .toInstant(),
-            )
         }
     }
 

@@ -110,7 +110,7 @@ data class OpprettetKlage private constructor(
             vurderinger = null,
             attesteringer = Attesteringshistorikk.empty(),
             datoKlageMottatt = datoKlageMottatt,
-            klagevedtakshistorikk = Klagevedtakshistorikk.empty(),
+            klageinstanshendelser = Klageinstanshendelser.empty(),
         )
     }
 }

@@ -7,8 +7,6 @@ import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTr
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.database.uuid
-import no.nav.su.se.bakover.database.uuidOrNull
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus

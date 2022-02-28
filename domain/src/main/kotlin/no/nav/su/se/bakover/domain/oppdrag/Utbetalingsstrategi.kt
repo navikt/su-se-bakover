@@ -159,6 +159,7 @@ sealed class Utbetalingsstrategi {
             beregning: Beregning,
             uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
         ): List<Utbetalingsperiode> {
+
             val slåttSammenMånedsberegninger = SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
                 beregning.getMånedsberegninger(),
             ).beregningsperioder

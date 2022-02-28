@@ -70,7 +70,7 @@ internal class UtbetalingPostgresRepo(
             """
             insert into utbetaling (id, opprettet, sakId, fnr, type, avstemmingsnøkkel, simulering, utbetalingsrequest, behandler)
             values (:id, :opprettet, :sakId, :fnr, :type, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json), :behandler)
-         """.insert(
+            """.insert(
                 mapOf(
                     "id" to utbetaling.id,
                     "opprettet" to utbetaling.opprettet,

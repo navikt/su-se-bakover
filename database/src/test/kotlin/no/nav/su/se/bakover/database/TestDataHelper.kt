@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRe
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
-import no.nav.su.se.bakover.database.klage.KlagevedtakPostgresRepo
+import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
@@ -62,10 +62,10 @@ import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
-import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
+import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
-import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlageinstansvedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
@@ -79,6 +79,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -86,6 +87,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
@@ -101,6 +103,8 @@ import no.nav.su.se.bakover.test.behandlingsinformasjonAlleVilkårInnvilget
 import no.nav.su.se.bakover.test.beregningAvslagForHøyInntekt
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
+import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
+import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -150,7 +154,7 @@ internal val underkjentAttestering =
         kommentar = "kommentar",
         opprettet = fixedTidspunkt,
     )
-internal val iverksattAttestering = Attestering.Iverksatt(attestant, fixedTidspunkt)
+internal val iverksattAttestering = Attestering.Iverksatt(attestant, enUkeEtterFixedTidspunkt)
 internal val avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt)
 internal fun utbetalingslinje(periode: Periode = stønadsperiode.periode) =
     Utbetalingslinje.Ny(
@@ -290,7 +294,8 @@ internal class TestDataHelper(
         utenlandsoppholdVilkårsvurderingRepo = utenlandsoppholdVilkårsvurderingRepo,
         avkortingsvarselRepo = avkortingsvarselRepo,
     )
-    internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory)
+    internal val klageinstanshendelsePostgresRepo = KlageinstanshendelsePostgresRepo(sessionFactory)
+    internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory, klageinstanshendelsePostgresRepo)
     internal val reguleringPostgresRepo =
         ReguleringPostgresRepo(
             dataSource = dataSource,
@@ -331,8 +336,6 @@ internal class TestDataHelper(
     internal val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource = dataSource, fixedClock)
     internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
     internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource, fixedClock)
-
-    internal val klagevedtakPostgresRepo = KlagevedtakPostgresRepo(sessionFactory)
 
     internal val sakRepo = SakPostgresRepo(
         sessionFactory = sessionFactory,
@@ -801,6 +804,140 @@ internal class TestDataHelper(
             fritekst = null,
             tidspunktAvsluttet = fixedTidspunkt,
         ).getOrFail().also { revurderingRepo.lagre(it) }
+    }
+
+    fun simulertStans(
+        id: UUID = UUID.randomUUID(),
+        opprettet: Tidspunkt = fixedTidspunkt,
+        periode: Periode = Periode.create(
+            stønadsperiode.periode.fraOgMed.plusMonths(1),
+            stønadsperiode.periode.tilOgMed,
+        ),
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataRevurdering(periode, epsFnr),
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering = innvilgetVilkårsvurderingerSøknadsbehandling(periode = periode)
+            .tilVilkårsvurderingerRevurdering(),
+        tilRevurdering: VedtakSomKanRevurderes = vedtakMedInnvilgetSøknadsbehandling(
+            stønadsperiode.periode,
+        ).first,
+        simulering: Simulering = simulering(Fnr.generer()),
+        revurderingsårsak: Revurderingsårsak = Revurderingsårsak(
+            Revurderingsårsak.Årsak.DØDSFALL,
+            Revurderingsårsak.Begrunnelse.create("begrunnelse"),
+        ),
+    ): StansAvYtelseRevurdering.SimulertStansAvYtelse {
+        return StansAvYtelseRevurdering.SimulertStansAvYtelse(
+            id = id,
+            opprettet = opprettet,
+            periode = periode,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            simulering = simulering,
+            revurderingsårsak = revurderingsårsak,
+        ).also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
+    fun iverksattStans(
+        id: UUID = UUID.randomUUID(),
+        opprettet: Tidspunkt = fixedTidspunkt,
+        periode: Periode = Periode.create(
+            stønadsperiode.periode.fraOgMed.plusMonths(1),
+            stønadsperiode.periode.tilOgMed,
+        ),
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataRevurdering(periode, epsFnr),
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering = innvilgetVilkårsvurderingerSøknadsbehandling(periode = periode)
+            .tilVilkårsvurderingerRevurdering(),
+        tilRevurdering: VedtakSomKanRevurderes = vedtakMedInnvilgetSøknadsbehandling(
+            stønadsperiode.periode,
+        ).first,
+        simulering: Simulering = simulering(Fnr.generer()),
+        revurderingsårsak: Revurderingsårsak = Revurderingsårsak(
+            Revurderingsårsak.Årsak.DØDSFALL,
+            Revurderingsårsak.Begrunnelse.create("begrunnelse"),
+        ),
+    ): StansAvYtelseRevurdering.IverksattStansAvYtelse {
+        return simulertStans(
+            id,
+            opprettet,
+            periode,
+            grunnlagsdata,
+            vilkårsvurderinger,
+            tilRevurdering,
+            simulering,
+            revurderingsårsak,
+        ).iverksett(iverksattAttestering).getOrFail().also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
+    fun simulertGjenopptak(
+        id: UUID = UUID.randomUUID(),
+        opprettet: Tidspunkt = fixedTidspunkt,
+        periode: Periode = Periode.create(
+            stønadsperiode.periode.fraOgMed.plusMonths(1),
+            stønadsperiode.periode.tilOgMed,
+        ),
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataRevurdering(periode, epsFnr),
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering = innvilgetVilkårsvurderingerSøknadsbehandling(periode = periode)
+            .tilVilkårsvurderingerRevurdering(),
+        tilRevurdering: VedtakSomKanRevurderes = vedtakMedInnvilgetSøknadsbehandling(
+            stønadsperiode.periode,
+        ).first,
+        simulering: Simulering = simulering(Fnr.generer()),
+        revurderingsårsak: Revurderingsårsak = Revurderingsårsak(
+            Revurderingsårsak.Årsak.DØDSFALL,
+            Revurderingsårsak.Begrunnelse.create("begrunnelse"),
+        ),
+    ): GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse {
+        return GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
+            id,
+            opprettet,
+            periode,
+            grunnlagsdata,
+            vilkårsvurderinger,
+            tilRevurdering,
+            saksbehandler,
+            simulering,
+            revurderingsårsak,
+        ).also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
+    fun iverksettGjenopptak(
+        id: UUID = UUID.randomUUID(),
+        opprettet: Tidspunkt = fixedTidspunkt,
+        periode: Periode = Periode.create(
+            stønadsperiode.periode.fraOgMed.plusMonths(1),
+            stønadsperiode.periode.tilOgMed,
+        ),
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataRevurdering(periode, epsFnr),
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering = innvilgetVilkårsvurderingerSøknadsbehandling(periode = periode)
+            .tilVilkårsvurderingerRevurdering(),
+        tilRevurdering: VedtakSomKanRevurderes = vedtakMedInnvilgetSøknadsbehandling(
+            stønadsperiode.periode,
+        ).first,
+        simulering: Simulering = simulering(Fnr.generer()),
+        revurderingsårsak: Revurderingsårsak = Revurderingsårsak(
+            Revurderingsårsak.Årsak.DØDSFALL,
+            Revurderingsårsak.Begrunnelse.create("begrunnelse"),
+        ),
+    ): GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse {
+        return simulertGjenopptak(
+            id,
+            opprettet,
+            periode,
+            grunnlagsdata,
+            vilkårsvurderinger,
+            tilRevurdering,
+            simulering,
+            revurderingsårsak,
+        ).iverksett(iverksattAttestering).getOrFail().also {
+            revurderingRepo.lagre(it)
+        }
     }
 
     /* Kaller lagreNySøknadsbehandling (insert) */
@@ -1379,17 +1516,18 @@ internal class TestDataHelper(
         ).getOrFail().also { klagePostgresRepo.lagre(it) }
     }
 
-    fun uprosessertKlagevedtak(
+    fun uprosessertKlageinstanshendelse(
         id: UUID = UUID.randomUUID(),
         klageId: UUID = UUID.randomUUID(),
-        utfall: KlagevedtakUtfall = KlagevedtakUtfall.STADFESTELSE,
+        utfall: KlageinstansUtfall = KlageinstansUtfall.STADFESTELSE,
         opprettet: Tidspunkt = fixedTidspunkt,
     ): Pair<UUID, UUID> {
-        klagevedtakPostgresRepo.lagre(
-            UprosessertFattetKlageinstansvedtak(
+        klageinstanshendelsePostgresRepo.lagre(
+            UprosessertKlageinstanshendelse(
                 id = id,
                 opprettet = opprettet,
-                metadata = UprosessertFattetKlageinstansvedtak.Metadata(
+                metadata = UprosessertKlageinstanshendelse.Metadata(
+                    topic = "klage.behandling-events.v1",
                     hendelseId = UUID.randomUUID().toString(),
                     offset = 0,
                     partisjon = 0,

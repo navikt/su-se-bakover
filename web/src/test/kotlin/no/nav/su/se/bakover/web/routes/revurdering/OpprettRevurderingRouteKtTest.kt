@@ -119,7 +119,7 @@ internal class OpprettRevurderingRouteKtTest {
                         "begrunnelse":"begrunnelse",
                         "informasjonSomRevurderes": ["Uførhet"]
                     }
-                """.trimMargin(),
+                    """.trimMargin(),
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created

@@ -15,8 +15,6 @@ import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
-import no.nav.su.se.bakover.database.uuid
-import no.nav.su.se.bakover.database.uuidOrNull
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
@@ -101,7 +99,7 @@ internal class SakPostgresRepo(
                 """
             with inserted_sak as (insert into sak (id, fnr, opprettet) values (:sakId, :fnr, :opprettet))
             insert into søknad (id, sakId, søknadInnhold, opprettet) values (:soknadId, :sakId, to_json(:soknad::json), :opprettet)
-        """.insert(
+                """.insert(
                     mapOf(
                         "sakId" to sak.id,
                         "fnr" to sak.fnr,
