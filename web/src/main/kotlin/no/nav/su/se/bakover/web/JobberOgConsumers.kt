@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.web.services.klage.klageinstans.Klageinstanshendelse
 import no.nav.su.se.bakover.web.services.kontrollsamtale.KontrollsamtaleinnkallingJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
+import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingIbmMqConsumer
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingJob
@@ -239,6 +240,12 @@ fun startJobberOgConsumers(
             kontrollsamtaleService = services.kontrollsamtale,
             starttidspunkt = Date.from(Instant.now(clock).plusSeconds(initialDelay.next().toSeconds())),
             periode = Duration.ofMinutes(5),
+        ).schedule()
+
+        LokalMottaKravgrunnlagJob(
+            tilbakekrevingConsumer = tilbakekrevingConsumer,
+            tilbakekrevingService = services.tilbakekrevingService,
+            vedtakService = services.vedtakService,
         ).schedule()
 
         TilbakekrevingJob(

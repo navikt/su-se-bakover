@@ -19,23 +19,24 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.Clock
+import java.time.Duration
 import kotlin.concurrent.fixedRateTimer
 
 internal class LokalMottaKravgrunnlagJob(
     private val tilbakekrevingConsumer: TilbakekrevingConsumer,
     private val tilbakekrevingService: TilbakekrevingService,
     private val vedtakService: VedtakService,
+    private val intervall: Duration = Duration.ofMinutes(1),
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun schedule() {
-        val delayISekunder = 10L
-        log.error("Lokal jobb: Startet skedulert jobb for mottak av kravgrunnlag som kjører hvert $delayISekunder sekund")
+        log.error("Lokal jobb: Startet skedulert jobb for mottak av kravgrunnlag som kjører med intervall $intervall")
         val jobName = "local-motta-kravgrunnlag"
         fixedRateTimer(
             name = jobName,
             daemon = true,
-            period = 1000L * delayISekunder,
+            period = intervall.toMillis(),
         ) {
             Either.catch {
                 tilbakekrevingService.hentAvventerKravgrunnlag()
