@@ -231,7 +231,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                     session = session,
                 ) shouldBe Vilkår.Formue.IkkeVurdert
 
-                testDataHelper.formuegrunnlagPostgresRepo.hentForFormuegrunnlagId(
+                testDataHelper.formuegrunnlagPostgresRepo.hentFormuegrunnlag(
                     formuegrunnlagId = grunnlag.first().id,
                     session = session,
                 ) shouldBe null

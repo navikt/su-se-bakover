@@ -1,17 +1,18 @@
-package no.nav.su.se.bakover.database.hendelse
+package no.nav.su.se.bakover.database.personhendelse
 
 import arrow.core.NonEmptyList
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo.HendelseJson.Companion.toJson
-import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo.MetadataJson.Companion.toJson
+import no.nav.su.se.bakover.database.DbMetrics
+import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
-import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo.HendelseJson.Companion.toJson
+import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo.MetadataJson.Companion.toJson
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -21,13 +22,18 @@ import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
-import javax.sql.DataSource
 
-class PersonhendelsePostgresRepo(private val datasource: DataSource, private val clock: Clock) : PersonhendelseRepo {
+internal class PersonhendelsePostgresRepo(
+    private val sessionFactory: PostgresSessionFactory,
+    private val dbMetrics: DbMetrics,
+    private val clock: Clock,
+) : PersonhendelseRepo {
+
     override fun lagre(personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave) {
         val tidspunkt = Tidspunkt.now(clock)
-        datasource.withSession { session ->
-            """
+        dbMetrics.timeQuery("lagrePersonhendelseTilknyttetSakMenIkkeSendtTilOppgave") {
+            sessionFactory.withSession { session ->
+                """
                 insert into personhendelse (id, sakId, opprettet, endret, endringstype, hendelse, oppgaveId, type, metadata)
                 values(
                     :id,
@@ -41,84 +47,95 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource, private val
                     to_jsonb(:metadata::jsonb)
                 )
                 on conflict do nothing
-            """.trimIndent().insert(
-                mapOf(
-                    "id" to personhendelse.id,
-                    "sakId" to personhendelse.sakId,
-                    "opprettet" to tidspunkt,
-                    "endret" to tidspunkt,
-                    "endringstype" to personhendelse.endringstype.toDatabasetype(),
-                    "hendelse" to objectMapper.writeValueAsString(personhendelse.hendelse.toJson()),
-                    "oppgaveId" to null,
-                    "type" to personhendelse.hendelse.toDatabasetype(),
-                    "metadata" to objectMapper.writeValueAsString(personhendelse.metadata.toJson())
-                ),
-                session,
-            )
+                """.trimIndent().insert(
+                    mapOf(
+                        "id" to personhendelse.id,
+                        "sakId" to personhendelse.sakId,
+                        "opprettet" to tidspunkt,
+                        "endret" to tidspunkt,
+                        "endringstype" to personhendelse.endringstype.toDatabasetype(),
+                        "hendelse" to objectMapper.writeValueAsString(personhendelse.hendelse.toJson()),
+                        "oppgaveId" to null,
+                        "type" to personhendelse.hendelse.toDatabasetype(),
+                        "metadata" to objectMapper.writeValueAsString(personhendelse.metadata.toJson()),
+                    ),
+                    session,
+                )
+            }
         }
     }
 
     override fun lagre(personhendelse: Personhendelse.TilknyttetSak.SendtTilOppgave) {
-        val tidspunkt = Tidspunkt.now(clock)
-        datasource.withSession { session ->
-            """
+        dbMetrics.timeQuery("lagrePersonhendelseTilknyttetSakOgSendtTilOppgave") {
+            sessionFactory.withSession { session ->
+                """
                 update personhendelse set oppgaveId = :oppgaveId, endret = :endret where id = :id
-            """.trimIndent().insert(
-                mapOf(
-                    "id" to personhendelse.id,
-                    "endret" to tidspunkt,
-                    "oppgaveId" to personhendelse.oppgaveId,
-                ),
-                session,
-            )
-        }
-    }
-
-    override fun hentPersonhendelserUtenOppgave(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> =
-        datasource.withSession { session ->
-            """
-                select
-                    p.*, s.saksnummer as saksnummer
-                from
-                    personhendelse p
-                    left join sak s on s.id = p.sakId
-                where
-                    oppgaveId is null and antallFeiledeForsøk < 3
-            """.trimIndent().hentListe(mapOf(), session) { row ->
-                row.toIkkeSendtTilOppgave()
+                """.trimIndent().insert(
+                    mapOf(
+                        "id" to personhendelse.id,
+                        "endret" to Tidspunkt.now(clock),
+                        "oppgaveId" to personhendelse.oppgaveId,
+                    ),
+                    session,
+                )
             }
         }
+    }
 
-    override fun inkrementerAntallFeiledeForsøk(personhendelse: Personhendelse.TilknyttetSak) {
-        datasource.withSession { session ->
-            """
-                update
-                    personhendelse
-                set
-                    antallFeiledeForsøk = antallFeiledeForsøk + 1
-                where
-                    id = :id
-            """.trimIndent().oppdatering(
-                mapOf(
-                    "id" to personhendelse.id,
-                ),
-                session,
-            )
+    override fun hentPersonhendelserUtenOppgave(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
+        return dbMetrics.timeQuery("hentPersonhendelserUtenOppgave") {
+            sessionFactory.withSession { session ->
+                """
+                    select
+                        p.*, s.saksnummer as saksnummer
+                    from
+                        personhendelse p
+                        left join sak s on s.id = p.sakId
+                    where
+                        oppgaveId is null and antallFeiledeForsøk < 3
+                """.trimIndent().hentListe(mapOf(), session) { row ->
+                    row.toIkkeSendtTilOppgave()
+                }
+            }
         }
     }
 
-    internal fun hent(id: UUID): Personhendelse.TilknyttetSak? = datasource.withSession { session ->
-        """
-        select p.*, s.saksnummer as saksnummer from personhendelse p
-        left join sak s on s.id = p.sakId
-        where p.id = :id
-        """.trimIndent()
-            .hent(
-                mapOf(
-                    "id" to id,
-                ),
-                session,
-            ) { it.toPersonhendelse() }
+    override fun inkrementerAntallFeiledeForsøk(personhendelse: Personhendelse.TilknyttetSak) {
+        dbMetrics.timeQuery("inkrementerAntallFeiledeForsøkForPersonhendelseTilknyttetSak") {
+            sessionFactory.withSession { session ->
+                """
+                    update
+                        personhendelse
+                    set
+                        antallFeiledeForsøk = antallFeiledeForsøk + 1
+                    where
+                        id = :id
+                """.trimIndent().oppdatering(
+                    mapOf(
+                        "id" to personhendelse.id,
+                    ),
+                    session,
+                )
+            }
+        }
+    }
+
+    internal fun hent(id: UUID): Personhendelse.TilknyttetSak? {
+        return dbMetrics.timeQuery("hentPersonhendelseTilknyttetSak") {
+            sessionFactory.withSession { session ->
+                """
+                    select p.*, s.saksnummer as saksnummer from personhendelse p
+                    left join sak s on s.id = p.sakId
+                    where p.id = :id
+                """.trimIndent()
+                    .hent(
+                        mapOf(
+                            "id" to id,
+                        ),
+                        session,
+                    ) { it.toPersonhendelse() }
+            }
+        }
     }
 
     private fun Row.toIkkeSendtTilOppgave() = Personhendelse.TilknyttetSak.IkkeSendtTilOppgave(
@@ -128,8 +145,9 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource, private val
         hendelse = hentHendelse(),
         saksnummer = Saksnummer(long("saksnummer")),
         metadata = objectMapper.readValue<MetadataJson>(string("metadata")).toDomain(),
-        antallFeiledeForsøk = int("antallFeiledeForsøk")
+        antallFeiledeForsøk = int("antallFeiledeForsøk"),
     )
+
     private fun Row.toSendtTilOppgave(oppgaveId: OppgaveId) = Personhendelse.TilknyttetSak.SendtTilOppgave(
         id = UUID.fromString(string("id")),
         sakId = uuid("sakId"),
@@ -138,7 +156,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource, private val
         saksnummer = Saksnummer(long("saksnummer")),
         metadata = objectMapper.readValue<MetadataJson>(string("metadata")).toDomain(),
         oppgaveId = oppgaveId,
-        antallFeiledeForsøk = int("antallFeiledeForsøk")
+        antallFeiledeForsøk = int("antallFeiledeForsøk"),
     )
 
     private fun Row.toPersonhendelse(): Personhendelse.TilknyttetSak =

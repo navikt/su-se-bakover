@@ -25,9 +25,11 @@ internal class FradragsgrunnlagPostgresRepo(
         fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
         tx: TransactionalSession,
     ) {
-        slettForBehandlingId(behandlingId, tx)
-        fradragsgrunnlag.forEach {
-            lagre(it, behandlingId, tx)
+        dbMetrics.timeQuery("lagreFradragsgrunnlag") {
+            slettForBehandlingId(behandlingId, tx)
+            fradragsgrunnlag.forEach {
+                lagre(it, behandlingId, tx)
+            }
         }
     }
 

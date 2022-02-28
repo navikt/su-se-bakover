@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid30OrNull
-import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -41,7 +40,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import java.time.LocalDate
 import java.util.UUID
-import javax.sql.DataSource
 
 internal enum class VedtakType {
     SØKNAD, // Innvilget Søknadsbehandling                  -> EndringIYtelse
@@ -55,15 +53,14 @@ internal enum class VedtakType {
 }
 
 internal class VedtakPostgresRepo(
-    private val dataSource: DataSource,
+    private val sessionFactory: PostgresSessionFactory,
+    private val dbMetrics: DbMetrics,
     private val søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val revurderingRepo: RevurderingPostgresRepo,
     private val klageRepo: KlagePostgresRepo,
-    private val dbMetrics: DbMetrics,
-    private val sessionFactory: PostgresSessionFactory,
 ) : VedtakRepo {
 
-    override fun hentForVedtakId(vedtakId: UUID): Vedtak? {
+    override fun hentVedtakForId(vedtakId: UUID): Vedtak? {
         return sessionFactory.withSession { session ->
             """
                 SELECT *
@@ -78,7 +75,7 @@ internal class VedtakPostgresRepo(
 
     override fun hentForSakId(sakId: UUID): List<Vedtak> {
         return dbMetrics.timeQuery("hentVedtakForSakId") {
-            dataSource.withSession { session -> hentForSakId(sakId, session) }
+            sessionFactory.withSession { session -> hentForSakId(sakId, session) }
         }
     }
 
@@ -93,18 +90,21 @@ internal class VedtakPostgresRepo(
                 it.toVedtak(session)
             }
 
-    override fun lagre(vedtak: Vedtak) =
+    override fun lagre(vedtak: Vedtak) {
         sessionFactory.withTransactionContext { tx ->
             lagre(vedtak, tx)
         }
+    }
 
     override fun lagre(vedtak: Vedtak, sessionContext: TransactionContext) {
-        return sessionContext.withSession { tx ->
-            when (vedtak) {
-                is VedtakSomKanRevurderes.EndringIYtelse -> lagreInternt(vedtak, tx)
-                is Avslagsvedtak -> lagreInternt(vedtak, tx)
-                is VedtakSomKanRevurderes.IngenEndringIYtelse -> lagreInternt(vedtak, tx)
-                is Klagevedtak.Avvist -> lagreInternt(vedtak, tx)
+        return dbMetrics.timeQuery("lagreVedtak") {
+            sessionContext.withSession { tx ->
+                when (vedtak) {
+                    is VedtakSomKanRevurderes.EndringIYtelse -> lagreInternt(vedtak, tx)
+                    is Avslagsvedtak -> lagreInternt(vedtak, tx)
+                    is VedtakSomKanRevurderes.IngenEndringIYtelse -> lagreInternt(vedtak, tx)
+                    is Klagevedtak.Avvist -> lagreInternt(vedtak, tx)
+                }
             }
         }
     }
@@ -113,30 +113,36 @@ internal class VedtakPostgresRepo(
      * Det er kun [VedtakSomKanRevurderes.EndringIYtelse] som inneholder en utbetalingId
      */
     override fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes.EndringIYtelse? {
-        return dataSource.withSession { session ->
-            """
+        return dbMetrics.timeQuery("hentVedtakForUtbetalingId") {
+            sessionFactory.withSession { session ->
+                """
                 SELECT *
                 FROM vedtak
                 WHERE utbetalingId = :utbetalingId
-            """.trimIndent()
-                .hent(mapOf("utbetalingId" to utbetalingId), session) {
-                    it.toVedtak(session) as VedtakSomKanRevurderes.EndringIYtelse
-                }
+                """.trimIndent()
+                    .hent(mapOf("utbetalingId" to utbetalingId), session) {
+                        it.toVedtak(session) as VedtakSomKanRevurderes.EndringIYtelse
+                    }
+            }
         }
     }
 
     override fun hentAlle(): List<Vedtak> {
-        return dataSource.withSession { session ->
-            """select * from vedtak""".hentListe(emptyMap(), session) { it.toVedtak(session) }
+        return dbMetrics.timeQuery("hentAlleVedtak") {
+            sessionFactory.withSession { session ->
+                """select * from vedtak""".hentListe(emptyMap(), session) { it.toVedtak(session) }
+            }
         }
     }
 
     override fun hentJournalpostId(vedtakId: UUID): JournalpostId? {
-        return dataSource.withSession { session ->
-            """
+        return dbMetrics.timeQuery("hentJournalpostIdForVedtakId") {
+            sessionFactory.withSession { session ->
+                """
                 select journalpostid from dokument inner join dokument_distribusjon dd on dokument.id = dd.dokumentid where vedtakid = :vedtakId
-            """.trimIndent().hent(mapOf("vedtakId" to vedtakId), session) {
-                JournalpostId(it.string("journalpostid"))
+                """.trimIndent().hent(mapOf("vedtakId" to vedtakId), session) {
+                    JournalpostId(it.string("journalpostid"))
+                }
             }
         }
     }
@@ -149,19 +155,22 @@ internal class VedtakPostgresRepo(
                 it.toVedtak(session)
             }
 
-    override fun hentAktive(dato: LocalDate): List<VedtakSomKanRevurderes.EndringIYtelse> =
-        dataSource.withSession { session ->
-            """
-            select * from vedtak 
-            where fraogmed <= :dato
-              and tilogmed >= :dato
-            order by fraogmed, tilogmed, opprettet
-
-            """.trimIndent()
-                .hentListe(mapOf("dato" to dato), session) {
-                    it.toVedtak(session)
-                }.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse>()
+    override fun hentAktive(dato: LocalDate): List<VedtakSomKanRevurderes.EndringIYtelse> {
+        return dbMetrics.timeQuery("hentAktiveVedtak") {
+            sessionFactory.withSession { session ->
+                """
+                select * from vedtak 
+                where fraogmed <= :dato
+                  and tilogmed >= :dato
+                order by fraogmed, tilogmed, opprettet
+    
+                """.trimIndent()
+                    .hentListe(mapOf("dato" to dato), session) {
+                        it.toVedtak(session)
+                    }.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse>()
+            }
         }
+    }
 
     private fun Row.toVedtak(session: Session): Vedtak {
         val id = uuid("id")
@@ -184,7 +193,7 @@ internal class VedtakPostgresRepo(
             is BehandlingVedtakKnytning.ForKlage -> null
         }
         val klage: Klage? = (knytning as? BehandlingVedtakKnytning.ForKlage)?.let {
-            klageRepo.hentKlage(knytning.klageId)
+            klageRepo.hentKlage(knytning.klageId, session)
         }
 
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }!!

@@ -17,11 +17,13 @@ import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
 import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.dbMetricsStub
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.innvilgetBeregning
 import no.nav.su.se.bakover.database.iverksattAttestering
 import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.saksbehandler
+import no.nav.su.se.bakover.database.sessionCounterStub
 import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.stønadsperiode
 import no.nav.su.se.bakover.database.underkjentAttestering
@@ -645,12 +647,11 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             val avkortingsvarselRepoMock = mock<AvkortingsvarselPostgresRepo>()
 
-            val sessionFactory = PostgresSessionFactory(dataSource)
+            val sessionFactory = PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub)
 
             val repo = SøknadsbehandlingPostgresRepo(
-                dataSource = mock(),
-                dbMetrics = mock(),
-                sessionFactory = PostgresSessionFactory(dataSource),
+                dbMetrics = dbMetricsStub,
+                sessionFactory = PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub),
                 avkortingsvarselRepo = avkortingsvarselRepoMock,
                 grunnlagsdataOgVilkårsvurderingerPostgresRepo = mock(),
                 clock = mock(),
@@ -701,12 +702,11 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             val avkortingsvarselRepoMock = mock<AvkortingsvarselPostgresRepo>()
 
-            val sessionFactory = PostgresSessionFactory(dataSource)
+            val sessionFactory = PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub)
 
             val repo = SøknadsbehandlingPostgresRepo(
-                dataSource = mock(),
-                dbMetrics = mock(),
-                sessionFactory = PostgresSessionFactory(dataSource),
+                dbMetrics = dbMetricsStub,
+                sessionFactory = sessionFactory,
                 avkortingsvarselRepo = avkortingsvarselRepoMock,
                 grunnlagsdataOgVilkårsvurderingerPostgresRepo = mock(),
                 clock = mock(),

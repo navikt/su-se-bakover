@@ -122,7 +122,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
             opprettet = tidspunkt("opprettet"),
             resultat = ResultatDto.valueOf(string("resultat")).toDomain(),
             grunnlag = uuidOrNull("grunnlag_utland_id")?.let {
-                utenlandsoppholdgrunnlagRepo.hentForUtenlandsoppholdgrunnlagId(it, session)
+                utenlandsoppholdgrunnlagRepo.hent(it, session)
             },
             begrunnelse = stringOrNull("begrunnelse"),
             periode = Periode.create(

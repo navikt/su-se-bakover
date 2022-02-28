@@ -39,7 +39,6 @@ fun assertSøknadsbehandlingJson(
         "saksbehandler": ${if (expectedSaksbehandler == null) null else "$expectedSaksbehandler"},
         "fritekstTilBrev": "$expectedFritekstTilBrev",
         "sakId": "$expectedSakId",
-        "hendelser": [],
         "stønadsperiode": $expectedStønadsperiode,
         "grunnlagsdataOgVilkårsvurderinger": $expectedGrunnlagsdataOgVilkårsvurderinger,
         "erLukket": $expectedErLukket,

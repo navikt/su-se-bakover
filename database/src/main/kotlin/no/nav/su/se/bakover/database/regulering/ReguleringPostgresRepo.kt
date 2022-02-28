@@ -1,25 +1,25 @@
 package no.nav.su.se.bakover.database.regulering
 
 import kotliquery.Row
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.vedtak.VedtakType
-import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
 import no.nav.su.se.bakover.domain.regulering.VedtakSomKanReguleres
 import java.time.LocalDate
-import javax.sql.DataSource
 
 internal class ReguleringPostgresRepo(
-    private val dataSource: DataSource,
     private val sessionFactory: PostgresSessionFactory,
+    private val dbMetrics: DbMetrics,
 ) : ReguleringRepo {
     override fun hentVedtakSomKanReguleres(fraOgMed: LocalDate): List<VedtakSomKanReguleres> {
-        return dataSource.withSession { session ->
-            """
+        return dbMetrics.timeQuery("hentVedtakSomKanReguleres") {
+            sessionFactory.withSession { session ->
+                """
                 with sakogid (sakid, saksnummer, bid, fraOgMed, tilOgMed, vedtaktype, opprettet ) as (
                     select bv.sakid
                          , s.saksnummer
@@ -56,10 +56,11 @@ internal class ReguleringPostgresRepo(
                          else 'AUTOMATISK'
                          end behandlingtype
                        from sakogid s
-            """.trimIndent()
-                .hentListe(mapOf("dato" to fraOgMed), session) {
-                    it.toVedtakSomKanReguleres()
-                }
+                """.trimIndent()
+                    .hentListe(mapOf("dato" to fraOgMed), session) {
+                        it.toVedtakSomKanReguleres()
+                    }
+            }
         }
     }
 

@@ -5,6 +5,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hent
@@ -14,30 +15,36 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import java.util.UUID
 
-internal class FormuegrunnlagPostgresRepo {
+internal class FormuegrunnlagPostgresRepo(
+    private val dbMetrics: DbMetrics,
+) {
     internal fun lagreFormuegrunnlag(
         behandlingId: UUID,
         formuegrunnlag: List<Formuegrunnlag>,
         tx: TransactionalSession,
     ) {
-        slettForBehandlingId(behandlingId, tx)
-        formuegrunnlag.forEach {
-            lagre(it, behandlingId, tx)
+        dbMetrics.timeQuery("lagreFormuegrunnlag") {
+            slettForBehandlingId(behandlingId, tx)
+            formuegrunnlag.forEach {
+                lagre(it, behandlingId, tx)
+            }
         }
     }
 
-    internal fun hentForFormuegrunnlagId(formuegrunnlagId: UUID, session: Session): Formuegrunnlag? {
-        return """
+    internal fun hentFormuegrunnlag(formuegrunnlagId: UUID, session: Session): Formuegrunnlag? {
+        return dbMetrics.timeQuery("hentFormuegrunnlag") {
+            """
                 select * from grunnlag_formue where id = :id
-        """.trimIndent()
-            .hent(
-                mapOf(
-                    "id" to formuegrunnlagId,
-                ),
-                session,
-            ) {
-                it.toFormuegrunnlag()
-            }
+            """.trimIndent()
+                .hent(
+                    mapOf(
+                        "id" to formuegrunnlagId,
+                    ),
+                    session,
+                ) {
+                    it.toFormuegrunnlag()
+                }
+        }
     }
 
     private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
