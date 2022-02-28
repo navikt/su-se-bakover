@@ -750,7 +750,7 @@ internal class RevurderingPostgresRepoTest {
             val repo = testDataHelper.revurderingRepo
             val simulert = testDataHelper.simulertInnvilgetRevurdering()
             val simulertIngenForhåndsvarsel =
-                simulert.forhåndsvarselSendt().getOrFail().also {
+                simulert.markerForhåndsvarselSomSendt().getOrFail().also {
                     repo.lagre(it)
                 }
             (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
@@ -764,7 +764,7 @@ internal class RevurderingPostgresRepoTest {
             val repo = testDataHelper.revurderingRepo
             val simulert = testDataHelper.simulertInnvilgetRevurdering()
             val simulertIngenForhåndsvarsel =
-                simulert.forhåndsvarselSendt().getOrFail()
+                simulert.markerForhåndsvarselSomSendt().getOrFail()
                     .prøvOvergangTilFortsettMedSammeGrunnlag("").getOrFail()
                     .tilAttestering(
                         attesteringsoppgaveId = OppgaveId(value = "attesteringsoppgaveId"),
@@ -785,7 +785,7 @@ internal class RevurderingPostgresRepoTest {
             val repo = testDataHelper.revurderingRepo
             val simulert = testDataHelper.simulertInnvilgetRevurdering()
             val simulertIngenForhåndsvarsel =
-                simulert.forhåndsvarselSendt().getOrFail().prøvOvergangTilEndreGrunnlaget("").getOrFail().also {
+                simulert.markerForhåndsvarselSomSendt().getOrFail().prøvOvergangTilEndreGrunnlaget("").getOrFail().also {
                     repo.lagre(it)
                 }
             (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()

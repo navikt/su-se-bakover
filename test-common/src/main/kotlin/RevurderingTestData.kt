@@ -1001,15 +1001,15 @@ private fun <T : SimulertRevurdering> T.prøvÅLeggTilForhåndsvarselPåSimulert
     @Suppress("UNCHECKED_CAST")
     return when (forhåndsvarsel) {
         is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet -> {
-            this.forhåndsvarselSendt().orNull()!!.prøvOvergangTilAvsluttet(forhåndsvarsel.begrunnelse)
+            this.markerForhåndsvarselSomSendt().orNull()!!.prøvOvergangTilAvsluttet(forhåndsvarsel.begrunnelse)
                 .orNull()!!
         }
         is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget -> {
-            this.forhåndsvarselSendt().orNull()!!
+            this.markerForhåndsvarselSomSendt().orNull()!!
                 .prøvOvergangTilEndreGrunnlaget(forhåndsvarsel.begrunnelse).orNull()!!
         }
         is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag -> {
-            this.forhåndsvarselSendt().orNull()!!
+            this.markerForhåndsvarselSomSendt().orNull()!!
                 .prøvOvergangTilAvsluttet(forhåndsvarsel.begrunnelse)
                 .orNull()!!
         }
@@ -1017,7 +1017,7 @@ private fun <T : SimulertRevurdering> T.prøvÅLeggTilForhåndsvarselPåSimulert
             this.ikkeSendForhåndsvarsel().orNull()!!
         }
         Forhåndsvarsel.UnderBehandling.Sendt -> {
-            this.forhåndsvarselSendt().orNull()!!
+            this.markerForhåndsvarselSomSendt().orNull()!!
         }
         null -> this
     } as T

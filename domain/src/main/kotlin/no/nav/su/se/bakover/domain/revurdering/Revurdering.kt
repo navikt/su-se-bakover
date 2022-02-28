@@ -935,7 +935,7 @@ sealed class SimulertRevurdering : Revurdering() {
         }
     }
 
-    abstract fun forhåndsvarselSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
+    abstract fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
 
     abstract fun prøvOvergangTilAvsluttet(
         begrunnelse: String,
@@ -1004,7 +1004,7 @@ sealed class SimulertRevurdering : Revurdering() {
             return forhåndsvarsel.prøvOvergangTilSkalIkkeForhåndsvarsles().map { this.copy(forhåndsvarsel = it) }
         }
 
-        override fun forhåndsvarselSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering.Innvilget> {
+        override fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering.Innvilget> {
             return forhåndsvarsel.prøvOvergangTilSendt()
                 .map { copy(forhåndsvarsel = it) }
         }
@@ -1128,7 +1128,7 @@ sealed class SimulertRevurdering : Revurdering() {
             return forhåndsvarsel.prøvOvergangTilSkalIkkeForhåndsvarsles().map { this.copy(forhåndsvarsel = it) }
         }
 
-        override fun forhåndsvarselSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering.Opphørt> {
+        override fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering.Opphørt> {
             return forhåndsvarsel.prøvOvergangTilSendt()
                 .map { copy(forhåndsvarsel = it) }
         }

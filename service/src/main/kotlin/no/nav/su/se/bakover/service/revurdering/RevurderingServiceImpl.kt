@@ -910,7 +910,7 @@ internal class RevurderingServiceImpl(
                         }.mapLeft {
                             KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument
                         }.flatMap { dokumentUtenMetadata ->
-                            revurdering.forhåndsvarselSendt()
+                            revurdering.markerForhåndsvarselSomSendt()
                                 .mapLeft {
                                     KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling
                                 }
