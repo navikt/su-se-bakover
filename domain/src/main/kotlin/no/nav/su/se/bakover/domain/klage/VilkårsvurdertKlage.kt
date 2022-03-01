@@ -14,12 +14,14 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
-sealed interface VilkårsvurdertKlage : Klage {
-
+interface VilkårsvurdertKlageFelter : Klagefelter {
     val vilkårsvurderinger: VilkårsvurderingerTilKlage
     val attesteringer: Attesteringshistorikk
+}
 
-    data class Påbegynt private constructor(
+sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
+
+    data class Påbegynt(
         override val id: UUID,
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
@@ -54,8 +56,9 @@ sealed interface VilkårsvurdertKlage : Klage {
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
                     klageinstanshendelser = Klageinstanshendelser.empty(),
+                    fritekstTilAvvistVedtaksbrev = null,
                 )
-                is VilkårsvurderingerTilKlage.Påbegynt -> create(
+                is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
                     id = id,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -78,61 +81,24 @@ sealed interface VilkårsvurdertKlage : Klage {
             begrunnelse: String,
             tidspunktAvsluttet: Tidspunkt,
         ) = AvsluttetKlage(
-            forrigeSteg = this,
+            underliggendeKlage = this,
             saksbehandler = saksbehandler,
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = tidspunktAvsluttet,
         ).right()
-
-        companion object {
-            fun create(
-                id: UUID,
-                opprettet: Tidspunkt,
-                sakId: UUID,
-                saksnummer: Saksnummer,
-                fnr: Fnr,
-                journalpostId: JournalpostId,
-                oppgaveId: OppgaveId,
-                saksbehandler: NavIdentBruker.Saksbehandler,
-                vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
-                attesteringer: Attesteringshistorikk,
-                datoKlageMottatt: LocalDate,
-            ) = Påbegynt(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                journalpostId = journalpostId,
-                oppgaveId = oppgaveId,
-                saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderinger,
-                attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt,
-            )
-        }
     }
 
     /**
      * Denne tilstanden representerer en klage når alle vilkårsvurderingene er blitt fylt ut, og ikke har blitt bekreftet
      */
     sealed interface Utfylt : VilkårsvurdertKlage {
-        abstract override val id: UUID
-        abstract override val opprettet: Tidspunkt
-        abstract override val sakId: UUID
-        abstract override val saksnummer: Saksnummer
-        abstract override val fnr: Fnr
-        abstract override val journalpostId: JournalpostId
-        abstract override val oppgaveId: OppgaveId
-        abstract override val saksbehandler: NavIdentBruker.Saksbehandler
-        abstract override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
-        abstract override val attesteringer: Attesteringshistorikk
-        abstract override val datoKlageMottatt: LocalDate
+
+        override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
 
         /**
          * En vilkårsvurdert avvist representerer en klage der minst et av vilkårene er blitt besvart 'nei/false'
          */
-        data class Avvist private constructor(
+        data class Avvist(
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
@@ -144,6 +110,8 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
+            // Ønsker å ta vare på dette feltet dersom vi går tilbake til vilkårsvurderingen igjen.
+            val fritekstTilVedtaksbrev: String?,
         ) : Utfylt {
 
             override fun erÅpen() = true
@@ -165,10 +133,11 @@ sealed interface VilkårsvurdertKlage : Klage {
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
+                        fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
                         vurderinger = null,
                         klageinstanshendelser = Klageinstanshendelser.empty(),
                     )
-                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
+                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
                         id = id,
                         opprettet = opprettet,
                         sakId = sakId,
@@ -187,7 +156,7 @@ sealed interface VilkårsvurdertKlage : Klage {
             override fun bekreftVilkårsvurderinger(
                 saksbehandler: NavIdentBruker.Saksbehandler,
             ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, Bekreftet> {
-                return Bekreftet.Avvist.create(
+                return Bekreftet.Avvist(
                     id = id,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -199,6 +168,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
+                    fritekstTilAvvistVedtaksbrev = fritekstTilVedtaksbrev,
                 ).right()
             }
 
@@ -209,47 +179,22 @@ sealed interface VilkårsvurdertKlage : Klage {
                 begrunnelse: String,
                 tidspunktAvsluttet: Tidspunkt,
             ) = AvsluttetKlage(
-                forrigeSteg = this,
+                underliggendeKlage = this,
                 saksbehandler = saksbehandler,
                 begrunnelse = begrunnelse,
                 tidspunktAvsluttet = tidspunktAvsluttet,
             ).right()
+        }
 
-            companion object {
-                fun create(
-                    id: UUID,
-                    opprettet: Tidspunkt,
-                    sakId: UUID,
-                    saksnummer: Saksnummer,
-                    fnr: Fnr,
-                    journalpostId: JournalpostId,
-                    oppgaveId: OppgaveId,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                    vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-                    attesteringer: Attesteringshistorikk,
-                    datoKlageMottatt: LocalDate,
-                ): Avvist {
-                    return Avvist(
-                        id = id,
-                        opprettet = opprettet,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        fnr = fnr,
-                        journalpostId = journalpostId,
-                        oppgaveId = oppgaveId,
-                        saksbehandler = saksbehandler,
-                        vilkårsvurderinger = vilkårsvurderinger,
-                        attesteringer = attesteringer,
-                        datoKlageMottatt = datoKlageMottatt,
-                    )
-                }
-            }
+        interface TilVurderingFelter : VilkårsvurdertKlageFelter {
+            val vurderinger: VurderingerTilKlage?
+            val klageinstanshendelser: Klageinstanshendelser
         }
 
         /**
          * En vilkårsvurdert avvist representerer en klage alle vilkårene oppfylt
          */
-        data class TilVurdering private constructor(
+        data class TilVurdering(
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
@@ -261,9 +206,9 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
-            val vurderinger: VurderingerTilKlage?,
-            val klageinstanshendelser: Klageinstanshendelser,
-        ) : Utfylt {
+            override val vurderinger: VurderingerTilKlage?,
+            override val klageinstanshendelser: Klageinstanshendelser,
+        ) : Utfylt, TilVurderingFelter {
 
             override fun erÅpen() = true
 
@@ -291,8 +236,9 @@ sealed interface VilkårsvurdertKlage : Klage {
                         datoKlageMottatt = datoKlageMottatt,
                         klageinstanshendelser = klageinstanshendelser,
                         vurderinger = vurderinger,
+                        fritekstTilAvvistVedtaksbrev = null,
                     )
-                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
+                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
                         id = id,
                         opprettet = opprettet,
                         sakId = sakId,
@@ -311,7 +257,7 @@ sealed interface VilkårsvurdertKlage : Klage {
             override fun bekreftVilkårsvurderinger(
                 saksbehandler: NavIdentBruker.Saksbehandler,
             ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, Bekreftet> {
-                return Bekreftet.TilVurdering.create(
+                return Bekreftet.TilVurdering(
                     id = id,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -337,46 +283,12 @@ sealed interface VilkårsvurdertKlage : Klage {
             ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
                 return if (klageinstanshendelser.isEmpty()) {
                     AvsluttetKlage(
-                        forrigeSteg = this,
+                        underliggendeKlage = this,
                         saksbehandler = saksbehandler,
                         begrunnelse = begrunnelse,
                         tidspunktAvsluttet = tidspunktAvsluttet,
                     ).right()
                 } else KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
-            }
-
-            companion object {
-                fun create(
-                    id: UUID,
-                    opprettet: Tidspunkt,
-                    sakId: UUID,
-                    saksnummer: Saksnummer,
-                    fnr: Fnr,
-                    journalpostId: JournalpostId,
-                    oppgaveId: OppgaveId,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                    vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-                    vurderinger: VurderingerTilKlage?,
-                    attesteringer: Attesteringshistorikk,
-                    datoKlageMottatt: LocalDate,
-                    klageinstanshendelser: Klageinstanshendelser,
-                ): TilVurdering {
-                    return TilVurdering(
-                        id = id,
-                        opprettet = opprettet,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        fnr = fnr,
-                        journalpostId = journalpostId,
-                        oppgaveId = oppgaveId,
-                        saksbehandler = saksbehandler,
-                        vilkårsvurderinger = vilkårsvurderinger,
-                        vurderinger = vurderinger,
-                        attesteringer = attesteringer,
-                        datoKlageMottatt = datoKlageMottatt,
-                        klageinstanshendelser = klageinstanshendelser,
-                    )
-                }
             }
         }
 
@@ -395,9 +307,10 @@ sealed interface VilkårsvurdertKlage : Klage {
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
                 klageinstanshendelser: Klageinstanshendelser,
+                fritekstTilAvvistVedtaksbrev: String?,
             ): Utfylt {
                 if (vilkårsvurderinger.erAvvist()) {
-                    return Avvist.create(
+                    return Avvist(
                         id = id,
                         opprettet = opprettet,
                         sakId = sakId,
@@ -409,10 +322,11 @@ sealed interface VilkårsvurdertKlage : Klage {
                         vilkårsvurderinger = vilkårsvurderinger,
                         attesteringer = attesteringer,
                         datoKlageMottatt = datoKlageMottatt,
+                        fritekstTilVedtaksbrev = fritekstTilAvvistVedtaksbrev,
                     )
                 }
 
-                return TilVurdering.create(
+                return TilVurdering(
                     id = id,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -431,24 +345,17 @@ sealed interface VilkårsvurdertKlage : Klage {
         }
     }
 
+    interface BekreftetFelter : VilkårsvurdertKlageFelter {
+        override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
+    }
+
     /**
      * Denne bekreftet representer en klage som er blitt utfylt, og saksbehandler har gått et steg videre i prosessen
      * Her vil dem starte vurderingen, eller avvisningen.
      */
-    sealed class Bekreftet : VilkårsvurdertKlage {
-        abstract override val id: UUID
-        abstract override val opprettet: Tidspunkt
-        abstract override val sakId: UUID
-        abstract override val saksnummer: Saksnummer
-        abstract override val fnr: Fnr
-        abstract override val journalpostId: JournalpostId
-        abstract override val oppgaveId: OppgaveId
-        abstract override val saksbehandler: NavIdentBruker.Saksbehandler
-        abstract override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
-        abstract override val attesteringer: Attesteringshistorikk
-        abstract override val datoKlageMottatt: LocalDate
+    sealed interface Bekreftet : VilkårsvurdertKlage, BekreftetFelter {
 
-        data class Avvist private constructor(
+        data class Avvist(
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
@@ -460,7 +367,9 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
-        ) : Bekreftet() {
+            // Så vi kan ta vare på fritekst hvis vi går tilbake til vilkårsvurderingen igjen.
+            val fritekstTilAvvistVedtaksbrev: String?,
+        ) : Bekreftet, BekreftetFelter, KanLeggeTilFritekstTilAvvistBrev {
 
             override fun erÅpen() = true
 
@@ -483,8 +392,9 @@ sealed interface VilkårsvurdertKlage : Klage {
                         datoKlageMottatt = datoKlageMottatt,
                         vurderinger = null,
                         klageinstanshendelser = Klageinstanshendelser.empty(),
+                        fritekstTilAvvistVedtaksbrev = fritekstTilAvvistVedtaksbrev,
                     )
-                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
+                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
                         id = id,
                         opprettet = opprettet,
                         sakId = sakId,
@@ -500,20 +410,21 @@ sealed interface VilkårsvurdertKlage : Klage {
                 }.right()
             }
 
-            override fun leggTilAvvistFritekstTilBrev(
+            override fun leggTilFritekstTilAvvistVedtaksbrev(
                 saksbehandler: NavIdentBruker.Saksbehandler,
-                fritekst: String,
-            ): Either<KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand, AvvistKlage> {
-                return AvvistKlage.create(
+                fritekstTilAvvistVedtaksbrev: String,
+            ): AvvistKlage {
+                return AvvistKlage(
                     forrigeSteg = this,
-                    fritekstTilBrev = fritekst,
-                ).right()
+                    saksbehandler = saksbehandler,
+                    fritekstTilVedtaksbrev = fritekstTilAvvistVedtaksbrev,
+                )
             }
 
             override fun bekreftVilkårsvurderinger(
                 saksbehandler: NavIdentBruker.Saksbehandler,
-            ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, Bekreftet> {
-                return create(
+            ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, Avvist> {
+                return Avvist(
                     id = id,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -525,6 +436,7 @@ sealed interface VilkårsvurdertKlage : Klage {
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
+                    fritekstTilAvvistVedtaksbrev = fritekstTilAvvistVedtaksbrev,
                 ).right()
             }
 
@@ -535,44 +447,19 @@ sealed interface VilkårsvurdertKlage : Klage {
                 begrunnelse: String,
                 tidspunktAvsluttet: Tidspunkt,
             ) = AvsluttetKlage(
-                forrigeSteg = this,
+                underliggendeKlage = this,
                 saksbehandler = saksbehandler,
                 begrunnelse = begrunnelse,
                 tidspunktAvsluttet = tidspunktAvsluttet,
             ).right()
-
-            companion object {
-                fun create(
-                    id: UUID,
-                    opprettet: Tidspunkt,
-                    sakId: UUID,
-                    saksnummer: Saksnummer,
-                    fnr: Fnr,
-                    journalpostId: JournalpostId,
-                    oppgaveId: OppgaveId,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                    vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-                    attesteringer: Attesteringshistorikk,
-                    datoKlageMottatt: LocalDate,
-                ): Avvist {
-                    return Avvist(
-                        id = id,
-                        opprettet = opprettet,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        fnr = fnr,
-                        journalpostId = journalpostId,
-                        oppgaveId = oppgaveId,
-                        saksbehandler = saksbehandler,
-                        vilkårsvurderinger = vilkårsvurderinger,
-                        attesteringer = attesteringer,
-                        datoKlageMottatt = datoKlageMottatt,
-                    )
-                }
-            }
         }
 
-        data class TilVurdering private constructor(
+        interface TilVurderingFelter : BekreftetFelter {
+            val vurderinger: VurderingerTilKlage?
+            val klageinstanshendelser: Klageinstanshendelser
+        }
+
+        data class TilVurdering(
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
@@ -584,9 +471,9 @@ sealed interface VilkårsvurdertKlage : Klage {
             override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
             override val attesteringer: Attesteringshistorikk,
             override val datoKlageMottatt: LocalDate,
-            val vurderinger: VurderingerTilKlage?,
-            val klageinstanshendelser: Klageinstanshendelser,
-        ) : Bekreftet() {
+            override val vurderinger: VurderingerTilKlage?,
+            override val klageinstanshendelser: Klageinstanshendelser,
+        ) : Bekreftet, TilVurderingFelter, KlageSomKanVurderes {
 
             override fun erÅpen() = true
 
@@ -613,8 +500,9 @@ sealed interface VilkårsvurdertKlage : Klage {
                         datoKlageMottatt = datoKlageMottatt,
                         vurderinger = vurderinger,
                         klageinstanshendelser = klageinstanshendelser,
+                        fritekstTilAvvistVedtaksbrev = null,
                     )
-                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
+                    is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt(
                         id = id,
                         opprettet = opprettet,
                         sakId = sakId,
@@ -633,31 +521,21 @@ sealed interface VilkårsvurdertKlage : Klage {
             override fun vurder(
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vurderinger: VurderingerTilKlage,
-            ): Either<KunneIkkeVurdereKlage.UgyldigTilstand, VurdertKlage> {
+            ): VurdertKlage {
                 return when (vurderinger) {
                     is VurderingerTilKlage.Påbegynt -> vurder(saksbehandler, vurderinger)
                     is VurderingerTilKlage.Utfylt -> vurder(saksbehandler, vurderinger)
-                }.right()
+                }
             }
 
             fun vurder(
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vurderinger: VurderingerTilKlage.Påbegynt,
             ): VurdertKlage.Påbegynt {
-                return VurdertKlage.Påbegynt.create(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    journalpostId = journalpostId,
-                    oppgaveId = oppgaveId,
+                return VurdertKlage.Påbegynt(
+                    forrigeSteg = this,
                     saksbehandler = saksbehandler,
-                    vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
-                    attesteringer = attesteringer,
-                    datoKlageMottatt = datoKlageMottatt,
-                    klageinstanshendelser = klageinstanshendelser,
                 )
             }
 
@@ -665,27 +543,21 @@ sealed interface VilkårsvurdertKlage : Klage {
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vurderinger: VurderingerTilKlage.Utfylt,
             ): VurdertKlage.Utfylt {
-                return VurdertKlage.Utfylt.create(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    journalpostId = journalpostId,
-                    oppgaveId = oppgaveId,
+                return VurdertKlage.Utfylt(
+                    forrigeSteg = this.vurder(
+                        saksbehandler = saksbehandler,
+                        // Her hopper vi over [VurdertKlage.Påbegynt] steget
+                        vurderinger = VurderingerTilKlage.empty(),
+                    ),
                     saksbehandler = saksbehandler,
-                    vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
-                    attesteringer = attesteringer,
-                    datoKlageMottatt = datoKlageMottatt,
-                    klageinstanshendelser = klageinstanshendelser,
                 )
             }
 
             override fun bekreftVilkårsvurderinger(
                 saksbehandler: NavIdentBruker.Saksbehandler,
-            ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, Bekreftet> {
-                return Bekreftet.create(
+            ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, TilVurdering> {
+                return TilVurdering(
                     id = id,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -711,105 +583,13 @@ sealed interface VilkårsvurdertKlage : Klage {
             ): Either<KunneIkkeAvslutteKlage.UgyldigTilstand, AvsluttetKlage> {
                 return if (klageinstanshendelser.isEmpty()) {
                     AvsluttetKlage(
-                        forrigeSteg = this,
+                        underliggendeKlage = this,
                         saksbehandler = saksbehandler,
                         begrunnelse = begrunnelse,
                         tidspunktAvsluttet = tidspunktAvsluttet,
                     ).right()
                 } else KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
             }
-
-            companion object {
-                fun create(
-                    id: UUID,
-                    opprettet: Tidspunkt,
-                    sakId: UUID,
-                    saksnummer: Saksnummer,
-                    fnr: Fnr,
-                    journalpostId: JournalpostId,
-                    oppgaveId: OppgaveId,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                    vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-                    vurderinger: VurderingerTilKlage?,
-                    attesteringer: Attesteringshistorikk,
-                    datoKlageMottatt: LocalDate,
-                    klageinstanshendelser: Klageinstanshendelser,
-                ): TilVurdering {
-                    return TilVurdering(
-                        id = id,
-                        opprettet = opprettet,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        fnr = fnr,
-                        journalpostId = journalpostId,
-                        oppgaveId = oppgaveId,
-                        saksbehandler = saksbehandler,
-                        vilkårsvurderinger = vilkårsvurderinger,
-                        vurderinger = vurderinger,
-                        attesteringer = attesteringer,
-                        datoKlageMottatt = datoKlageMottatt,
-                        klageinstanshendelser = klageinstanshendelser,
-                    )
-                }
-            }
-        }
-
-        companion object {
-            fun create(
-                id: UUID,
-                opprettet: Tidspunkt,
-                sakId: UUID,
-                saksnummer: Saksnummer,
-                fnr: Fnr,
-                journalpostId: JournalpostId,
-                oppgaveId: OppgaveId,
-                saksbehandler: NavIdentBruker.Saksbehandler,
-                vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-                vurderinger: VurderingerTilKlage?,
-                attesteringer: Attesteringshistorikk,
-                datoKlageMottatt: LocalDate,
-                klageinstanshendelser: Klageinstanshendelser,
-            ): Bekreftet {
-                if (vilkårsvurderinger.erAvvist()) {
-                    return Avvist.create(
-                        id = id,
-                        opprettet = opprettet,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        fnr = fnr,
-                        journalpostId = journalpostId,
-                        oppgaveId = oppgaveId,
-                        saksbehandler = saksbehandler,
-                        vilkårsvurderinger = vilkårsvurderinger,
-                        attesteringer = attesteringer,
-                        datoKlageMottatt = datoKlageMottatt,
-                    )
-                }
-
-                return TilVurdering.create(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    journalpostId = journalpostId,
-                    oppgaveId = oppgaveId,
-                    saksbehandler = saksbehandler,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    vurderinger = vurderinger,
-                    attesteringer = attesteringer,
-                    datoKlageMottatt = datoKlageMottatt,
-                    klageinstanshendelser = klageinstanshendelser,
-                )
-            }
-        }
-    }
-
-    companion object {
-        internal fun VilkårsvurderingerTilKlage.erAvvist(): Boolean {
-            return this.klagesDetPåKonkreteElementerIVedtaket == false ||
-                this.innenforFristen == VilkårsvurderingerTilKlage.Svarord.NEI ||
-                this.erUnderskrevet == VilkårsvurderingerTilKlage.Svarord.NEI
         }
     }
 }
@@ -818,5 +598,7 @@ sealed interface KunneIkkeVilkårsvurdereKlage {
     object FantIkkeKlage : KunneIkkeVilkårsvurdereKlage
     object FantIkkeVedtak : KunneIkkeVilkårsvurdereKlage
     object KanIkkeAvviseEnKlageSomHarVærtOversendt : KunneIkkeVilkårsvurdereKlage
-    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeVilkårsvurdereKlage
+    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeVilkårsvurdereKlage {
+        val til = VilkårsvurdertKlage::class
+    }
 }

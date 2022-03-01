@@ -20,7 +20,7 @@ data class NyKlageRequest(
     private val saksbehandler: NavIdentBruker.Saksbehandler,
     val journalpostId: JournalpostId,
     private val datoKlageMottatt: LocalDate,
-    private val clock: Clock = Clock.systemUTC(),
+    private val clock: Clock,
 ) {
     fun toKlage(
         saksnummer: Saksnummer,

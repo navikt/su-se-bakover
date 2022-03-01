@@ -40,19 +40,13 @@ import kotlin.reflect.KClass
  * - [OversendtKlage] -> ingen
  * - [IverksattAvvistKlage] -> ingen
  */
-sealed interface Klage {
-    val id: UUID
-    val opprettet: Tidspunkt
-    val sakId: UUID
-    val saksnummer: Saksnummer
-    val fnr: Fnr
-    val journalpostId: JournalpostId
-    val oppgaveId: OppgaveId
-    val datoKlageMottatt: LocalDate
-    val saksbehandler: NavIdentBruker.Saksbehandler
+sealed interface Klage : Klagefelter {
 
     fun erÅpen(): Boolean
 
+    /**
+     * @return fritekst til brev uavhengig om det er en oversending eller avvisning.
+     */
     fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
         return KunneIkkeHenteFritekstTilBrev.UgyldigTilstand(this::class).left()
     }
@@ -73,7 +67,7 @@ sealed interface Klage {
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkårsvurderinger: VilkårsvurderingerTilKlage,
     ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
-        return KunneIkkeVilkårsvurdereKlage.UgyldigTilstand(this::class, VilkårsvurdertKlage::class).left()
+        return KunneIkkeVilkårsvurdereKlage.UgyldigTilstand(this::class).left()
     }
 
     /** @return [VilkårsvurdertKlage.Bekreftet]  */
@@ -83,34 +77,12 @@ sealed interface Klage {
         return KunneIkkeBekrefteKlagesteg.UgyldigTilstand(this::class, VilkårsvurdertKlage.Bekreftet::class).left()
     }
 
-    /** @return [VurdertKlage.Påbegynt] eller [VurdertKlage.Utfylt] */
-    fun vurder(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        vurderinger: VurderingerTilKlage,
-    ): Either<KunneIkkeVurdereKlage.UgyldigTilstand, VurdertKlage> {
-        return KunneIkkeVurdereKlage.UgyldigTilstand(this::class, VurdertKlage::class).left()
-    }
-
-    /** @return [VurdertKlage.Bekreftet] */
-    fun bekreftVurderinger(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, VurdertKlage.Bekreftet> {
-        return KunneIkkeBekrefteKlagesteg.UgyldigTilstand(this::class, VurdertKlage.Bekreftet::class).left()
-    }
-
-    fun leggTilAvvistFritekstTilBrev(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekst: String,
-    ): Either<KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand, AvvistKlage> {
-        return KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand(this::class, AvvistKlage::class).left()
-    }
-
     /** @return [KlageTilAttestering] */
     fun sendTilAttestering(
         saksbehandler: NavIdentBruker.Saksbehandler,
         opprettOppgave: () -> Either<KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave, OppgaveId>,
     ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
-        return KunneIkkeSendeTilAttestering.UgyldigTilstand(this::class, KlageTilAttestering::class).left()
+        return KunneIkkeSendeTilAttestering.UgyldigTilstand(this::class).left()
     }
 
     /** @return [VurdertKlage.Bekreftet] eller [AvvistKlage] */
@@ -118,28 +90,21 @@ sealed interface Klage {
         underkjentAttestering: Attestering.Underkjent,
         opprettOppgave: () -> Either<KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave, OppgaveId>,
     ): Either<KunneIkkeUnderkjenne, Klage> {
+        // TODO jah: Man kan også underkjenne til Avvist, så til vil variere basert på nåværende tilstand.
         return KunneIkkeUnderkjenne.UgyldigTilstand(this::class, VurdertKlage.Bekreftet::class).left()
     }
 
-    fun oversend(
-        iverksattAttestering: Attestering.Iverksatt,
-    ): Either<KunneIkkeOversendeKlage, OversendtKlage> {
-        return KunneIkkeOversendeKlage.UgyldigTilstand(this::class, OversendtKlage::class).left()
-    }
+    /**
+     * Brukes av frontend for å vite om en klage kan avsluttes eller ikke.
+     * Det holder ikke å kun vurdere statusen derfor ligger denne nærmere domenet.
+     */
+    fun kanAvsluttes(): Boolean
 
-    /** @return [OversendtKlage] eller [VurdertKlage.Bekreftet] */
-    fun leggTilNyKlageinstanshendelse(
-        tolketKlageinstanshendelse: TolketKlageinstanshendelse,
-        lagOppgaveCallback: () -> Either<KunneIkkeLeggeTilNyKlageinstansHendelse, OppgaveId>,
-    ): Either<KunneIkkeLeggeTilNyKlageinstansHendelse, Klage> {
-        return KunneIkkeLeggeTilNyKlageinstansHendelse.MåVæreEnOversendtKlage(menVar = this::class).left()
-    }
-
-    sealed interface KunneIkkeLeggeTilNyKlageinstansHendelse {
-        data class MåVæreEnOversendtKlage(val menVar: KClass<out Klage>) : KunneIkkeLeggeTilNyKlageinstansHendelse
-        object KunneIkkeHenteAktørId : KunneIkkeLeggeTilNyKlageinstansHendelse
-        data class KunneIkkeLageOppgave(val feil: OppgaveFeil) : KunneIkkeLeggeTilNyKlageinstansHendelse
-    }
+    fun avslutt(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        begrunnelse: String,
+        tidspunktAvsluttet: Tidspunkt,
+    ): Either<KunneIkkeAvslutteKlage, AvsluttetKlage>
 
     companion object {
         fun ny(
@@ -152,7 +117,7 @@ sealed interface Klage {
             datoKlageMottatt: LocalDate,
             clock: Clock,
         ): OpprettetKlage {
-            return OpprettetKlage.create(
+            return OpprettetKlage(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 sakId = sakId,
@@ -166,16 +131,43 @@ sealed interface Klage {
         }
     }
 
-    /**
-     * Brukes av frontend for å vite om en klage kan avsluttes eller ikke.
-     * Det holder ikke å kun vurdere statusen derfor ligger denne nærmere domenet.
-     */
-    fun kanAvsluttes(): Boolean
-    fun avslutt(
+    sealed interface KunneIkkeLeggeTilNyKlageinstansHendelse {
+        data class MåVæreEnOversendtKlage(val menVar: KClass<out Klage>) : KunneIkkeLeggeTilNyKlageinstansHendelse
+        object KunneIkkeHenteAktørId : KunneIkkeLeggeTilNyKlageinstansHendelse
+        data class KunneIkkeLageOppgave(val feil: OppgaveFeil) : KunneIkkeLeggeTilNyKlageinstansHendelse
+    }
+}
+
+interface KlageSomKanVurderes {
+    fun vurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
-        begrunnelse: String,
-        tidspunktAvsluttet: Tidspunkt,
-    ): Either<KunneIkkeAvslutteKlage, AvsluttetKlage>
+        vurderinger: VurderingerTilKlage,
+    ): VurdertKlage
+}
+
+interface KanBekrefteKlagevurdering {
+    fun bekreftVurderinger(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): VurdertKlage.Bekreftet
+}
+
+interface KanLeggeTilFritekstTilAvvistBrev {
+    fun leggTilFritekstTilAvvistVedtaksbrev(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        fritekstTilAvvistVedtaksbrev: String,
+    ): AvvistKlage
+}
+
+interface Klagefelter {
+    val id: UUID
+    val opprettet: Tidspunkt
+    val sakId: UUID
+    val saksnummer: Saksnummer
+    val fnr: Fnr
+    val journalpostId: JournalpostId
+    val oppgaveId: OppgaveId
+    val datoKlageMottatt: LocalDate
+    val saksbehandler: NavIdentBruker.Saksbehandler
 }
 
 sealed interface KunneIkkeLageBrevRequest {
@@ -189,16 +181,17 @@ sealed interface KunneIkkeHenteFritekstTilBrev {
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeHenteFritekstTilBrev
 }
 
-sealed class KunneIkkeBekrefteKlagesteg {
-    object FantIkkeKlage : KunneIkkeBekrefteKlagesteg()
+sealed interface KunneIkkeBekrefteKlagesteg {
+    object FantIkkeKlage : KunneIkkeBekrefteKlagesteg
     data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) :
-        KunneIkkeBekrefteKlagesteg()
+        KunneIkkeBekrefteKlagesteg
 }
 
 sealed interface KunneIkkeAvslutteKlage {
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeAvslutteKlage {
         val til: KClass<AvsluttetKlage> = AvsluttetKlage::class
     }
+
     object FantIkkeKlage : KunneIkkeAvslutteKlage
 }
 

@@ -149,7 +149,8 @@ data class Sak(
             periode = månedsperiode,
             vedtakListe = NonEmptyList.fromListUnsafe(
                 vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-                    .filterNot { it is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse || it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse || it is VedtakSomKanRevurderes.IngenEndringIYtelse }.ifEmpty {
+                    .filterNot { it is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse || it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse || it is VedtakSomKanRevurderes.IngenEndringIYtelse }
+                    .ifEmpty {
                         return null
                     },
             ),
@@ -200,7 +201,9 @@ data class Sak(
                     .reduser()
             }.reduser()
     }
-    fun hentÅpneKlager(): List<Klage> = klager.filter { it.erÅpen() }
+
+    /** Skal ikke kunne ha mer enn én åpen klage av gangen. */
+    fun kanOppretteKlage(): Boolean = klager.none { it.erÅpen() }
 
     fun hentKlage(klageId: UUID): Klage? = klager.find { it.id == klageId }
 
@@ -223,7 +226,10 @@ data class Sak(
      * problematisk hvis man stanser og gjenopptar på tvers av disse. Ta opp igjen problemstillingen dersom
      * fag trenger å stanse i et slikt tilfelle.
      */
-    private fun ingenKommendeOpphørEllerHull(utbetalingslinjer: List<UtbetalingslinjePåTidslinje>, clock: Clock): Boolean {
+    private fun ingenKommendeOpphørEllerHull(
+        utbetalingslinjer: List<UtbetalingslinjePåTidslinje>,
+        clock: Clock,
+    ): Boolean {
         val kommendeUtbetalingslinjer = utbetalingslinjer.filter { it.periode.tilOgMed.isAfter(LocalDate.now(clock)) }
 
         if (kommendeUtbetalingslinjer.any { it is UtbetalingslinjePåTidslinje.Opphør }) {

@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
-import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -94,7 +93,7 @@ internal class OversendKlageTest {
     @Test
     fun `ugyldig tilstand`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeOversendeKlage.UgyldigTilstand(OpprettetKlage::class, OversendtKlage::class),
+            feilkode = KunneIkkeOversendeKlage.UgyldigTilstand(OpprettetKlage::class),
             status = HttpStatusCode.BadRequest,
             body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden OversendtKlage\",\"code\":\"ugyldig_tilstand\"}",
         )

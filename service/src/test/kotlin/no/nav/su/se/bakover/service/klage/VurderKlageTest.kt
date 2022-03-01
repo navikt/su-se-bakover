@@ -2,22 +2,16 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
-import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
-import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
@@ -207,7 +201,6 @@ internal class VurderKlageTest {
         )
         mocks.service.vurder(request) shouldBe KunneIkkeVurdereKlage.UgyldigTilstand(
             klage::class,
-            VurdertKlage::class,
         ).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
@@ -219,11 +212,9 @@ internal class VurderKlageTest {
         val klage = bekreftetVilkårsvurdertKlageTilVurdering().second
         verifiserGyldigStatusovergangTilPåbegynt(
             klage = klage,
-            vilkårsvurderingerTilKlage = klage.vilkårsvurderinger,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             klage = klage,
-            vilkårsvurderingerTilKlage = klage.vilkårsvurderinger,
         )
     }
 
@@ -232,11 +223,9 @@ internal class VurderKlageTest {
         val klage = påbegyntVurdertKlage().second
         verifiserGyldigStatusovergangTilPåbegynt(
             klage = klage,
-            vilkårsvurderingerTilKlage = klage.vilkårsvurderinger,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             klage = klage,
-            vilkårsvurderingerTilKlage = klage.vilkårsvurderinger,
         )
     }
 
@@ -245,11 +234,9 @@ internal class VurderKlageTest {
         val klage = utfyltVurdertKlage().second
         verifiserGyldigStatusovergangTilPåbegynt(
             klage = klage,
-            vilkårsvurderingerTilKlage = klage.vilkårsvurderinger,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             klage = klage,
-            vilkårsvurderingerTilKlage = klage.vilkårsvurderinger,
         )
     }
 
@@ -258,11 +245,9 @@ internal class VurderKlageTest {
         val klage = bekreftetVurdertKlage().second
         verifiserGyldigStatusovergangTilPåbegynt(
             klage = klage,
-            vilkårsvurderingerTilKlage = klage.vilkårsvurderinger,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             klage = klage,
-            vilkårsvurderingerTilKlage = klage.vilkårsvurderinger,
         )
     }
 
@@ -271,20 +256,14 @@ internal class VurderKlageTest {
         val klage = underkjentKlageTilVurdering().second
         verifiserGyldigStatusovergangTilPåbegynt(
             klage = klage,
-            attesteringer = klage.attesteringer,
-            vilkårsvurderingerTilKlage = klage.vilkårsvurderinger,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             klage = klage,
-            attesteringer = klage.attesteringer,
-            vilkårsvurderingerTilKlage = klage.vilkårsvurderinger,
         )
     }
 
     private fun verifiserGyldigStatusovergangTilPåbegynt(
         klage: Klage,
-        vilkårsvurderingerTilKlage: VilkårsvurderingerTilKlage.Utfylt,
-        attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     ) {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
@@ -301,46 +280,24 @@ internal class VurderKlageTest {
             oppretthold = null,
         )
 
-        var expectedKlage: VurdertKlage.Påbegynt?
         mocks.service.vurder(request).orNull()!!.also {
-            expectedKlage = VurdertKlage.Påbegynt.create(
-                id = it.id,
-                opprettet = fixedTidspunkt,
-                sakId = klage.sakId,
-                saksnummer = klage.saksnummer,
-                fnr = klage.fnr,
-                journalpostId = klage.journalpostId,
-                oppgaveId = klage.oppgaveId,
-                saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
-                vilkårsvurderinger = vilkårsvurderingerTilKlage,
-                vurderinger = VurderingerTilKlage.create(
-                    fritekstTilBrev = null,
-                    vedtaksvurdering = null,
-                ) as VurderingerTilKlage.Påbegynt,
-                attesteringer = attesteringer,
-                datoKlageMottatt = 1.desember(2021),
-                klageinstanshendelser = Klageinstanshendelser.empty()
-            )
-            it shouldBe expectedKlage
+            it.saksbehandler shouldBe NavIdentBruker.Saksbehandler("nySaksbehandler")
+            it.vurderinger shouldBe VurderingerTilKlage.empty()
         }
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(
-            argThat {
-                it shouldBe expectedKlage
-            },
+            any(),
             argThat {
                 it shouldBe TestSessionFactory.transactionContext
-            }
+            },
         )
         mocks.verifyNoMoreInteractions()
     }
 
     private fun verifiserGyldigStatusovergangTilUtfylt(
         klage: Klage,
-        attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
-        vilkårsvurderingerTilKlage: VilkårsvurderingerTilKlage.Utfylt,
     ) {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
@@ -355,39 +312,22 @@ internal class VurderKlageTest {
             omgjør = null,
             oppretthold = KlageVurderingerRequest.Oppretthold(listOf("SU_PARAGRAF_3")),
         )
-        var expectedKlage: VurdertKlage.Utfylt?
         mocks.service.vurder(request).orNull()!!.also {
-            expectedKlage = VurdertKlage.Utfylt.create(
-                id = it.id,
-                opprettet = fixedTidspunkt,
-                sakId = klage.sakId,
-                saksnummer = klage.saksnummer,
-                fnr = klage.fnr,
-                journalpostId = klage.journalpostId,
-                oppgaveId = klage.oppgaveId,
-                saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
-                vilkårsvurderinger = vilkårsvurderingerTilKlage,
-                vurderinger = VurderingerTilKlage.Utfylt(
-                    fritekstTilBrev = "fritekstTilBrev",
-                    vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(listOf(Hjemmel.SU_PARAGRAF_3))
-                        .orNull()!! as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
-                ),
-                attesteringer = attesteringer,
-                datoKlageMottatt = 1.desember(2021),
-                klageinstanshendelser = Klageinstanshendelser.empty()
+            it.saksbehandler shouldBe NavIdentBruker.Saksbehandler("nySaksbehandler")
+            it.vurderinger shouldBe VurderingerTilKlage.Utfylt(
+                fritekstTilOversendelsesbrev = "fritekstTilBrev",
+                vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(listOf(Hjemmel.SU_PARAGRAF_3))
+                    .orNull()!! as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
             )
-            it shouldBe expectedKlage
         }
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(
-            argThat {
-                it shouldBe expectedKlage
-            },
+            any(),
             argThat {
                 it shouldBe TestSessionFactory.transactionContext
-            }
+            },
         )
         mocks.verifyNoMoreInteractions()
     }
