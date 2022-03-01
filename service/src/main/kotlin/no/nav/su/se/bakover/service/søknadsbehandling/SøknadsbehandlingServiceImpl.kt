@@ -62,7 +62,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -527,23 +527,32 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun leggTilUførevilkår(
-        request: LeggTilUførevilkårRequest,
+        request: LeggTilUførevurderingerRequest,
     ): Either<KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling.left()
 
-        val vilkår = request.toVilkår(clock).getOrHandle {
+        val vilkår = request.toVilkår(
+            behandlingsperiode = søknadsbehandling.periode,
+            clock = clock,
+        ).getOrHandle {
             return when (it) {
-                LeggTilUførevilkårRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> {
-                    KunneIkkeLeggeTilUføreVilkår.UføregradOgForventetInntektMangler
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat -> {
+                    KunneIkkeLeggeTilUføreVilkår.AlleVurderingeneMåHaSammeResultat
                 }
-                LeggTilUførevilkårRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> {
-                    KunneIkkeLeggeTilUføreVilkår.PeriodeForGrunnlagOgVurderingErForskjellig
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger -> {
+                    KunneIkkeLeggeTilUføreVilkår.HeleBehandlingsperiodenMåHaVurderinger
                 }
-                LeggTilUførevilkårRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> {
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> {
                     KunneIkkeLeggeTilUføreVilkår.OverlappendeVurderingsperioder
                 }
-                LeggTilUførevilkårRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                    KunneIkkeLeggeTilUføreVilkår.PeriodeForGrunnlagOgVurderingErForskjellig
+                }
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> {
+                    KunneIkkeLeggeTilUføreVilkår.UføregradOgForventetInntektMangler
+                }
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
                     KunneIkkeLeggeTilUføreVilkår.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden
                 }
             }.left()

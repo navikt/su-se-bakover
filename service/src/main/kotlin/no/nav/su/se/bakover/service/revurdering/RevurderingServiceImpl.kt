@@ -331,21 +331,36 @@ internal class RevurderingServiceImpl(
         ) to gjeldendeVedtaksdata.vilkårsvurderinger
     }
 
-    override fun leggTilUføregrunnlag(
+    override fun leggTilUførevilkår(
         request: LeggTilUførevurderingerRequest,
     ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse> {
         val revurdering = hent(request.behandlingId)
             .getOrHandle { return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left() }
 
-        val uførevilkår = request.toVilkår(revurdering.periode, clock).getOrHandle {
+        val uførevilkår = request.toVilkår(
+            behandlingsperiode = revurdering.periode,
+            clock = clock,
+        ).getOrHandle {
             return when (it) {
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat -> KunneIkkeLeggeTilGrunnlag.AlleVurderingeneMåHaSammeResultat.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger -> KunneIkkeLeggeTilGrunnlag.HeleBehandlingsperiodenMåHaVurderinger.left()
-            }
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                    KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig
+                }
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> {
+                    KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler
+                }
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> {
+                    KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder
+                }
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
+                    KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden
+                }
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat -> {
+                    KunneIkkeLeggeTilGrunnlag.AlleVurderingeneMåHaSammeResultat
+                }
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger -> {
+                    KunneIkkeLeggeTilGrunnlag.HeleBehandlingsperiodenMåHaVurderinger
+                }
+            }.left()
         }
         return revurdering.oppdaterUføreOgMarkerSomVurdert(uførevilkår).mapLeft {
             KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(fra = it.fra, til = it.til)

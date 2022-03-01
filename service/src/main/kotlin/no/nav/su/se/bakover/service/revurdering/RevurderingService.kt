@@ -109,7 +109,7 @@ interface RevurderingService {
         request: FortsettEtterForhåndsvarslingRequest,
     ): Either<FortsettEtterForhåndsvarselFeil, Revurdering>
 
-    fun leggTilUføregrunnlag(
+    fun leggTilUførevilkår(
         request: LeggTilUførevurderingerRequest,
     ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse>
 

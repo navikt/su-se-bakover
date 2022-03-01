@@ -21,8 +21,12 @@ class BeregningStrategyFactory(val clock: Clock) {
         val beregningsgrunnlag = Beregningsgrunnlag.tryCreate(
             beregningsperiode = beregningsPeriode,
             uføregrunnlag = when (val vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger) {
-                is Vilkårsvurderinger.Revurdering -> vilkårsvurderinger.uføre.grunnlag
-                is Vilkårsvurderinger.Søknadsbehandling -> vilkårsvurderinger.uføre.grunnlag
+                is Vilkårsvurderinger.Revurdering -> {
+                    vilkårsvurderinger.uføre.grunnlag
+                }
+                is Vilkårsvurderinger.Søknadsbehandling -> {
+                    vilkårsvurderinger.uføre.grunnlag
+                }
             },
             fradragFraSaksbehandler = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag,
         ).getOrHandle {

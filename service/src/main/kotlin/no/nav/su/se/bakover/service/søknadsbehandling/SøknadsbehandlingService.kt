@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -31,7 +31,7 @@ interface SøknadsbehandlingService {
     fun brev(request: BrevRequest): Either<KunneIkkeLageBrev, ByteArray>
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
     fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling>
-    fun leggTilUførevilkår(request: LeggTilUførevilkårRequest): Either<KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling>
+    fun leggTilUførevilkår(request: LeggTilUførevurderingerRequest): Either<KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling>
     fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling>
     fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling>
     fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling>
@@ -160,6 +160,8 @@ interface SøknadsbehandlingService {
         object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilUføreVilkår()
         object OverlappendeVurderingsperioder : KunneIkkeLeggeTilUføreVilkår()
         object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilUføreVilkår()
+        object HeleBehandlingsperiodenMåHaVurderinger : KunneIkkeLeggeTilUføreVilkår()
+        object AlleVurderingeneMåHaSammeResultat : KunneIkkeLeggeTilUføreVilkår()
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling>,
