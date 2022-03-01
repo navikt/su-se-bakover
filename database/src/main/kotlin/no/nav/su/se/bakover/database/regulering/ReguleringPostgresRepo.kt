@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
-import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.hent
@@ -103,15 +102,7 @@ internal class ReguleringPostgresRepo(
 
     override fun lagre(regulering: Regulering, sessionContext: TransactionContext) {
         sessionContext.withTransaction { session ->
-            when (regulering) {
-                is Regulering.IverksattRegulering -> lagreIntern(regulering, session)
-                is Regulering.OpprettetRegulering -> lagreIntern(regulering, session)
-            }
-        }
-    }
-
-    private fun lagreIntern(regulering: Regulering.OpprettetRegulering, session: TransactionalSession) {
-        """
+            """
             insert into regulering (
                 id,
                 sakId,
@@ -131,7 +122,7 @@ internal class ReguleringPostgresRepo(
                 to_json(:beregning::json),
                 to_json(:simulering::json),
                 :saksbehandler,
-                '${ReguleringStatus.OPPRETTET}',
+                :reguleringStatus,
                 :reguleringType,
                 :jobbnavn
             )
@@ -143,43 +134,34 @@ internal class ReguleringPostgresRepo(
                 beregning=to_json(:beregning::json),
                 simulering=to_json(:simulering::json),
                 saksbehandler=:saksbehandler,
-                reguleringStatus='${ReguleringStatus.OPPRETTET}',
+                reguleringStatus=:reguleringStatus,
                 reguleringType=:reguleringType,
                 jobbnavn=:jobbnavn
-        """.trimIndent()
-            .insert(
-                mapOf(
-                    "id" to regulering.id,
-                    "sakId" to regulering.sakId,
-                    "periode" to serialize(regulering.periode),
-                    "opprettet" to regulering.opprettet,
-                    "saksbehandler" to regulering.saksbehandler.navIdent,
-                    "beregning" to regulering.beregning,
-                    "simulering" to regulering.simulering?.let { serialize(it) },
-                    "reguleringType" to regulering.reguleringType.toString(),
-                    "jobbnavn" to regulering.jobbnavn.toString(),
-                ),
-                session,
+            """.trimIndent()
+                .insert(
+                    mapOf(
+                        "id" to regulering.id,
+                        "sakId" to regulering.sakId,
+                        "periode" to serialize(regulering.periode),
+                        "opprettet" to regulering.opprettet,
+                        "saksbehandler" to regulering.saksbehandler.navIdent,
+                        "beregning" to regulering.beregning,
+                        "simulering" to regulering.simulering?.let { serialize(it) },
+                        "reguleringType" to regulering.reguleringType.toString(),
+                        "jobbnavn" to regulering.jobbnavn.toString(),
+                        "reguleringStatus" to when (regulering) {
+                            is Regulering.IverksattRegulering -> ReguleringStatus.IVERKSATT
+                            is Regulering.OpprettetRegulering -> ReguleringStatus.OPPRETTET
+                        },
+                    ),
+                    session,
+                )
+            grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
+                behandlingId = regulering.id,
+                grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
+                tx = session,
             )
-        grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
-            behandlingId = regulering.id,
-            grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
-            tx = session,
-        )
-    }
-
-    private fun lagreIntern(regulering: Regulering.IverksattRegulering, session: TransactionalSession) {
-        """
-            update regulering set
-                reguleringStatus='${ReguleringStatus.IVERKSATT}'
-              where id=:id
-        """.trimIndent()
-            .insert(
-                mapOf(
-                    "id" to regulering.id,
-                ),
-                session,
-            )
+        }
     }
 
     override fun hentVedtakSomKanReguleres(fraOgMed: LocalDate): List<VedtakSomKanReguleres> {

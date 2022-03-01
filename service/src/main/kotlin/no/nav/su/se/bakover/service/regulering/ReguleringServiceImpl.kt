@@ -5,6 +5,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
@@ -67,33 +68,33 @@ class ReguleringServiceImpl(
                 OpprettRequest(sakId = sakid, saksnummer = saksnummer, fnr = fnr, fraOgMed = reguleringsjobb.dato)
 
             opprettRegulering(request, reguleringsjobb).map { regulering ->
-                lagreHeleRegulering(regulering)
+                reguleringRepo.lagre(regulering)
                 if (regulering.reguleringType == ReguleringType.AUTOMATISK) {
-                    beregnPrivat(regulering).map { beregnetRegulering ->
+                    regulering.beregn(clock = clock, begrunnelse = null).map { beregnetRegulering ->
                         simulerPrivat(
                             beregnetRegulering,
                             NavIdentBruker.Saksbehandler("supstonad"),
                         ).map { simulertRegulering ->
-                            reguleringRepo.lagre(simulertRegulering)
-                            val iverksattRegulering = iverksettPrivat(simulertRegulering)
-                            lagVedtakOgUtbetal(iverksattRegulering).getOrHandle {
-                                throw IllegalStateException("Hva gjør vi her?")
+                            simulertRegulering.tilIverksatt().let { iverksattRegulering ->
+                                lagVedtakOgUtbetal(iverksattRegulering).map {
+                                    reguleringRepo.lagre(it)
+                                }.mapLeft {
+                                    throw IllegalStateException("Hva gjør vi her?")
+                                }
                             }
                         }.mapLeft {
-                            println("Simulering feilet")
+                            log.error("Simulering feilet")
                             regulering.copy(
                                 reguleringType = ReguleringType.MANUELL,
                             ).let {
                                 reguleringRepo.lagre(it)
                             }
                         }
-                    }.mapLeft {
-                        when (it) {
-                            KunneIkkeBeregne.BeregningFeilet -> println("Beregningen feilet")
-                            KunneIkkeBeregne.FantIkkeRegulering -> println("Fant ikke reguleringen")
-                            is KunneIkkeBeregne.UgyldigTilstand -> println("Ugyldig tilstand")
+                    }.mapLeft { kunneIkkeBeregne ->
+                        when (kunneIkkeBeregne) {
+                            Regulering.KunneIkkeBeregne.BeregningFeilet -> log.error("Beregning feilet")
+                            is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> log.error("Ikke lov til å beregne når regulering allerede er iverksatt")
                         }
-
                         regulering.copy(
                             reguleringType = ReguleringType.MANUELL,
                         ).let {
@@ -129,12 +130,19 @@ class ReguleringServiceImpl(
         if (regulering !is Regulering.OpprettetRegulering) return KunneIkkeBeregne.UgyldigTilstand(regulering::class)
             .left()
 
-        return beregnPrivat(
-            regulering = regulering,
+        return regulering.beregn(
+            clock = clock,
             begrunnelse = request.begrunnelse,
-        )
-            .tapLeft { println("Error in beregning :_-)))") } // TODO ai: Hva gjør vi med feil?
-            .tap { reguleringRepo.lagre(it) }
+        ).mapLeft {
+            when (it) {
+                Regulering.KunneIkkeBeregne.BeregningFeilet -> KunneIkkeBeregne.BeregningFeilet
+                is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> KunneIkkeBeregne.UgyldigTilstand(
+                    regulering::class,
+                )
+            }
+        }.tap {
+            reguleringRepo.lagre(it).right()
+        }
     }
 
     override fun simuler(request: SimulerRequest): Either<KunneIkkeSimulere, Regulering.OpprettetRegulering> {
@@ -165,50 +173,14 @@ class ReguleringServiceImpl(
                     KunneIkkeIverksetteRegulering.ReguleringErAlleredeIverksatt.left()
                 }
                 is Regulering.OpprettetRegulering -> {
-                    iverksettPrivat(regulering).right()
+                    regulering.tilIverksatt().also { iverksattRegulering ->
+                        reguleringRepo.lagre(iverksattRegulering)
+                    }.right()
                 }
             }
         }
         return KunneIkkeIverksetteRegulering.FantIkkeRegulering.left()
     }
-
-    private fun iverksettPrivat(regulering: Regulering.OpprettetRegulering): Regulering.IverksattRegulering {
-
-        val iverksattRegulering = regulering.tilIverksatt()
-        reguleringRepo.lagre(iverksattRegulering)
-        return iverksattRegulering
-    }
-
-    // private fun oppdaterUføregrunnlag(regulering: Regulering.OpprettetRegulering) =
-    //     regulering.vilkårsvurderinger.uføre.grunnlag.map {
-    //         it.forventetInntekt * 1.01
-    //     }
-    //
-    // override fun leggTilUføregrunnlag(
-    //     request: LeggTilUførevurderingerRequest,
-    // ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse> {
-    //     val revurdering = hent(request.behandlingId)
-    //         .getOrHandle { return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left() }
-    //
-    //     val uførevilkår = request.toVilkår(revurdering.periode, clock).getOrHandle {
-    //         return when (it) {
-    //             LeggTilUførevurderingerRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-    //             LeggTilUførevurderingerRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
-    //             LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder.left()
-    //             LeggTilUførevurderingerRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
-    //             LeggTilUførevurderingerRequest.UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat -> KunneIkkeLeggeTilGrunnlag.AlleVurderingeneMåHaSammeResultat.left()
-    //             LeggTilUførevurderingerRequest.UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger -> KunneIkkeLeggeTilGrunnlag.HeleBehandlingsperiodenMåHaVurderinger.left()
-    //         }
-    //     }
-    //     return revurdering.oppdaterUføreOgMarkerSomVurdert(uførevilkår).mapLeft {
-    //         KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(fra = it.fra, til = it.til)
-    //     }.map {
-    //         // TODO jah: Flytt denne inn i revurderingRepo.lagre
-    //         vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
-    //         revurderingRepo.lagre(it)
-    //         identifiserFeilOgLagResponse(it)
-    //     }
-    // }
 
     private fun opprettRegulering(
         request: OpprettRequest,
@@ -238,11 +210,11 @@ class ReguleringServiceImpl(
                 ).minByOrNull { it }!!
 
         val grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-            grunnlagsdata =
-            Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
                 bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
             ).getOrHandle { return KunneIkkeOppretteRegulering.KunneIkkeLageFradragsgrunnlag.left() },
+
             vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
         )
         return Regulering.OpprettetRegulering(
@@ -261,26 +233,6 @@ class ReguleringServiceImpl(
             reguleringType = reguleringType,
             jobbnavn = reguleringsjobb,
         ).right()
-    }
-
-    private fun beregnPrivat(
-        regulering: Regulering.OpprettetRegulering,
-        begrunnelse: String? = null,
-    ): Either<KunneIkkeBeregne, Regulering.OpprettetRegulering> {
-
-        (regulering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).regulerForventetInntekt()
-
-        return regulering.beregn(
-            begrunnelse = begrunnelse,
-            clock = clock,
-        ).mapLeft { feil ->
-            when (feil) {
-                is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> {
-                    KunneIkkeBeregne.UgyldigTilstand(status = feil.status)
-                }
-                Regulering.KunneIkkeBeregne.BeregningFeilet -> KunneIkkeBeregne.BeregningFeilet
-            }
-        }
     }
 
     private fun simulerPrivat(
@@ -365,10 +317,6 @@ class ReguleringServiceImpl(
         return gjeldendeVedtaksdata.right()
     }
 
-    private fun lagreHeleRegulering(regulering: Regulering.OpprettetRegulering) {
-        reguleringRepo.lagre(regulering)
-    }
-
     private fun utledAutomatiskEllerManuellRegulering(gjeldendeVedtaksdata: GjeldendeVedtaksdata): ReguleringType =
         if (gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.any { (it.fradrag.fradragstype == Fradragstype.NAVytelserTilLivsopphold) || (it.fradrag.fradragstype == Fradragstype.OffentligPensjon) })
             ReguleringType.MANUELL else ReguleringType.AUTOMATISK
@@ -392,76 +340,3 @@ class ReguleringServiceImpl(
         return regulering.right()
     }
 }
-
-// private fun utledAutomatiskEllerManuellRegulering(saksnummer: Saksnummer, fraDato: LocalDate): ReguleringType? =
-//     hentAlleSaker(fraDato).find { it.saksnummer == saksnummer }?.reguleringType
-
-// override fun opprettRegulering(sakId: UUID, fraDato: LocalDate?): Either<KunneIkkeOppretteRegulering, Regulering> {
-//     val sak = sakRepo.hentSak(sakId = sakId) ?: return KunneIkkeOppretteRegulering.FantIkkeSak.left()
-//     val regulering = (fraDato ?: 1.mai(LocalDate.now().year)).let { fra ->
-//         opprettRegulering(OpprettRequest(sakId = sakId, saksnummer = sak.saksnummer, fnr = sak.fnr, fraOgMed = fra))
-//     }.getOrHandle { return it.left() }
-//
-//     // TODO Kan vi ikke flytte disse inn i repo??
-//     reguleringRepo.lagre(regulering)
-//     vilkårsvurderingService.lagre(
-//         behandlingId = regulering.id,
-//         vilkårsvurderinger = regulering.vilkårsvurderinger,
-//     )
-//     grunnlagService.lagreFradragsgrunnlag(
-//         behandlingId = regulering.id,
-//         fradragsgrunnlag = regulering.grunnlagsdata.fradragsgrunnlag,
-//     )
-//     grunnlagService.lagreBosituasjongrunnlag(regulering.id, regulering.grunnlagsdata.bosituasjon)
-//
-//     return regulering.right()
-// }
-
-// private fun automatiskRegulerEnSak(request: OpprettRequest): Either<KunneIkkeOppretteRegulering, Regulering> {
-//     val gjeldendeVedtaksdata = hentGjeldendeVedtaksdata(request).getOrHandle {
-//         return when (it) {
-//             KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak -> KunneIkkeOppretteRegulering.FantIkkeSak.left()
-//             KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak -> KunneIkkeOppretteRegulering.FantIngenVedtak.left()
-//             KunneIkkeHenteGjeldendeVedtaksdata.GrunnlagErIkkeKonsistent -> KunneIkkeOppretteRegulering.GrunnlagErIkkeKonsistent.left()
-//             KunneIkkeHenteGjeldendeVedtaksdata.TidslinjeForVedtakErIkkeKontinuerlig -> KunneIkkeOppretteRegulering.TidslinjeForVedtakErIkkeKontinuerlig.left()
-//             KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> KunneIkkeOppretteRegulering.UgyldigPeriode.left()
-//         }
-//     }
-//
-//     val regulering = opprettRegulering(request, gjeldendeVedtaksdata).getOrHandle { return KunneIkkeOppretteRegulering.FantIkkeRegulering.left() }
-//
-//     val reguleringMedBeregningOgSimulering =
-//         beregnPrivat(regulering = regulering, begrunnelse = "begrunnelse").map {
-//             simulerPrivat(regulering = it, saksbehandler = NavIdentBruker.Saksbehandler("tull"))
-//                 .getOrHandle { throw IllegalStateException("sdfsdf") }
-//         }.getOrHandle { throw IllegalStateException("dsfsdf") }.also {
-//             reguleringRepo.lagre(it)
-//             vilkårsvurderingService.lagre(
-//                 behandlingId = it.id,
-//                 vilkårsvurderinger = it.vilkårsvurderinger,
-//             )
-//             grunnlagService.lagreFradragsgrunnlag(
-//                 behandlingId = it.id,
-//                 fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-//             )
-//             grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)
-//         }
-//
-//     reguleringMedBeregningOgSimulering.tilIverksatt().let {
-//         val utbetaling = utbetalingService.utbetal(
-//             UtbetalRequest.NyUtbetaling(
-//                 request = SimulerUtbetalingRequest.NyUtbetaling(
-//                     sakId = it.sakId,
-//                     saksbehandler = it.saksbehandler,
-//                     beregning = it.beregning!!,
-//                     uføregrunnlag = it.vilkårsvurderinger.tilVilkårsvurderingerRevurdering().uføre.grunnlag,
-//                 ),
-//                 simulering = it.simulering!!,
-//             ),
-//         ).getOrHandle { throw IllegalStateException("dsfds") }
-//         val vedtak = VedtakSomKanRevurderes.from(it, utbetaling.id, clock)
-//         reguleringRepo.lagre(it)
-//         vedtakService.lagre(vedtak)
-//     }
-//     return reguleringMedBeregningOgSimulering.right()
-// }

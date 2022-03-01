@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.time.LocalDate
@@ -99,16 +100,19 @@ sealed interface Regulering : Behandling {
             regulering: OpprettetRegulering,
             begrunnelse: String?,
             clock: Clock,
-        ): Either<KunneIkkeBeregne.BeregningFeilet, Beregning> = Either.catch {
-            BeregningStrategyFactory(clock).beregn(
-                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-                    grunnlagsdata = regulering.grunnlagsdata,
-                    vilkårsvurderinger = regulering.vilkårsvurderinger,
-                ),
-                beregningsPeriode = regulering.periode,
-                begrunnelse = begrunnelse,
-            )
-        }.mapLeft { KunneIkkeBeregne.BeregningFeilet }
+        ): Either<KunneIkkeBeregne.BeregningFeilet, Beregning> {
+            (regulering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).regulerForventetInntekt()
+            return Either.catch {
+                BeregningStrategyFactory(clock).beregn(
+                    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+                        grunnlagsdata = regulering.grunnlagsdata,
+                        vilkårsvurderinger = regulering.vilkårsvurderinger,
+                    ),
+                    beregningsPeriode = regulering.periode,
+                    begrunnelse = begrunnelse,
+                )
+            }.mapLeft { KunneIkkeBeregne.BeregningFeilet }
+        }
     }
 
     data class IverksattRegulering(
