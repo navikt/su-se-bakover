@@ -76,7 +76,7 @@ class KontrollsamtaleServiceImpl(
             sessionFactory.withTransactionContext { tx ->
                 brevService.lagreDokument(dokument, tx)
                 kontrollsamtaleRepo.lagre(
-                    kontrollsamtale = kontrollsamtale.settInnkalt().getOrElse {
+                    kontrollsamtale = kontrollsamtale.settInnkalt(dokument.id).getOrElse {
                         throw RuntimeException("Kontrollsamtale er i ugyldig tilstand for å bli satt til innkalt")
                     },
                     transactionContext = tx,
@@ -176,23 +176,6 @@ class KontrollsamtaleServiceImpl(
             }
         }
 
-    private fun lagreInnkallingTilKontrollsamtale(
-        kontrollsamtale: Kontrollsamtale,
-        transactionContext: TransactionContext,
-    ): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> =
-        Either.catch {
-            kontrollsamtaleRepo.lagre(kontrollsamtale, transactionContext)
-        }.fold(
-            ifLeft = {
-                log.error("Fikk ikke opprettet inkalling til ny kontrollsamtale for sakId ${kontrollsamtale.sakId}")
-                KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeLagreKontrollsamtale.left()
-            },
-            ifRight = {
-                log.info("Opprettet ny kontrollsamtale for sakId ${kontrollsamtale.sakId}")
-                kontrollsamtale.right()
-            },
-        )
-
     private fun lagDokument(
         person: Person,
         sakId: UUID,
@@ -233,7 +216,6 @@ sealed interface KunneIkkeKalleInnTilKontrollsamtale {
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeKalleInnTilKontrollsamtale
     object KunneIkkeKalleInn : KunneIkkeKalleInnTilKontrollsamtale
     object FantIkkeGjeldendeStønadsperiode : KunneIkkeKalleInnTilKontrollsamtale
-    object KunneIkkeLagreKontrollsamtale : KunneIkkeKalleInnTilKontrollsamtale
     object FantIkkeKontrollsamtale : KunneIkkeKalleInnTilKontrollsamtale
     object SkalIkkePlanleggeKontrollsamtale : KunneIkkeKalleInnTilKontrollsamtale
     object PlanlagtKontrollsamtaleFinnesAllerede : KunneIkkeKalleInnTilKontrollsamtale
