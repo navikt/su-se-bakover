@@ -198,7 +198,7 @@ class ReguleringServiceImpl(
         val reguleringType = utledAutomatiskEllerManuellRegulering(gjeldendeVedtaksdata)
 
         // TODO ai: Ta i bruk annen funksjonalitet for å gjøre dette
-        val fraOgMed = maxOf(gjeldendeVedtaksdata.periode.fraOgMed, reguleringsjobb.dato)
+        val fraOgMed = maxOf(gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.fraOgMed, reguleringsjobb.dato)
         val tilOgMed =
             (
                 (gjeldendeVedtaksdata.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.filter { it.resultat == Resultat.Innvilget }
