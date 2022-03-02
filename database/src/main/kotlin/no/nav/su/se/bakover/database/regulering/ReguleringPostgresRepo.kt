@@ -71,6 +71,14 @@ internal class ReguleringPostgresRepo(
         ) { it.toRegulering(session) }
     }
 
+    override fun hentForSakId(sakId: UUID, sessionContext: TransactionContext): List<Regulering> =
+        sessionContext.withTransaction { session ->
+            """ select * from regulering r inner join sak s on s.id = r.sakid where sakid = :sakid """.trimIndent().hentListe(
+                mapOf("sakid" to sakId),
+                session,
+            ) { it.toRegulering(session) }
+        }
+
     internal fun hent(saksnummer: Saksnummer, jobbnavn: String, session: Session): Regulering? =
         """
             select *
@@ -152,7 +160,7 @@ internal class ReguleringPostgresRepo(
                         "reguleringStatus" to when (regulering) {
                             is Regulering.IverksattRegulering -> ReguleringStatus.IVERKSATT
                             is Regulering.OpprettetRegulering -> ReguleringStatus.OPPRETTET
-                        },
+                        }.toString(),
                     ),
                     session,
                 )

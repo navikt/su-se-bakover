@@ -182,6 +182,7 @@ object DatabaseBuilder {
                 vedtakPostgresRepo = vedtakRepo,
                 dbMetrics = dbMetrics,
                 klageRepo = klageRepo,
+                reguleringRepo = reguleringRepo
             ),
             person = PersonPostgresRepo(
                 dataSource = dataSource,

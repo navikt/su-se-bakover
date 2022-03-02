@@ -316,6 +316,7 @@ internal class TestDataHelper(
         vedtakPostgresRepo = vedtakRepo,
         dbMetrics = dbMetrics,
         klageRepo = klagePostgresRepo,
+        reguleringRepo = reguleringRepo
     )
 
     fun nySakMedNySøknad(

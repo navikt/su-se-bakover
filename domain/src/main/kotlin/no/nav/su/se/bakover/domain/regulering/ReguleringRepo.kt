@@ -38,6 +38,7 @@ interface ReguleringRepo {
     fun hent(id: UUID): Regulering?
     fun hent(saksnummer: Saksnummer, jobbnavn: String): Regulering?
     fun hent(jobbnavn: Reguleringsjobb): List<Regulering>
+    fun hentForSakId(sakId: UUID, sessionContext: TransactionContext = defaultTransactionContext()): List<Regulering>
     fun lagre(regulering: Regulering, sessionContext: TransactionContext = defaultTransactionContext())
     fun hentVedtakSomKanReguleres(fraOgMed: LocalDate): List<VedtakSomKanReguleres>
     fun defaultTransactionContext(): TransactionContext

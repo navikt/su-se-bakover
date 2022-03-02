@@ -4,28 +4,47 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
-import no.nav.su.se.bakover.domain.regulering.Reguleringsjobb
+import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
+import java.time.LocalDate
 import java.util.UUID
 
-data class ReguleringJson(
+internal data class ReguleringJson(
     val id: UUID,
     val opprettet: Tidspunkt,
+    val beregning: BeregningJson?,
+    val simulering: SimuleringJson?,
     val sakId: UUID,
     val saksnummer: Saksnummer,
     val reguleringType: ReguleringType,
-    val jobbnavn: Reguleringsjobb,
+    val jobbType: ReguleringsjobbJson,
+    val periode: PeriodeJson,
     val erFerdigstilt: Boolean,
+    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson
 )
 
-fun Regulering.toJson() = ReguleringJson(
+internal data class ReguleringsjobbJson(val dato: LocalDate) {
+    val type = "G"
+}
+
+internal fun Regulering.toJson() = ReguleringJson(
     id = id,
     opprettet = opprettet,
     sakId = sakId,
     saksnummer = saksnummer,
+    beregning = beregning?.toJson(),
+    simulering = simulering?.toJson(),
     reguleringType = reguleringType,
-    jobbnavn = jobbnavn,
+    jobbType = ReguleringsjobbJson(jobbnavn.dato),
     erFerdigstilt = when (this) {
         is Regulering.IverksattRegulering -> true
         is Regulering.OpprettetRegulering -> false
-    }
+    },
+    periode = periode.toJson(),
+    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger)
 )

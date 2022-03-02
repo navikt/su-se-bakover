@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -33,6 +34,7 @@ internal class SakPostgresRepo(
     private val vedtakPostgresRepo: VedtakPostgresRepo,
     private val dbMetrics: DbMetrics,
     private val klageRepo: KlageRepo,
+    private val reguleringRepo: ReguleringRepo,
 ) : SakRepo {
 
     private val åpneBehandlingerRepo = ÅpneBehandlingerRepo(
@@ -171,6 +173,7 @@ internal class SakPostgresRepo(
                 revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
                 vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
                 klager = klageRepo.hentKlager(sakId, sessionContext),
+                reguleringer = reguleringRepo.hentForSakId(sakId)
             )
         }
     }
