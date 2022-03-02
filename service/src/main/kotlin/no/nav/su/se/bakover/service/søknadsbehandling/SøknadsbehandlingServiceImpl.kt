@@ -536,26 +536,7 @@ internal class SøknadsbehandlingServiceImpl(
             behandlingsperiode = søknadsbehandling.periode,
             clock = clock,
         ).getOrHandle {
-            return when (it) {
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat -> {
-                    KunneIkkeLeggeTilUføreVilkår.AlleVurderingeneMåHaSammeResultat
-                }
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger -> {
-                    KunneIkkeLeggeTilUføreVilkår.HeleBehandlingsperiodenMåHaVurderinger
-                }
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> {
-                    KunneIkkeLeggeTilUføreVilkår.OverlappendeVurderingsperioder
-                }
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> {
-                    KunneIkkeLeggeTilUføreVilkår.PeriodeForGrunnlagOgVurderingErForskjellig
-                }
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> {
-                    KunneIkkeLeggeTilUføreVilkår.UføregradOgForventetInntektMangler
-                }
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
-                    KunneIkkeLeggeTilUføreVilkår.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden
-                }
-            }.left()
+            return KunneIkkeLeggeTilUføreVilkår.UgyldigInput(it).left()
         }
 
         val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(vilkår, clock)

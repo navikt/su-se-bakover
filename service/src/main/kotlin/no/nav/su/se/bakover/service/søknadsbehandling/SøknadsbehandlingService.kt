@@ -156,15 +156,14 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeLeggeTilUføreVilkår {
         object FantIkkeBehandling : KunneIkkeLeggeTilUføreVilkår()
-        object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilUføreVilkår()
-        object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilUføreVilkår()
-        object OverlappendeVurderingsperioder : KunneIkkeLeggeTilUføreVilkår()
         object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilUføreVilkår()
-        object HeleBehandlingsperiodenMåHaVurderinger : KunneIkkeLeggeTilUføreVilkår()
-        object AlleVurderingeneMåHaSammeResultat : KunneIkkeLeggeTilUføreVilkår()
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling>,
+        ) : KunneIkkeLeggeTilUføreVilkår()
+
+        data class UgyldigInput(
+            val originalFeil: LeggTilUførevurderingerRequest.UgyldigUførevurdering,
         ) : KunneIkkeLeggeTilUføreVilkår()
     }
 

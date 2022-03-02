@@ -119,7 +119,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurd
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilGrunnlag
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
@@ -665,7 +665,7 @@ open class AccessCheckProxy(
 
                 override fun leggTilUførevilkår(
                     request: LeggTilUførevurderingerRequest,
-                ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse> {
+                ): Either<KunneIkkeLeggeTilUføreVilkår, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.behandlingId)
                     return services.revurdering.leggTilUførevilkår(request)
                 }

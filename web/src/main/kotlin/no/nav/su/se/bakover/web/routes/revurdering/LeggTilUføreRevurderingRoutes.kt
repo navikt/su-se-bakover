@@ -8,8 +8,9 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilGrunnlag
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
@@ -31,35 +32,7 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                             .flatMap { command ->
                                 revurderingService.leggTilUførevilkår(command)
                                     .mapLeft {
-                                        when (it) {
-                                            KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling -> {
-                                                Feilresponser.fantIkkeBehandling
-                                            }
-                                            is KunneIkkeLeggeTilGrunnlag.UgyldigTilstand -> {
-                                                Feilresponser.ugyldigTilstand(
-                                                    fra = it.fra,
-                                                    til = it.til,
-                                                )
-                                            }
-                                            KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler -> {
-                                                Feilresponser.Uføre.uføregradOgForventetInntektMangler
-                                            }
-                                            KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig -> {
-                                                periodeForGrunnlagOgVurderingErForskjellig
-                                            }
-                                            KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder -> {
-                                                Feilresponser.overlappendeVurderingsperioder
-                                            }
-                                            KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
-                                                Feilresponser.utenforBehandlingsperioden
-                                            }
-                                            KunneIkkeLeggeTilGrunnlag.AlleVurderingeneMåHaSammeResultat -> {
-                                                Feilresponser.alleVurderingsperioderMåHaSammeResultat
-                                            }
-                                            KunneIkkeLeggeTilGrunnlag.HeleBehandlingsperiodenMåHaVurderinger -> {
-                                                Feilresponser.heleBehandlingsperiodeMåHaVurderinger
-                                            }
-                                        }
+                                        it.mapFeil()
                                     }.map {
                                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
                                     }
@@ -67,6 +40,45 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                     )
                 }
             }
+        }
+    }
+}
+
+private fun KunneIkkeLeggeTilUføreVilkår.mapFeil(): Resultat {
+    return when (this) {
+        KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling -> {
+            Feilresponser.fantIkkeBehandling
+        }
+        is KunneIkkeLeggeTilUføreVilkår.UgyldigInput -> {
+            when (this.originalFeil) {
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat -> {
+                    Feilresponser.alleVurderingsperioderMåHaSammeResultat
+                }
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger -> {
+                    Feilresponser.heleBehandlingsperiodeMåHaVurderinger
+                }
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> {
+                    Feilresponser.overlappendeVurderingsperioder
+                }
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                    periodeForGrunnlagOgVurderingErForskjellig
+                }
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> {
+                    Feilresponser.Uføre.uføregradOgForventetInntektMangler
+                }
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
+                    Feilresponser.utenforBehandlingsperioden
+                }
+            }
+        }
+        is KunneIkkeLeggeTilUføreVilkår.UgyldigTilstand -> {
+            Feilresponser.ugyldigTilstand(
+                fra = fra,
+                til = til,
+            )
+        }
+        KunneIkkeLeggeTilUføreVilkår.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
+            Feilresponser.utenforBehandlingsperioden
         }
     }
 }

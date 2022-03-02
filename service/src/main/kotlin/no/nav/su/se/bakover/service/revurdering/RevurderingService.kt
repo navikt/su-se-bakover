@@ -111,7 +111,7 @@ interface RevurderingService {
 
     fun leggTilUførevilkår(
         request: LeggTilUførevurderingerRequest,
-    ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse>
+    ): Either<KunneIkkeLeggeTilUføreVilkår, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilUtenlandsopphold(
         request: LeggTilFlereUtenlandsoppholdRequest,
@@ -186,7 +186,9 @@ sealed class KunneIkkeOppretteRevurdering {
     object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppretteRevurdering()
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
     object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppretteRevurdering()
-    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) : KunneIkkeOppretteRevurdering()
+    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) :
+        KunneIkkeOppretteRevurdering()
+
     object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
 }
 
@@ -206,7 +208,9 @@ sealed class KunneIkkeOppdatereRevurdering {
     object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppdatereRevurdering()
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
     object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppdatereRevurdering()
-    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) : KunneIkkeOppdatereRevurdering()
+    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) :
+        KunneIkkeOppdatereRevurdering()
+
     object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
 }
 
@@ -296,18 +300,17 @@ sealed class KunneIkkeUnderkjenneRevurdering {
     object SaksbehandlerOgAttestantKanIkkeVæreSammePerson : KunneIkkeUnderkjenneRevurdering()
 }
 
-sealed class KunneIkkeLeggeTilGrunnlag {
-    object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
-    object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
-    object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
-    object OverlappendeVurderingsperioder : KunneIkkeLeggeTilGrunnlag()
-    object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilGrunnlag()
-    object AlleVurderingeneMåHaSammeResultat : KunneIkkeLeggeTilGrunnlag()
-    object HeleBehandlingsperiodenMåHaVurderinger : KunneIkkeLeggeTilGrunnlag()
+sealed class KunneIkkeLeggeTilUføreVilkår {
+    object FantIkkeBehandling : KunneIkkeLeggeTilUføreVilkår()
+    object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilUføreVilkår()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
-    ) : KunneIkkeLeggeTilGrunnlag()
+    ) : KunneIkkeLeggeTilUføreVilkår()
+
+    data class UgyldigInput(
+        val originalFeil: LeggTilUførevurderingerRequest.UgyldigUførevurdering,
+    ) : KunneIkkeLeggeTilUføreVilkår()
 }
 
 sealed class KunneIkkeLeggeTilFradragsgrunnlag {
