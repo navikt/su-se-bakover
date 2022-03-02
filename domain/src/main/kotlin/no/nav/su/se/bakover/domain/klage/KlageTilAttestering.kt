@@ -8,12 +8,8 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage.Companion.erAvvist
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -22,38 +18,22 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
-sealed class KlageTilAttestering : Klage {
-    abstract override val id: UUID
-    abstract override val opprettet: Tidspunkt
-    abstract override val sakId: UUID
-    abstract override val saksnummer: Saksnummer
-    abstract override val fnr: Fnr
-    abstract override val journalpostId: JournalpostId
-    abstract override val oppgaveId: OppgaveId
-    abstract override val saksbehandler: NavIdentBruker.Saksbehandler
-    abstract override val datoKlageMottatt: LocalDate
-    abstract val attesteringer: Attesteringshistorikk
-    abstract val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
+interface KlageTilAttesteringFelter : VilkårsvurdertKlageFelter {
+    override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
+}
 
-    data class Avvist private constructor(
-        override val id: UUID,
-        override val opprettet: Tidspunkt,
-        override val sakId: UUID,
-        override val saksnummer: Saksnummer,
-        override val fnr: Fnr,
-        override val journalpostId: JournalpostId,
+sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter {
+
+    data class Avvist(
+        private val forrigeSteg: AvvistKlage,
         override val oppgaveId: OppgaveId,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val datoKlageMottatt: LocalDate,
-        override val attesteringer: Attesteringshistorikk,
-        override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-        val fritekstTilBrev: String,
-    ) : KlageTilAttestering() {
+    ) : KlageTilAttestering, AvvistKlageFelter by forrigeSteg {
 
         override fun erÅpen() = true
 
         override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
-            return fritekstTilBrev.right()
+            return fritekstTilVedtaksbrev.right()
         }
 
         override fun lagBrevRequest(
@@ -70,7 +50,7 @@ sealed class KlageTilAttestering : Klage {
                 saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrHandle {
                     return KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(it).left()
                 },
-                fritekst = this.fritekstTilBrev,
+                fritekst = this.fritekstTilVedtaksbrev,
                 saksnummer = this.saksnummer,
             ).right()
         }
@@ -81,19 +61,9 @@ sealed class KlageTilAttestering : Klage {
             if (iverksattAttestering.attestant.navIdent == saksbehandler.navIdent) {
                 return KunneIkkeIverksetteAvvistKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
-            return IverksattAvvistKlage.create(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                journalpostId = journalpostId,
-                oppgaveId = oppgaveId,
-                saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderinger,
+            return IverksattAvvistKlage(
+                forrigeSteg = this,
                 attesteringer = attesteringer.leggTilNyAttestering(iverksattAttestering),
-                datoKlageMottatt = datoKlageMottatt,
-                fritekstTilBrev = fritekstTilBrev,
             ).right()
         }
 
@@ -105,86 +75,32 @@ sealed class KlageTilAttestering : Klage {
                 return KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
             return opprettOppgave().map { oppgaveId ->
-                AvvistKlage.create(
-                    forrigeSteg = VilkårsvurdertKlage.Bekreftet.Avvist.create(
-                        id = id,
-                        opprettet = opprettet,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        fnr = fnr,
-                        journalpostId = journalpostId,
-                        oppgaveId = oppgaveId,
-                        saksbehandler = saksbehandler,
-                        vilkårsvurderinger = vilkårsvurderinger,
-                        attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
-                        datoKlageMottatt = datoKlageMottatt,
-                    ),
-                    fritekstTilBrev = fritekstTilBrev,
+                // I dette tilfellet gir det mening å bare legge til manglende parametre på forrige steg, da vi bare skal ett steg tilbake.
+                forrigeSteg.copy(
+                    oppgaveId = oppgaveId,
+                    attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
                 )
             }
         }
 
         override fun kanAvsluttes() = false
+
         override fun avslutt(
             saksbehandler: NavIdentBruker.Saksbehandler,
             begrunnelse: String,
             tidspunktAvsluttet: Tidspunkt,
         ) = KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
-
-        companion object {
-            fun create(
-                id: UUID,
-                opprettet: Tidspunkt,
-                sakId: UUID,
-                saksnummer: Saksnummer,
-                fnr: Fnr,
-                journalpostId: JournalpostId,
-                oppgaveId: OppgaveId,
-                saksbehandler: NavIdentBruker.Saksbehandler,
-                vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-                attesteringer: Attesteringshistorikk,
-                datoKlageMottatt: LocalDate,
-                fritekstTilBrev: String,
-            ): Avvist {
-                return Avvist(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    journalpostId = journalpostId,
-                    oppgaveId = oppgaveId,
-                    saksbehandler = saksbehandler,
-                    datoKlageMottatt = datoKlageMottatt,
-                    attesteringer = attesteringer,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    fritekstTilBrev = fritekstTilBrev,
-                )
-            }
-        }
     }
 
-    data class Vurdert private constructor(
-        override val id: UUID,
-        override val opprettet: Tidspunkt,
-        override val sakId: UUID,
-        override val saksnummer: Saksnummer,
-        override val fnr: Fnr,
-        override val journalpostId: JournalpostId,
+    data class Vurdert(
+        private val forrigeSteg: VurdertKlage.Bekreftet,
         override val oppgaveId: OppgaveId,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val datoKlageMottatt: LocalDate,
-        override val attesteringer: Attesteringshistorikk,
-        override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-        val klageinstanshendelser: Klageinstanshendelser,
-        val vurderinger: VurderingerTilKlage.Utfylt,
-    ) : KlageTilAttestering() {
+    ) : KlageTilAttestering, VurdertKlage.UtfyltFelter by forrigeSteg {
 
         override fun erÅpen() = true
 
-        override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
-            return vurderinger.fritekstTilBrev.right()
-        }
+        override fun getFritekstTilBrev() = vurderinger.fritekstTilOversendelsesbrev.right()
 
         override fun lagBrevRequest(
             hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
@@ -200,7 +116,7 @@ sealed class KlageTilAttestering : Klage {
                 saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrHandle {
                     return KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(it).left()
                 },
-                fritekst = this.vurderinger.fritekstTilBrev,
+                fritekst = this.vurderinger.fritekstTilOversendelsesbrev,
                 saksnummer = this.saksnummer,
                 klageDato = this.datoKlageMottatt,
                 vedtakDato = hentVedtakDato(this.id)
@@ -211,49 +127,29 @@ sealed class KlageTilAttestering : Klage {
         override fun underkjenn(
             underkjentAttestering: Attestering.Underkjent,
             opprettOppgave: () -> Either<KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave, OppgaveId>,
-        ): Either<KunneIkkeUnderkjenne, Klage> {
+        ): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet> {
             if (underkjentAttestering.attestant.navIdent == saksbehandler.navIdent) {
                 return KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
             return opprettOppgave().map { oppgaveId ->
-                VurdertKlage.Bekreftet.create(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    journalpostId = journalpostId,
+                // I dette tilfellet gir det mening å bare legge til manglende parametre på forrige steg, da vi bare skal ett steg tilbake.
+                this.forrigeSteg.copy(
                     oppgaveId = oppgaveId,
-                    saksbehandler = saksbehandler,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    vurderinger = vurderinger,
                     attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
-                    datoKlageMottatt = datoKlageMottatt,
-                    klageinstanshendelser = klageinstanshendelser
                 )
             }
         }
 
-        override fun oversend(
+        fun oversend(
             iverksattAttestering: Attestering.Iverksatt,
         ): Either<KunneIkkeOversendeKlage, OversendtKlage> {
             if (iverksattAttestering.attestant.navIdent == saksbehandler.navIdent) {
                 return KunneIkkeOversendeKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
-            return OversendtKlage.create(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                journalpostId = journalpostId,
-                oppgaveId = oppgaveId,
-                saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderinger,
-                vurderinger = vurderinger,
+            return OversendtKlage(
+                forrigeSteg = this,
                 attesteringer = attesteringer.leggTilNyAttestering(iverksattAttestering),
-                datoKlageMottatt = datoKlageMottatt,
-                klageinstanshendelser = klageinstanshendelser
+                klageinstanshendelser = klageinstanshendelser,
             ).right()
         }
 
@@ -264,106 +160,30 @@ sealed class KlageTilAttestering : Klage {
             tidspunktAvsluttet: Tidspunkt,
         ) = KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
 
-        companion object {
-            fun create(
-                id: UUID,
-                opprettet: Tidspunkt,
-                sakId: UUID,
-                saksnummer: Saksnummer,
-                fnr: Fnr,
-                journalpostId: JournalpostId,
-                oppgaveId: OppgaveId,
-                saksbehandler: NavIdentBruker.Saksbehandler,
-                vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-                vurderinger: VurderingerTilKlage.Utfylt,
-                attesteringer: Attesteringshistorikk,
-                datoKlageMottatt: LocalDate,
-                klageinstanshendelser: Klageinstanshendelser,
-            ): Vurdert {
-                return Vurdert(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    journalpostId = journalpostId,
-                    oppgaveId = oppgaveId,
-                    saksbehandler = saksbehandler,
-                    datoKlageMottatt = datoKlageMottatt,
-                    attesteringer = attesteringer,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    vurderinger = vurderinger,
-                    klageinstanshendelser = klageinstanshendelser,
-                )
-            }
-        }
-    }
-
-    companion object {
-        fun create(
-            id: UUID,
-            opprettet: Tidspunkt,
-            sakId: UUID,
-            saksnummer: Saksnummer,
-            fnr: Fnr,
-            journalpostId: JournalpostId,
+        fun returFraKlageinstans(
             oppgaveId: OppgaveId,
-            saksbehandler: NavIdentBruker.Saksbehandler,
-            vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-            vurderinger: VurderingerTilKlage?,
-            attesteringer: Attesteringshistorikk,
-            datoKlageMottatt: LocalDate,
-            fritekstTilBrev: String,
-            klageinstanshendelser: Klageinstanshendelser?,
-        ): KlageTilAttestering {
-            if (vilkårsvurderinger.erAvvist()) {
-                return Avvist.create(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    journalpostId = journalpostId,
-                    oppgaveId = oppgaveId,
-                    saksbehandler = saksbehandler,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    attesteringer = attesteringer,
-                    datoKlageMottatt = datoKlageMottatt,
-                    fritekstTilBrev = fritekstTilBrev,
-                )
-            }
-            return Vurdert.create(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                journalpostId = journalpostId,
+            klageinstanshendelser: Klageinstanshendelser,
+        ): VurdertKlage.Bekreftet {
+            // I dette tilfellet gir det mening å bare legge til manglende parametre på forrige steg, da vi bare skal ett steg tilbake.
+            return forrigeSteg.copy(
                 oppgaveId = oppgaveId,
-                saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderinger,
-                vurderinger = when (vurderinger) {
-                    is VurderingerTilKlage.Utfylt -> vurderinger
-                    else -> throw IllegalStateException("Prøvde å lage en klage til attestering (TilVurdering) uten vurderinger. En klage til attestering må ha vurderinger. Id $id")
-                },
-                attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt,
-                klageinstanshendelser = klageinstanshendelser
-                    ?: throw IllegalArgumentException("Ugyldig argumenter for lage en Vurdert klage. `klageinstanshendelser` på være utfylt"),
+                klageinstanshendelser = klageinstanshendelser,
             )
         }
     }
 }
 
-sealed class KunneIkkeSendeTilAttestering {
-    object FantIkkeKlage : KunneIkkeSendeTilAttestering()
-    object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering()
-    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeSendeTilAttestering()
+sealed interface KunneIkkeSendeTilAttestering {
+    object FantIkkeKlage : KunneIkkeSendeTilAttestering
+    object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering
+    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeSendeTilAttestering {
+        val til = KlageTilAttestering::class
+    }
 }
 
-sealed class KunneIkkeUnderkjenne {
-    object FantIkkeKlage : KunneIkkeUnderkjenne()
-    object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenne()
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenne()
-    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeUnderkjenne()
+sealed interface KunneIkkeUnderkjenne {
+    object FantIkkeKlage : KunneIkkeUnderkjenne
+    object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenne
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenne
+    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeUnderkjenne
 }

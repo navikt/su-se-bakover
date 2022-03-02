@@ -8,11 +8,8 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import java.time.Clock
@@ -20,25 +17,15 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
-data class IverksattAvvistKlage private constructor(
-    override val id: UUID,
-    override val opprettet: Tidspunkt,
-    override val sakId: UUID,
-    override val saksnummer: Saksnummer,
-    override val fnr: Fnr,
-    override val journalpostId: JournalpostId,
-    override val oppgaveId: OppgaveId,
-    override val saksbehandler: NavIdentBruker.Saksbehandler,
-    override val datoKlageMottatt: LocalDate,
-    val attesteringer: Attesteringshistorikk,
-    val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-    val fritekstTilBrev: String,
-) : Klage {
+data class IverksattAvvistKlage(
+    private val forrigeSteg: KlageTilAttestering.Avvist,
+    override val attesteringer: Attesteringshistorikk,
+) : Klage, AvvistKlageFelter by forrigeSteg {
 
     override fun erÅpen() = false
 
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {
-        return fritekstTilBrev.right()
+        return fritekstTilVedtaksbrev.right()
     }
 
     override fun lagBrevRequest(
@@ -55,7 +42,7 @@ data class IverksattAvvistKlage private constructor(
             saksbehandlerNavn = hentNavnForNavIdent(this.saksbehandler).getOrHandle {
                 return KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn(it).left()
             },
-            fritekst = this.fritekstTilBrev,
+            fritekst = this.fritekstTilVedtaksbrev,
             saksnummer = this.saksnummer,
         ).right()
     }
@@ -66,45 +53,16 @@ data class IverksattAvvistKlage private constructor(
         begrunnelse: String,
         tidspunktAvsluttet: Tidspunkt,
     ) = KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
-
-    companion object {
-        fun create(
-            id: UUID,
-            opprettet: Tidspunkt,
-            sakId: UUID,
-            saksnummer: Saksnummer,
-            fnr: Fnr,
-            journalpostId: JournalpostId,
-            oppgaveId: OppgaveId,
-            saksbehandler: NavIdentBruker.Saksbehandler,
-            vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-            attesteringer: Attesteringshistorikk,
-            datoKlageMottatt: LocalDate,
-            fritekstTilBrev: String,
-        ): IverksattAvvistKlage {
-            return IverksattAvvistKlage(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                journalpostId = journalpostId,
-                oppgaveId = oppgaveId,
-                saksbehandler = saksbehandler,
-                datoKlageMottatt = datoKlageMottatt,
-                attesteringer = attesteringer,
-                vilkårsvurderinger = vilkårsvurderinger,
-                fritekstTilBrev = fritekstTilBrev,
-            )
-        }
-    }
 }
 
 sealed interface KunneIkkeIverksetteAvvistKlage {
     object FantIkkeKlage : KunneIkkeIverksetteAvvistKlage
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteAvvistKlage
     object FeilVedLagringAvDokumentOgKlage : KunneIkkeIverksetteAvvistKlage
-    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeIverksetteAvvistKlage
+    data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeIverksetteAvvistKlage {
+        val til = IverksattAvvistKlage::class
+    }
+
     data class KunneIkkeLageBrev(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeIverksetteAvvistKlage
     data class KunneIkkeLageBrevRequest(val feil: no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequest) :
         KunneIkkeIverksetteAvvistKlage

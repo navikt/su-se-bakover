@@ -155,7 +155,7 @@ internal class VedtakPostgresRepo(
         }
     }
 
-    internal fun hent(id: UUID, session: Session) =
+    internal fun hent(id: UUID, session: Session): Vedtak? =
         """
             select * from vedtak where id = :id
         """.trimIndent()

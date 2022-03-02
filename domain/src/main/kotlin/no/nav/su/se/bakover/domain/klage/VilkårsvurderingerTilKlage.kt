@@ -6,18 +6,24 @@ import java.util.UUID
  * Inneholder kun selve vilkårsvurderingene som er gjort i forbindelse med en klage.
  * For selve klagen se [VilkårsvurdertKlage]
  */
-sealed class VilkårsvurderingerTilKlage {
+sealed interface VilkårsvurderingerTilKlage {
 
-    abstract val vedtakId: UUID?
-    abstract val innenforFristen: Svarord?
-    abstract val klagesDetPåKonkreteElementerIVedtaket: Boolean?
-    abstract val erUnderskrevet: Svarord?
-    abstract val begrunnelse: String?
+    val vedtakId: UUID?
+    val innenforFristen: Svarord?
+    val klagesDetPåKonkreteElementerIVedtaket: Boolean?
+    val erUnderskrevet: Svarord?
+    val begrunnelse: String?
 
     enum class Svarord {
         JA,
         NEI_MEN_SKAL_VURDERES,
         NEI,
+    }
+
+    fun erAvvist(): Boolean {
+        return this.klagesDetPåKonkreteElementerIVedtaket == false ||
+            this.innenforFristen == Svarord.NEI ||
+            this.erUnderskrevet == Svarord.NEI
     }
 
     /**
@@ -29,7 +35,7 @@ sealed class VilkårsvurderingerTilKlage {
         override val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
         override val erUnderskrevet: Svarord?,
         override val begrunnelse: String?,
-    ) : VilkårsvurderingerTilKlage() {
+    ) : VilkårsvurderingerTilKlage {
         companion object {
 
             fun empty(): Påbegynt {
@@ -85,11 +91,11 @@ sealed class VilkårsvurderingerTilKlage {
 
     data class Utfylt(
         override val vedtakId: UUID,
-        override val innenforFristen: Svarord?,
+        override val innenforFristen: Svarord,
         override val klagesDetPåKonkreteElementerIVedtaket: Boolean,
-        override val erUnderskrevet: Svarord?,
+        override val erUnderskrevet: Svarord,
         override val begrunnelse: String,
-    ) : VilkårsvurderingerTilKlage()
+    ) : VilkårsvurderingerTilKlage
 
     companion object {
 
