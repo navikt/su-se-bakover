@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
 import no.nav.su.se.bakover.domain.regulering.Reguleringsjobb
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
-import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -80,7 +79,6 @@ sealed class KunneIkkeHenteGjeldendeVedtaksdata {
 object KunneIkkeUtbetale
 
 interface ReguleringService {
-    fun hentAlleSakerSomKanReguleres(fraDato: LocalDate?): SakerSomKanReguleres
     fun startRegulering(reguleringsjobb: Reguleringsjobb)
     fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering>
     fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering>
