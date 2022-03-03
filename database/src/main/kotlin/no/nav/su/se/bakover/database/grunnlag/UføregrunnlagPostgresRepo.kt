@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.grunnlag
 
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hent
@@ -13,39 +14,47 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import java.util.UUID
 
-internal class UføregrunnlagPostgresRepo {
+internal class UføregrunnlagPostgresRepo(
+    private val dbMetrics: DbMetrics,
+) {
 
     internal fun lagre(behandlingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>, tx: TransactionalSession) {
-        slettForBehandlingId(behandlingId, tx)
-        uføregrunnlag.forEach {
-            lagre(it, behandlingId, tx)
+        dbMetrics.timeQuery("lagreUføregrunnlag") {
+            slettForBehandlingId(behandlingId, tx)
+            uføregrunnlag.forEach {
+                lagre(it, behandlingId, tx)
+            }
         }
     }
 
-    internal fun hentUføregrunnlag(behandlingId: UUID, session: Session): List<Grunnlag.Uføregrunnlag> {
-        return """
+    internal fun hentUføregrunnlagForBehandlingId(behandlingId: UUID, session: Session): List<Grunnlag.Uføregrunnlag> {
+        return dbMetrics.timeQuery("hentUføregrunnlagForBehandlingId") {
+            """
                 select * from grunnlag_uføre where behandlingId = :behandlingId
-        """.trimIndent()
-            .hentListe(
-                mapOf(
-                    "behandlingId" to behandlingId,
-                ),
-                session,
-            ) {
-                it.toUføregrunnlag()
-            }
+            """.trimIndent()
+                .hentListe(
+                    mapOf(
+                        "behandlingId" to behandlingId,
+                    ),
+                    session,
+                ) {
+                    it.toUføregrunnlag()
+                }
+        }
     }
 
-    internal fun hentForUføregrunnlagId(uføregrunnlagId: UUID, session: Session): Grunnlag.Uføregrunnlag? {
-        return """ select * from grunnlag_uføre where id=:id""".trimIndent()
-            .hent(
-                mapOf(
-                    "id" to uføregrunnlagId,
-                ),
-                session,
-            ) {
-                it.toUføregrunnlag()
-            }
+    internal fun hentForUføregrunnlagForId(uføregrunnlagId: UUID, session: Session): Grunnlag.Uføregrunnlag? {
+        return dbMetrics.timeQuery("hentForUføregrunnlagForId") {
+            """ select * from grunnlag_uføre where id=:id""".trimIndent()
+                .hent(
+                    mapOf(
+                        "id" to uføregrunnlagId,
+                    ),
+                    session,
+                ) {
+                    it.toUføregrunnlag()
+                }
+        }
     }
 
     private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {

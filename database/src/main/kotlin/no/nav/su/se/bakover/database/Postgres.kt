@@ -7,6 +7,8 @@ import no.nav.su.se.bakover.database.Postgres.Role
 import no.nav.su.se.bakover.database.Postgres.Role.User
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 import javax.sql.DataSource
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 // Understands how to create a data source from environment variables
 internal class Postgres(
@@ -37,11 +39,9 @@ internal class Postgres(
 internal abstract class AbstractDatasource(private val jdbcUrl: String) {
     protected val hikariConfig: HikariConfig = HikariConfig().apply {
         jdbcUrl = this@AbstractDatasource.jdbcUrl
-        maximumPoolSize = 3
-        minimumIdle = 1
-        idleTimeout = 10001
-        connectionTimeout = 1000
-        maxLifetime = 30001
+        maximumPoolSize = 5
+        connectionTimeout = 2.seconds.inWholeMilliseconds
+        maxLifetime = 30.minutes.inWholeMilliseconds
     }
 
     internal abstract fun getDatasource(role: Role = User): DataSource
