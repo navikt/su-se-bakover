@@ -15,14 +15,12 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.metrics.SuMetrics
-import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
-import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAnnullert
 import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAvkortet
-import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.ingenEndringUgyldig
 import no.nav.su.se.bakover.web.routes.Feilresponser.lagringFeilet
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
@@ -62,12 +60,11 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
     is UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
     is AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
     is KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> this.utbetalingFeilet.tilResultat()
-    KunneIkkeIverksetteRevurdering.FantIkkePerson -> fantIkkePerson
-    KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> Revurderingsfeilresponser.Brev.fantIkkeGjeldendeUtbetaling
-    KunneIkkeIverksetteRevurdering.KunneIkkeGenerereBrev -> kunneIkkeGenerereBrev
-    KunneIkkeIverksetteRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
-    KunneIkkeIverksetteRevurdering.HarAlleredeBlittAnnullertAvEnAnnen -> avkortingErAlleredeAnnullert
     KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> avkortingErAlleredeAvkortet
     KunneIkkeIverksetteRevurdering.IngenEndringErIkkeGyldig -> ingenEndringUgyldig
     KunneIkkeIverksetteRevurdering.LagringFeilet -> lagringFeilet
+    KunneIkkeIverksetteRevurdering.KunneIkkeAnnulereKontrollsamtale -> HttpStatusCode.InternalServerError.errorJson(
+        "Kunne ikke annulere kontrollsamtale",
+        "kunne_ikke_annulere_kontrollsamtale",
+    )
 }
