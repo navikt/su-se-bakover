@@ -663,4 +663,55 @@ internal class PeriodeTest {
         Periode.create(1.januar(2021), 31.desember(2021)) inneholder 15.januar(2021) shouldBe true
         Periode.create(1.januar(2021), 31.desember(2021)) inneholder 15.desember(2021) shouldBe true
     }
+
+    @Test
+    fun `minus`() {
+        januar(2021) minus februar(2021) shouldBe listOf(januar(2021))
+        januar(2021) minus januar(2021) shouldBe emptyList()
+        Periode.create(1.januar(2021), 31.desember(2021)) minus juni(2021) shouldBe listOf(
+            Periode.create(1.januar(2021), 31.mai(2021)),
+            Periode.create(1.juli(2021), 31.desember(2021)),
+        )
+        Periode.create(1.januar(2021), 31.desember(2021)) minus
+            Periode.create(1.mars(2021), 31.juli(2021)) shouldBe listOf(
+            Periode.create(1.januar(2021), 28.februar(2021)),
+            Periode.create(1.august(2021), 31.desember(2021)),
+        )
+    }
+
+    @Test
+    fun `minus liste`() {
+        listOf(
+            januar(2021),
+            februar(2021),
+            mars(2021),
+        ).minusListe(listOf(januar(2021))) shouldBe listOf(
+            Periode.create(1.februar(2021), 31.mars(2021)),
+        )
+
+        listOf(
+            januar(2021),
+            februar(2021),
+            mars(2021),
+        ).minusListe(listOf(februar(2021))) shouldBe listOf(
+            Periode.create(1.januar(2021), 31.januar(2021)),
+            Periode.create(1.mars(2021), 31.mars(2021)),
+        )
+
+        listOf(
+            Periode.create(1.januar(2021), 31.desember(2021)),
+            Periode.create(1.mars(2022), 31.mai(2022)),
+        ).minusListe(
+            listOf(
+                Periode.create(1.april(2021), 31.august(2021)),
+                januar(2022),
+                februar(2022),
+                mars(2022),
+            ),
+        ) shouldBe listOf(
+            Periode.create(1.januar(2021), 31.mars(2021)),
+            Periode.create(1.september(2021), 31.desember(2021)),
+            Periode.create(1.april(2022), 31.mai(2022)),
+        )
+    }
 }
