@@ -108,7 +108,6 @@ import no.nav.su.se.bakover.service.regulering.KunneIkkeIverksetteRegulering
 import no.nav.su.se.bakover.service.regulering.KunneIkkeLeggeTilFradrag
 import no.nav.su.se.bakover.service.regulering.KunneIkkeSimulere
 import no.nav.su.se.bakover.service.regulering.ReguleringService
-import no.nav.su.se.bakover.service.regulering.SakerSomKanReguleres
 import no.nav.su.se.bakover.service.regulering.SimulerRequest
 import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
@@ -902,10 +901,6 @@ open class AccessCheckProxy(
             reguleringService = object : ReguleringService {
                 override fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, Regulering.OpprettetRegulering> {
                     return beregn(request)
-                }
-
-                override fun hentAlleSakerSomKanReguleres(fraDato: LocalDate?): SakerSomKanReguleres {
-                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun startRegulering(reguleringsjobb: Reguleringsjobb) {
