@@ -16,6 +16,7 @@ import java.util.UUID
 
 internal data class ReguleringJson(
     val id: UUID,
+    val fnr: String,
     val opprettet: Tidspunkt,
     val beregning: BeregningJson?,
     val simulering: SimuleringJson?,
@@ -34,6 +35,7 @@ internal data class ReguleringsjobbJson(val dato: LocalDate) {
 
 internal fun Regulering.toJson() = ReguleringJson(
     id = id,
+    fnr = fnr.toString(),
     opprettet = opprettet,
     sakId = sakId,
     saksnummer = saksnummer,
