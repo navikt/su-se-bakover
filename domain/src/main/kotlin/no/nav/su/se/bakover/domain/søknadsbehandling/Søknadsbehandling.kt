@@ -2111,16 +2111,16 @@ enum class BehandlingsStatus {
     IVERKSATT_AVSLAG,
 }
 
-sealed class KunneIkkeIverksette {
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksette()
-    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksette()
-    object FantIkkeBehandling : KunneIkkeIverksette()
-    object FantIkkePerson : KunneIkkeIverksette()
-    object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeIverksette()
-    object KunneIkkeGenerereVedtaksbrev : KunneIkkeIverksette()
-    object AvkortingErUfullstendig : KunneIkkeIverksette()
-    object HarBlittAnnullertAvEnAnnen : KunneIkkeIverksette()
-    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksette()
+sealed interface KunneIkkeIverksette {
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksette
+    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksette
+    object FantIkkeBehandling : KunneIkkeIverksette
+    object KunneIkkeGenerereVedtaksbrev : KunneIkkeIverksette
+    object AvkortingErUfullstendig : KunneIkkeIverksette
+    object HarBlittAnnullertAvEnAnnen : KunneIkkeIverksette
+    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksette
+    object KunneIkkeOpprettePlanlagtKontrollsamtale : KunneIkkeIverksette
+    object LagringFeilet : KunneIkkeIverksette
 }
 
 // Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.
