@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fjernFradragForEPSHvisEnslig
-import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -203,20 +202,13 @@ sealed class Revurdering :
     }
 
     protected fun oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon: Grunnlag.Bosituasjon.Fullstendig): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
-        val gjeldendeBosituasjon = tilRevurdering.behandling.grunnlagsdata.bosituasjon.singleOrThrow()
         return oppdaterGrunnlag(
             grunnlagsdata = Grunnlagsdata.tryCreate(
                 fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragForEPSHvisEnslig(bosituasjon),
                 bosituasjon = nonEmptyListOf(bosituasjon),
             ).getOrHandle { return KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it).left() },
         ).oppdaterInformasjonSomRevurderes(
-            informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Bosituasjon).let {
-                if (bosituasjon.harEndretEllerFjernetEktefelle(gjeldendeBosituasjon)) {
-                    it.markerSomIkkeVurdert(Revurderingsteg.Inntekt).markerSomIkkeVurdert(Revurderingsteg.Formue)
-                } else {
-                    it
-                }
-            },
+            informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Bosituasjon),
         ).right()
     }
 
