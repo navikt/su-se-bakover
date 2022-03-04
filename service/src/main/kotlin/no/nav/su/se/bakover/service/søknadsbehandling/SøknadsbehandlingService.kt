@@ -187,7 +187,6 @@ interface SøknadsbehandlingService {
     sealed class KunneIkkeLeggeTilFradragsgrunnlag {
         object FantIkkeBehandling : KunneIkkeLeggeTilFradragsgrunnlag()
         object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeLeggeTilFradragsgrunnlag()
-        object PeriodeMangler : KunneIkkeLeggeTilFradragsgrunnlag()
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling>,

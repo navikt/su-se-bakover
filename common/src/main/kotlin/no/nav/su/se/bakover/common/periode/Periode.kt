@@ -122,6 +122,9 @@ data class Periode private constructor(
 
     infix fun før(other: Periode) = tilOgMed.isBefore(other.fraOgMed)
     infix fun etter(other: Periode) = fraOgMed.isAfter(other.tilOgMed)
+    infix fun minus(other: Periode): List<Periode> {
+        return (tilMånedsperioder() - other.tilMånedsperioder().toSet()).reduser()
+    }
 
     /**
      * Forskyver en periode n hele måneder angitt av parameteret [måneder].
@@ -192,6 +195,18 @@ fun List<Periode>.reduser(): List<Periode> {
         }
         slåttSammen
     }
+}
+
+fun List<Periode>.minusListe(other: List<Periode>): List<Periode> {
+    return (flatMap { it.tilMånedsperioder() } - other.flatMap { it.tilMånedsperioder() }.toSet()).reduser()
+}
+
+fun Periode.inneholderAlle(other: List<Periode>): Boolean {
+    return (other.flatMap { it.tilMånedsperioder() }.minusListe(tilMånedsperioder())).isEmpty()
+}
+
+fun List<Periode>.inneholderAlle(other: List<Periode>): Boolean {
+    return (other.flatMap { it.tilMånedsperioder() }.minusListe(flatMap { it.tilMånedsperioder() })).isEmpty()
 }
 
 fun januar(year: Int) = 1.januar(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }

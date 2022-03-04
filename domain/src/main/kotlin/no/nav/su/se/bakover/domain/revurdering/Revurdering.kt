@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.fjernFradragForEPSHvisEnslig
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -205,7 +206,7 @@ sealed class Revurdering :
         val gjeldendeBosituasjon = tilRevurdering.behandling.grunnlagsdata.bosituasjon.singleOrThrow()
         return oppdaterGrunnlag(
             grunnlagsdata = Grunnlagsdata.tryCreate(
-                fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag,
+                fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragForEPSHvisEnslig(bosituasjon),
                 bosituasjon = nonEmptyListOf(bosituasjon),
             ).getOrHandle { return KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it).left() },
         ).oppdaterInformasjonSomRevurderes(

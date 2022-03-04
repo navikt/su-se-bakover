@@ -88,7 +88,7 @@ data class SjekkOmGrunnlagErKonsistent(
                         // Det kan oppstår dersom man revurderer på tvers av vedtak.
                         add(Konsistensproblem.BosituasjonOgFradrag.FlereBosituasjonerOgFradragForEPS)
                     }
-                    bosituasjon.any { !it.harEktefelle() } -> {
+                    bosituasjon.any { !it.harEPS() } -> {
                         add(Konsistensproblem.BosituasjonOgFradrag.IngenEPSMenFradragForEPS)
                     }
                     // TODO jah: Vi sjekker ikke på om epsFormue/epsInntekt er innenfor sin respektive bosituasjonsperiode
@@ -124,7 +124,7 @@ data class SjekkOmGrunnlagErKonsistent(
                         // Det kan oppstår dersom man revurderer på tvers av vedtak.
                         add(Konsistensproblem.BosituasjonOgFormue.FlereBosituasjonerOgFormueForEPS)
                     }
-                    bosituasjon.any { !it.harEktefelle() } -> {
+                    bosituasjon.any { !it.harEPS() } -> {
                         add(Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS)
                     }
                     bosituasjon.any { bosituasjon ->
