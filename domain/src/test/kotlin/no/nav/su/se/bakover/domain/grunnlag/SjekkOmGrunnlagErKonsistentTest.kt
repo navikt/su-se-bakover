@@ -185,7 +185,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 tilhører = FradragTilhører.EPS,
             )
             SjekkOmGrunnlagErKonsistent(
-                formuegrunnlag = innvilgetFormueVilkår(periode).grunnlag,
+                formuegrunnlag = innvilgetFormueVilkår(periode = periode).grunnlag,
                 uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjongrunnlag = listOf(bosituasjon),
                 fradragsgrunnlag = listOf(arbEps),

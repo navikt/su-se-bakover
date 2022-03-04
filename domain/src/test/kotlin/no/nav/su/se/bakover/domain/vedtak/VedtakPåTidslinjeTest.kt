@@ -82,7 +82,7 @@ internal class VedtakPåTidslinjeTest {
             begrunnelse = "Begrunnelse",
         )
 
-        val formuevilkår = innvilgetFormueVilkår(periode)
+        val formuevilkår = innvilgetFormueVilkår(periode = periode)
         val original = VedtakSomKanRevurderes.VedtakPåTidslinje(
             opprettet = fixedTidspunkt,
             periode = periode,
@@ -233,7 +233,7 @@ internal class VedtakPåTidslinjeTest {
             tilhører = FradragTilhører.BRUKER,
         )
 
-        val formuevilkår = innvilgetFormueVilkår(periode)
+        val formuevilkår = innvilgetFormueVilkår(periode = periode)
         val original = VedtakSomKanRevurderes.VedtakPåTidslinje(
             opprettet = fixedTidspunkt,
             periode = periode,

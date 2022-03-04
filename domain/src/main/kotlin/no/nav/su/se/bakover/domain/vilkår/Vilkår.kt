@@ -364,7 +364,8 @@ sealed class Vilkårsvurderingsresultat {
         }
 
         fun erNøyaktigÅrsak(inngangsvilkår: Inngangsvilkår): Boolean {
-            return vilkår.singleOrNull { it.vilkår == inngangsvilkår }?.let { true } ?: if (vilkår.size == 1) false else throw IllegalStateException("Opphør av flere vilkår er ikke støttet, opphørte vilkår:$vilkår")
+            return vilkår.singleOrNull { it.vilkår == inngangsvilkår }?.let { true }
+                ?: if (vilkår.size == 1) false else throw IllegalStateException("Opphør av flere vilkår er ikke støttet, opphørte vilkår:$vilkår")
         }
     }
 
@@ -524,6 +525,12 @@ sealed class Vilkår {
 
         abstract override fun lagTidslinje(periode: Periode): Formue
 
+        fun harEPSFormue(): Boolean {
+            return grunnlag.any { it.harEPSFormue() }
+        }
+
+        abstract fun fjernEPSFormue(): Formue
+
         /**
          * Definert i paragraf 8 til 0.5 G som vanligvis endrer seg 1. mai, årlig.
          */
@@ -545,6 +552,10 @@ sealed class Vilkår {
             override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue = this
 
             override fun lagTidslinje(periode: Periode): IkkeVurdert {
+                return this
+            }
+
+            override fun fjernEPSFormue(): Formue {
                 return this
             }
         }
@@ -570,6 +581,10 @@ sealed class Vilkår {
                         ).tidslinje,
                     ),
                 )
+            }
+
+            override fun fjernEPSFormue(): Formue {
+                return copy(vurderingsperioder = vurderingsperioder.map { it.fjernEPSFormue() })
             }
 
             override val erInnvilget: Boolean =
@@ -791,6 +806,10 @@ sealed class Vurderingsperiode {
             return other is Formue &&
                 resultat == other.resultat &&
                 grunnlag.erLik(other.grunnlag)
+        }
+
+        fun fjernEPSFormue(): Formue {
+            return copy(grunnlag = grunnlag.fjernEPSFormue())
         }
 
         companion object {

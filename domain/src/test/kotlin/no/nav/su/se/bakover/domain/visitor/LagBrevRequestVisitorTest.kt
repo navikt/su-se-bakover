@@ -1119,7 +1119,7 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
-                innvilgetFormueVilkår(revurderingsperiode),
+                innvilgetFormueVilkår(periode = revurderingsperiode),
                 utlandsoppholdInnvilget(periode = revurderingsperiode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),

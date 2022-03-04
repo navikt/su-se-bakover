@@ -19,6 +19,14 @@ data class Formuegrunnlag private constructor(
     val begrunnelse: String?,
 ) : Grunnlag(), KanPlasseresPåTidslinje<Formuegrunnlag> {
 
+    fun harEPSFormue(): Boolean {
+        return epsFormue != null
+    }
+
+    fun fjernEPSFormue(): Formuegrunnlag {
+        return copy(epsFormue = null)
+    }
+
     override fun erLik(other: Grunnlag): Boolean {
         return other is Formuegrunnlag &&
             søkersFormue == other.søkersFormue &&
@@ -229,7 +237,7 @@ sealed class KunneIkkeLageFormueVerdier {
     object VerdierKanIkkeVæreNegativ : KunneIkkeLageFormueVerdier()
 }
 
-fun List<Formuegrunnlag>.harEpsFormue() = this.any { it.epsFormue != null }
+fun List<Formuegrunnlag>.harEPSFormue() = any { it.harEPSFormue() }
 
 /**
  * @throws IllegalStateException dersom antall elementer i listen ikke tilsvarer 1

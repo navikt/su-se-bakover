@@ -207,12 +207,18 @@ sealed class Revurdering :
                 fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragForEPSHvisEnslig(bosituasjon),
                 bosituasjon = nonEmptyListOf(bosituasjon),
             ).getOrHandle { return KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it).left() },
-        ).oppdaterInformasjonSomRevurderes(
-            informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Bosituasjon),
-        ).right()
+        ).let {
+            it.oppdaterVilkårsvurderinger(
+                vilkårsvurderinger = it.vilkårsvurderinger.leggTil(
+                    it.vilkårsvurderinger.formue.fjernEPSFormue(),
+                ),
+            ).oppdaterInformasjonSomRevurderes(
+                informasjonSomRevurderes = it.informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Bosituasjon),
+            ).right()
+        }
     }
 
-    private fun oppdaterVilkårsvurderinger(
+    protected fun oppdaterVilkårsvurderinger(
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
     ): OpprettetRevurdering {
         return OpprettetRevurdering(

@@ -116,7 +116,7 @@ data class SjekkOmGrunnlagErKonsistent(
             formue: List<Formuegrunnlag>,
         ): Either<Set<Konsistensproblem.BosituasjonOgFormue>, Unit> {
             if (formue.isEmpty()) return Unit.right()
-            if (!formue.harEpsFormue()) return Unit.right()
+            if (!formue.harEPSFormue()) return Unit.right()
             mutableSetOf<Konsistensproblem.BosituasjonOgFormue>().apply {
                 when {
                     bosituasjon.harFlerEnnEnBosituasjonsperiode() -> {
