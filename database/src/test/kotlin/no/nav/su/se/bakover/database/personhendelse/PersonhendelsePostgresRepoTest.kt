@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.database.hendelse
+package no.nav.su.se.bakover.database.personhendelse
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
@@ -194,7 +194,7 @@ internal class PersonhendelsePostgresRepoTest {
     fun `Oppdatering av oppgaveId skal lagre ny verdi`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = PersonhendelsePostgresRepo(dataSource, fixedClock)
+            val repo = PersonhendelsePostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics, fixedClock)
             val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
                 hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
@@ -225,7 +225,7 @@ internal class PersonhendelsePostgresRepoTest {
     fun `Skal kun hente personhendelser uten oppgaveId`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = PersonhendelsePostgresRepo(dataSource, fixedClock)
+            val repo = PersonhendelsePostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics, fixedClock)
             val id1 = UUID.randomUUID()
             val hendelse1 = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
@@ -275,7 +275,7 @@ internal class PersonhendelsePostgresRepoTest {
     fun `Skal kun hente personhendelser som ikke har feilet for mange ganger`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = PersonhendelsePostgresRepo(dataSource, fixedClock)
+            val repo = PersonhendelsePostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics, fixedClock)
 
             val hendelseId1 = UUID.randomUUID()
             val hendelse1 = Personhendelse.IkkeTilknyttetSak(
@@ -327,7 +327,7 @@ internal class PersonhendelsePostgresRepoTest {
     fun `Kan inkrementere antall forsøk`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = PersonhendelsePostgresRepo(dataSource, fixedClock)
+            val repo = PersonhendelsePostgresRepo(testDataHelper.sessionFactory, testDataHelper.dbMetrics, fixedClock)
             val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
                 hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),

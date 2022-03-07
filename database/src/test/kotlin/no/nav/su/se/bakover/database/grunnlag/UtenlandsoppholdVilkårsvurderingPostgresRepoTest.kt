@@ -185,7 +185,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                     session = session,
                 ) shouldBe UtenlandsoppholdVilkår.IkkeVurdert
 
-                testDataHelper.utenlandsoppholdgrunnlagPostgresRepo.hentForUtenlandsoppholdgrunnlagId(
+                testDataHelper.utenlandsoppholdgrunnlagPostgresRepo.hent(
                     id = grunnlag.first().id,
                     session = session,
                 ) shouldBe null

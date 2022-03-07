@@ -134,7 +134,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                     session = session,
                 ) shouldBe Vilkår.Uførhet.IkkeVurdert
 
-                testDataHelper.uføregrunnlagPostgresRepo.hentForUføregrunnlagId(
+                testDataHelper.uføregrunnlagPostgresRepo.hentForUføregrunnlagForId(
                     uføregrunnlagId = grunnlag.first().id,
                     session = session,
                 ) shouldBe null

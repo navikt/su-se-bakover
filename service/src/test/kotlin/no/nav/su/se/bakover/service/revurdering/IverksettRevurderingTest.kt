@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeKalleInnTilKontrollsamtale
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
@@ -334,6 +335,33 @@ internal class IverksettRevurderingTest {
     }
 
     @Test
+    fun `skal ikke opphøre dersom annulering av kontrollsamtale feiler`() {
+        val sakOgRevurdering = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak()
+        val revurderingTilAttestering = sakOgRevurdering.second
+        val simulertOpphør = simulertUtbetalingOpphør(eksisterendeUtbetalinger = sakOgRevurdering.first.utbetalinger).getOrFail()
+        val serviceAndMocks = RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn revurderingTilAttestering
+            },
+            utbetalingService = mock {
+                on { verifiserOgSimulerOpphør(any()) } doReturn simulertOpphør.right()
+                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
+            },
+            vedtakRepo = mock {
+                doNothing().whenever(it).lagre(any(), anyOrNull())
+            },
+            kontrollsamtaleService = mock {
+                on { annullerKontrollsamtale(any(), anyOrNull()) } doReturn KunneIkkeKalleInnTilKontrollsamtale.FantIkkeKontrollsamtale.left()
+            }
+        )
+
+        serviceAndMocks.revurderingService.iverksett(
+            revurderingId = revurderingId,
+            attestant = attestant,
+        ) shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeAnnulereKontrollsamtale.left()
+    }
+
+    @Test
     fun `skal returnere left dersom utbetaling feiler for iverksett`() {
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
@@ -356,7 +384,6 @@ internal class IverksettRevurderingTest {
             revurderingId = revurderingId,
             attestant = attestant,
         )
-
         response shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.FantIkkeSak).left()
     }
 }

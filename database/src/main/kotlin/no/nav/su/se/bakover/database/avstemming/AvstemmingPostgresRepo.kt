@@ -7,6 +7,8 @@ import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.readMap
 import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.database.DbMetrics
+import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
@@ -17,128 +19,143 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
 import no.nav.su.se.bakover.database.utbetaling.toUtbetaling
 import no.nav.su.se.bakover.database.uuid30
-import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
 import java.time.LocalDate
-import javax.sql.DataSource
 
 internal class AvstemmingPostgresRepo(
-    private val dataSource: DataSource,
+    private val sessionFactory: PostgresSessionFactory,
+    private val dbMetrics: DbMetrics,
 ) : AvstemmingRepo {
     override fun opprettGrensesnittsavstemming(avstemming: Avstemming.Grensesnittavstemming) {
-        return dataSource.withSession { session ->
-            """
+        return dbMetrics.timeQuery("opprettGrensesnittsavstemming") {
+            sessionFactory.withSession { session ->
+                """
             insert into avstemming (id, opprettet, fom, tom, utbetalinger, avstemmingXmlRequest)
             values (:id, :opprettet, :fom, :tom, to_json(:utbetalinger::json), :avstemmingXmlRequest)
-            """.insert(
-                mapOf(
-                    "id" to avstemming.id,
-                    "opprettet" to avstemming.opprettet,
-                    "fom" to avstemming.fraOgMed,
-                    "tom" to avstemming.tilOgMed,
-                    "utbetalinger" to objectMapper.writeValueAsString(
-                        avstemming.utbetalinger
-                            .map { it.id.toString() },
+                """.insert(
+                    mapOf(
+                        "id" to avstemming.id,
+                        "opprettet" to avstemming.opprettet,
+                        "fom" to avstemming.fraOgMed,
+                        "tom" to avstemming.tilOgMed,
+                        "utbetalinger" to objectMapper.writeValueAsString(
+                            avstemming.utbetalinger
+                                .map { it.id.toString() },
+                        ),
+                        "avstemmingXmlRequest" to avstemming.avstemmingXmlRequest,
                     ),
-                    "avstemmingXmlRequest" to avstemming.avstemmingXmlRequest,
-                ),
-                session,
-            )
+                    session,
+                )
+            }
         }
     }
 
     override fun opprettKonsistensavstemming(avstemming: Avstemming.Konsistensavstemming.Ny) {
-        return dataSource.withSession { session ->
-            """
+        return dbMetrics.timeQuery("opprettKonsistensavstemming") {
+            sessionFactory.withSession { session ->
+                """
             insert into konsistensavstemming (id, opprettet, løpendeFraOgMed, opprettetTilOgMed, utbetalinger, avstemmingXmlRequest)
             values (:id, :opprettet, :lopendeFraOgMed, :opprettetTilOgMed, to_json(:utbetalinger::json), :avstemmingXmlRequest)
-            """.insert(
-                mapOf(
-                    "id" to avstemming.id,
-                    "opprettet" to avstemming.opprettet,
-                    "lopendeFraOgMed" to avstemming.løpendeFraOgMed,
-                    "opprettetTilOgMed" to avstemming.opprettetTilOgMed,
-                    "utbetalinger" to objectMapper.writeValueAsString(
-                        avstemming.løpendeUtbetalinger
-                            .map { oppdrag ->
-                                mapOf(oppdrag.saksnummer to oppdrag.utbetalingslinjer.map { it.id })
-                            }
-                            .fold(emptyMap<Saksnummer, List<UUID30>>()) { acc, map -> acc + map },
+                """.insert(
+                    mapOf(
+                        "id" to avstemming.id,
+                        "opprettet" to avstemming.opprettet,
+                        "lopendeFraOgMed" to avstemming.løpendeFraOgMed,
+                        "opprettetTilOgMed" to avstemming.opprettetTilOgMed,
+                        "utbetalinger" to objectMapper.writeValueAsString(
+                            avstemming.løpendeUtbetalinger
+                                .map { oppdrag ->
+                                    mapOf(oppdrag.saksnummer to oppdrag.utbetalingslinjer.map { it.id })
+                                }
+                                .fold(emptyMap<Saksnummer, List<UUID30>>()) { acc, map -> acc + map },
+                        ),
+                        "avstemmingXmlRequest" to avstemming.avstemmingXmlRequest,
                     ),
-                    "avstemmingXmlRequest" to avstemming.avstemmingXmlRequest,
-                ),
-                session,
-            )
+                    session,
+                )
+            }
         }
     }
 
     override fun hentGrensesnittsavstemming(avstemmingId: UUID30): Avstemming.Grensesnittavstemming? {
-        return dataSource.withSession { session ->
-            "select * from avstemming where id=:id".hent(mapOf("id" to avstemmingId), session) {
-                it.toGrensesnittsavstemming(session)
+        return dbMetrics.timeQuery("hentGrensesnittsavstemming") {
+            sessionFactory.withSession { session ->
+                "select * from avstemming where id=:id".hent(mapOf("id" to avstemmingId), session) {
+                    it.toGrensesnittsavstemming(session)
+                }
             }
         }
     }
 
     override fun hentKonsistensavstemming(avstemmingId: UUID30): Avstemming.Konsistensavstemming.Fullført? {
-        return dataSource.withSession { session ->
-            "select * from konsistensavstemming where id=:id".hent(mapOf("id" to avstemmingId), session) {
-                it.toKonsistensavstemming(session)
+        return dbMetrics.timeQuery("hentKonsistensavstemming") {
+            sessionFactory.withSession { session ->
+                "select * from konsistensavstemming where id=:id".hent(mapOf("id" to avstemmingId), session) {
+                    it.toKonsistensavstemming(session)
+                }
             }
         }
     }
 
     override fun oppdaterUtbetalingerEtterGrensesnittsavstemming(avstemming: Avstemming.Grensesnittavstemming) {
-        dataSource.withSession { session ->
-            """
+        dbMetrics.timeQuery("oppdaterUtbetalingerEtterGrensesnittsavstemming") {
+            sessionFactory.withSession { session ->
+                """
                 update utbetaling set avstemmingId=:avstemmingId where id = ANY(:in)
-            """.oppdatering(
-                mapOf(
-                    "avstemmingId" to avstemming.id,
-                    "in" to session.inClauseWith(avstemming.utbetalinger.map { it.id.toString() }),
-                ),
-                session,
-            )
+                """.oppdatering(
+                    mapOf(
+                        "avstemmingId" to avstemming.id,
+                        "in" to session.inClauseWith(avstemming.utbetalinger.map { it.id.toString() }),
+                    ),
+                    session,
+                )
+            }
         }
     }
 
-    override fun hentSisteGrensesnittsavstemming(): Avstemming.Grensesnittavstemming? =
-        dataSource.withSession { session ->
-            """
-            select * from avstemming order by tom desc limit 1
-            """.hent(emptyMap(), session) {
-                it.toGrensesnittsavstemming(session)
+    override fun hentSisteGrensesnittsavstemming(): Avstemming.Grensesnittavstemming? {
+        return dbMetrics.timeQuery("hentSisteGrensesnittsavstemming") {
+            sessionFactory.withSession { session ->
+                """
+                select * from avstemming order by tom desc limit 1
+                """.hent(emptyMap(), session) {
+                    it.toGrensesnittsavstemming(session)
+                }
             }
         }
+    }
 
     override fun hentUtbetalingerForGrensesnittsavstemming(
         fraOgMed: Tidspunkt,
         tilOgMed: Tidspunkt,
     ): List<Utbetaling.OversendtUtbetaling> =
-        dataSource.withSession { session ->
-            val fraOgMedCondition = """(u.avstemmingsnøkkel ->> 'opprettet')::timestamptz >= :fom"""
-            val tilOgMedCondition = """(u.avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :tom"""
-            """select u.*, s.saksnummer from utbetaling u inner join sak s on s.id = u.sakId where $fraOgMedCondition and $tilOgMedCondition"""
-                .hentListe(
-                    mapOf(
-                        "fom" to fraOgMed,
-                        "tom" to tilOgMed,
-                    ),
-                    session,
-                ) {
-                    it.toUtbetaling(session)
-                }
+        dbMetrics.timeQuery("hentUtbetalingerForGrensesnittsavstemming") {
+            sessionFactory.withSession { session ->
+                val fraOgMedCondition = """(u.avstemmingsnøkkel ->> 'opprettet')::timestamptz >= :fom"""
+                val tilOgMedCondition = """(u.avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :tom"""
+                """select u.*, s.saksnummer from utbetaling u inner join sak s on s.id = u.sakId where $fraOgMedCondition and $tilOgMedCondition"""
+                    .hentListe(
+                        mapOf(
+                            "fom" to fraOgMed,
+                            "tom" to tilOgMed,
+                        ),
+                        session,
+                    ) {
+                        it.toUtbetaling(session)
+                    }
+            }
         }
 
     override fun hentUtbetalingerForKonsistensavstemming(
         løpendeFraOgMed: Tidspunkt,
         opprettetTilOgMed: Tidspunkt,
     ): List<Utbetaling.OversendtUtbetaling> {
-        return dataSource.withSession { session ->
-            """
+        return dbMetrics.timeQuery("hentUtbetalingerForKonsistensavstemming") {
+            sessionFactory.withSession { session ->
+                """
                 select distinct
                     s.saksnummer,
                     u.*
@@ -147,31 +164,34 @@ internal class AvstemmingPostgresRepo(
                 join sak s on s.id = u.sakid
                 where ul.tom >= :lopendeFraOgMed
                     and (u.avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :opprettetTilOgMed
-            """.trimIndent()
-                .hentListe(
-                    mapOf(
-                        "lopendeFraOgMed" to løpendeFraOgMed.toLocalDate(zoneIdOslo),
-                        "opprettetTilOgMed" to opprettetTilOgMed,
-                    ),
-                    session,
-                ) {
-                    it.toUtbetaling(session)
-                }
+                """.trimIndent()
+                    .hentListe(
+                        mapOf(
+                            "lopendeFraOgMed" to løpendeFraOgMed.toLocalDate(zoneIdOslo),
+                            "opprettetTilOgMed" to opprettetTilOgMed,
+                        ),
+                        session,
+                    ) {
+                        it.toUtbetaling(session)
+                    }
+            }
         }
     }
 
     override fun konsistensavstemmingUtførtForOgPåDato(dato: LocalDate): Boolean {
-        val opprettetOgLøpendeFraOgMed = dataSource.withSession { session ->
-            """select opprettet, løpendeFraOgMed from konsistensavstemming""".hentListe(emptyMap(), session) {
-                it.tidspunkt("opprettet") to it.tidspunkt("løpendeFraOgMed")
+        return dbMetrics.timeQuery("konsistensavstemmingUtførtForOgPåDato") {
+            val opprettetOgLøpendeFraOgMed = sessionFactory.withSession { session ->
+                """select opprettet, løpendeFraOgMed from konsistensavstemming""".hentListe(emptyMap(), session) {
+                    it.tidspunkt("opprettet") to it.tidspunkt("løpendeFraOgMed")
+                }
             }
+            opprettetOgLøpendeFraOgMed
+                .map { (opprettet, løpendeFraOgMed) ->
+                    opprettet.toLocalDate(zoneIdOslo) to løpendeFraOgMed.toLocalDate(zoneIdOslo)
+                }.any {
+                    it.first == dato && it.second == dato
+                }
         }
-        return opprettetOgLøpendeFraOgMed
-            .map { (opprettet, løpendeFraOgMed) ->
-                opprettet.toLocalDate(zoneIdOslo) to løpendeFraOgMed.toLocalDate(zoneIdOslo)
-            }.any {
-                it.first == dato && it.second == dato
-            }
     }
 
     private fun Row.toKonsistensavstemming(session: Session): Avstemming.Konsistensavstemming.Fullført {

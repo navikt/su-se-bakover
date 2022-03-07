@@ -7,7 +7,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 interface VedtakRepo {
-    fun hentForVedtakId(vedtakId: UUID): Vedtak?
+    fun hentVedtakForId(vedtakId: UUID): Vedtak?
     fun hentForRevurderingId(revurderingId: UUID): Vedtak?
     fun hentForSakId(sakId: UUID): List<Vedtak>
     fun hentAktive(dato: LocalDate): List<VedtakSomKanRevurderes.EndringIYtelse>

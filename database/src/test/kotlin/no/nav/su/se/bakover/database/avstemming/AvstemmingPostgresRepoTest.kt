@@ -37,7 +37,7 @@ internal class AvstemmingPostgresRepoTest {
     fun `henter siste grensesnittsavstemming`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = AvstemmingPostgresRepo(dataSource)
+            val repo = testDataHelper.avstemmingRepo
             val utbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
 
             val zero = repo.hentSisteGrensesnittsavstemming()
@@ -70,7 +70,7 @@ internal class AvstemmingPostgresRepoTest {
     fun `hent utbetalinger for grensesnittsavstemming`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = AvstemmingPostgresRepo(dataSource)
+            val repo = testDataHelper.avstemmingRepo
             val (innvilget, utbetaling) =
                 testDataHelper.nyIverksattInnvilget(
                     avstemmingsnøkkel = Avstemmingsnøkkel(
@@ -125,7 +125,7 @@ internal class AvstemmingPostgresRepoTest {
     fun `hent utbetalinger for grensesnittsavstemming tidspunkt test`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = AvstemmingPostgresRepo(dataSource)
+            val repo = testDataHelper.avstemmingRepo
             val utbetaling1 =
                 testDataHelper.nyOversendtUtbetalingMedKvittering(
                     avstemmingsnøkkel = Avstemmingsnøkkel(
@@ -154,7 +154,7 @@ internal class AvstemmingPostgresRepoTest {
     fun `oppretter grensesnittsavstemming og oppdaterer aktuelle utbetalinger`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = AvstemmingPostgresRepo(dataSource)
+            val repo = testDataHelper.avstemmingRepo
             val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
 
             val avstemming = Avstemming.Grensesnittavstemming(
@@ -179,7 +179,7 @@ internal class AvstemmingPostgresRepoTest {
     fun `oppretter og henter konsistensavstemming`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = AvstemmingPostgresRepo(dataSource)
+            val repo = testDataHelper.avstemmingRepo
             val oversendtUtbetalingMedKvittering =
                 testDataHelper.nyOversendtUtbetalingMedKvittering()
 
@@ -211,7 +211,7 @@ internal class AvstemmingPostgresRepoTest {
     fun `finner ut om konsistensavstemming er utført for og på aktuell dato`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = AvstemmingPostgresRepo(dataSource)
+            val repo = testDataHelper.avstemmingRepo
             val oversendtUtbetalingMedKvittering =
                 testDataHelper.nyOversendtUtbetalingMedKvittering()
 
@@ -280,7 +280,7 @@ internal class AvstemmingPostgresRepoTest {
     fun `konsistensavstemming henter kun utbetalinger hvor det eksisterer utbetalingslinjer med tom større enn eller lik løpendeFraOgMed`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = AvstemmingPostgresRepo(dataSource)
+            val repo = testDataHelper.avstemmingRepo
             val oversendtUtbetalingMedKvittering =
                 testDataHelper.nyOversendtUtbetalingMedKvittering().second
 
@@ -312,7 +312,7 @@ internal class AvstemmingPostgresRepoTest {
     fun `konsistensavstemming henter bare utbetalinger opprettet tidligere enn opprettetTilOgMed`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = AvstemmingPostgresRepo(dataSource)
+            val repo = testDataHelper.avstemmingRepo
             val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering().second
 
             repo.hentUtbetalingerForKonsistensavstemming(
@@ -335,7 +335,8 @@ internal class AvstemmingPostgresRepoTest {
     @Test
     fun `konsistensavstemming uten løpende utbetalinger`() {
         withMigratedDb { dataSource ->
-            val repo = AvstemmingPostgresRepo(dataSource)
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.avstemmingRepo
             val avstemming = Avstemming.Konsistensavstemming.Ny(
                 id = UUID30.randomUUID(),
                 opprettet = fixedTidspunkt,
@@ -362,7 +363,7 @@ internal class AvstemmingPostgresRepoTest {
     fun `konsistensavstemming henter hele utbetalingen selv om bare en linje er løpende etter løpendeFraOgMed`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = AvstemmingPostgresRepo(dataSource)
+            val repo = testDataHelper.avstemmingRepo
             val første = Utbetalingslinje.Ny(
                 opprettet = fixedTidspunkt,
                 fraOgMed = 1.januar(2020),

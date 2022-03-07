@@ -19,7 +19,6 @@ internal class ServiceBuilderTest {
                 avstemming = mock(),
                 utbetaling = mock(),
                 søknad = mock(),
-                hendelseslogg = mock(),
                 sak = mock(),
                 person = mock(),
                 søknadsbehandling = mock(),

@@ -42,93 +42,117 @@ internal class TilbakekrevingPostgresRepoTest {
                 periode = revurdering.periode,
             )
 
+            testDataHelper.revurderingRepo.lagre(revurdering.copy(tilbakekrevingsbehandling = ikkeAvgjort))
+
             testDataHelper.sessionFactory.withSession { session ->
-                testDataHelper.revurderingRepo.lagre(revurdering.copy(tilbakekrevingsbehandling = ikkeAvgjort))
                 testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(
-                    revurdering.id,
-                    session,
+                    revurderingId = revurdering.id,
+                    session = session,
                 ) shouldBe ikkeAvgjort
-
-                testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-                testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
-
-                val forsto = ikkeAvgjort.tilbakekrev()
-                testDataHelper.sessionFactory.withTransaction { tx ->
-                    testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(forsto, tx)
-                }
-                testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(revurdering.id, session) shouldBe forsto
-
-                testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-                testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
-
-                testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-                testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
-
-                val kunneIkkeForstå = ikkeAvgjort.ikkeTilbakekrev()
-                testDataHelper.sessionFactory.withTransaction { tx ->
-                    testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(kunneIkkeForstå, tx)
-                }
-                testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(
-                    revurdering.id,
-                    session,
-                ) shouldBe kunneIkkeForstå
-
-                testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-                testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
-
-                val avventerKravgrunnlag = kunneIkkeForstå.fullførBehandling()
-                testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(avventerKravgrunnlag, session)
-                testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(
-                    revurdering.id,
-                    session,
-                ) shouldBe avventerKravgrunnlag
-
-                testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe listOf(
-                    avventerKravgrunnlag,
-                )
-                testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
-
-                // TODO klarer vi å gjøre noe bedre enn å bare jukse her?
-                val mottattKravgrunnlag = avventerKravgrunnlag.mottattKravgrunnlag(
-                    kravgrunnlag = RåttKravgrunnlag("xml"),
-                    kravgrunnlagMottatt = fixedTidspunkt,
-                    hentRevurdering = { iverksattRevurdering().second },
-                    kravgrunnlagMapper = {
-                        matchendeKravgrunnlag(
-                            revurdering,
-                            revurdering.simulering,
-                            UUID30.randomUUID(),
-                            fixedClock,
-                        )
-                    },
-                )
-                testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(mottattKravgrunnlag, session)
-                testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(
-                    revurdering.id,
-                    session,
-                ) shouldBe mottattKravgrunnlag
-
-                testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-                testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe listOf(
-                    mottattKravgrunnlag,
-                )
-
-                val besvartKravgrunnlag = mottattKravgrunnlag.sendtTilbakekrevingsvedtak(
-                    tilbakekrevingsvedtakForsendelse = RåTilbakekrevingsvedtakForsendelse(
-                        "requestXml",
-                        fixedTidspunkt,
-                        "responseXml",
-                    ),
-                )
-                testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(besvartKravgrunnlag, session)
-                testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(
-                    revurdering.id,
-                    session,
-                ) shouldBe besvartKravgrunnlag
-
-                testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
-                testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
             }
+
+            testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
+            testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
+
+            val forsto = ikkeAvgjort.tilbakekrev()
+            testDataHelper.sessionFactory.withTransaction { tx ->
+                testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
+                    tilbakrekrevingsbehanding = forsto,
+                    tx = tx,
+                )
+            }
+
+            testDataHelper.sessionFactory.withSession { session ->
+                testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(revurdering.id, session) shouldBe forsto
+            }
+
+            testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
+            testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
+
+            testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
+            testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
+
+            val kunneIkkeForstå = ikkeAvgjort.ikkeTilbakekrev()
+            testDataHelper.sessionFactory.withTransaction { tx ->
+                testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(kunneIkkeForstå, tx)
+            }
+            testDataHelper.sessionFactory.withSession { session ->
+                testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(
+                    revurderingId = revurdering.id,
+                    session = session,
+                ) shouldBe kunneIkkeForstå
+            }
+
+            testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
+            testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
+
+            val avventerKravgrunnlag = kunneIkkeForstå.fullførBehandling()
+            testDataHelper.sessionFactory.withSession { session ->
+                testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
+                    tilbakrekrevingsbehanding = avventerKravgrunnlag,
+                    session = session,
+                )
+                testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(
+                    revurderingId = revurdering.id,
+                    session = session,
+                ) shouldBe avventerKravgrunnlag
+            }
+
+            testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe listOf(
+                avventerKravgrunnlag,
+            )
+            testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
+
+            // TODO klarer vi å gjøre noe bedre enn å bare jukse her?
+            val mottattKravgrunnlag = avventerKravgrunnlag.mottattKravgrunnlag(
+                kravgrunnlag = RåttKravgrunnlag("xml"),
+                kravgrunnlagMottatt = fixedTidspunkt,
+                hentRevurdering = { iverksattRevurdering().second },
+                kravgrunnlagMapper = {
+                    matchendeKravgrunnlag(
+                        revurdering,
+                        revurdering.simulering,
+                        UUID30.randomUUID(),
+                        fixedClock,
+                    )
+                },
+            )
+            testDataHelper.sessionFactory.withSession { session ->
+                testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
+                    tilbakrekrevingsbehanding = mottattKravgrunnlag,
+                    session = session,
+                )
+                testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(
+                    revurderingId = revurdering.id,
+                    session = session,
+                ) shouldBe mottattKravgrunnlag
+            }
+
+            testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
+            testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe listOf(
+                mottattKravgrunnlag,
+            )
+
+            val besvartKravgrunnlag = mottattKravgrunnlag.sendtTilbakekrevingsvedtak(
+                tilbakekrevingsvedtakForsendelse = RåTilbakekrevingsvedtakForsendelse(
+                    "requestXml",
+                    fixedTidspunkt,
+                    "responseXml",
+                ),
+            )
+            testDataHelper.sessionFactory.withSession { session ->
+                testDataHelper.tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
+                    tilbakrekrevingsbehanding = besvartKravgrunnlag,
+                    session = session,
+                )
+                testDataHelper.tilbakekrevingRepo.hentTilbakekrevingsbehandling(
+                    revurderingId = revurdering.id,
+                    session = session,
+                ) shouldBe besvartKravgrunnlag
+            }
+
+            testDataHelper.tilbakekrevingRepo.hentAvventerKravgrunnlag() shouldBe emptyList()
+            testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
         }
     }
 }

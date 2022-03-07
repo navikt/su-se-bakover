@@ -34,7 +34,7 @@ internal class VedtakServiceImpl(
     }
 
     override fun hentForVedtakId(vedtakId: UUID): Vedtak? {
-        return vedtakRepo.hentForVedtakId(vedtakId)
+        return vedtakRepo.hentVedtakForId(vedtakId)
     }
 
     override fun hentForRevurderingId(revurderingId: UUID): Vedtak? {

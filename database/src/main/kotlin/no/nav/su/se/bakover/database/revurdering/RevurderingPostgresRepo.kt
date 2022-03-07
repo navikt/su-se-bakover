@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgr
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
-import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -63,7 +62,6 @@ import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
-import javax.sql.DataSource
 
 enum class RevurderingsType {
     OPPRETTET,
@@ -111,7 +109,6 @@ enum class RevurderingsType {
 }
 
 internal class RevurderingPostgresRepo(
-    private val dataSource: DataSource,
     private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
     søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     klageRepo: KlagePostgresRepo,
@@ -120,50 +117,60 @@ internal class RevurderingPostgresRepo(
     private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
     private val tilbakekrevingRepo: TilbakekrevingPostgresRepo,
 ) : RevurderingRepo {
-    private val vedtakRepo =
-        VedtakPostgresRepo(dataSource, søknadsbehandlingRepo, this, klageRepo, dbMetrics, sessionFactory)
+    private val vedtakRepo = VedtakPostgresRepo(
+        sessionFactory = sessionFactory,
+        dbMetrics = dbMetrics,
+        søknadsbehandlingRepo = søknadsbehandlingRepo,
+        revurderingRepo = this,
+        klageRepo = klageRepo,
+    )
 
     private val stansAvYtelseRepo = StansAvYtelsePostgresRepo(
+        dbMetrics = dbMetrics,
         grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
     )
 
     private val gjenopptakAvYtelseRepo = GjenopptakAvYtelsePostgresRepo(
         grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
+        dbMetrics = dbMetrics,
     )
 
     override fun hent(id: UUID): AbstraktRevurdering? {
         return dbMetrics.timeQuery("hentRevurdering") {
-            dataSource.withSession { session ->
+            sessionFactory.withSession { session ->
                 hent(id, session)
             }
         }
     }
 
-    internal fun hent(id: UUID, session: Session): AbstraktRevurdering? =
-        """
-                SELECT *
-                FROM revurdering
-                WHERE id = :id
+    internal fun hent(id: UUID, session: Session): AbstraktRevurdering? {
+        return """
+                    SELECT *
+                    FROM revurdering
+                    WHERE id = :id
         """.trimIndent()
             .hent(mapOf("id" to id), session) { row ->
                 row.toRevurdering(session)
             }
+    }
 
     override fun lagre(revurdering: AbstraktRevurdering, transactionContext: TransactionContext) {
-        when (revurdering) {
-            is Revurdering -> {
-                transactionContext.withTransaction {
-                    lagre(revurdering, it)
+        dbMetrics.timeQuery("lagreRevurdering") {
+            when (revurdering) {
+                is Revurdering -> {
+                    transactionContext.withTransaction {
+                        lagre(revurdering, it)
+                    }
                 }
-            }
-            is GjenopptaYtelseRevurdering -> {
-                transactionContext.withTransaction {
-                    gjenopptakAvYtelseRepo.lagre(revurdering, it)
+                is GjenopptaYtelseRevurdering -> {
+                    transactionContext.withTransaction {
+                        gjenopptakAvYtelseRepo.lagre(revurdering, it)
+                    }
                 }
-            }
-            is StansAvYtelseRevurdering -> {
-                transactionContext.withTransaction {
-                    stansAvYtelseRepo.lagre(revurdering, it)
+                is StansAvYtelseRevurdering -> {
+                    transactionContext.withTransaction {
+                        stansAvYtelseRepo.lagre(revurdering, it)
+                    }
                 }
             }
         }

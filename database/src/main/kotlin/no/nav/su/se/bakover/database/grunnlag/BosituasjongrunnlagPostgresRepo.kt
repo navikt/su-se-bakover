@@ -79,9 +79,11 @@ internal class BosituasjongrunnlagPostgresRepo(
         grunnlag: List<Grunnlag.Bosituasjon>,
         tx: TransactionalSession,
     ) {
-        slettForBehandlingId(behandlingId, tx)
-        grunnlag.forEach { bosituasjon ->
-            lagre(behandlingId, bosituasjon, tx)
+        dbMetrics.timeQuery("lagreBosituasjongrunnlag") {
+            slettForBehandlingId(behandlingId, tx)
+            grunnlag.forEach { bosituasjon ->
+                lagre(behandlingId, bosituasjon, tx)
+            }
         }
     }
 

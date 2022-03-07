@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
@@ -19,6 +20,7 @@ import java.util.UUID
 
 internal class AvkortingsvarselPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
+    private val dbMetrics: DbMetrics,
 ) : AvkortingsvarselRepo {
 
     enum class Status {
@@ -70,7 +72,8 @@ internal class AvkortingsvarselPostgresRepo(
         simulering: Simulering?,
         tx: TransactionalSession,
     ) {
-        """insert into avkortingsvarsel (
+        dbMetrics.timeQuery("insertAvkortingsvarsel") {
+            """insert into avkortingsvarsel (
             id, 
             opprettet, 
             sakId, 
@@ -85,18 +88,19 @@ internal class AvkortingsvarselPostgresRepo(
                 to_jsonb(:simulering::json), 
                 :status
              )
-        """.trimMargin()
-            .insert(
-                mapOf(
-                    "id" to id,
-                    "opprettet" to opprettet,
-                    "sakId" to sakId,
-                    "revurderingId" to revurderingId,
-                    "simulering" to simulering?.let { objectMapper.writeValueAsString(it) },
-                    "status" to Status.SKAL_AVKORTES.toString(),
-                ),
-                tx,
-            )
+            """.trimMargin()
+                .insert(
+                    mapOf(
+                        "id" to id,
+                        "opprettet" to opprettet,
+                        "sakId" to sakId,
+                        "revurderingId" to revurderingId,
+                        "simulering" to simulering?.let { objectMapper.writeValueAsString(it) },
+                        "status" to Status.SKAL_AVKORTES.toString(),
+                    ),
+                    tx,
+                )
+        }
     }
 
     private fun oppdater(
@@ -105,20 +109,22 @@ internal class AvkortingsvarselPostgresRepo(
         behandlingId: UUID?,
         tx: TransactionalSession,
     ) {
-        """
+        dbMetrics.timeQuery("oppdaterAvkortingsvarsel") {
+            """
             update avkortingsvarsel set
                 status = :status,
                 behandlingId = :behandlingId
             where id = :id
-        """.trimIndent()
-            .oppdatering(
-                mapOf(
-                    "id" to id,
-                    "status" to status.toString(),
-                    "behandlingId" to behandlingId,
-                ),
-                tx,
-            )
+            """.trimIndent()
+                .oppdatering(
+                    mapOf(
+                        "id" to id,
+                        "status" to status.toString(),
+                        "behandlingId" to behandlingId,
+                    ),
+                    tx,
+                )
+        }
     }
 
     override fun hentUtestående(sakId: UUID): Avkortingsvarsel {
@@ -134,19 +140,21 @@ internal class AvkortingsvarselPostgresRepo(
         sakId: UUID,
         session: Session,
     ): Avkortingsvarsel {
-        return """select * from avkortingsvarsel where sakid = :sakid and status = :status""".hentListe(
-            mapOf(
-                "sakid" to sakId,
-                "status" to "${Status.SKAL_AVKORTES}",
-            ),
-            session,
-        ) {
-            it.toAvkortingsvarsel() as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
-        }.let {
-            when (it.size) {
-                0 -> Avkortingsvarsel.Ingen
-                1 -> it.first()
-                else -> throw IllegalStateException("Skal maksimalt kunne ha 1 utestående avkorting")
+        return dbMetrics.timeQuery("hentUteståendeAvkorting") {
+            """select * from avkortingsvarsel where sakid = :sakid and status = :status""".hentListe(
+                mapOf(
+                    "sakid" to sakId,
+                    "status" to "${Status.SKAL_AVKORTES}",
+                ),
+                session,
+            ) {
+                it.toAvkortingsvarsel() as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
+            }.let {
+                when (it.size) {
+                    0 -> Avkortingsvarsel.Ingen
+                    1 -> it.first()
+                    else -> throw IllegalStateException("Skal maksimalt kunne ha 1 utestående avkorting")
+                }
             }
         }
     }
@@ -161,13 +169,15 @@ internal class AvkortingsvarselPostgresRepo(
     }
 
     fun hent(id: UUID, session: Session): Avkortingsvarsel? {
-        return """select * from avkortingsvarsel where id = :id""".hent(
-            mapOf(
-                "id" to id,
-            ),
-            session,
-        ) {
-            it.toAvkortingsvarsel()
+        return dbMetrics.timeQuery("hentAvkortingsvarsel") {
+            """select * from avkortingsvarsel where id = :id""".hent(
+                mapOf(
+                    "id" to id,
+                ),
+                session,
+            ) {
+                it.toAvkortingsvarsel()
+            }
         }
     }
 

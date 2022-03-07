@@ -17,13 +17,12 @@ import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRep
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
-import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
 import no.nav.su.se.bakover.database.kontrollsamtale.KontrollsamtalePostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
+import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
@@ -99,11 +98,13 @@ object DatabaseBuilder {
         dbMetrics: DbMetrics,
         clock: Clock,
     ): DatabaseRepos {
-        val sessionFactory = PostgresSessionFactory(dataSource)
+        val sessionCounter = SessionCounter()
+        val sessionFactory = PostgresSessionFactory(dataSource, dbMetrics, sessionCounter)
 
-        val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(sessionFactory)
+        val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(sessionFactory, dbMetrics)
 
         val grunnlagsdataOgVilkårsvurderingerPostgresRepo = GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
+            dbMetrics = dbMetrics,
             bosituasjongrunnlagPostgresRepo = BosituasjongrunnlagPostgresRepo(
                 dbMetrics = dbMetrics,
             ),
@@ -111,87 +112,81 @@ object DatabaseBuilder {
                 dbMetrics = dbMetrics,
             ),
             uføreVilkårsvurderingPostgresRepo = UføreVilkårsvurderingPostgresRepo(
-                uføregrunnlagRepo = UføregrunnlagPostgresRepo(),
                 dbMetrics = dbMetrics,
+                uføregrunnlagRepo = UføregrunnlagPostgresRepo(dbMetrics),
             ),
             formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(
-                formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo(),
                 dbMetrics = dbMetrics,
+                formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo(dbMetrics),
             ),
             utenlandsoppholdVilkårsvurderingPostgresRepo = UtenlandsoppholdVilkårsvurderingPostgresRepo(
-                utenlandsoppholdgrunnlagRepo = UtenlandsoppholdgrunnlagPostgresRepo(),
                 dbMetrics = dbMetrics,
+                utenlandsoppholdgrunnlagRepo = UtenlandsoppholdgrunnlagPostgresRepo(dbMetrics),
             ),
         )
 
         val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(
-            dataSource = dataSource,
+            sessionFactory = sessionFactory,
             grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
             dbMetrics = dbMetrics,
-            sessionFactory = sessionFactory,
             avkortingsvarselRepo = avkortingsvarselRepo,
             clock = clock,
         )
 
-        val klageinstanshendelseRepo = KlageinstanshendelsePostgresRepo(sessionFactory)
-        val klageRepo = KlagePostgresRepo(sessionFactory, klageinstanshendelseRepo)
+        val klageinstanshendelseRepo = KlageinstanshendelsePostgresRepo(sessionFactory, dbMetrics)
+        val klageRepo = KlagePostgresRepo(sessionFactory, dbMetrics, klageinstanshendelseRepo)
 
         val tilbakekrevingRepo = TilbakekrevingPostgresRepo(
             sessionFactory = sessionFactory,
         )
         val revurderingRepo = RevurderingPostgresRepo(
-            dataSource = dataSource,
+            sessionFactory = sessionFactory,
+            dbMetrics = dbMetrics,
             grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             klageRepo = klageRepo,
-            dbMetrics = dbMetrics,
-            sessionFactory = sessionFactory,
             avkortingsvarselRepo = avkortingsvarselRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
         )
         val vedtakRepo = VedtakPostgresRepo(
-            dataSource = dataSource,
+            sessionFactory = sessionFactory,
+            dbMetrics = dbMetrics,
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             revurderingRepo = revurderingRepo,
             klageRepo = klageRepo,
-            dbMetrics = dbMetrics,
-            sessionFactory = sessionFactory,
         )
-        val hendelseRepo = PersonhendelsePostgresRepo(dataSource, clock)
-        val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource, clock)
-        val kontrollsamtaleRepo = KontrollsamtalePostgresRepo(sessionFactory)
-        val reguleringRepo = ReguleringPostgresRepo(dataSource, sessionFactory)
+        val hendelseRepo = PersonhendelsePostgresRepo(sessionFactory, dbMetrics, clock)
+        val nøkkeltallRepo = NøkkeltallPostgresRepo(sessionFactory, dbMetrics, clock)
+        val kontrollsamtaleRepo = KontrollsamtalePostgresRepo(sessionFactory, dbMetrics)
+        val reguleringRepo = ReguleringPostgresRepo(sessionFactory, dbMetrics)
 
         return DatabaseRepos(
-            avstemming = AvstemmingPostgresRepo(dataSource),
+            avstemming = AvstemmingPostgresRepo(sessionFactory, dbMetrics),
             utbetaling = UtbetalingPostgresRepo(
-                dataSource = dataSource,
-                dbMetrics = dbMetrics,
                 sessionFactory = sessionFactory,
+                dbMetrics = dbMetrics,
             ),
             søknad = SøknadPostgresRepo(
-                dataSource = dataSource,
+                sessionFactory = sessionFactory,
                 dbMetrics = dbMetrics,
-                postgresSessionFactory = sessionFactory,
             ),
-            hendelseslogg = HendelsesloggPostgresRepo(dataSource),
             sak = SakPostgresRepo(
                 sessionFactory = sessionFactory,
+                dbMetrics = dbMetrics,
                 søknadsbehandlingRepo = søknadsbehandlingRepo,
                 revurderingRepo = revurderingRepo,
                 vedtakPostgresRepo = vedtakRepo,
-                dbMetrics = dbMetrics,
                 klageRepo = klageRepo,
             ),
             person = PersonPostgresRepo(
-                dataSource = dataSource,
+                sessionFactory = sessionFactory,
                 dbMetrics = dbMetrics,
             ),
             søknadsbehandling = søknadsbehandlingRepo,
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,
             personhendelseRepo = hendelseRepo,
-            dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory),
+            dokumentRepo = DokumentPostgresRepo(sessionFactory, dbMetrics),
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
             klageRepo = klageRepo,

@@ -53,7 +53,11 @@ internal class PostgresTransactionContextTest {
             withTestContext(dataSource, 1) { spiedDataSource ->
                 val testDataHelper = TestDataHelper(spiedDataSource)
                 Either.catch {
-                    PostgresSessionFactory(spiedDataSource).withTransactionContext { context ->
+                    PostgresSessionFactory(
+                        dataSource = spiedDataSource,
+                        dbMetrics = dbMetricsStub,
+                        sessionCounter = sessionCounterStub,
+                    ).withTransactionContext { context ->
                         testDataHelper.søknadRepo.lukkSøknad(
                             søknad.lukk(
                                 lukketAv = NavIdentBruker.Saksbehandler("1"),

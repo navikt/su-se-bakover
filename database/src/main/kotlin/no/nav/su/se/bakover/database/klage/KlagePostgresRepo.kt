@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
@@ -52,25 +53,29 @@ import java.util.UUID
 
 internal class KlagePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
+    private val dbMetrics: DbMetrics,
     private val klageinstanshendelsePostgresRepo: KlageinstanshendelsePostgresRepo,
 ) : KlageRepo {
+
     override fun lagre(klage: Klage, transactionContext: TransactionContext) {
-        transactionContext.withTransaction { transaction ->
-            when (klage) {
-                is OpprettetKlage -> lagreOpprettetKlage(klage, transaction)
+        dbMetrics.timeQuery("lagreKlage") {
+            transactionContext.withTransaction { transaction ->
+                when (klage) {
+                    is OpprettetKlage -> lagreOpprettetKlage(klage, transaction)
 
-                is VilkårsvurdertKlage.Påbegynt -> lagreVilkårsvurdertKlage(klage, transaction)
-                is VilkårsvurdertKlage.Utfylt -> lagreVilkårsvurdertKlage(klage, transaction)
-                is VilkårsvurdertKlage.Bekreftet -> lagreVilkårsvurdertKlage(klage, transaction)
+                    is VilkårsvurdertKlage.Påbegynt -> lagreVilkårsvurdertKlage(klage, transaction)
+                    is VilkårsvurdertKlage.Utfylt -> lagreVilkårsvurdertKlage(klage, transaction)
+                    is VilkårsvurdertKlage.Bekreftet -> lagreVilkårsvurdertKlage(klage, transaction)
 
-                is VurdertKlage -> lagreVurdertKlage(klage, transaction)
+                    is VurdertKlage -> lagreVurdertKlage(klage, transaction)
 
-                is AvvistKlage -> lagreAvvistKlage(klage, transaction)
+                    is AvvistKlage -> lagreAvvistKlage(klage, transaction)
 
-                is KlageTilAttestering -> lagreTilAttestering(klage, transaction)
-                is OversendtKlage -> lagreOversendtKlage(klage, transaction)
-                is IverksattAvvistKlage -> lagreIverksattAvvistKlage(klage, transaction)
-                is AvsluttetKlage -> lagreAvsluttetKlage(klage, transaction)
+                    is KlageTilAttestering -> lagreTilAttestering(klage, transaction)
+                    is OversendtKlage -> lagreOversendtKlage(klage, transaction)
+                    is IverksattAvvistKlage -> lagreIverksattAvvistKlage(klage, transaction)
+                    is AvsluttetKlage -> lagreAvsluttetKlage(klage, transaction)
+                }
             }
         }
     }
@@ -268,37 +273,47 @@ internal class KlagePostgresRepo(
     }
 
     override fun hentKlage(klageId: UUID): Klage? {
-        return sessionFactory.withSession { session ->
-            "select k.*, s.fnr, s.saksnummer  from klage k inner join sak s on s.id = k.sakId where k.id=:id".trimIndent()
-                .hent(
-                    params = mapOf("id" to klageId),
-                    session = session,
-                ) { rowToKlage(it) }
+        return dbMetrics.timeQuery("hentKlageForId") {
+            sessionFactory.withSession { session ->
+                hentKlage(klageId, session)
+            }
         }
     }
 
+    internal fun hentKlage(klageId: UUID, session: Session): Klage? {
+        return "select k.*, s.fnr, s.saksnummer  from klage k inner join sak s on s.id = k.sakId where k.id=:id".trimIndent()
+            .hent(
+                params = mapOf("id" to klageId),
+                session = session,
+            ) { rowToKlage(it, session) }
+    }
+
     override fun hentKlager(sakid: UUID, sessionContext: SessionContext): List<Klage> {
-        return sessionContext.withSession { session ->
-            """
+        return dbMetrics.timeQuery("hentKlager") {
+            sessionContext.withSession { session ->
+                """
                     select k.*, s.fnr, s.saksnummer  from klage k inner join sak s on s.id = k.sakId where k.sakid=:sakid
-            """.trimIndent().hentListe(
-                mapOf(
-                    "sakid" to sakid,
-                ),
-                session,
-            ) { rowToKlage(it) }
+                """.trimIndent().hentListe(
+                    mapOf(
+                        "sakid" to sakid,
+                    ),
+                    session,
+                ) { rowToKlage(it, session) }
+            }
         }
     }
 
     override fun hentKnyttetVedtaksdato(klageId: UUID): LocalDate? {
-        return sessionFactory.withSession {
-            """
+        return dbMetrics.timeQuery("hentVedtaksdatoKnyttetTilKlage") {
+            sessionFactory.withSession {
+                """
                 select v.opprettet from klage k left join vedtak v on k.vedtakid = v.id
                     where k.id = :id
-            """.trimIndent()
-                .hent(mapOf("id" to klageId), it) { row ->
-                    row.localDate("opprettet")
-                }
+                """.trimIndent()
+                    .hent(mapOf("id" to klageId), it) { row ->
+                        row.localDate("opprettet")
+                    }
+            }
         }
     }
 
@@ -310,7 +325,7 @@ internal class KlagePostgresRepo(
         return sessionFactory.newTransactionContext()
     }
 
-    private fun rowToKlage(row: Row): Klage {
+    private fun rowToKlage(row: Row, session: Session): Klage {
 
         val id: UUID = row.uuid("id")
         val opprettet: Tidspunkt = row.tidspunkt("opprettet")
@@ -324,7 +339,12 @@ internal class KlagePostgresRepo(
 
         val attesteringer = row.string("attestering").toAttesteringshistorikk()
         val klageinstanshendelser =
-            Klageinstanshendelser.create(klageinstanshendelsePostgresRepo.hentProsesserteKlageinstanshendelser(id))
+            Klageinstanshendelser.create(
+                klageinstanshendelsePostgresRepo.hentProsesserteKlageinstanshendelser(
+                    id,
+                    session,
+                ),
+            )
 
         val vilkårsvurderingerTilKlage = VilkårsvurderingerTilKlage.create(
             vedtakId = row.uuidOrNull("vedtakId"),

@@ -21,7 +21,7 @@ internal class UføregrunnlagPostgresRepoTest {
     fun `lagrer uføregrunnlag, kobler til behandling og sletter`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = UføregrunnlagPostgresRepo()
+            val grunnlagRepo = UføregrunnlagPostgresRepo(testDataHelper.dbMetrics)
             val behandling = testDataHelper.nySøknadsbehandling()
 
             val uføregrunnlag1 = Uføregrunnlag(
@@ -42,7 +42,7 @@ internal class UføregrunnlagPostgresRepoTest {
                 session.transaction { tx ->
                     grunnlagRepo.lagre(behandling.id, listOf(uføregrunnlag1, uføregrunnlag2), tx)
                 }
-                grunnlagRepo.hentUføregrunnlag(behandling.id, session) shouldBe listOf(
+                grunnlagRepo.hentUføregrunnlagForBehandlingId(behandling.id, session) shouldBe listOf(
                     uføregrunnlag1,
                     uføregrunnlag2,
                 )
