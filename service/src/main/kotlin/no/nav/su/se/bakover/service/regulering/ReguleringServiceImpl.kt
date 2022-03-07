@@ -52,10 +52,22 @@ class ReguleringServiceImpl(
 
     override fun fortsettRegulering(): Either<KunneIkkeFortsettRegulering, Unit> {
         reguleringRepo.hentReguleringerSomIkkeErIverksatt().forEach { regulering ->
-            oppdaterRegulering(regulering)
-            reguleringRepo.lagre(regulering)
-            if (regulering.reguleringType == ReguleringType.AUTOMATISK) {
-                behandleOgLagre(regulering)
+            oppdaterRegulering(regulering).map { oppdatertRegulering ->
+                reguleringRepo.lagre(oppdatertRegulering)
+                if (oppdatertRegulering.reguleringType == ReguleringType.AUTOMATISK) {
+                    behandleOgLagre(oppdatertRegulering)
+                }
+            }.mapLeft {
+                when (it) {
+                    KunneIkkeOppretteRegulering.FantIkkeRegulering -> TODO()
+                    KunneIkkeOppretteRegulering.FantIkkeSak -> TODO()
+                    KunneIkkeOppretteRegulering.FantIngenVedtak -> TODO()
+                    KunneIkkeOppretteRegulering.GrunnlagErIkkeKonsistent -> TODO()
+                    KunneIkkeOppretteRegulering.KunneIkkeLageFradragsgrunnlag -> TODO()
+                    KunneIkkeOppretteRegulering.ReguleringErAlleredeIverksatt -> TODO()
+                    KunneIkkeOppretteRegulering.TidslinjeForVedtakErIkkeKontinuerlig -> TODO()
+                    KunneIkkeOppretteRegulering.UgyldigPeriode -> TODO()
+                }
             }
         }
         return Unit.right()

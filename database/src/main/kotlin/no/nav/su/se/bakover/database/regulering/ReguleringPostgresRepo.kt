@@ -74,8 +74,9 @@ internal class ReguleringPostgresRepo(
     override fun hentReguleringerSomIkkeErIverksatt(): List<Regulering.OpprettetRegulering> =
         dataSource.withSession { session ->
             """ select * from regulering r left join sak s on r.sakid = s.id
+                where reguleringstatus = :reguleringstatus
             """.trimIndent().hentListe(
-                mapOf("reguleringstatus" to ReguleringStatus.OPPRETTET),
+                mapOf("reguleringstatus" to ReguleringStatus.OPPRETTET.toString()),
                 session,
             ) { it.toRegulering(session) as Regulering.OpprettetRegulering }
         }
