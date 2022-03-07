@@ -75,7 +75,8 @@ data class Grunnlagsdata private constructor(
                 }
 
                 val perioderMedEPS = bosituasjonperiode.minusListe(bosituasjon.filter { !it.harEPS() }.perioder())
-                val perioderMedFradragForEPS = fradragsperiode.minusListe(fradragsgrunnlag.filter { !it.tilhørerEps() }.perioder())
+                val perioderMedFradragForEPS =
+                    fradragsperiode.minusListe(fradragsgrunnlag.filter { !it.tilhørerEps() }.perioder())
 
                 if (!perioderMedEPS.inneholderAlle(perioderMedFradragForEPS)) {
                     return KunneIkkeLageGrunnlagsdata.FradragForEPSMenBosituasjonUtenEPS.left()
@@ -101,5 +102,9 @@ sealed class KunneIkkeLageGrunnlagsdata {
 fun List<Uføregrunnlag>.harForventetInntektStørreEnn0() = this.sumOf { it.forventetInntekt } > 0
 
 fun List<Fradragsgrunnlag>.fjernFradragForEPSHvisEnslig(bosituasjon: Bosituasjon): List<Fradragsgrunnlag> {
-    return if (bosituasjon.harEPS()) this else filter { it.tilhørerBruker() }
+    return if (bosituasjon.harEPS()) this else fjernFradragEPS()
+}
+
+fun List<Fradragsgrunnlag>.fjernFradragEPS(): List<Fradragsgrunnlag> {
+    return filterNot { it.tilhørerEps() }
 }

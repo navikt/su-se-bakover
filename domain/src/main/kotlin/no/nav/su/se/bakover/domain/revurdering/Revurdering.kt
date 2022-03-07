@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.fjernFradragForEPSHvisEnslig
+import no.nav.su.se.bakover.domain.grunnlag.fjernFradragEPS
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -178,10 +178,15 @@ sealed class Revurdering :
         }
     }
 
-    protected fun oppdaterFormueOgMarkerSomVurdertInternal(formue: Vilkår.Formue.Vurdert) =
-        oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(formue))
-            .oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Formue))
-            .right()
+    protected fun oppdaterFormueOgMarkerSomVurdertInternal(formue: Vilkår.Formue.Vurdert): Either<Nothing, OpprettetRevurdering> {
+        return oppdaterFormueInternal(formue)
+            .mapLeft { it }
+            .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Formue)) }
+    }
+
+    protected fun oppdaterFormueInternal(formue: Vilkår.Formue): Either<Nothing, OpprettetRevurdering> {
+        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(formue)).right()
+    }
 
     protected fun oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
         return oppdaterFradragInternal(fradragsgrunnlag).getOrHandle { return it.left() }
@@ -202,19 +207,30 @@ sealed class Revurdering :
     }
 
     protected fun oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon: Grunnlag.Bosituasjon.Fullstendig): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
-        return oppdaterGrunnlag(
-            grunnlagsdata = Grunnlagsdata.tryCreate(
-                fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragForEPSHvisEnslig(bosituasjon),
-                bosituasjon = nonEmptyListOf(bosituasjon),
-            ).getOrHandle { return KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it).left() },
-        ).let {
-            it.oppdaterVilkårsvurderinger(
-                vilkårsvurderinger = it.vilkårsvurderinger.leggTil(
-                    it.vilkårsvurderinger.formue.fjernEPSFormue(),
-                ),
-            ).oppdaterInformasjonSomRevurderes(
-                informasjonSomRevurderes = it.informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Bosituasjon),
+        return oppdaterBosituasjonInternal(bosituasjon)
+            .mapLeft { it }
+            .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Bosituasjon)) }
+    }
+
+    protected fun oppdaterBosituasjonInternal(bosituasjon: Grunnlag.Bosituasjon.Fullstendig): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
+        return if (bosituasjon.harEPS()) {
+            oppdaterGrunnlag(
+                grunnlagsdata = Grunnlagsdata.tryCreate(
+                    fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag,
+                    bosituasjon = nonEmptyListOf(bosituasjon),
+                ).getOrHandle { return KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it).left() },
             ).right()
+        } else {
+            oppdaterGrunnlag(
+                grunnlagsdata = Grunnlagsdata.tryCreate(
+                    fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragEPS(),
+                    bosituasjon = nonEmptyListOf(bosituasjon),
+                ).getOrHandle { return KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it).left() },
+            ).let {
+                it.oppdaterFormueInternal(
+                    formue = it.vilkårsvurderinger.formue.fjernEPSFormue(),
+                )
+            }
         }
     }
 
