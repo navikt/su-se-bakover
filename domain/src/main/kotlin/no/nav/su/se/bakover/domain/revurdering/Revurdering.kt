@@ -796,6 +796,10 @@ sealed class BeregnetRevurdering : Revurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
+
+        fun opphørSkyldesVilkår(): Boolean {
+            return VurderOpphørVedRevurdering.Vilkårsvurderinger(vilkårsvurderinger).resultat is OpphørVedRevurdering.Ja
+        }
     }
 }
 
@@ -963,10 +967,6 @@ sealed class SimulertRevurdering : Revurdering() {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
                 OpphørVedRevurdering.Nei -> emptyList()
             }
-        }
-
-        fun opphørSkyldesVilkår(): Boolean {
-            return VurderOpphørVedRevurdering.Vilkårsvurderinger(vilkårsvurderinger).resultat is OpphørVedRevurdering.Ja
         }
 
         override fun prøvOvergangTilSkalIkkeForhåndsvarsles(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {

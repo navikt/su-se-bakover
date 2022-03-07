@@ -153,10 +153,17 @@ data class RevurderingOgFeilmeldingerResponse(
     fun leggTil(varselmelding: Varselmelding): RevurderingOgFeilmeldingerResponse {
         return copy(varselmeldinger = (varselmeldinger + varselmelding).distinct())
     }
+
+    fun leggTil(varselmeldinger: List<Pair<Boolean, Varselmelding>>): RevurderingOgFeilmeldingerResponse {
+        return varselmeldinger.fold(this) { acc, (leggTil, varselmelding) ->
+            if (leggTil) acc.leggTil(varselmelding) else acc
+        }
+    }
 }
 
 sealed interface Varselmelding {
     object BeløpsendringUnder10Prosent : Varselmelding
+    object FradragOgFormueForEPSErFjernet : Varselmelding
 }
 
 object FantIkkeRevurdering
@@ -186,7 +193,9 @@ sealed class KunneIkkeOppretteRevurdering {
     object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppretteRevurdering()
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
     object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppretteRevurdering()
-    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) : KunneIkkeOppretteRevurdering()
+    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) :
+        KunneIkkeOppretteRevurdering()
+
     object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
 }
 
@@ -206,7 +215,9 @@ sealed class KunneIkkeOppdatereRevurdering {
     object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppdatereRevurdering()
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
     object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppdatereRevurdering()
-    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) : KunneIkkeOppdatereRevurdering()
+    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) :
+        KunneIkkeOppdatereRevurdering()
+
     object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
 }
 
