@@ -24,6 +24,7 @@ data class Attesteringshistorikk private constructor(
         fun create(
             attesteringer: List<Attestering>,
         ): Attesteringshistorikk {
+            // TODO jah: Denne vil feile for Klage dersom en oversendt klage kommer i retur vil vi "iverksette" to ganger. Selv om det ikke kan kalles en iverksetting.
             assert(attesteringer.filterIsInstance<Attestering.Iverksatt>().size <= 1) {
                 "Attesteringshistorikk kan maks inneholde en iverksetting, men var: $attesteringer"
             }

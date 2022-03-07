@@ -31,11 +31,11 @@ subprojects {
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
-        implementation("ch.qos.logback:logback-classic:1.2.10")
+        implementation("ch.qos.logback:logback-classic:1.2.11")
         implementation("net.logstash.logback:logstash-logback-encoder:7.0.1")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:3.1.0")
-        implementation("com.networknt:json-schema-validator:1.0.66")
+        implementation("com.networknt:json-schema-validator:1.0.67")
         implementation("no.finn.unleash:unleash-client-java:4.4.1")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.5.0")
@@ -55,7 +55,7 @@ subprojects {
         // Embedded database brukes av modulene: web og database
         testImplementation(
             // select version() i preprod -> PostgreSQL 11.7 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-39), 64-bit
-            // The releases without the -1 suffix has a dyld/dylib issue on MacOs (e.g. the 11.7.0 version won't work)
+            // The releases without the -1 suffix has a dyld/dylib issue on MacOs (i.e. the 11.7.0 version won't work)
             enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:11.6.0-1"),
         )
         testImplementation("io.zonky.test:embedded-postgres:1.3.1")
@@ -77,6 +77,24 @@ subprojects {
                 because("no.finn.unleash:unleash-client-java@4.4.1 -> https://security.snyk.io/vuln/SNYK-JAVA-COMGOOGLECODEGSON-1730327")
                 version {
                     require("2.8.9")
+                }
+            }
+            implementation("org.postgresql:postgresql") {
+                because("io.zonky.test:embedded-postgres@1.3.1 -> https://snyk.io/vuln/SNYK-JAVA-ORGPOSTGRESQL-2390459")
+                version {
+                    require("42.3.2")
+                }
+            }
+            implementation("com.google.protobuf:protobuf-java") {
+                because("no.nav:kafka-embedded-env@2.8.1 -> https://snyk.io/vuln/SNYK-JAVA-COMGOOGLEPROTOBUF-2331703")
+                version {
+                    require("3.19.2")
+                }
+            }
+            implementation("org.glassfish:jakarta.el") {
+                because("no.nav:kafka-embedded-env@2.8.1 -> https://snyk.io/vuln/SNYK-JAVA-ORGGLASSFISH-1297098")
+                version {
+                    require("3.0.4")
                 }
             }
         }

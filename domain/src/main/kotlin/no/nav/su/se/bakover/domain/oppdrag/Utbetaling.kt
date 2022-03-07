@@ -164,5 +164,3 @@ sealed class UtbetalingFeilet {
     object KontrollAvSimuleringFeilet : UtbetalingFeilet()
     object FantIkkeSak : UtbetalingFeilet()
 }
-
-class UtbetalingFeiletException(val feil: UtbetalingFeilet) : Exception(feil.toString())

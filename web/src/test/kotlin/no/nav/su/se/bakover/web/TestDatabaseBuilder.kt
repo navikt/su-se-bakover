@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
-import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
@@ -26,7 +25,6 @@ object TestDatabaseBuilder {
         avstemming: AvstemmingRepo = mock(),
         utbetaling: UtbetalingRepo = mock(),
         søknad: SøknadRepo = mock(),
-        hendelseslogg: HendelsesloggRepo = mock(),
         sak: SakRepo = mock(),
         person: PersonRepo = mock(),
         søknadsbehandling: SøknadsbehandlingRepo = mock(),
@@ -46,7 +44,6 @@ object TestDatabaseBuilder {
             avstemming = avstemming,
             utbetaling = utbetaling,
             søknad = søknad,
-            hendelseslogg = hendelseslogg,
             sak = sak,
             person = person,
             søknadsbehandling = søknadsbehandling,

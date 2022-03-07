@@ -8,13 +8,9 @@ import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
-import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
-import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
-import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
-import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -55,7 +51,7 @@ internal class AvvistKlageTest {
                 klageId = klage.id,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                 fritekst = "min fritekst",
-            ) shouldBe KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand(klage::class, AvvistKlage::class)
+            ) shouldBe KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand(klage::class)
                 .left()
 
             Mockito.verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
@@ -103,38 +99,6 @@ internal class AvvistKlageTest {
         }
 
         @Test
-        fun `fra avvist til påbegyntVurdert`() {
-            val klage = avvistKlage().second
-
-            val actual = klage.vurder(
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                vurderinger = VurderingerTilKlage.create(
-                    "dette skal ikke gå ok",
-                    vedtaksvurdering = null,
-                ),
-            )
-
-            actual shouldBe KunneIkkeVurdereKlage.UgyldigTilstand(
-                AvvistKlage::class,
-                VurdertKlage::class,
-            ).left()
-        }
-
-        @Test
-        fun `fra avvist til bekreftetVurdert`() {
-            val klage = avvistKlage().second
-
-            val actual = klage.bekreftVurderinger(
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            )
-
-            actual shouldBe KunneIkkeBekrefteKlagesteg.UgyldigTilstand(
-                AvvistKlage::class,
-                VurdertKlage.Bekreftet::class,
-            ).left()
-        }
-
-        @Test
         fun `fra TilAttestering(Vurdert) til avvist`() {
             kanIkkeLeggeTilFritekstFraTilstand(vurdertKlageTilAttestering().second)
         }
@@ -174,9 +138,10 @@ internal class AvvistKlageTest {
                 fritekst = "en nice fritekst",
             ).getOrFail()
 
-            val expected = AvvistKlage.create(
+            val expected = AvvistKlage(
                 forrigeSteg = klage,
-                fritekstTilBrev = "en nice fritekst",
+                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+                fritekstTilVedtaksbrev = "en nice fritekst",
             )
 
             actual shouldBe expected
@@ -198,7 +163,7 @@ internal class AvvistKlageTest {
                 vilkårsvurderinger = VilkårsvurderingerTilKlage.Påbegynt.empty(),
             )
 
-            actual shouldBe VilkårsvurdertKlage.Påbegynt.create(
+            actual shouldBe VilkårsvurdertKlage.Påbegynt(
                 id = klage.id,
                 opprettet = klage.opprettet,
                 sakId = klage.sakId,
@@ -228,7 +193,7 @@ internal class AvvistKlageTest {
                 ),
             ).getOrFail()
 
-            actual shouldBe VilkårsvurdertKlage.Utfylt.TilVurdering.create(
+            actual shouldBe VilkårsvurdertKlage.Utfylt.TilVurdering(
                 id = klage.id,
                 opprettet = klage.opprettet,
                 sakId = klage.sakId,
@@ -260,7 +225,7 @@ internal class AvvistKlageTest {
                 ),
             ).getOrFail()
 
-            actual shouldBe VilkårsvurdertKlage.Utfylt.Avvist.create(
+            actual shouldBe VilkårsvurdertKlage.Utfylt.Avvist(
                 id = klage.id,
                 opprettet = klage.opprettet,
                 sakId = klage.sakId,
@@ -272,6 +237,7 @@ internal class AvvistKlageTest {
                 vilkårsvurderinger = actual.vilkårsvurderinger as VilkårsvurderingerTilKlage.Utfylt,
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
+                fritekstTilVedtaksbrev = klage.fritekstTilVedtaksbrev,
             )
         }
 
@@ -279,11 +245,11 @@ internal class AvvistKlageTest {
         fun `fra avvist til bekreftetVilkårsvurdert(Avvist)`() {
             val klage = avvistKlage().second
 
-            val actual = klage.bekreftVilkårsvurderinger(
+            val actual: VilkårsvurdertKlage.Bekreftet = klage.bekreftVilkårsvurderinger(
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             ).getOrFail()
 
-            actual shouldBe VilkårsvurdertKlage.Bekreftet.Avvist.create(
+            actual shouldBe VilkårsvurdertKlage.Bekreftet.Avvist(
                 id = klage.id,
                 opprettet = klage.opprettet,
                 sakId = klage.sakId,
@@ -295,6 +261,7 @@ internal class AvvistKlageTest {
                 vilkårsvurderinger = actual.vilkårsvurderinger,
                 attesteringer = klage.attesteringer,
                 datoKlageMottatt = klage.datoKlageMottatt,
+                fritekstTilAvvistVedtaksbrev = klage.fritekstTilVedtaksbrev,
             )
         }
     }
@@ -309,19 +276,10 @@ internal class AvvistKlageTest {
             OppgaveId("klageOppgaveId").right()
         }.getOrFail()
 
-        actual shouldBe KlageTilAttestering.Avvist.create(
-            id = klage.id,
-            opprettet = klage.opprettet,
-            sakId = klage.sakId,
-            saksnummer = klage.saksnummer,
-            fnr = klage.fnr,
-            journalpostId = klage.journalpostId,
+        actual shouldBe KlageTilAttestering.Avvist(
+            forrigeSteg = klage,
             oppgaveId = klage.oppgaveId,
             saksbehandler = klage.saksbehandler,
-            vilkårsvurderinger = actual.vilkårsvurderinger,
-            attesteringer = klage.attesteringer,
-            datoKlageMottatt = klage.datoKlageMottatt,
-            fritekstTilBrev = klage.fritekstTilBrev,
         )
     }
 

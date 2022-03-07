@@ -205,7 +205,6 @@ internal class VilkårsvurderKlageTest {
         )
         mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.UgyldigTilstand(
             klage::class,
-            VilkårsvurdertKlage::class,
         ).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
@@ -425,7 +424,7 @@ internal class VilkårsvurderKlageTest {
 
         var expectedKlage: VilkårsvurdertKlage.Påbegynt?
         mocks.service.vilkårsvurder(request).getOrFail().also {
-            expectedKlage = VilkårsvurdertKlage.Påbegynt.create(
+            expectedKlage = VilkårsvurdertKlage.Påbegynt(
                 id = it.id,
                 opprettet = fixedTidspunkt,
                 sakId = klage.sakId,
@@ -499,7 +498,8 @@ internal class VilkårsvurderKlageTest {
                 vurderinger = vurderingerTilKlage,
                 attesteringer = attesteringer,
                 datoKlageMottatt = 1.desember(2021),
-                klageinstanshendelser = Klageinstanshendelser.empty()
+                klageinstanshendelser = Klageinstanshendelser.empty(),
+                fritekstTilAvvistVedtaksbrev = null,
             )
             it shouldBe expectedKlage
         }

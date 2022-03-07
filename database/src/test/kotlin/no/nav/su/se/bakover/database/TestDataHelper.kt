@@ -4,12 +4,15 @@ import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.kotest.assertions.fail
+import kotliquery.using
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
+import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
@@ -20,12 +23,11 @@ import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRep
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
-import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
+import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
@@ -53,7 +55,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
@@ -221,25 +222,26 @@ internal val dbMetricsStub: DbMetrics = object : DbMetrics {
     }
 }
 
+internal val sessionCounterStub: SessionCounter = SessionCounter {
+    fail("Database sessions were over the threshold while running test.")
+}
+
 internal class TestDataHelper(
     internal val dataSource: DataSource,
-    dbMetrics: DbMetrics = dbMetricsStub,
+    internal val dbMetrics: DbMetrics = dbMetricsStub,
     private val clock: Clock = fixedClock,
 ) {
-    internal val sessionFactory = PostgresSessionFactory(dataSource)
+    internal val sessionFactory = PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub)
     internal val utbetalingRepo = UtbetalingPostgresRepo(
-        dataSource = dataSource,
-        dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
-    )
-    internal val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
-    internal val søknadRepo = SøknadPostgresRepo(
-        dataSource = dataSource,
         dbMetrics = dbMetrics,
-        postgresSessionFactory = sessionFactory,
     )
-    internal val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
-    internal val utenlandsoppholdgrunnlagPostgresRepo = UtenlandsoppholdgrunnlagPostgresRepo()
+    internal val søknadRepo = SøknadPostgresRepo(
+        sessionFactory = sessionFactory,
+        dbMetrics = dbMetrics,
+    )
+    internal val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dbMetrics)
+    internal val utenlandsoppholdgrunnlagPostgresRepo = UtenlandsoppholdgrunnlagPostgresRepo(dbMetrics)
     internal val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(
         dbMetrics = dbMetrics,
     )
@@ -247,20 +249,21 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
     )
     internal val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(
-        uføregrunnlagRepo = uføregrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
+        uføregrunnlagRepo = uføregrunnlagPostgresRepo,
     )
     internal val utenlandsoppholdVilkårsvurderingRepo = UtenlandsoppholdVilkårsvurderingPostgresRepo(
         utenlandsoppholdgrunnlagRepo = utenlandsoppholdgrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
     )
-    internal val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(sessionFactory)
-    internal val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo()
+    internal val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(sessionFactory, dbMetrics)
+    internal val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo(dbMetrics)
     internal val formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(
-        formuegrunnlagPostgresRepo = formuegrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
+        formuegrunnlagPostgresRepo = formuegrunnlagPostgresRepo,
     )
     internal val grunnlagsdataOgVilkårsvurderingerPostgresRepo = GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
+        dbMetrics = dbMetrics,
         bosituasjongrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
         fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
         uføreVilkårsvurderingPostgresRepo = uføreVilkårsvurderingRepo,
@@ -268,51 +271,54 @@ internal class TestDataHelper(
         utenlandsoppholdVilkårsvurderingPostgresRepo = utenlandsoppholdVilkårsvurderingRepo,
     )
     internal val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(
-        dataSource = dataSource,
-        grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
-        dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
+        dbMetrics = dbMetrics,
+        grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
         avkortingsvarselRepo = avkortingsvarselRepo,
         clock = clock,
     )
-    internal val klageinstanshendelsePostgresRepo = KlageinstanshendelsePostgresRepo(sessionFactory)
-    internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory, klageinstanshendelsePostgresRepo)
+    internal val klageinstanshendelsePostgresRepo = KlageinstanshendelsePostgresRepo(sessionFactory, dbMetrics)
+    internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory, dbMetrics, klageinstanshendelsePostgresRepo)
     internal val revurderingRepo = RevurderingPostgresRepo(
-        dataSource = dataSource,
+        sessionFactory = sessionFactory,
+        dbMetrics = dbMetrics,
         grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         klageRepo = klagePostgresRepo,
-        dbMetrics = dbMetrics,
-        sessionFactory = sessionFactory,
         avkortingsvarselRepo = avkortingsvarselRepo,
     )
     internal val vedtakRepo = VedtakPostgresRepo(
-        dataSource = dataSource,
+        sessionFactory = sessionFactory,
+        dbMetrics = dbMetrics,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         revurderingRepo = revurderingRepo,
         klageRepo = klagePostgresRepo,
-        dbMetrics = dbMetrics,
-        sessionFactory = sessionFactory,
     )
     internal val personRepo = PersonPostgresRepo(
-        dataSource = dataSource,
+        sessionFactory = sessionFactory,
         dbMetrics = dbMetrics,
     )
-    internal val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource = dataSource, fixedClock)
-    internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
-    internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource, fixedClock)
+    internal val nøkkeltallRepo =
+        NøkkeltallPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics, clock = fixedClock)
+    internal val dokumentRepo = DokumentPostgresRepo(sessionFactory, dbMetrics)
+    internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(sessionFactory, dbMetrics, fixedClock)
 
     internal val sakRepo = SakPostgresRepo(
         sessionFactory = sessionFactory,
+        dbMetrics = dbMetrics,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         revurderingRepo = revurderingRepo,
         vedtakPostgresRepo = vedtakRepo,
-        dbMetrics = dbMetrics,
         klageRepo = klagePostgresRepo,
     )
     internal val reguleringRepo = ReguleringPostgresRepo(
-        dataSource = dataSource,
         sessionFactory = sessionFactory,
+        dbMetrics = dbMetrics,
+    )
+
+    internal val avstemmingRepo = AvstemmingPostgresRepo(
+        sessionFactory,
+        dbMetrics,
     )
 
     fun nySakMedNySøknad(
@@ -430,8 +436,6 @@ internal class TestDataHelper(
             utbetalingRepo.oppdaterMedKvittering(it)
         }
     }
-
-    fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg) = hendelsesloggRepo.oppdaterHendelseslogg(hendelseslogg)
 
     fun vedtakForSøknadsbehandlingOgUtbetalingId(
         søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
@@ -1257,10 +1261,10 @@ internal class TestDataHelper(
         return bekreftetVilkårsvurdertKlageTilVurdering(vedtak = vedtak).vurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
             vurderinger = VurderingerTilKlage.Påbegynt.create(
-                fritekstTilBrev = "Friteksten til brevet er som følge: ",
+                fritekstTilOversendelsesbrev = "Friteksten til brevet er som følge: ",
                 vedtaksvurdering = null,
             ),
-        ).getOrFail().let {
+        ).let {
             if (it !is VurdertKlage.Påbegynt) throw IllegalStateException("Forventet en Påbegynt vurdert klage. fikk ${it::class} ved opprettelse av test data")
             it
         }.also {
@@ -1274,14 +1278,14 @@ internal class TestDataHelper(
         return påbegyntVurdertKlage(vedtak = vedtak).vurder(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
             vurderinger = VurderingerTilKlage.Utfylt(
-                fritekstTilBrev = "Friteksten til brevet er som følge: ",
+                fritekstTilOversendelsesbrev = "Friteksten til brevet er som følge: ",
                 vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold(
                     hjemler = Hjemler.Utfylt.create(
                         nonEmptyListOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4),
                     ),
                 ),
             ),
-        ).getOrFail().let {
+        ).let {
             if (it !is VurdertKlage.Utfylt) throw IllegalStateException("Forventet en Påbegynt vurdert klage. fikk ${it::class} ved opprettelse av test data")
             it
         }.also {
@@ -1294,7 +1298,7 @@ internal class TestDataHelper(
     ): VurdertKlage.Bekreftet {
         return utfyltVurdertKlage(vedtak = vedtak).bekreftVurderinger(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVurdertKlage"),
-        ).orNull()!!.also {
+        ).also {
             klagePostgresRepo.lagre(it)
         }
     }
@@ -1318,10 +1322,10 @@ internal class TestDataHelper(
         saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerAvvistKlage"),
         fritekstTilBrev: String = "en god, og lang fritekst",
     ): AvvistKlage {
-        return bekreftetAvvistVilkårsvurdertKlage(vedtak).leggTilAvvistFritekstTilBrev(
+        return bekreftetAvvistVilkårsvurdertKlage(vedtak).leggTilFritekstTilAvvistVedtaksbrev(
             saksbehandler,
             fritekstTilBrev,
-        ).getOrFail().also {
+        ).also {
             klagePostgresRepo.lagre(it)
         }
     }
@@ -1366,10 +1370,7 @@ internal class TestDataHelper(
                 grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                 kommentar = "underkjennelseskommentar",
             ),
-        ) { oppgaveId.right() }.orNull()!!.let {
-            if (it !is VurdertKlage.Bekreftet) throw IllegalStateException("Forventet VurdertKlage.Bekreftet ved opprettelse av test data. fikk ${it::class} ved opprettelse av test-data")
-            it
-        }.also {
+        ) { oppgaveId.right() }.orNull()!!.also {
             klagePostgresRepo.lagre(it)
         }
     }
@@ -1463,4 +1464,12 @@ internal class TestDataHelper(
             if (søknader.size != 1) throw IllegalStateException("Var ferre/fler enn 1 søknad. Testen bør spesifisere dersom fler. Antall: ${søknader.size}")
         }
     }
+}
+
+internal fun <T> DataSource.withSession(block: (session: Session) -> T): T {
+    return using(sessionOf(this, dbMetricsStub)) { block(it) }
+}
+
+internal fun <T> DataSource.withTransaction(block: (session: TransactionalSession) -> T): T {
+    return using(sessionOf(this, dbMetricsStub)) { s -> s.transaction { block(it) } }
 }

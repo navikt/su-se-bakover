@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.revurdering
 
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.insert
@@ -11,11 +12,13 @@ import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 
 internal class GjenopptakAvYtelsePostgresRepo(
     private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
+    private val dbMetrics: DbMetrics,
 ) {
     internal fun lagre(revurdering: GjenopptaYtelseRevurdering, tx: TransactionalSession) {
-        when (revurdering) {
-            is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
-                """
+        dbMetrics.timeQuery("lagreGjennopptaYtelseRevurdering") {
+            when (revurdering) {
+                is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
+                    """
                     insert into revurdering (
                         id,
                         opprettet,
@@ -48,66 +51,67 @@ internal class GjenopptakAvYtelsePostgresRepo(
                         vedtakSomRevurderesId=:vedtakSomRevurderesId,
                         årsak=:arsak,
                         begrunnelse=:begrunnelse
-                """.trimIndent()
-                    .insert(
-                        mapOf(
-                            "id" to revurdering.id,
-                            "opprettet" to revurdering.opprettet,
-                            "periode" to objectMapper.writeValueAsString(revurdering.periode),
-                            "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
-                            "saksbehandler" to revurdering.saksbehandler,
-                            "revurderingsType" to RevurderingsType.SIMULERT_GJENOPPTAK,
-                            "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
-                            "arsak" to revurdering.revurderingsårsak.årsak.toString(),
-                            "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                            "attestering" to emptyList<Attestering>().serialize(),
-                            "skalFoereTilBrevutsending" to false,
-                        ),
-                        tx,
+                    """.trimIndent()
+                        .insert(
+                            mapOf(
+                                "id" to revurdering.id,
+                                "opprettet" to revurdering.opprettet,
+                                "periode" to objectMapper.writeValueAsString(revurdering.periode),
+                                "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
+                                "saksbehandler" to revurdering.saksbehandler,
+                                "revurderingsType" to RevurderingsType.SIMULERT_GJENOPPTAK,
+                                "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
+                                "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                                "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                                "attestering" to emptyList<Attestering>().serialize(),
+                                "skalFoereTilBrevutsending" to false,
+                            ),
+                            tx,
+                        )
+                    grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
+                        behandlingId = revurdering.id,
+                        grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
+                        tx = tx,
                     )
-                grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
-                    behandlingId = revurdering.id,
-                    grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
-                    tx = tx,
-                )
-            }
-            is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> {
-                """
+                }
+                is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> {
+                    """
                     update revurdering set 
                         attestering = to_json(:attestering::json),
                         revurderingsType = :revurderingsType 
                     where id = :id
-                """.trimIndent()
-                    .oppdatering(
-                        mapOf(
-                            "attestering" to revurdering.attesteringer.serialize(),
-                            "revurderingsType" to RevurderingsType.IVERKSATT_GJENOPPTAK,
-                            "id" to revurdering.id,
-                        ),
-                        tx,
-                    )
-            }
-            is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> {
-                """
+                    """.trimIndent()
+                        .oppdatering(
+                            mapOf(
+                                "attestering" to revurdering.attesteringer.serialize(),
+                                "revurderingsType" to RevurderingsType.IVERKSATT_GJENOPPTAK,
+                                "id" to revurdering.id,
+                            ),
+                            tx,
+                        )
+                }
+                is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> {
+                    """
                         update 
                             revurdering
                         set 
                             avsluttet = to_jsonb(:avsluttet::jsonb)
                         where
                             id = :id
-                """.trimIndent().oppdatering(
-                    params = mapOf(
-                        "id" to revurdering.id,
-                        "avsluttet" to objectMapper.writeValueAsString(
-                            AvsluttetRevurderingInfo(
-                                begrunnelse = revurdering.begrunnelse,
-                                fritekst = null,
-                                tidspunktAvsluttet = revurdering.tidspunktAvsluttet,
+                    """.trimIndent().oppdatering(
+                        params = mapOf(
+                            "id" to revurdering.id,
+                            "avsluttet" to objectMapper.writeValueAsString(
+                                AvsluttetRevurderingInfo(
+                                    begrunnelse = revurdering.begrunnelse,
+                                    fritekst = null,
+                                    tidspunktAvsluttet = revurdering.tidspunktAvsluttet,
+                                ),
                             ),
                         ),
-                    ),
-                    session = tx,
-                )
+                        session = tx,
+                    )
+                }
             }
         }
     }

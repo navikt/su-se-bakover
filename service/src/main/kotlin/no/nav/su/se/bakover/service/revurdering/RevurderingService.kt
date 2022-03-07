@@ -257,22 +257,19 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
         KunneIkkeSendeRevurderingTilAttestering()
 }
 
-sealed class KunneIkkeIverksetteRevurdering {
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
-    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteRevurdering()
-    object KunneIkkeGenerereBrev : KunneIkkeIverksetteRevurdering()
-    object FantIkkePerson : KunneIkkeIverksetteRevurdering()
-    object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeIverksetteRevurdering()
-    object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeIverksetteRevurdering()
-    object IngenEndringErIkkeGyldig : KunneIkkeIverksetteRevurdering()
-    object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
-    object LagringFeilet : KunneIkkeIverksetteRevurdering()
-    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksetteRevurdering()
-    object HarAlleredeBlittAnnullertAvEnAnnen : KunneIkkeIverksetteRevurdering()
+sealed interface KunneIkkeIverksetteRevurdering {
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering
+    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteRevurdering
+    object IngenEndringErIkkeGyldig : KunneIkkeIverksetteRevurdering
+    object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering
+    object LagringFeilet : KunneIkkeIverksetteRevurdering
+    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksetteRevurdering
+    object KunneIkkeAnnulereKontrollsamtale : KunneIkkeIverksetteRevurdering
+
     data class UgyldigTilstand(
         val fra: KClass<out AbstraktRevurdering>,
         val til: KClass<out AbstraktRevurdering>,
-    ) : KunneIkkeIverksetteRevurdering()
+    ) : KunneIkkeIverksetteRevurdering
 }
 
 sealed class KunneIkkeLageBrevutkastForRevurdering {

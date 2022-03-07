@@ -119,7 +119,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
             opprettet = tidspunkt("opprettet"),
             resultat = ResultatDto.valueOf(string("resultat")).toDomain(),
             grunnlag = uuid("formue_grunnlag_id").let {
-                formuegrunnlagPostgresRepo.hentForFormuegrunnlagId(it, session)!!
+                formuegrunnlagPostgresRepo.hentFormuegrunnlag(it, session)!!
             },
             periode = Periode.create(
                 fraOgMed = localDate("fraOgMed"),

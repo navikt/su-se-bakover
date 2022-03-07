@@ -118,7 +118,7 @@ internal class UføreVilkårsvurderingPostgresRepo(
             opprettet = tidspunkt("opprettet"),
             resultat = ResultatDto.valueOf(string("resultat")).toDomain(),
             grunnlag = uuidOrNull("uføre_grunnlag_id")?.let {
-                uføregrunnlagRepo.hentForUføregrunnlagId(it, session)
+                uføregrunnlagRepo.hentForUføregrunnlagForId(it, session)
             },
             begrunnelse = stringOrNull("begrunnelse"),
             periode = Periode.create(

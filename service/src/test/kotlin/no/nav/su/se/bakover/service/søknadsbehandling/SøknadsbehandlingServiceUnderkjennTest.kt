@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -125,7 +124,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val personServiceMock = mock<PersonService>()
         val oppgaveServiceMock = mock<OppgaveService>()
         val behandlingMetricsMock = mock<BehandlingMetrics>()
-        val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
@@ -150,7 +148,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
             personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
-            hendelsesloggRepoMock
         )
     }
 
@@ -170,7 +167,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val personServiceMock = mock<PersonService>()
         val oppgaveServiceMock = mock<OppgaveService>()
         val behandlingMetricsMock = mock<BehandlingMetrics>()
-        val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
 
         shouldThrow<StatusovergangVisitor.UgyldigStatusovergangException> {
             createSøknadsbehandlingService(
@@ -195,7 +191,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
             personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
-            hendelsesloggRepoMock
         )
     }
 

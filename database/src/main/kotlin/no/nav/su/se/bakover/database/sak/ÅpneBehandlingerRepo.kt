@@ -19,7 +19,7 @@ internal class ÅpneBehandlingerRepo(
      * Henter åpne søknadsbehandlinger, åpne revurderinger, åpne klager, og nye søknader
      */
     fun hentÅpneBehandlinger(session: Session): List<Behandlingsoversikt> {
-        return dbMetrics.timeQuery("hentSakRestanser") {
+        return dbMetrics.timeQuery("hentÅpneBehandlinger") {
             //language=sql
             """
                 with sak as (

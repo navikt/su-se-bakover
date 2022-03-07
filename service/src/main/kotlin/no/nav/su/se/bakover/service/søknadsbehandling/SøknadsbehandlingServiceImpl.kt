@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -390,34 +389,40 @@ internal class SøknadsbehandlingServiceImpl(
                     val vedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(iverksattBehandling, utbetaling.id, clock)
                     Either.catch {
                         sessionFactory.withTransactionContext {
+                            // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
+                            // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
                             søknadsbehandlingRepo.lagre(iverksattBehandling, it)
                             utbetalingService.lagreUtbetaling(utbetaling, it)
                             vedtakRepo.lagre(vedtak, it)
-                            kontrollsamtaleService.opprettPlanlagtKontrollsamtale(vedtak, it)
-                            utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
-                                log.error(
-                                    "Kunne ikke publisere utbetaling på køen. Ruller tilbake. SakId: ${iverksattBehandling.sakId}",
-                                    feil,
+                            kontrollsamtaleService.opprettPlanlagtKontrollsamtale(vedtak, it).mapLeft { feil ->
+                                throw IverksettTransactionException(
+                                    "Kunne ikke opprette planlagt kontrollsamtale. Underliggende feil: $feil.",
+                                    KunneIkkeIverksette.KunneIkkeOpprettePlanlagtKontrollsamtale,
                                 )
-                                throw RuntimeException("Publisering av utbetaling på køen feilet. $feil")
+                            }
+                            utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
+                                throw IverksettTransactionException(
+                                    "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
+                                    KunneIkkeIverksette.KunneIkkeUtbetale(feil),
+                                )
                             }
                         }
-                    }.mapLeft { return KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left() }
+                    }.mapLeft {
+                        log.error(
+                            "Kunne ikke iverksette søknadsbehandling for sak ${iverksattBehandling.sakId} og søknadsbehandling ${iverksattBehandling.id}.",
+                            it,
+                        )
+                        return when (it) {
+                            is IverksettTransactionException -> it.feil
+                            else -> KunneIkkeIverksette.LagringFeilet
+                        }.left()
+                    }
 
                     log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
 
                     behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
-                    iverksattBehandling.also {
-                        observers.forEach { observer ->
-                            observer.handle(
-                                Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
-                                    iverksattBehandling,
-                                ),
-                            )
-                            observer.handle((Event.Statistikk.Vedtaksstatistikk(vedtak)))
-                        }
-                    }
+                    Pair(iverksattBehandling, vedtak)
                 }
                 is Søknadsbehandling.Iverksatt.Avslag -> {
                     val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling)
@@ -435,11 +440,12 @@ internal class SøknadsbehandlingServiceImpl(
                         )
 
                     sessionFactory.withTransactionContext {
+                        // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
+                        // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
                         søknadsbehandlingRepo.lagre(iverksattBehandling, it)
                         vedtakRepo.lagre(vedtak, it)
                         brevService.lagreDokument(dokument, it)
                     }
-
                     log.info("Iverksatt avslag for behandling: ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
 
                     behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
@@ -449,19 +455,31 @@ internal class SøknadsbehandlingServiceImpl(
                             log.error("Lukking av oppgave for behandlingId: ${(vedtak.behandling as BehandlingMedOppgave).oppgaveId} feilet. Må ryddes opp manuelt.")
                         }
 
-                    iverksattBehandling.also {
-                        observers.forEach { observer ->
-                            observer.handle(
-                                Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
-                                    iverksattBehandling,
-                                ),
-                            )
-                        }
-                    }
+                    Pair(iverksattBehandling, vedtak)
                 }
             }
+        }.map {
+            Either.catch {
+                observers.forEach { observer ->
+                    observer.handle(Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(it.first))
+                    (it.second as? VedtakSomKanRevurderes.EndringIYtelse)?.let { v ->
+                        observer.handle(Event.Statistikk.Vedtaksstatistikk(v))
+                    }
+                }
+            }.mapLeft { e ->
+                log.error(
+                    "Kunne ikke sende statistikk etter vi iverksatte søknadsbehandling. Dette er kun en sideeffekt og påvirker ikke saksbehandlingen.",
+                    e,
+                )
+            }
+            it.first
         }
     }
+
+    private data class IverksettTransactionException(
+        override val message: String,
+        val feil: KunneIkkeIverksette,
+    ) : RuntimeException(message)
 
     private fun opprettAvslagsvedtak(iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag): Avslagsvedtak =
         when (iverksattBehandling) {

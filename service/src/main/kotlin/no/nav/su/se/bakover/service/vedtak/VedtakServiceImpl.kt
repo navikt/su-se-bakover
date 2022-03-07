@@ -33,7 +33,7 @@ class VedtakServiceImpl(
     }
 
     override fun hentForVedtakId(vedtakId: UUID): Vedtak? {
-        return vedtakRepo.hentForVedtakId(vedtakId)
+        return vedtakRepo.hentVedtakForId(vedtakId)
     }
 
     override fun hentJournalpostId(vedtakId: UUID): JournalpostId? {

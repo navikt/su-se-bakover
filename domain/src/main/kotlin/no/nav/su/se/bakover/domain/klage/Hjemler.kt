@@ -6,9 +6,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 
-sealed class Hjemler : List<Hjemmel> {
-
-    protected abstract val hjemler: List<Hjemmel>
+sealed interface Hjemler : List<Hjemmel> {
 
     companion object {
         fun empty(): IkkeUtfylt {
@@ -25,8 +23,8 @@ sealed class Hjemler : List<Hjemmel> {
     }
 
     data class IkkeUtfylt private constructor(
-        override val hjemler: List<Hjemmel> = emptyList(),
-    ) : Hjemler(), List<Hjemmel> by hjemler {
+        private val hjemler: List<Hjemmel> = emptyList(),
+    ) : Hjemler, List<Hjemmel> by hjemler {
         companion object {
             fun create(): IkkeUtfylt {
                 return IkkeUtfylt()
@@ -38,8 +36,8 @@ sealed class Hjemler : List<Hjemmel> {
      * Hjemlene blir sortert alfabetisk.
      */
     data class Utfylt private constructor(
-        override val hjemler: NonEmptyList<Hjemmel>,
-    ) : Hjemler(), List<Hjemmel> by hjemler {
+        private val hjemler: NonEmptyList<Hjemmel>,
+    ) : Hjemler, List<Hjemmel> by hjemler {
         companion object {
             /**
              * Kun ment å brukes fra databaselaget og tester
