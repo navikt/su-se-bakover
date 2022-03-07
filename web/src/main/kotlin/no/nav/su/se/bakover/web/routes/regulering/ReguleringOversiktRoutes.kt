@@ -28,9 +28,14 @@ internal fun Route.reguleringOversiktRoutes(
                     ifRight = { reguleringsjobb ->
                         val json = reguleringService.hentStatus(reguleringsjobb).map { it.toJson() }
                         call.svar(Resultat.json(HttpStatusCode.OK, serialize(json)))
-                    }
+                    },
                 )
             }
+        }
+
+        get("$reguleringPath/saker/apneBehandlinger") {
+            val json = reguleringService.hentSakerMedÅpneBehandlinger()
+            call.svar(Resultat.json(HttpStatusCode.OK, serialize(json)))
         }
     }
 }

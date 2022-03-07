@@ -922,6 +922,10 @@ open class AccessCheckProxy(
                 override fun hentStatus(reguleringsjobb: Reguleringsjobb): List<Regulering> {
                     return hentStatus(reguleringsjobb)
                 }
+
+                override fun hentSakerMedÅpneBehandlinger(): List<Saksnummer> {
+                    return hentSakerMedÅpneBehandlinger()
+                }
             },
         )
     }

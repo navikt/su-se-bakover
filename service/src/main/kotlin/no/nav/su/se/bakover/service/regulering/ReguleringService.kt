@@ -85,4 +85,5 @@ interface ReguleringService {
     fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, Regulering.OpprettetRegulering>
     fun simuler(request: SimulerRequest): Either<KunneIkkeSimulere, Regulering.OpprettetRegulering>
     fun hentStatus(reguleringsjobb: Reguleringsjobb): List<Regulering>
+    fun hentSakerMedÅpneBehandlinger(): List<Saksnummer>
 }

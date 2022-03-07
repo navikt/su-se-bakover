@@ -157,6 +157,10 @@ class ReguleringServiceImpl(
         return reguleringRepo.hent(reguleringsjobb)
     }
 
+    override fun hentSakerMedÅpneBehandlinger(): List<Saksnummer> {
+        return reguleringRepo.hentSakerMedBehandlingerTilAttestering()
+    }
+
     override fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering> {
         reguleringRepo.hent(reguleringId)?.let { regulering ->
             return when (regulering) {

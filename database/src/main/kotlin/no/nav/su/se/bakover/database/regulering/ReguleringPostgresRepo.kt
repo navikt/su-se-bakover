@@ -79,6 +79,18 @@ internal class ReguleringPostgresRepo(
             ) { it.toRegulering(session) }
         }
 
+    override fun hentSakerMedBehandlingerTilAttestering(): List<Saksnummer> {
+        return sessionFactory.withSession { session ->
+            """
+                select saksnummer from behandling left join sak s on sakid = s.id where status like 'TIL_ATTESTERING%'
+                union
+                select saksnummer from ( revurdering r left join behandling_vedtak bv on r.vedtaksomrevurderesid = bv.vedtakid ) left join sak s on s.id = sakid where revurderingstype like 'TIL_ATTESTERING%'
+            """.trimIndent().hentListe(mapOf(), session) {
+                Saksnummer(it.long("saksnummer"))
+            }
+        }
+    }
+
     internal fun hent(saksnummer: Saksnummer, jobbnavn: String, session: Session): Regulering? =
         """
             select *
