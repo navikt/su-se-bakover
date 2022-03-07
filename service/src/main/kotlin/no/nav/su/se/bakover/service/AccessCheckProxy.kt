@@ -104,9 +104,11 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.regulering.BeregnRequest
 import no.nav.su.se.bakover.service.regulering.KunneIkkeBeregne
+import no.nav.su.se.bakover.service.regulering.KunneIkkeFortsettRegulering
 import no.nav.su.se.bakover.service.regulering.KunneIkkeIverksetteRegulering
 import no.nav.su.se.bakover.service.regulering.KunneIkkeLeggeTilFradrag
 import no.nav.su.se.bakover.service.regulering.KunneIkkeSimulere
+import no.nav.su.se.bakover.service.regulering.KunneIkkeStarteRegulering
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.service.regulering.SimulerRequest
 import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
@@ -903,8 +905,12 @@ open class AccessCheckProxy(
                     return beregn(request)
                 }
 
-                override fun startRegulering(reguleringsjobb: Reguleringsjobb) {
+                override fun startRegulering(reguleringsjobb: Reguleringsjobb): Either<KunneIkkeStarteRegulering, Unit> {
                     return startRegulering(reguleringsjobb)
+                }
+
+                override fun fortsettRegulering(): Either<KunneIkkeFortsettRegulering, Unit> {
+                    return fortsettRegulering()
                 }
 
                 override fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering> {

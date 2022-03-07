@@ -71,12 +71,22 @@ internal class ReguleringPostgresRepo(
         ) { it.toRegulering(session) }
     }
 
+    override fun hentReguleringerSomIkkeErIverksatt(): List<Regulering.OpprettetRegulering> =
+        dataSource.withSession { session ->
+            """ select * from regulering r left join sak s on r.sakid = s.id
+            """.trimIndent().hentListe(
+                mapOf("reguleringstatus" to ReguleringStatus.OPPRETTET),
+                session,
+            ) { it.toRegulering(session) as Regulering.OpprettetRegulering }
+        }
+
     override fun hentForSakId(sakId: UUID, sessionContext: TransactionContext): List<Regulering> =
         sessionContext.withTransaction { session ->
-            """ select * from regulering r inner join sak s on s.id = r.sakid where sakid = :sakid """.trimIndent().hentListe(
-                mapOf("sakid" to sakId),
-                session,
-            ) { it.toRegulering(session) }
+            """ select * from regulering r inner join sak s on s.id = r.sakid where sakid = :sakid """.trimIndent()
+                .hentListe(
+                    mapOf("sakid" to sakId),
+                    session,
+                ) { it.toRegulering(session) }
         }
 
     override fun hentSakerMedBehandlingerTilAttestering(): List<Saksnummer> {
