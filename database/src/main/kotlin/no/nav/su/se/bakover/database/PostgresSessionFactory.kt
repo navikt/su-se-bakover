@@ -14,7 +14,7 @@ internal class PostgresSessionFactory(
 ) : SessionFactory {
 
     /** Lager en ny context - starter ikke sesjonen */
-    internal fun newSessionContext(): PostgresSessionContext {
+    override fun newSessionContext(): PostgresSessionContext {
         return PostgresSessionContext(dataSource, dbMetrics, sessionCounter)
     }
 
@@ -42,7 +42,7 @@ internal class PostgresSessionFactory(
      * Merk: Man må kalle withTransaction {...} før man kaller withSession {...} hvis ikke får man en [IllegalStateException]
      * withSession {...} vil kjøre inne i den samme transaksjonen.
      * */
-    internal fun newTransactionContext(): PostgresTransactionContext {
+    override fun newTransactionContext(): PostgresTransactionContext {
         return PostgresTransactionContext(dataSource, dbMetrics, sessionCounter)
     }
 

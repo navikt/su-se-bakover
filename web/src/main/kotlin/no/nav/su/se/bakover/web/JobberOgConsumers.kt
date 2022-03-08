@@ -154,6 +154,7 @@ fun startJobberOgConsumers(
             } else {
                 Duration.of(15, ChronoUnit.MINUTES)
             },
+            sessionFactory = databaseRepos.sessionFactory,
         ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         // Prøver å time starten på de lokale jobbene slik at heller ikke de går i beina på hverandre.
@@ -216,6 +217,7 @@ fun startJobberOgConsumers(
             kontrollsamtaleService = services.kontrollsamtale,
             starttidspunkt = Date.from(Instant.now(clock).plusSeconds(initialDelay.next().toSeconds())),
             periode = Duration.ofMinutes(5),
+            sessionFactory = databaseRepos.sessionFactory,
         ).schedule()
     }
 }

@@ -95,7 +95,6 @@ import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtale
-import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeKalleInnTilKontrollsamtale
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -770,7 +769,10 @@ open class AccessCheckProxy(
                     return services.kontrollsamtale.nyDato(sakId, dato)
                 }
 
-                override fun hentNestePlanlagteKontrollsamtale(sakId: UUID): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale> {
+                override fun hentNestePlanlagteKontrollsamtale(
+                    sakId: UUID,
+                    sessionContext: SessionContext,
+                ): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale> {
                     assertHarTilgangTilSak(sakId)
                     return services.kontrollsamtale.hentNestePlanlagteKontrollsamtale(sakId)
                 }
@@ -778,18 +780,21 @@ open class AccessCheckProxy(
                 override fun kallInn(
                     sakId: UUID,
                     kontrollsamtale: Kontrollsamtale,
-                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> = kastKanKunKallesFraAnnenService()
+                    transactionContext: TransactionContext,
+                ) = kastKanKunKallesFraAnnenService()
 
-                override fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> =
+                override fun hentPlanlagteKontrollsamtaler(sessionContext: SessionContext) =
                     kastKanKunKallesFraAnnenService()
 
                 override fun opprettPlanlagtKontrollsamtale(
                     vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
-                    transactionContext: TransactionContext,
-                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> = kastKanKunKallesFraAnnenService()
+                    sessionContext: SessionContext,
+                ) = kastKanKunKallesFraAnnenService()
 
-                override fun annullerKontrollsamtale(sakId: UUID, transactionContext: TransactionContext): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> =
+                override fun annullerKontrollsamtale(sakId: UUID, sessionContext: SessionContext) =
                     kastKanKunKallesFraAnnenService()
+
+                override fun defaultSessionContext() = services.kontrollsamtale.defaultSessionContext()
             },
             klageService = object : KlageService {
                 override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
