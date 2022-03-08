@@ -209,7 +209,7 @@ class ReguleringServiceImpl(
             opprettet = Tidspunkt.now(clock),
             sakId = request.sakId,
             saksnummer = request.saksnummer,
-            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+            saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
             fnr = request.fnr,
             periode = Periode.create(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
             grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,

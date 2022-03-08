@@ -161,7 +161,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                 beregning = regulering.beregning!!,
                 simulering = regulering.simulering!!,
                 saksbehandler = regulering.saksbehandler,
-                attestant = NavIdentBruker.Attestant(regulering.saksbehandler.toString()), // TODO dette vil vi ikke...
+                attestant = NavIdentBruker.Attestant(regulering.saksbehandler.toString()),
                 utbetalingId = utbetalingId,
             )
         }
