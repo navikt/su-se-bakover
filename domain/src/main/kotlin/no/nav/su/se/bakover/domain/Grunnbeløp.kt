@@ -12,6 +12,7 @@ class Grunnbeløp private constructor(private val multiplier: Double) {
         LocalDate.of(2019, Month.MAY, 1) to 99858,
         LocalDate.of(2020, Month.MAY, 1) to 101351,
         LocalDate.of(2021, Month.MAY, 1) to 106399,
+        LocalDate.of(2022, Month.MAY, 1) to 140000,
     ).toMap()
 
     fun påDato(dato: LocalDate): Double = datoToBeløp.entries

@@ -103,7 +103,6 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.regulering.BeregnOgSimulerFeilet
 import no.nav.su.se.bakover.service.regulering.BeregnRequest
-import no.nav.su.se.bakover.service.regulering.KunneIkkeFortsettRegulering
 import no.nav.su.se.bakover.service.regulering.KunneIkkeIverksetteRegulering
 import no.nav.su.se.bakover.service.regulering.KunneIkkeLeggeTilFradrag
 import no.nav.su.se.bakover.service.regulering.KunneIkkeStarteRegulering
@@ -900,10 +899,6 @@ open class AccessCheckProxy(
             reguleringService = object : ReguleringService {
                 override fun startRegulering(startDato: LocalDate): Either<KunneIkkeStarteRegulering, Unit> {
                     return startRegulering(startDato)
-                }
-
-                override fun fortsettRegulering(): Either<KunneIkkeFortsettRegulering, Unit> {
-                    return fortsettRegulering()
                 }
 
                 override fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering> {

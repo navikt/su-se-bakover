@@ -24,6 +24,9 @@ import java.time.Clock
 import java.util.UUID
 import kotlin.reflect.KClass
 
+fun List<Regulering>.harÅpenRegulering() = this.any { it is Regulering.OpprettetRegulering }
+fun List<Regulering>.hentÅpenRegulering() = this.filterIsInstance<Regulering.OpprettetRegulering>().single()
+
 sealed interface Regulering : Behandling {
     val beregning: Beregning?
     val simulering: Simulering?
@@ -52,23 +55,29 @@ sealed interface Regulering : Behandling {
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
         override val periode: Periode,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
-        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger,
+        override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         override val beregning: Beregning?,
         override val simulering: Simulering?,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val reguleringType: ReguleringType,
     ) : Regulering {
+        override val grunnlagsdata: Grunnlagsdata
+            get() = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
+            get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
 
         fun leggTilFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): OpprettetRegulering =
             // er det ok å returnere this, eller skal man lage ny OpprettetRegulering som man returnerer her?
             // samme for beregn og simulering...
             this.copy(
-                grunnlagsdata = Grunnlagsdata.tryCreate(
-                    bosituasjon = grunnlagsdata.bosituasjon,
-                    fradragsgrunnlag = fradragsgrunnlag,
-                ).getOrHandle { throw IllegalStateException("") },
+                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+                    grunnlagsdata = Grunnlagsdata.tryCreate(
+                        bosituasjon = grunnlagsdata.bosituasjon,
+                        fradragsgrunnlag = fradragsgrunnlag,
+                    ).getOrHandle { throw IllegalStateException("") },
+                    vilkårsvurderinger = vilkårsvurderinger
+
+                )
             )
 
         override fun beregn(clock: Clock, begrunnelse: String?): Either<KunneIkkeBeregne, OpprettetRegulering> =

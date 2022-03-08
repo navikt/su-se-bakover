@@ -65,7 +65,6 @@ object KunneIkkeUtbetale
 
 interface ReguleringService {
     fun startRegulering(startDato: LocalDate): Either<KunneIkkeStarteRegulering, Unit>
-    fun fortsettRegulering(): Either<KunneIkkeFortsettRegulering, Unit>
     fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering>
     fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering>
     fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering>

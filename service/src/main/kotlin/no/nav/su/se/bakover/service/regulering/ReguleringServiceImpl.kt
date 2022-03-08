@@ -20,6 +20,8 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
+import no.nav.su.se.bakover.domain.regulering.harÅpenRegulering
+import no.nav.su.se.bakover.domain.regulering.hentÅpenRegulering
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -49,41 +51,34 @@ class ReguleringServiceImpl(
     private val clock: Clock,
 ) : ReguleringService {
 
-    override fun fortsettRegulering(): Either<KunneIkkeFortsettRegulering, Unit> {
-        reguleringRepo.hentReguleringerSomIkkeErIverksatt().forEach { regulering ->
-            oppdaterRegulering(regulering).map { oppdatertRegulering ->
-                reguleringRepo.lagre(oppdatertRegulering)
-                if (oppdatertRegulering.reguleringType == ReguleringType.AUTOMATISK) {
-                    regulerAutomatisk(oppdatertRegulering)
-                }
-            }.mapLeft {
-                when (it) {
-                    KunneIkkeOppretteRegulering.FantIkkeRegulering -> TODO()
-                    KunneIkkeOppretteRegulering.FantIkkeSak -> TODO()
-                    KunneIkkeOppretteRegulering.FantIngenVedtak -> TODO()
-                    KunneIkkeOppretteRegulering.GrunnlagErIkkeKonsistent -> TODO()
-                    KunneIkkeOppretteRegulering.KunneIkkeLageFradragsgrunnlag -> TODO()
-                    KunneIkkeOppretteRegulering.ReguleringErAlleredeIverksatt -> TODO()
-                    KunneIkkeOppretteRegulering.TidslinjeForVedtakErIkkeKontinuerlig -> TODO()
-                    KunneIkkeOppretteRegulering.UgyldigPeriode -> TODO()
-                }
-            }
+    private fun erLike(regulering: Regulering): Boolean {
+        return regulering.beregning!!.getMånedsberegninger().all { månedsberegning ->
+            val gjeldendeUtbetalinger =
+                utbetalingService.hentGjeldendeUtbetaling(regulering.sakId, månedsberegning.periode.fraOgMed)
+                    .getOrHandle { throw RuntimeException("") }
+            gjeldendeUtbetalinger.beløp == månedsberegning.getSumYtelse()
         }
-        return Unit.right()
     }
 
     override fun startRegulering(startDato: LocalDate): Either<KunneIkkeStarteRegulering, Unit> {
         sakRepo.hentAlleIdFnrOgSaksnummer().forEach { (sakid, saksnummer, fnr) ->
-            val request =
-                OpprettRequest(sakId = sakid, saksnummer = saksnummer, fnr = fnr, fraOgMed = startDato)
+            val reguleringer = reguleringRepo.hentForSakId(sakid)
+            val regulering = if (reguleringer.harÅpenRegulering()) {
+                oppdaterRegulering(reguleringer.hentÅpenRegulering(), startDato)
+            } else {
+                val request = OpprettRequest(sakId = sakid, saksnummer = saksnummer, fnr = fnr, fraOgMed = startDato)
+                opprettRegulering(request)
+            }
 
-            opprettRegulering(request).map { regulering ->
-                reguleringRepo.lagre(regulering)
-                if (regulering.reguleringType == ReguleringType.AUTOMATISK) {
-                    regulerAutomatisk(regulering)
+            regulering.map { reg ->
+                if (reg.reguleringType == ReguleringType.AUTOMATISK) {
+                    regulerAutomatisk(reg)
+                } else {
+                    reguleringRepo.lagre(reg)
                 }
             }
         }
+
         return Unit.right()
     }
 
@@ -94,10 +89,6 @@ class ReguleringServiceImpl(
                 beregnetRegulering.simuler(utbetalingService::simulerUtbetaling)
             }
             .map { simulertRegulering -> simulertRegulering.tilIverksatt() }
-            .flatMap { iverksattRegulering ->
-                lagVedtakOgUtbetal(iverksattRegulering)
-                    .mapLeft { KunneIkkeRegulereAutomatiskt.KunneIkkeUtbetale }
-            }
 
         when (resultat) {
             is Either.Left -> {
@@ -108,7 +99,12 @@ class ReguleringServiceImpl(
                 }
                 reguleringRepo.lagre(regulering.copy(reguleringType = ReguleringType.MANUELL))
             }
-            is Either.Right -> reguleringRepo.lagre(resultat.value)
+            is Either.Right -> {
+                val iverksattRegulering = resultat.value
+                if (!erLike(iverksattRegulering)) {
+                    lagVedtakOgUtbetal(iverksattRegulering).map { reguleringRepo.lagre(it) }
+                }
+            }
         }
     }
 
@@ -140,7 +136,8 @@ class ReguleringServiceImpl(
             return BeregnOgSimulerFeilet.KunneIkkeBeregne.left()
         }
 
-        return beregnetRegulering.simuler(utbetalingService::simulerUtbetaling).mapLeft { BeregnOgSimulerFeilet.KunneIkkeSimulere }
+        return beregnetRegulering.simuler(utbetalingService::simulerUtbetaling)
+            .mapLeft { BeregnOgSimulerFeilet.KunneIkkeSimulere }
     }
 
     override fun hentStatus(): List<Regulering> {
@@ -212,8 +209,6 @@ class ReguleringServiceImpl(
             saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
             fnr = request.fnr,
             periode = Periode.create(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
-            grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
-            vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             beregning = null,
             simulering = null,
@@ -223,7 +218,12 @@ class ReguleringServiceImpl(
 
     private fun oppdaterRegulering(
         regulering: Regulering.OpprettetRegulering,
+        nyReguleringsDato: LocalDate,
     ): Either<KunneIkkeOppretteRegulering, Regulering.OpprettetRegulering> {
+        if (!nyReguleringsDato.isBefore(regulering.periode.fraOgMed)) {
+            return regulering.right()
+        }
+
         val gjeldendeVedtaksdata = hentGjeldendeVedtaksdata(
             sakId = regulering.sakId,
             fraOgMed = regulering.periode.fraOgMed,
@@ -246,19 +246,9 @@ class ReguleringServiceImpl(
 
             vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
         )
-        return Regulering.OpprettetRegulering(
-            id = regulering.id,
-            opprettet = regulering.opprettet,
-            sakId = regulering.sakId,
-            saksnummer = regulering.saksnummer,
-            saksbehandler = regulering.saksbehandler,
-            fnr = regulering.fnr,
-            periode = regulering.periode,
-            grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
-            vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+
+        return regulering.copy(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-            beregning = null,
-            simulering = null,
             reguleringType = reguleringType,
         ).right()
     }

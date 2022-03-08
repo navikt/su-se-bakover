@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -38,7 +37,6 @@ import no.nav.su.se.bakover.domain.regulering.VedtakType.OPPHØR
 import no.nav.su.se.bakover.domain.regulering.VedtakType.REGULERING
 import no.nav.su.se.bakover.domain.regulering.VedtakType.STANS_AV_YTELSE
 import no.nav.su.se.bakover.domain.regulering.VedtakType.SØKNAD
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -189,8 +187,6 @@ internal class ReguleringPostgresRepo(
             saksbehandler = saksbehandler,
             fnr = fnr,
             periode = periode,
-            grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
-            vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             beregning = beregning,
             simulering = simulering,
@@ -244,9 +240,7 @@ internal class ReguleringPostgresRepo(
         saksbehandler: NavIdentBruker.Saksbehandler,
         fnr: Fnr,
         periode: Periode,
-        grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
-        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger,
+        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         beregning: Beregning?,
         simulering: Simulering?,
         reguleringType: ReguleringType,
@@ -260,8 +254,6 @@ internal class ReguleringPostgresRepo(
                 saksbehandler = saksbehandler,
                 fnr = fnr,
                 periode = periode,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 beregning = beregning,
                 simulering = simulering,
@@ -276,8 +268,6 @@ internal class ReguleringPostgresRepo(
                     saksbehandler = saksbehandler,
                     fnr = fnr,
                     periode = periode,
-                    grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger,
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     beregning = beregning,
                     simulering = simulering,
