@@ -355,7 +355,9 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun iverksett(request: SøknadsbehandlingService.IverksettRequest): Either<KunneIkkeIverksette, Søknadsbehandling.Iverksatt> {
+    override fun iverksett(
+        request: SøknadsbehandlingService.IverksettRequest,
+    ): Either<KunneIkkeIverksette, Søknadsbehandling.Iverksatt> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeIverksette.FantIkkeBehandling.left()
 
@@ -394,12 +396,8 @@ internal class SøknadsbehandlingServiceImpl(
                             søknadsbehandlingRepo.lagre(iverksattBehandling, it)
                             utbetalingService.lagreUtbetaling(utbetaling, it)
                             vedtakRepo.lagre(vedtak, it)
-                            kontrollsamtaleService.opprettPlanlagtKontrollsamtale(vedtak, it).mapLeft { feil ->
-                                throw IverksettTransactionException(
-                                    "Kunne ikke opprette planlagt kontrollsamtale. Underliggende feil: $feil.",
-                                    KunneIkkeIverksette.KunneIkkeOpprettePlanlagtKontrollsamtale,
-                                )
-                            }
+                            // Så fremt denne ikke kaster ønsker vi å gå igjennom med iverksettingen.
+                            kontrollsamtaleService.opprettPlanlagtKontrollsamtale(vedtak, it)
                             utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
                                 throw IverksettTransactionException(
                                     "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
@@ -439,12 +437,20 @@ internal class SøknadsbehandlingServiceImpl(
                             ),
                         )
 
-                    sessionFactory.withTransactionContext {
-                        // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
-                        // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
-                        søknadsbehandlingRepo.lagre(iverksattBehandling, it)
-                        vedtakRepo.lagre(vedtak, it)
-                        brevService.lagreDokument(dokument, it)
+                    Either.catch {
+                        sessionFactory.withTransactionContext {
+                            // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
+                            // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
+                            søknadsbehandlingRepo.lagre(iverksattBehandling, it)
+                            vedtakRepo.lagre(vedtak, it)
+                            brevService.lagreDokument(dokument, it)
+                        }
+                    }.mapLeft {
+                        log.error(
+                            "Kunne ikke iverksette søknadsbehandling for sak ${iverksattBehandling.sakId} og søknadsbehandling ${iverksattBehandling.id}.",
+                            it,
+                        )
+                        return KunneIkkeIverksette.LagringFeilet.left()
                     }
                     log.info("Iverksatt avslag for behandling: ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
 
