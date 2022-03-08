@@ -180,7 +180,6 @@ sealed class Revurdering :
 
     protected fun oppdaterFormueOgMarkerSomVurdertInternal(formue: Vilkår.Formue.Vurdert): Either<Nothing, OpprettetRevurdering> {
         return oppdaterFormueInternal(formue)
-            .mapLeft { it }
             .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Formue)) }
     }
 
@@ -198,43 +197,50 @@ sealed class Revurdering :
     }
 
     protected fun oppdaterFradragInternal(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
-        return oppdaterGrunnlag(
-            grunnlagsdata = Grunnlagsdata.tryCreate(
-                bosituasjon = grunnlagsdata.bosituasjon,
-                fradragsgrunnlag = fradragsgrunnlag,
-            ).getOrHandle { return KunneIkkeLeggeTilFradrag.Valideringsfeil(it).left() },
-        ).right()
+        return Grunnlagsdata.tryCreate(
+            bosituasjon = grunnlagsdata.bosituasjon,
+            fradragsgrunnlag = fradragsgrunnlag,
+        ).mapLeft {
+            KunneIkkeLeggeTilFradrag.Valideringsfeil(it)
+        }.map {
+            oppdaterGrunnlag(it)
+        }
     }
 
     protected fun oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon: Grunnlag.Bosituasjon.Fullstendig): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
         return oppdaterBosituasjonInternal(bosituasjon)
-            .mapLeft { it }
             .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Bosituasjon)) }
     }
 
-    protected fun oppdaterBosituasjonInternal(bosituasjon: Grunnlag.Bosituasjon.Fullstendig): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
+    private fun oppdaterBosituasjonInternal(bosituasjon: Grunnlag.Bosituasjon.Fullstendig): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
         return if (bosituasjon.harEPS()) {
-            oppdaterGrunnlag(
-                grunnlagsdata = Grunnlagsdata.tryCreate(
-                    fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag,
-                    bosituasjon = nonEmptyListOf(bosituasjon),
-                ).getOrHandle { return KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it).left() },
-            ).right()
+            Grunnlagsdata.tryCreate(
+                fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag,
+                bosituasjon = nonEmptyListOf(bosituasjon),
+            ).mapLeft {
+                KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it)
+            }.map {
+                oppdaterGrunnlag(it)
+            }
         } else {
-            oppdaterGrunnlag(
-                grunnlagsdata = Grunnlagsdata.tryCreate(
-                    fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragEPS(),
-                    bosituasjon = nonEmptyListOf(bosituasjon),
-                ).getOrHandle { return KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it).left() },
-            ).let {
-                it.oppdaterFormueInternal(
-                    formue = it.vilkårsvurderinger.formue.fjernEPSFormue(),
-                )
+            Grunnlagsdata.tryCreate(
+                fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragEPS(),
+                bosituasjon = nonEmptyListOf(bosituasjon),
+            ).mapLeft {
+                KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it)
+            }.map { grunnlagsdata ->
+                oppdaterGrunnlag(grunnlagsdata).let {
+                    it.oppdaterFormueInternal(
+                        formue = it.vilkårsvurderinger.formue.fjernEPSFormue(),
+                    ).getOrHandle {
+                        throw IllegalStateException("""${this::oppdaterFormueInternal} returnerte uvente feil som ikke skal kunne oppstå.""")
+                    }
+                }
             }
         }
     }
 
-    protected fun oppdaterVilkårsvurderinger(
+    private fun oppdaterVilkårsvurderinger(
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
     ): OpprettetRevurdering {
         return OpprettetRevurdering(
