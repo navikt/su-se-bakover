@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
-import no.nav.su.se.bakover.domain.regulering.Reguleringsjobb
 import no.nav.su.se.bakover.domain.regulering.VedtakSomKanReguleres
 import no.nav.su.se.bakover.domain.regulering.VedtakType.AVSLAG
 import no.nav.su.se.bakover.domain.regulering.VedtakType.AVVIST_KLAGE
@@ -40,7 +39,6 @@ import no.nav.su.se.bakover.domain.regulering.VedtakType.REGULERING
 import no.nav.su.se.bakover.domain.regulering.VedtakType.STANS_AV_YTELSE
 import no.nav.su.se.bakover.domain.regulering.VedtakType.SØKNAD
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -54,21 +52,6 @@ internal class ReguleringPostgresRepo(
         return dataSource.withSession { session ->
             hent(id, session)
         }
-    }
-
-    override fun hent(saksnummer: Saksnummer, jobbnavn: String): Regulering? {
-        return dataSource.withSession { session ->
-            hent(saksnummer, jobbnavn, session)
-        }
-    }
-
-    override fun hent(jobbnavn: Reguleringsjobb): List<Regulering> = dataSource.withSession { session ->
-        """ select * from regulering r left join sak s on r.sakid = s.id
-            where jobbnavn = :jobbnavn 
-        """.trimIndent().hentListe(
-            mapOf("jobbnavn" to jobbnavn.jobbnavn),
-            session,
-        ) { it.toRegulering(session) }
     }
 
     override fun hentReguleringerSomIkkeErIverksatt(): List<Regulering.OpprettetRegulering> =
@@ -102,21 +85,6 @@ internal class ReguleringPostgresRepo(
         }
     }
 
-    internal fun hent(saksnummer: Saksnummer, jobbnavn: String, session: Session): Regulering? =
-        """
-            select *
-            from regulering r
-            
-            inner join sak s
-            on s.id = r.sakId
-            
-            where s.saksnummer = :saksnummer
-            and r.jobbnavn = :jobbnavn
-        """.trimIndent()
-            .hent(mapOf("saksnummer" to saksnummer.nummer, "jobbnavn" to jobbnavn), session) { row ->
-                row.toRegulering(session)
-            }
-
     internal fun hent(id: UUID, session: Session): Regulering? =
         """
             select *
@@ -143,8 +111,7 @@ internal class ReguleringPostgresRepo(
                 simulering,
                 saksbehandler,
                 reguleringStatus,
-                reguleringType,
-                jobbnavn
+                reguleringType
             ) values (
                 :id,
                 :sakId,
@@ -154,8 +121,7 @@ internal class ReguleringPostgresRepo(
                 to_json(:simulering::json),
                 :saksbehandler,
                 :reguleringStatus,
-                :reguleringType,
-                :jobbnavn
+                :reguleringType
             )
                 ON CONFLICT(id) do update set
                 id=:id,
@@ -166,8 +132,7 @@ internal class ReguleringPostgresRepo(
                 simulering=to_json(:simulering::json),
                 saksbehandler=:saksbehandler,
                 reguleringStatus=:reguleringStatus,
-                reguleringType=:reguleringType,
-                jobbnavn=:jobbnavn
+                reguleringType=:reguleringType
             """.trimIndent()
                 .insert(
                     mapOf(
@@ -179,7 +144,6 @@ internal class ReguleringPostgresRepo(
                         "beregning" to regulering.beregning,
                         "simulering" to regulering.simulering?.let { serialize(it) },
                         "reguleringType" to regulering.reguleringType.toString(),
-                        "jobbnavn" to regulering.jobbnavn.toString(),
                         "reguleringStatus" to when (regulering) {
                             is Regulering.IverksattRegulering -> ReguleringStatus.IVERKSATT
                             is Regulering.OpprettetRegulering -> ReguleringStatus.OPPRETTET
@@ -195,52 +159,6 @@ internal class ReguleringPostgresRepo(
         }
     }
 
-    override fun hentVedtakSomKanReguleres(fraOgMed: LocalDate): List<VedtakSomKanReguleres> {
-        return dataSource.withSession { session ->
-            """
-                with sakogid (sakid, saksnummer, bid, fraOgMed, tilOgMed, vedtaktype, opprettet ) as (
-                    select bv.sakid
-                         , s.saksnummer
-                         , coalesce(bv.søknadsbehandlingid, bv.revurderingid)
-                         , v.fraogmed
-                         , v.tilogmed
-                         , v.vedtaktype
-                         , v.opprettet
-                    from behandling_vedtak bv
-                
-                    inner join vedtak v
-                    on bv.vedtakid = v.id
-                    
-                    inner join sak s
-                    on s.id = bv.sakid
-                
-                    where v.tilogmed >= :dato
-                
-                )
-                
-                select s.sakid
-                     , s.saksnummer
-                     , s.bid
-                     , s.fraOgMed
-                     , s.tilOgMed
-                     , s.vedtaktype
-                     , s.opprettet
-                     , case when ( EXISTS( select 1
-                                             from grunnlag_fradrag g
-                                            where g.behandlingid = s.bid
-                                              and g.fradragstype in ('NAVytelserTilLivsopphold', 'OffentligPensjon')
-                                              and ( (s.tilOgMed >= g.fraogmed) and (:dato <= g.tilogmed) )
-                         ) ) then 'MANUELL'
-                         else 'AUTOMATISK'
-                         end behandlingtype
-                       from sakogid s
-            """.trimIndent()
-                .hentListe(mapOf("dato" to fraOgMed), session) {
-                    it.toVedtakSomKanReguleres()
-                }
-        }
-    }
-
     override fun defaultTransactionContext(): TransactionContext {
         return sessionFactory.newTransactionContext()
     }
@@ -252,7 +170,6 @@ internal class ReguleringPostgresRepo(
         val saksnummer = Saksnummer(long("saksnummer"))
         val fnr = Fnr(string("fnr"))
         val status = ReguleringStatus.valueOf(string("reguleringStatus"))
-        val jobbnavn = Reguleringsjobb.valueOf(string("jobbnavn"))
         val reguleringType = ReguleringType.valueOf(string("reguleringType"))
 
         val beregning = deserialiserBeregning(stringOrNull("beregning"))
@@ -278,7 +195,6 @@ internal class ReguleringPostgresRepo(
             beregning = beregning,
             simulering = simulering,
             reguleringType = reguleringType,
-            jobbnavn = jobbnavn,
         )
     }
 
@@ -334,7 +250,6 @@ internal class ReguleringPostgresRepo(
         beregning: Beregning?,
         simulering: Simulering?,
         reguleringType: ReguleringType,
-        jobbnavn: Reguleringsjobb,
     ): Regulering {
         return when (status) {
             ReguleringStatus.OPPRETTET -> Regulering.OpprettetRegulering(
@@ -351,7 +266,6 @@ internal class ReguleringPostgresRepo(
                 beregning = beregning,
                 simulering = simulering,
                 reguleringType = reguleringType,
-                jobbnavn = jobbnavn,
             )
             ReguleringStatus.IVERKSATT -> Regulering.IverksattRegulering(
                 opprettetRegulering = Regulering.OpprettetRegulering(
@@ -368,7 +282,6 @@ internal class ReguleringPostgresRepo(
                     beregning = beregning,
                     simulering = simulering,
                     reguleringType = reguleringType,
-                    jobbnavn = jobbnavn,
                 ),
             )
         }

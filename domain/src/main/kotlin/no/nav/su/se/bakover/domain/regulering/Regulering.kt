@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -15,32 +14,32 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
-
-enum class Reguleringsjobb(val jobbnavn: String, val dato: LocalDate) {
-    G_REGULERING_2021("G_REGULERING_2021", 1.mai(2021)),
-    G_REGULERING_2022("G_REGULERING_2022", 1.mai(2022)),
-    SATS_REGULERING_2022("SATS_REGULERING_2022", 1.mai(2022))
-}
 
 sealed interface Regulering : Behandling {
     val beregning: Beregning?
     val simulering: Simulering?
     val saksbehandler: NavIdentBruker.Saksbehandler
     val reguleringType: ReguleringType
-    val jobbnavn: Reguleringsjobb
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger
 
     sealed class KunneIkkeBeregne {
         object BeregningFeilet : KunneIkkeBeregne()
         data class IkkeLovÅBeregneIDenneStatusen(val status: KClass<out Regulering>) :
             KunneIkkeBeregne()
+    }
+
+    sealed class KunneIkkeSimulere {
+        object FantIngenBeregning : KunneIkkeSimulere()
+        object SimuleringFeilet : KunneIkkeSimulere()
     }
 
     fun beregn(clock: Clock, begrunnelse: String?): Either<KunneIkkeBeregne, OpprettetRegulering> =
@@ -60,7 +59,6 @@ sealed interface Regulering : Behandling {
         override val simulering: Simulering?,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val reguleringType: ReguleringType,
-        override val jobbnavn: Reguleringsjobb,
     ) : Regulering {
 
         fun leggTilFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): OpprettetRegulering =
@@ -80,21 +78,24 @@ sealed interface Regulering : Behandling {
                 clock = clock,
             ).map { this.copy(beregning = it) }
 
-        fun leggTilSimulering(simulering: Simulering): OpprettetRegulering =
-            this.copy(
-                simulering = simulering,
+        fun simuler(callback: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>): Either<KunneIkkeSimulere, OpprettetRegulering> {
+            if (beregning == null) {
+                return KunneIkkeSimulere.FantIngenBeregning.left()
+            }
+
+            return callback(
+                SimulerUtbetalingRequest.NyUtbetaling(
+                    sakId = sakId,
+                    saksbehandler = saksbehandler,
+                    beregning = beregning,
+                    uføregrunnlag = vilkårsvurderinger.uføre.grunnlag,
+                ),
             )
+                .mapLeft { KunneIkkeSimulere.SimuleringFeilet }
+                .map { this.copy(simulering = it.simulering) }
+        }
 
-        fun tilIverksatt(): IverksattRegulering = IverksattRegulering(
-            opprettetRegulering = this,
-        )
-
-        // fun oppdaterForventetInntekt(uførhet: Vilkår.Uførhet): OpprettetRegulering =
-        //     this.copy(
-        //         vilkårsvurderinger = vilkårsvurderinger.copy(
-        //             uføre = uførhet
-        //         )
-        //     )
+        fun tilIverksatt(): IverksattRegulering = IverksattRegulering(opprettetRegulering = this)
 
         private fun gjørBeregning(
             regulering: OpprettetRegulering,

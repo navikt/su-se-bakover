@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJso
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
-import java.time.LocalDate
 import java.util.UUID
 
 internal data class ReguleringJson(
@@ -23,15 +22,10 @@ internal data class ReguleringJson(
     val sakId: UUID,
     val saksnummer: Saksnummer,
     val reguleringType: ReguleringType,
-    val jobbType: ReguleringsjobbJson,
     val periode: PeriodeJson,
     val erFerdigstilt: Boolean,
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson
 )
-
-internal data class ReguleringsjobbJson(val dato: LocalDate) {
-    val type = "G"
-}
 
 internal fun Regulering.toJson() = ReguleringJson(
     id = id,
@@ -42,7 +36,6 @@ internal fun Regulering.toJson() = ReguleringJson(
     beregning = beregning?.toJson(),
     simulering = simulering?.toJson(),
     reguleringType = reguleringType,
-    jobbType = ReguleringsjobbJson(jobbnavn.dato),
     erFerdigstilt = when (this) {
         is Regulering.IverksattRegulering -> true
         is Regulering.OpprettetRegulering -> false

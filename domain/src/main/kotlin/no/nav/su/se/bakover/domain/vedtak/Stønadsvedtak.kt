@@ -217,7 +217,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val behandling: Regulering,
-            override val saksbehandler: NavIdentBruker.Saksbehandler, // TODO hva skal ligge her på de automatiske (kanskje den som trykker på knappen, eller skal det stå f.eks srvsupstonad)
+            override val saksbehandler: NavIdentBruker.Saksbehandler, // TODO hva skal ligge her på de automatiske (kanskje den som trykker på knappen, eller skal det stå f.eks rvsupstonad)
             override val attestant: NavIdentBruker.Attestant, // TODO vil egentlig ikke ha denne på regulering
             override val periode: Periode,
             val beregning: Beregning,

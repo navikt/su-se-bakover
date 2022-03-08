@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.regulering
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -19,8 +20,6 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
-import no.nav.su.se.bakover.domain.regulering.Reguleringsjobb
-import no.nav.su.se.bakover.domain.regulering.VedtakSomKanReguleres
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -55,7 +54,7 @@ class ReguleringServiceImpl(
             oppdaterRegulering(regulering).map { oppdatertRegulering ->
                 reguleringRepo.lagre(oppdatertRegulering)
                 if (oppdatertRegulering.reguleringType == ReguleringType.AUTOMATISK) {
-                    behandleOgLagre(oppdatertRegulering)
+                    regulerAutomatisk(oppdatertRegulering)
                 }
             }.mapLeft {
                 when (it) {
@@ -73,56 +72,43 @@ class ReguleringServiceImpl(
         return Unit.right()
     }
 
-    override fun startRegulering(reguleringsjobb: Reguleringsjobb): Either<KunneIkkeStarteRegulering, Unit> {
-        if (reguleringRepo.hentReguleringerSomIkkeErIverksatt().isNotEmpty()) {
-            return KunneIkkeStarteRegulering.DetFinnesAlleredeEnRegulering.left()
-        }
-
+    override fun startRegulering(startDato: LocalDate): Either<KunneIkkeStarteRegulering, Unit> {
         sakRepo.hentAlleIdFnrOgSaksnummer().forEach { (sakid, saksnummer, fnr) ->
             val request =
-                OpprettRequest(sakId = sakid, saksnummer = saksnummer, fnr = fnr, fraOgMed = reguleringsjobb.dato)
+                OpprettRequest(sakId = sakid, saksnummer = saksnummer, fnr = fnr, fraOgMed = startDato)
 
-            opprettRegulering(request, reguleringsjobb).map { regulering ->
+            opprettRegulering(request).map { regulering ->
                 reguleringRepo.lagre(regulering)
                 if (regulering.reguleringType == ReguleringType.AUTOMATISK) {
-                    behandleOgLagre(regulering)
+                    regulerAutomatisk(regulering)
                 }
             }
         }
         return Unit.right()
     }
 
-    private fun behandleOgLagre(regulering: Regulering.OpprettetRegulering) {
-        regulering.beregn(clock = clock, begrunnelse = null).map { beregnetRegulering ->
-            simulerPrivat(
-                beregnetRegulering,
-                NavIdentBruker.Saksbehandler("supstonad"),
-            ).map { simulertRegulering ->
-                simulertRegulering.tilIverksatt().let { iverksattRegulering ->
-                    lagVedtakOgUtbetal(iverksattRegulering).map {
-                        reguleringRepo.lagre(it)
-                    }.mapLeft {
-                        throw IllegalStateException("Hva gjør vi her?")
-                    }
+    private fun regulerAutomatisk(regulering: Regulering.OpprettetRegulering) {
+        val resultat = regulering.beregn(clock = clock, begrunnelse = null)
+            .mapLeft { KunneIkkeRegulereAutomatiskt.KunneIkkeBeregne }
+            .flatMap { beregnetRegulering ->
+                beregnetRegulering.simuler(utbetalingService::simulerUtbetaling)
+            }
+            .map { simulertRegulering -> simulertRegulering.tilIverksatt() }
+            .flatMap { iverksattRegulering ->
+                lagVedtakOgUtbetal(iverksattRegulering)
+                    .mapLeft { KunneIkkeRegulereAutomatiskt.KunneIkkeUtbetale }
+            }
+
+        when (resultat) {
+            is Either.Left -> {
+                when (resultat.value) {
+                    KunneIkkeRegulereAutomatiskt.KunneIkkeBeregne -> log.error("Regulering feilet. Beregning feilet for saksnummer: ${regulering.saksnummer}.")
+                    KunneIkkeRegulereAutomatiskt.KunneIkkeSimulere -> log.error("Regulering feilet. Simulering feilet for ${regulering.saksnummer}.")
+                    KunneIkkeRegulereAutomatiskt.KunneIkkeUtbetale -> log.error("Regulering feilet. Utbetaling feilet for ${regulering.saksnummer}.")
                 }
-            }.mapLeft {
-                log.error("Simulering feilet")
-                regulering.copy(
-                    reguleringType = ReguleringType.MANUELL,
-                ).let {
-                    reguleringRepo.lagre(it)
-                }
+                reguleringRepo.lagre(regulering.copy(reguleringType = ReguleringType.MANUELL))
             }
-        }.mapLeft { kunneIkkeBeregne ->
-            when (kunneIkkeBeregne) {
-                Regulering.KunneIkkeBeregne.BeregningFeilet -> log.error("Beregning feilet")
-                is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> log.error("Ikke lov til å beregne når regulering allerede er iverksatt")
-            }
-            regulering.copy(
-                reguleringType = ReguleringType.MANUELL,
-            ).let {
-                reguleringRepo.lagre(it)
-            }
+            is Either.Right -> reguleringRepo.lagre(resultat.value)
         }
     }
 
@@ -142,48 +128,23 @@ class ReguleringServiceImpl(
         return KunneIkkeLeggeTilFradrag.FantIkkeRegulering.left()
     }
 
-    // TODO Er det bedre å slå sammen beregn og simuler?
-    override fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, Regulering.OpprettetRegulering> {
-        val regulering = reguleringRepo.hent(request.behandlingId)
-            ?: return KunneIkkeBeregne.FantIkkeRegulering.left()
+    override fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering> {
+        val regulering =
+            reguleringRepo.hent(request.behandlingId) ?: return BeregnOgSimulerFeilet.FantIkkeRegulering.left()
 
-        if (regulering !is Regulering.OpprettetRegulering) return KunneIkkeBeregne.UgyldigTilstand(regulering::class)
-            .left()
-
-        return regulering.beregn(
-            clock = clock,
-            begrunnelse = request.begrunnelse,
-        ).mapLeft {
+        val beregnetRegulering = regulering.beregn(clock = clock, begrunnelse = request.begrunnelse).getOrHandle {
             when (it) {
-                Regulering.KunneIkkeBeregne.BeregningFeilet -> KunneIkkeBeregne.BeregningFeilet
-                is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> KunneIkkeBeregne.UgyldigTilstand(
-                    regulering::class,
-                )
+                Regulering.KunneIkkeBeregne.BeregningFeilet -> log.error("Regulering feilet. Kunne ikke beregne")
+                is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> log.error("Regulering feilet. Kan ikke beregne i status ${it.status}")
             }
-        }.tap {
-            reguleringRepo.lagre(it).right()
+            return BeregnOgSimulerFeilet.KunneIkkeBeregne.left()
         }
+
+        return beregnetRegulering.simuler(utbetalingService::simulerUtbetaling).mapLeft { BeregnOgSimulerFeilet.KunneIkkeSimulere }
     }
 
-    override fun simuler(request: SimulerRequest): Either<KunneIkkeSimulere, Regulering.OpprettetRegulering> {
-        val regulering = reguleringRepo.hent(request.behandlingId)
-            ?: return KunneIkkeSimulere.FantIkkeRegulering.left()
-
-        if (regulering !is Regulering.OpprettetRegulering) return KunneIkkeSimulere.UgyldigTilstand(regulering::class)
-            .left()
-
-        return simulerPrivat(
-            regulering = regulering,
-            saksbehandler = request.saksbehandler,
-        ).getOrHandle { throw IllegalStateException("") }
-            .let {
-                reguleringRepo.lagre(it)
-                it.right()
-            }
-    }
-
-    override fun hentStatus(reguleringsjobb: Reguleringsjobb): List<Regulering> {
-        return reguleringRepo.hent(reguleringsjobb)
+    override fun hentStatus(): List<Regulering> {
+        return reguleringRepo.hentReguleringerSomIkkeErIverksatt()
     }
 
     override fun hentSakerMedÅpneBehandlinger(): List<Saksnummer> {
@@ -208,7 +169,6 @@ class ReguleringServiceImpl(
 
     private fun opprettRegulering(
         request: OpprettRequest,
-        reguleringsjobb: Reguleringsjobb,
     ): Either<KunneIkkeOppretteRegulering, Regulering.OpprettetRegulering> {
         val gjeldendeVedtaksdata = hentGjeldendeVedtaksdata(
             sakId = request.sakId,
@@ -225,7 +185,7 @@ class ReguleringServiceImpl(
         val reguleringType = utledAutomatiskEllerManuellRegulering(gjeldendeVedtaksdata)
 
         // TODO ai: Ta i bruk annen funksjonalitet for å gjøre dette
-        val fraOgMed = maxOf(gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.fraOgMed, reguleringsjobb.dato)
+        val fraOgMed = maxOf(gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.fraOgMed, request.fraOgMed)
         val tilOgMed =
             (
                 (gjeldendeVedtaksdata.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.filter { it.resultat == Resultat.Innvilget }
@@ -258,7 +218,6 @@ class ReguleringServiceImpl(
             beregning = null,
             simulering = null,
             reguleringType = reguleringType,
-            jobbnavn = reguleringsjobb,
         ).right()
     }
 
@@ -301,34 +260,7 @@ class ReguleringServiceImpl(
             beregning = null,
             simulering = null,
             reguleringType = reguleringType,
-            jobbnavn = regulering.jobbnavn,
         ).right()
-    }
-
-    private fun simulerPrivat(
-        regulering: Regulering.OpprettetRegulering,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeSimulere, Regulering.OpprettetRegulering> {
-        if (regulering.beregning == null) {
-            return KunneIkkeSimulere.FantIkkeBeregning.left()
-        }
-
-        val simulertUtbetaling = utbetalingService.simulerUtbetaling(
-            SimulerUtbetalingRequest.NyUtbetaling(
-                sakId = regulering.sakId,
-                saksbehandler = saksbehandler,
-                beregning = regulering.beregning!!,
-                uføregrunnlag = regulering.vilkårsvurderinger.uføre.grunnlag,
-            ),
-        ).getOrHandle {
-            return KunneIkkeSimulere.SimuleringFeilet.left()
-        }
-
-        return regulering.leggTilSimulering(simulertUtbetaling.simulering).right()
-    }
-
-    private fun hentVedtakSomKanReguleres(fraOgMed: LocalDate): List<VedtakSomKanReguleres> {
-        return reguleringRepo.hentVedtakSomKanReguleres(fraOgMed)
     }
 
     private fun hentGjeldendeVedtaksdata(

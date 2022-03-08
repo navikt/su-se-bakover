@@ -62,7 +62,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.regulering.Reguleringsjobb
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -102,15 +101,13 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontr
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.regulering.BeregnOgSimulerFeilet
 import no.nav.su.se.bakover.service.regulering.BeregnRequest
-import no.nav.su.se.bakover.service.regulering.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.regulering.KunneIkkeFortsettRegulering
 import no.nav.su.se.bakover.service.regulering.KunneIkkeIverksetteRegulering
 import no.nav.su.se.bakover.service.regulering.KunneIkkeLeggeTilFradrag
-import no.nav.su.se.bakover.service.regulering.KunneIkkeSimulere
 import no.nav.su.se.bakover.service.regulering.KunneIkkeStarteRegulering
 import no.nav.su.se.bakover.service.regulering.ReguleringService
-import no.nav.su.se.bakover.service.regulering.SimulerRequest
 import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
@@ -901,12 +898,8 @@ open class AccessCheckProxy(
                 }
             },
             reguleringService = object : ReguleringService {
-                override fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, Regulering.OpprettetRegulering> {
-                    return beregn(request)
-                }
-
-                override fun startRegulering(reguleringsjobb: Reguleringsjobb): Either<KunneIkkeStarteRegulering, Unit> {
-                    return startRegulering(reguleringsjobb)
+                override fun startRegulering(startDato: LocalDate): Either<KunneIkkeStarteRegulering, Unit> {
+                    return startRegulering(startDato)
                 }
 
                 override fun fortsettRegulering(): Either<KunneIkkeFortsettRegulering, Unit> {
@@ -921,12 +914,12 @@ open class AccessCheckProxy(
                     return iverksett(reguleringId)
                 }
 
-                override fun simuler(request: SimulerRequest): Either<KunneIkkeSimulere, Regulering.OpprettetRegulering> {
-                    kastKanKunKallesFraAnnenService()
+                override fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering> {
+                    return beregnOgSimuler(request)
                 }
 
-                override fun hentStatus(reguleringsjobb: Reguleringsjobb): List<Regulering> {
-                    return hentStatus(reguleringsjobb)
+                override fun hentStatus(): List<Regulering> {
+                    return hentStatus()
                 }
 
                 override fun hentSakerMedÅpneBehandlinger(): List<Saksnummer> {

@@ -4,6 +4,7 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.post
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.regulering.ReguleringService
@@ -20,10 +21,7 @@ internal fun Route.oppdaterReguleringer(
                 Resultat.json(
                     HttpStatusCode.OK,
                     serialize(
-                        reguleringService.fortsettRegulering(),
-                        // reguleringService.startRegulering(
-                        //     reguleringsjobb = Reguleringsjobb.G_REGULERING_2022,
-                        // ),
+                        reguleringService.startRegulering(1.mai(2021)),
                     ),
                 ),
             )

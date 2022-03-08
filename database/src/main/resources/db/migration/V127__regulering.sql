@@ -8,8 +8,7 @@ create table if not exists regulering
     simulering       jsonb,
     saksbehandler    text                     not null,
     reguleringStatus text, -- OPPRETTET / IVERKSATT / FEIL (står i loggen :-) )
-    reguleringType   text, -- AUTOMATISK / MANUELL
-    jobbnavn         text
+    reguleringType   text -- AUTOMATISK / MANUELL
 );
 
 -- create table if not exists regulering_jobb
