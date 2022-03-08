@@ -31,11 +31,11 @@ subprojects {
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
-        implementation("ch.qos.logback:logback-classic:1.2.10")
+        implementation("ch.qos.logback:logback-classic:1.2.11")
         implementation("net.logstash.logback:logstash-logback-encoder:7.0.1")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:3.1.0")
-        implementation("com.networknt:json-schema-validator:1.0.66")
+        implementation("com.networknt:json-schema-validator:1.0.67")
         implementation("no.finn.unleash:unleash-client-java:4.4.1")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.5.0")

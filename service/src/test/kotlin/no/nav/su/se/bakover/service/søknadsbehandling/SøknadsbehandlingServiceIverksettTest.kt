@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
+import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeKalleInnTilKontrollsamtale
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.avkortingsvarselUtenlandsopphold
@@ -166,19 +167,19 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
                 on { publiserUtbetaling(any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
             },
+            vedtakRepo = mock {
+                doNothing().whenever(it).lagre(any(), anyOrNull())
+            },
             kontrollsamtaleService = mock {
                 on { opprettPlanlagtKontrollsamtale(any(), any()) } doReturn kontrollsamtale().right()
-            }
+            },
         )
-
-        val response = serviceAndMocks.søknadsbehandlingService.iverksett(
+        serviceAndMocks.søknadsbehandlingService.iverksett(
             SøknadsbehandlingService.IverksettRequest(
                 behandlingId = innvilgetTilAttestering.id,
                 attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
             ),
-        )
-
-        response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
+        ) shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(utbetalingFeilet = UtbetalingFeilet.Protokollfeil).left()
     }
 
     @Test
@@ -371,6 +372,39 @@ internal class SøknadsbehandlingServiceIverksettTest {
     }
 
     @Test
+    fun `utbetaler ikke dersom kontrollsamtale feiler for innvilget`() {
+        val søknadsbehandling = søknadsbehandlingTilAttesteringInnvilget().second
+        val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock {
+                on { hent(any()) } doReturn søknadsbehandling
+                doNothing().whenever(it).lagre(any(), anyOrNull())
+            },
+            utbetalingService = mock {
+                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
+            },
+            kontrollsamtaleService = mock {
+                on {
+                    opprettPlanlagtKontrollsamtale(
+                        any(),
+                        any(),
+                    )
+                } doReturn KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeKalleInn.left()
+            },
+            vedtakRepo = mock {
+                doNothing().whenever(it).lagre(any(), anyOrNull())
+            },
+        )
+
+        serviceAndMocks.søknadsbehandlingService.iverksett(
+            SøknadsbehandlingService.IverksettRequest(
+                behandlingId = søknadsbehandling.id,
+                attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+            ),
+        ) shouldBe KunneIkkeIverksette.KunneIkkeOpprettePlanlagtKontrollsamtale.left()
+        verify(serviceAndMocks.utbetalingService, times(0)).publiserUtbetaling(any())
+    }
+
+    @Test
     fun `verifiser at utbetaling skjer etter alle lagre-kall`() {
         val innvilgetTilAttestering = søknadsbehandlingTilAttesteringInnvilget().second
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
@@ -387,7 +421,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
-            }
+            },
         )
 
         serviceAndMocks.søknadsbehandlingService.iverksett(
