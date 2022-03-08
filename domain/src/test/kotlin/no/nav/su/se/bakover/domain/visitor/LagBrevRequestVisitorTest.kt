@@ -1242,13 +1242,16 @@ internal class LagBrevRequestVisitorTest {
                 clock = fixedClock,
             ).getOrFail(),
         ).getOrFail().let {
-            (it as BeregnetRevurdering.Opphørt).toSimulert { sakId, _, opphørsdato ->
-                simulertUtbetalingOpphør(
-                    sakId = sakId,
-                    opphørsdato = opphørsdato,
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                )
-            }.getOrFail()
+            (it as BeregnetRevurdering.Opphørt).toSimulert(
+                { sakId, _, opphørsdato ->
+                    simulertUtbetalingOpphør(
+                        sakId = sakId,
+                        opphørsdato = opphørsdato,
+                        eksisterendeUtbetalinger = sak.utbetalinger,
+                    )
+                },
+                false
+            ).getOrFail()
         }.ikkeSendForhåndsvarsel().getOrFail()
             .oppdaterTilbakekrevingsbehandling(
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling

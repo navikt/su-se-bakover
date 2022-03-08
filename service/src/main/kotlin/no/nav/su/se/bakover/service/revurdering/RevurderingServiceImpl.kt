@@ -750,7 +750,11 @@ internal class RevurderingServiceImpl(
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
                         }.map {
-                            beregnetRevurdering.toSimulert(it.simulering, clock).let { simulert ->
+                            beregnetRevurdering.toSimulert(
+                                simulering = it.simulering,
+                                clock = clock,
+                                tilbakekrevingTillatt = feilutbetalingTillatt(),
+                            ).let { simulert ->
                                 revurderingRepo.lagre(simulert)
                                 when (leggTilVarselForBeløpsendringUnder10Prosent) {
                                     true -> {
@@ -766,15 +770,18 @@ internal class RevurderingServiceImpl(
                     }
                     is BeregnetRevurdering.Opphørt -> {
                         // TODO er tanken at vi skal oppdatere saksbehandler her? Det kan se ut som vi har tenkt det, men aldri fullført.
-                        beregnetRevurdering.toSimulert { sakId, _, opphørsdato ->
-                            utbetalingService.simulerOpphør(
-                                request = SimulerUtbetalingRequest.Opphør(
-                                    sakId = sakId,
-                                    saksbehandler = saksbehandler,
-                                    opphørsdato = opphørsdato,
-                                ),
-                            )
-                        }.mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }
+                        beregnetRevurdering.toSimulert(
+                            simuler = { sakId, _, opphørsdato ->
+                                utbetalingService.simulerOpphør(
+                                    request = SimulerUtbetalingRequest.Opphør(
+                                        sakId = sakId,
+                                        saksbehandler = saksbehandler,
+                                        opphørsdato = opphørsdato,
+                                    ),
+                                )
+                            },
+                            tilbakekrevingTillatt = feilutbetalingTillatt()
+                        ).mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }
                             .map { simulert ->
                                 revurderingRepo.lagre(simulert)
                                 if (leggTilVarselForBeløpsendringUnder10Prosent && !simulert.opphørSkyldesVilkår()) {

@@ -618,26 +618,29 @@ internal class TestDataHelper(
     }
 
     fun simulertInnvilgetRevurdering(): SimulertRevurdering.Innvilget {
-        return beregnetInnvilgetRevurdering().toSimulert(simulering(Fnr.generer()), clock).also {
+        return beregnetInnvilgetRevurdering().toSimulert(simulering(Fnr.generer()), clock, false).also {
             revurderingRepo.lagre(it)
         }
     }
 
     fun simulertOpphørtRevurdering(): SimulertRevurdering.Opphørt {
-        return beregnetOpphørtRevurdering().toSimulert { _, _, _ ->
-            Utbetaling.SimulertUtbetaling(
-                id = UUID30.randomUUID(),
-                opprettet = fixedTidspunkt,
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(nummer = 2021),
-                fnr = Fnr.generer(),
-                utbetalingslinjer = nonEmptyListOf(utbetalingslinje()),
-                type = Utbetaling.UtbetalingsType.OPPHØR,
-                behandler = saksbehandler,
-                avstemmingsnøkkel = avstemmingsnøkkel,
-                simulering = simulering(Fnr.generer()),
-            ).right()
-        }.getOrFail().also {
+        return beregnetOpphørtRevurdering().toSimulert(
+            { _, _, _ ->
+                Utbetaling.SimulertUtbetaling(
+                    id = UUID30.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    sakId = UUID.randomUUID(),
+                    saksnummer = Saksnummer(nummer = 2021),
+                    fnr = Fnr.generer(),
+                    utbetalingslinjer = nonEmptyListOf(utbetalingslinje()),
+                    type = Utbetaling.UtbetalingsType.OPPHØR,
+                    behandler = saksbehandler,
+                    avstemmingsnøkkel = avstemmingsnøkkel,
+                    simulering = simulering(Fnr.generer()),
+                ).right()
+            },
+            false
+        ).getOrFail().also {
             revurderingRepo.lagre(it)
         }
     }

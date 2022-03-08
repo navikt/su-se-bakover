@@ -297,18 +297,22 @@ fun simulertRevurdering(
                         uføregrunnlag = beregnet.vilkårsvurderinger.uføre.grunnlag
                     ),
                     clock = clock,
+                    false,
                 )
 
                 oppdaterTilbakekrevingsbehandling(simulert)
             }
             is BeregnetRevurdering.Opphørt -> {
-                val simulert = beregnet.toSimulert { _, _, opphørsdato ->
-                    opphørUtbetalingSimulert(
-                        sakOgBehandling = sak to beregnet,
-                        opphørsdato = opphørsdato,
-                        clock = clock,
-                    ).right()
-                }.getOrFail()
+                val simulert = beregnet.toSimulert(
+                    { _, _, opphørsdato ->
+                        opphørUtbetalingSimulert(
+                            sakOgBehandling = sak to beregnet,
+                            opphørsdato = opphørsdato,
+                            clock = clock,
+                        ).right()
+                    },
+                    false
+                ).getOrFail()
 
                 oppdaterTilbakekrevingsbehandling(simulert)
             }
@@ -919,6 +923,7 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
                 uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
             ),
             clock = clock,
+            tilbakekrevingTillatt = false,
         ).prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
             forhåndsvarsel = forhåndsvarsel,
         ).oppdaterTilbakekrevingsbehandling(
@@ -966,17 +971,20 @@ fun simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
         revurderingsårsak = revurderingsårsak,
         vilkårSomFørerTilOpphør = vilkårSomFørerTilOpphør,
     ).let { (sak, revurdering) ->
-        val opphørtSimulertRevurdering = revurdering.toSimulert { sakId, _, opphørsdato ->
-            simulertUtbetalingOpphør(
-                periode = revurdering.periode,
-                opphørsdato = opphørsdato,
-                fnr = revurdering.fnr,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                clock = fixedClock,
-                eksisterendeUtbetalinger = sak.utbetalinger,
-            )
-        }.getOrFail()
+        val opphørtSimulertRevurdering = revurdering.toSimulert(
+            { sakId, _, opphørsdato ->
+                simulertUtbetalingOpphør(
+                    periode = revurdering.periode,
+                    opphørsdato = opphørsdato,
+                    fnr = revurdering.fnr,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    clock = fixedClock,
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                )
+            },
+            false
+        ).getOrFail()
             .prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
                 forhåndsvarsel = forhåndsvarsel,
             ).oppdaterTilbakekrevingsbehandling(

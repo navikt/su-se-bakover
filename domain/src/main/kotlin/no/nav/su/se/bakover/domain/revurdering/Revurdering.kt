@@ -603,8 +603,8 @@ sealed class BeregnetRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
-        fun toSimulert(simulering: Simulering, clock: Clock): SimulertRevurdering.Innvilget {
-            val tilbakekrevingsbehandling = when (simulering.harFeilutbetalinger()) {
+        fun toSimulert(simulering: Simulering, clock: Clock, tilbakekrevingTillatt: Boolean): SimulertRevurdering.Innvilget {
+            val tilbakekrevingsbehandling = when (tilbakekrevingTillatt && simulering.harFeilutbetalinger()) {
                 true -> {
                     IkkeAvgjort(
                         id = UUID.randomUUID(),
@@ -705,7 +705,10 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
     ) : BeregnetRevurdering() {
-        fun toSimulert(simuler: (sakId: UUID, saksbehandler: NavIdentBruker, opphørsdato: LocalDate) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
+        fun toSimulert(
+            simuler: (sakId: UUID, saksbehandler: NavIdentBruker, opphørsdato: LocalDate) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+            tilbakekrevingTillatt: Boolean
+        ): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
             val (simulertUtbetaling, håndtertAvkorting) = simuler(sakId, saksbehandler, periode.fraOgMed)
                 .getOrHandle { return it.left() }
                 .let { simulering ->
@@ -755,7 +758,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                     }
                 }
 
-            val tilbakekrevingsbehandling = when (simulertUtbetaling.simulering.harFeilutbetalinger()) {
+            val tilbakekrevingsbehandling = when (tilbakekrevingTillatt && simulertUtbetaling.simulering.harFeilutbetalinger()) {
                 true -> {
                     IkkeAvgjort(
                         id = UUID.randomUUID(),
