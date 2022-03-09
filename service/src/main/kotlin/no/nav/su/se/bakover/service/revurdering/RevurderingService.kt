@@ -153,10 +153,17 @@ data class RevurderingOgFeilmeldingerResponse(
     fun leggTil(varselmelding: Varselmelding): RevurderingOgFeilmeldingerResponse {
         return copy(varselmeldinger = (varselmeldinger + varselmelding).distinct())
     }
+
+    fun leggTil(varselmeldinger: List<Pair<Boolean, Varselmelding>>): RevurderingOgFeilmeldingerResponse {
+        return varselmeldinger.fold(this) { acc, (leggTil, varselmelding) ->
+            if (leggTil) acc.leggTil(varselmelding) else acc
+        }
+    }
 }
 
 sealed interface Varselmelding {
     object BeløpsendringUnder10Prosent : Varselmelding
+    object FradragOgFormueForEPSErFjernet : Varselmelding
 }
 
 object FantIkkeRevurdering

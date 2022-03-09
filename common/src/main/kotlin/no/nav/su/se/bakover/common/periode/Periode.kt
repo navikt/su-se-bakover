@@ -201,6 +201,14 @@ fun List<Periode>.minusListe(other: List<Periode>): List<Periode> {
     return (flatMap { it.tilMånedsperioder() } - other.flatMap { it.tilMånedsperioder() }.toSet()).reduser()
 }
 
+fun Periode.inneholderAlle(other: List<Periode>): Boolean {
+    return (other.flatMap { it.tilMånedsperioder() }.minusListe(tilMånedsperioder())).isEmpty()
+}
+
+fun List<Periode>.inneholderAlle(other: List<Periode>): Boolean {
+    return (other.flatMap { it.tilMånedsperioder() }.minusListe(flatMap { it.tilMånedsperioder() })).isEmpty()
+}
+
 fun januar(year: Int) = 1.januar(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
 fun februar(year: Int) = 1.februar(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
 fun mars(year: Int) = 1.mars(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }

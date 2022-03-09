@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -28,6 +27,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
@@ -82,7 +82,7 @@ internal class VedtakPåTidslinjeTest {
             begrunnelse = "Begrunnelse",
         )
 
-        val formuevilkår = innvilgetFormueVilkår(periode)
+        val formuevilkår = innvilgetFormueVilkår(periode = periode)
         val original = VedtakSomKanRevurderes.VedtakPåTidslinje(
             opprettet = fixedTidspunkt,
             periode = periode,
@@ -233,7 +233,7 @@ internal class VedtakPåTidslinjeTest {
             tilhører = FradragTilhører.BRUKER,
         )
 
-        val formuevilkår = innvilgetFormueVilkår(periode)
+        val formuevilkår = innvilgetFormueVilkår(periode = periode)
         val original = VedtakSomKanRevurderes.VedtakPåTidslinje(
             opprettet = fixedTidspunkt,
             periode = periode,

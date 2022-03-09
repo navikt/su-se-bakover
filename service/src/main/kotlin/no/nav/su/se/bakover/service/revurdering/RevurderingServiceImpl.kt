@@ -686,14 +686,16 @@ internal class RevurderingServiceImpl(
         return when (originalRevurdering) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
                 val eksisterendeUtbetalinger = utbetalingService.hentUtbetalinger(originalRevurdering.sakId)
+                val gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
+                    sakId = originalRevurdering.sakId,
+                    fraOgMed = originalRevurdering.periode.fraOgMed,
+                ).getOrHandle {
+                    throw IllegalStateException("Fant ikke gjeldende vedtaksdata for sak:${originalRevurdering.sakId}")
+                }
                 val beregnetRevurdering = originalRevurdering.beregn(
                     eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                     clock = clock,
-                    gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
-                        sakId = originalRevurdering.sakId,
-                        fraOgMed = originalRevurdering.periode.fraOgMed,
-                    )
-                        .getOrHandle { throw IllegalStateException("Fant ikke gjeldende vedtaksdata for sak:${originalRevurdering.sakId}") },
+                    gjeldendeVedtaksdata = gjeldendeVedtaksdata,
                 ).getOrHandle {
                     return when (it) {
                         is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> {
@@ -714,26 +716,27 @@ internal class RevurderingServiceImpl(
                     }.left()
                 }
 
-                val leggTilVarselForBeløpsendringUnder10Prosent =
-                    !VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-                        eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
-                        nyBeregning = beregnetRevurdering.beregning,
-                    ).resultat
+                val potensielleVarsel = listOf(
+                    (
+                        !VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+                            eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
+                            nyBeregning = beregnetRevurdering.beregning,
+                        ).resultat && !(beregnetRevurdering is BeregnetRevurdering.Opphørt && beregnetRevurdering.opphørSkyldesVilkår())
+                        ) to Varselmelding.BeløpsendringUnder10Prosent,
+                    gjeldendeVedtaksdata.let { gammel ->
+                        (
+                            gammel.grunnlagsdata.bosituasjon.any { it.harEPS() } &&
+                                beregnetRevurdering.grunnlagsdata.bosituasjon.none { it.harEPS() }
+                            ) to Varselmelding.FradragOgFormueForEPSErFjernet
+                    },
+                )
 
                 when (beregnetRevurdering) {
                     is BeregnetRevurdering.IngenEndring -> {
                         revurderingRepo.lagre(beregnetRevurdering)
-                        when (leggTilVarselForBeløpsendringUnder10Prosent) {
-                            true -> {
-                                identifiserFeilOgLagResponse(beregnetRevurdering)
-                                    .leggTil(Varselmelding.BeløpsendringUnder10Prosent)
-                                    .right()
-                            }
-                            false -> {
-                                identifiserFeilOgLagResponse(beregnetRevurdering)
-                                    .right()
-                            }
-                        }
+                        identifiserFeilOgLagResponse(beregnetRevurdering)
+                            .leggTil(potensielleVarsel)
+                            .right()
                     }
                     is BeregnetRevurdering.Innvilget -> {
                         utbetalingService.simulerUtbetaling(
@@ -748,15 +751,8 @@ internal class RevurderingServiceImpl(
                         }.map {
                             beregnetRevurdering.toSimulert(it.simulering).let { simulert ->
                                 revurderingRepo.lagre(simulert)
-                                when (leggTilVarselForBeløpsendringUnder10Prosent) {
-                                    true -> {
-                                        identifiserFeilOgLagResponse(simulert)
-                                            .leggTil(Varselmelding.BeløpsendringUnder10Prosent)
-                                    }
-                                    false -> {
-                                        identifiserFeilOgLagResponse(simulert)
-                                    }
-                                }
+                                identifiserFeilOgLagResponse(simulert)
+                                    .leggTil(potensielleVarsel)
                             }
                         }
                     }
@@ -773,12 +769,8 @@ internal class RevurderingServiceImpl(
                         }.mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }
                             .map { simulert ->
                                 revurderingRepo.lagre(simulert)
-                                if (leggTilVarselForBeløpsendringUnder10Prosent && !simulert.opphørSkyldesVilkår()) {
-                                    identifiserFeilOgLagResponse(simulert)
-                                        .leggTil(Varselmelding.BeløpsendringUnder10Prosent)
-                                } else {
-                                    identifiserFeilOgLagResponse(simulert)
-                                }
+                                identifiserFeilOgLagResponse(simulert)
+                                    .leggTil(potensielleVarsel)
                             }
                     }
                 }

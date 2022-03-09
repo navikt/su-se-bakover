@@ -714,4 +714,61 @@ internal class PeriodeTest {
             Periode.create(1.april(2022), 31.mai(2022)),
         )
     }
+
+    @Test
+    fun `inneholder alle`() {
+        Periode.create(1.januar(2021), 31.desember(2021)).inneholderAlle(
+            listOf(
+                januar(2021),
+                februar(2021),
+                Periode.create(1.mars(2021), 31.desember(2021)),
+            ),
+        ) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)).inneholderAlle(
+            listOf(
+                januar(2021),
+                februar(2021),
+                Periode.create(1.mars(2021), 31.desember(2021)),
+                januar(2022),
+            ),
+        ) shouldBe false
+
+        Periode.create(1.januar(2021), 31.desember(2021)).inneholderAlle(
+            emptyList(),
+        ) shouldBe true
+
+        listOf(
+            januar(2021),
+        ).inneholderAlle(
+            listOf(
+                januar(2021),
+                januar(2021),
+            ),
+        ) shouldBe true
+
+        listOf(
+            Periode.create(1.januar(2021), 31.desember(2021)),
+        ).inneholderAlle(
+            listOf(
+                Periode.create(1.januar(2021), 31.desember(2021)),
+                Periode.create(1.januar(2021), 31.desember(2021)),
+            ),
+        ) shouldBe true
+
+        listOf(
+            Periode.create(1.januar(2021), 31.desember(2021)),
+            Periode.create(1.januar(2021), 31.desember(2021)),
+        ).inneholderAlle(
+            listOf(
+                Periode.create(1.januar(2021), 31.desember(2021)),
+            ),
+        ) shouldBe true
+
+        emptyList<Periode>().inneholderAlle(
+            listOf(
+                Periode.create(1.januar(2021), 31.desember(2021)),
+            ),
+        ) shouldBe false
+    }
 }

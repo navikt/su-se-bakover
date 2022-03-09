@@ -9,9 +9,9 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -185,7 +185,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 tilhører = FradragTilhører.EPS,
             )
             SjekkOmGrunnlagErKonsistent(
-                formuegrunnlag = innvilgetFormueVilkår(periode).grunnlag,
+                formuegrunnlag = innvilgetFormueVilkår(periode = periode).grunnlag,
                 uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjongrunnlag = listOf(bosituasjon),
                 fradragsgrunnlag = listOf(arbEps),

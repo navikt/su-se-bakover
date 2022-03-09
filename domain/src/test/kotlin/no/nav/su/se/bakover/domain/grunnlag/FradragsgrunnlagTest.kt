@@ -11,13 +11,17 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.perioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -295,7 +299,7 @@ internal class FradragsgrunnlagTest {
         )
 
         listOf(f1, f2)
-            .fjernInntekterForEPSDersomFradragIkkeErKonsistentMedOppdatertBosituasjon(bosituasjonUtenEPS) shouldBe listOf(f2)
+            .fjernFradragForEPSHvisEnslig(bosituasjonUtenEPS) shouldBe listOf(f2)
     }
 
     @Test
@@ -330,7 +334,15 @@ internal class FradragsgrunnlagTest {
         )
 
         listOf(f1, f2)
-            .fjernInntekterForEPSDersomFradragIkkeErKonsistentMedOppdatertBosituasjon(bosituasjonUtenEPS) shouldBe listOf(f1, f2)
+            .fjernFradragForEPSHvisEnslig(bosituasjonUtenEPS) shouldBe listOf(f1, f2)
+    }
+
+    @Test
+    fun `test`() {
+        listOf(
+            fradragsgrunnlagArbeidsinntekt1000(periode = januar(2021)),
+            fradragsgrunnlagArbeidsinntekt1000(periode = juli(2021))
+        ).perioder()
     }
 
     private fun lagFradragsgrunnlag(

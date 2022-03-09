@@ -114,9 +114,6 @@ internal fun KunneIkkeLeggeTilFradragsgrunnlag.tilResultat(): Resultat {
         is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> {
             Behandlingsfeilresponser.ugyldigTilstand(fra = this.fra)
         }
-        KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler -> {
-            HttpStatusCode.BadRequest.errorJson("periode mangler", "periode_mangler")
-        }
         is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
             Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
         }

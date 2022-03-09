@@ -5,12 +5,14 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.common.periode.inneholderAlle
+import no.nav.su.se.bakover.common.periode.minusListe
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.oppdaterFradragsperiode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.periode
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.perioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
@@ -31,7 +33,8 @@ data class Grunnlagsdata private constructor(
         oppdatertPeriode: Periode,
     ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
         return tryCreate(
-            fradragsgrunnlag = fradragsgrunnlag.oppdaterFradragsperiode(oppdatertPeriode).getOrHandle { return KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag(it).left() },
+            fradragsgrunnlag = fradragsgrunnlag.oppdaterFradragsperiode(oppdatertPeriode)
+                .getOrHandle { return KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag(it).left() },
             bosituasjon = bosituasjon.oppdaterBosituasjonsperiode(oppdatertPeriode),
         )
     }
@@ -59,25 +62,24 @@ data class Grunnlagsdata private constructor(
             bosituasjon: List<Bosituasjon>,
         ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
 
-            val fradragsperiode = fradragsgrunnlag.periode()
-            val bosituasjonperiode = bosituasjon.periode()
+            val fradragsperiode = fradragsgrunnlag.perioder()
+            val bosituasjonperiode = bosituasjon.perioder()
 
-            if (fradragsperiode != null) {
-                if (bosituasjonperiode == null) return KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag.left()
-                if (!(bosituasjonperiode inneholder fradragsperiode))
+            if (fradragsperiode.isNotEmpty()) {
+                if (bosituasjonperiode.isEmpty()) {
+                    return KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag.left()
+                }
+
+                if (fradragsperiode.minusListe(bosituasjonperiode).isNotEmpty()) {
                     return KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon.left()
+                }
 
-                fradragsgrunnlag.map { f ->
-                    if (f.fradrag.tilhører == FradragTilhører.EPS) {
-                        f.fradrag.periode.tilMånedsperioder().forEach { fradragMnd ->
-                            if (bosituasjon.filter { it.harEktefelle() }.map {
-                                it.periode
-                            }.none {
-                                    it inneholder fradragMnd
-                                }
-                            ) return KunneIkkeLageGrunnlagsdata.FradragForEpsSomIkkeHarEPS.left()
-                        }
-                    }
+                val perioderMedEPS = bosituasjonperiode.minusListe(bosituasjon.filter { !it.harEPS() }.perioder())
+                val perioderMedFradragForEPS =
+                    fradragsperiode.minusListe(fradragsgrunnlag.filter { !it.tilhørerEps() }.perioder())
+
+                if (!perioderMedEPS.inneholderAlle(perioderMedFradragForEPS)) {
+                    return KunneIkkeLageGrunnlagsdata.FradragForEPSMenBosituasjonUtenEPS.left()
                 }
             }
 
@@ -92,30 +94,17 @@ data class Grunnlagsdata private constructor(
 sealed class KunneIkkeLageGrunnlagsdata {
     object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLageGrunnlagsdata()
     object FradragManglerBosituasjon : KunneIkkeLageGrunnlagsdata()
-    object FradragForEpsSomIkkeHarEPS : KunneIkkeLageGrunnlagsdata()
-    data class UgyldigFradragsgrunnlag(val feil: Fradragsgrunnlag.UgyldigFradragsgrunnlag) : KunneIkkeLageGrunnlagsdata()
+    object FradragForEPSMenBosituasjonUtenEPS : KunneIkkeLageGrunnlagsdata()
+    data class UgyldigFradragsgrunnlag(val feil: Fradragsgrunnlag.UgyldigFradragsgrunnlag) :
+        KunneIkkeLageGrunnlagsdata()
 }
 
 fun List<Uføregrunnlag>.harForventetInntektStørreEnn0() = this.sumOf { it.forventetInntekt } > 0
 
-@JvmName("bosituasjonperiode")
-fun List<Bosituasjon>.periode(): Periode? = this.map { it.periode }.let { perioder ->
-    if (perioder.isEmpty()) null else
-        Periode.create(
-            fraOgMed = perioder.minOf { it.fraOgMed },
-            tilOgMed = perioder.maxOf { it.tilOgMed },
-        )
+fun List<Fradragsgrunnlag>.fjernFradragForEPSHvisEnslig(bosituasjon: Bosituasjon): List<Fradragsgrunnlag> {
+    return if (bosituasjon.harEPS()) this else fjernFradragEPS()
 }
 
-fun List<Fradragsgrunnlag>.fjernInntekterForEPSDersomFradragIkkeErKonsistentMedOppdatertBosituasjon(b: Bosituasjon): List<Fradragsgrunnlag> {
-    return when (b) {
-        is Bosituasjon.Ufullstendig.HarIkkeEps,
-        is Bosituasjon.Fullstendig.Enslig,
-        is Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen,
-        -> this.filter { it.tilhører == FradragTilhører.BRUKER }
-
-        is Bosituasjon.Ufullstendig.HarEps,
-        is Bosituasjon.Fullstendig.EktefellePartnerSamboer,
-        -> this
-    }
+fun List<Fradragsgrunnlag>.fjernFradragEPS(): List<Fradragsgrunnlag> {
+    return filterNot { it.tilhørerEps() }
 }

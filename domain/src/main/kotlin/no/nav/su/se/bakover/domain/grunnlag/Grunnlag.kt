@@ -9,6 +9,7 @@ import arrow.core.sequenceEither
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
+import no.nav.su.se.bakover.common.periode.reduser
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Copyable
 import no.nav.su.se.bakover.domain.Fnr
@@ -171,13 +172,7 @@ sealed class Grunnlag {
             }
 
             fun List<Fradragsgrunnlag>.harEpsInntekt() = this.any { it.fradrag.tilhørerEps() }
-            fun List<Fradragsgrunnlag>.periode(): Periode? = this.map { it.fradrag.periode }.let { perioder ->
-                if (perioder.isEmpty()) null else
-                    Periode.create(
-                        fraOgMed = perioder.minOf { it.fraOgMed },
-                        tilOgMed = perioder.maxOf { it.tilOgMed },
-                    )
-            }
+            fun List<Fradragsgrunnlag>.perioder(): List<Periode> = map { it.periode }.reduser()
 
             fun List<Fradragsgrunnlag>.slåSammenPeriodeOgFradrag(): List<Fradragsgrunnlag> {
                 return this.sortedBy { it.periode.fraOgMed }
@@ -233,6 +228,12 @@ sealed class Grunnlag {
         abstract override val id: UUID
         abstract val opprettet: Tidspunkt
 
+        /**
+         * Bosituasjon med ektefelle/partner/samboer.
+         * NB: ikke det samme som om bruker bor med eller uten andre personer.
+         */
+        abstract fun harEPS(): Boolean
+
         fun oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): Bosituasjon {
             return when (this) {
                 is Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> this.copy(periode = oppdatertPeriode)
@@ -273,6 +274,10 @@ sealed class Grunnlag {
 
             private fun List<Bosituasjon>.sisteBosituasjonsgrunnlagErLikOgTilstøtende(other: Bosituasjon) =
                 this.last().let { it.tilstøter(other) && it.erLik(other) }
+
+            fun List<Bosituasjon>.perioder(): List<Periode> {
+                return map { it.periode }.reduser()
+            }
         }
 
         sealed class Fullstendig : Bosituasjon(), Copyable<CopyArgs.Snitt, Fullstendig?> {
@@ -280,6 +285,9 @@ sealed class Grunnlag {
 
             sealed class EktefellePartnerSamboer : Fullstendig() {
                 abstract val fnr: Fnr
+                override fun harEPS(): Boolean {
+                    return true
+                }
 
                 sealed class Under67 : EktefellePartnerSamboer() {
                     data class UførFlyktning(
@@ -348,6 +356,10 @@ sealed class Grunnlag {
                 override val periode: Periode,
                 override val begrunnelse: String?,
             ) : Fullstendig() {
+                override fun harEPS(): Boolean {
+                    return false
+                }
+
                 override fun erLik(other: Grunnlag): Boolean {
                     return other is Enslig
                 }
@@ -363,6 +375,10 @@ sealed class Grunnlag {
                 override val periode: Periode,
                 override val begrunnelse: String?,
             ) : Fullstendig() {
+                override fun harEPS(): Boolean {
+                    return false
+                }
+
                 override fun erLik(other: Grunnlag): Boolean {
                     return other is DelerBoligMedVoksneBarnEllerAnnenVoksen
                 }
@@ -381,6 +397,10 @@ sealed class Grunnlag {
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
             ) : Ufullstendig() {
+                override fun harEPS(): Boolean {
+                    return false
+                }
+
                 override fun erLik(other: Grunnlag): Boolean {
                     return other is HarIkkeEps
                 }
@@ -394,14 +414,14 @@ sealed class Grunnlag {
                 override val periode: Periode,
                 val fnr: Fnr,
             ) : Ufullstendig() {
+                override fun harEPS(): Boolean {
+                    return true
+                }
+
                 override fun erLik(other: Grunnlag): Boolean {
                     return other is HarEps
                 }
             }
-        }
-
-        fun harEktefelle(): Boolean {
-            return this is Fullstendig.EktefellePartnerSamboer || this is Ufullstendig.HarEps
         }
 
         fun harEndretEllerFjernetEktefelle(gjeldendeBosituasjon: Bosituasjon): Boolean {
@@ -433,8 +453,8 @@ fun List<Grunnlag.Bosituasjon>.harFlerEnnEnBosituasjonsperiode(): Boolean = size
  * Kan være maks 1 i alle andre tilstander.
  * @throws IllegalStateException hvis size > 1
  * */
-fun List<Grunnlag.Bosituasjon>.harEktefelle(): Boolean {
-    return singleOrThrow().harEktefelle()
+fun List<Grunnlag.Bosituasjon>.harEPS(): Boolean {
+    return singleOrThrow().harEPS()
 }
 
 /**
