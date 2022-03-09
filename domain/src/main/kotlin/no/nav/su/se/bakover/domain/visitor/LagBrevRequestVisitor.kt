@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
-import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
+import no.nav.su.se.bakover.domain.grunnlag.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -459,7 +459,7 @@ class LagBrevRequestVisitor(
                 personOgNavn = it,
                 avslagsgrunner = avslagsgrunner,
                 // Ved avslag så er det ikke sikkert bosituasjon er utfylt.
-                harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.ifNotEmpty { harEktefelle() } ?: false,
+                harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.ifNotEmpty { harEPS() } ?: false,
                 beregning = beregning,
                 fritekst = fritekst,
                 uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføre.grunnlag,
@@ -507,7 +507,7 @@ class LagBrevRequestVisitor(
                 attestantNavn = it.attestantNavn,
                 revurdertBeregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
-                harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
+                harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
                 forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag()
                     .harForventetInntektStørreEnn0(),
                 dagensDato = LocalDate.now(clock),
@@ -654,7 +654,7 @@ class LagBrevRequestVisitor(
 
             LagBrevRequest.Opphørsvedtak(
                 person = it.person,
-                harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
+                harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
                 beregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 saksbehandlerNavn = it.saksbehandlerNavn,
@@ -734,7 +734,7 @@ class LagBrevRequestVisitor(
         person = personOgNavn.person,
         beregning = beregning,
         satsgrunn = bosituasjon.satsgrunn(),
-        harEktefelle = bosituasjon.harEktefelle(),
+        harEktefelle = bosituasjon.harEPS(),
         saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
         attestantNavn = personOgNavn.attestantNavn,
         fritekst = fritekst,
@@ -788,7 +788,7 @@ class LagBrevRequestVisitor(
                 attestantNavn = it.attestantNavn,
                 revurdertBeregning = vedtak.beregning,
                 fritekst = vedtak.behandling.fritekstTilBrev,
-                harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
+                harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEPS(),
                 forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
                 dagensDato = LocalDate.now(clock),
                 saksnummer = vedtak.behandling.saksnummer,
@@ -819,7 +819,7 @@ class LagBrevRequestVisitor(
                 attestantNavn = it.attestantNavn,
                 beregning = vedtak.beregning,
                 fritekst = vedtak.behandling.fritekstTilBrev,
-                harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
+                harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEPS(),
                 forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
                 opphørsgrunner = vedtak.utledOpphørsgrunner(clock),
                 dagensDato = LocalDate.now(clock),
@@ -860,7 +860,7 @@ class LagBrevRequestVisitor(
             requestForAvslag(
                 personOgNavn = it,
                 avslagsgrunner = vedtak.avslagsgrunner,
-                harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.ifNotEmpty { harEktefelle() } ?: false,
+                harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.ifNotEmpty { harEPS() } ?: false,
                 beregning = when (vedtak) {
                     is Avslagsvedtak.AvslagBeregning -> vedtak.beregning
                     is Avslagsvedtak.AvslagVilkår -> null
@@ -892,7 +892,7 @@ class LagBrevRequestVisitor(
                     personOgNavn = personOgNavn,
                     beregning = beregning,
                     fritekst = revurdering.fritekstTilBrev,
-                    harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
+                    harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
                     uføregrunnlag = revurdering.vilkårsvurderinger.hentUføregrunnlag(),
                     gjeldendeMånedsutbetaling = gjeldendeUtbetaling,
                     saksnummer = revurdering.saksnummer,
@@ -911,7 +911,7 @@ class LagBrevRequestVisitor(
                     personOgNavn = personOgNavn,
                     beregning = vedtak.beregning,
                     fritekst = vedtak.behandling.fritekstTilBrev,
-                    harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
+                    harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEPS(),
                     uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
                     gjeldendeMånedsutbetaling = gjeldendeUtbetaling,
                     saksnummer = vedtak.behandling.saksnummer,

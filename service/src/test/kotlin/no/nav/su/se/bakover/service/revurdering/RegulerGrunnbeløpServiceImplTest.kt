@@ -86,7 +86,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-        ).leggTilUføregrunnlag(
+        ).leggTilUførevilkår(
             LeggTilUførevurderingerRequest(
                 behandlingId = revurderingId,
                 vurderinger = nonEmptyListOf(

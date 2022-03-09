@@ -164,6 +164,7 @@ fun startJobberOgConsumers(
             } else {
                 Duration.of(15, ChronoUnit.MINUTES)
             },
+            sessionFactory = databaseRepos.sessionFactory,
         ).schedule()
 
         if (services.toggles.isEnabled(ToggleService.toggleForFeilutbetaling)) {
@@ -240,6 +241,7 @@ fun startJobberOgConsumers(
             kontrollsamtaleService = services.kontrollsamtale,
             starttidspunkt = Date.from(Instant.now(clock).plusSeconds(initialDelay.next().toSeconds())),
             periode = Duration.ofMinutes(5),
+            sessionFactory = databaseRepos.sessionFactory,
         ).schedule()
 
         LokalMottaKravgrunnlagJob(

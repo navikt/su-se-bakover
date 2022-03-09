@@ -43,9 +43,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
-import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
+import no.nav.su.se.bakover.domain.grunnlag.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
-import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
@@ -72,6 +71,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
@@ -283,7 +283,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
                         satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
-                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
+                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
                         saksbehandlerNavn = "-",
                         attestantNavn = "-",
                         fritekst = "",
@@ -357,7 +357,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
                         satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
-                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
+                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
                         saksbehandlerNavn = "-",
                         attestantNavn = "-",
                         fritekst = "",
@@ -479,7 +479,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
                         satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
-                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
+                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = "-",
                         fritekst = "Fritekst!",
@@ -619,7 +619,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
                         satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
-                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
+                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
                         fritekst = "Fritekst!",
@@ -742,7 +742,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
                         satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
-                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
+                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
                         fritekst = "Fritekst!",
@@ -787,7 +787,7 @@ internal class LagBrevRequestVisitorTest {
             person = person,
             beregning = expectedInnvilgetBeregning(innvilgetVedtak.beregning.getId()),
             satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
-            harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
+            harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "Fritekst!",
@@ -1122,7 +1122,7 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
-                innvilgetFormueVilkår(revurderingsperiode),
+                innvilgetFormueVilkår(periode = revurderingsperiode),
                 utlandsoppholdInnvilget(periode = revurderingsperiode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -1150,7 +1150,7 @@ internal class LagBrevRequestVisitorTest {
         brevRevurdering.brevRequest shouldBe LagBrevRequest.Opphørsvedtak(
             person = person,
             beregning = revurdering.beregning,
-            harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
+            harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",
@@ -1196,7 +1196,7 @@ internal class LagBrevRequestVisitorTest {
         brevRevurdering.brevRequest shouldBe LagBrevRequest.Opphørsvedtak(
             person = person,
             beregning = revurdering.beregning,
-            harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
+            harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",
@@ -1288,7 +1288,7 @@ internal class LagBrevRequestVisitorTest {
         brevRevurdering.brevRequest shouldBe LagBrevRequest.Opphørsvedtak(
             person = person,
             beregning = attestert.beregning,
-            harEktefelle = attestert.grunnlagsdata.bosituasjon.harEktefelle(),
+            harEktefelle = attestert.grunnlagsdata.bosituasjon.harEPS(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",
@@ -1370,7 +1370,7 @@ internal class LagBrevRequestVisitorTest {
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
                 fritekst = "EN FIN FRITEKST",
-                harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
+                harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
                 forventetInntektStørreEnn0 = false,
                 gjeldendeMånedsutbetaling = 120,
                 dagensDato = fixedLocalDate,

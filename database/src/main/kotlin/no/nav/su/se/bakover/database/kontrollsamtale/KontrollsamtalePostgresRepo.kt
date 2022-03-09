@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.database.kontrollsamtale
 
 import kotliquery.Row
-import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.database.DbMetrics
+import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
-import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.tidspunkt
@@ -19,9 +19,9 @@ internal class KontrollsamtalePostgresRepo(
     private val dbMetrics: DbMetrics,
 ) : KontrollsamtaleRepo {
 
-    override fun lagre(kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext) {
+    override fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext) {
         dbMetrics.timeQuery("lagreKontrollsamtale") {
-            transactionContext.withTransaction { transaction ->
+            sessionContext.withSession { session ->
                 (
                     """
                     insert into kontrollsamtale (id, opprettet, sakid, innkallingsdato, status, frist, dokumentid)
@@ -44,15 +44,15 @@ internal class KontrollsamtalePostgresRepo(
                         "frist" to kontrollsamtale.frist,
                         "dokumentId" to kontrollsamtale.dokumentId,
                     ),
-                    transaction,
+                    session,
                 )
             }
         }
     }
 
-    override fun hentForSakId(sakId: UUID): List<Kontrollsamtale> {
+    override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): List<Kontrollsamtale> {
         return dbMetrics.timeQuery("hentKontrollsamtaleForSakId") {
-            sessionFactory.withSession { session ->
+            sessionContext.withSession { session ->
                 "select * from kontrollsamtale where sakid=:sakId"
                     .trimIndent()
                     .hentListe(mapOf("sakId" to sakId), session) { it.toKontrollsamtale() }
@@ -60,9 +60,9 @@ internal class KontrollsamtalePostgresRepo(
         }
     }
 
-    override fun hentAllePlanlagte(tilOgMed: LocalDate): List<Kontrollsamtale> {
+    override fun hentAllePlanlagte(tilOgMed: LocalDate, sessionContext: SessionContext): List<Kontrollsamtale> {
         return dbMetrics.timeQuery("hentAllePlanlagteKontrollsamtaler") {
-            sessionFactory.withSession { session ->
+            sessionContext.withSession { session ->
                 "select * from kontrollsamtale where status=:status and innkallingsdato <= :tilOgMed"
                     .trimIndent()
                     .hentListe(
@@ -76,7 +76,7 @@ internal class KontrollsamtalePostgresRepo(
         }
     }
 
-    override fun defaultTransactionContext(): TransactionContext = sessionFactory.newTransactionContext()
+    override fun defaultSessionContext(): SessionContext = sessionFactory.newSessionContext()
 
     private fun Row.toKontrollsamtale(): Kontrollsamtale {
         return Kontrollsamtale(

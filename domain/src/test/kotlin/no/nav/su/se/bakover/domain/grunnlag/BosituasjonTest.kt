@@ -25,7 +25,7 @@ internal class BosituasjonTest {
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             fnr = Fnr.generer(),
             begrunnelse = null,
-        ).harEktefelle() shouldBe true
+        ).harEPS() shouldBe true
 
         Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
             id = UUID.randomUUID(),
@@ -33,7 +33,7 @@ internal class BosituasjonTest {
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             fnr = Fnr.generer(),
             begrunnelse = null,
-        ).harEktefelle() shouldBe true
+        ).harEPS() shouldBe true
 
         Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
             id = UUID.randomUUID(),
@@ -41,34 +41,34 @@ internal class BosituasjonTest {
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             fnr = Fnr.generer(),
             begrunnelse = null,
-        ).harEktefelle() shouldBe true
+        ).harEPS() shouldBe true
 
         Grunnlag.Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             begrunnelse = null,
-        ).harEktefelle() shouldBe false
+        ).harEPS() shouldBe false
 
         Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             begrunnelse = null,
-        ).harEktefelle() shouldBe false
+        ).harEPS() shouldBe false
 
         Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
-        ).harEktefelle() shouldBe false
+        ).harEPS() shouldBe false
 
         Grunnlag.Bosituasjon.Ufullstendig.HarEps(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fnr = Fnr.generer(),
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
-        ).harEktefelle() shouldBe true
+        ).harEPS() shouldBe true
     }
 
     @Test

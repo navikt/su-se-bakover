@@ -13,7 +13,7 @@ enum class Garantipensjonsnivå {
     private val datoToGarantipensjonsnivå: Map<LocalDate, Pensjonsnivåverdier> = mapOf(
         LocalDate.of(2019, Month.MAY, 1) to Pensjonsnivåverdier(ordinær = 176099),
         LocalDate.of(2020, Month.MAY, 1) to Pensjonsnivåverdier(ordinær = 177724),
-        LocalDate.of(2021, Month.MAY, 1) to Pensjonsnivåverdier(ordinær = 186263),
+        LocalDate.of(2021, Month.MAY, 1) to Pensjonsnivåverdier(ordinær = 187252),
     )
 
     fun forDato(dato: LocalDate): Int = datoToGarantipensjonsnivå.entries

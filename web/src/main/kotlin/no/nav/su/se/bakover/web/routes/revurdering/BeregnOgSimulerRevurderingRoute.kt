@@ -100,6 +100,12 @@ internal fun Varselmelding.toJson(): ErrorJson {
                 code = "beløpsendring_mindre_enn_ti_prosent",
             )
         }
+        Varselmelding.FradragOgFormueForEPSErFjernet -> {
+            ErrorJson(
+                message = "Fradrag og formue for EPS er fjernet som følge av endring i bosituasjon.",
+                code = "varsel_fjernet_fradrag_og_formue_eps",
+            )
+        }
     }
 }
 

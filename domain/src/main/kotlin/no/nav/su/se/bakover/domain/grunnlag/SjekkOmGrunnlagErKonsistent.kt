@@ -88,7 +88,7 @@ data class SjekkOmGrunnlagErKonsistent(
                         // Det kan oppstår dersom man revurderer på tvers av vedtak.
                         add(Konsistensproblem.BosituasjonOgFradrag.FlereBosituasjonerOgFradragForEPS)
                     }
-                    bosituasjon.any { !it.harEktefelle() } -> {
+                    bosituasjon.any { !it.harEPS() } -> {
                         add(Konsistensproblem.BosituasjonOgFradrag.IngenEPSMenFradragForEPS)
                     }
                     // TODO jah: Vi sjekker ikke på om epsFormue/epsInntekt er innenfor sin respektive bosituasjonsperiode
@@ -116,7 +116,7 @@ data class SjekkOmGrunnlagErKonsistent(
             formue: List<Formuegrunnlag>,
         ): Either<Set<Konsistensproblem.BosituasjonOgFormue>, Unit> {
             if (formue.isEmpty()) return Unit.right()
-            if (!formue.harEpsFormue()) return Unit.right()
+            if (!formue.harEPSFormue()) return Unit.right()
             mutableSetOf<Konsistensproblem.BosituasjonOgFormue>().apply {
                 when {
                     bosituasjon.harFlerEnnEnBosituasjonsperiode() -> {
@@ -124,7 +124,7 @@ data class SjekkOmGrunnlagErKonsistent(
                         // Det kan oppstår dersom man revurderer på tvers av vedtak.
                         add(Konsistensproblem.BosituasjonOgFormue.FlereBosituasjonerOgFormueForEPS)
                     }
-                    bosituasjon.any { !it.harEktefelle() } -> {
+                    bosituasjon.any { !it.harEPS() } -> {
                         add(Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS)
                     }
                     bosituasjon.any { bosituasjon ->

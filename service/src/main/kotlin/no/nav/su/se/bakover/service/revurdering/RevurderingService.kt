@@ -114,9 +114,9 @@ interface RevurderingService {
         request: FortsettEtterForhåndsvarslingRequest,
     ): Either<FortsettEtterForhåndsvarselFeil, Revurdering>
 
-    fun leggTilUføregrunnlag(
+    fun leggTilUførevilkår(
         request: LeggTilUførevurderingerRequest,
-    ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse>
+    ): Either<KunneIkkeLeggeTilUføreVilkår, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilUtenlandsopphold(
         request: LeggTilFlereUtenlandsoppholdRequest,
@@ -158,10 +158,17 @@ data class RevurderingOgFeilmeldingerResponse(
     fun leggTil(varselmelding: Varselmelding): RevurderingOgFeilmeldingerResponse {
         return copy(varselmeldinger = (varselmeldinger + varselmelding).distinct())
     }
+
+    fun leggTil(varselmeldinger: List<Pair<Boolean, Varselmelding>>): RevurderingOgFeilmeldingerResponse {
+        return varselmeldinger.fold(this) { acc, (leggTil, varselmelding) ->
+            if (leggTil) acc.leggTil(varselmelding) else acc
+        }
+    }
 }
 
 sealed interface Varselmelding {
     object BeløpsendringUnder10Prosent : Varselmelding
+    object FradragOgFormueForEPSErFjernet : Varselmelding
 }
 
 object FantIkkeRevurdering
@@ -307,18 +314,17 @@ sealed class KunneIkkeUnderkjenneRevurdering {
     object SaksbehandlerOgAttestantKanIkkeVæreSammePerson : KunneIkkeUnderkjenneRevurdering()
 }
 
-sealed class KunneIkkeLeggeTilGrunnlag {
-    object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
-    object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
-    object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
-    object OverlappendeVurderingsperioder : KunneIkkeLeggeTilGrunnlag()
-    object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilGrunnlag()
-    object AlleVurderingeneMåHaSammeResultat : KunneIkkeLeggeTilGrunnlag()
-    object HeleBehandlingsperiodenMåHaVurderinger : KunneIkkeLeggeTilGrunnlag()
+sealed class KunneIkkeLeggeTilUføreVilkår {
+    object FantIkkeBehandling : KunneIkkeLeggeTilUføreVilkår()
+    object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilUføreVilkår()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
-    ) : KunneIkkeLeggeTilGrunnlag()
+    ) : KunneIkkeLeggeTilUføreVilkår()
+
+    data class UgyldigInput(
+        val originalFeil: LeggTilUførevurderingerRequest.UgyldigUførevurdering,
+    ) : KunneIkkeLeggeTilUføreVilkår()
 }
 
 sealed class KunneIkkeLeggeTilFradragsgrunnlag {

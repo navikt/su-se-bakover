@@ -330,24 +330,20 @@ internal class RevurderingServiceImpl(
         ) to gjeldendeVedtaksdata.vilkårsvurderinger
     }
 
-    override fun leggTilUføregrunnlag(
+    override fun leggTilUførevilkår(
         request: LeggTilUførevurderingerRequest,
-    ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse> {
+    ): Either<KunneIkkeLeggeTilUføreVilkår, RevurderingOgFeilmeldingerResponse> {
         val revurdering = hent(request.behandlingId)
-            .getOrHandle { return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left() }
+            .getOrHandle { return KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling.left() }
 
-        val uførevilkår = request.toVilkår(revurdering.periode, clock).getOrHandle {
-            return when (it) {
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat -> KunneIkkeLeggeTilGrunnlag.AlleVurderingeneMåHaSammeResultat.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger -> KunneIkkeLeggeTilGrunnlag.HeleBehandlingsperiodenMåHaVurderinger.left()
-            }
+        val uførevilkår = request.toVilkår(
+            behandlingsperiode = revurdering.periode,
+            clock = clock,
+        ).getOrHandle {
+            return KunneIkkeLeggeTilUføreVilkår.UgyldigInput(it).left()
         }
         return revurdering.oppdaterUføreOgMarkerSomVurdert(uførevilkår).mapLeft {
-            KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(fra = it.fra, til = it.til)
+            KunneIkkeLeggeTilUføreVilkår.UgyldigTilstand(fra = it.fra, til = it.til)
         }.map {
             revurderingRepo.lagre(it)
             identifiserFeilOgLagResponse(it)
@@ -690,14 +686,16 @@ internal class RevurderingServiceImpl(
         return when (originalRevurdering) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
                 val eksisterendeUtbetalinger = utbetalingService.hentUtbetalinger(originalRevurdering.sakId)
+                val gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
+                    sakId = originalRevurdering.sakId,
+                    fraOgMed = originalRevurdering.periode.fraOgMed,
+                ).getOrHandle {
+                    throw IllegalStateException("Fant ikke gjeldende vedtaksdata for sak:${originalRevurdering.sakId}")
+                }
                 val beregnetRevurdering = originalRevurdering.beregn(
                     eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                     clock = clock,
-                    gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
-                        sakId = originalRevurdering.sakId,
-                        fraOgMed = originalRevurdering.periode.fraOgMed,
-                    )
-                        .getOrHandle { throw IllegalStateException("Fant ikke gjeldende vedtaksdata for sak:${originalRevurdering.sakId}") },
+                    gjeldendeVedtaksdata = gjeldendeVedtaksdata,
                 ).getOrHandle {
                     return when (it) {
                         is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> {
@@ -718,26 +716,27 @@ internal class RevurderingServiceImpl(
                     }.left()
                 }
 
-                val leggTilVarselForBeløpsendringUnder10Prosent =
-                    !VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-                        eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
-                        nyBeregning = beregnetRevurdering.beregning,
-                    ).resultat
+                val potensielleVarsel = listOf(
+                    (
+                        !VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+                            eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
+                            nyBeregning = beregnetRevurdering.beregning,
+                        ).resultat && !(beregnetRevurdering is BeregnetRevurdering.Opphørt && beregnetRevurdering.opphørSkyldesVilkår())
+                        ) to Varselmelding.BeløpsendringUnder10Prosent,
+                    gjeldendeVedtaksdata.let { gammel ->
+                        (
+                            gammel.grunnlagsdata.bosituasjon.any { it.harEPS() } &&
+                                beregnetRevurdering.grunnlagsdata.bosituasjon.none { it.harEPS() }
+                            ) to Varselmelding.FradragOgFormueForEPSErFjernet
+                    },
+                )
 
                 when (beregnetRevurdering) {
                     is BeregnetRevurdering.IngenEndring -> {
                         revurderingRepo.lagre(beregnetRevurdering)
-                        when (leggTilVarselForBeløpsendringUnder10Prosent) {
-                            true -> {
-                                identifiserFeilOgLagResponse(beregnetRevurdering)
-                                    .leggTil(Varselmelding.BeløpsendringUnder10Prosent)
-                                    .right()
-                            }
-                            false -> {
-                                identifiserFeilOgLagResponse(beregnetRevurdering)
-                                    .right()
-                            }
-                        }
+                        identifiserFeilOgLagResponse(beregnetRevurdering)
+                            .leggTil(potensielleVarsel)
+                            .right()
                     }
                     is BeregnetRevurdering.Innvilget -> {
                         utbetalingService.simulerUtbetaling(
@@ -756,15 +755,8 @@ internal class RevurderingServiceImpl(
                                 tilbakekrevingTillatt = feilutbetalingTillatt(),
                             ).let { simulert ->
                                 revurderingRepo.lagre(simulert)
-                                when (leggTilVarselForBeløpsendringUnder10Prosent) {
-                                    true -> {
-                                        identifiserFeilOgLagResponse(simulert)
-                                            .leggTil(Varselmelding.BeløpsendringUnder10Prosent)
-                                    }
-                                    false -> {
-                                        identifiserFeilOgLagResponse(simulert)
-                                    }
-                                }
+                                identifiserFeilOgLagResponse(simulert)
+                                    .leggTil(potensielleVarsel)
                             }
                         }
                     }
@@ -784,12 +776,8 @@ internal class RevurderingServiceImpl(
                         ).mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }
                             .map { simulert ->
                                 revurderingRepo.lagre(simulert)
-                                if (leggTilVarselForBeløpsendringUnder10Prosent && !simulert.opphørSkyldesVilkår()) {
-                                    identifiserFeilOgLagResponse(simulert)
-                                        .leggTil(Varselmelding.BeløpsendringUnder10Prosent)
-                                } else {
-                                    identifiserFeilOgLagResponse(simulert)
-                                }
+                                identifiserFeilOgLagResponse(simulert)
+                                    .leggTil(potensielleVarsel)
                             }
                     }
                 }

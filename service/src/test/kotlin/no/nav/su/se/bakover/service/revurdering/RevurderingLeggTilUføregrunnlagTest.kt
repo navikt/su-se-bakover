@@ -98,7 +98,7 @@ internal class RevurderingLeggTilUføregrunnlagTest {
             revurderingRepo = revurderingRepoMock,
         )
 
-        val actual = revurderingService.leggTilUføregrunnlag(
+        val actual = revurderingService.leggTilUførevilkår(
             request = LeggTilUførevurderingerRequest(
                 behandlingId = opprettetRevurdering.id,
                 vurderinger = nonEmptyListOf(

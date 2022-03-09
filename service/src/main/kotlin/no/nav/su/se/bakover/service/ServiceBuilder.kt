@@ -104,9 +104,9 @@ object ServiceBuilder {
             personService = personService,
             brevService = brevService,
             oppgaveService = oppgaveService,
+            kontrollsamtaleRepo = databaseRepos.kontrollsamtaleRepo,
             sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
-            kontrollsamtaleRepo = databaseRepos.kontrollsamtaleRepo,
         )
 
         val tilbakekrevingService = TilbakekrevingServiceImpl(

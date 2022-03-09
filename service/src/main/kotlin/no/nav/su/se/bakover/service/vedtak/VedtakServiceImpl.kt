@@ -2,13 +2,13 @@ package no.nav.su.se.bakover.service.vedtak
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
+import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -55,21 +55,21 @@ internal class VedtakServiceImpl(
         sakId: UUID,
         fraOgMed: LocalDate,
     ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
-        val sak = sakService.hentSak(sakId).getOrHandle {
-            return KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak.left()
-        }
-
-        val vedtakSomKanRevurderes = sak.vedtakListe
-            .filterIsInstance<VedtakSomKanRevurderes>()
-            .ifEmpty { return KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak.left() }
-            .let { NonEmptyList.fromListUnsafe(it) }
-
-        val senesteTilOgMedDato = vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed }
-        val periode = Periode.tryCreate(fraOgMed, senesteTilOgMedDato).getOrHandle {
-            return KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode(it).left()
-        }
-
-        return GjeldendeVedtaksdata(periode, vedtakSomKanRevurderes, clock).right()
+        return sakService.hentSak(sakId)
+            .mapLeft { KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak }
+            .flatMap { sak ->
+                sak.kopierGjeldendeVedtaksdata(fraOgMed, clock)
+                    .mapLeft {
+                        when (it) {
+                            Sak.KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak -> {
+                                KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak
+                            }
+                            is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {
+                                KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode(it.feil)
+                            }
+                        }
+                    }
+            }
     }
 
     override fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes? {

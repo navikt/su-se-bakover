@@ -11,7 +11,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtale
-import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontrollsamtale
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.kontrollsamtale
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.time.LocalDate
@@ -62,26 +63,6 @@ internal class KontrollsamtaleRoutesKtTest {
     }
 
     @Test
-    fun `verifiser feil for nyDato`() {
-        val kontrollsamtaleMock = mock<KontrollsamtaleService> {
-            on { nyDato(any(), any()) } doReturn KunneIkkeSetteNyDatoForKontrollsamtale.KunneIkkeEndreDato.left()
-        }
-        withTestApplication(
-            {
-                testSusebakover(
-                    services = TestServicesBuilder.services(kontrollsamtaleService = kontrollsamtaleMock),
-                )
-            },
-        ) {
-            defaultRequest(HttpMethod.Post, "/kontrollsamtale/nyDato", listOf(Brukerrolle.Saksbehandler)) {
-                setBody(validBody)
-            }
-        }.apply {
-            response.status() shouldBe HttpStatusCode.InternalServerError
-        }
-    }
-
-    @Test
     fun `må være innlogget for å hente kontrollsamtale`() {
         withTestApplication(
             { testSusebakover() },
@@ -95,7 +76,8 @@ internal class KontrollsamtaleRoutesKtTest {
     @Test
     fun `saksbehandler skal kunne hente neste planlagte kontrollsamtale`() {
         val kontrollsamtaleMock = mock<KontrollsamtaleService> {
-            on { hentNestePlanlagteKontrollsamtale(any()) } doReturn kontrollsamtale().right()
+            on { hentNestePlanlagteKontrollsamtale(any(), anyOrNull()) } doReturn kontrollsamtale().right()
+            on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
         }
         withTestApplication(
             {
@@ -113,7 +95,13 @@ internal class KontrollsamtaleRoutesKtTest {
     @Test
     fun `hent neste planlagte kontrollsamtale skal returnere 'null' om man ikke finner noen planlagte`() {
         val kontrollsamtaleMock = mock<KontrollsamtaleService> {
-            on { hentNestePlanlagteKontrollsamtale(any()) } doReturn KunneIkkeHenteKontrollsamtale.FantIkkeKontrollsamtale.left()
+            on {
+                hentNestePlanlagteKontrollsamtale(
+                    any(),
+                    anyOrNull(),
+                )
+            } doReturn KunneIkkeHenteKontrollsamtale.FantIkkeKontrollsamtale.left()
+            on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
         }
         withTestApplication(
             {
@@ -132,7 +120,12 @@ internal class KontrollsamtaleRoutesKtTest {
     @Test
     fun `hent neste planlagte kontrollsamtale skal feile ved andre feil`() {
         val kontrollsamtaleMock = mock<KontrollsamtaleService> {
-            on { hentNestePlanlagteKontrollsamtale(any()) } doReturn KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler.left()
+            on {
+                hentNestePlanlagteKontrollsamtale(
+                    any(),
+                    anyOrNull(),
+                )
+            } doReturn KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler.left()
         }
         withTestApplication(
             {

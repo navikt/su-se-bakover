@@ -170,7 +170,7 @@ internal fun KunneIkkeHentePerson.tilResultat(): Resultat {
 
 internal fun KunneIkkeLageGrunnlagsdata.tilResultat(): Resultat {
     return when (this) {
-        KunneIkkeLageGrunnlagsdata.FradragForEpsSomIkkeHarEPS -> HttpStatusCode.BadRequest.errorJson(
+        KunneIkkeLageGrunnlagsdata.FradragForEPSMenBosituasjonUtenEPS -> HttpStatusCode.BadRequest.errorJson(
             "Kan ikke legge til fradrag knyttet til EPS for en bruker som ikke har EPS.",
             "fradrag_for_eps_uten_eps",
         )
