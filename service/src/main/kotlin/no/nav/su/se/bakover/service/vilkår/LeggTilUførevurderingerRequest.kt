@@ -23,21 +23,34 @@ data class LeggTilUførevurderingerRequest(
         object HeleBehandlingsperiodenMåHaVurderinger : UgyldigUførevurdering()
     }
 
-    fun toVilkår(behandlingsperiode: Periode, clock: Clock): Either<UgyldigUførevurdering, Vilkår.Uførhet.Vurdert> {
+    fun toVilkår(
+        behandlingsperiode: Periode,
+        clock: Clock,
+    ): Either<UgyldigUførevurdering, Vilkår.Uførhet.Vurdert> {
         return vurderinger.map { vurdering ->
             vurdering.toVurderingsperiode(clock).getOrHandle {
                 return when (it) {
-                    LeggTilUførevilkårRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> UgyldigUførevurdering.UføregradOgForventetInntektMangler.left()
-                    LeggTilUførevilkårRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-                    LeggTilUførevilkårRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> UgyldigUførevurdering.OverlappendeVurderingsperioder.left()
-                    LeggTilUførevilkårRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
-                }
+                    LeggTilUførevilkårRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> {
+                        UgyldigUførevurdering.UføregradOgForventetInntektMangler
+                    }
+                    LeggTilUførevilkårRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                        UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig
+                    }
+                    LeggTilUførevilkårRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> {
+                        UgyldigUførevurdering.OverlappendeVurderingsperioder
+                    }
+                    LeggTilUførevilkårRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
+                        UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden
+                    }
+                }.left()
             }
         }.let { vurderingsperioder ->
             Vilkår.Uførhet.Vurdert.tryCreate(Nel.fromListUnsafe(vurderingsperioder))
                 .mapLeft {
                     when (it) {
-                        Vilkår.Uførhet.Vurdert.UgyldigUførevilkår.OverlappendeVurderingsperioder -> UgyldigUførevurdering.OverlappendeVurderingsperioder
+                        Vilkår.Uførhet.Vurdert.UgyldigUførevilkår.OverlappendeVurderingsperioder -> {
+                            UgyldigUførevurdering.OverlappendeVurderingsperioder
+                        }
                     }
                 }.map {
                     // Denne sjekken vil og fange opp: VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden, derfor kjører vi den etterpå.

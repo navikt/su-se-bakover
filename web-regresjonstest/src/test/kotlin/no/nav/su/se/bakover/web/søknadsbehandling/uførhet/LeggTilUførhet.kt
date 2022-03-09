@@ -38,14 +38,18 @@ internal fun TestApplicationEngine.leggTilUføregrunnlag(
             //language=JSON
             """
                   {
-                    "periode":{
-                      "fraOgMed":"$fraOgMed",
-                      "tilOgMed":"$tilOgMed"
-                    },
-                    "uføregrad":$uføregrad,
-                    "forventetInntekt":$forventetInntekt,
-                    "resultat":"$resultat",
-                    "begrunnelse":"$begrunnelse"
+                    "vurderinger": [
+                      {
+                        "periode":{
+                          "fraOgMed":"$fraOgMed",
+                          "tilOgMed":"$tilOgMed"
+                        },
+                        "uføregrad":$uføregrad,
+                        "forventetInntekt":$forventetInntekt,
+                        "resultat":"$resultat",
+                        "begrunnelse":"$begrunnelse"
+                      }
+                    ]
                   }
             """.trimIndent(),
         )

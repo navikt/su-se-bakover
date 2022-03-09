@@ -61,7 +61,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -551,26 +551,16 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun leggTilUførevilkår(
-        request: LeggTilUførevilkårRequest,
+        request: LeggTilUførevurderingerRequest,
     ): Either<KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling.left()
 
-        val vilkår = request.toVilkår(clock).getOrHandle {
-            return when (it) {
-                LeggTilUførevilkårRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> {
-                    KunneIkkeLeggeTilUføreVilkår.UføregradOgForventetInntektMangler
-                }
-                LeggTilUførevilkårRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> {
-                    KunneIkkeLeggeTilUføreVilkår.PeriodeForGrunnlagOgVurderingErForskjellig
-                }
-                LeggTilUførevilkårRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> {
-                    KunneIkkeLeggeTilUføreVilkår.OverlappendeVurderingsperioder
-                }
-                LeggTilUførevilkårRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
-                    KunneIkkeLeggeTilUføreVilkår.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden
-                }
-            }.left()
+        val vilkår = request.toVilkår(
+            behandlingsperiode = søknadsbehandling.periode,
+            clock = clock,
+        ).getOrHandle {
+            return KunneIkkeLeggeTilUføreVilkår.UgyldigInput(it).left()
         }
 
         val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(vilkår, clock)

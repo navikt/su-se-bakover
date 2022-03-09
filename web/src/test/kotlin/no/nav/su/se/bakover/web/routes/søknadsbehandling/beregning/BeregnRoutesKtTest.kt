@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
+import arrow.core.nonEmptyListOf
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -40,6 +41,7 @@ import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
@@ -122,7 +124,7 @@ internal class BeregnRoutesKtTest {
             val services = services(dataSource, repos)
             val objects = setup(services, repos)
             services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
-                request = LeggTilBosituasjonEpsRequest(behandlingId = objects.søknadsbehandling.id, epsFnr = null)
+                request = LeggTilBosituasjonEpsRequest(behandlingId = objects.søknadsbehandling.id, epsFnr = null),
             )
             services.søknadsbehandling.vilkårsvurder(
                 VilkårsvurderRequest(
@@ -280,13 +282,18 @@ internal class BeregnRoutesKtTest {
 
         val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
         services.søknadsbehandling.leggTilUførevilkår(
-            LeggTilUførevilkårRequest(
+            LeggTilUførevurderingerRequest(
                 behandlingId = objects.søknadsbehandling.id,
-                periode = objects.søknadsbehandling.periode,
-                uføregrad = Uføregrad.parse(100),
-                forventetInntekt = 0,
-                oppfylt = UførevilkårStatus.VilkårOppfylt,
-                begrunnelse = "Må få være ufør vel",
+                vurderinger = nonEmptyListOf(
+                    LeggTilUførevilkårRequest(
+                        behandlingId = objects.søknadsbehandling.id,
+                        periode = objects.søknadsbehandling.periode,
+                        uføregrad = Uføregrad.parse(100),
+                        forventetInntekt = 0,
+                        oppfylt = UførevilkårStatus.VilkårOppfylt,
+                        begrunnelse = "Må få være ufør vel",
+                    ),
+                ),
             ),
         )
         services.søknadsbehandling.leggTilUtenlandsopphold(
@@ -294,8 +301,8 @@ internal class BeregnRoutesKtTest {
                 behandlingId = objects.søknadsbehandling.id,
                 periode = periode2021,
                 status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
-                begrunnelse = "Veldig bra"
-            )
+                begrunnelse = "Veldig bra",
+            ),
         )
         services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(

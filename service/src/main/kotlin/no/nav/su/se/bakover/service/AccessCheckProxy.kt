@@ -118,7 +118,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurd
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilGrunnlag
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
@@ -163,7 +163,6 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import java.time.LocalDate
@@ -503,7 +502,7 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.oppdaterStønadsperiode(request)
                 }
 
-                override fun leggTilUførevilkår(request: LeggTilUførevilkårRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
+                override fun leggTilUførevilkår(request: LeggTilUførevurderingerRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.leggTilUførevilkår(request)
                 }
@@ -663,11 +662,11 @@ open class AccessCheckProxy(
                     return services.revurdering.fortsettEtterForhåndsvarsling(request)
                 }
 
-                override fun leggTilUføregrunnlag(
+                override fun leggTilUførevilkår(
                     request: LeggTilUførevurderingerRequest,
-                ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse> {
+                ): Either<KunneIkkeLeggeTilUføreVilkår, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.behandlingId)
-                    return services.revurdering.leggTilUføregrunnlag(request)
+                    return services.revurdering.leggTilUførevilkår(request)
                 }
 
                 override fun leggTilUtenlandsopphold(
