@@ -9,6 +9,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
+import no.nav.su.se.bakover.common.periode.minusListe
 import no.nav.su.se.bakover.common.periode.overlappende
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Grunnbeløp.Companion.`0,5G`
@@ -495,13 +496,86 @@ sealed class Vilkår {
                 object OverlappendeVurderingsperioder : UgyldigUførevilkår()
             }
 
-            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uførhet {
-                check(vurderingsperioder.size == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn èn vurdering" }
-                return this.copy(
-                    vurderingsperioder = this.vurderingsperioder.map {
-                        it.oppdaterStønadsperiode(stønadsperiode)
-                    },
-                )
+            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vurdert {
+                val overlapp = vurderingsperioder.any { it.periode overlapper stønadsperiode.periode }
+
+                return if (overlapp) {
+                    val vurderingerMedOverlapp = lagTidslinje(stønadsperiode.periode).vurderingsperioder
+                    val manglendePerioder =
+                        listOf(stønadsperiode.periode)
+                            .minusListe(vurderingerMedOverlapp.map { it.periode })
+                            .sortedBy { it.fraOgMed }.toSet()
+                    val paired: List<Pair<Periode, Vurderingsperiode.Uføre?>> = vurderingerMedOverlapp.map {
+                        it.periode to it
+                    }.plus(
+                        manglendePerioder.map {
+                            it to null
+                        },
+                    )
+
+                    paired.fold(mutableListOf<Pair<Periode, Vurderingsperiode.Uføre>>()) { acc, (periode, vurdering) ->
+                        if (vurdering != null) {
+                            acc.add((periode to vurdering))
+                        } else {
+                            val tidligere =
+                                vurderingerMedOverlapp.lastOrNull { it.periode starterSamtidigEllerTidligere periode }
+                            val senere =
+                                vurderingerMedOverlapp.firstOrNull { it.periode starterSamtidigEllerSenere periode }
+
+                            if (tidligere != null) {
+                                acc.add(
+                                    periode to tidligere.oppdaterStønadsperiode(
+                                        Stønadsperiode.create(
+                                            periode = periode,
+                                            begrunnelse = stønadsperiode.begrunnelse,
+                                        ),
+                                    ),
+                                )
+                            } else if (senere != null) {
+                                acc.add(
+                                    periode to senere.oppdaterStønadsperiode(
+                                        Stønadsperiode.create(
+                                            periode = periode,
+                                            begrunnelse = stønadsperiode.begrunnelse,
+                                        ),
+                                    ),
+                                )
+                            }
+                        }
+                        acc
+                    }.map {
+                        it.second
+                    }.let {
+                        copy(
+                            vurderingsperioder = NonEmptyList.fromListUnsafe(it).slåSammenVurderingsperiode(),
+                        )
+                    }
+                } else {
+                    val tidligere = stønadsperiode.periode.starterTidligere(
+                        vurderingsperioder.map { it.periode }
+                            .minByOrNull { it.fraOgMed }!!,
+                    )
+
+                    if (tidligere) {
+                        copy(
+                            vurderingsperioder = NonEmptyList.fromListUnsafe(
+                                listOf(
+                                    vurderingsperioder.minByOrNull { it.periode.fraOgMed }!!
+                                        .oppdaterStønadsperiode(stønadsperiode),
+                                ),
+                            ).slåSammenVurderingsperiode(),
+                        )
+                    } else {
+                        copy(
+                            vurderingsperioder = NonEmptyList.fromListUnsafe(
+                                listOf(
+                                    vurderingsperioder.maxByOrNull { it.periode.tilOgMed }!!
+                                        .oppdaterStønadsperiode(stønadsperiode),
+                                ),
+                            ).slåSammenVurderingsperiode(),
+                        )
+                    }
+                }
             }
 
             override fun lagTidslinje(periode: Periode): Vurdert {
@@ -564,7 +638,7 @@ sealed class Vilkår {
             val vurderingsperioder: Nel<Vurderingsperiode.Formue>,
         ) : Formue() {
             override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue {
-                check(vurderingsperioder.size == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn èn vurdering" }
+                check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn èn vurdering" }
                 return this.copy(
                     vurderingsperioder = this.vurderingsperioder.map {
                         it.oppdaterStønadsperiode(stønadsperiode)

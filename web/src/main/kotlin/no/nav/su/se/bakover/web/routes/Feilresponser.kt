@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
@@ -89,6 +90,16 @@ internal object Feilresponser {
         "vurderingsperiode_utenfor_behandlingsperiode",
     )
 
+    val alleVurderingsperioderMåHaSammeResultat = BadRequest.errorJson(
+        "Alle vurderingsperiodene må ha samme vurdering (ja/nei)",
+        "vurderingene_må_ha_samme_resultat",
+    )
+
+    val heleBehandlingsperiodeMåHaVurderinger = HttpStatusCode.BadRequest.errorJson(
+        "Hele behandlingsperioden må ha vurderinger",
+        "hele_behandlingsperioden_må_ha_vurderinger",
+    )
+
     val alleResultaterMåVæreLike = BadRequest.errorJson(
         "Vurderingsperioden(e) kan ikke inneholde forskjellige resultater",
         "vurderingsperiode_kan_ikke_inneholde_forskjellige_resultater",
@@ -136,22 +147,22 @@ internal object Feilresponser {
 
     val kunneIkkeEndreDato = InternalServerError.errorJson(
         "Kunne ikke endre dato",
-        "kunne_ikke_endre_dato"
+        "kunne_ikke_endre_dato",
     )
 
     val kunneIkkeHenteNesteKontrollsamtale = InternalServerError.errorJson(
         "Kunne ikke hente neste kontrollsamtale",
-        "kunne_ikke_hente_neste_kontrollsamtale"
+        "kunne_ikke_hente_neste_kontrollsamtale",
     )
 
     val fantIkkeGjeldendeStønadsperiode = NotFound.errorJson(
         "Fant ikke gjeldende stønadsperiode",
-        "fant_ikke_gjeldende_stønadsperiode"
+        "fant_ikke_gjeldende_stønadsperiode",
     )
 
     val ugyldigStatusovergangKontrollsamtale = NotFound.errorJson(
         "Kontrollsamtalen som forsøkes å endre er i feil tilstand",
-        "ugyldig_statusovergang_kontrollsamtale"
+        "ugyldig_statusovergang_kontrollsamtale",
     )
 
     val fantIkkeGjeldendeUtbetaling = NotFound.errorJson(
@@ -181,27 +192,27 @@ internal object Feilresponser {
 
     val avkortingErUfullstendig = InternalServerError.errorJson(
         "Hele det utestående beløpet som skal avkortes pga. utenlandsopphold kunne ikke trekkes fra i valgt stønadsperiode. Det er ikke støtte for å overføre restbeløp til neste stønadsperiode",
-        "avkorting_er_ufullstendig"
+        "avkorting_er_ufullstendig",
     )
 
     val avkortingErAlleredeAvkortet = InternalServerError.errorJson(
         "Avkortingen er allerede avkortet",
-        "avkorting_er_allerede_avkortet"
+        "avkorting_er_allerede_avkortet",
     )
 
     val avkortingErAlleredeAnnullert = InternalServerError.errorJson(
         "Avkortingen er allerede annullert",
-        "avkorting_er_allerede_annullert"
+        "avkorting_er_allerede_annullert",
     )
 
     val opphørAvYtelseSomSkalAvkortes = InternalServerError.errorJson(
         "Opphør av ytelse som skal avkortes støttes ikke.",
-        "opphør_av_ytelse_som_skal_avkortes"
+        "opphør_av_ytelse_som_skal_avkortes",
     )
 
     val ingenEndringUgyldig = InternalServerError.errorJson(
         "Revurderingen er kalkulert med 'ingen endring', som ikke er en gyldig tilstand",
-        "ingen_endring_er_ikke_gyldig"
+        "ingen_endring_er_ikke_gyldig",
     )
 
     val lagringFeilet = InternalServerError.errorJson(

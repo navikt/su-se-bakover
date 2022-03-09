@@ -5,6 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.domain.kontrollsamtale.UgyldigStatusovergang
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -13,11 +14,13 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeKalleInnTilKontrollsamtale
+import no.nav.su.se.bakover.service.kontrollsamtale.AnnulerKontrollsamtaleResultat
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
+import no.nav.su.se.bakover.test.kontrollsamtale
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
@@ -111,8 +114,15 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             kontrollsamtaleService = mock {
-                on { annullerKontrollsamtale(any(), anyOrNull()) } doReturn Unit.right()
-            }
+                on {
+                    annullerKontrollsamtale(
+                        any(),
+                        anyOrNull(),
+                    )
+                } doReturn AnnulerKontrollsamtaleResultat.AnnulertKontrollsamtale(
+                    kontrollsamtale(),
+                ).right()
+            },
         )
 
         serviceAndMocks.revurderingService.iverksett(revurderingTilAttestering.id, attestant)
@@ -158,8 +168,15 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             kontrollsamtaleService = mock {
-                on { annullerKontrollsamtale(any(), anyOrNull()) } doReturn Unit.right()
-            }
+                on {
+                    annullerKontrollsamtale(
+                        any(),
+                        anyOrNull(),
+                    )
+                } doReturn AnnulerKontrollsamtaleResultat.AnnulertKontrollsamtale(
+                    kontrollsamtale(),
+                ).right()
+            },
         )
 
         serviceAndMocks.revurderingService.iverksett(revurderingTilAttestering.id, attestant)
@@ -280,8 +297,15 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             kontrollsamtaleService = mock {
-                on { annullerKontrollsamtale(any(), anyOrNull()) } doReturn Unit.right()
-            }
+                on {
+                    annullerKontrollsamtale(
+                        any(),
+                        anyOrNull(),
+                    )
+                } doReturn AnnulerKontrollsamtaleResultat.AnnulertKontrollsamtale(
+                    kontrollsamtale(),
+                ).right()
+            },
         )
 
         val response = serviceAndMocks.revurderingService.iverksett(
@@ -331,8 +355,14 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             kontrollsamtaleService = mock {
-                on { annullerKontrollsamtale(any(), anyOrNull()) } doReturn KunneIkkeKalleInnTilKontrollsamtale.FantIkkeKontrollsamtale.left()
-            }
+                on {
+                    annullerKontrollsamtale(
+                        any(),
+                        anyOrNull(),
+                    )
+                } doReturn UgyldigStatusovergang.left()
+                on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
+            },
         )
 
         serviceAndMocks.revurderingService.iverksett(
@@ -356,8 +386,15 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             kontrollsamtaleService = mock {
-                on { annullerKontrollsamtale(any(), anyOrNull()) } doReturn Unit.right()
-            }
+                on {
+                    annullerKontrollsamtale(
+                        any(),
+                        anyOrNull(),
+                    )
+                } doReturn AnnulerKontrollsamtaleResultat.AnnulertKontrollsamtale(
+                    kontrollsamtale(),
+                ).right()
+            },
         )
 
         val response = serviceAndMocks.revurderingService.iverksett(

@@ -18,4 +18,8 @@ interface SessionFactory {
 
     /** Lager en ny context og starter sesjonen - lukkes automatisk  */
     fun <T> withTransactionContext(action: (TransactionContext) -> T): T
+
+    fun newSessionContext(): SessionContext
+
+    fun newTransactionContext(): TransactionContext
 }

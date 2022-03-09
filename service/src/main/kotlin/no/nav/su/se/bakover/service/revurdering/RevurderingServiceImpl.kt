@@ -330,24 +330,20 @@ internal class RevurderingServiceImpl(
         ) to gjeldendeVedtaksdata.vilkårsvurderinger
     }
 
-    override fun leggTilUføregrunnlag(
+    override fun leggTilUførevilkår(
         request: LeggTilUførevurderingerRequest,
-    ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse> {
+    ): Either<KunneIkkeLeggeTilUføreVilkår, RevurderingOgFeilmeldingerResponse> {
         val revurdering = hent(request.behandlingId)
-            .getOrHandle { return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left() }
+            .getOrHandle { return KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling.left() }
 
-        val uførevilkår = request.toVilkår(revurdering.periode, clock).getOrHandle {
-            return when (it) {
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat -> KunneIkkeLeggeTilGrunnlag.AlleVurderingeneMåHaSammeResultat.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger -> KunneIkkeLeggeTilGrunnlag.HeleBehandlingsperiodenMåHaVurderinger.left()
-            }
+        val uførevilkår = request.toVilkår(
+            behandlingsperiode = revurdering.periode,
+            clock = clock,
+        ).getOrHandle {
+            return KunneIkkeLeggeTilUføreVilkår.UgyldigInput(it).left()
         }
         return revurdering.oppdaterUføreOgMarkerSomVurdert(uførevilkår).mapLeft {
-            KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(fra = it.fra, til = it.til)
+            KunneIkkeLeggeTilUføreVilkår.UgyldigTilstand(fra = it.fra, til = it.til)
         }.map {
             revurderingRepo.lagre(it)
             identifiserFeilOgLagResponse(it)

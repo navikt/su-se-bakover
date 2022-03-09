@@ -182,7 +182,7 @@ fun List<Periode>.minAndMaxOf(): Periode {
 }
 
 /**
- * Reduserer en liste med [Periode] ved å slå sammen elementer etter reglene definert av [Periode.kanSlåsSammen]
+ * Reduserer en liste med [Periode] ved å slå sammen elementer etter reglene definert av [Periode.slåSammen]
  */
 fun List<Periode>.reduser(): List<Periode> {
     return fold(mutableListOf()) { slåttSammen: MutableList<Periode>, periode: Periode ->

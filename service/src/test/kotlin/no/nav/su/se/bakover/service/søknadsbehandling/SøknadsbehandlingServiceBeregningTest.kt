@@ -1,10 +1,27 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.august
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.november
+import no.nav.su.se.bakover.common.periode.oktober
+import no.nav.su.se.bakover.common.periode.september
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -12,7 +29,13 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
@@ -218,6 +241,80 @@ class SøknadsbehandlingServiceBeregningTest {
             verify(it.søknadsbehandlingRepo).defaultTransactionContext()
             verify(it.søknadsbehandlingRepo).lagre(eq(beregnet), anyOrNull())
             it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `beregner med flere forskjellige IEU innenfor samme beregning`() {
+        val janAprilIEU = 24000
+        val maiDesIEU = 48000
+
+        SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock {
+                on { hent(any()) } doReturn søknadsbehandlingVilkårsvurdertInnvilget().let { (_, innvilget) ->
+                    innvilget.leggTilUførevilkår(
+                        uførhet = Vilkår.Uførhet.Vurdert.create(
+                            vurderingsperioder = nonEmptyListOf(
+                                Vurderingsperiode.Uføre.create(
+                                    id = UUID.randomUUID(),
+                                    opprettet = fixedTidspunkt,
+                                    resultat = Resultat.Innvilget,
+                                    grunnlag = Grunnlag.Uføregrunnlag(
+                                        id = UUID.randomUUID(),
+                                        opprettet = fixedTidspunkt,
+                                        periode = Periode.create(1.januar(2021), 30.april(2021)),
+                                        uføregrad = Uføregrad.parse(50),
+                                        forventetInntekt = janAprilIEU,
+                                    ),
+                                    periode = Periode.create(1.januar(2021), 30.april(2021)),
+                                    begrunnelse = "",
+                                ),
+                                Vurderingsperiode.Uføre.create(
+                                    id = UUID.randomUUID(),
+                                    opprettet = fixedTidspunkt,
+                                    resultat = Resultat.Innvilget,
+                                    grunnlag = Grunnlag.Uføregrunnlag(
+                                        id = UUID.randomUUID(),
+                                        opprettet = fixedTidspunkt,
+                                        periode = Periode.create(1.mai(2021), 31.desember(2021)),
+                                        uføregrad = Uføregrad.parse(50),
+                                        forventetInntekt = maiDesIEU,
+                                    ),
+                                    periode = Periode.create(1.mai(2021), 31.desember(2021)),
+                                    begrunnelse = "",
+                                ),
+                            ),
+                        ),
+                        clock = fixedClock,
+                    ).getOrFail()
+                }
+            },
+        ).let {
+            it.søknadsbehandlingService.beregn(
+                request = SøknadsbehandlingService.BeregnRequest(
+                    behandlingId = UUID.randomUUID(),
+                    begrunnelse = "god",
+                ),
+            ).getOrFail().let {
+                it.beregning.getMånedsberegninger()
+                    .associateBy { it.periode }
+                    .let { periodeTilFradrag ->
+                        val januarApril = janAprilIEU / 12.0
+                        val maiDesember = maiDesIEU / 12.0
+                        periodeTilFradrag[januar(2021)]!!.getSumFradrag() shouldBe (januarApril)
+                        periodeTilFradrag[februar(2021)]!!.getSumFradrag() shouldBe (januarApril)
+                        periodeTilFradrag[mars(2021)]!!.getSumFradrag() shouldBe (januarApril)
+                        periodeTilFradrag[april(2021)]!!.getSumFradrag() shouldBe (januarApril)
+                        periodeTilFradrag[mai(2021)]!!.getSumFradrag() shouldBe (maiDesember)
+                        periodeTilFradrag[juni(2021)]!!.getSumFradrag() shouldBe (maiDesember)
+                        periodeTilFradrag[juli(2021)]!!.getSumFradrag() shouldBe (maiDesember)
+                        periodeTilFradrag[august(2021)]!!.getSumFradrag() shouldBe (maiDesember)
+                        periodeTilFradrag[september(2021)]!!.getSumFradrag() shouldBe (maiDesember)
+                        periodeTilFradrag[oktober(2021)]!!.getSumFradrag() shouldBe (maiDesember)
+                        periodeTilFradrag[november(2021)]!!.getSumFradrag() shouldBe (maiDesember)
+                        periodeTilFradrag[desember(2021)]!!.getSumFradrag() shouldBe (maiDesember)
+                    }
+            }
         }
     }
 }
