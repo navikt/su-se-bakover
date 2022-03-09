@@ -43,7 +43,7 @@ data class Kontrollsamtale(
 
     fun endreDato(innkallingsdato: LocalDate): Either<UgyldigStatusovergang, Kontrollsamtale> {
         if (this.status != Kontrollsamtalestatus.PLANLAGT_INNKALLING) return UgyldigStatusovergang.left()
-        return this.copy(innkallingsdato = innkallingsdato).right()
+        return this.copy(innkallingsdato = innkallingsdato, frist = regnUtFristFraInnkallingsdato(innkallingsdato)).right()
     }
 
     companion object {
