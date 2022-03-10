@@ -102,7 +102,6 @@ private fun søknadsinnholdJson(
         "andreYtelserINav":"sosialstønad",
         "andreYtelserINavBeløp":33,
         "søktAndreYtelserIkkeBehandletBegrunnelse":"uføre",
-        "sosialstønadBeløp":7000.0,
         "trygdeytelserIUtlandet":[
           {
             "beløp":200,
@@ -170,7 +169,6 @@ private fun søknadsinnholdJson(
           "andreYtelserINav":null,
           "andreYtelserINavBeløp":null,
           "søktAndreYtelserIkkeBehandletBegrunnelse":null,
-          "sosialstønadBeløp":null,
           "trygdeytelserIUtlandet":null,
           "pensjon":null
         }
