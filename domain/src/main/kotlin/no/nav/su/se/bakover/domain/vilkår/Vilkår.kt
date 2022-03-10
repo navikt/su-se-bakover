@@ -448,8 +448,8 @@ sealed class Vilkår {
                 return fromVurderingsperioder(vurderingsperioder = vurderingsperioder.slåSammenVurderingsperiode())
             }
 
-            fun regulerForventetInntekt() {
-                Vurdert.tryCreate(
+            fun regulerForventetInntekt(): Either<UgyldigUførevilkår, Vurdert> {
+                return tryCreate(
                     vurderingsperioder = vurderingsperioder.map {
                         it.reguler()
                     }

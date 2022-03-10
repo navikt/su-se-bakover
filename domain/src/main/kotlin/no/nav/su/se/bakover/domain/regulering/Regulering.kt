@@ -81,12 +81,22 @@ sealed interface Regulering : Behandling {
                 )
             )
 
-        override fun beregn(clock: Clock, begrunnelse: String?): Either<KunneIkkeBeregne, OpprettetRegulering> =
-            gjørBeregning(
-                regulering = this,
+        override fun beregn(clock: Clock, begrunnelse: String?): Either<KunneIkkeBeregne, OpprettetRegulering> {
+            val reguleringMedNyForventetInntekt = copy(
+                grunnlagsdataOgVilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.copy(
+                    vilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.copy(
+                        uføre = (vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).regulerForventetInntekt().getOrHandle {
+                            throw RuntimeException("")
+                        }
+                    )
+                )
+            )
+
+            return reguleringMedNyForventetInntekt.gjørBeregning(
                 begrunnelse = begrunnelse,
                 clock = clock,
-            ).map { this.copy(beregning = it) }
+            ).map { reguleringMedNyForventetInntekt.copy(beregning = it) }
+        }
 
         fun simuler(callback: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>): Either<KunneIkkeSimulere, OpprettetRegulering> {
             if (beregning == null) {
@@ -108,18 +118,16 @@ sealed interface Regulering : Behandling {
         fun tilIverksatt(): IverksattRegulering = IverksattRegulering(opprettetRegulering = this)
 
         private fun gjørBeregning(
-            regulering: OpprettetRegulering,
             begrunnelse: String?,
             clock: Clock,
         ): Either<KunneIkkeBeregne.BeregningFeilet, Beregning> {
-            (regulering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).regulerForventetInntekt()
             return Either.catch {
                 BeregningStrategyFactory(clock).beregn(
                     grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-                        grunnlagsdata = regulering.grunnlagsdata,
-                        vilkårsvurderinger = regulering.vilkårsvurderinger,
+                        grunnlagsdata = grunnlagsdata,
+                        vilkårsvurderinger = vilkårsvurderinger,
                     ),
-                    beregningsPeriode = regulering.periode,
+                    beregningsPeriode = periode,
                     begrunnelse = begrunnelse,
                 )
             }.mapLeft { KunneIkkeBeregne.BeregningFeilet }
