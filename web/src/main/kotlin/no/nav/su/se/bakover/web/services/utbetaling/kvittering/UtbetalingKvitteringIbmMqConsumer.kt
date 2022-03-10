@@ -13,7 +13,7 @@ class UtbetalingKvitteringIbmMqConsumer(
     private val kvitteringConsumer: UtbetalingKvitteringConsumer,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
-    private val jmsContext = globalJmsContext.createContext(Session.CLIENT_ACKNOWLEDGE)
+    private val jmsContext = globalJmsContext.createContext(Session.AUTO_ACKNOWLEDGE)
     private val consumer = jmsContext.createConsumer(jmsContext.createQueue(kvitteringQueueName))
 
     // TODO: Vurder å gjøre om dette til en jobb som poller med receive, i stedet for asynkron messageListener
@@ -28,9 +28,9 @@ class UtbetalingKvitteringIbmMqConsumer(
                     sikkerLogg.info("Kvittering lest fra $kvitteringQueueName, innhold:$it")
                     kvitteringConsumer.onMessage(it)
                 }
-                message.acknowledge()
             } catch (ex: Exception) {
                 log.error("Feil ved prossessering av melding fra: $kvitteringQueueName", ex)
+                throw ex
             }
         }
 
