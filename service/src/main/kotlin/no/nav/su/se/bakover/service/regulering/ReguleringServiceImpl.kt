@@ -52,13 +52,15 @@ class ReguleringServiceImpl(
 ) : ReguleringService {
 
     private fun blirBeregningEndret(regulering: Regulering): Boolean {
-        val reguleringMedBeregning =
-            regulering.beregn(clock = clock, begrunnelse = null).getOrHandle { throw RuntimeException("") }
+        val reguleringMedBeregning = regulering.beregn(clock = clock, begrunnelse = null).getOrHandle { throw RuntimeException("Vi klarte ikke å beregne") }
         return !reguleringMedBeregning.beregning!!.getMånedsberegninger().all { månedsberegning ->
-            månedsberegning.getSumYtelse() == utbetalingService.hentGjeldendeUtbetaling(
+            utbetalingService.hentGjeldendeUtbetaling(
                 regulering.sakId,
                 månedsberegning.periode.fraOgMed,
-            ).getOrHandle { throw RuntimeException("") }.beløp
+            ).fold(
+                { false },
+                { månedsberegning.getSumYtelse() == it.beløp }
+            )
         }
     }
 
