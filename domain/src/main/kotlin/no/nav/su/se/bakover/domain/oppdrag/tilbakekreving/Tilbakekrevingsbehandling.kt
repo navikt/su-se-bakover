@@ -121,19 +121,6 @@ data class AvventerKravgrunnlag(
     }
 }
 
-enum class Tilbakekrevingsgrad(private val grad: BigDecimal) {
-    Hundre(BigDecimal.ONE),
-    Null(BigDecimal.ZERO);
-
-    init {
-        require(grad in BigDecimal.ZERO..BigDecimal.ONE)
-    }
-
-    fun prosent(): BigDecimal {
-        return grad
-    }
-}
-
 data class MottattKravgrunnlag(
     override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
     override val kravgrunnlag: RåttKravgrunnlag,
