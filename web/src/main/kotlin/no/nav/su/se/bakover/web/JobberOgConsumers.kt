@@ -177,6 +177,7 @@ fun startJobberOgConsumers(
             TilbakekrevingJob(
                 tilbakekrevingService = services.tilbakekrevingService,
                 leaderPodLookup = clients.leaderPodLookup,
+                initialDelay = initialDelay.next(),
                 intervall = Duration.of(15, ChronoUnit.MINUTES),
             ).schedule()
         }
@@ -248,12 +249,15 @@ fun startJobberOgConsumers(
             tilbakekrevingConsumer = tilbakekrevingConsumer,
             tilbakekrevingService = services.tilbakekrevingService,
             vedtakService = services.vedtakService,
+            initialDelay = initialDelay.next(),
+            intervall = Duration.ofSeconds(10),
         ).schedule()
 
         TilbakekrevingJob(
             tilbakekrevingService = services.tilbakekrevingService,
             leaderPodLookup = clients.leaderPodLookup,
-            intervall = Duration.of(1, ChronoUnit.MINUTES),
+            initialDelay = initialDelay.next(),
+            intervall = Duration.ofSeconds(10),
         ).schedule()
     }
 }

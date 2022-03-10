@@ -15,6 +15,7 @@ import kotlin.concurrent.fixedRateTimer
 class TilbakekrevingJob(
     private val tilbakekrevingService: TilbakekrevingService,
     private val leaderPodLookup: LeaderPodLookup,
+    private val initialDelay: Duration,
     private val intervall: Duration,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -24,6 +25,7 @@ class TilbakekrevingJob(
         fixedRateTimer(
             name = jobName,
             daemon = true,
+            initialDelay = initialDelay.toMillis(),
             period = intervall.toMillis(),
         ) {
             if (isLeaderPod()) {

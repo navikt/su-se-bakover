@@ -26,6 +26,7 @@ internal class LokalMottaKravgrunnlagJob(
     private val tilbakekrevingConsumer: TilbakekrevingConsumer,
     private val tilbakekrevingService: TilbakekrevingService,
     private val vedtakService: VedtakService,
+    private val initialDelay: Duration,
     private val intervall: Duration = Duration.ofMinutes(1),
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -36,6 +37,7 @@ internal class LokalMottaKravgrunnlagJob(
         fixedRateTimer(
             name = jobName,
             daemon = true,
+            initialDelay = initialDelay.toMillis(),
             period = intervall.toMillis(),
         ) {
             Either.catch {
