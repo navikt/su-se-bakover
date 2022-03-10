@@ -18,7 +18,6 @@ internal class TilbakekrevingConsumer(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     internal fun onMessage(xmlMessage: String) {
-        // TODO håndter melding om endring av status
         val mottattMelding = TilbakekrevingsmeldingMapper.toDto(xmlMessage)
             .getOrHandle { throw it }
 

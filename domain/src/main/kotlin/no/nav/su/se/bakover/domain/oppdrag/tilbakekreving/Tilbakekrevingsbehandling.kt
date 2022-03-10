@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.UUID
 
 /**
@@ -120,6 +121,19 @@ data class AvventerKravgrunnlag(
     }
 }
 
+enum class Tilbakekrevingsgrad(private val grad: BigDecimal) {
+    Hundre(BigDecimal.ONE),
+    Null(BigDecimal.ZERO);
+
+    init {
+        require(grad in BigDecimal.ZERO..BigDecimal.ONE)
+    }
+
+    fun prosent(): BigDecimal {
+        return grad
+    }
+}
+
 data class MottattKravgrunnlag(
     override val avgjort: Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort,
     override val kravgrunnlag: RåttKravgrunnlag,
@@ -162,7 +176,11 @@ data class MottattKravgrunnlag(
                                     beløpNyUtbetaling = it.beløpNyUtbetaling,
                                     beløpSomSkalTilbakekreves = it.beløpSkalTilbakekreves,
                                     beløpSomIkkeTilbakekreves = BigDecimal.ZERO,
-                                    beløpSkatt = grunnlagsperiode.beløpSkattMnd,
+                                    beløpSkatt = it.beløpSkalTilbakekreves
+                                        .multiply(it.skatteProsent)
+                                        .divide(BigDecimal("100"))
+                                        .setScale(0, RoundingMode.DOWN)
+                                        .min(grunnlagsperiode.beløpSkattMnd),
                                     tilbakekrevingsresultat = Tilbakekrevingsvedtak.Tilbakekrevingsresultat.FULL_TILBAKEKREVING,
                                     skyld = Tilbakekrevingsvedtak.Skyld.BRUKER,
                                 )
@@ -185,7 +203,7 @@ data class MottattKravgrunnlag(
             vedtakId = kravgrunnlag.vedtakId,
             ansvarligEnhet = "8020",
             kontrollFelt = kravgrunnlag.kontrollfelt,
-            behandler = kravgrunnlag.behandler,
+            behandler = kravgrunnlag.behandler, // TODO behandler bør sannsynligvis være fra tilbakekrevingsbehandling/revurdering og ikke kravgrunnlaget
             tilbakekrevingsperioder = kravgrunnlag.grunnlagsperioder.map { grunnlagsperiode ->
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
                     periode = grunnlagsperiode.periode,
@@ -349,6 +367,35 @@ fun Tilbakekrevingsbehandling.tilbakekrevingErVurdert(): Either<Unit, Tilbakekre
         }
         is IkkeAvgjort -> {
             Unit.left()
+        }
+    }
+}
+
+@JvmInline
+value class Skattesats private constructor(private val sats: BigDecimal) {
+    init {
+        require(sats in BigDecimal.ZERO..BigDecimal.ONE)
+    }
+
+    fun prosent(): BigDecimal {
+        return sats
+    }
+
+    companion object {
+        operator fun invoke(bigDecimal: BigDecimal): Skattesats {
+            return when (bigDecimal) {
+                in BigDecimal.ZERO..BigDecimal.ONE -> {
+                    Skattesats(bigDecimal)
+                }
+                in BigDecimal.ZERO..BigDecimal(100) -> {
+                    Skattesats(
+                        bigDecimal.divide(BigDecimal(100)).setScale(bigDecimal.scale() + 2, RoundingMode.DOWN),
+                    )
+                }
+                else -> {
+                    throw IllegalArgumentException("Unkjent intervall for skattesats, verdien: $bigDecimal er verken i intervallet 0..1 eller 0..100")
+                }
+            }
         }
     }
 }
