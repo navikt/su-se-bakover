@@ -22,7 +22,7 @@ internal class TilbakekrevingIbmMqConsumer(
     private val tilbakekrevingConsumer: TilbakekrevingConsumer,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
-    private val jmsContext = globalJmsContext.createContext(Session.AUTO_ACKNOWLEDGE)
+    private val jmsContext = globalJmsContext.createContext(Session.CLIENT_ACKNOWLEDGE)
     private val consumer = jmsContext.createConsumer(jmsContext.createQueue(queueName))
 
     init {
@@ -35,9 +35,9 @@ internal class TilbakekrevingIbmMqConsumer(
                     sikkerLogg.info("Kravgrunnlag lest fra $queueName, innhold: $it")
                     tilbakekrevingConsumer.onMessage(it)
                 }
+                message.acknowledge()
             } catch (ex: Exception) {
                 log.error("Feil ved prossessering av melding fra: $queueName", ex)
-                throw ex
             }
         }
         jmsContext.setExceptionListener { exception -> log.error("Feil mot $queueName", exception) }
