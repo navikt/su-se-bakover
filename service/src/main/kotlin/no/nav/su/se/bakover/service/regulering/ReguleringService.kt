@@ -53,18 +53,10 @@ sealed class KunneIkkeHenteGjeldendeVedtaksdata {
     object GrunnlagErIkkeKonsistent : KunneIkkeHenteGjeldendeVedtaksdata()
 }
 
-sealed class KunneIkkeStarteRegulering {
-    object DetFinnesAlleredeEnRegulering : KunneIkkeStarteRegulering()
-}
-
-sealed class KunneIkkeFortsettRegulering {
-    object DetFinnesAlleredeEnRegulering : KunneIkkeFortsettRegulering()
-}
-
 object KunneIkkeUtbetale
 
 interface ReguleringService {
-    fun startRegulering(startDato: LocalDate): Either<KunneIkkeStarteRegulering, Unit>
+    fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>>
     fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering>
     fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering>
     fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering>

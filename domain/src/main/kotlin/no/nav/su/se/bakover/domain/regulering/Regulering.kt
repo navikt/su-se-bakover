@@ -48,6 +48,7 @@ sealed interface Regulering : Behandling {
     fun beregn(clock: Clock, begrunnelse: String?): Either<KunneIkkeBeregne, OpprettetRegulering> =
         KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen(this::class).left()
 
+    // TODO ai: Sørg for att vilkårsvurderingene er innvilget for HELE perioden.
     data class OpprettetRegulering(
         override val id: UUID,
         override val opprettet: Tidspunkt,

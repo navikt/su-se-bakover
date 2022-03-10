@@ -52,14 +52,18 @@ class ReguleringServiceImpl(
 ) : ReguleringService {
 
     private fun blirBeregningEndret(regulering: Regulering): Boolean {
-        val reguleringMedBeregning = regulering.beregn(clock = clock, begrunnelse = null).getOrHandle { throw RuntimeException("") }
+        val reguleringMedBeregning =
+            regulering.beregn(clock = clock, begrunnelse = null).getOrHandle { throw RuntimeException("") }
         return !reguleringMedBeregning.beregning!!.getMånedsberegninger().all { månedsberegning ->
-            månedsberegning.getSumYtelse() == utbetalingService.hentGjeldendeUtbetaling(regulering.sakId, månedsberegning.periode.fraOgMed).getOrHandle { throw RuntimeException("") }.beløp
+            månedsberegning.getSumYtelse() == utbetalingService.hentGjeldendeUtbetaling(
+                regulering.sakId,
+                månedsberegning.periode.fraOgMed,
+            ).getOrHandle { throw RuntimeException("") }.beløp
         }
     }
 
-    override fun startRegulering(startDato: LocalDate): Either<KunneIkkeStarteRegulering, Unit> {
-        sakRepo.hentAlleIdFnrOgSaksnummer().forEach { (sakid, saksnummer, fnr) ->
+    override fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
+        return sakRepo.hentAlleIdFnrOgSaksnummer().map { (sakid, saksnummer, fnr) ->
             val reguleringer = reguleringRepo.hentForSakId(sakid)
             val regulering = if (reguleringer.harÅpenRegulering()) {
                 oppdaterRegulering(reguleringer.hentÅpenRegulering(), startDato)
@@ -68,28 +72,28 @@ class ReguleringServiceImpl(
                 opprettRegulering(request)
             }
 
-            regulering.map { reg ->
+            // TODO ai: Se om det går å forenkle
+            regulering.flatMap { reg ->
                 if (blirBeregningEndret(reg)) {
                     reguleringRepo.lagre(reg)
                     if (reg.reguleringType == ReguleringType.AUTOMATISK) {
-                        regulerAutomatisk(reg)
-                    }
-                }
+                        regulerAutomatisk(reg).mapLeft { KunneIkkeOppretteRegulering.FantIkkeRegulering } // kanske mapLeft returnerer reg bare?
+                    } else reg.right()
+                } else reg.right()
             }
         }
-
-        return Unit.right()
     }
 
-    private fun regulerAutomatisk(regulering: Regulering.OpprettetRegulering) {
+    private fun regulerAutomatisk(regulering: Regulering.OpprettetRegulering): Either<KunneIkkeRegulereAutomatiskt, Regulering.IverksattRegulering> {
         val reguleringMedBeregningOgSimulering = regulering.beregn(clock = clock, begrunnelse = null)
             .mapLeft { KunneIkkeRegulereAutomatiskt.KunneIkkeBeregne }
             .flatMap { beregnetRegulering ->
                 beregnetRegulering.simuler(utbetalingService::simulerUtbetaling)
+                    .mapLeft { KunneIkkeRegulereAutomatiskt.KunneIkkeSimulere }
             }
             .map { simulertRegulering -> simulertRegulering.tilIverksatt() }
 
-        when (reguleringMedBeregningOgSimulering) {
+        return when (reguleringMedBeregningOgSimulering) {
             is Either.Left -> {
                 when (reguleringMedBeregningOgSimulering.value) {
                     KunneIkkeRegulereAutomatiskt.KunneIkkeBeregne -> log.error("Regulering feilet. Beregning feilet for saksnummer: ${regulering.saksnummer}.")
@@ -97,12 +101,14 @@ class ReguleringServiceImpl(
                     KunneIkkeRegulereAutomatiskt.KunneIkkeUtbetale -> log.error("Regulering feilet. Utbetaling feilet for ${regulering.saksnummer}.")
                 }
                 reguleringRepo.lagre(regulering.copy(reguleringType = ReguleringType.MANUELL))
+                reguleringMedBeregningOgSimulering.value.left()
             }
             is Either.Right -> {
                 val iverksattRegulering = reguleringMedBeregningOgSimulering.value
                 if (blirBeregningEndret(iverksattRegulering)) {
                     lagVedtakOgUtbetal(iverksattRegulering).map { reguleringRepo.lagre(it) }
                 }
+                iverksattRegulering.right()
             }
         }
     }
@@ -181,7 +187,14 @@ class ReguleringServiceImpl(
         val reguleringType = utledAutomatiskEllerManuellRegulering(gjeldendeVedtaksdata)
 
         // TODO ai: Ta i bruk annen funksjonalitet for å gjøre dette
-        val fraOgMed = maxOf(gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.fraOgMed, request.fraOgMed)
+        // Ta i bruk TidligstDatoForAvslag som ligger i Vilkår.X
+        // Vilkårsvurderingsresultat <-------
+
+        // TODO ai: Sørg for å ta hensyn til stans, skal ikke kunne regulere over perioder med stans. Skal crop:es av stans.
+        val fraOgMed = maxOf(
+            gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.fraOgMed,
+            request.fraOgMed,
+        ) // TODO ai: Se om den tar med behandlinger som har opphør
         val tilOgMed =
             (
                 (gjeldendeVedtaksdata.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.filter { it.resultat == Resultat.Innvilget }
@@ -215,6 +228,7 @@ class ReguleringServiceImpl(
         ).right()
     }
 
+    // Fjern og bruk opprett med nye verdier (p.g.a datoene)
     private fun oppdaterRegulering(
         regulering: Regulering.OpprettetRegulering,
         nyReguleringsDato: LocalDate,
