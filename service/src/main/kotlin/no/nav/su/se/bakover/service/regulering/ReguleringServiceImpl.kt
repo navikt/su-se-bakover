@@ -51,12 +51,10 @@ class ReguleringServiceImpl(
     private val clock: Clock,
 ) : ReguleringService {
 
-    private fun erLike(regulering: Regulering): Boolean {
-        return regulering.beregning!!.getMånedsberegninger().all { månedsberegning ->
-            val gjeldendeUtbetalinger =
-                utbetalingService.hentGjeldendeUtbetaling(regulering.sakId, månedsberegning.periode.fraOgMed)
-                    .getOrHandle { throw RuntimeException("") }
-            gjeldendeUtbetalinger.beløp == månedsberegning.getSumYtelse()
+    private fun blirBeregningEndret(regulering: Regulering): Boolean {
+        val reguleringMedBeregning = regulering.beregn(clock = clock, begrunnelse = null).getOrHandle { throw RuntimeException("") }
+        return !reguleringMedBeregning.beregning!!.getMånedsberegninger().all { månedsberegning ->
+            månedsberegning.getSumYtelse() == utbetalingService.hentGjeldendeUtbetaling(regulering.sakId, månedsberegning.periode.fraOgMed).getOrHandle {throw RuntimeException("")}.beløp
         }
     }
 
@@ -71,10 +69,11 @@ class ReguleringServiceImpl(
             }
 
             regulering.map { reg ->
-                if (reg.reguleringType == ReguleringType.AUTOMATISK) {
-                    regulerAutomatisk(reg)
-                } else {
+                if (blirBeregningEndret(reg)) {
                     reguleringRepo.lagre(reg)
+                    if (reg.reguleringType == ReguleringType.AUTOMATISK) {
+                        regulerAutomatisk(reg)
+                    }
                 }
             }
         }
@@ -83,16 +82,16 @@ class ReguleringServiceImpl(
     }
 
     private fun regulerAutomatisk(regulering: Regulering.OpprettetRegulering) {
-        val resultat = regulering.beregn(clock = clock, begrunnelse = null)
+        val reguleringMedBeregningOgSimulering = regulering.beregn(clock = clock, begrunnelse = null)
             .mapLeft { KunneIkkeRegulereAutomatiskt.KunneIkkeBeregne }
             .flatMap { beregnetRegulering ->
                 beregnetRegulering.simuler(utbetalingService::simulerUtbetaling)
             }
             .map { simulertRegulering -> simulertRegulering.tilIverksatt() }
 
-        when (resultat) {
+        when (reguleringMedBeregningOgSimulering) {
             is Either.Left -> {
-                when (resultat.value) {
+                when (reguleringMedBeregningOgSimulering.value) {
                     KunneIkkeRegulereAutomatiskt.KunneIkkeBeregne -> log.error("Regulering feilet. Beregning feilet for saksnummer: ${regulering.saksnummer}.")
                     KunneIkkeRegulereAutomatiskt.KunneIkkeSimulere -> log.error("Regulering feilet. Simulering feilet for ${regulering.saksnummer}.")
                     KunneIkkeRegulereAutomatiskt.KunneIkkeUtbetale -> log.error("Regulering feilet. Utbetaling feilet for ${regulering.saksnummer}.")
@@ -100,8 +99,8 @@ class ReguleringServiceImpl(
                 reguleringRepo.lagre(regulering.copy(reguleringType = ReguleringType.MANUELL))
             }
             is Either.Right -> {
-                val iverksattRegulering = resultat.value
-                if (!erLike(iverksattRegulering)) {
+                val iverksattRegulering = reguleringMedBeregningOgSimulering.value
+                if (blirBeregningEndret(iverksattRegulering)) {
                     lagVedtakOgUtbetal(iverksattRegulering).map { reguleringRepo.lagre(it) }
                 }
             }

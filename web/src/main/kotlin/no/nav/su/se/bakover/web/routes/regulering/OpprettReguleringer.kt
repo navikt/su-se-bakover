@@ -21,7 +21,7 @@ internal fun Route.oppdaterReguleringer(
                 Resultat.json(
                     HttpStatusCode.OK,
                     serialize(
-                        reguleringService.startRegulering(1.mai(2021)),
+                        reguleringService.startRegulering(1.mai(2022)),
                     ),
                 ),
             )
