@@ -54,7 +54,7 @@ class ReguleringServiceImpl(
     private fun blirBeregningEndret(regulering: Regulering): Boolean {
         val reguleringMedBeregning = regulering.beregn(clock = clock, begrunnelse = null).getOrHandle { throw RuntimeException("") }
         return !reguleringMedBeregning.beregning!!.getMånedsberegninger().all { månedsberegning ->
-            månedsberegning.getSumYtelse() == utbetalingService.hentGjeldendeUtbetaling(regulering.sakId, månedsberegning.periode.fraOgMed).getOrHandle {throw RuntimeException("")}.beløp
+            månedsberegning.getSumYtelse() == utbetalingService.hentGjeldendeUtbetaling(regulering.sakId, månedsberegning.periode.fraOgMed).getOrHandle { throw RuntimeException("") }.beløp
         }
     }
 
