@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.dokument.Dokument
@@ -45,7 +45,7 @@ sealed class Journalpost {
             fun from(
                 person: Person,
                 saksnummer: Saksnummer,
-                søknadInnhold: SøknadInnhold,
+                søknadInnhold: SøknadsinnholdUføre,
                 pdf: ByteArray,
             ) = Søknadspost(
                 person = person,
@@ -56,7 +56,7 @@ sealed class Journalpost {
                 ),
             )
 
-            private fun lagDokumenter(pdf: ByteArray, søknadInnhold: SøknadInnhold): List<JournalpostDokument> =
+            private fun lagDokumenter(pdf: ByteArray, søknadInnhold: SøknadsinnholdUføre): List<JournalpostDokument> =
                 listOf(
                     JournalpostDokument(
                         tittel = søknadsposttittel,

@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -50,7 +50,7 @@ internal class SøknadServiceImpl(
 
     fun addObserver(observer: EventObserver) = observers.add(observer)
 
-    override fun nySøknad(søknadInnhold: SøknadInnhold, identBruker: NavIdentBruker): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
+    override fun nySøknad(søknadInnhold: SøknadsinnholdUføre, identBruker: NavIdentBruker): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
         val innsendtFødselsnummer: Fnr = søknadInnhold.personopplysninger.fnr
 
         val person = personService.hentPerson(innsendtFødselsnummer).getOrHandle {

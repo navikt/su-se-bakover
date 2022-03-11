@@ -20,8 +20,8 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
@@ -52,7 +52,7 @@ import java.util.UUID
 
 class SøknadTest {
 
-    private val søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()
+    private val søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build()
     private val fnr = søknadInnhold.personopplysninger.fnr
     private val person: Person = PersonOppslagStub.person(fnr).orNull()!!
     private val sakFactory: SakFactory = SakFactory(clock = fixedClock)

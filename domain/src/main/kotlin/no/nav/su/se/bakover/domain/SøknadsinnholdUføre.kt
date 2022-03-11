@@ -4,18 +4,41 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import java.time.LocalDate
 
-data class SøknadInnhold(
+sealed interface Søknadsinnhold {
+    val personopplysninger: Personopplysninger
+    val boforhold: Boforhold
+    val utenlandsopphold: Utenlandsopphold
+    val oppholdstillatelse: Oppholdstillatelse
+    val inntektOgPensjon: InntektOgPensjon
+    val formue: Formue
+    val forNav: ForNav
+    val ektefelle: Ektefelle?
+}
+
+data class Alder(
+    val aldersTing: String,
+    override val personopplysninger: Personopplysninger,
+    override val boforhold: Boforhold,
+    override val utenlandsopphold: Utenlandsopphold,
+    override val oppholdstillatelse: Oppholdstillatelse,
+    override val inntektOgPensjon: InntektOgPensjon,
+    override val formue: Formue,
+    override val forNav: ForNav,
+    override val ektefelle: Ektefelle?,
+) : Søknadsinnhold
+
+data class SøknadsinnholdUføre(
     val uførevedtak: Uførevedtak,
-    val personopplysninger: Personopplysninger,
     val flyktningsstatus: Flyktningsstatus,
-    val boforhold: Boforhold,
-    val utenlandsopphold: Utenlandsopphold,
-    val oppholdstillatelse: Oppholdstillatelse,
-    val inntektOgPensjon: InntektOgPensjon,
-    val formue: Formue,
-    val forNav: ForNav,
-    val ektefelle: Ektefelle?,
-)
+    override val personopplysninger: Personopplysninger,
+    override val boforhold: Boforhold,
+    override val utenlandsopphold: Utenlandsopphold,
+    override val oppholdstillatelse: Oppholdstillatelse,
+    override val inntektOgPensjon: InntektOgPensjon,
+    override val formue: Formue,
+    override val forNav: ForNav,
+    override val ektefelle: Ektefelle?,
+) : Søknadsinnhold
 
 data class Uførevedtak(
     val harUførevedtak: Boolean

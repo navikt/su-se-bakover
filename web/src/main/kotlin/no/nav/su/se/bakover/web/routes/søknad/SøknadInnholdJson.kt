@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.Kjøretøy
 import no.nav.su.se.bakover.domain.Oppholdstillatelse
 import no.nav.su.se.bakover.domain.PensjonsOrdningBeløp
 import no.nav.su.se.bakover.domain.Personopplysninger
-import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.TrygdeytelseIUtlandet
 import no.nav.su.se.bakover.domain.Uførevedtak
 import no.nav.su.se.bakover.domain.Utenlandsopphold
@@ -491,7 +491,7 @@ data class SøknadInnholdJson(
         }
     }
 
-    fun toSøknadInnhold() = SøknadInnhold(
+    fun toSøknadInnhold() = SøknadsinnholdUføre(
         uførevedtak = uførevedtak.toUførevedtak(),
         personopplysninger = personopplysninger.toPersonopplysninger(),
         flyktningsstatus = flyktningsstatus.toFlyktningsstatus(),
@@ -505,7 +505,7 @@ data class SøknadInnholdJson(
     )
 
     companion object {
-        fun SøknadInnhold.toSøknadInnholdJson() =
+        fun SøknadsinnholdUføre.toSøknadInnholdJson() =
             SøknadInnholdJson(
                 uførevedtak = uførevedtak.toUførevedtakJson(),
                 personopplysninger = personopplysninger.toPersonopplysningerJson(),

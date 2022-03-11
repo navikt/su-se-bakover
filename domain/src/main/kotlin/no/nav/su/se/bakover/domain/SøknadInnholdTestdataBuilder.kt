@@ -129,19 +129,19 @@ object SøknadInnholdTestdataBuilder {
                 andreYtelserINavBeløp = null,
                 søktAndreYtelserIkkeBehandletBegrunnelse = null,
                 trygdeytelseIUtlandet = null,
-                pensjon = null
-            )
-        )
-    ) = SøknadInnhold(
-        uførevedtak,
-        personopplysninger,
-        flyktningsstatus,
-        boforhold,
-        utenlandsopphold,
-        oppholdstillatelse,
-        inntektOgPensjon,
-        formue,
-        forNav,
-        ektefelle
+                pensjon = null,
+            ),
+        ),
+    ) = SøknadsinnholdUføre(
+        uførevedtak = uførevedtak,
+        flyktningsstatus = flyktningsstatus,
+        personopplysninger = personopplysninger,
+        boforhold = boforhold,
+        utenlandsopphold = utenlandsopphold,
+        oppholdstillatelse = oppholdstillatelse,
+        inntektOgPensjon = inntektOgPensjon,
+        formue = formue,
+        forNav = forNav,
+        ektefelle = ektefelle,
     )
 }

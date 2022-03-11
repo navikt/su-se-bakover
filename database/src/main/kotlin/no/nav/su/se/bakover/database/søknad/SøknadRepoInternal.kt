@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
@@ -30,7 +30,7 @@ internal object SøknadRepoInternal {
 internal fun Row.toSøknad(): Søknad {
     val sakId: UUID = uuid("sakId")
     val id: UUID = uuid("id")
-    val søknadInnhold: SøknadInnhold = objectMapper.readValue(string("søknadInnhold"))
+    val søknadInnhold: SøknadsinnholdUføre = objectMapper.readValue(string("søknadInnhold"))
     val opprettet: Tidspunkt = tidspunkt("opprettet")
     val lukket: LukketJson? = stringOrNull("lukket")?.let { objectMapper.readValue(it) }
     val oppgaveId: OppgaveId? = stringOrNull("oppgaveId")?.let { OppgaveId(it) }
