@@ -14,7 +14,7 @@ internal enum class AksjonsKode(val nummer: String) {
 }
 
 internal enum class TilbakekrevingsHjemmel {
-    ANNEN
+    ANNET
 }
 
 internal enum class Tilbakekrevingsresultat {
@@ -77,7 +77,7 @@ fun mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtak: Tilbakekrevingsvedt
 
             // 4 - 441 - Kode-hjemmel - X(20) - Krav - Lovhjemmel om tilbakekrevingsvedtaket
             // TODO jah: Dette må mappes fra domenet. Gjenbruk de SU Alder bruker i dag.
-            this.kodeHjemmel = TilbakekrevingsHjemmel.ANNEN.toString()
+            this.kodeHjemmel = TilbakekrevingsHjemmel.ANNET.toString()
 
             // 5 - 441 - Renter-beregnes - X(01) - Betinget krav - 'J' Dersom det skal beregnes renter på kravet
             // TODO jah: Verifiser med fag/juridisk/økonomi at vi ikke skal beregne med renter
