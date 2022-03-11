@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.domain.journalpost.Tema
 fun getHentetJournalpost(): FerdigstiltJournalpost {
     return FerdigstiltJournalpost.create(
         tema = Tema.SUP,
-        journalstatus = JournalpostStatus.FERDIGSTILT,
-        journalpostType = JournalpostType.UTGÅENDE_DOKUMENT,
+        journalstatus = JournalpostStatus.JOURNALFOERT,
+        journalpostType = JournalpostType.INNKOMMENDE_DOKUMENT,
         saksnummer = Saksnummer(2021),
     )
 }

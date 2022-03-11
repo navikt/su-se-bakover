@@ -53,8 +53,8 @@ internal class JournalpostHttpClientTest {
               "data": {
                 "journalpost": {
                   "tema": "SUP",
-                  "journalstatus": "FERDIGSTILT",
-                  "journalposttype": "U",
+                  "journalstatus": "JOURNALFOERT",
+                  "journalposttype": "I",
                   "sak": {
                   "fagsakId": "2021"
                   }
@@ -82,8 +82,8 @@ internal class JournalpostHttpClientTest {
 
         client.hentFerdigstiltJournalpost(Saksnummer(2021), JournalpostId("j")) shouldBe FerdigstiltJournalpost.create(
             tema = Tema.SUP,
-            journalstatus = JournalpostStatus.FERDIGSTILT,
-            journalpostType = JournalpostType.UTGÅENDE_DOKUMENT,
+            journalstatus = JournalpostStatus.JOURNALFOERT,
+            journalpostType = JournalpostType.INNKOMMENDE_DOKUMENT,
             saksnummer = Saksnummer(2021),
         ).right()
     }
