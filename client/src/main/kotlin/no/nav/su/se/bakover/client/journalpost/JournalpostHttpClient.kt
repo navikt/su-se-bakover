@@ -59,7 +59,7 @@ internal class JournalpostHttpClient(
         return hentJournalpostFraSaf(request).mapLeft {
             it
         }.flatMap {
-            it.toValidertJournalpost(saksnummer)
+            it.toValidertInnkommendeJournalførtJournalpost(saksnummer)
         }
     }
 

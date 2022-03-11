@@ -27,11 +27,11 @@ enum class Tema {
 }
 
 enum class JournalpostStatus {
-    FERDIGSTILT
+    JOURNALFOERT;
 }
 
 enum class JournalpostType(val value: String) {
-    UTGÅENDE_DOKUMENT("U");
+    INNKOMMENDE_DOKUMENT("I");
 
     companion object {
         fun fromString(value: String): JournalpostType {

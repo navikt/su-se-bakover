@@ -545,9 +545,9 @@ private fun KunneIkkeHenteJournalpost.toErrorJson(): Resultat {
             "Journalposten er ikke ferdigstilt",
             "journalpost_er_ikke_ferdigstilt",
         )
-        KunneIkkeHenteJournalpost.JournalpostenErIkkeEtUtgåendeDokument -> BadRequest.errorJson(
-            "Journalposten er ikke et utgående dokument",
-            "journalpost_er_ikke_et_utgående_dokument",
+        KunneIkkeHenteJournalpost.JournalpostenErIkkeEtInnkommendeDokument -> BadRequest.errorJson(
+            "Journalposten er ikke et innkommende dokument",
+            "journalpost_er_ikke_et_innkommende_dokument",
         )
     }
 }
