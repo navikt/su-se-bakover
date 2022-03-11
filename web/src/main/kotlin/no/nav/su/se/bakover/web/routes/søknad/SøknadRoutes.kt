@@ -55,17 +55,17 @@ internal fun Route.søknadRoutes(
 ) {
     post(søknadPath) {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
-            Either.catch { deserialize<SøknadInnholdJson>(call) }.fold(
+            Either.catch { deserialize<SøknadsinnholdJson>(call) }.fold(
                 ifLeft = {
                     call.application.environment.log.info(it.message, it)
                     call.svar(Feilresponser.ugyldigBody)
                 },
                 ifRight = {
                     val identBruker = when (it.forNav) {
-                        is SøknadInnholdJson.ForNavJson.DigitalSøknad -> NavIdentBruker.Veileder(call.suUserContext.navIdent)
-                        is SøknadInnholdJson.ForNavJson.Papirsøknad -> NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
+                        is SøknadsinnholdUføreJson.ForNavJson.DigitalSøknad -> NavIdentBruker.Veileder(call.suUserContext.navIdent)
+                        is SøknadsinnholdUføreJson.ForNavJson.Papirsøknad -> NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
                     }
-                    søknadService.nySøknad(it.toSøknadInnhold(), identBruker).fold(
+                    søknadService.nySøknad(it.toSøknadsinnhold(), identBruker).fold(
                         { kunneIkkeOppretteSøknad ->
                             call.svar(
                                 when (kunneIkkeOppretteSøknad) {

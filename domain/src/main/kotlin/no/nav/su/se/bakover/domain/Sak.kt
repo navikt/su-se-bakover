@@ -443,7 +443,7 @@ class SakFactory(
 ) {
     fun nySakMedNySøknad(
         fnr: Fnr,
-        søknadInnhold: SøknadsinnholdUføre,
+        søknadInnhold: Søknadsinnhold,
     ): NySak {
         val opprettet = Tidspunkt.now(clock)
         val sakId = uuidFactory.newUUID()

@@ -13,7 +13,7 @@ sealed class Søknad {
     abstract val id: UUID
     abstract val opprettet: Tidspunkt
     abstract val sakId: UUID
-    abstract val søknadInnhold: SøknadsinnholdUføre
+    abstract val søknadInnhold: Søknadsinnhold
 
     /**
      * Når Nav mottok søknaden:
@@ -32,7 +32,7 @@ sealed class Søknad {
         override val id: UUID,
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
-        override val søknadInnhold: SøknadsinnholdUføre,
+        override val søknadInnhold: Søknadsinnhold,
     ) : Søknad() {
 
         fun journalfør(
@@ -55,7 +55,7 @@ sealed class Søknad {
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
-            override val søknadInnhold: SøknadsinnholdUføre,
+            override val søknadInnhold: Søknadsinnhold,
             override val journalpostId: JournalpostId,
         ) : Journalført() {
 
@@ -80,9 +80,9 @@ sealed class Søknad {
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val sakId: UUID,
-                override val søknadInnhold: SøknadsinnholdUføre,
+                override val søknadInnhold: Søknadsinnhold,
                 override val journalpostId: JournalpostId,
-                override val oppgaveId: OppgaveId
+                override val oppgaveId: OppgaveId,
             ) : MedOppgave() {
 
                 fun lukk(
@@ -108,7 +108,7 @@ sealed class Søknad {
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val sakId: UUID,
-                override val søknadInnhold: SøknadsinnholdUføre,
+                override val søknadInnhold: Søknadsinnhold,
                 override val journalpostId: JournalpostId,
                 override val oppgaveId: OppgaveId,
                 val lukketTidspunkt: Tidspunkt,

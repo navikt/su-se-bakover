@@ -63,7 +63,7 @@ import no.nav.su.se.bakover.web.embeddedPostgres
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson.Companion.toSøknadsinnholdUføreJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukketJson
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -115,7 +115,7 @@ internal class SøknadRoutesKtTest {
     fun `lagrer og henter søknad`() {
         val fnr = Fnr.generer()
         val søknadInnhold: SøknadsinnholdUføre = søknadInnhold(fnr)
-        val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
+        val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadsinnholdUføreJson())
         withMigratedDb { dataSource ->
             val repos = databaseRepos(dataSource)
             testApplication {
@@ -152,7 +152,7 @@ internal class SøknadRoutesKtTest {
             }
             val fnr = Fnr.generer()
             val søknadInnhold: SøknadsinnholdUføre = søknadInnhold(fnr)
-            val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
+            val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadsinnholdUføreJson())
             defaultRequest(Post, søknadPath, listOf(Brukerrolle.Veileder)) {
                 header("Content-type", Json.toString())
                 setBody(soknadJson)
@@ -176,7 +176,7 @@ internal class SøknadRoutesKtTest {
     fun `skal opprette journalpost og oppgave ved opprettelse av søknad`() {
         val fnr = Fnr.generer()
         val søknadInnhold: SøknadsinnholdUføre = søknadInnhold(fnr)
-        val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
+        val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadsinnholdUføreJson())
 
         val pdfGenerator: PdfGenerator = mock {
             on { genererPdf(any<SøknadPdfInnhold>()) } doReturn "pdf innhold".toByteArray().right()

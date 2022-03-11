@@ -37,6 +37,7 @@ internal class SøknadJsonTest {
           "sakId": "$sakId",
           "opprettet": "$opprettetTidspunkt",
           "søknadInnhold": {
+            "type": "SøknadsinnholdUføre",
             "uførevedtak":{
                 "harUførevedtak":true
             },

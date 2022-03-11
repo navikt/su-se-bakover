@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdJson.Companion.toSøknadsinnholdJson
 import java.time.format.DateTimeFormatter
 
 internal data class OpprettetSøknadJson(
@@ -11,9 +11,9 @@ internal data class OpprettetSøknadJson(
 internal data class SøknadJson(
     val id: String,
     val sakId: String,
-    val søknadInnhold: SøknadInnholdJson,
+    val søknadInnhold: SøknadsinnholdJson,
     val opprettet: String,
-    val lukket: LukketJson?
+    val lukket: LukketJson?,
 )
 
 data class LukketJson(
@@ -26,9 +26,9 @@ internal fun Søknad.toJson(): SøknadJson {
     return SøknadJson(
         id = id.toString(),
         sakId = sakId.toString(),
-        søknadInnhold = søknadInnhold.toSøknadInnholdJson(),
+        søknadInnhold = søknadInnhold.toSøknadsinnholdJson(),
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-        lukket = if (this is Søknad.Journalført.MedOppgave.Lukket) this.toJson() else null
+        lukket = if (this is Søknad.Journalført.MedOppgave.Lukket) this.toJson() else null,
     )
 }
 

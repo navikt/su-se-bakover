@@ -4,6 +4,15 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import java.time.LocalDate
 
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "type",
+)
+@JsonSubTypes(
+    JsonSubTypes.Type(value = SøknadsinnholdAlder::class, name = "SøknadsinnholdAlder"),
+    JsonSubTypes.Type(value = SøknadsinnholdUføre::class, name = "SøknadsinnholdUføre"),
+)
 sealed interface Søknadsinnhold {
     val personopplysninger: Personopplysninger
     val boforhold: Boforhold
@@ -15,8 +24,7 @@ sealed interface Søknadsinnhold {
     val ektefelle: Ektefelle?
 }
 
-data class Alder(
-    val aldersTing: String,
+data class SøknadsinnholdAlder(
     override val personopplysninger: Personopplysninger,
     override val boforhold: Boforhold,
     override val utenlandsopphold: Utenlandsopphold,
