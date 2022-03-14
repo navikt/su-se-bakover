@@ -99,7 +99,6 @@ class SøknadPdfInnholdJsonTest {
                           "andreYtelserINav":"sosialstønad",
                           "andreYtelserINavBeløp":33,
                           "søktAndreYtelserIkkeBehandletBegrunnelse":"uføre",
-                          "sosialstønadBeløp":7000.0,
                           "trygdeytelseIUtlandet": [
                               {
                                   "beløp": 200,
@@ -168,7 +167,6 @@ class SøknadPdfInnholdJsonTest {
                             "andreYtelserINav": null,
                             "andreYtelserINavBeløp": null,
                             "søktAndreYtelserIkkeBehandletBegrunnelse": null,
-                            "sosialstønadBeløp": null,
                             "trygdeytelseIUtlandet": null,
                             "pensjon": null
                         }
@@ -273,7 +271,6 @@ class SøknadPdfInnholdJsonTest {
                           "andreYtelserINav":"sosialstønad",
                           "andreYtelserINavBeløp":33,
                           "søktAndreYtelserIkkeBehandletBegrunnelse":"uføre",
-                          "sosialstønadBeløp":7000.0,
                           "trygdeytelseIUtlandet": [
                               {
                                   "beløp": 200,
@@ -342,7 +339,6 @@ class SøknadPdfInnholdJsonTest {
                             "andreYtelserINav": null,
                             "andreYtelserINavBeløp": null,
                             "søktAndreYtelserIkkeBehandletBegrunnelse": null,
-                            "sosialstønadBeløp": null,
                             "trygdeytelseIUtlandet": null,
                             "pensjon": null
                         }
@@ -455,7 +451,6 @@ class SøknadPdfInnholdJsonTest {
                           "andreYtelserINav":"sosialstønad",
                           "andreYtelserINavBeløp":33,
                           "søktAndreYtelserIkkeBehandletBegrunnelse":"uføre",
-                          "sosialstønadBeløp":7000.0,
                           "trygdeytelseIUtlandet": [
                               {
                                   "beløp": 200,
@@ -524,7 +519,6 @@ class SøknadPdfInnholdJsonTest {
                             "andreYtelserINav": null,
                             "andreYtelserINavBeløp": null,
                             "søktAndreYtelserIkkeBehandletBegrunnelse": null,
-                            "sosialstønadBeløp": null,
                             "trygdeytelseIUtlandet": null,
                             "pensjon": null
                         }
