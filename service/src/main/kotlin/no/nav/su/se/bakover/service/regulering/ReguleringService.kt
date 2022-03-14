@@ -43,6 +43,7 @@ sealed class KunneIkkeOppretteRegulering {
     object GrunnlagErIkkeKonsistent : KunneIkkeOppretteRegulering()
     object KunneIkkeLageFradragsgrunnlag : KunneIkkeOppretteRegulering()
     object ReguleringErAlleredeIverksatt : KunneIkkeOppretteRegulering()
+    object KanIkkeRegulereOpphør : KunneIkkeOppretteRegulering()
 }
 
 sealed class KunneIkkeHenteGjeldendeVedtaksdata {

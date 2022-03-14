@@ -84,6 +84,10 @@ data class GjeldendeVedtaksdata(
         )
     }
 
+    fun harStans(): Boolean {
+        return vedtakPåTidslinje.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse>().isNotEmpty()
+    }
+
     fun gjeldendeVedtakPåDato(dato: LocalDate): VedtakSomKanRevurderes? =
         tidslinje.gjeldendeForDato(dato)?.originaltVedtak
 

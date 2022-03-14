@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
+import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -25,9 +26,6 @@ import no.nav.su.se.bakover.domain.regulering.hentÅpenRegulering
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
@@ -52,14 +50,15 @@ class ReguleringServiceImpl(
 ) : ReguleringService {
 
     private fun blirBeregningEndret(regulering: Regulering): Boolean {
-        val reguleringMedBeregning = regulering.beregn(clock = clock, begrunnelse = null).getOrHandle { throw RuntimeException("Vi klarte ikke å beregne") }
+        val reguleringMedBeregning = regulering.beregn(clock = clock, begrunnelse = null)
+            .getOrHandle { throw RuntimeException("Vi klarte ikke å beregne") }
         return !reguleringMedBeregning.beregning!!.getMånedsberegninger().all { månedsberegning ->
             utbetalingService.hentGjeldendeUtbetaling(
                 regulering.sakId,
                 månedsberegning.periode.fraOgMed,
             ).fold(
                 { false },
-                { månedsberegning.getSumYtelse() == it.beløp }
+                { månedsberegning.getSumYtelse() == it.beløp },
             )
         }
     }
@@ -197,15 +196,17 @@ class ReguleringServiceImpl(
             gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.fraOgMed,
             request.fraOgMed,
         ) // TODO ai: Se om den tar med behandlinger som har opphør
-        val tilOgMed =
-            (
-                (gjeldendeVedtaksdata.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.filter { it.resultat == Resultat.Innvilget }
-                    .map { it.periode.tilOgMed } +
-                    (gjeldendeVedtaksdata.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).vurderingsperioder.filter { it.resultat == Resultat.Innvilget }
-                        .map { it.periode.tilOgMed } +
-                    (gjeldendeVedtaksdata.vilkårsvurderinger.utenlandsopphold as UtenlandsoppholdVilkår.Vurdert).vurderingsperioder.filter { it.resultat == Resultat.Innvilget }
-                        .map { it.periode.tilOgMed }
-                ).minByOrNull { it }!!
+        val tilOgMed = listOf(
+            gjeldendeVedtaksdata.vilkårsvurderinger.uføre,
+            gjeldendeVedtaksdata.vilkårsvurderinger.formue,
+            gjeldendeVedtaksdata.vilkårsvurderinger.utenlandsopphold,
+        )
+            .mapNotNull { it.hentTidligesteDatoForAvslag() }
+            .minOrNull() ?: gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.tilOgMed
+
+        if (!tilOgMed.isAfter(fraOgMed)) {
+            return KunneIkkeOppretteRegulering.KanIkkeRegulereOpphør.left()
+        }
 
         val grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = Grunnlagsdata.tryCreate(
@@ -215,6 +216,7 @@ class ReguleringServiceImpl(
 
             vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
         )
+
         return Regulering.OpprettetRegulering(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
@@ -297,9 +299,21 @@ class ReguleringServiceImpl(
         return gjeldendeVedtaksdata.right()
     }
 
-    private fun utledAutomatiskEllerManuellRegulering(gjeldendeVedtaksdata: GjeldendeVedtaksdata): ReguleringType =
-        if (gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.any { (it.fradrag.fradragstype == Fradragstype.NAVytelserTilLivsopphold) || (it.fradrag.fradragstype == Fradragstype.OffentligPensjon) })
-            ReguleringType.MANUELL else ReguleringType.AUTOMATISK
+    private fun utledAutomatiskEllerManuellRegulering(gjeldendeVedtaksdata: GjeldendeVedtaksdata): ReguleringType {
+        if (gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.any { (it.fradrag.fradragstype == Fradragstype.NAVytelserTilLivsopphold) || (it.fradrag.fradragstype == Fradragstype.OffentligPensjon) }) {
+            return ReguleringType.MANUELL
+        }
+
+        if (gjeldendeVedtaksdata.harStans()) {
+            return ReguleringType.MANUELL
+        }
+
+        if (gjeldendeVedtaksdata.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0()) {
+            return ReguleringType.MANUELL
+        }
+
+        return ReguleringType.AUTOMATISK
+    }
 
     private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeUtbetale, Regulering.IverksattRegulering> {
         val utbetaling = utbetalingService.utbetal(
