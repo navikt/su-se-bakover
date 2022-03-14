@@ -79,7 +79,7 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(stønadsperiode.periode),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Innvilget> {
     return søknadsbehandlingVilkårsvurdertUavklart(
@@ -137,7 +137,7 @@ fun søknadsbehandlingBeregnetInnvilget(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(stønadsperiode.periode),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Beregnet.Innvilget> {
     return søknadsbehandlingVilkårsvurdertInnvilget(
@@ -172,7 +172,7 @@ fun søknadsbehandlingBeregnetAvslag(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
         periode = stønadsperiode.periode,
         uføre = innvilgetUførevilkårForventetInntekt0(
             id = UUID.randomUUID(),
@@ -209,7 +209,7 @@ fun søknadsbehandlingSimulert(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(stønadsperiode.periode),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Simulert> {
     return søknadsbehandlingBeregnetInnvilget(
@@ -242,7 +242,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(stønadsperiode.periode),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.TilAttestering.Innvilget> {
     return søknadsbehandlingSimulert(
@@ -271,7 +271,7 @@ fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
         periode = stønadsperiode.periode,
         uføre = innvilgetUførevilkårForventetInntekt0(
             id = UUID.randomUUID(),
@@ -335,7 +335,7 @@ fun søknadsbehandlingUnderkjentInnvilget(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(stønadsperiode.periode),
     clock: Clock = fixedClock,
     attestering: Attestering = attesteringUnderkjent(clock = clock),
 ): Pair<Sak, Søknadsbehandling.Underkjent.Innvilget> {
@@ -391,7 +391,7 @@ fun søknadsbehandlingUnderkjentAvslagMedBeregning(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
         periode = stønadsperiode.periode,
         uføre = innvilgetUførevilkårForventetInntekt0(
             id = UUID.randomUUID(),
@@ -429,7 +429,7 @@ fun søknadsbehandlingIverksattInnvilget(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(stønadsperiode.periode),
     clock: Clock = fixedClock,
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Innvilget> {
@@ -458,7 +458,7 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
         periode = stønadsperiode.periode,
         uføre = innvilgetUførevilkårForventetInntekt0(
             id = UUID.randomUUID(),

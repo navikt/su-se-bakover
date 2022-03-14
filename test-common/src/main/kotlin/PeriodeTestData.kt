@@ -17,6 +17,9 @@ import no.nav.su.se.bakover.common.september
 /** 2021-01-01 - 2021-12-31 */
 val periode2021 = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
 
+/** 2022-01-01 - 2022-12-31 */
+val periode2022 = Periode.create(fraOgMed = 1.januar(2022), tilOgMed = 31.desember(2022))
+
 val periodeJanuar2021 = Periode.create(1.januar(2021), 31.januar(2021))
 val periodeFebruar2021 = Periode.create(1.februar(2021), 28.februar(2021))
 val periodeMars2021 = Periode.create(1.mars(2021), 31.mars(2021))

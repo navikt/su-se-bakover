@@ -26,7 +26,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter vilkårsvurdering uten grunnlag`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val søknadsbehandling = testDataHelper.nySøknadsbehandling()
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val vilkår = UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
                     VurderingsperiodeUtenlandsopphold.create(
@@ -54,7 +54,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter vilkårsvurdering med grunnlag`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val søknadsbehandling = testDataHelper.nySøknadsbehandling()
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val vilkår = UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
                     VurderingsperiodeUtenlandsopphold.create(
@@ -98,7 +98,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
     fun `kan erstatte eksisterende vilkårsvurderinger med grunnlag`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val søknadsbehandling = testDataHelper.nySøknadsbehandling()
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val gammel = UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
                     VurderingsperiodeUtenlandsopphold.create(
@@ -155,7 +155,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
     fun `sletter grunnlag hvis vurdering går fra vurdert til ikke vurdert`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val søknadsbehandling = testDataHelper.nySøknadsbehandling()
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val (vilkår, grunnlag) = utlandsoppholdInnvilget(
                 grunnlag = Utenlandsoppholdgrunnlag(
                     id = UUID.randomUUID(),

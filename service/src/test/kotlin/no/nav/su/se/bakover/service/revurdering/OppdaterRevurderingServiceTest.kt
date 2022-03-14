@@ -77,7 +77,7 @@ import no.nav.su.se.bakover.test.utlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -314,7 +314,7 @@ internal class OppdaterRevurderingServiceTest {
         val mocks = RevurderingServiceMocks(
             vedtakService = vedtakServiceMock,
             revurderingRepo = revurderingRepoMock,
-            avkortingsvarselRepo = mock() {
+            avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
         )
@@ -360,7 +360,7 @@ internal class OppdaterRevurderingServiceTest {
         val mocks = RevurderingServiceMocks(
             vedtakService = vedtakServiceMock,
             revurderingRepo = revurderingRepoMock,
-            avkortingsvarselRepo = mock() {
+            avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
         )
@@ -460,7 +460,7 @@ internal class OppdaterRevurderingServiceTest {
         val mocks = RevurderingServiceMocks(
             vedtakService = vedtakServiceMock,
             revurderingRepo = revurderingRepoMock,
-            avkortingsvarselRepo = mock() {
+            avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
         )
@@ -702,18 +702,18 @@ internal class OppdaterRevurderingServiceTest {
                     ),
                     fradragsgrunnlag = listOf(
                         fradragsgrunnlagArbeidsinntekt(
-                            periodeMedEPS,
-                            5000.0,
-                            FradragTilhører.EPS,
+                            periode = periodeMedEPS,
+                            arbeidsinntekt = 5000.0,
+                            tilhører = FradragTilhører.EPS,
                         ),
                         fradragsgrunnlagArbeidsinntekt(
-                            periodeMedEPS,
-                            5000.0,
-                            FradragTilhører.BRUKER,
+                            periode = periodeMedEPS,
+                            arbeidsinntekt = 5000.0,
+                            tilhører = FradragTilhører.BRUKER,
                         ),
                     ),
                 ),
-                vilkårsvurderinger = vilkårsvurderingerInnvilget(periodeMedEPS),
+                vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(periodeMedEPS),
             ),
         )
 

@@ -27,8 +27,8 @@ internal class SøknadPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val søknadRepo = testDataHelper.søknadRepo
             dataSource.withSession {
-                val sak: NySak = testDataHelper.nySakMedNySøknad()
-                val nySøknad: Søknad = testDataHelper.nySøknadForEksisterendeSak(sak.id)
+                val sak: NySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+                val nySøknad: Søknad = testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(sak.id)
                 søknadRepo.hentSøknad(nySøknad.id) shouldBe nySøknad
             }
         }
@@ -39,8 +39,8 @@ internal class SøknadPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val søknadRepo = testDataHelper.søknadRepo
-            val sak: NySak = testDataHelper.nySakMedNySøknad()
-            val nySøknad: Søknad = testDataHelper.nySøknadForEksisterendeSak(sak.id)
+            val sak: NySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+            val nySøknad: Søknad = testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(sak.id)
             søknadRepo.hentSøknad(nySøknad.id)!!.shouldNotBeTypeOf<Søknad.Journalført.MedOppgave.Lukket>()
         }
     }
@@ -49,8 +49,9 @@ internal class SøknadPostgresRepoTest {
     fun `lagrer og henter lukket søknad`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val nySak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            val journalførtSøknadMedOppgave: Søknad.Journalført.MedOppgave.IkkeLukket = nySak.journalførtSøknadMedOppgave()
+            val nySak: Sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
+            val journalførtSøknadMedOppgave: Søknad.Journalført.MedOppgave.IkkeLukket =
+                nySak.journalførtSøknadMedOppgave()
             val saksbehandler = Saksbehandler("Z993156")
             val lukketSøknad = journalførtSøknadMedOppgave
                 .lukk(
@@ -81,7 +82,7 @@ internal class SøknadPostgresRepoTest {
             }
 
             val journalpostId = JournalpostId("oppdatertJournalpostId")
-            val nySak: NySak = testDataHelper.nySakMedNySøknad()
+            val nySak: NySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
             hentJournalpostId(nySak) shouldBe emptyList()
             val søknad = nySak.søknad.journalfør(journalpostId)
             søknadRepo.oppdaterjournalpostId(søknad)
@@ -94,7 +95,7 @@ internal class SøknadPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val søknadRepo = testDataHelper.søknadRepo
-            val sak = testDataHelper.nySakMedJournalførtSøknad()
+            val sak = testDataHelper.persisterSakOgJournalførtSøknadUtenOppgave().first
             val journalførtSøknadMedOppgave = sak.journalførtSøknad().medOppgave(OppgaveId("oppdatertOppgaveId"))
             søknadRepo.oppdaterOppgaveId(journalførtSøknadMedOppgave)
             val hentetSøknad = søknadRepo.hentSøknad(journalførtSøknadMedOppgave.id)!!
@@ -108,9 +109,9 @@ internal class SøknadPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val søknadRepo = testDataHelper.søknadRepo
-            val sak = testDataHelper.nySakMedNySøknad()
-            testDataHelper.nySakMedJournalførtSøknad()
-            testDataHelper.nyLukketSøknadForEksisterendeSak(sak.id)
+            val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+            testDataHelper.persisterSakOgJournalførtSøknadUtenOppgave()
+            testDataHelper.persisterLukketJournalførtSøknadMedOppgave(sak.id)
             søknadRepo.hentSøknaderUtenJournalpost() shouldBe listOf(
                 sak.søknad,
             )
@@ -122,10 +123,10 @@ internal class SøknadPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val søknadRepo = testDataHelper.søknadRepo
-            val sak = testDataHelper.nySakMedNySøknad()
-            val journalførtSøknad = testDataHelper.journalførtSøknadForEksisterendeSak(sak.id)
-            testDataHelper.journalførtSøknadMedOppgaveForEksisterendeSak(sak.id)
-            testDataHelper.nyLukketSøknadForEksisterendeSak(sak.id)
+            val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+            val journalførtSøknad = testDataHelper.persisterJournalførtSøknadUtenOppgaveForEksisterendeSak(sak.id)
+            testDataHelper.persisterJournalførtSøknadMedOppgave(sak.id)
+            testDataHelper.persisterLukketJournalførtSøknadMedOppgave(sak.id)
             søknadRepo.hentSøknaderMedJournalpostMenUtenOppgave() shouldBe listOf(
                 journalførtSøknad,
             )

@@ -78,7 +78,7 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
@@ -1228,7 +1228,7 @@ internal class LagBrevRequestVisitorTest {
                         bosituasjongrunnlagEnslig(periode = opphørsperiode),
                     ),
                 ),
-                vilkårsvurderinger = vilkårsvurderingerInnvilget(
+                vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(
                     periode = opphørsperiode,
                 ),
             ),

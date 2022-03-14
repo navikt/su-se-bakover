@@ -54,7 +54,7 @@ import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknad
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilgetRevurdering
+import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -445,7 +445,7 @@ internal class RevurderingSendTilAttesteringTest {
                 tilOgMed = revurderingsperiode.tilOgMed,
             )
 
-            val vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(
+            val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(
                 periode = revurderingsperiode,
                 formue = Vilkår.Formue.Vurdert.createFromGrunnlag(
                     grunnlag = nonEmptyListOf(

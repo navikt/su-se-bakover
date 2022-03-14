@@ -22,7 +22,7 @@ internal class TilbakekrevingPostgresRepoTest {
     fun `kan lagre og hente uten behov for tilbakekrevingsbehandling`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val revurdering = testDataHelper.simulertInnvilgetRevurdering()
+            val revurdering = testDataHelper.persisterRevurderingSimulertInnvilget()
 
             (testDataHelper.revurderingRepo.hent(revurdering.id) as SimulertRevurdering).tilbakekrevingsbehandling shouldBe IkkeBehovForTilbakekrevingUnderBehandling
         }
@@ -32,7 +32,7 @@ internal class TilbakekrevingPostgresRepoTest {
     fun `kan lagre og hente tilbakekrevingsbehandlinger`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val revurdering = testDataHelper.simulertInnvilgetRevurdering()
+            val revurdering = testDataHelper.persisterRevurderingSimulertInnvilget()
 
             val ikkeAvgjort = IkkeAvgjort(
                 id = UUID.randomUUID(),

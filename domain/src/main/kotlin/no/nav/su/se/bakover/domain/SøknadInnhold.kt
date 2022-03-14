@@ -144,7 +144,6 @@ data class InntektOgPensjon(
     val andreYtelserINav: String? = null,
     val andreYtelserINavBeløp: Number? = null,
     val søktAndreYtelserIkkeBehandletBegrunnelse: String? = null,
-    val sosialstønadBeløp: Number? = null,
     val trygdeytelseIUtlandet: List<TrygdeytelseIUtlandet>? = null,
     val pensjon: List<PensjonsOrdningBeløp>? = null
 )

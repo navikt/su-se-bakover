@@ -25,14 +25,14 @@ internal class DokumentPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val dokumentRepo = testDataHelper.dokumentRepo
 
-            val sak = testDataHelper.nySakMedNySøknad()
-            val etVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val enRevurdering = testDataHelper.iverksattRevurderingInnvilget()
-            val enKlage = testDataHelper.oversendtKlage(
-                vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first,
+            val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
+            val revurdering = testDataHelper.persisterRevurderingIverksattInnvilget()
+            val klage = testDataHelper.persisterKlageOversendt(
+                vedtak = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second,
                 oppgaveId = oppgaveId,
             )
 
+            // Dette er en snarvei for å teste alle referasene til et dokument og ikke noe som vil oppstå naturlig.
             val original = Dokument.MedMetadata.Vedtak(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
@@ -41,10 +41,10 @@ internal class DokumentPostgresRepoTest {
                 generertDokumentJson = """{"some":"json"}""",
                 metadata = Dokument.Metadata(
                     sakId = sak.id,
-                    søknadId = sak.søknad.id,
-                    vedtakId = etVedtak.id,
-                    revurderingId = enRevurdering.id,
-                    klageId = enKlage.id,
+                    søknadId = sak.søknader.first().id,
+                    vedtakId = vedtak.id,
+                    revurderingId = revurdering.id,
+                    klageId = klage.id,
                     bestillBrev = false,
                 ),
             )
@@ -60,10 +60,10 @@ internal class DokumentPostgresRepoTest {
             hentet.generertDokument contentEquals original.generertDokument
 
             dokumentRepo.hentForSak(sak.id) shouldHaveSize 1
-            dokumentRepo.hentForSøknad(sak.søknad.id) shouldHaveSize 1
-            dokumentRepo.hentForVedtak(etVedtak.id) shouldHaveSize 1
-            dokumentRepo.hentForRevurdering(enRevurdering.id) shouldHaveSize 1
-            dokumentRepo.hentForKlage(enKlage.id) shouldHaveSize 1
+            dokumentRepo.hentForSøknad(sak.søknader.first().id) shouldHaveSize 1
+            dokumentRepo.hentForVedtak(vedtak.id) shouldHaveSize 1
+            dokumentRepo.hentForRevurdering(revurdering.id) shouldHaveSize 1
+            dokumentRepo.hentForKlage(klage.id) shouldHaveSize 1
         }
     }
 
@@ -72,7 +72,7 @@ internal class DokumentPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val dokumentRepo = testDataHelper.dokumentRepo
-            val sak = testDataHelper.nySakMedNySøknad()
+            val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
             val original = Dokument.MedMetadata.Informasjon(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
@@ -126,7 +126,7 @@ internal class DokumentPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val dokumentRepo = testDataHelper.dokumentRepo
-            val sak = testDataHelper.nySakMedNySøknad()
+            val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
             val original = Dokument.MedMetadata.Vedtak(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,

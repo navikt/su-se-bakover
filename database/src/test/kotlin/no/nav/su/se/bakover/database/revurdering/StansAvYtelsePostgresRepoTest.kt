@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.periodeMai2021
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulering
-import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilgetRevurdering
+import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -25,15 +25,16 @@ internal class StansAvYtelsePostgresRepoTest {
     fun `lagrer og henter revurdering for stans av ytelse`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val søknadsbehandling = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
 
             val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = periode2021,
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(),
-                tilRevurdering = søknadsbehandling,
+                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
+                tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
                 simulering = simulering(),
                 revurderingsårsak = Revurderingsårsak.create(
@@ -59,15 +60,16 @@ internal class StansAvYtelsePostgresRepoTest {
     fun `kan oppdatere revurdering for stans av ytelse`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val søknadsbehandling = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
 
             val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = periode2021,
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(),
-                tilRevurdering = søknadsbehandling,
+                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
+                tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
                 simulering = simulering(),
                 revurderingsårsak = Revurderingsårsak.create(
@@ -87,8 +89,8 @@ internal class StansAvYtelsePostgresRepoTest {
                 opprettet = simulertRevurdering.opprettet,
                 periode = periodeMai2021,
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(periodeMai2021),
-                vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(periode = periodeMai2021),
-                tilRevurdering = søknadsbehandling,
+                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(periode = periodeMai2021),
+                tilRevurdering = vedtak,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksern"),
                 simulering = simulering().copy(
                     gjelderNavn = "et navn",
@@ -111,15 +113,16 @@ internal class StansAvYtelsePostgresRepoTest {
     fun `lagrer og henter en avsluttet stansAvYtelse revurdering`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val søknadsbehandling = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
 
             val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = periode2021,
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(),
-                tilRevurdering = søknadsbehandling,
+                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
+                tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
                 simulering = simulering(),
                 revurderingsårsak = Revurderingsårsak.create(

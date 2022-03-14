@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
@@ -171,7 +171,7 @@ internal class RevurderingServiceLeggTilFradragsgrunnlagTest {
         val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
             revurderingsperiode = revurderingsperiode,
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
-                vilkårsvurderinger = vilkårsvurderingerInnvilget(periode = revurderingsperiode),
+                vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = revurderingsperiode),
                 grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(

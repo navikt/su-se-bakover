@@ -25,7 +25,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter vilkårsvurdering uten grunnlag`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val søknadsbehandling = testDataHelper.nySøknadsbehandling()
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val vurderingUførhet = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
@@ -50,7 +50,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter vilkårsvurdering med grunnlag`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val søknadsbehandling = testDataHelper.nySøknadsbehandling()
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val uføregrunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
@@ -83,7 +83,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
     fun `kan erstatte eksisterende vilkårsvurderinger med grunnlag`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val søknadsbehandling = testDataHelper.nySøknadsbehandling()
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val uføregrunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
@@ -118,7 +118,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
     fun `sletter grunnlag hvis vurdering går fra vurdert til ikke vurdert`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val søknadsbehandling = testDataHelper.nySøknadsbehandling()
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val (vilkår, grunnlag) = innvilgetUførevilkår().let { it to it.grunnlag }
 
             dataSource.withTransaction { session ->

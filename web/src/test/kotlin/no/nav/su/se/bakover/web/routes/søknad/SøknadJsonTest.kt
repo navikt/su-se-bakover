@@ -92,7 +92,6 @@ internal class SøknadJsonTest {
                 "andreYtelserINav":"sosialstønad",
                 "andreYtelserINavBeløp":33,
                 "søktAndreYtelserIkkeBehandletBegrunnelse":"uføre",
-                "sosialstønadBeløp":7000.0,
                 "trygdeytelserIUtlandet": [
                     {
                         "beløp": 200,
@@ -161,7 +160,6 @@ internal class SøknadJsonTest {
                   "andreYtelserINav": null,
                   "andreYtelserINavBeløp": null,
                   "søktAndreYtelserIkkeBehandletBegrunnelse": null,
-                  "sosialstønadBeløp": null,
                   "trygdeytelserIUtlandet": null,
                   "pensjon": null
               }

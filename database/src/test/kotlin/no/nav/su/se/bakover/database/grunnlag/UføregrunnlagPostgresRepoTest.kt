@@ -22,7 +22,7 @@ internal class UføregrunnlagPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val grunnlagRepo = UføregrunnlagPostgresRepo(testDataHelper.dbMetrics)
-            val behandling = testDataHelper.nySøknadsbehandling()
+            val behandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
 
             val uføregrunnlag1 = Uføregrunnlag(
                 periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.april(2021)),

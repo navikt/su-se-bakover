@@ -78,6 +78,7 @@ fun person(
 )
 
 val stønadsperiode2021 = Stønadsperiode.create(periode2021, "stønadsperiode2021")
+val stønadsperiode2022 = Stønadsperiode.create(periode2022, "stønadsperiode2022")
 
 val attestant = NavIdentBruker.Attestant("attestant")
 const val attestantNavn = "Att E. Stant"

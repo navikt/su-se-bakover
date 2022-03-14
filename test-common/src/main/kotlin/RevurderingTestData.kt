@@ -1262,7 +1262,7 @@ fun underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
     fritekstTilBrev: String = "",
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     attestering: Attestering.Underkjent = Attestering.Underkjent(
-        attestant = NavIdentBruker.Attestant(navIdent = "attestant"),
+        attestant = no.nav.su.se.bakover.test.attestant,
         grunn = Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT,
         kommentar = "feil vilkår man",
         opprettet = fixedTidspunkt,
@@ -1315,7 +1315,7 @@ fun iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     fritekstTilBrev: String = "",
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-    attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("Attestant"),
+    attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
 ): Pair<Sak, IverksattRevurdering.Innvilget> {
     return tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(

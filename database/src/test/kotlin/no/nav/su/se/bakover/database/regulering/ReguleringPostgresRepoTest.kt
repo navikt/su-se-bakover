@@ -32,17 +32,18 @@ internal class ReguleringPostgresRepoTest {
     fun `vedtak hentes og mappes med riktige referanser til behandlingen`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val søknadsbehandling = testDataHelper.nyIverksattInnvilget().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
             val list = testDataHelper.reguleringRepo.hentVedtakSomKanReguleres(1.mai(2021))
 
             list.size shouldBe 1
             list.first() shouldBe VedtakSomKanReguleres(
-                sakId = søknadsbehandling.sakId,
-                saksnummer = søknadsbehandling.saksnummer,
-                opprettet = søknadsbehandling.opprettet,
-                behandlingId = søknadsbehandling.id,
-                fraOgMed = søknadsbehandling.periode.fraOgMed,
-                tilOgMed = søknadsbehandling.periode.tilOgMed,
+                sakId = vedtak.behandling.sakId,
+                saksnummer = vedtak.behandling.saksnummer,
+                opprettet = vedtak.opprettet,
+                behandlingId = vedtak.behandling.id,
+                fraOgMed = vedtak.periode.fraOgMed,
+                tilOgMed = vedtak.periode.tilOgMed,
                 vedtakType = VedtakType.SØKNAD,
                 reguleringType = ReguleringType.AUTOMATISK,
             )
@@ -53,7 +54,7 @@ internal class ReguleringPostgresRepoTest {
     fun `En sak med innvilget periode etter første mai skal vurderes AUTOMATISK`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            testDataHelper.nyIverksattInnvilget()
+            testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
 
             val list = testDataHelper.reguleringRepo.hentVedtakSomKanReguleres(1.mai(2021))
 
@@ -66,7 +67,7 @@ internal class ReguleringPostgresRepoTest {
     fun `En sak med offentlig pensjon skal gi MANUELL`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            testDataHelper.nyIverksattInnvilget(
+            testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = listOf(lagFradragsgrunnlag(Fradragstype.OffentligPensjon)),
                     bosituasjon = listOf(bosituasjongrunnlagEnslig(UUID.randomUUID(), stønadsperiode2021.periode)),
@@ -84,7 +85,7 @@ internal class ReguleringPostgresRepoTest {
     fun `En sak med NAVytelserTilLivsopphold skal gi MANUELL`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            testDataHelper.nyIverksattInnvilget(
+            testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = listOf(lagFradragsgrunnlag(Fradragstype.NAVytelserTilLivsopphold)),
                     bosituasjon = listOf(bosituasjongrunnlagEnslig(UUID.randomUUID(), stønadsperiode2021.periode)),
@@ -104,7 +105,7 @@ internal class ReguleringPostgresRepoTest {
 
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            testDataHelper.nyIverksattInnvilget(
+            testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = listOf(
                         lagFradragsgrunnlag(
@@ -195,7 +196,7 @@ internal class ReguleringPostgresRepoTest {
     private fun setupTestData(fradragsPeriode: Periode): TestDataHelper {
         val dataSource = migratedDb()
         val testDataHelper = TestDataHelper(dataSource).apply {
-            nyIverksattInnvilget(
+            persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = listOf(lagFradragsgrunnlag(Fradragstype.OffentligPensjon, fradragsPeriode)),
                     bosituasjon = listOf(bosituasjongrunnlagEnslig(UUID.randomUUID(), stønadsperiode2021.periode)),

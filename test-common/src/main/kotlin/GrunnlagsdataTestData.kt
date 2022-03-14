@@ -11,24 +11,23 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import java.util.UUID
 
-val fradragsgrunnlagId: UUID = UUID.randomUUID()
-
 fun fradragsgrunnlagArbeidsinntekt1000(
     periode: Periode = periode2021,
 ): Grunnlag.Fradragsgrunnlag {
-    return fradragsgrunnlagArbeidsinntekt(periode = periode, 1000.0)
+    return fradragsgrunnlagArbeidsinntekt(periode = periode, arbeidsinntekt = 1000.0)
 }
 
 /**
  * For bruker.
  */
 fun fradragsgrunnlagArbeidsinntekt(
+    id: UUID = UUID.randomUUID(),
     periode: Periode = periode2021,
     arbeidsinntekt: Double,
     tilhører: FradragTilhører = FradragTilhører.BRUKER,
 ): Grunnlag.Fradragsgrunnlag {
     return lagFradragsgrunnlag(
-        id = fradragsgrunnlagId,
+        id = id,
         type = Fradragstype.Arbeidsinntekt,
         månedsbeløp = arbeidsinntekt,
         periode = periode,
@@ -37,10 +36,8 @@ fun fradragsgrunnlagArbeidsinntekt(
     )
 }
 
-val bosituasjonId: UUID = UUID.randomUUID()
-
 fun bosituasjongrunnlagEnslig(
-    id: UUID = bosituasjonId,
+    id: UUID = UUID.randomUUID(),
     periode: Periode = periode2021,
 ): Grunnlag.Bosituasjon.Fullstendig.Enslig {
     return Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -52,7 +49,7 @@ fun bosituasjongrunnlagEnslig(
 }
 
 fun bosituasjongrunnlagEpsUførFlyktning(
-    id: UUID = bosituasjonId,
+    id: UUID = UUID.randomUUID(),
     periode: Periode = periode2021,
     epsFnr: Fnr = no.nav.su.se.bakover.test.epsFnr,
 ): Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer {
@@ -94,6 +91,30 @@ fun grunnlagsdataEnsligMedFradrag(
         ),
     ),
     bosituasjon: Nel<Grunnlag.Bosituasjon> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
+): Grunnlagsdata {
+    return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
+}
+
+/**
+ * Defaults:
+ * periode: 2021
+ * fradragsgrunnlag: 1000 kroner i arbeidsinntekt/mnd for bruker
+ * bosituasjon: eps ufør flyktning
+ */
+fun grunnlagsdataMedEpsMedFradrag(
+    periode: Periode = periode2021,
+    epsFnr: Fnr = Fnr.generer(),
+    fradragsgrunnlag: NonEmptyList<Grunnlag.Fradragsgrunnlag> = nonEmptyListOf(
+        fradragsgrunnlagArbeidsinntekt1000(
+            periode = periode,
+        ),
+    ),
+    bosituasjon: Nel<Grunnlag.Bosituasjon> = nonEmptyListOf(
+        bosituasjongrunnlagEpsUførFlyktning(
+            epsFnr = epsFnr,
+            periode = periode,
+        ),
+    ),
 ): Grunnlagsdata {
     return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }

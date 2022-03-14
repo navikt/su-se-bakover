@@ -38,25 +38,27 @@ internal class AvstemmingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
-            val utbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
 
             val zero = repo.hentSisteGrensesnittsavstemming()
             zero shouldBe null
+            val utbetaling1 =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
 
             repo.opprettGrensesnittsavstemming(
                 Avstemming.Grensesnittavstemming(
                     opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2020).startOfDay(),
                     tilOgMed = 2.januar(2020).startOfDay(),
-                    utbetalinger = listOf(utbetalingMedKvittering.second),
+                    utbetalinger = listOf(utbetaling1),
                 ),
             )
-
+            val utbetaling2 =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
             val second = Avstemming.Grensesnittavstemming(
                 opprettet = fixedTidspunkt,
                 fraOgMed = 3.januar(2020).startOfDay(),
                 tilOgMed = 4.januar(2020).startOfDay(),
-                utbetalinger = listOf(utbetalingMedKvittering.second),
+                utbetalinger = listOf(utbetaling2),
                 avstemmingXmlRequest = "<Root></Root>",
             )
 
@@ -71,8 +73,8 @@ internal class AvstemmingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
-            val (innvilget, utbetaling) =
-                testDataHelper.nyIverksattInnvilget(
+            val (_, vedtak, utbetaling) =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                     avstemmingsnøkkel = Avstemmingsnøkkel(
                         11.oktober(
                             2020,
@@ -88,8 +90,8 @@ internal class AvstemmingPostgresRepoTest {
                     mapOf(
                         "id" to UUID30.randomUUID(),
                         "opprettet" to fixedTidspunkt,
-                        "sakId" to innvilget.sakId,
-                        "fnr" to innvilget.fnr,
+                        "sakId" to vedtak.behandling.sakId,
+                        "fnr" to vedtak.behandling.fnr,
                         "type" to "NY",
                         "behandler" to "Z123",
                         "avstemmingsnokkel" to objectMapper.writeValueAsString(
@@ -126,27 +128,22 @@ internal class AvstemmingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
-            val utbetaling1 =
-                testDataHelper.nyOversendtUtbetalingMedKvittering(
-                    avstemmingsnøkkel = Avstemmingsnøkkel(
-                        11.oktober(2020).startOfDay(),
-                    ),
-                )
-
-            val utbetaling2 =
-                testDataHelper.nyOversendtUtbetalingMedKvittering(
-                    avstemmingsnøkkel = Avstemmingsnøkkel(
-                        11.oktober(2020).endOfDay(),
-                    ),
-                )
-
+            val (_, _, utbetaling1) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+                avstemmingsnøkkel = Avstemmingsnøkkel(
+                    11.oktober(2020).startOfDay(),
+                ),
+            )
+            val (_, _, utbetaling2) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+                avstemmingsnøkkel = Avstemmingsnøkkel(
+                    11.oktober(2020).endOfDay(),
+                ),
+            )
             val utbetalinger = repo.hentUtbetalingerForGrensesnittsavstemming(
                 11.oktober(2020).startOfDay(),
                 11.oktober(2020).endOfDay(),
             )
-
             utbetalinger shouldHaveSize 2
-            utbetalinger.map { it.id } shouldContainAll listOf(utbetaling1.second.id, utbetaling2.second.id)
+            utbetalinger.map { it.id } shouldContainAll listOf(utbetaling1.id, utbetaling2.id)
         }
     }
 
@@ -155,14 +152,15 @@ internal class AvstemmingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
-            val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
+            val oversendtUtbetalingMedKvittering =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
 
             val avstemming = Avstemming.Grensesnittavstemming(
                 id = UUID30.randomUUID(),
                 opprettet = fixedTidspunkt,
                 fraOgMed = fixedTidspunkt,
                 tilOgMed = fixedTidspunkt,
-                utbetalinger = listOf(oversendtUtbetalingMedKvittering.second),
+                utbetalinger = listOf(oversendtUtbetalingMedKvittering),
                 avstemmingXmlRequest = "some xml",
             )
 
@@ -181,14 +179,14 @@ internal class AvstemmingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
             val oversendtUtbetalingMedKvittering =
-                testDataHelper.nyOversendtUtbetalingMedKvittering()
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
 
             val avstemming = Avstemming.Konsistensavstemming.Ny(
                 id = UUID30.randomUUID(),
                 opprettet = fixedTidspunkt,
                 løpendeFraOgMed = 1.januar(2020).startOfDay(zoneIdOslo),
                 opprettetTilOgMed = 31.januar(2021).endOfDay(zoneIdOslo),
-                utbetalinger = listOf(oversendtUtbetalingMedKvittering.second),
+                utbetalinger = listOf(oversendtUtbetalingMedKvittering),
                 avstemmingXmlRequest = "some xml",
             )
 
@@ -200,7 +198,7 @@ internal class AvstemmingPostgresRepoTest {
                 løpendeFraOgMed = avstemming.løpendeFraOgMed,
                 opprettetTilOgMed = avstemming.opprettetTilOgMed,
                 utbetalinger = mapOf(
-                    oversendtUtbetalingMedKvittering.first.saksnummer to oversendtUtbetalingMedKvittering.second.utbetalingslinjer,
+                    oversendtUtbetalingMedKvittering.saksnummer to oversendtUtbetalingMedKvittering.utbetalingslinjer,
                 ),
                 avstemmingXmlRequest = "some xml",
             )
@@ -213,14 +211,14 @@ internal class AvstemmingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
             val oversendtUtbetalingMedKvittering =
-                testDataHelper.nyOversendtUtbetalingMedKvittering()
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
 
             val avstemming1 = Avstemming.Konsistensavstemming.Ny(
                 id = UUID30.randomUUID(),
                 opprettet = 1.januar(2021).startOfDay(ZoneOffset.UTC),
                 løpendeFraOgMed = 1.januar(2021).startOfDay(zoneIdOslo),
                 opprettetTilOgMed = 31.desember(2020).endOfDay(zoneIdOslo),
-                utbetalinger = listOf(oversendtUtbetalingMedKvittering.second),
+                utbetalinger = listOf(oversendtUtbetalingMedKvittering),
                 avstemmingXmlRequest = "some xml",
             )
 
@@ -243,7 +241,7 @@ internal class AvstemmingPostgresRepoTest {
                 opprettet = 1.februar(2021).startOfDay(ZoneOffset.UTC),
                 løpendeFraOgMed = 1.april(2021).startOfDay(zoneIdOslo),
                 opprettetTilOgMed = 31.mars(2021).endOfDay(zoneIdOslo),
-                utbetalinger = listOf(oversendtUtbetalingMedKvittering.second),
+                utbetalinger = listOf(oversendtUtbetalingMedKvittering),
                 avstemmingXmlRequest = "some xml",
             )
 
@@ -261,7 +259,7 @@ internal class AvstemmingPostgresRepoTest {
                 opprettet = 1.mars(2021).startOfDay(ZoneOffset.UTC),
                 løpendeFraOgMed = 1.juni(2021).startOfDay(zoneIdOslo),
                 opprettetTilOgMed = 31.mai(2021).endOfDay(zoneIdOslo),
-                utbetalinger = listOf(oversendtUtbetalingMedKvittering.second),
+                utbetalinger = listOf(oversendtUtbetalingMedKvittering),
                 avstemmingXmlRequest = "some xml",
             )
 
@@ -282,7 +280,7 @@ internal class AvstemmingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
             val oversendtUtbetalingMedKvittering =
-                testDataHelper.nyOversendtUtbetalingMedKvittering().second
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay(),
@@ -313,7 +311,8 @@ internal class AvstemmingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
-            val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering().second
+            val oversendtUtbetalingMedKvittering =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay(),
@@ -380,7 +379,7 @@ internal class AvstemmingPostgresRepoTest {
                 beløp = 17000,
                 uføregrad = Uføregrad.parse(40),
             )
-            val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering(
+            val oversendtUtbetalingMedKvittering = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 utbetalingslinjer = nonEmptyListOf(første, andre),
             ).second
 
