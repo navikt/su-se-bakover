@@ -105,7 +105,7 @@ internal class SendKlageTilAttesteringTest {
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.oppgaveService).opprettOppgave(
             argThat {
-                it shouldBe OppgaveConfig.Klage.Saksbehandler(
+                it shouldBe OppgaveConfig.Klage.Attestering(
                     saksnummer = klage.saksnummer,
                     aktørId = AktørId("aktørId"),
                     journalpostId = klage.journalpostId,
@@ -235,9 +235,9 @@ internal class SendKlageTilAttesteringTest {
             verifiserGyldigStatusovergang(
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
-                tilordnetRessurs = it.second.attesteringer.let {
-                    assert(it.size == 1)
-                    it.first().attestant
+                tilordnetRessurs = it.second.attesteringer.let { attesteringshistorikk ->
+                    assert(attesteringshistorikk.size == 1)
+                    attesteringshistorikk.first().attestant
                 },
             )
         }
@@ -249,9 +249,9 @@ internal class SendKlageTilAttesteringTest {
             verifiserGyldigStatusovergang(
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
-                tilordnetRessurs = it.second.attesteringer.let {
-                    assert(it.size == 1)
-                    it.first().attestant
+                tilordnetRessurs = it.second.attesteringer.let { attesteringshistorikk ->
+                    assert(attesteringshistorikk.size == 1)
+                    attesteringshistorikk.first().attestant
                 },
             )
         }
@@ -303,7 +303,7 @@ internal class SendKlageTilAttesteringTest {
         verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.oppgaveService).opprettOppgave(
             argThat {
-                it shouldBe OppgaveConfig.Klage.Saksbehandler(
+                it shouldBe OppgaveConfig.Klage.Attestering(
                     saksnummer = klage.saksnummer,
                     aktørId = AktørId("aktørId"),
                     journalpostId = klage.journalpostId,
