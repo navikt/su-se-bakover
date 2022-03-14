@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
@@ -155,21 +154,6 @@ internal class SøknadsbehandlingPostgresRepo(
                     },
                     session = tx,
                 )
-            }
-        }
-    }
-
-    override fun hentEventuellTidligereAttestering(id: UUID): Attestering? {
-        // henter ut siste elementet (seneste attestering) i attesteringslisten
-        return dbMetrics.timeQuery("hentEventuellTidligereAttestering") {
-            sessionFactory.withSession { session ->
-                "select b.attestering from behandling b where b.id=:id"
-                    .hent(mapOf("id" to id), session) { row ->
-                        row.stringOrNull("attestering")?.let {
-                            val attesteringer = Attesteringshistorikk.create(objectMapper.readValue(it))
-                            attesteringer.lastOrNull()
-                        }
-                    }
             }
         }
     }

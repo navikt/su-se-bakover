@@ -213,7 +213,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
     fun `sletter grunnlag hvis vurdering går fra vurdert til ikke vurdert`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val søknadsbehandling = testDataHelper.nySøknadsbehandling()
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val (vilkår, grunnlag) = formuevilkårUtenEps0Innvilget(
                 bosituasjon = bosituasjongrunnlagEnslig(periode = periode2021),
             ).let { it to it.grunnlag }

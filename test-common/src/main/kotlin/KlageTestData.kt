@@ -588,7 +588,7 @@ fun underkjentKlageTilVurdering(
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
     ).orNull()!!,
-    attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("attestant"),
+    attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     attesteringsgrunn: Attestering.Underkjent.Grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
     attesteringskommentar: String = "attesteringskommentar",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
@@ -639,7 +639,7 @@ fun underkjentAvvistKlage(
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     begrunnelse: String = "begrunnelse",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
-    attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("attestant"),
+    attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     attesteringsgrunn: Attestering.Underkjent.Grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
     attesteringskommentar: String = "attesteringskommentar",
 ): Pair<Sak, AvvistKlage> {
@@ -737,7 +737,7 @@ fun oversendtKlage(
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
     ).orNull()!!,
-    attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("attestant"),
+    attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
 ): Pair<Sak, OversendtKlage> {
     return vurdertKlageTilAttestering(
@@ -784,7 +784,7 @@ fun iverksattAvvistKlage(
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
-    attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("attestant"),
+    attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
 ): Pair<Sak, IverksattAvvistKlage> {
     return avvistKlageTilAttestering(

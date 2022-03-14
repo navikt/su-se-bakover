@@ -14,7 +14,8 @@ data class NySøknadsbehandling(
     val sakId: UUID,
     val søknad: Søknad.Journalført.MedOppgave,
     val oppgaveId: OppgaveId,
-    val behandlingsinformasjon: Behandlingsinformasjon,
     val fnr: Fnr,
-    val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere
-)
+    val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
+) {
+    val behandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
+}

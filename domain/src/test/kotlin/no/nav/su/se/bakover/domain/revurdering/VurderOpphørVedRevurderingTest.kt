@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.test.beregningAvslagUnderMinstebeløp
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
-import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilgetRevurdering
+import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.mock
@@ -39,7 +39,7 @@ internal class VurderOpphørVedRevurderingTest {
 
     @Test
     fun `vilkår som ikke er oppfylt gir opphør`() {
-        val vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(
             uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
@@ -72,7 +72,7 @@ internal class VurderOpphørVedRevurderingTest {
 
     @Test
     fun `en fremtidig måned under minstebeløp gir opphør`() {
-        val vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering()
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget()
         val beregning = beregning(
             fradragsgrunnlag = nonEmptyListOf(
                 fradragsgrunnlagArbeidsinntekt(
@@ -91,7 +91,7 @@ internal class VurderOpphørVedRevurderingTest {
 
     @Test
     fun `alle fremtidige måneder under minstebeløp gir opphør`() {
-        val vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering()
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget()
         val beregning = beregning(
             fradragsgrunnlag = nonEmptyListOf(
                 fradragsgrunnlagArbeidsinntekt(
@@ -110,7 +110,7 @@ internal class VurderOpphørVedRevurderingTest {
 
     @Test
     fun `inneværende måned under minstebeløp gir opphør`() {
-        val vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering()
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget()
         val beregning = beregning(
             fradragsgrunnlag = nonEmptyListOf(
                 fradragsgrunnlagArbeidsinntekt(
@@ -132,7 +132,7 @@ internal class VurderOpphørVedRevurderingTest {
 
     @Test
     fun `en fremtidig måned med beløp lik 0 gir opphør`() {
-        val vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering()
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget()
         val beregning = beregning(
             fradragsgrunnlag = nonEmptyListOf(
                 fradragsgrunnlagArbeidsinntekt(
@@ -151,7 +151,7 @@ internal class VurderOpphørVedRevurderingTest {
 
     @Test
     fun `en måned i fortiden under minstebeløp gir ikke opphør`() {
-        val vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering()
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget()
         val beregning = beregning(
             fradragsgrunnlag = nonEmptyListOf(
                 fradragsgrunnlagArbeidsinntekt(
@@ -170,7 +170,7 @@ internal class VurderOpphørVedRevurderingTest {
 
     @Test
     fun `en måned i fortiden med beløp lik 0 gir ikke opphør`() {
-        val vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering()
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget()
         val beregning = beregning(
             fradragsgrunnlag = nonEmptyListOf(
                 fradragsgrunnlagArbeidsinntekt(
@@ -189,7 +189,7 @@ internal class VurderOpphørVedRevurderingTest {
 
     @Test
     fun `alle måneder i fortiden med beløp lik 0 gir opphør`() {
-        val vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering()
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget()
         val beregning = beregningAvslagForHøyInntekt()
 
         VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
@@ -201,7 +201,7 @@ internal class VurderOpphørVedRevurderingTest {
 
     @Test
     fun `alle måneder i fortiden med beløp under minstegrense gir opphør`() {
-        val vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering()
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget()
         val beregning = beregningAvslagUnderMinstebeløp()
 
         VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
@@ -224,7 +224,7 @@ internal class VurderOpphørVedRevurderingTest {
 
     @Test
     fun `vilkår har prioritet over beregning når det kommer til hva som fører til opphør`() {
-        val vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(
             uføre = avslåttUførevilkårUtenGrunnlag(),
         )
         val beregning = beregningAvslagForHøyInntekt()

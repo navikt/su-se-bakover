@@ -21,7 +21,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val grunnlagRepo = testDataHelper.fradragsgrunnlagPostgresRepo
-            val behandling = testDataHelper.nySøknadsbehandling()
+            val behandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
 
             val fradragsgrunnlag1 = lagFradragsgrunnlag(
                 type = Fradragstype.Arbeidsinntekt,

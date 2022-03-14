@@ -27,9 +27,9 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.nyKlage()
+            val klage = testDataHelper.persisterKlageOpprettet()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
@@ -45,9 +45,9 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.nyKlage().vilkårsvurder(
+            val klage = testDataHelper.persisterKlageOpprettet().vilkårsvurder(
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerPåbegyntVilkårsvurderinger"),
                 vilkårsvurderinger = VilkårsvurderingerTilKlage.empty(),
             ).getOrFail().also {
@@ -68,9 +68,9 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.utfyltVilkårsvurdertKlageTilVurdering()
+            val klage = testDataHelper.persisterKlageVilkårsvurdertUtfyltTilVurdering()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
@@ -86,9 +86,9 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.utfyltAvvistVilkårsvurdertKlage()
+            val klage = testDataHelper.persisterKlageVilkårsvurdertUtfyltAvvist()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
@@ -104,9 +104,9 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.bekreftetVilkårsvurdertKlageTilVurdering()
+            val klage = testDataHelper.persisterKlageVilkårsvurdertBekreftetTilVurdering()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
@@ -122,9 +122,9 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.bekreftetAvvistVilkårsvurdertKlage()
+            val klage = testDataHelper.persisterKlageVilkårsvurdertBekreftetAvvist()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
@@ -140,9 +140,9 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.bekreftetVilkårsvurdertKlageTilVurdering().vurder(
+            val klage = testDataHelper.persisterKlageVilkårsvurdertBekreftetTilVurdering().vurder(
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerPåbegyntVurderinger"),
                 vurderinger = VurderingerTilKlage.empty(),
             ).also {
@@ -163,9 +163,9 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.utfyltVurdertKlage()
+            val klage = testDataHelper.persisterKlageVurdertUtfylt()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
@@ -181,8 +181,8 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
-            val klage = testDataHelper.avvistKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
+            val klage = testDataHelper.persisterKlageAvvist()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
@@ -198,9 +198,9 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.klageTilAttesteringTilVurdering()
+            val klage = testDataHelper.persisterKlageTilAttesteringVurdert()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
@@ -216,9 +216,9 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.avvistKlageTilAttestering()
+            val klage = testDataHelper.persisterKlageTilAttesteringAvvist()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
@@ -234,9 +234,9 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.underkjentKlageTilVurdering()
+            val klage = testDataHelper.persisterKlageUnderkjentVurdert()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
@@ -252,9 +252,9 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.underkjentAvvistKlage()
+            val klage = testDataHelper.persisterKlageUnderkjentAvvist()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
@@ -270,9 +270,9 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.oversendtKlage()
+            val klage = testDataHelper.persisterKlageOversendt()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
@@ -288,9 +288,9 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.iverksattAvvistKlage()
+            val klage = testDataHelper.persisterKlageIverksattAvvist()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
@@ -306,9 +306,9 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val urelatertKlage = testDataHelper.nyKlage()
+            val urelatertKlage = testDataHelper.persisterKlageOpprettet()
 
-            val klage = testDataHelper.avsluttetKlage()
+            val klage = testDataHelper.persisterKlageAvsluttet()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext).shouldBeEqualComparingPublicFieldsAndInterface(listOf(klage))
@@ -324,8 +324,8 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val klage = testDataHelper.oversendtKlage()
-            val (klageinstanshendelseId, _) = testDataHelper.uprosessertKlageinstanshendelse(klageId = klage.id)
+            val klage = testDataHelper.persisterKlageOversendt()
+            val (klageinstanshendelseId, _) = testDataHelper.persisterUprosessertKlageinstanshendelse(klageId = klage.id)
 
             val tolketKlageinstanshendelse = TolketKlageinstanshendelse(
                 id = klageinstanshendelseId,
@@ -358,8 +358,8 @@ internal class KlagePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageRepo = testDataHelper.klagePostgresRepo
 
-            val klage = testDataHelper.oversendtKlage()
-            val (klageinstanshendelseId, _) = testDataHelper.uprosessertKlageinstanshendelse(klageId = klage.id)
+            val klage = testDataHelper.persisterKlageOversendt()
+            val (klageinstanshendelseId, _) = testDataHelper.persisterUprosessertKlageinstanshendelse(klageId = klage.id)
 
             val tolketKlageinstanshendelse = TolketKlageinstanshendelse(
                 id = klageinstanshendelseId,

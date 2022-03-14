@@ -94,7 +94,7 @@ internal class KlageinstanshendelsePostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val klageinstanshendelsePostgresRepo = testDataHelper.klageinstanshendelsePostgresRepo
             val id = UUID.randomUUID()
-            val klage = testDataHelper.oversendtKlage()
+            val klage = testDataHelper.persisterKlageOversendt()
 
             UprosessertKlageinstanshendelse(
                 id = id,
