@@ -34,7 +34,7 @@
     "KAFKA_ONPREM_SCHEMA_REGISTRY": "https://kafka-schema-registry.nais.adeo.no",
     "SAF_URL": "https://saf.intern.nav.no",
     "SAF_CLIENT_ID": "api://prod-fss.teamdokumenthandtering.saf",
-    "MQ_TILBAKEKREVING_MOTTAK":"TODO",
+    "MQ_TILBAKEKREVING_MOTTAK":"QA.P_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG",
     "TILBAKEKREVING_URL": "https://cics.adeo.no/oppdrag/K231CW80"
   }
 }
