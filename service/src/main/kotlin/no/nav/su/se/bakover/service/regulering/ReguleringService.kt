@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.regulering
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import java.time.LocalDate
 import java.util.UUID
@@ -42,8 +43,6 @@ sealed class KunneIkkeOppretteRegulering {
     object TidslinjeForVedtakErIkkeKontinuerlig : KunneIkkeOppretteRegulering()
     object GrunnlagErIkkeKonsistent : KunneIkkeOppretteRegulering()
     object KunneIkkeLageFradragsgrunnlag : KunneIkkeOppretteRegulering()
-    object ReguleringErAlleredeIverksatt : KunneIkkeOppretteRegulering()
-    object KanIkkeRegulereOpphør : KunneIkkeOppretteRegulering()
 }
 
 sealed class KunneIkkeHenteGjeldendeVedtaksdata {
@@ -51,7 +50,7 @@ sealed class KunneIkkeHenteGjeldendeVedtaksdata {
     object FantIkkeSak : KunneIkkeHenteGjeldendeVedtaksdata()
     object UgyldigPeriode : KunneIkkeHenteGjeldendeVedtaksdata()
     object TidslinjeForVedtakErIkkeKontinuerlig : KunneIkkeHenteGjeldendeVedtaksdata()
-    object GrunnlagErIkkeKonsistent : KunneIkkeHenteGjeldendeVedtaksdata()
+    data class GrunnlagErIkkeKonsistent(val gjeldendeVedtaksdata: GjeldendeVedtaksdata) : KunneIkkeHenteGjeldendeVedtaksdata()
 }
 
 object KunneIkkeUtbetale

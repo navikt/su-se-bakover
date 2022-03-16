@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -25,6 +26,8 @@ import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.simulertUtbetaling
+import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -35,26 +38,17 @@ import java.time.LocalDate
 
 internal class ReguleringServiceImplTest {
 
-    @Nested
-    inner class GenerelleTester {
-        private val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
-        private val reguleringService = lagReguleringServiceImpl(sak)
+    @Test
+    fun `regulerer alle saker`() {
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
+        val reguleringService = lagReguleringServiceImpl(sak)
 
-        @Test
-        fun `regulerer alle saker`() {
-            reguleringService.startRegulering(1.mai(2021)).size shouldBe 1
-        }
-
-        @Test
-        fun `behandlinger som ikke har OffentligPensjon eller NAVytelserTilLivsopphold blir automatiskt regulert`() {
-            val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
-            regulering.reguleringType shouldBe ReguleringType.AUTOMATISK
-        }
+        reguleringService.startRegulering(1.mai(2021)).size shouldBe 1
     }
 
     @Nested
     inner class UtledRegulertypeTest {
-        val reguleringService = lagReguleringServiceImpl(
+        private val reguleringService = lagReguleringServiceImpl(
             vedtakSøknadsbehandlingIverksattInnvilget(
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
@@ -74,6 +68,15 @@ internal class ReguleringServiceImplTest {
         )
 
         @Test
+        fun `behandlinger som ikke har OffentligPensjon eller NAVytelserTilLivsopphold blir automatiskt regulert`() {
+            val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
+            val reguleringService = lagReguleringServiceImpl(sak)
+
+            val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
+            regulering.reguleringType shouldBe ReguleringType.AUTOMATISK
+        }
+
+        @Test
         fun `OffentligPensjon gir manuell`() {
             reguleringService.startRegulering(1.mai(2021)).single()
                 .getOrFail().reguleringType shouldBe ReguleringType.MANUELL
@@ -84,6 +87,43 @@ internal class ReguleringServiceImplTest {
             reguleringService.startRegulering(1.mai(2021)).single()
                 .getOrFail().reguleringType shouldBe ReguleringType.MANUELL
         }
+
+        @Test
+        fun `Stans må håndteres manuellt`() {
+            val stansAvYtelse = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().first
+            val reguleringService = lagReguleringServiceImpl(stansAvYtelse)
+
+            reguleringService.startRegulering(1.mai(2021)).single()
+                .getOrFail().reguleringType shouldBe ReguleringType.MANUELL
+        }
+
+        @Test
+        fun `En periode med opphør må behandles manuellt`() {
+            val revurdertSak = vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().first
+
+            val reguleringService = lagReguleringServiceImpl(revurdertSak)
+
+            val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
+            regulering.reguleringType shouldBe ReguleringType.MANUELL
+        }
+
+        @Test
+        fun `en behandling med delvis opphør skal reguleres manuellt`() {
+            val revurdertSak =
+                vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+                    revurderingsperiode = Periode.create(
+                        1.september(
+                            2021,
+                        ),
+                        31.desember(2021),
+                    ),
+                ).first
+
+            val reguleringService = lagReguleringServiceImpl(revurdertSak)
+
+            val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
+            regulering.reguleringType shouldBe ReguleringType.MANUELL
+        }
     }
 
     @Nested
@@ -91,7 +131,8 @@ internal class ReguleringServiceImplTest {
 
         @Test
         fun `reguleringen kan ikke starte tidligere enn reguleringsdatoen`() {
-            val sak = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(periode2021)).first
+            val sak =
+                vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(periode2021)).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
             val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
@@ -101,7 +142,11 @@ internal class ReguleringServiceImplTest {
         @Test
         fun `reguleringen starter fra søknadsbehandlingens dato hvis den er etter reguleringsdatoen`() {
             val periodeEtterReguleringsdato = Periode.create(1.juni(2021), 31.desember(2021))
-            val sak = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(periodeEtterReguleringsdato)).first
+            val sak = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(
+                    periodeEtterReguleringsdato,
+                ),
+            ).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
             val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
@@ -130,7 +175,12 @@ internal class ReguleringServiceImplTest {
             },
             utbetalingService = mock {
                 on { simulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
-                on { hentGjeldendeUtbetaling(any(), any()) } doReturn testData.third.rightIfNotNull { FantIkkeGjeldendeUtbetaling }
+                on {
+                    hentGjeldendeUtbetaling(
+                        any(),
+                        any(),
+                    )
+                } doReturn testData.third.rightIfNotNull { FantIkkeGjeldendeUtbetaling }
                 on { utbetal(any()) } doReturn utbetaling.right()
             },
             vedtakService = mock {

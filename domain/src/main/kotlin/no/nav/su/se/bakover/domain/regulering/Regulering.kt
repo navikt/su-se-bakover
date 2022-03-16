@@ -76,20 +76,20 @@ sealed interface Regulering : Behandling {
                         bosituasjon = grunnlagsdata.bosituasjon,
                         fradragsgrunnlag = fradragsgrunnlag,
                     ).getOrHandle { throw IllegalStateException("") },
-                    vilkårsvurderinger = vilkårsvurderinger
-
-                )
+                    vilkårsvurderinger = vilkårsvurderinger,
+                ),
             )
 
         override fun beregn(clock: Clock, begrunnelse: String?): Either<KunneIkkeBeregne, OpprettetRegulering> {
             val reguleringMedNyForventetInntekt = copy(
                 grunnlagsdataOgVilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.copy(
                     vilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.copy(
-                        uføre = (vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).regulerForventetInntekt().getOrHandle {
-                            throw RuntimeException("")
-                        }
-                    )
-                )
+                        uføre = (vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).regulerForventetInntekt()
+                            .getOrHandle {
+                                throw RuntimeException("")
+                            },
+                    ),
+                ),
             )
 
             return reguleringMedNyForventetInntekt.gjørBeregning(

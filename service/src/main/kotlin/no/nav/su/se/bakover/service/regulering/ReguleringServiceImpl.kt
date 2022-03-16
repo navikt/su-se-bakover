@@ -52,6 +52,9 @@ class ReguleringServiceImpl(
     private fun blirBeregningEndret(regulering: Regulering): Boolean {
         val reguleringMedBeregning = regulering.beregn(clock = clock, begrunnelse = null)
             .getOrHandle { throw RuntimeException("Vi klarte ikke å beregne") }
+
+        regulering.vilkårsvurderinger.resultat
+
         return !reguleringMedBeregning.beregning!!.getMånedsberegninger().all { månedsberegning ->
             utbetalingService.hentGjeldendeUtbetaling(
                 regulering.sakId,
@@ -70,17 +73,37 @@ class ReguleringServiceImpl(
                 oppdaterRegulering(reguleringer.hentÅpenRegulering(), startDato)
             } else {
                 val request = OpprettRequest(sakId = sakid, saksnummer = saksnummer, fnr = fnr, fraOgMed = startDato)
-                opprettRegulering(request)
+                Either.catch {
+                    opprettRegulering(request)
+                }.fold(
+                    ifLeft = {
+                        log.error("Feil skjedde ved oppretting av regulering for saksnummer ${request.saksnummer}", it)
+                        KunneIkkeOppretteRegulering.FantIkkeRegulering.left()
+                    },
+                    ifRight = { it }
+                )
             }
 
             // TODO ai: Se om det går å forenkle
             regulering.flatMap { reg ->
-                if (blirBeregningEndret(reg)) {
-                    reguleringRepo.lagre(reg)
-                    if (reg.reguleringType == ReguleringType.AUTOMATISK) {
+                reguleringRepo.lagre(reg)
+                if (reg.reguleringType == ReguleringType.AUTOMATISK) {
+                    if (blirBeregningEndret(reg)) {
                         regulerAutomatisk(reg).mapLeft { KunneIkkeOppretteRegulering.FantIkkeRegulering } // kanske mapLeft returnerer reg bare?
                     } else reg.right()
                 } else reg.right()
+            }.tapLeft {
+                val feilmelding = when (it) {
+                    KunneIkkeOppretteRegulering.FantIkkeRegulering -> "Fant ikke regulering."
+                    KunneIkkeOppretteRegulering.FantIkkeSak -> "Fant ikke sak"
+                    KunneIkkeOppretteRegulering.FantIngenVedtak -> "Fant ingen vedtak"
+                    KunneIkkeOppretteRegulering.GrunnlagErIkkeKonsistent -> "Grunnlag er ikke konsistent."
+                    KunneIkkeOppretteRegulering.KunneIkkeLageFradragsgrunnlag -> "Kunne ikke lage fradragsgrunnlag"
+                    KunneIkkeOppretteRegulering.TidslinjeForVedtakErIkkeKontinuerlig -> "Tidslinje for vedtak er ikke kontinuerlig"
+                    KunneIkkeOppretteRegulering.UgyldigPeriode -> "Ugyldig periode"
+                }
+
+                log.error("Feil skjedde ved regulering for saksnummer $saksnummer. $feilmelding")
             }
         }
     }
@@ -179,34 +202,37 @@ class ReguleringServiceImpl(
         ).getOrHandle {
             return when (it) {
                 KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak -> KunneIkkeOppretteRegulering.FantIkkeSak.left()
-                KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak -> KunneIkkeOppretteRegulering.FantIngenVedtak.left()
-                KunneIkkeHenteGjeldendeVedtaksdata.GrunnlagErIkkeKonsistent -> KunneIkkeOppretteRegulering.GrunnlagErIkkeKonsistent.left()
                 KunneIkkeHenteGjeldendeVedtaksdata.TidslinjeForVedtakErIkkeKontinuerlig -> KunneIkkeOppretteRegulering.TidslinjeForVedtakErIkkeKontinuerlig.left()
                 KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> KunneIkkeOppretteRegulering.UgyldigPeriode.left()
+                KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak -> KunneIkkeOppretteRegulering.FantIngenVedtak.left()
+                is KunneIkkeHenteGjeldendeVedtaksdata.GrunnlagErIkkeKonsistent -> {
+                    val fraOgMed =
+                        maxOf(it.gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.fraOgMed, request.fraOgMed)
+                    val tilOgMed = it.gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.tilOgMed
+
+                    Regulering.OpprettetRegulering(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(clock),
+                        sakId = request.sakId,
+                        saksnummer = request.saksnummer,
+                        saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
+                        fnr = request.fnr,
+                        periode = Periode.create(fraOgMed, tilOgMed),
+                        grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+                            grunnlagsdata = it.gjeldendeVedtaksdata.grunnlagsdata,
+                            vilkårsvurderinger = it.gjeldendeVedtaksdata.vilkårsvurderinger,
+                        ),
+                        beregning = null,
+                        simulering = null,
+                        reguleringType = ReguleringType.MANUELL,
+                    ).right()
+                }
             }
         }
         val reguleringType = utledAutomatiskEllerManuellRegulering(gjeldendeVedtaksdata)
 
-        // TODO ai: Ta i bruk annen funksjonalitet for å gjøre dette
-        // Ta i bruk TidligstDatoForAvslag som ligger i Vilkår.X
-        // Vilkårsvurderingsresultat <-------
-
-        // TODO ai: Sørg for å ta hensyn til stans, skal ikke kunne regulere over perioder med stans. Skal crop:es av stans.
-        val fraOgMed = maxOf(
-            gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.fraOgMed,
-            request.fraOgMed,
-        ) // TODO ai: Se om den tar med behandlinger som har opphør
-        val tilOgMed = listOf(
-            gjeldendeVedtaksdata.vilkårsvurderinger.uføre,
-            gjeldendeVedtaksdata.vilkårsvurderinger.formue,
-            gjeldendeVedtaksdata.vilkårsvurderinger.utenlandsopphold,
-        )
-            .mapNotNull { it.hentTidligesteDatoForAvslag() }
-            .minOrNull() ?: gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.tilOgMed
-
-        if (!tilOgMed.isAfter(fraOgMed)) {
-            return KunneIkkeOppretteRegulering.KanIkkeRegulereOpphør.left()
-        }
+        val fraOgMed = maxOf(gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.fraOgMed, request.fraOgMed)
+        val tilOgMed = gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.tilOgMed
 
         val grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = Grunnlagsdata.tryCreate(
@@ -248,12 +274,13 @@ class ReguleringServiceImpl(
             return when (it) {
                 KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak -> KunneIkkeOppretteRegulering.FantIkkeSak.left()
                 KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak -> KunneIkkeOppretteRegulering.FantIngenVedtak.left()
-                KunneIkkeHenteGjeldendeVedtaksdata.GrunnlagErIkkeKonsistent -> KunneIkkeOppretteRegulering.GrunnlagErIkkeKonsistent.left()
                 KunneIkkeHenteGjeldendeVedtaksdata.TidslinjeForVedtakErIkkeKontinuerlig -> KunneIkkeOppretteRegulering.TidslinjeForVedtakErIkkeKontinuerlig.left()
                 KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> KunneIkkeOppretteRegulering.UgyldigPeriode.left()
+                is KunneIkkeHenteGjeldendeVedtaksdata.GrunnlagErIkkeKonsistent -> KunneIkkeOppretteRegulering.GrunnlagErIkkeKonsistent.left()
             }
         }
-        val reguleringType = utledAutomatiskEllerManuellRegulering(gjeldendeVedtaksdata)
+        // Se om man kan prøve utlede den på nytt og kanskje kjøre den automatisk
+        val reguleringType = regulering.reguleringType
 
         val grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = Grunnlagsdata.tryCreate(
@@ -293,7 +320,7 @@ class ReguleringServiceImpl(
             bosituasjongrunnlag = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
             fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
         ).resultat.getOrHandle {
-            return KunneIkkeHenteGjeldendeVedtaksdata.GrunnlagErIkkeKonsistent.left()
+            return KunneIkkeHenteGjeldendeVedtaksdata.GrunnlagErIkkeKonsistent(gjeldendeVedtaksdata).left()
         }
 
         return gjeldendeVedtaksdata.right()
@@ -309,6 +336,12 @@ class ReguleringServiceImpl(
         }
 
         if (gjeldendeVedtaksdata.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0()) {
+            return ReguleringType.MANUELL
+        }
+
+        if (gjeldendeVedtaksdata.vilkårsvurderinger.vilkår.mapNotNull { it.hentTidligesteDatoForAvslag() }
+            .isNotEmpty()
+        ) {
             return ReguleringType.MANUELL
         }
 

@@ -85,7 +85,7 @@ data class GjeldendeVedtaksdata(
     }
 
     fun harStans(): Boolean {
-        return vedtakPåTidslinje.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse>().isNotEmpty()
+        return vedtakPåTidslinje.map { it.originaltVedtak }.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse>().isNotEmpty()
     }
 
     fun gjeldendeVedtakPåDato(dato: LocalDate): VedtakSomKanRevurderes? =
