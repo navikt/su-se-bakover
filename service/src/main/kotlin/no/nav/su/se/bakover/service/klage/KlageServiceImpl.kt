@@ -205,7 +205,7 @@ class KlageServiceImpl(
         return klage.sendTilAttestering(saksbehandler) {
             personService.hentAktørId(klage.fnr).flatMap { aktørId ->
                 oppgaveService.opprettOppgave(
-                    OppgaveConfig.Klage.Saksbehandler(
+                    OppgaveConfig.Klage.Attestering(
                         saksnummer = klage.saksnummer,
                         aktørId = aktørId,
                         journalpostId = klage.journalpostId,
