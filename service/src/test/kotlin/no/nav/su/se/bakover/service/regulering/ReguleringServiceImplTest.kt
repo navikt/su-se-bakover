@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
@@ -35,6 +36,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 internal class ReguleringServiceImplTest {
 
@@ -99,7 +101,8 @@ internal class ReguleringServiceImplTest {
 
         @Test
         fun `En periode med opphør må behandles manuellt`() {
-            val revurdertSak = vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().first
+            val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(clock = fixedClock)
+            val revurdertSak = vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(sakOgVedtakSomKanRevurderes = sakOgVedtak, clock = fixedClock.plus(1, ChronoUnit.DAYS)).first
 
             val reguleringService = lagReguleringServiceImpl(revurdertSak)
 

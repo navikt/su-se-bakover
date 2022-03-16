@@ -284,13 +284,13 @@ fun vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             eksisterendeUtbetalinger = sak.utbetalinger,
-            clock = clock.plus(1, ChronoUnit.DAYS),
+            clock = clock,
         )
 
         val vedtak = VedtakSomKanRevurderes.from(
             revurdering = revurdering,
             utbetalingId = utbetaling.id,
-            clock = clock.plus(1, ChronoUnit.DAYS),
+            clock = clock,
         )
 
         sak.copy(
