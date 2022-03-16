@@ -46,6 +46,8 @@ import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
 import no.nav.su.se.bakover.domain.grunnlag.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -1027,6 +1029,7 @@ internal class LagBrevRequestVisitorTest {
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
+            tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
         )
 
         val avslåttVedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
@@ -1046,7 +1049,7 @@ internal class LagBrevRequestVisitorTest {
         ).apply { avslåttVedtak.accept(this) }
 
         brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
-        brevRevurdering.brevRequest shouldBe LagBrevRequest.Revurdering.Inntekt(
+        brevRevurdering.brevRequest shouldBe LagBrevRequest.Inntekt(
             person = person,
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
@@ -1124,6 +1127,7 @@ internal class LagBrevRequestVisitorTest {
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
+            tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet
         )
 
         val opphørsvedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
@@ -1236,24 +1240,31 @@ internal class LagBrevRequestVisitorTest {
             gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                 fraOgMed = revurdering.periode.fraOgMed,
                 clock = fixedClock,
-            ).getOrFail()
+            ).getOrFail(),
         ).getOrFail().let {
-            (it as BeregnetRevurdering.Opphørt).toSimulert { sakId, _, opphørsdato ->
-                simulertUtbetalingOpphør(
-                    sakId = sakId,
-                    opphørsdato = opphørsdato,
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                )
-            }.getOrFail()
-        }.prøvOvergangTilSkalIkkeForhåndsvarsles().getOrFail().tilAttestering(
-            attesteringsoppgaveId = oppgaveIdRevurdering,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "FRITEKST REVURDERING",
-        ).getOrFail()
+            (it as BeregnetRevurdering.Opphørt).toSimulert(
+                { sakId, _, opphørsdato ->
+                    simulertUtbetalingOpphør(
+                        sakId = sakId,
+                        opphørsdato = opphørsdato,
+                        eksisterendeUtbetalinger = sak.utbetalinger,
+                    )
+                },
+                false
+            ).getOrFail()
+        }.ikkeSendForhåndsvarsel().getOrFail()
+            .oppdaterTilbakekrevingsbehandling(
+                tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling
+            )
+            .tilAttestering(
+                attesteringsoppgaveId = oppgaveIdRevurdering,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "FRITEKST REVURDERING",
+            ).getOrFail()
             .tilIverksatt(
                 attestant = attestant,
                 hentOpprinneligAvkorting = { null },
-                clock = fixedClock
+                clock = fixedClock,
             )
             .getOrFail()
 

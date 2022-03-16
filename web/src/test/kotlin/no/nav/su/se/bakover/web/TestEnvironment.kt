@@ -65,6 +65,14 @@ val applicationConfig = ApplicationConfig(
             url = "simuleringTestUrl",
             stsSoapUrl = "simuleringStsTestSoapUrl",
         ),
+        tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
+            mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq(
+                mottak = "tilbakekrevingMqTestSendQueue",
+            ),
+            soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap(
+                url = "tilbakekrevingUrl",
+            ),
+        ),
     ),
     database = ApplicationConfig.DatabaseConfig.StaticCredentials(
         jdbcUrl = "jdbcTestUrl",

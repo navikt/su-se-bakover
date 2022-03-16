@@ -5,6 +5,7 @@ import arrow.core.NonEmptyList
 import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
@@ -18,7 +19,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-class VedtakServiceImpl(
+internal class VedtakServiceImpl(
     private val vedtakRepo: VedtakRepo,
     private val sakService: SakService,
     private val clock: Clock,
@@ -34,6 +35,10 @@ class VedtakServiceImpl(
 
     override fun hentForVedtakId(vedtakId: UUID): Vedtak? {
         return vedtakRepo.hentVedtakForId(vedtakId)
+    }
+
+    override fun hentForRevurderingId(revurderingId: UUID): Vedtak? {
+        return vedtakRepo.hentForRevurderingId(revurderingId)
     }
 
     override fun hentJournalpostId(vedtakId: UUID): JournalpostId? {
@@ -65,6 +70,10 @@ class VedtakServiceImpl(
                         }
                     }
             }
+    }
+
+    override fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes? {
+        return vedtakRepo.hentForUtbetaling(utbetalingId)
     }
 
     /*

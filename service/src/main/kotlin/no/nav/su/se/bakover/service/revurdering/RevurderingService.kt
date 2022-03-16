@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -89,6 +90,10 @@ interface RevurderingService {
     fun sendTilAttestering(
         request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
+
+    fun oppdaterTilbakekrevingsbehandling(
+        request: OppdaterTilbakekrevingsbehandlingRequest,
+    ): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, SimulertRevurdering>
 
     fun lagBrevutkastForRevurdering(
         revurderingId: UUID,
@@ -262,6 +267,11 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
     object FeilutbetalingStøttesIkke : KunneIkkeSendeRevurderingTilAttestering()
     data class RevurderingsutfallStøttesIkke(val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes>) :
         KunneIkkeSendeRevurderingTilAttestering()
+
+    object TilbakekrevingsbehandlingErIkkeFullstendig : KunneIkkeSendeRevurderingTilAttestering()
+    data class SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
+        val revurderingId: UUID
+    ) : KunneIkkeSendeRevurderingTilAttestering()
 }
 
 sealed interface KunneIkkeIverksetteRevurdering {
@@ -551,5 +561,24 @@ data class LeggTilBosituasjongrunnlagRequest(
         }
 
         return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
+    }
+}
+
+sealed interface KunneIkkeOppdatereTilbakekrevingsbehandling {
+    object FantIkkeRevurdering : KunneIkkeOppdatereTilbakekrevingsbehandling
+    data class UgyldigTilstand(
+        val fra: KClass<out Revurdering>,
+        val til: KClass<out Revurdering> = SimulertRevurdering::class,
+    ) : KunneIkkeOppdatereTilbakekrevingsbehandling
+}
+
+data class OppdaterTilbakekrevingsbehandlingRequest(
+    val revurderingId: UUID,
+    val avgjørelse: Avgjørelse,
+    val saksbehandler: NavIdentBruker.Saksbehandler,
+) {
+    enum class Avgjørelse {
+        TILBAKEKREV,
+        IKKE_TILBAKEKREV
     }
 }

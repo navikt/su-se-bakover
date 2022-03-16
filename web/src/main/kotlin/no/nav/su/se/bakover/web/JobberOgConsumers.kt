@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
+import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
 import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
@@ -27,6 +28,10 @@ import no.nav.su.se.bakover.web.services.klage.klageinstans.Klageinstanshendelse
 import no.nav.su.se.bakover.web.services.kontrollsamtale.KontrollsamtaleinnkallingJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
+import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
+import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
+import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingIbmMqConsumer
+import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
@@ -58,6 +63,11 @@ fun startJobberOgConsumers(
         personhendelseRepo = databaseRepos.personhendelseRepo,
         oppgaveServiceImpl = services.oppgave,
         personService = services.person,
+        clock = clock,
+    )
+    val tilbakekrevingConsumer = TilbakekrevingConsumer(
+        tilbakekrevingService = services.tilbakekrevingService,
+        revurderingService = services.revurdering,
         clock = clock,
     )
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
@@ -156,6 +166,21 @@ fun startJobberOgConsumers(
             },
             sessionFactory = databaseRepos.sessionFactory,
         ).schedule()
+
+        if (services.toggles.isEnabled(ToggleService.toggleForFeilutbetaling)) {
+            TilbakekrevingIbmMqConsumer(
+                queueName = applicationConfig.oppdrag.tilbakekreving.mq.mottak,
+                globalJmsContext = jmsConfig.jmsContext,
+                tilbakekrevingConsumer = tilbakekrevingConsumer,
+            )
+
+            TilbakekrevingJob(
+                tilbakekrevingService = services.tilbakekrevingService,
+                leaderPodLookup = clients.leaderPodLookup,
+                initialDelay = initialDelay.next(),
+                intervall = Duration.of(15, ChronoUnit.MINUTES),
+            ).schedule()
+        }
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         // Prøver å time starten på de lokale jobbene slik at heller ikke de går i beina på hverandre.
         val initialDelay = object {
@@ -218,6 +243,21 @@ fun startJobberOgConsumers(
             starttidspunkt = Date.from(Instant.now(clock).plusSeconds(initialDelay.next().toSeconds())),
             periode = Duration.ofMinutes(5),
             sessionFactory = databaseRepos.sessionFactory,
+        ).schedule()
+
+        LokalMottaKravgrunnlagJob(
+            tilbakekrevingConsumer = tilbakekrevingConsumer,
+            tilbakekrevingService = services.tilbakekrevingService,
+            vedtakService = services.vedtakService,
+            initialDelay = initialDelay.next(),
+            intervall = Duration.ofSeconds(10),
+        ).schedule()
+
+        TilbakekrevingJob(
+            tilbakekrevingService = services.tilbakekrevingService,
+            leaderPodLookup = clients.leaderPodLookup,
+            initialDelay = initialDelay.next(),
+            intervall = Duration.ofSeconds(10),
         ).schedule()
     }
 }

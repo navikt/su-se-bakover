@@ -56,6 +56,9 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -67,6 +70,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
@@ -121,6 +125,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnla
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereTilbakekrevingsbehandling
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse
@@ -128,6 +133,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjongrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilFormuegrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
+import no.nav.su.se.bakover.service.revurdering.OppdaterTilbakekrevingsbehandlingRequest
 import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -149,6 +155,7 @@ import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
@@ -633,6 +640,11 @@ open class AccessCheckProxy(
                     return services.revurdering.sendTilAttestering(request)
                 }
 
+                override fun oppdaterTilbakekrevingsbehandling(request: OppdaterTilbakekrevingsbehandlingRequest): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, SimulertRevurdering> {
+                    assertHarTilgangTilRevurdering(request.revurderingId)
+                    return services.revurdering.oppdaterTilbakekrevingsbehandling(request)
+                }
+
                 override fun lagBrevutkastForRevurdering(
                     revurderingId: UUID,
                     fritekst: String?,
@@ -726,6 +738,10 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
+                override fun hentForRevurderingId(revurderingId: UUID): Vedtak? {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun hentJournalpostId(vedtakId: UUID): JournalpostId? {
                     kastKanKunKallesFraAnnenService()
                 }
@@ -738,6 +754,10 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     fraOgMed: LocalDate,
                 ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes? {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -894,6 +914,27 @@ open class AccessCheckProxy(
             },
             reguleringService = object : ReguleringService {
                 override fun hentAlleSakerSomKanReguleres(fraDato: LocalDate?): SakerSomKanReguleres {
+                    kastKanKunKallesFraAnnenService()
+                }
+            },
+            tilbakekrevingService = object : TilbakekrevingService {
+                override fun lagre(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun sendTilbakekrevingsvedtak(mapper: (RåttKravgrunnlag) -> Kravgrunnlag) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentAvventerKravgrunnlag(utbetalingId: UUID30): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag? {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
                     kastKanKunKallesFraAnnenService()
                 }
             },

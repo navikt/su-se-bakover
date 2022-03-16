@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonS
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingServiceImpl
 import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakServiceImpl
@@ -108,6 +109,11 @@ object ServiceBuilder {
             clock = clock,
         )
 
+        val tilbakekrevingService = TilbakekrevingServiceImpl(
+            tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo,
+            tilbakekrevingClient = clients.tilbakekrevingClient,
+        )
+
         val toggleService = ToggleServiceImpl(unleash)
         val revurderingService = RevurderingServiceImpl(
             utbetalingService = utbetalingService,
@@ -124,6 +130,7 @@ object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
             toggleService = toggleService,
+            tilbakekrevingService = tilbakekrevingService,
         ).apply { addObserver(statistikkService) }
 
         val reguleringService = ReguleringServiceImpl(
@@ -216,6 +223,7 @@ object ServiceBuilder {
             klageService = klageService,
             klageinstanshendelseService = klageinstanshendelseService,
             reguleringService = reguleringService,
+            tilbakekrevingService = tilbakekrevingService,
         )
     }
 }

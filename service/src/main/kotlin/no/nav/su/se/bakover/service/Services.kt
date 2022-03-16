@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonS
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -42,4 +43,5 @@ data class Services(
     val klageService: KlageService,
     val klageinstanshendelseService: KlageinstanshendelseService,
     val reguleringService: ReguleringService,
+    val tilbakekrevingService: TilbakekrevingService,
 )

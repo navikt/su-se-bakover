@@ -12,6 +12,9 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -27,9 +30,11 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.formueGrunnlagUtenEps0Innvilget
 import no.nav.su.se.bakover.test.formueGrunnlagUtenEpsAvslått
@@ -41,6 +46,7 @@ import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.revurderingId
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.simulertRevurdering
@@ -59,6 +65,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 internal class RevurderingSendTilAttesteringTest {
 
@@ -169,6 +176,9 @@ internal class RevurderingSendTilAttesteringTest {
             personService = mock {
                 on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
             },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            }
         ).let { mocks ->
             val actual = mocks.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(
@@ -183,6 +193,7 @@ internal class RevurderingSendTilAttesteringTest {
 
             inOrder(*mocks.all()) {
                 verify(mocks.revurderingRepo).hent(argThat { it shouldBe revurdering.id })
+                verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
                 verify(mocks.personService).hentAktørId(argThat { it shouldBe revurdering.fnr })
                 mocks.verifyNoMoreInteractions()
             }
@@ -207,6 +218,9 @@ internal class RevurderingSendTilAttesteringTest {
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveFeil.KunneIkkeOppretteOppgave.left()
             },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            }
         ).let { mocks ->
             val actual = mocks.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(
@@ -223,6 +237,7 @@ internal class RevurderingSendTilAttesteringTest {
                 *mocks.all(),
             ) {
                 verify(mocks.revurderingRepo).hent(revurderingId)
+                verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
                 verify(mocks.personService).hentAktørId(argThat { it shouldBe fnr })
                 verify(mocks.oppgaveService).opprettOppgave(
                     argThat {
@@ -257,6 +272,9 @@ internal class RevurderingSendTilAttesteringTest {
             toggleService = mock {
                 on { isEnabled(any()) } doReturn false
             },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            }
         ).let {
             it.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(
@@ -268,7 +286,7 @@ internal class RevurderingSendTilAttesteringTest {
             ) shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left()
 
             verify(it.revurderingRepo, never()).lagre(any(), anyOrNull())
-            verify(it.toggleService).isEnabled("supstonad.ufore.feilutbetaling")
+            verify(it.toggleService).isEnabled(ToggleService.toggleForFeilutbetaling)
         }
     }
 
@@ -294,6 +312,9 @@ internal class RevurderingSendTilAttesteringTest {
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn oppgaveIdRevurdering.right()
                 on { lukkOppgave(any()) } doReturn Unit.right()
+            },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             }
         ).let {
             it.revurderingService.sendTilAttestering(
@@ -306,7 +327,107 @@ internal class RevurderingSendTilAttesteringTest {
             ).getOrFail() shouldBe beOfType<RevurderingTilAttestering.Innvilget>()
 
             verify(it.revurderingRepo).lagre(any(), anyOrNull())
-            verify(it.toggleService).isEnabled("supstonad.ufore.feilutbetaling")
+            verify(it.toggleService).isEnabled(ToggleService.toggleForFeilutbetaling)
+        }
+    }
+
+    @Test
+    fun `får ikke sende til attestering dersom tilbakekreving ikke er ferdigbehandlet`() {
+        val revurdering = simulertRevurdering(
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = periode2021,
+                    arbeidsinntekt = 5000.0,
+                ),
+            ),
+        ).second
+
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn revurdering.oppdaterTilbakekrevingsbehandling(
+                    IkkeAvgjort(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        sakId = revurdering.sakId,
+                        revurderingId = revurdering.id,
+                        periode = revurdering.periode,
+                    ),
+                )
+            },
+            toggleService = mock {
+                on { isEnabled(any()) } doReturn true
+            },
+            // TODO må endre rekkefølge slik at disse ikke kalles
+            personService = mock {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+            },
+            // TODO må endre rekkefølge slik at disse ikke kalles
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn oppgaveIdRevurdering.right()
+                on { lukkOppgave(any()) } doReturn Unit.right()
+            },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            }
+        ).let {
+            it.revurderingService.sendTilAttestering(
+                SendTilAttesteringRequest(
+                    revurderingId = revurderingId,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = "Fritekst",
+                    skalFøreTilBrevutsending = true,
+                ),
+            ) shouldBe KunneIkkeSendeRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig.left()
+        }
+    }
+
+    @Test
+    fun `får sende til attestering dersom tilbakekreving er ferdigbehandlet`() {
+        val revurdering = simulertRevurdering(
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = periode2021,
+                    arbeidsinntekt = 5000.0,
+                ),
+            ),
+        ).second
+
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn revurdering.oppdaterTilbakekrevingsbehandling(
+                    IkkeAvgjort(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        sakId = revurdering.sakId,
+                        revurderingId = revurdering.id,
+                        periode = revurdering.periode,
+                    ).tilbakekrev(),
+                )
+            },
+            toggleService = mock {
+                on { isEnabled(any()) } doReturn true
+            },
+            // TODO må endre rekkefølge slik at disse ikke kalles
+            personService = mock {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+            },
+            // TODO må endre rekkefølge slik at disse ikke kalles
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn oppgaveIdRevurdering.right()
+                on { lukkOppgave(any()) } doReturn Unit.right()
+            },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            }
+        ).let {
+            it.revurderingService.sendTilAttestering(
+                SendTilAttesteringRequest(
+                    revurderingId = revurderingId,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = "Fritekst",
+                    skalFøreTilBrevutsending = true,
+                ),
+            ).getOrFail() shouldBe beOfType<RevurderingTilAttestering.Innvilget>()
         }
     }
 
@@ -408,5 +529,38 @@ internal class RevurderingSendTilAttesteringTest {
         ).left()
 
         verify(revurderingRepoMock, never()).lagre(any(), anyOrNull())
+    }
+
+    @Test
+    fun `får ikke sendt til attestering dersom det eksisterer åpne kravgrunnlag for sak`() {
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
+            },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn listOf(
+                    AvventerKravgrunnlag(
+                        avgjort = Tilbakekrev(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            sakId = sakId,
+                            revurderingId = revurderingId,
+                            periode = periode2021,
+                        ),
+                    ),
+                )
+            },
+        ).let {
+            it.revurderingService.sendTilAttestering(
+                SendTilAttesteringRequest(
+                    revurderingId = revurderingId,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = "Fritekst",
+                    skalFøreTilBrevutsending = true,
+                ),
+            ) shouldBe KunneIkkeSendeRevurderingTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
+                revurderingId,
+            ).left()
+        }
     }
 }

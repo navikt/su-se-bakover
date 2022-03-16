@@ -8,6 +8,7 @@ import java.util.UUID
 
 interface VedtakRepo {
     fun hentVedtakForId(vedtakId: UUID): Vedtak?
+    fun hentForRevurderingId(revurderingId: UUID): Vedtak?
     fun hentForSakId(sakId: UUID): List<Vedtak>
     fun hentAktive(dato: LocalDate): List<VedtakSomKanRevurderes.EndringIYtelse>
     fun lagre(vedtak: Vedtak)

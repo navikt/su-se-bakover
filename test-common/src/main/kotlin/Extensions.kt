@@ -19,3 +19,8 @@ inline fun <reified T : Any> argThat(noinline predicate: (T) -> Unit): T {
         true
     }
 }
+
+inline fun <reified T> requireType(any: Any): T {
+    require(any is T) { "Feil type, forventet objekt av ${T::class}, men var ${any::class}" }
+    return any
+}

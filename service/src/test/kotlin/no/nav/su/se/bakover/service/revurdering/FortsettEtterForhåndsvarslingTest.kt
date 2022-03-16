@@ -9,38 +9,28 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import java.util.UUID
 
 internal class FortsettEtterForhåndsvarslingTest {
 
@@ -95,6 +85,9 @@ internal class FortsettEtterForhåndsvarslingTest {
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurdering
             },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            }
         )
         mocks.revurderingService.fortsettEtterForhåndsvarsling(
             FortsettEtterForhåndsvarslingRequest.FortsettMedSammeOpplysninger(
@@ -138,6 +131,7 @@ internal class FortsettEtterForhåndsvarslingTest {
             },
             anyOrNull(),
         )
+        verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
         mocks.verifyNoMoreInteractions()
     }
 
@@ -216,30 +210,9 @@ internal class FortsettEtterForhåndsvarslingTest {
 
     @Test
     fun `kan ikke beslutte en allerede besluttet forhåndsvarsling`() {
-        val simulertRevurdering = SimulertRevurdering.Innvilget(
-            id = revurderingId,
-            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
-            saksbehandler = saksbehandler,
-            beregning = TestBeregning,
-            simulering = Simulering(
-                gjelderId = fnr,
-                gjelderNavn = "navn",
-                datoBeregnet = fixedLocalDate,
-                nettoBeløp = 0,
-                periodeList = listOf(),
-            ),
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = RevurderingTestUtils.revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget("begrunnelse"),
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
-        )
+        val simulertRevurdering = simulertRevurdering(
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget("begrunnelse")
+        ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulertRevurdering

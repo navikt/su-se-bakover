@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
+import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.Fnr
@@ -287,6 +288,7 @@ internal class TestDataHelper(
     )
     internal val klageinstanshendelsePostgresRepo = KlageinstanshendelsePostgresRepo(sessionFactory, dbMetrics)
     internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory, dbMetrics, klageinstanshendelsePostgresRepo)
+    internal val tilbakekrevingRepo = TilbakekrevingPostgresRepo(sessionFactory)
     internal val revurderingRepo = RevurderingPostgresRepo(
         sessionFactory = sessionFactory,
         dbMetrics = dbMetrics,
@@ -294,6 +296,7 @@ internal class TestDataHelper(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         klageRepo = klagePostgresRepo,
         avkortingsvarselRepo = avkortingsvarselRepo,
+        tilbakekrevingRepo = tilbakekrevingRepo,
     )
     internal val vedtakRepo = VedtakPostgresRepo(
         sessionFactory = sessionFactory,
@@ -798,26 +801,29 @@ internal class TestDataHelper(
     }
 
     fun persisterRevurderingSimulertInnvilget(): SimulertRevurdering.Innvilget {
-        return persisterRevurderingBeregnetInnvilget().toSimulert(simulering(Fnr.generer())).also {
+        return persisterRevurderingBeregnetInnvilget().toSimulert(simulering(Fnr.generer()), clock, false).also {
             revurderingRepo.lagre(it)
         }
     }
 
     private fun persisterRevurderingSimulertOpphørt(): SimulertRevurdering.Opphørt {
-        return persisterRevurderingBeregnetOpphørt().toSimulert { _, _, _ ->
-            Utbetaling.SimulertUtbetaling(
-                id = UUID30.randomUUID(),
-                opprettet = fixedTidspunkt,
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(nummer = 2021),
-                fnr = Fnr.generer(),
-                utbetalingslinjer = nonEmptyListOf(utbetalingslinje()),
-                type = Utbetaling.UtbetalingsType.OPPHØR,
-                behandler = saksbehandler,
-                avstemmingsnøkkel = avstemmingsnøkkel,
-                simulering = simulering(Fnr.generer()),
-            ).right()
-        }.getOrFail().also {
+        return persisterRevurderingBeregnetOpphørt().toSimulert(
+            { _, _, _ ->
+                Utbetaling.SimulertUtbetaling(
+                    id = UUID30.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    sakId = UUID.randomUUID(),
+                    saksnummer = Saksnummer(nummer = 2021),
+                    fnr = Fnr.generer(),
+                    utbetalingslinjer = nonEmptyListOf(utbetalingslinje()),
+                    type = Utbetaling.UtbetalingsType.OPPHØR,
+                    behandler = saksbehandler,
+                    avstemmingsnøkkel = avstemmingsnøkkel,
+                    simulering = simulering(Fnr.generer()),
+                ).right()
+            },
+            false
+        ).getOrFail().also {
             revurderingRepo.lagre(it)
         }
     }
@@ -827,7 +833,7 @@ internal class TestDataHelper(
      */
     fun persisterRevurderingTilAttesteringInnvilget(): RevurderingTilAttestering.Innvilget {
         val simulert: SimulertRevurdering.Innvilget = persisterRevurderingSimulertInnvilget().let {
-            if (it.forhåndsvarsel == null) it.prøvOvergangTilSkalIkkeForhåndsvarsles().orNull()!! else it
+            if (it.forhåndsvarsel == null) it.ikkeSendForhåndsvarsel().orNull()!! else it
         }
         return simulert.tilAttestering(
             attesteringsoppgaveId = oppgaveId,
@@ -860,7 +866,7 @@ internal class TestDataHelper(
      * Setter forhåndsvarsel til SkalIkkeForhåndsvarsel.
      */
     private fun persisterRevurderingTilAttesteringOpphørt(): RevurderingTilAttestering.Opphørt {
-        return persisterRevurderingSimulertOpphørt().prøvOvergangTilSkalIkkeForhåndsvarsles().getOrFail().tilAttestering(
+        return persisterRevurderingSimulertOpphørt().ikkeSendForhåndsvarsel().getOrFail().tilAttestering(
             attesteringsoppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",

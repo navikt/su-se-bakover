@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -30,6 +32,12 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.tilbakekrevingErVurdert
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.beregning.BeregnRevurderingStrategyDecider
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -616,24 +624,42 @@ sealed class BeregnetRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
-        fun toSimulert(simulering: Simulering) = SimulertRevurdering.Innvilget(
-            id = id,
-            periode = periode,
-            opprettet = opprettet,
-            tilRevurdering = tilRevurdering,
-            beregning = beregning,
-            simulering = simulering,
-            saksbehandler = saksbehandler,
-            oppgaveId = oppgaveId,
-            fritekstTilBrev = fritekstTilBrev,
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = forhåndsvarsel,
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
-            informasjonSomRevurderes = informasjonSomRevurderes,
-            attesteringer = attesteringer,
-            avkorting = avkorting.håndter(),
-        )
+        fun toSimulert(simulering: Simulering, clock: Clock, tilbakekrevingTillatt: Boolean): SimulertRevurdering.Innvilget {
+            val tilbakekrevingsbehandling = when (tilbakekrevingTillatt && simulering.harFeilutbetalinger()) {
+                true -> {
+                    IkkeAvgjort(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(clock),
+                        sakId = sakId,
+                        revurderingId = id,
+                        periode = periode,
+                    )
+                }
+                false -> {
+                    IkkeBehovForTilbakekrevingUnderBehandling
+                }
+            }
+
+            return SimulertRevurdering.Innvilget(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                beregning = beregning,
+                simulering = simulering,
+                saksbehandler = saksbehandler,
+                oppgaveId = oppgaveId,
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                attesteringer = attesteringer,
+                avkorting = avkorting.håndter(),
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+            )
+        }
     }
 
     data class IngenEndring(
@@ -700,7 +726,10 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
     ) : BeregnetRevurdering() {
-        fun toSimulert(simuler: (sakId: UUID, saksbehandler: NavIdentBruker, opphørsdato: LocalDate) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
+        fun toSimulert(
+            simuler: (sakId: UUID, saksbehandler: NavIdentBruker, opphørsdato: LocalDate) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+            tilbakekrevingTillatt: Boolean
+        ): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
             val (simulertUtbetaling, håndtertAvkorting) = simuler(sakId, saksbehandler, periode.fraOgMed)
                 .getOrHandle { return it.left() }
                 .let { simulering ->
@@ -750,6 +779,26 @@ sealed class BeregnetRevurdering : Revurdering() {
                     }
                 }
 
+            val tilbakekrevingsbehandling = when (tilbakekrevingTillatt && simulertUtbetaling.simulering.harFeilutbetalinger()) {
+                true -> {
+                    IkkeAvgjort(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(),
+                        sakId = sakId,
+                        revurderingId = id,
+                        periode = periode,
+                    )
+                }
+                false -> {
+                    IkkeBehovForTilbakekrevingUnderBehandling
+                }
+            }
+
+            unngåNyAvkortingOgNyTilbakekrevingPåSammeTid(
+                avkorting = håndtertAvkorting,
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+            )
+
             return SimulertRevurdering.Opphørt(
                 id = id,
                 periode = periode,
@@ -767,7 +816,39 @@ sealed class BeregnetRevurdering : Revurdering() {
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = attesteringer,
                 avkorting = håndtertAvkorting,
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
             ).right()
+        }
+
+        private fun unngåNyAvkortingOgNyTilbakekrevingPåSammeTid(
+            avkorting: AvkortingVedRevurdering.Håndtert,
+            tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
+        ) {
+            val førerTilAvkorting = when (avkorting) {
+                is AvkortingVedRevurdering.Håndtert.AnnullerUtestående,
+                AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+                is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres,
+                -> {
+                    false
+                }
+                is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel,
+                is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående,
+                -> {
+                    true
+                }
+            }
+            val måBehandleTilbakekreving = when (tilbakekrevingsbehandling) {
+                is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
+                    false
+                }
+                is IkkeTilbakekrev,
+                is Tilbakekrev,
+                is IkkeAvgjort,
+                -> {
+                    true
+                }
+            }
+            if (førerTilAvkorting && måBehandleTilbakekreving) throw IllegalStateException("Kan ikke håndtere avkorting og tilbakekreving på samme tid.")
         }
 
         private fun lagAvkortingsvarsel(simulertUtbetaling: Utbetaling.SimulertUtbetaling): Avkortingsvarsel {
@@ -831,14 +912,65 @@ sealed class SimulertRevurdering : Revurdering() {
     abstract val simulering: Simulering
     abstract override val forhåndsvarsel: Forhåndsvarsel?
     abstract override val grunnlagsdata: Grunnlagsdata
+    abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
     fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
 
-    abstract fun prøvOvergangTilSkalIkkeForhåndsvarsles(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
+    abstract fun ikkeSendForhåndsvarsel(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
 
-    abstract fun prøvOvergangTilSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
+    fun lagForhåndsvarsel(
+        person: Person,
+        saksbehandlerNavn: String,
+        fritekst: String,
+        clock: Clock,
+    ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, LagBrevRequest> {
+        return forhåndsvarsel.prøvOvergangTilSendt() // brukes for å verifisere tilstanden på forhåndsvarsel, resultatet ignoreres
+            .map {
+                if (lagForhåndsvarselForTilbakekreving()) {
+                    LagBrevRequest.ForhåndsvarselTilbakekreving(
+                        person = person,
+                        saksbehandlerNavn = saksbehandlerNavn,
+                        fritekst = fritekst,
+                        dagensDato = LocalDate.now(clock),
+                        saksnummer = saksnummer,
+                        bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
+                    )
+                } else {
+                    LagBrevRequest.Forhåndsvarsel(
+                        person = person,
+                        saksbehandlerNavn = saksbehandlerNavn,
+                        fritekst = fritekst,
+                        dagensDato = LocalDate.now(clock),
+                        saksnummer = saksnummer,
+                    )
+                }
+            }
+    }
+
+    fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+        return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
+    }
+
+    private fun lagForhåndsvarselForTilbakekreving(): Boolean {
+        return when (tilbakekrevingsbehandling) {
+            is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
+                false
+            }
+            is IkkeTilbakekrev -> {
+                false
+            }
+            is Tilbakekrev -> {
+                true
+            }
+            is IkkeAvgjort -> {
+                throw IllegalStateException("Må ta stilling til tilbakekreving før forhåndsvarsel kan sendes!")
+            }
+        }
+    }
+
+    abstract fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
 
     abstract fun prøvOvergangTilAvsluttet(
         begrunnelse: String,
@@ -873,7 +1005,12 @@ sealed class SimulertRevurdering : Revurdering() {
         return oppdaterFradragInternal(fradragsgrunnlag)
     }
 
-    object ForhåndsvarslingErIkkeFerdigbehandlet
+    abstract fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): SimulertRevurdering
+
+    sealed interface KunneIkkeSendeInnvilgetRevurderingTilAttestering {
+        object ForhåndsvarslingErIkkeFerdigbehandlet : KunneIkkeSendeInnvilgetRevurderingTilAttestering
+        object TilbakekrevingsbehandlingErIkkeFullstendig : KunneIkkeSendeInnvilgetRevurderingTilAttestering
+    }
 
     data class Innvilget(
         override val id: UUID,
@@ -892,17 +1029,19 @@ sealed class SimulertRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
+        override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
     ) : SimulertRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
 
-        override fun prøvOvergangTilSkalIkkeForhåndsvarsles(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Innvilget> {
+        override fun ikkeSendForhåndsvarsel(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Innvilget> {
             return forhåndsvarsel.prøvOvergangTilSkalIkkeForhåndsvarsles().map { this.copy(forhåndsvarsel = it) }
         }
 
-        override fun prøvOvergangTilSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Innvilget> {
-            return forhåndsvarsel.prøvOvergangTilSendt().map { this.copy(forhåndsvarsel = it) }
+        override fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering.Innvilget> {
+            return forhåndsvarsel.prøvOvergangTilSendt()
+                .map { copy(forhåndsvarsel = it) }
         }
 
         override fun prøvOvergangTilAvsluttet(
@@ -924,34 +1063,58 @@ sealed class SimulertRevurdering : Revurdering() {
                 .map { this.copy(forhåndsvarsel = it) }
         }
 
+        override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): Innvilget {
+            return copy(tilbakekrevingsbehandling = tilbakekrevingsbehandling)
+        }
+
         fun tilAttestering(
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
-        ): Either<ForhåndsvarslingErIkkeFerdigbehandlet, RevurderingTilAttestering.Innvilget> {
-            return when (val f = forhåndsvarsel) {
-                null,
-                is Forhåndsvarsel.UnderBehandling,
-                -> ForhåndsvarslingErIkkeFerdigbehandlet.left()
-                is Forhåndsvarsel.Ferdigbehandlet -> RevurderingTilAttestering.Innvilget(
-                    id = id,
-                    periode = periode,
-                    opprettet = opprettet,
-                    tilRevurdering = tilRevurdering,
-                    saksbehandler = saksbehandler,
-                    beregning = beregning,
-                    simulering = simulering,
-                    oppgaveId = attesteringsoppgaveId,
-                    fritekstTilBrev = fritekstTilBrev,
-                    revurderingsårsak = revurderingsårsak,
-                    forhåndsvarsel = f,
-                    grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    informasjonSomRevurderes = informasjonSomRevurderes,
-                    attesteringer = attesteringer,
-                    avkorting = avkorting,
-                ).right()
+        ): Either<KunneIkkeSendeInnvilgetRevurderingTilAttestering, RevurderingTilAttestering.Innvilget> {
+            val gyldigForhåndsvarsel = when (forhåndsvarsel) {
+                is Forhåndsvarsel.Ferdigbehandlet -> {
+                    forhåndsvarsel
+                }
+                is Forhåndsvarsel.UnderBehandling -> {
+                    return KunneIkkeSendeInnvilgetRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet.left()
+                }
+                null -> {
+                    return KunneIkkeSendeInnvilgetRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet.left()
+                }
             }
+
+            val gyldigTilbakekrevingsbehandling = when (tilbakekrevingsbehandling) {
+                is Tilbakekrev,
+                is IkkeTilbakekrev,
+                is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving,
+                -> {
+                    tilbakekrevingsbehandling
+                }
+                is IkkeAvgjort -> {
+                    return KunneIkkeSendeInnvilgetRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig.left()
+                }
+            }
+
+            return RevurderingTilAttestering.Innvilget(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                simulering = simulering,
+                oppgaveId = attesteringsoppgaveId,
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = gyldigForhåndsvarsel,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                attesteringer = attesteringer,
+                avkorting = avkorting,
+                tilbakekrevingsbehandling = gyldigTilbakekrevingsbehandling,
+            ).right()
         }
     }
 
@@ -972,6 +1135,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
+        override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
     ) : SimulertRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -991,12 +1155,13 @@ sealed class SimulertRevurdering : Revurdering() {
             }
         }
 
-        override fun prøvOvergangTilSkalIkkeForhåndsvarsles(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {
+        override fun ikkeSendForhåndsvarsel(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {
             return forhåndsvarsel.prøvOvergangTilSkalIkkeForhåndsvarsles().map { this.copy(forhåndsvarsel = it) }
         }
 
-        override fun prøvOvergangTilSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {
-            return forhåndsvarsel.prøvOvergangTilSendt().map { this.copy(forhåndsvarsel = it) }
+        override fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering.Opphørt> {
+            return forhåndsvarsel.prøvOvergangTilSendt()
+                .map { copy(forhåndsvarsel = it) }
         }
 
         override fun prøvOvergangTilAvsluttet(
@@ -1018,9 +1183,14 @@ sealed class SimulertRevurdering : Revurdering() {
                 .map { this.copy(forhåndsvarsel = it) }
         }
 
+        override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): Opphørt {
+            return copy(tilbakekrevingsbehandling = tilbakekrevingsbehandling)
+        }
+
         sealed interface KanIkkeSendeOpphørtRevurderingTilAttestering {
             object KanIkkeSendeEnOpphørtGReguleringTilAttestering : KanIkkeSendeOpphørtRevurderingTilAttestering
             object ForhåndsvarslingErIkkeFerdigbehandlet : KanIkkeSendeOpphørtRevurderingTilAttestering
+            object TilbakekrevingsbehandlingErIkkeFullstendig : KanIkkeSendeOpphørtRevurderingTilAttestering
         }
 
         fun tilAttestering(
@@ -1031,29 +1201,50 @@ sealed class SimulertRevurdering : Revurdering() {
             if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
                 return KanIkkeSendeOpphørtRevurderingTilAttestering.KanIkkeSendeEnOpphørtGReguleringTilAttestering.left()
             }
-            return when (val f = forhåndsvarsel) {
-                null,
-                is Forhåndsvarsel.UnderBehandling,
-                -> KanIkkeSendeOpphørtRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet.left()
-                is Forhåndsvarsel.Ferdigbehandlet -> RevurderingTilAttestering.Opphørt(
-                    id = id,
-                    periode = periode,
-                    opprettet = opprettet,
-                    tilRevurdering = tilRevurdering,
-                    saksbehandler = saksbehandler,
-                    beregning = beregning,
-                    simulering = simulering,
-                    oppgaveId = attesteringsoppgaveId,
-                    fritekstTilBrev = fritekstTilBrev,
-                    revurderingsårsak = revurderingsårsak,
-                    forhåndsvarsel = f,
-                    grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    informasjonSomRevurderes = informasjonSomRevurderes,
-                    attesteringer = attesteringer,
-                    avkorting = avkorting,
-                ).right()
+
+            val gyldigForhåndsvarsel = when (forhåndsvarsel) {
+                is Forhåndsvarsel.Ferdigbehandlet -> {
+                    forhåndsvarsel
+                }
+                is Forhåndsvarsel.UnderBehandling -> {
+                    return KanIkkeSendeOpphørtRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet.left()
+                }
+                null -> {
+                    return KanIkkeSendeOpphørtRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet.left()
+                }
             }
+
+            val gyldigTilbakekrevingsbehandling = when (tilbakekrevingsbehandling) {
+                is Tilbakekrev,
+                is IkkeTilbakekrev,
+                is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving,
+                -> {
+                    tilbakekrevingsbehandling
+                }
+                is IkkeAvgjort -> {
+                    return KanIkkeSendeOpphørtRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig.left()
+                }
+            }
+
+            return RevurderingTilAttestering.Opphørt(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                simulering = simulering,
+                oppgaveId = attesteringsoppgaveId,
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = gyldigForhåndsvarsel,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                attesteringer = attesteringer,
+                avkorting = avkorting,
+                tilbakekrevingsbehandling = gyldigTilbakekrevingsbehandling,
+            ).right()
         }
     }
 
@@ -1110,6 +1301,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
+        val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
     ) : RevurderingTilAttestering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -1117,6 +1309,10 @@ sealed class RevurderingTilAttestering : Revurdering() {
         }
 
         override val skalFøreTilUtsendingAvVedtaksbrev = true
+
+        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
+        }
 
         fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
@@ -1150,6 +1346,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     ),
                 ),
                 avkorting = avkorting.iverksett(id),
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling.fullførBehandling(),
             )
         }
     }
@@ -1171,6 +1368,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
+        val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
     ) : RevurderingTilAttestering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -1190,6 +1388,10 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
                 OpphørVedRevurdering.Nei -> emptyList()
             }
+        }
+
+        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
         }
 
         fun tilIverksatt(
@@ -1224,6 +1426,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     ),
                 ),
                 avkorting = avkorting.iverksett(id),
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling.fullførBehandling(),
             )
         }
     }
@@ -1322,6 +1525,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 avkorting = avkorting,
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
             )
             is Opphørt -> UnderkjentRevurdering.Opphørt(
                 id = id,
@@ -1340,6 +1544,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 avkorting = avkorting,
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
             )
             is IngenEndring -> UnderkjentRevurdering.IngenEndring(
                 id = id,
@@ -1396,10 +1601,15 @@ sealed class IverksattRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
+        val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
     ) : IverksattRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
+        }
+
+        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
         }
     }
 
@@ -1420,6 +1630,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
+        val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
     ) : IverksattRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -1447,6 +1658,10 @@ sealed class IverksattRevurdering : Revurdering() {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsdato
                 OpphørVedRevurdering.Nei -> null
             }
+        }
+
+        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
         }
     }
 
@@ -1530,12 +1745,17 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
+        val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
     ) : UnderkjentRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
 
         fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
+
+        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
+        }
 
         fun tilAttestering(
             oppgaveId: OppgaveId,
@@ -1558,6 +1778,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
             avkorting = avkorting,
+            tilbakekrevingsbehandling = tilbakekrevingsbehandling,
         )
     }
 
@@ -1578,6 +1799,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
+        val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
     ) : UnderkjentRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -1597,6 +1819,10 @@ sealed class UnderkjentRevurdering : Revurdering() {
         }
 
         fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
+
+        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
+            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
+        }
 
         object KanIkkeSendeEnOpphørtGReguleringTilAttestering
 
@@ -1625,6 +1851,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
                     informasjonSomRevurderes = informasjonSomRevurderes,
                     attesteringer = attesteringer,
                     avkorting = avkorting,
+                    tilbakekrevingsbehandling = tilbakekrevingsbehandling,
                 ).right()
             }
         }

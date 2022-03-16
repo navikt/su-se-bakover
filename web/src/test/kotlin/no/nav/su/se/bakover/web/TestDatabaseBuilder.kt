@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
@@ -39,6 +40,7 @@ object TestDatabaseBuilder {
         kontrollsamtaleRepo: KontrollsamtaleRepo = mock(),
         avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
         reguleringRepo: ReguleringRepo = mock(),
+        tilbakekrevingRepo: TilbakekrevingRepo = mock(),
     ): DatabaseRepos {
         return DatabaseRepos(
             avstemming = avstemming,
@@ -58,6 +60,7 @@ object TestDatabaseBuilder {
             kontrollsamtaleRepo = kontrollsamtaleRepo,
             avkortingsvarselRepo = avkortingsvarselRepo,
             reguleringRepo = reguleringRepo,
+            tilbakekrevingRepo = tilbakekrevingRepo,
         )
     }
 }

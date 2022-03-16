@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
+import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
@@ -134,6 +135,10 @@ object DatabaseBuilder {
 
         val klageinstanshendelseRepo = KlageinstanshendelsePostgresRepo(sessionFactory, dbMetrics)
         val klageRepo = KlagePostgresRepo(sessionFactory, dbMetrics, klageinstanshendelseRepo)
+
+        val tilbakekrevingRepo = TilbakekrevingPostgresRepo(
+            sessionFactory = sessionFactory,
+        )
         val revurderingRepo = RevurderingPostgresRepo(
             sessionFactory = sessionFactory,
             dbMetrics = dbMetrics,
@@ -141,6 +146,7 @@ object DatabaseBuilder {
             søknadsbehandlingRepo = søknadsbehandlingRepo,
             klageRepo = klageRepo,
             avkortingsvarselRepo = avkortingsvarselRepo,
+            tilbakekrevingRepo = tilbakekrevingRepo,
         )
         val vedtakRepo = VedtakPostgresRepo(
             sessionFactory = sessionFactory,
@@ -188,6 +194,7 @@ object DatabaseBuilder {
             kontrollsamtaleRepo = kontrollsamtaleRepo,
             avkortingsvarselRepo = avkortingsvarselRepo,
             reguleringRepo = reguleringRepo,
+            tilbakekrevingRepo = tilbakekrevingRepo,
         )
     }
 }

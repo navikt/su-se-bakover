@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
@@ -101,7 +102,8 @@ internal class IverksettRevurderingRouteKtTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående
+            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
+            tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -104,6 +105,7 @@ internal object RevurderingTestUtils {
         sessionFactory: SessionFactory = TestSessionFactory(),
         avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
         toggleService: ToggleService = mock(),
+        tilbakekrevingService: TilbakekrevingService = mock(),
     ) =
         RevurderingServiceImpl(
             utbetalingService = utbetalingService,
@@ -120,6 +122,7 @@ internal object RevurderingTestUtils {
             sessionFactory = sessionFactory,
             avkortingsvarselRepo = avkortingsvarselRepo,
             toggleService = toggleService,
+            tilbakekrevingService = tilbakekrevingService,
         )
 
     /**

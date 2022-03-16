@@ -20,6 +20,8 @@ internal fun Route.revurderingRoutes(
 
     beregnOgSimulerRevurdering(revurderingService)
 
+    oppdaterTilbakekrevingsbehandlingRoute(revurderingService)
+
     forhåndsvarslingRoute(revurderingService)
 
     sendRevurderingTilAttestering(revurderingService)
