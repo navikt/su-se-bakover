@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Saksnummer
 import java.time.LocalDate
@@ -37,7 +38,7 @@ enum class VedtakType {
 interface ReguleringRepo {
     fun hent(id: UUID): Regulering?
     fun hentReguleringerSomIkkeErIverksatt(): List<Regulering.OpprettetRegulering>
-    fun hentForSakId(sakId: UUID, sessionContext: TransactionContext = defaultTransactionContext()): List<Regulering>
+    fun hentForSakId(sakId: UUID, sessionContext: SessionContext = defaultTransactionContext()): List<Regulering>
     fun hentSakerMedBehandlingerTilAttestering(): List<Saksnummer>
     fun lagre(regulering: Regulering, sessionContext: TransactionContext = defaultTransactionContext())
     fun defaultTransactionContext(): TransactionContext

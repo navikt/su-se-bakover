@@ -5,8 +5,10 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
@@ -62,8 +64,8 @@ internal class ReguleringPostgresRepo(
             ) { it.toRegulering(session) as Regulering.OpprettetRegulering }
         }
 
-    override fun hentForSakId(sakId: UUID, sessionContext: TransactionContext): List<Regulering> =
-        sessionContext.withTransaction { session ->
+    override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): List<Regulering> =
+        sessionContext.withSession { session ->
             """ select * from regulering r inner join sak s on s.id = r.sakid where sakid = :sakid """.trimIndent()
                 .hentListe(
                     mapOf("sakid" to sakId),

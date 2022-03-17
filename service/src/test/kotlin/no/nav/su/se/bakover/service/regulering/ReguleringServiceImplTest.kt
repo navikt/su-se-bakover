@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeGjeldendeUtbetaling
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
@@ -102,7 +103,10 @@ internal class ReguleringServiceImplTest {
         @Test
         fun `En periode med opphør må behandles manuellt`() {
             val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(clock = fixedClock)
-            val revurdertSak = vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(sakOgVedtakSomKanRevurderes = sakOgVedtak, clock = fixedClock.plus(1, ChronoUnit.DAYS)).first
+            val revurdertSak = vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+                sakOgVedtakSomKanRevurderes = sakOgVedtak,
+                clock = fixedClock.plus(1, ChronoUnit.DAYS),
+            ).first
 
             val reguleringService = lagReguleringServiceImpl(revurdertSak)
 
@@ -131,7 +135,6 @@ internal class ReguleringServiceImplTest {
 
     @Nested
     inner class PeriodeTester {
-
         @Test
         fun `reguleringen kan ikke starte tidligere enn reguleringsdatoen`() {
             val sak =
@@ -165,7 +168,8 @@ internal class ReguleringServiceImplTest {
 
         return ReguleringServiceImpl(
             reguleringRepo = mock {
-                on { hentForSakId(any(), any()) } doReturn listOf()
+                on { hentForSakId(any(), any()) } doReturn sak.reguleringer
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             sakRepo = mock {
                 on { hentAlleIdFnrOgSaksnummer() } doReturn listOf(
