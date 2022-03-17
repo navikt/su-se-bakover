@@ -917,8 +917,8 @@ open class AccessCheckProxy(
                     return hentStatus()
                 }
 
-                override fun hentSakerMedÅpneBehandlinger(): List<Saksnummer> {
-                    return hentSakerMedÅpneBehandlinger()
+                override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
+                    return hentSakerMedÅpenBehandlingEllerStans()
                 }
             },
         )

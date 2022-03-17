@@ -15,14 +15,14 @@ internal fun Route.reguleringOversiktRoutes(
     reguleringService: ReguleringService,
 ) {
     authorize(Brukerrolle.Saksbehandler) {
-        get("$reguleringPath/status/{reguleringsjobb}") {
+        get("$reguleringPath/status") {
             val json = reguleringService.hentStatus().map { it.toJson() }
             call.svar(Resultat.json(HttpStatusCode.OK, serialize(json)))
         }
     }
 
     get("$reguleringPath/saker/apneBehandlinger") {
-        val json = reguleringService.hentSakerMedÅpneBehandlinger()
+        val json = reguleringService.hentSakerMedÅpenBehandlingEllerStans()
         call.svar(Resultat.json(HttpStatusCode.OK, serialize(json)))
     }
 }

@@ -73,12 +73,39 @@ internal class ReguleringPostgresRepo(
                 ) { it.toRegulering(session) }
         }
 
-    override fun hentSakerMedBehandlingerTilAttestering(): List<Saksnummer> {
+    override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
         return sessionFactory.withSession { session ->
             """
-                select saksnummer from behandling left join sak s on sakid = s.id where status like 'TIL_ATTESTERING%'
+                select saksnummer
+                from behandling
+                         left join sak s on sakid = s.id
+                where status like 'BEREGNET_%'
+                   or status like 'SIMULERT'
+                   or status like 'TIL_ATTESTERING_%'
+                   or status like 'UNDERKJENT_%'
+
                 union
-                select saksnummer from ( revurdering r left join behandling_vedtak bv on r.vedtaksomrevurderesid = bv.vedtakid ) left join sak s on s.id = sakid where revurderingstype like 'TIL_ATTESTERING%'
+
+                select saksnummer
+                from ( revurdering r left join behandling_vedtak bv on r.vedtaksomrevurderesid = bv.vedtakid )
+                         left join sak s on s.id = sakid
+                where revurderingstype like 'BEREGNET_%'
+                   or revurderingstype like 'SIMULERT_%'
+                   or revurderingstype like 'TIL_ATTESTERING_%'
+                   or revurderingstype like 'UNDERKJENT_%'
+
+                union
+
+                select s.saksnummer
+                from vedtak v
+                         inner join behandling_vedtak bv on v.id = bv.vedtakid
+                         inner join sak s on bv.sakid = s.id
+                         inner join (select s.saksnummer, max(v.opprettet) as vedtaksdato
+                                     from vedtak v
+                                              inner join behandling_vedtak bv on v.id = bv.vedtakid
+                                              inner join sak s on bv.sakid = s.id group by s.id) sisteVedtak on
+                            sisteVedtak.saksnummer = s.saksnummer and sisteVedtak.vedtaksdato = v.opprettet
+                where v.vedtaktype = 'STANS_AV_YTELSE';
             """.trimIndent().hentListe(mapOf(), session) {
                 Saksnummer(it.long("saksnummer"))
             }
@@ -157,6 +184,10 @@ internal class ReguleringPostgresRepo(
                 tx = session,
             )
         }
+    }
+
+    override fun defaultSessionContext(): SessionContext {
+        return sessionFactory.newSessionContext()
     }
 
     override fun defaultTransactionContext(): TransactionContext {

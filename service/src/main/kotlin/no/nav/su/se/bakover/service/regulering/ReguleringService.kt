@@ -61,5 +61,5 @@ interface ReguleringService {
     fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering>
     fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering>
     fun hentStatus(): List<Regulering>
-    fun hentSakerMedÅpneBehandlinger(): List<Saksnummer>
+    fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
 }

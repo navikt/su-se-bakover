@@ -92,18 +92,6 @@ class ReguleringServiceImpl(
                         regulerAutomatisk(reg).mapLeft { KunneIkkeOppretteRegulering.FantIkkeRegulering } // kanske mapLeft returnerer reg bare?
                     } else reg.right()
                 } else reg.right()
-            }.tapLeft {
-                val feilmelding = when (it) {
-                    KunneIkkeOppretteRegulering.FantIkkeRegulering -> "Fant ikke regulering."
-                    KunneIkkeOppretteRegulering.FantIkkeSak -> "Fant ikke sak"
-                    KunneIkkeOppretteRegulering.FantIngenVedtak -> "Fant ingen vedtak"
-                    KunneIkkeOppretteRegulering.GrunnlagErIkkeKonsistent -> "Grunnlag er ikke konsistent."
-                    KunneIkkeOppretteRegulering.KunneIkkeLageFradragsgrunnlag -> "Kunne ikke lage fradragsgrunnlag"
-                    KunneIkkeOppretteRegulering.TidslinjeForVedtakErIkkeKontinuerlig -> "Tidslinje for vedtak er ikke kontinuerlig"
-                    KunneIkkeOppretteRegulering.UgyldigPeriode -> "Ugyldig periode"
-                }
-
-                log.error("Feil skjedde ved regulering for saksnummer $saksnummer. $feilmelding")
             }
         }
     }
@@ -173,8 +161,8 @@ class ReguleringServiceImpl(
         return reguleringRepo.hentReguleringerSomIkkeErIverksatt()
     }
 
-    override fun hentSakerMedÅpneBehandlinger(): List<Saksnummer> {
-        return reguleringRepo.hentSakerMedBehandlingerTilAttestering()
+    override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
+        return reguleringRepo.hentSakerMedÅpenBehandlingEllerStans()
     }
 
     override fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering> {
