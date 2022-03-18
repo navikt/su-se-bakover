@@ -303,6 +303,8 @@ internal class ReguleringPostgresRepo(
                     simulering = simulering,
                     reguleringType = reguleringType,
                 ),
+                beregning = beregning!!,
+                simulering = simulering!!,
             )
         }
     }

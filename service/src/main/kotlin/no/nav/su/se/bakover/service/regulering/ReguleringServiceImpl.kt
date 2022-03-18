@@ -35,7 +35,7 @@ class ReguleringServiceImpl(
     private val clock: Clock,
 ) : ReguleringService {
 
-    private fun blirBeregningEndret(regulering: Regulering): Boolean {
+    private fun blirBeregningEndret(regulering: Regulering.OpprettetRegulering): Boolean {
         if (regulering.inneholderAvslag()) return true
 
         val reguleringMedBeregning = regulering.beregn(clock = clock, begrunnelse = null)
@@ -145,9 +145,7 @@ class ReguleringServiceImpl(
             }
             is Either.Right -> {
                 val iverksattRegulering = reguleringMedBeregningOgSimulering.value
-                if (blirBeregningEndret(iverksattRegulering)) {
-                    lagVedtakOgUtbetal(iverksattRegulering).map { reguleringRepo.lagre(it) }
-                }
+                lagVedtakOgUtbetal(iverksattRegulering).map { reguleringRepo.lagre(it) }
                 iverksattRegulering.right()
             }
         }
@@ -171,7 +169,7 @@ class ReguleringServiceImpl(
 
     override fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering> {
         val regulering =
-            reguleringRepo.hent(request.behandlingId) ?: return BeregnOgSimulerFeilet.FantIkkeRegulering.left()
+            (reguleringRepo.hent(request.behandlingId) as? Regulering.OpprettetRegulering) ?: return BeregnOgSimulerFeilet.FantIkkeRegulering.left()
 
         val beregnetRegulering = regulering.beregn(clock = clock, begrunnelse = request.begrunnelse).getOrHandle {
             when (it) {
@@ -239,10 +237,10 @@ class ReguleringServiceImpl(
                 request = SimulerUtbetalingRequest.NyUtbetaling(
                     sakId = regulering.sakId,
                     saksbehandler = regulering.saksbehandler,
-                    beregning = regulering.beregning!!,
+                    beregning = regulering.beregning,
                     uføregrunnlag = regulering.vilkårsvurderinger.tilVilkårsvurderingerRevurdering().uføre.grunnlag,
                 ),
-                simulering = regulering.simulering!!,
+                simulering = regulering.simulering,
             ),
         ).getOrHandle {
             return KunneIkkeUtbetale.left()

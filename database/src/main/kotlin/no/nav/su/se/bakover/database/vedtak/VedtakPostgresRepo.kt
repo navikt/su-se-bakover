@@ -241,7 +241,7 @@ internal class VedtakPostgresRepo(
                 VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering(
                     id = id,
                     opprettet = opprettet,
-                    behandling = behandling as Regulering,
+                    behandling = behandling as Regulering.IverksattRegulering,
                     saksbehandler = saksbehandler,
                     attestant = attestant,
                     periode = periode!!,

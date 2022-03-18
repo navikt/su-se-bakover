@@ -29,12 +29,14 @@ import kotlin.reflect.KClass
 
 fun Regulering.inneholderAvslag(): Boolean = this.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.resultat is Vilkårsvurderingsresultat.Avslag
 
-sealed interface Regulering : Behandling {
+interface Reguleringsfelter : Behandling {
     val beregning: Beregning?
     val simulering: Simulering?
     val saksbehandler: NavIdentBruker.Saksbehandler
     val reguleringType: ReguleringType
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger
+}
+sealed interface Regulering : Reguleringsfelter {
 
     companion object {
         fun opprettRegulering(
@@ -90,9 +92,6 @@ sealed interface Regulering : Behandling {
         object SimuleringFeilet : KunneIkkeSimulere
     }
 
-    fun beregn(clock: Clock, begrunnelse: String?): Either<KunneIkkeBeregne, OpprettetRegulering> =
-        KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen(this::class).left()
-
     // TODO ai: Sørg for att vilkårsvurderingene er innvilget for HELE perioden.
     data class OpprettetRegulering(
         override val id: UUID,
@@ -112,6 +111,11 @@ sealed interface Regulering : Behandling {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
             get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
 
+        init {
+            assert(grunnlagsdataOgVilkårsvurderinger.erVurdert())
+            assert(periode == grunnlagsdataOgVilkårsvurderinger.periode())
+            beregning?.let { assert(periode == beregning.periode) }
+        }
         fun leggTilFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): OpprettetRegulering =
             // er det ok å returnere this, eller skal man lage ny OpprettetRegulering som man returnerer her?
             // samme for beregn og simulering...
@@ -125,7 +129,7 @@ sealed interface Regulering : Behandling {
                 ),
             )
 
-        override fun beregn(clock: Clock, begrunnelse: String?): Either<KunneIkkeBeregne, OpprettetRegulering> {
+        fun beregn(clock: Clock, begrunnelse: String?): Either<KunneIkkeBeregne, OpprettetRegulering> {
             return this.gjørBeregning(
                 begrunnelse = begrunnelse,
                 clock = clock,
@@ -149,7 +153,7 @@ sealed interface Regulering : Behandling {
                 .map { this.copy(simulering = it.simulering) }
         }
 
-        fun tilIverksatt(): IverksattRegulering = IverksattRegulering(opprettetRegulering = this)
+        fun tilIverksatt(): IverksattRegulering = IverksattRegulering(opprettetRegulering = this, beregning!!, simulering!!)
 
         private fun gjørBeregning(
             begrunnelse: String?,
@@ -169,9 +173,8 @@ sealed interface Regulering : Behandling {
     }
 
     data class IverksattRegulering(
-        val opprettetRegulering: OpprettetRegulering,
-        // TODO Her vil vi egentlig si at simulering og beregning ikke kan være nullable
-    ) : Regulering by opprettetRegulering {
-        // fun lagre status iverksatt og vedtak
-    }
+        private val opprettetRegulering: OpprettetRegulering,
+        override val beregning: Beregning,
+        override val simulering: Simulering,
+    ) : Regulering, Reguleringsfelter by opprettetRegulering
 }

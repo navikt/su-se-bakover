@@ -158,8 +158,8 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                 opprettet = Tidspunkt.now(clock),
                 behandling = regulering,
                 periode = regulering.periode,
-                beregning = regulering.beregning!!,
-                simulering = regulering.simulering!!,
+                beregning = regulering.beregning,
+                simulering = regulering.simulering,
                 saksbehandler = regulering.saksbehandler,
                 attestant = NavIdentBruker.Attestant(regulering.saksbehandler.toString()),
                 utbetalingId = utbetalingId,
@@ -216,9 +216,9 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         data class InnvilgetRegulering(
             override val id: UUID,
             override val opprettet: Tidspunkt,
-            override val behandling: Regulering,
-            override val saksbehandler: NavIdentBruker.Saksbehandler, // TODO hva skal ligge her på de automatiske (kanskje den som trykker på knappen, eller skal det stå f.eks rvsupstonad)
-            override val attestant: NavIdentBruker.Attestant, // TODO vil egentlig ikke ha denne på regulering
+            override val behandling: Regulering.IverksattRegulering,
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
+            override val attestant: NavIdentBruker.Attestant,
             override val periode: Periode,
             val beregning: Beregning,
             override val simulering: Simulering,
