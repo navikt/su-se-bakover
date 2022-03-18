@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -32,9 +31,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingsperioden
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
@@ -62,7 +60,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -128,7 +126,6 @@ internal class SøknadsbehandlingServiceImpl(
                 søknad = søknad,
                 oppgaveId = søknad.oppgaveId,
                 fnr = søknad.søknadInnhold.personopplysninger.fnr,
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
                 avkorting = avkorting.kanIkke(),
             ),
         )
@@ -256,8 +253,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
         val eksisterendeOppgaveId: OppgaveId = søknadsbehandling.oppgaveId
 
-        val tilordnetRessurs: NavIdentBruker.Attestant? =
-            søknadsbehandlingRepo.hentEventuellTidligereAttestering(søknadsbehandling.id)?.attestant
+        val tilordnetRessurs: NavIdentBruker.Attestant? = søknadsbehandling.attesteringer.lastOrNull()?.attestant
 
         val nyOppgaveId: OppgaveId = oppgaveService.opprettOppgave(
             OppgaveConfig.AttesterSøknadsbehandling(
@@ -356,7 +352,9 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun iverksett(request: SøknadsbehandlingService.IverksettRequest): Either<KunneIkkeIverksette, Søknadsbehandling.Iverksatt> {
+    override fun iverksett(
+        request: SøknadsbehandlingService.IverksettRequest,
+    ): Either<KunneIkkeIverksette, Søknadsbehandling.Iverksatt> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeIverksette.FantIkkeBehandling.left()
 
@@ -390,34 +388,36 @@ internal class SøknadsbehandlingServiceImpl(
                     val vedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(iverksattBehandling, utbetaling.id, clock)
                     Either.catch {
                         sessionFactory.withTransactionContext {
+                            // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
+                            // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
                             søknadsbehandlingRepo.lagre(iverksattBehandling, it)
                             utbetalingService.lagreUtbetaling(utbetaling, it)
                             vedtakRepo.lagre(vedtak, it)
+                            // Så fremt denne ikke kaster ønsker vi å gå igjennom med iverksettingen.
                             kontrollsamtaleService.opprettPlanlagtKontrollsamtale(vedtak, it)
                             utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
-                                log.error(
-                                    "Kunne ikke publisere utbetaling på køen. Ruller tilbake. SakId: ${iverksattBehandling.sakId}",
-                                    feil,
+                                throw IverksettTransactionException(
+                                    "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
+                                    KunneIkkeIverksette.KunneIkkeUtbetale(feil),
                                 )
-                                throw RuntimeException("Publisering av utbetaling på køen feilet. $feil")
                             }
                         }
-                    }.mapLeft { return KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left() }
+                    }.mapLeft {
+                        log.error(
+                            "Kunne ikke iverksette søknadsbehandling for sak ${iverksattBehandling.sakId} og søknadsbehandling ${iverksattBehandling.id}.",
+                            it,
+                        )
+                        return when (it) {
+                            is IverksettTransactionException -> it.feil
+                            else -> KunneIkkeIverksette.LagringFeilet
+                        }.left()
+                    }
 
                     log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
 
                     behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
-                    iverksattBehandling.also {
-                        observers.forEach { observer ->
-                            observer.handle(
-                                Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
-                                    iverksattBehandling,
-                                ),
-                            )
-                            observer.handle((Event.Statistikk.Vedtaksstatistikk(vedtak)))
-                        }
-                    }
+                    Pair(iverksattBehandling, vedtak)
                 }
                 is Søknadsbehandling.Iverksatt.Avslag -> {
                     val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling)
@@ -434,12 +434,21 @@ internal class SøknadsbehandlingServiceImpl(
                             ),
                         )
 
-                    sessionFactory.withTransactionContext {
-                        søknadsbehandlingRepo.lagre(iverksattBehandling, it)
-                        vedtakRepo.lagre(vedtak, it)
-                        brevService.lagreDokument(dokument, it)
+                    Either.catch {
+                        sessionFactory.withTransactionContext {
+                            // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
+                            // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
+                            søknadsbehandlingRepo.lagre(iverksattBehandling, it)
+                            vedtakRepo.lagre(vedtak, it)
+                            brevService.lagreDokument(dokument, it)
+                        }
+                    }.mapLeft {
+                        log.error(
+                            "Kunne ikke iverksette søknadsbehandling for sak ${iverksattBehandling.sakId} og søknadsbehandling ${iverksattBehandling.id}.",
+                            it,
+                        )
+                        return KunneIkkeIverksette.LagringFeilet.left()
                     }
-
                     log.info("Iverksatt avslag for behandling: ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
 
                     behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
@@ -449,19 +458,31 @@ internal class SøknadsbehandlingServiceImpl(
                             log.error("Lukking av oppgave for behandlingId: ${(vedtak.behandling as BehandlingMedOppgave).oppgaveId} feilet. Må ryddes opp manuelt.")
                         }
 
-                    iverksattBehandling.also {
-                        observers.forEach { observer ->
-                            observer.handle(
-                                Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
-                                    iverksattBehandling,
-                                ),
-                            )
-                        }
-                    }
+                    Pair(iverksattBehandling, vedtak)
                 }
             }
+        }.map {
+            Either.catch {
+                observers.forEach { observer ->
+                    observer.handle(Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(it.first))
+                    (it.second as? VedtakSomKanRevurderes.EndringIYtelse)?.let { v ->
+                        observer.handle(Event.Statistikk.Vedtaksstatistikk(v))
+                    }
+                }
+            }.mapLeft { e ->
+                log.error(
+                    "Kunne ikke sende statistikk etter vi iverksatte søknadsbehandling. Dette er kun en sideeffekt og påvirker ikke saksbehandlingen.",
+                    e,
+                )
+            }
+            it.first
         }
     }
+
+    private data class IverksettTransactionException(
+        override val message: String,
+        val feil: KunneIkkeIverksette,
+    ) : RuntimeException(message)
 
     private fun opprettAvslagsvedtak(iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag): Avslagsvedtak =
         when (iverksattBehandling) {
@@ -527,26 +548,16 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun leggTilUførevilkår(
-        request: LeggTilUførevilkårRequest,
+        request: LeggTilUførevurderingerRequest,
     ): Either<KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling.left()
 
-        val vilkår = request.toVilkår(clock).getOrHandle {
-            return when (it) {
-                LeggTilUførevilkårRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> {
-                    KunneIkkeLeggeTilUføreVilkår.UføregradOgForventetInntektMangler
-                }
-                LeggTilUførevilkårRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> {
-                    KunneIkkeLeggeTilUføreVilkår.PeriodeForGrunnlagOgVurderingErForskjellig
-                }
-                LeggTilUførevilkårRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> {
-                    KunneIkkeLeggeTilUføreVilkår.OverlappendeVurderingsperioder
-                }
-                LeggTilUførevilkårRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
-                    KunneIkkeLeggeTilUføreVilkår.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden
-                }
-            }.left()
+        val vilkår = request.toVilkår(
+            behandlingsperiode = søknadsbehandling.periode,
+            clock = clock,
+        ).getOrHandle {
+            return KunneIkkeLeggeTilUføreVilkår.UgyldigInput(it).left()
         }
 
         val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(vilkår, clock)
@@ -641,7 +652,7 @@ internal class SøknadsbehandlingServiceImpl(
 
     private fun Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.toService(): KunneIkkeLeggeTilFradragsgrunnlag {
         return when (this) {
-            GrunnlagetMåVæreInneforBehandlingsperioden -> {
+            GrunnlagetMåVæreInnenforBehandlingsperioden -> {
                 KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
             }
             is IkkeLovÅLeggeTilFradragIDenneStatusen -> {
@@ -652,9 +663,6 @@ internal class SøknadsbehandlingServiceImpl(
             }
             is Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
                 KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(this.feil)
-            }
-            PeriodeMangler -> {
-                KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler
             }
         }
     }

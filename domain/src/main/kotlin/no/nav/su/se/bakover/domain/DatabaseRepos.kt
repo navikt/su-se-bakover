@@ -3,12 +3,12 @@ package no.nav.su.se.bakover.domain
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
-import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageinstanshendelseRepo
 import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
@@ -23,7 +23,6 @@ data class DatabaseRepos(
     val avstemming: AvstemmingRepo,
     val utbetaling: UtbetalingRepo,
     val søknad: SøknadRepo,
-    val hendelseslogg: HendelsesloggRepo,
     val sak: SakRepo,
     val person: PersonRepo,
     val søknadsbehandling: SøknadsbehandlingRepo,
@@ -38,4 +37,5 @@ data class DatabaseRepos(
     val kontrollsamtaleRepo: KontrollsamtaleRepo,
     val avkortingsvarselRepo: AvkortingsvarselRepo,
     val reguleringRepo: ReguleringRepo,
+    val tilbakekrevingRepo: TilbakekrevingRepo,
 )

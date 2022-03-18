@@ -12,7 +12,11 @@ import javax.sql.DataSource
  * Holder en transaksjon på tvers av repo-kall.
  * Ikke tråd-sikker.
  */
-internal class PostgresTransactionContext(private val dataSource: DataSource) : TransactionContext {
+internal class PostgresTransactionContext(
+    private val dataSource: DataSource,
+    private val timedDbMetrics: DbMetrics,
+    private val sessionCounter: SessionCounter,
+) : TransactionContext {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -31,10 +35,12 @@ internal class PostgresTransactionContext(private val dataSource: DataSource) : 
             this as PostgresTransactionContext
             return if (transactionalSession == null) {
                 // Vi ønsker kun at den ytterste blokka lukker sesjonen (using)
-                using(sessionOf(dataSource)) { session ->
+                using(sessionOf(dataSource, timedDbMetrics)) { session ->
                     session.transaction { transactionalSession ->
                         this.transactionalSession = transactionalSession
-                        action(transactionalSession)
+                        sessionCounter.withCountSessions {
+                            action(transactionalSession)
+                        }
                     }
                 }
             } else {

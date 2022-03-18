@@ -6,6 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import arrow.core.rightIfNotNull
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -16,9 +17,12 @@ import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
+import no.nav.su.se.bakover.domain.klage.KanBekrefteKlagevurdering
+import no.nav.su.se.bakover.domain.klage.KanLeggeTilFritekstTilAvvistBrev
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.klage.KlageSomKanVurderes
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
@@ -44,7 +48,6 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -69,15 +72,12 @@ class KlageServiceImpl(
         request.validate().getOrHandle { return it.left() }
         val sak = sakRepo.hentSak(request.sakId) ?: return KunneIkkeOppretteKlage.FantIkkeSak.left()
 
-        sak.hentÅpneKlager().ifNotEmpty {
-            // TODO jah: Justere denne sjekken når vi har konseptet lukket klage.
+        if (!sak.kanOppretteKlage()) {
             return KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
         }
-
         if (sak.klager.harEksisterendeJournalpostId(request.journalpostId)) {
             return KunneIkkeOppretteKlage.HarAlleredeEnKlageBehandling.left()
         }
-
         journalpostClient.hentFerdigstiltJournalpost(sak.saksnummer, request.journalpostId).mapLeft {
             return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(it).left()
         }
@@ -138,15 +138,21 @@ class KlageServiceImpl(
     }
 
     override fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage> {
-        return request.toDomain().flatMap {
-            val klage = klageRepo.hentKlage(it.klageId) ?: return KunneIkkeVurdereKlage.FantIkkeKlage.left()
-
-            klage.vurder(
-                saksbehandler = it.saksbehandler,
-                vurderinger = it.vurderinger,
-            ).tap { vurdertKlage ->
-                klageRepo.lagre(vurdertKlage)
-            }
+        return request.toDomain().flatMap { r ->
+            klageRepo.hentKlage(r.klageId)
+                .rightIfNotNull { KunneIkkeVurdereKlage.FantIkkeKlage }
+                .flatMap {
+                    (it as? KlageSomKanVurderes)
+                        ?.right()
+                        ?: KunneIkkeVurdereKlage.UgyldigTilstand(it::class).left()
+                }.map {
+                    it.vurder(
+                        saksbehandler = r.saksbehandler,
+                        vurderinger = r.vurderinger,
+                    ).also { vurdertKlage ->
+                        klageRepo.lagre(vurdertKlage)
+                    }
+                }
         }
     }
 
@@ -154,11 +160,19 @@ class KlageServiceImpl(
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage.Bekreftet> {
-        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeBekrefteKlagesteg.FantIkkeKlage.left()
-
-        return klage.bekreftVurderinger(saksbehandler = saksbehandler).tap {
-            klageRepo.lagre(it)
-        }
+        return klageRepo.hentKlage(klageId)
+            .rightIfNotNull { KunneIkkeBekrefteKlagesteg.FantIkkeKlage }
+            .flatMap {
+                (it as? KanBekrefteKlagevurdering)
+                    ?.right()
+                    ?: KunneIkkeBekrefteKlagesteg.UgyldigTilstand(it::class, VurdertKlage.Bekreftet::class).left()
+            }.map {
+                it.bekreftVurderinger(
+                    saksbehandler = saksbehandler,
+                ).also { bekreftetVurdertKlage ->
+                    klageRepo.lagre(bekreftetVurdertKlage)
+                }
+            }
     }
 
     override fun leggTilAvvistFritekstTilBrev(
@@ -166,11 +180,20 @@ class KlageServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekst: String,
     ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage> {
-        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLeggeTilFritekstForAvvist.FantIkkeKlage.left()
-
-        return klage.leggTilAvvistFritekstTilBrev(saksbehandler = saksbehandler, fritekst = fritekst).tap {
-            klageRepo.lagre(it)
-        }
+        return klageRepo.hentKlage(klageId)
+            .rightIfNotNull { KunneIkkeLeggeTilFritekstForAvvist.FantIkkeKlage }
+            .flatMap {
+                (it as? KanLeggeTilFritekstTilAvvistBrev)
+                    ?.right()
+                    ?: KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand(it::class).left()
+            }.map {
+                it.leggTilFritekstTilAvvistVedtaksbrev(
+                    saksbehandler = saksbehandler,
+                    fritekstTilAvvistVedtaksbrev = fritekst,
+                ).also { avvistKlage ->
+                    klageRepo.lagre(avvistKlage)
+                }
+            }
     }
 
     override fun sendTilAttestering(
@@ -182,7 +205,7 @@ class KlageServiceImpl(
         return klage.sendTilAttestering(saksbehandler) {
             personService.hentAktørId(klage.fnr).flatMap { aktørId ->
                 oppgaveService.opprettOppgave(
-                    OppgaveConfig.Klage.Saksbehandler(
+                    OppgaveConfig.Klage.Attestering(
                         saksnummer = klage.saksnummer,
                         aktørId = aktørId,
                         journalpostId = klage.journalpostId,
@@ -239,7 +262,10 @@ class KlageServiceImpl(
         klageId: UUID,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeOversendeKlage, OversendtKlage> {
-        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeOversendeKlage.FantIkkeKlage.left()
+        val klage = (klageRepo.hentKlage(klageId) ?: return KunneIkkeOversendeKlage.FantIkkeKlage.left()).let {
+            it as? KlageTilAttestering.Vurdert ?: return KunneIkkeOversendeKlage.UgyldigTilstand(it::class)
+                .left()
+        }
 
         val oversendtKlage = klage.oversend(
             Attestering.Iverksatt(
@@ -306,7 +332,6 @@ class KlageServiceImpl(
 
         if (klage !is KlageTilAttestering.Avvist) return KunneIkkeIverksetteAvvistKlage.UgyldigTilstand(
             klage::class,
-            IverksattAvvistKlage::class,
         ).left()
 
         val avvistKlage = klage.iverksett(

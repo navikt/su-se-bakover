@@ -24,13 +24,11 @@ import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
@@ -44,40 +42,42 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import java.time.Clock
 import java.util.UUID
-import javax.sql.DataSource
 
 internal class SøknadsbehandlingPostgresRepo(
-    private val dataSource: DataSource,
-    private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
-    private val dbMetrics: DbMetrics,
     private val sessionFactory: PostgresSessionFactory,
+    private val dbMetrics: DbMetrics,
+    private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
     private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
     private val clock: Clock,
 ) : SøknadsbehandlingRepo {
+
     override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext) {
-        sessionContext.withTransaction { tx ->
-            return@withTransaction when (søknadsbehandling) {
-                is Søknadsbehandling.Vilkårsvurdert -> lagre(søknadsbehandling, tx)
-                is Søknadsbehandling.Beregnet -> lagre(søknadsbehandling, tx)
-                is Søknadsbehandling.Simulert -> lagre(søknadsbehandling, tx)
-                is Søknadsbehandling.TilAttestering -> lagre(søknadsbehandling, tx)
-                is Søknadsbehandling.Underkjent -> lagre(søknadsbehandling, tx)
-                is Søknadsbehandling.Iverksatt -> lagre(søknadsbehandling, tx)
-                is LukketSøknadsbehandling -> lagre(søknadsbehandling, tx)
-            }.also {
-                grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
-                    behandlingId = søknadsbehandling.id,
-                    grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
-                    tx = tx,
-                )
+        dbMetrics.timeQuery("lagreSøknadsbehandling") {
+            sessionContext.withTransaction { tx ->
+                return@withTransaction when (søknadsbehandling) {
+                    is Søknadsbehandling.Vilkårsvurdert -> lagre(søknadsbehandling, tx)
+                    is Søknadsbehandling.Beregnet -> lagre(søknadsbehandling, tx)
+                    is Søknadsbehandling.Simulert -> lagre(søknadsbehandling, tx)
+                    is Søknadsbehandling.TilAttestering -> lagre(søknadsbehandling, tx)
+                    is Søknadsbehandling.Underkjent -> lagre(søknadsbehandling, tx)
+                    is Søknadsbehandling.Iverksatt -> lagre(søknadsbehandling, tx)
+                    is LukketSøknadsbehandling -> lagre(søknadsbehandling, tx)
+                }.also {
+                    grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
+                        behandlingId = søknadsbehandling.id,
+                        grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
+                        tx = tx,
+                    )
+                }
             }
         }
     }
 
     override fun lagreNySøknadsbehandling(søknadsbehandling: NySøknadsbehandling) {
-        dataSource.withSession { session ->
-            (
-                """
+        dbMetrics.timeQuery("lagreNySøknadsbehandling") {
+            sessionFactory.withSession { session ->
+                (
+                    """
                     insert into behandling (
                         id,
                         sakId,
@@ -99,20 +99,21 @@ internal class SøknadsbehandlingPostgresRepo(
                         jsonb_build_array(),
                         to_json(:avkorting::json)
                     )
-                """.trimIndent()
-                ).insert(
-                params = mapOf(
-                    "id" to søknadsbehandling.id,
-                    "sakId" to søknadsbehandling.sakId,
-                    "soknadId" to søknadsbehandling.søknad.id,
-                    "opprettet" to søknadsbehandling.opprettet,
-                    "status" to BehandlingsStatus.OPPRETTET.toString(),
-                    "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
-                    "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-                    "avkorting" to objectMapper.writeValueAsString(søknadsbehandling.avkorting.toDb()),
-                ),
-                session = session,
-            )
+                    """.trimIndent()
+                    ).insert(
+                    params = mapOf(
+                        "id" to søknadsbehandling.id,
+                        "sakId" to søknadsbehandling.sakId,
+                        "soknadId" to søknadsbehandling.søknad.id,
+                        "opprettet" to søknadsbehandling.opprettet,
+                        "status" to BehandlingsStatus.OPPRETTET.toString(),
+                        "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
+                        "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
+                        "avkorting" to objectMapper.writeValueAsString(søknadsbehandling.avkorting.toDb()),
+                    ),
+                    session = session,
+                )
+            }
         }
     }
 
@@ -120,9 +121,10 @@ internal class SøknadsbehandlingPostgresRepo(
         avslag: AvslagManglendeDokumentasjon,
         sessionContext: TransactionContext,
     ) {
-        sessionContext.withTransaction { tx ->
-            (
-                """
+        dbMetrics.timeQuery("lagreAvslagManglendeDokumentasjon") {
+            sessionContext.withTransaction { tx ->
+                (
+                    """
                     update behandling set
                         behandlingsinformasjon = to_json(:behandlingsinformasjon::json),
                         saksbehandler = :saksbehandler,
@@ -134,43 +136,31 @@ internal class SøknadsbehandlingPostgresRepo(
                         simulering = :simulering,
                         avkorting = to_json(:avkorting::json)
                     where id = :id
-                """.trimIndent()
-                ).insert(
-                params = avslag.søknadsbehandling.let {
-                    mapOf(
-                        "behandlingsinformasjon" to objectMapper.writeValueAsString(it.behandlingsinformasjon),
-                        "saksbehandler" to it.saksbehandler,
-                        "attestering" to it.attesteringer.serialize(),
-                        "fritekstTilBrev" to it.fritekstTilBrev,
-                        "stonadsperiode" to objectMapper.writeValueAsString(it.stønadsperiode),
-                        "status" to it.status.toString(),
-                        "id" to it.id,
-                        "beregning" to null,
-                        "simulering" to null,
-                        "avkorting" to objectMapper.writeValueAsString(it.avkorting.toDb()),
-                    )
-                },
-                session = tx,
-            )
-        }
-    }
-
-    override fun hentEventuellTidligereAttestering(id: UUID): Attestering? {
-        // henter ut siste elementet (seneste attestering) i attesteringslisten
-        return dataSource.withSession { session ->
-            "select b.attestering from behandling b where b.id=:id"
-                .hent(mapOf("id" to id), session) { row ->
-                    row.stringOrNull("attestering")?.let {
-                        val attesteringer = Attesteringshistorikk.create(objectMapper.readValue(it))
-                        attesteringer.lastOrNull()
-                    }
-                }
+                    """.trimIndent()
+                    ).insert(
+                    params = avslag.søknadsbehandling.let {
+                        mapOf(
+                            "behandlingsinformasjon" to objectMapper.writeValueAsString(it.behandlingsinformasjon),
+                            "saksbehandler" to it.saksbehandler,
+                            "attestering" to it.attesteringer.serialize(),
+                            "fritekstTilBrev" to it.fritekstTilBrev,
+                            "stonadsperiode" to objectMapper.writeValueAsString(it.stønadsperiode),
+                            "status" to it.status.toString(),
+                            "id" to it.id,
+                            "beregning" to null,
+                            "simulering" to null,
+                            "avkorting" to objectMapper.writeValueAsString(it.avkorting.toDb()),
+                        )
+                    },
+                    session = tx,
+                )
+            }
         }
     }
 
     override fun hent(id: UUID): Søknadsbehandling? {
         return dbMetrics.timeQuery("hentSøknadsbehandling") {
-            dataSource.withSession { session ->
+            sessionFactory.withSession { session ->
                 "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
                     .hent(mapOf("id" to id), session) { row ->
                         row.toSøknadsbehandling(session)
@@ -180,19 +170,23 @@ internal class SøknadsbehandlingPostgresRepo(
     }
 
     override fun hentForSak(sakId: UUID, sessionContext: SessionContext): List<Søknadsbehandling> {
-        return sessionContext.withSession { session ->
-            "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.sakId=:sakId"
-                .hentListe(mapOf("sakId" to sakId), session) {
-                    it.toSøknadsbehandling(session)
-                }
+        return dbMetrics.timeQuery("hentSøknadsbehandlingForSakId") {
+            sessionContext.withSession { session ->
+                "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.sakId=:sakId"
+                    .hentListe(mapOf("sakId" to sakId), session) {
+                        it.toSøknadsbehandling(session)
+                    }
+            }
         }
     }
 
     override fun hentForSøknad(søknadId: UUID): Søknadsbehandling? {
-        return dataSource.withSession { session ->
-            "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where søknadId=:soknadId".hent(
-                mapOf("soknadId" to søknadId), session,
-            ) { it.toSøknadsbehandling(session) }
+        return dbMetrics.timeQuery("hentSøknadsbehandlingForSøknadId") {
+            sessionFactory.withSession { session ->
+                "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where søknadId=:soknadId".hent(
+                    mapOf("soknadId" to søknadId), session,
+                ) { it.toSøknadsbehandling(session) }
+            }
         }
     }
 
@@ -621,7 +615,6 @@ internal class SøknadsbehandlingPostgresRepo(
             )
     }
 
-    // TODO ai: Se over lagring for nye attesteringer (Attestering -> AttesteringHistorik)
     private fun lagre(søknadsbehandling: Søknadsbehandling.Iverksatt, tx: TransactionalSession) {
         when (søknadsbehandling) {
             is Søknadsbehandling.Iverksatt.Innvilget -> {

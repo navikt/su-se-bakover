@@ -23,7 +23,7 @@ data class VilkårsvurderRequest(
     ): Either<FeilVedValideringAvBehandlingsinformasjon, Behandlingsinformasjon> {
         val formue = behandlingsinformasjon.formue ?: return behandlingsinformasjon.right()
 
-        val borSøkerMedEPS = bosituasjon?.harEktefelle()
+        val borSøkerMedEPS = bosituasjon?.harEPS()
             ?: return FeilVedValideringAvBehandlingsinformasjon.KanIkkeLeggeTilFormueFørBosituasjon.left()
 
         if (formue.erDepositumHøyereEnnInnskudd()) {

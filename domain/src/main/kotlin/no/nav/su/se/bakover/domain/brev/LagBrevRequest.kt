@@ -123,20 +123,35 @@ interface LagBrevRequest {
         }
     }
 
+    sealed interface Opphør {
+        val person: Person
+        val dagensDato: LocalDate
+        val saksnummer: Saksnummer
+        val beregning: Beregning
+        val forventetInntektStørreEnn0: Boolean
+        val harEktefelle: Boolean
+        val saksbehandlerNavn: String
+        val attestantNavn: String
+        val fritekst: String
+        val opphørsgrunner: List<Opphørsgrunn>
+        val opphørsdato: LocalDate
+        val avkortingsBeløp: Int?
+    }
+
     data class Opphørsvedtak(
         override val person: Person,
-        private val beregning: Beregning,
-        private val forventetInntektStørreEnn0: Boolean,
-        private val harEktefelle: Boolean,
-        private val saksbehandlerNavn: String,
-        private val attestantNavn: String,
-        private val fritekst: String,
-        private val opphørsgrunner: List<Opphørsgrunn>,
+        override val beregning: Beregning,
+        override val forventetInntektStørreEnn0: Boolean,
+        override val harEktefelle: Boolean,
+        override val saksbehandlerNavn: String,
+        override val attestantNavn: String,
+        override val fritekst: String,
+        override val opphørsgrunner: List<Opphørsgrunn>,
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
-        private val opphørsdato: LocalDate,
-        private val avkortingsBeløp: Int?,
-    ) : LagBrevRequest {
+        override val opphørsdato: LocalDate,
+        override val avkortingsBeløp: Int?,
+    ) : LagBrevRequest, Opphør {
         override val brevInnhold = BrevInnhold.Opphørsvedtak(
             personalia = lagPersonalia(),
             sats = beregning.getSats().toString().lowercase(),
@@ -157,6 +172,46 @@ interface LagBrevRequest {
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             opphørsdato = opphørsdato.ddMMyyyy(),
             avkortingsBeløp = avkortingsBeløp,
+        )
+
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
+            return genererDokument(genererPdf).map {
+                Dokument.UtenMetadata.Vedtak(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
+            }
+        }
+    }
+
+    data class OpphørMedTilbakekrevingAvPenger(
+        private val opphør: Opphør,
+        private val bruttoTilbakekreving: Int,
+    ) : LagBrevRequest, Opphør by opphør {
+        override val brevInnhold: BrevInnhold = BrevInnhold.OpphørMedTilbakekrevingAvPenger(
+            personalia = lagPersonalia(),
+            sats = beregning.getSats().toString().lowercase(),
+            satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
+            satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed)
+                .ddMMyyyy(),
+            harEktefelle = harEktefelle,
+            beregningsperioder = if (
+                opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT) ||
+                opphørsgrunner.contains(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
+            ) LagBrevinnholdForBeregning(beregning).brevInnhold else emptyList(),
+            saksbehandlerNavn = saksbehandlerNavn,
+            attestantNavn = attestantNavn,
+            halvGrunnbeløp = Grunnbeløp.`0,5G`.påDato(beregning.periode.fraOgMed).toInt(),
+            fritekst = fritekst,
+            opphørsgrunner = opphørsgrunner,
+            avslagsparagrafer = opphørsgrunner.getDistinkteParagrafer(),
+            forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
+            opphørsdato = opphørsdato.ddMMyyyy(),
+            avkortingsBeløp = avkortingsBeløp,
+            bruttoTilbakekreving = bruttoTilbakekreving,
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
@@ -237,6 +292,34 @@ interface LagBrevRequest {
         }
     }
 
+    data class ForhåndsvarselTilbakekreving(
+        override val person: Person,
+        override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
+        private val saksbehandlerNavn: String,
+        private val fritekst: String,
+        private val bruttoTilbakekreving: Int,
+    ) : LagBrevRequest {
+        override val brevInnhold = BrevInnhold.ForhåndsvarselTilbakekreving(
+            personalia = lagPersonalia(),
+            saksbehandlerNavn = saksbehandlerNavn,
+            fritekst = fritekst,
+            bruttoTilbakekreving = bruttoTilbakekreving,
+        )
+
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
+            return genererDokument(genererPdf).map {
+                Dokument.UtenMetadata.Informasjon(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
+            }
+        }
+    }
+
     /**
      * Brev for når en revurdering er forhåndsvarslet
      * hvis revurderingen ikke er forhåndsvarslet, er det ikke noe brev.
@@ -267,31 +350,72 @@ interface LagBrevRequest {
         }
     }
 
-    sealed class Revurdering : LagBrevRequest {
-        data class Inntekt(
-            override val person: Person,
-            private val saksbehandlerNavn: String,
-            private val attestantNavn: String,
-            private val revurdertBeregning: Beregning,
-            private val fritekst: String,
-            private val harEktefelle: Boolean,
-            private val forventetInntektStørreEnn0: Boolean,
-            override val dagensDato: LocalDate,
-            override val saksnummer: Saksnummer,
-        ) : Revurdering() {
-            override val brevInnhold = BrevInnhold.RevurderingAvInntekt(
-                personalia = lagPersonalia(),
-                saksbehandlerNavn = saksbehandlerNavn,
-                attestantNavn = attestantNavn,
-                beregningsperioder = LagBrevinnholdForBeregning(revurdertBeregning).brevInnhold,
-                fritekst = fritekst,
-                sats = revurdertBeregning.getSats(),
-                satsGjeldendeFraDato = revurdertBeregning.getSats()
-                    .datoForSisteEndringAvSats(revurdertBeregning.periode.tilOgMed).ddMMyyyy(),
-                harEktefelle = harEktefelle,
-                forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
-            )
+    sealed interface Revurdering {
+        val person: Person
+        val dagensDato: LocalDate
+        val saksnummer: Saksnummer
+        val saksbehandlerNavn: String
+        val attestantNavn: String
+        val revurdertBeregning: Beregning
+        val fritekst: String
+        val harEktefelle: Boolean
+        val forventetInntektStørreEnn0: Boolean
+    }
+
+    data class Inntekt(
+        override val person: Person,
+        override val saksbehandlerNavn: String,
+        override val attestantNavn: String,
+        override val revurdertBeregning: Beregning,
+        override val fritekst: String,
+        override val harEktefelle: Boolean,
+        override val forventetInntektStørreEnn0: Boolean,
+        override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
+    ) : LagBrevRequest, Revurdering {
+        override val brevInnhold = BrevInnhold.RevurderingAvInntekt(
+            personalia = lagPersonalia(),
+            saksbehandlerNavn = saksbehandlerNavn,
+            attestantNavn = attestantNavn,
+            beregningsperioder = LagBrevinnholdForBeregning(revurdertBeregning).brevInnhold,
+            fritekst = fritekst,
+            sats = revurdertBeregning.getSats(),
+            satsGjeldendeFraDato = revurdertBeregning.getSats()
+                .datoForSisteEndringAvSats(revurdertBeregning.periode.tilOgMed).ddMMyyyy(),
+            harEktefelle = harEktefelle,
+            forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
+        )
+
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
+            return genererDokument(genererPdf).map {
+                Dokument.UtenMetadata.Vedtak(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
+            }
         }
+    }
+
+    data class TilbakekrevingAvPenger(
+        private val ordinærtRevurderingBrev: Inntekt,
+        private val bruttoTilbakekreving: Int,
+    ) : LagBrevRequest, Revurdering by ordinærtRevurderingBrev {
+        override val brevInnhold: BrevInnhold = BrevInnhold.RevurderingMedTilbakekrevingAvPenger(
+            personalia = lagPersonalia(),
+            saksbehandlerNavn = saksbehandlerNavn,
+            attestantNavn = attestantNavn,
+            beregningsperioder = LagBrevinnholdForBeregning(revurdertBeregning).brevInnhold,
+            fritekst = fritekst,
+            sats = revurdertBeregning.getSats(),
+            satsGjeldendeFraDato = revurdertBeregning.getSats()
+                .datoForSisteEndringAvSats(revurdertBeregning.periode.tilOgMed).ddMMyyyy(),
+            harEktefelle = harEktefelle,
+            forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
+            bruttoTilbakekreving = bruttoTilbakekreving,
+        )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
             return genererDokument(genererPdf).map {
@@ -315,7 +439,7 @@ interface LagBrevRequest {
             personalia = lagPersonalia(),
         )
 
-        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<LagBrevRequest.KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
             return genererDokument(genererPdf).map {
                 Dokument.UtenMetadata.Informasjon(
                     id = UUID.randomUUID(),

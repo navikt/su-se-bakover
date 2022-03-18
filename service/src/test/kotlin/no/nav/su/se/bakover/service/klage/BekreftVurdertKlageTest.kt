@@ -2,14 +2,11 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
-import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
-import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
@@ -18,7 +15,6 @@ import no.nav.su.se.bakover.test.avvistKlage
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
@@ -163,8 +159,6 @@ internal class BekreftVurdertKlageTest {
             verifiserGyldigStatusovergang(
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
-                vilkårsvurderingerTilKlage = it.second.vilkårsvurderinger,
-                vurderingerTilKlage = it.second.vurderinger,
             )
         }
     }
@@ -175,8 +169,6 @@ internal class BekreftVurdertKlageTest {
             verifiserGyldigStatusovergang(
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
-                vilkårsvurderingerTilKlage = it.second.vilkårsvurderinger,
-                vurderingerTilKlage = it.second.vurderinger,
             )
         }
     }
@@ -187,8 +179,6 @@ internal class BekreftVurdertKlageTest {
             verifiserGyldigStatusovergang(
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
-                vilkårsvurderingerTilKlage = it.second.vilkårsvurderinger,
-                vurderingerTilKlage = it.second.vurderinger,
                 attesteringer = it.second.attesteringer,
             )
         }
@@ -197,9 +187,7 @@ internal class BekreftVurdertKlageTest {
     private fun verifiserGyldigStatusovergang(
         vedtak: Vedtak,
         klage: Klage,
-        vilkårsvurderingerTilKlage: VilkårsvurderingerTilKlage.Utfylt,
-        vurderingerTilKlage: VurderingerTilKlage.Utfylt,
-        attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
+        attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     ) {
 
         val mocks = KlageServiceMocks(
@@ -212,38 +200,23 @@ internal class BekreftVurdertKlageTest {
             },
         )
 
-        var expectedKlage: VurdertKlage.Bekreftet?
         mocks.service.bekreftVurderinger(
             klageId = klage.id,
             saksbehandler = NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene"),
         ).orNull()!!.also {
-            expectedKlage = VurdertKlage.Bekreftet.create(
-                id = it.id,
-                opprettet = fixedTidspunkt,
-                sakId = klage.sakId,
-                saksnummer = klage.saksnummer,
-                fnr = klage.fnr,
-                journalpostId = klage.journalpostId,
-                oppgaveId = klage.oppgaveId,
-                saksbehandler = NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene"),
-                vilkårsvurderinger = vilkårsvurderingerTilKlage,
-                vurderinger = vurderingerTilKlage,
-                attesteringer = attesteringer,
-                datoKlageMottatt = 1.desember(2021),
-                klageinstanshendelser = Klageinstanshendelser.empty()
-            )
-            it shouldBe expectedKlage
+            it.saksbehandler shouldBe NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene")
+            it.oppgaveId shouldBe klage.oppgaveId
+            it.attesteringer shouldBe attesteringer
+            it.klageinstanshendelser shouldBe Klageinstanshendelser.empty()
         }
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(
-            argThat {
-                it shouldBe expectedKlage
-            },
+            any(),
             argThat {
                 it shouldBe TestSessionFactory.transactionContext
-            }
+            },
         )
         mocks.verifyNoMoreInteractions()
     }

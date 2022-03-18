@@ -178,7 +178,7 @@ internal class AvsluttKlageTest {
         verify(mocks.klageRepoMock).lagre(
             argThat {
                 it shouldBe AvsluttetKlage(
-                    forrigeSteg = klage,
+                    underliggendeKlage = klage,
                     saksbehandler = saksbehandler,
                     begrunnelse = begrunnelse,
                     tidspunktAvsluttet = fixedTidspunkt,

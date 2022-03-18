@@ -20,6 +20,8 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -173,6 +175,7 @@ internal class RevurderingPostgresRepoTest {
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
         avkorting = beregnet.avkorting.håndter(),
+        tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
     )
 
     private fun simulertOpphørt(beregnet: BeregnetRevurdering.Opphørt) = SimulertRevurdering.Opphørt(
@@ -192,6 +195,7 @@ internal class RevurderingPostgresRepoTest {
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
         avkorting = beregnet.avkorting.håndter(),
+        tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
     )
 
     @Test
@@ -199,7 +203,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
 
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
@@ -217,8 +222,10 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val etAnnetVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
+            val etAnnetVedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
 
             val opprettetRevurdering = opprettet(vedtak)
             repo.lagre(opprettetRevurdering)
@@ -251,7 +258,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
             val opprettet = opprettet(vedtak)
 
             repo.lagre(opprettet)
@@ -279,7 +287,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
             val opprettet = opprettet(vedtak)
 
             repo.lagre(opprettet)
@@ -301,7 +310,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
             val opprettet = opprettet(vedtak)
 
             repo.lagre(opprettet)
@@ -323,7 +333,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
             val opprettet = opprettet(vedtak)
 
             repo.lagre(opprettet)
@@ -341,7 +352,7 @@ internal class RevurderingPostgresRepoTest {
                     attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = "fritekst",
-                ).orNull()!!
+                ).getOrFail()
 
             repo.lagre(tilAttestering)
 
@@ -354,7 +365,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
             val opprettet = opprettet(vedtak)
 
             repo.lagre(opprettet)
@@ -371,7 +383,7 @@ internal class RevurderingPostgresRepoTest {
                 attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                 saksbehandler = Saksbehandler("Ny saksbehandler"),
                 fritekstTilBrev = "fritekst",
-            ).orNull()!!
+            ).getOrFail()
 
             repo.lagre(tilAttestering)
 
@@ -386,7 +398,7 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val iverksatt = testDataHelper.iverksattRevurderingInnvilget()
+            val iverksatt = testDataHelper.persisterRevurderingIverksattInnvilget()
 
             repo.hent(iverksatt.id) shouldBe iverksatt.persistertVariant()
             dataSource.withSession {
@@ -400,7 +412,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
             val opprettet = opprettet(vedtak)
 
             repo.lagre(opprettet)
@@ -418,7 +431,7 @@ internal class RevurderingPostgresRepoTest {
                     attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = "",
-                ).orNull()!!
+                ).getOrFail()
             repo.lagre(tilAttestering)
 
             val attestering = Attestering.Underkjent(
@@ -440,7 +453,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
 
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
@@ -455,7 +469,7 @@ internal class RevurderingPostgresRepoTest {
                     attesteringsoppgaveId = opprettet.oppgaveId,
                     saksbehandler = opprettet.saksbehandler,
                     fritekstTilBrev = opprettet.fritekstTilBrev,
-                ).orNull()!!
+                ).getOrFail()
             repo.lagre(tilAttestering)
 
             val underkjent = UnderkjentRevurdering.Opphørt(
@@ -482,6 +496,7 @@ internal class RevurderingPostgresRepoTest {
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+                tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling
             )
 
             repo.lagre(underkjent)
@@ -494,7 +509,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
 
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
@@ -518,6 +534,7 @@ internal class RevurderingPostgresRepoTest {
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+                tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling
             )
 
             repo.lagre(underkjent)
@@ -530,7 +547,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
 
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
@@ -543,7 +561,7 @@ internal class RevurderingPostgresRepoTest {
                     attesteringsoppgaveId = opprettet.oppgaveId,
                     saksbehandler = opprettet.saksbehandler,
                     fritekstTilBrev = opprettet.fritekstTilBrev,
-                ).orNull()!!
+                ).getOrFail()
             repo.lagre(tilAttestering)
 
             val underkjent = IverksattRevurdering.Opphørt(
@@ -568,6 +586,7 @@ internal class RevurderingPostgresRepoTest {
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
+                tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet
             )
 
             repo.lagre(underkjent)
@@ -580,7 +599,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
 
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
@@ -642,7 +662,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
 
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
@@ -677,7 +698,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
 
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
@@ -736,8 +758,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val simulert = testDataHelper.simulertInnvilgetRevurdering()
-            val expected = simulert.prøvOvergangTilSkalIkkeForhåndsvarsles().orNull()!!.also {
+            val simulert = testDataHelper.persisterRevurderingSimulertInnvilget()
+            val expected = simulert.ikkeSendForhåndsvarsel().getOrFail().also {
                 repo.lagre(it)
             }
 
@@ -751,9 +773,9 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val simulert = testDataHelper.simulertInnvilgetRevurdering()
+            val simulert = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
-                simulert.prøvOvergangTilSendt().orNull()!!.also {
+                simulert.markerForhåndsvarselSomSendt().getOrFail().also {
                     repo.lagre(it)
                 }
             (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
@@ -765,15 +787,15 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val simulert = testDataHelper.simulertInnvilgetRevurdering()
+            val simulert = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
-                simulert.prøvOvergangTilSendt().orNull()!!
-                    .prøvOvergangTilFortsettMedSammeGrunnlag("").orNull()!!
+                simulert.markerForhåndsvarselSomSendt().getOrFail()
+                    .prøvOvergangTilFortsettMedSammeGrunnlag("").getOrFail()
                     .tilAttestering(
                         attesteringsoppgaveId = OppgaveId(value = "attesteringsoppgaveId"),
                         saksbehandler = Saksbehandler(navIdent = "nySaksbehandler"),
                         fritekstTilBrev = "Fortsetter etter forhåndsvarsel",
-                    ).orNull()!!
+                    ).getOrFail()
                     .also {
                         repo.lagre(it)
                     }
@@ -786,9 +808,9 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val simulert = testDataHelper.simulertInnvilgetRevurdering()
+            val simulert = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
-                simulert.prøvOvergangTilSendt().orNull()!!.prøvOvergangTilEndreGrunnlaget("").orNull()!!.also {
+                simulert.markerForhåndsvarselSomSendt().getOrFail().prøvOvergangTilEndreGrunnlaget("").getOrFail().also {
                     repo.lagre(it)
                 }
             (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
@@ -800,7 +822,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
 
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet.copy(forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles))
@@ -838,7 +861,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
 
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
@@ -875,7 +899,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
 
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)

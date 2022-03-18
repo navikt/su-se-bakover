@@ -178,6 +178,7 @@ data class ApplicationConfig(
         val utbetaling: UtbetalingConfig,
         val avstemming: AvstemmingConfig,
         val simulering: SimuleringConfig,
+        val tilbakekreving: TilbakekrevingConfig,
     ) {
         data class UtbetalingConfig constructor(
             val mqSendQueue: String,
@@ -213,6 +214,38 @@ data class ApplicationConfig(
             }
         }
 
+        data class TilbakekrevingConfig(
+            val mq: Mq,
+            val soap: Soap,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = TilbakekrevingConfig(
+                    mq = Mq.createFromEnvironmentVariables(),
+                    soap = Soap.createFromEnvironmentVariables(),
+                )
+            }
+
+            data class Mq(
+                val mottak: String,
+            ) {
+                companion object {
+                    fun createFromEnvironmentVariables() = Mq(
+                        mottak = getEnvironmentVariableOrThrow("MQ_TILBAKEKREVING_MOTTAK"),
+                    )
+                }
+            }
+
+            data class Soap(
+                val url: String,
+            ) {
+                companion object {
+                    fun createFromEnvironmentVariables() = Soap(
+                        url = getEnvironmentVariableOrThrow("TILBAKEKREVING_URL"),
+                    )
+                }
+            }
+        }
+
         companion object {
             fun createFromEnvironmentVariables() = OppdragConfig(
                 mqQueueManager = getEnvironmentVariableOrThrow("MQ_QUEUE_MANAGER"),
@@ -222,6 +255,7 @@ data class ApplicationConfig(
                 utbetaling = UtbetalingConfig.createFromEnvironmentVariables(),
                 avstemming = AvstemmingConfig.createFromEnvironmentVariables(),
                 simulering = SimuleringConfig.createFromEnvironmentVariables(),
+                tilbakekreving = TilbakekrevingConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = OppdragConfig(
@@ -237,6 +271,10 @@ data class ApplicationConfig(
                 simulering = SimuleringConfig(
                     url = "unused",
                     stsSoapUrl = "unused",
+                ),
+                tilbakekreving = TilbakekrevingConfig(
+                    mq = TilbakekrevingConfig.Mq("unused"),
+                    soap = TilbakekrevingConfig.Soap("unused"),
                 ),
             )
         }

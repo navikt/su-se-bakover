@@ -2,12 +2,10 @@ package no.nav.su.se.bakover.database
 
 import kotliquery.Row
 import kotliquery.queryOf
-import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import java.sql.Array
-import javax.sql.DataSource
 
 private fun sjekkUgyldigParameternavn(params: Map<String, Any?>) {
     require(params.keys.none { it.contains(Regex("[æÆøØåÅ]")) }) { "Parameter-mapping forstår ikke særnorske tegn" }
@@ -73,14 +71,6 @@ internal fun Row.booleanOrNull(name: String): Boolean? = this.anyOrNull(name)?.l
 
 internal fun Session.inClauseWith(values: List<String>): Array =
     this.connection.underlying.createArrayOf("text", values.toTypedArray())
-
-internal fun <T> DataSource.withSession(block: (session: Session) -> T): T {
-    return using(sessionOf(this)) { block(it) }
-}
-
-internal fun <T> DataSource.withTransaction(block: (session: TransactionalSession) -> T): T {
-    return using(sessionOf(this)) { s -> s.transaction { block(it) } }
-}
 
 internal fun String.antall(
     params: Map<String, Any> = emptyMap(),

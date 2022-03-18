@@ -4,16 +4,13 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
-import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
@@ -286,17 +283,10 @@ internal class UnderkjennKlageTest {
             kommentar = "underkjennelseskommentar",
         )
         mocks.service.underkjenn(request).getOrHandle { throw RuntimeException(it.toString()) }.also {
-            expectedKlage = VurdertKlage.Bekreftet.create(
-                id = it.id,
-                opprettet = fixedTidspunkt,
-                sakId = klage.sakId,
-                saksnummer = klage.saksnummer,
-                fnr = klage.fnr,
-                journalpostId = klage.journalpostId,
+            expectedKlage = VurdertKlage.Bekreftet(
+                forrigeSteg = utfyltVurdertKlage(id = klage.id, vedtakId = klage.vilkårsvurderinger.vedtakId).second,
                 oppgaveId = OppgaveId("nyOppgaveId"),
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                vilkårsvurderinger = klage.vilkårsvurderinger,
-                vurderinger = klage.vurderinger,
                 attesteringer = Attesteringshistorikk.create(
                     listOf(
                         Attestering.Underkjent(
@@ -307,8 +297,6 @@ internal class UnderkjennKlageTest {
                         ),
                     ),
                 ),
-                datoKlageMottatt = 1.desember(2021),
-                klageinstanshendelser = Klageinstanshendelser.empty()
             )
             it shouldBe expectedKlage
         }
@@ -349,7 +337,6 @@ internal class UnderkjennKlageTest {
 
         val attestant = NavIdentBruker.Attestant("s2")
 
-        var expectedKlage: AvvistKlage?
         val request = UnderkjennKlageRequest(
             klageId = klage.id,
             attestant = attestant,
@@ -357,36 +344,12 @@ internal class UnderkjennKlageTest {
             kommentar = "underkjennelseskommentar",
         )
         mocks.service.underkjenn(request).getOrHandle { throw RuntimeException(it.toString()) }.also {
-            expectedKlage = AvvistKlage.create(
-                forrigeSteg = VilkårsvurdertKlage.Bekreftet.Avvist.create(
-                    id = it.id,
-                    opprettet = fixedTidspunkt,
-                    sakId = klage.sakId,
-                    saksnummer = klage.saksnummer,
-                    fnr = klage.fnr,
-                    journalpostId = klage.journalpostId,
-                    oppgaveId = OppgaveId("nyOppgaveId"),
-                    saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                    vilkårsvurderinger = klage.vilkårsvurderinger,
-                    attesteringer = Attesteringshistorikk.create(
-                        listOf(
-                            Attestering.Underkjent(
-                                attestant = attestant,
-                                opprettet = fixedTidspunkt,
-                                grunn = request.grunn,
-                                kommentar = request.kommentar,
-                            ),
-                        ),
-                    ),
-                    datoKlageMottatt = 1.desember(2021),
-                ),
-                fritekstTilBrev = "dette er en fritekst med person opplysninger",
-            )
-            it shouldBe expectedKlage
+            it.saksbehandler shouldBe NavIdentBruker.Saksbehandler("saksbehandler")
+            (it as AvvistKlage).fritekstTilVedtaksbrev shouldBe "dette er en fritekst med person opplysninger"
         }
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).defaultTransactionContext()
-        verify(mocks.klageRepoMock).lagre(argThat { it shouldBe expectedKlage }, argThat { it shouldBe TestSessionFactory.transactionContext })
+        verify(mocks.klageRepoMock).lagre(any(), argThat { it shouldBe TestSessionFactory.transactionContext })
         verify(mocks.oppgaveService).opprettOppgave(
             argThat {
                 it shouldBe OppgaveConfig.Klage.Saksbehandler(

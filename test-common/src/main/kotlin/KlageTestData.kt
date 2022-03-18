@@ -6,9 +6,12 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.mapSecond
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
@@ -16,6 +19,7 @@ import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
@@ -37,7 +41,7 @@ fun opprettetKlage(
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
 ): Pair<Sak, OpprettetKlage> {
     assert(sakMedVedtak.vedtakListe.isNotEmpty())
-    val klage = OpprettetKlage.create(
+    val klage = OpprettetKlage(
         id = id,
         opprettet = opprettet,
         sakId = sakId,
@@ -312,7 +316,7 @@ fun påbegyntVurdertKlage(
         val klage = it.second.vurder(
             saksbehandler = saksbehandler,
             vurderinger = VurderingerTilKlage.create(
-                fritekstTilBrev = fritekstTilBrev,
+                fritekstTilOversendelsesbrev = fritekstTilBrev,
                 vedtaksvurdering = vedtaksvurdering,
             ) as VurderingerTilKlage.Påbegynt,
         )
@@ -360,7 +364,7 @@ fun utfyltVurdertKlage(
         val klage = it.second.vurder(
             saksbehandler = saksbehandler,
             vurderinger = VurderingerTilKlage.create(
-                fritekstTilBrev = fritekstTilBrev,
+                fritekstTilOversendelsesbrev = fritekstTilBrev,
                 vedtaksvurdering = vedtaksvurdering,
             ) as VurderingerTilKlage.Utfylt,
         )
@@ -409,7 +413,7 @@ fun bekreftetVurdertKlage(
     ).let {
         val klage = it.second.bekreftVurderinger(
             saksbehandler = saksbehandler,
-        ).orNull()!!
+        )
         Pair(
             it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
             klage,
@@ -448,9 +452,9 @@ fun avvistKlage(
         begrunnelse = begrunnelse,
         sakMedVedtak = sakMedVedtak,
     ).let {
-        val klage = it.second.leggTilAvvistFritekstTilBrev(
+        val klage = it.second.leggTilFritekstTilAvvistVedtaksbrev(
             saksbehandler, fritekstTilBrev,
-        ).getOrFail()
+        )
 
         Pair(
             it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
@@ -584,7 +588,7 @@ fun underkjentKlageTilVurdering(
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
     ).orNull()!!,
-    attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("attestant"),
+    attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     attesteringsgrunn: Attestering.Underkjent.Grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
     attesteringskommentar: String = "attesteringskommentar",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
@@ -614,9 +618,6 @@ fun underkjentKlageTilVurdering(
                 kommentar = attesteringskommentar,
             ),
         ) { underkjentKlageOppgaveId.right() }.orNull()!!
-
-        if (klage !is VurdertKlage.Bekreftet) throw IllegalStateException("Forventet en VurdertKlage.Bekreftet. Fikk ${klage::class} ved opprettelse av test-data.")
-
         Pair(
             it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
             klage,
@@ -638,7 +639,7 @@ fun underkjentAvvistKlage(
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     begrunnelse: String = "begrunnelse",
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
-    attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("attestant"),
+    attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     attesteringsgrunn: Attestering.Underkjent.Grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
     attesteringskommentar: String = "attesteringskommentar",
 ): Pair<Sak, AvvistKlage> {
@@ -736,7 +737,7 @@ fun oversendtKlage(
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
     ).orNull()!!,
-    attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("attestant"),
+    attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
 ): Pair<Sak, OversendtKlage> {
     return vurdertKlageTilAttestering(
@@ -783,7 +784,7 @@ fun iverksattAvvistKlage(
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
-    attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("attestant"),
+    attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
 ): Pair<Sak, IverksattAvvistKlage> {
     return avvistKlageTilAttestering(
@@ -814,4 +815,50 @@ fun iverksattAvvistKlage(
             klage,
         )
     }
+}
+
+fun createBekreftetVilkårsvurdertKlage(
+    id: UUID,
+    opprettet: Tidspunkt,
+    sakId: UUID,
+    saksnummer: Saksnummer,
+    fnr: Fnr,
+    journalpostId: JournalpostId,
+    oppgaveId: OppgaveId,
+    saksbehandler: NavIdentBruker.Saksbehandler,
+    vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
+    attesteringer: Attesteringshistorikk,
+    datoKlageMottatt: LocalDate,
+    vurderinger: VurderingerTilKlage? = null,
+    fritekstTilBrev: String? = null,
+    klageinstanshendelser: Klageinstanshendelser = Klageinstanshendelser.empty(),
+): VilkårsvurdertKlage.Bekreftet {
+    return if (vilkårsvurderinger.erAvvist()) VilkårsvurdertKlage.Bekreftet.Avvist(
+        id = id,
+        opprettet = opprettet,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        journalpostId = journalpostId,
+        oppgaveId = oppgaveId,
+        saksbehandler = saksbehandler,
+        vilkårsvurderinger = vilkårsvurderinger,
+        attesteringer = attesteringer,
+        datoKlageMottatt = datoKlageMottatt,
+        fritekstTilAvvistVedtaksbrev = fritekstTilBrev,
+    ) else VilkårsvurdertKlage.Bekreftet.TilVurdering(
+        id = id,
+        opprettet = opprettet,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        journalpostId = journalpostId,
+        oppgaveId = oppgaveId,
+        saksbehandler = saksbehandler,
+        vilkårsvurderinger = vilkårsvurderinger,
+        vurderinger = vurderinger,
+        attesteringer = attesteringer,
+        datoKlageMottatt = datoKlageMottatt,
+        klageinstanshendelser = klageinstanshendelser,
+    )
 }

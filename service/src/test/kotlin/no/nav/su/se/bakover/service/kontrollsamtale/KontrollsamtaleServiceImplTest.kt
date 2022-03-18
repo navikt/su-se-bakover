@@ -41,10 +41,10 @@ import java.util.UUID
 
 internal class KontrollsamtaleServiceImplTest {
 
-    val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
-    val person = person()
-    val pdf = ByteArray(1)
-    val kontrollsamtale = kontrollsamtale()
+    private val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
+    private val person = person()
+    private val pdf = ByteArray(1)
+    private val kontrollsamtale = kontrollsamtale()
 
     @Test
     fun `feiler hvis vi ikke finner sak`() {
@@ -53,8 +53,9 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
             },
         ).kontrollsamtaleService.kallInn(
-            sak.id,
-            kontrollsamtale,
+            sakId = sak.id,
+            kontrollsamtale = kontrollsamtale,
+            transactionContext = TestSessionFactory.transactionContext,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.FantIkkeSak.left()
     }
 
@@ -65,8 +66,9 @@ internal class KontrollsamtaleServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak.copy(vedtakListe = emptyList()).right()
             },
         ).kontrollsamtaleService.kallInn(
-            sak.id,
-            kontrollsamtale,
+            sakId = sak.id,
+            kontrollsamtale = kontrollsamtale,
+            transactionContext = TestSessionFactory.transactionContext,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left()
     }
 
@@ -83,8 +85,9 @@ internal class KontrollsamtaleServiceImplTest {
             personService = personService,
             clock = fixedClock,
         ).kontrollsamtaleService.kallInn(
-            sak.id,
-            kontrollsamtale,
+            sakId = sak.id,
+            kontrollsamtale = kontrollsamtale,
+            transactionContext = TestSessionFactory.transactionContext,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
     }
 
@@ -104,8 +107,9 @@ internal class KontrollsamtaleServiceImplTest {
             brevService = brevService,
             clock = fixedClock,
         ).kontrollsamtaleService.kallInn(
-            sak.id,
-            kontrollsamtale,
+            sakId = sak.id,
+            kontrollsamtale = kontrollsamtale,
+            transactionContext = TestSessionFactory.transactionContext,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument.left()
     }
 
@@ -129,8 +133,9 @@ internal class KontrollsamtaleServiceImplTest {
             sessionFactory = TestSessionFactory(),
             clock = fixedClock,
         ).kontrollsamtaleService.kallInn(
-            sak.id,
-            kontrollsamtale,
+            sakId = sak.id,
+            kontrollsamtale = kontrollsamtale,
+            transactionContext = TestSessionFactory.transactionContext,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeKalleInn.left()
     }
 
@@ -155,8 +160,9 @@ internal class KontrollsamtaleServiceImplTest {
             sessionFactory = TestSessionFactory(),
             clock = fixedClock,
         ).kontrollsamtaleService.kallInn(
-            sak.id,
-            kontrollsamtale,
+            sakId = sak.id,
+            kontrollsamtale = kontrollsamtale,
+            transactionContext = TestSessionFactory.transactionContext,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeKalleInn.left()
     }
 
@@ -180,8 +186,9 @@ internal class KontrollsamtaleServiceImplTest {
         )
 
         services.kontrollsamtaleService.kallInn(
-            sak.id,
-            kontrollsamtale,
+            sakId = sak.id,
+            kontrollsamtale = kontrollsamtale,
+            transactionContext = TestSessionFactory.transactionContext,
         ) shouldBe Unit.right()
 
         val dokumentCaptor = ArgumentCaptor.forClass(Dokument.MedMetadata.Informasjon::class.java)
@@ -204,7 +211,8 @@ internal class KontrollsamtaleServiceImplTest {
     fun `hentNestePlanlagteKontrollsamtale skal returnere left om det ikke eksisterer data i databasen`() {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
-                on { hentForSakId(any()) } doReturn emptyList()
+                on { hentForSakId(any(), anyOrNull()) } doReturn emptyList()
+                on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
             },
         )
         services.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(
@@ -216,10 +224,11 @@ internal class KontrollsamtaleServiceImplTest {
     fun `hentNestePlanlagteKontrollsamtale skal returnere left om det ikke finnes noen med status INNKALT`() {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
-                on { hentForSakId(any()) } doReturn listOf(
+                on { hentForSakId(any(), anyOrNull()) } doReturn listOf(
                     kontrollsamtale(status = Kontrollsamtalestatus.INNKALT),
                     kontrollsamtale(status = Kontrollsamtalestatus.GJENNOMFØRT),
                 )
+                on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
             },
         )
         services.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(
@@ -233,7 +242,7 @@ internal class KontrollsamtaleServiceImplTest {
             kontrollsamtale(status = Kontrollsamtalestatus.PLANLAGT_INNKALLING, innkallingsdato = fixedLocalDate)
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
-                on { hentForSakId(any()) } doReturn listOf(
+                on { hentForSakId(any(), anyOrNull()) } doReturn listOf(
                     kontrollsamtale(
                         status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
                         innkallingsdato = fixedLocalDate.plusMonths(1),
@@ -241,6 +250,7 @@ internal class KontrollsamtaleServiceImplTest {
                     kontrollsamtale(status = Kontrollsamtalestatus.GJENNOMFØRT),
                     expected,
                 )
+                on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
             },
         )
         services.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(
@@ -285,8 +295,8 @@ internal class KontrollsamtaleServiceImplTest {
     fun `endre dato skal endre dato ved normal flyt`() {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
-                on { hentForSakId(any()) } doReturn listOf(kontrollsamtale())
-                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+                on { hentForSakId(any(), anyOrNull()) } doReturn listOf(kontrollsamtale())
+                on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
             },
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn vedtakSøknadsbehandlingIverksattInnvilget().first.right()
@@ -296,8 +306,8 @@ internal class KontrollsamtaleServiceImplTest {
         services.kontrollsamtaleService.nyDato(sak.id, fixedLocalDate.plusMonths(2)) shouldBe Unit.right()
 
         verify(services.sakService).hentSak(any<UUID>())
-        verify(services.kontrollsamtaleRepo).hentForSakId(any())
-        verify(services.kontrollsamtaleRepo).defaultTransactionContext()
+        verify(services.kontrollsamtaleRepo).hentForSakId(any(), anyOrNull())
+        verify(services.kontrollsamtaleRepo).defaultSessionContext()
         verify(services.kontrollsamtaleRepo).lagre(any(), anyOrNull())
         verifyNoMoreInteractions(services.sakService, services.kontrollsamtaleRepo)
     }
@@ -307,7 +317,7 @@ internal class KontrollsamtaleServiceImplTest {
         val personService: PersonService = mock(),
         val brevService: BrevService = mock(),
         val oppgaveService: OppgaveService = mock(),
-        val sessionFactory: SessionFactory = mock(),
+        val sessionFactory: SessionFactory = TestSessionFactory(),
         val clock: Clock = mock(),
         val kontrollsamtaleRepo: KontrollsamtaleRepo = mock(),
     ) {

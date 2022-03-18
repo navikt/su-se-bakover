@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.inneholderAlle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -25,11 +26,11 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.periode
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.perioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.fjernInntekterForEPSDersomFradragIkkeErKonsistentMedOppdatertBosituasjon
+import no.nav.su.se.bakover.domain.grunnlag.fjernFradragForEPSHvisEnslig
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -83,8 +84,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         data class IkkeLovÅLeggeTilFradragIDenneStatusen(val status: KClass<out Søknadsbehandling>) :
             KunneIkkeLeggeTilFradragsgrunnlag()
 
-        object GrunnlagetMåVæreInneforBehandlingsperioden : KunneIkkeLeggeTilFradragsgrunnlag()
-        object PeriodeMangler : KunneIkkeLeggeTilFradragsgrunnlag()
+        object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeLeggeTilFradragsgrunnlag()
         data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
             KunneIkkeLeggeTilFradragsgrunnlag()
     }
@@ -103,12 +103,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     internal fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
         if (fradragsgrunnlag.isNotEmpty()) {
-            if (fradragsgrunnlag.periode() != null) {
-                if (!(periode inneholder fradragsgrunnlag.periode()!!)) {
-                    return KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingsperioden.left()
-                }
-            } else {
-                return KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler.left()
+            if (!periode.inneholderAlle(fradragsgrunnlag.perioder())) {
+                return KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
             }
         }
         return Unit.right()
@@ -122,14 +118,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         clock: Clock,
     ): Either<KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
         val oppdatertGrunnlagsdata = Grunnlagsdata.tryCreate(
-            fradragsgrunnlag = this.grunnlagsdata.fradragsgrunnlag.fjernInntekterForEPSDersomFradragIkkeErKonsistentMedOppdatertBosituasjon(
-                bosituasjon,
-            ),
+            fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragForEPSHvisEnslig(bosituasjon),
             bosituasjon = listOf(bosituasjon),
         ).getOrHandle {
             // TODO - håndter oppdatering av bosituasjon inne i grunnlagsdata. Den skal også fjerne potensielle fradrag for EPS
             when (it) {
-                KunneIkkeLageGrunnlagsdata.FradragForEpsSomIkkeHarEPS -> throw IllegalStateException("Fradrag for EPS skulle ha vært fjernet.")
+                KunneIkkeLageGrunnlagsdata.FradragForEPSMenBosituasjonUtenEPS -> throw IllegalStateException("Fradrag for EPS skulle ha vært fjernet.")
                 KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon -> throw IllegalStateException("Bosituasjonsperioden har blitt satt feil sammenlignet med fradrag")
                 KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag -> throw IllegalStateException("Dette er metoden for å oppdatere bosituasjon. Vi har en implementasjonsfeil ved at fradrag blir lagt til uten bosituasjon")
                 is KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag -> throw IllegalStateException("Eneste endringen vi potensialt har gjort, er å fjerne fradrag for EPS")
@@ -2111,16 +2105,16 @@ enum class BehandlingsStatus {
     IVERKSATT_AVSLAG,
 }
 
-sealed class KunneIkkeIverksette {
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksette()
-    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksette()
-    object FantIkkeBehandling : KunneIkkeIverksette()
-    object FantIkkePerson : KunneIkkeIverksette()
-    object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeIverksette()
-    object KunneIkkeGenerereVedtaksbrev : KunneIkkeIverksette()
-    object AvkortingErUfullstendig : KunneIkkeIverksette()
-    object HarBlittAnnullertAvEnAnnen : KunneIkkeIverksette()
-    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksette()
+sealed interface KunneIkkeIverksette {
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksette
+    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksette
+    object FantIkkeBehandling : KunneIkkeIverksette
+    object KunneIkkeGenerereVedtaksbrev : KunneIkkeIverksette
+    object AvkortingErUfullstendig : KunneIkkeIverksette
+    object HarBlittAnnullertAvEnAnnen : KunneIkkeIverksette
+    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksette
+    object KunneIkkeOpprettePlanlagtKontrollsamtale : KunneIkkeIverksette
+    object LagringFeilet : KunneIkkeIverksette
 }
 
 // Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.

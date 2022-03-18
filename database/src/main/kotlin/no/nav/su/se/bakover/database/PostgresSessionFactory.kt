@@ -7,10 +7,15 @@ import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSessio
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import javax.sql.DataSource
 
-internal class PostgresSessionFactory(val dataSource: DataSource) : SessionFactory {
+internal class PostgresSessionFactory(
+    private val dataSource: DataSource,
+    private val dbMetrics: DbMetrics,
+    private val sessionCounter: SessionCounter,
+) : SessionFactory {
+
     /** Lager en ny context - starter ikke sesjonen */
-    internal fun newSessionContext(): PostgresSessionContext {
-        return PostgresSessionContext(dataSource)
+    override fun newSessionContext(): PostgresSessionContext {
+        return PostgresSessionContext(dataSource, dbMetrics, sessionCounter)
     }
 
     /** Lager en ny context og starter sesjonen - lukkes automatisk  */
@@ -37,8 +42,8 @@ internal class PostgresSessionFactory(val dataSource: DataSource) : SessionFacto
      * Merk: Man må kalle withTransaction {...} før man kaller withSession {...} hvis ikke får man en [IllegalStateException]
      * withSession {...} vil kjøre inne i den samme transaksjonen.
      * */
-    internal fun newTransactionContext(): PostgresTransactionContext {
-        return PostgresTransactionContext(dataSource)
+    override fun newTransactionContext(): PostgresTransactionContext {
+        return PostgresTransactionContext(dataSource, dbMetrics, sessionCounter)
     }
 
     /** Lager en ny context og starter sesjonen - lukkes automatisk  */

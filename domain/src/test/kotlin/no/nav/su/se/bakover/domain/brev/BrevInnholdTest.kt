@@ -11,8 +11,13 @@ import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevInnhold
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.LocalDate
 
 internal class BrevInnholdTest {
     private val personalia = BrevInnhold.Personalia(
@@ -209,5 +214,61 @@ internal class BrevInnholdTest {
         """.trimIndent()
 
         JSONAssert.assertEquals(expectedJson, objectMapper.writeValueAsString(opphørsvedtak), true)
+    }
+
+    @Test
+    fun `brev for forhåndsvarsel ingen tilbakekreving`() {
+        val forhåndsvarsel = LagBrevRequest.Forhåndsvarsel(
+            person = person(),
+            saksbehandlerNavn = "saks",
+            fritekst = "fri",
+            dagensDato = LocalDate.now(fixedClock),
+            saksnummer = saksnummer,
+        )
+
+        val expected = """
+            {
+                "personalia": {
+                    "dato": "01.01.2021",
+                    "fødselsnummer": "$fnr",
+                    "fornavn": "Tore",
+                    "etternavn": "Strømøy",
+                    "saksnummer": 12345676
+                },
+                "saksbehandlerNavn": "saks",
+                "fritekst": "fri",
+            }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(expected, objectMapper.writeValueAsString(forhåndsvarsel.brevInnhold), true)
+    }
+
+    @Test
+    fun `brev for forhåndsvarsel med tilbakekreving`() {
+        val forhåndsvarsel = LagBrevRequest.ForhåndsvarselTilbakekreving(
+            person = person(),
+            saksbehandlerNavn = "saks",
+            fritekst = "fri",
+            dagensDato = LocalDate.now(fixedClock),
+            saksnummer = saksnummer,
+            bruttoTilbakekreving = 5000,
+        )
+
+        val expected = """
+            {
+                "personalia": {
+                    "dato": "01.01.2021",
+                    "fødselsnummer": "$fnr",
+                    "fornavn": "Tore",
+                    "etternavn": "Strømøy",
+                    "saksnummer": 12345676
+                },
+                "saksbehandlerNavn": "saks",
+                "fritekst": "fri",
+                "bruttoTilbakekreving": 5000
+            }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(expected, objectMapper.writeValueAsString(forhåndsvarsel.brevInnhold), true)
     }
 }

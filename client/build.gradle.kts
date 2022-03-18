@@ -1,6 +1,6 @@
 val fuelVersion = "2.3.1"
-val tjenestespesifikasjonVersion = "2572.674c4b6"
-val cxfVersion = "3.5.0"
+val tjenestespesifikasjonVersion = "2574.025ecea"
+val cxfVersion = "3.5.1"
 
 dependencies {
     implementation(project(":common"))
@@ -14,6 +14,7 @@ dependencies {
 
     implementation("com.github.navikt.tjenestespesifikasjoner:nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon:$tjenestespesifikasjonVersion")
     implementation("com.github.navikt.tjenestespesifikasjoner:nav-system-os-simuler-fp-service-tjenestespesifikasjon:$tjenestespesifikasjonVersion")
+    implementation("com.github.navikt.tjenestespesifikasjoner:tilbakekreving-v1-tjenestespesifikasjon:$tjenestespesifikasjonVersion")
     implementation("org.apache.cxf:cxf-rt-features-logging:$cxfVersion")
     implementation("org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion")
     implementation("org.apache.cxf:cxf-rt-transports-http:$cxfVersion")

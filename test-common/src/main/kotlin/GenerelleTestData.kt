@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test
 
+import io.kotest.assertions.fail
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -18,6 +19,7 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalUnit
+import kotlin.concurrent.getOrSet
 
 /** Fixed UTC Clock at 2021-01-01T01:02:03.456789000Z */
 val fixedClock: Clock =
@@ -76,11 +78,12 @@ fun person(
 )
 
 val stønadsperiode2021 = Stønadsperiode.create(periode2021, "stønadsperiode2021")
+val stønadsperiode2022 = Stønadsperiode.create(periode2022, "stønadsperiode2022")
 
 val attestant = NavIdentBruker.Attestant("attestant")
 const val attestantNavn = "Att E. Stant"
 
-fun attesteringIverksatt(clock: Clock) = Attestering.Iverksatt(
+fun attesteringIverksatt(clock: Clock = fixedClock) = Attestering.Iverksatt(
     attestant = attestant,
     opprettet = Tidspunkt.now(clock),
 )
@@ -104,6 +107,31 @@ class TestSessionFactory : SessionFactory {
         }
     }
 
-    override fun <T> withSessionContext(action: (SessionContext) -> T) = action(sessionContext)
-    override fun <T> withTransactionContext(action: (TransactionContext) -> T) = action(transactionContext)
+    override fun <T> withSessionContext(action: (SessionContext) -> T): T =
+        SessionCounter().withCountSessions { action(sessionContext) }
+
+    override fun <T> withTransactionContext(action: (TransactionContext) -> T): T =
+        SessionCounter().withCountSessions { action(transactionContext) }
+
+    override fun newSessionContext() = sessionContext
+    override fun newTransactionContext() = transactionContext
+
+    // TODO jah: Denne er duplikat med den som ligger i database siden test-common ikke har en referanse til database-modulen.
+    private class SessionCounter {
+        private val activeSessionsPerThread: ThreadLocal<Int> = ThreadLocal()
+
+        fun <T> withCountSessions(action: () -> T): T {
+            return activeSessionsPerThread.getOrSet { 0 }.inc().let {
+                if (it > 1) {
+                    fail("Database sessions were over the threshold while running test.")
+                }
+                activeSessionsPerThread.set(it)
+                try {
+                    action()
+                } finally {
+                    activeSessionsPerThread.set(activeSessionsPerThread.getOrSet { 1 }.dec())
+                }
+            }
+        }
+    }
 }

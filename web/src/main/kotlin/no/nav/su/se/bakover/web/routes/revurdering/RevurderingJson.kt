@@ -118,6 +118,7 @@ internal data class SimulertRevurderingJson(
     val simulering: SimuleringJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val simuleringForAvkortingsvarsel: SimuleringJson?,
+    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
 ) : RevurderingJson()
 
 internal data class TilAttesteringJson(
@@ -138,6 +139,7 @@ internal data class TilAttesteringJson(
     val skalFøreTilBrevutsending: Boolean,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val simuleringForAvkortingsvarsel: SimuleringJson?,
+    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
 ) : RevurderingJson()
 
 internal data class IverksattRevurderingJson(
@@ -158,6 +160,7 @@ internal data class IverksattRevurderingJson(
     val skalFøreTilBrevutsending: Boolean,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val simuleringForAvkortingsvarsel: SimuleringJson?,
+    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
 ) : RevurderingJson()
 
 internal data class UnderkjentRevurderingJson(
@@ -178,6 +181,7 @@ internal data class UnderkjentRevurderingJson(
     val skalFøreTilBrevutsending: Boolean,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val simuleringForAvkortingsvarsel: SimuleringJson?,
+    val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
 ) : RevurderingJson()
 
 internal data class AvsluttetRevurderingJson(
@@ -270,6 +274,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             is SimulertRevurdering.Innvilget -> null
             is SimulertRevurdering.Opphørt -> avkorting.toJson()
         },
+        tilbakekrevingsbehandling = tilbakekrevingsbehandling.toJson(),
     )
     is RevurderingTilAttestering -> TilAttesteringJson(
         id = id.toString(),
@@ -304,6 +309,11 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             is RevurderingTilAttestering.Innvilget -> null
             is RevurderingTilAttestering.Opphørt -> avkorting.toJson()
         },
+        tilbakekrevingsbehandling = when (this) {
+            is RevurderingTilAttestering.IngenEndring -> null
+            is RevurderingTilAttestering.Innvilget -> tilbakekrevingsbehandling.toJson()
+            is RevurderingTilAttestering.Opphørt -> tilbakekrevingsbehandling.toJson()
+        },
     )
     is IverksattRevurdering -> IverksattRevurderingJson(
         id = id.toString(),
@@ -337,7 +347,12 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             is IverksattRevurdering.IngenEndring -> null
             is IverksattRevurdering.Innvilget -> null
             is IverksattRevurdering.Opphørt -> avkorting.toJson()
-        }
+        },
+        tilbakekrevingsbehandling = when (this) {
+            is IverksattRevurdering.IngenEndring -> null
+            is IverksattRevurdering.Innvilget -> tilbakekrevingsbehandling.toJson()
+            is IverksattRevurdering.Opphørt -> tilbakekrevingsbehandling.toJson()
+        },
     )
     is UnderkjentRevurdering -> UnderkjentRevurderingJson(
         id = id.toString(),
@@ -371,7 +386,12 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             is UnderkjentRevurdering.IngenEndring -> null
             is UnderkjentRevurdering.Innvilget -> null
             is UnderkjentRevurdering.Opphørt -> avkorting.toJson()
-        }
+        },
+        tilbakekrevingsbehandling = when (this) {
+            is UnderkjentRevurdering.IngenEndring -> null
+            is UnderkjentRevurdering.Innvilget -> tilbakekrevingsbehandling.toJson()
+            is UnderkjentRevurdering.Opphørt -> tilbakekrevingsbehandling.toJson()
+        },
     )
     is BeregnetRevurdering -> BeregnetRevurderingJson(
         id = id.toString(),

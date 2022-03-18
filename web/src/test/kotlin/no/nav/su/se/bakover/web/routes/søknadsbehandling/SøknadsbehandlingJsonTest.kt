@@ -95,7 +95,6 @@ internal class SøknadsbehandlingJsonTest {
           "attesteringer" : [{ "attestant" : "kjella", "underkjennelse":  null, "opprettet": "${Tidspunkt.EPOCH}"}],
           "saksbehandler" : "pro-saksbehandler",
           "sakId": "$sakId",
-          "hendelser": [],
           "stønadsperiode": {
             "periode": {
               "fraOgMed": "2021-01-01",
@@ -181,7 +180,6 @@ internal class SøknadsbehandlingJsonTest {
           "attesteringer": [],
           "saksbehandler": null,
           "sakId": "$sakId",
-          "hendelser": [],
           "stønadsperiode": null,
           "grunnlagsdataOgVilkårsvurderinger": {
             "uføre": null,

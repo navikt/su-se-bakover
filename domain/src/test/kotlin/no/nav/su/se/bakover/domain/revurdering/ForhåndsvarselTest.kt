@@ -3,8 +3,13 @@ package no.nav.su.se.bakover.domain.revurdering
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 internal class ForhåndsvarselTest {
 
@@ -44,6 +49,24 @@ internal class ForhåndsvarselTest {
                 til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget::class,
             ).left()
         }
+
+        @Test
+        fun `kan lage forhåndsvarsel`() {
+            simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(forhåndsvarsel = null).let { (_, simulert) ->
+                simulert.lagForhåndsvarsel(
+                    person = person(),
+                    saksbehandlerNavn = "saks",
+                    fritekst = "fri",
+                    clock = fixedClock,
+                ) shouldBe LagBrevRequest.Forhåndsvarsel(
+                    person = person(),
+                    saksbehandlerNavn = "saks",
+                    fritekst = "fri",
+                    dagensDato = LocalDate.now(fixedClock),
+                    saksnummer = simulert.saksnummer,
+                ).right()
+            }
+        }
     }
 
     @Nested
@@ -81,6 +104,24 @@ internal class ForhåndsvarselTest {
                 fra = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles::class,
                 til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget::class,
             ).left()
+        }
+
+        @Test
+        fun `kan lage forhåndsvarsel`() {
+            simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles).let { (_, simulert) ->
+                simulert.lagForhåndsvarsel(
+                    person = person(),
+                    saksbehandlerNavn = "saks",
+                    fritekst = "fri",
+                    clock = fixedClock,
+                ) shouldBe LagBrevRequest.Forhåndsvarsel(
+                    person = person(),
+                    saksbehandlerNavn = "saks",
+                    fritekst = "fri",
+                    dagensDato = LocalDate.now(fixedClock),
+                    saksnummer = simulert.saksnummer,
+                ).right()
+            }
         }
     }
 
@@ -122,6 +163,21 @@ internal class ForhåndsvarselTest {
             Forhåndsvarsel.UnderBehandling.Sendt.prøvOvergangTilEndreGrunnlaget("i") shouldBe Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget(
                 "i",
             ).right()
+        }
+
+        @Test
+        fun `kan ikke lage forhåndsvarsel`() {
+            simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(forhåndsvarsel = Forhåndsvarsel.UnderBehandling.Sendt).let { (_, simulert) ->
+                simulert.lagForhåndsvarsel(
+                    person = person(),
+                    saksbehandlerNavn = "saks",
+                    fritekst = "fri",
+                    clock = fixedClock,
+                ) shouldBe Forhåndsvarsel.UgyldigTilstandsovergang(
+                    Forhåndsvarsel.UnderBehandling.Sendt::class,
+                    Forhåndsvarsel.UnderBehandling.Sendt::class,
+                ).left()
+            }
         }
     }
 

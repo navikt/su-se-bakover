@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.vedtak.VedtakType
-import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -40,22 +39,20 @@ import no.nav.su.se.bakover.domain.regulering.VedtakType.REGULERING
 import no.nav.su.se.bakover.domain.regulering.VedtakType.STANS_AV_YTELSE
 import no.nav.su.se.bakover.domain.regulering.VedtakType.SØKNAD
 import java.util.UUID
-import javax.sql.DataSource
 
 // TODO Vurdere om vi skal lage et felles repo for alle grunnlag, så vi slipper å sende inn alle sammen
 internal class ReguleringPostgresRepo(
-    private val dataSource: DataSource,
-    private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
     private val sessionFactory: PostgresSessionFactory,
+    private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
 ) : ReguleringRepo {
     override fun hent(id: UUID): Regulering? {
-        return dataSource.withSession { session ->
+        return sessionFactory.withSession { session ->
             hent(id, session)
         }
     }
 
     override fun hentReguleringerSomIkkeErIverksatt(): List<Regulering.OpprettetRegulering> =
-        dataSource.withSession { session ->
+        sessionFactory.withSession { session ->
             """ select * from regulering r left join sak s on r.sakid = s.id
                 where reguleringstatus = :reguleringstatus
             """.trimIndent().hentListe(

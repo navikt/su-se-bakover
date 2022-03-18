@@ -215,7 +215,7 @@ internal class IverksettAvvistKlageTest {
         mocks.service.iverksettAvvistKlage(
             klageId = klage.id,
             attestant = NavIdentBruker.Attestant("attestant"),
-        ) shouldBe KunneIkkeIverksetteAvvistKlage.UgyldigTilstand(klage::class, IverksattAvvistKlage::class).left()
+        ) shouldBe KunneIkkeIverksetteAvvistKlage.UgyldigTilstand(klage::class).left()
 
         Mockito.verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
@@ -253,16 +253,8 @@ internal class IverksettAvvistKlageTest {
 
         val actual = mocks.service.iverksettAvvistKlage(klage.id, attestant).getOrFail()
 
-        val expected = IverksattAvvistKlage.create(
-            id = klage.id,
-            opprettet = klage.opprettet,
-            sakId = klage.sakId,
-            saksnummer = klage.saksnummer,
-            fnr = klage.fnr,
-            journalpostId = klage.journalpostId,
-            oppgaveId = klage.oppgaveId,
-            saksbehandler = klage.saksbehandler,
-            vilkårsvurderinger = klage.vilkårsvurderinger,
+        val expected = IverksattAvvistKlage(
+            forrigeSteg = klage,
             attesteringer = Attesteringshistorikk.create(
                 listOf(
                     Attestering.Iverksatt(
@@ -271,8 +263,6 @@ internal class IverksettAvvistKlageTest {
                     ),
                 ),
             ),
-            datoKlageMottatt = klage.datoKlageMottatt,
-            fritekstTilBrev = klage.fritekstTilBrev,
         )
 
         actual shouldBe expected

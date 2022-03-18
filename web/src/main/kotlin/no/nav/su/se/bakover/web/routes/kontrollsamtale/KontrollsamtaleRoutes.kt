@@ -34,7 +34,6 @@ internal fun Route.kontrollsamtaleRoutes(
                     {
                         call.svar(
                             when (it) {
-                                KunneIkkeSetteNyDatoForKontrollsamtale.KunneIkkeEndreDato -> Feilresponser.kunneIkkeEndreDato
                                 KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeGjeldendeStønadsperiode -> Feilresponser.fantIkkeGjeldendeStønadsperiode
                                 KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeSak -> Feilresponser.fantIkkeSak
                                 KunneIkkeSetteNyDatoForKontrollsamtale.UgyldigStatusovergang -> Feilresponser.ugyldigStatusovergangKontrollsamtale

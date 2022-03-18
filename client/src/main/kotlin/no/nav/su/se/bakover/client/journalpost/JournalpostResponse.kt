@@ -13,18 +13,21 @@ import no.nav.su.se.bakover.domain.journalpost.Tema
 internal data class JournalpostResponse(
     val journalpost: Journalpost?,
 ) {
-    fun toValidertJournalpost(saksnummer: Saksnummer): Either<KunneIkkeHenteJournalpost, FerdigstiltJournalpost> {
+    /**
+     * Denne flyten er skreddersydd for å hente innkommende, journalførte dokumenter som tilhører SUP.
+     */
+    fun toValidertInnkommendeJournalførtJournalpost(saksnummer: Saksnummer): Either<KunneIkkeHenteJournalpost, FerdigstiltJournalpost> {
         if (journalpost == null) {
             return KunneIkkeHenteJournalpost.FantIkkeJournalpost.left()
         }
         if (journalpost.tema == null || journalpost.tema != Tema.SUP.toString()) {
             return KunneIkkeHenteJournalpost.JournalpostTemaErIkkeSUP.left()
         }
-        if (journalpost.journalposttype == null || journalpost.journalposttype != JournalpostType.UTGÅENDE_DOKUMENT.value) {
-            return KunneIkkeHenteJournalpost.JournalpostenErIkkeEtUtgåendeDokument.left()
+        if (journalpost.journalposttype == null || journalpost.journalposttype != JournalpostType.INNKOMMENDE_DOKUMENT.value) {
+            return KunneIkkeHenteJournalpost.JournalpostenErIkkeEtInnkommendeDokument.left()
         }
 
-        if (journalpost.journalstatus == null || journalpost.journalstatus != JournalpostStatus.FERDIGSTILT.toString()) {
+        if (journalpost.journalstatus == null || journalpost.journalstatus != JournalpostStatus.JOURNALFOERT.toString()) {
             return KunneIkkeHenteJournalpost.JournalpostenErIkkeFerdigstilt.left()
         }
 

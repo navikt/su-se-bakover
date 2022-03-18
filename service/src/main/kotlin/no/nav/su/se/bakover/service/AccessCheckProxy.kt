@@ -56,6 +56,9 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -68,6 +71,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
@@ -96,7 +100,6 @@ import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtale
-import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeKalleInnTilKontrollsamtale
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -124,9 +127,10 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurd
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilGrunnlag
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereTilbakekrevingsbehandling
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse
@@ -134,6 +138,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjongrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilFormuegrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
+import no.nav.su.se.bakover.service.revurdering.OppdaterTilbakekrevingsbehandlingRequest
 import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -155,6 +160,7 @@ import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
@@ -169,7 +175,6 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import java.time.LocalDate
@@ -509,7 +514,7 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.oppdaterStønadsperiode(request)
                 }
 
-                override fun leggTilUførevilkår(request: LeggTilUførevilkårRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
+                override fun leggTilUførevilkår(request: LeggTilUførevurderingerRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.leggTilUførevilkår(request)
                 }
@@ -640,6 +645,11 @@ open class AccessCheckProxy(
                     return services.revurdering.sendTilAttestering(request)
                 }
 
+                override fun oppdaterTilbakekrevingsbehandling(request: OppdaterTilbakekrevingsbehandlingRequest): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, SimulertRevurdering> {
+                    assertHarTilgangTilRevurdering(request.revurderingId)
+                    return services.revurdering.oppdaterTilbakekrevingsbehandling(request)
+                }
+
                 override fun lagBrevutkastForRevurdering(
                     revurderingId: UUID,
                     fritekst: String?,
@@ -669,11 +679,11 @@ open class AccessCheckProxy(
                     return services.revurdering.fortsettEtterForhåndsvarsling(request)
                 }
 
-                override fun leggTilUføregrunnlag(
+                override fun leggTilUførevilkår(
                     request: LeggTilUførevurderingerRequest,
-                ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse> {
+                ): Either<KunneIkkeLeggeTilUføreVilkår, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.behandlingId)
-                    return services.revurdering.leggTilUføregrunnlag(request)
+                    return services.revurdering.leggTilUførevilkår(request)
                 }
 
                 override fun leggTilUtenlandsopphold(
@@ -733,6 +743,10 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
+                override fun hentForRevurderingId(revurderingId: UUID): Vedtak? {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun hentJournalpostId(vedtakId: UUID): JournalpostId? {
                     kastKanKunKallesFraAnnenService()
                 }
@@ -745,6 +759,10 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     fraOgMed: LocalDate,
                 ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes? {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -775,7 +793,10 @@ open class AccessCheckProxy(
                     return services.kontrollsamtale.nyDato(sakId, dato)
                 }
 
-                override fun hentNestePlanlagteKontrollsamtale(sakId: UUID): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale> {
+                override fun hentNestePlanlagteKontrollsamtale(
+                    sakId: UUID,
+                    sessionContext: SessionContext,
+                ): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale> {
                     assertHarTilgangTilSak(sakId)
                     return services.kontrollsamtale.hentNestePlanlagteKontrollsamtale(sakId)
                 }
@@ -783,21 +804,21 @@ open class AccessCheckProxy(
                 override fun kallInn(
                     sakId: UUID,
                     kontrollsamtale: Kontrollsamtale,
-                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> = kastKanKunKallesFraAnnenService()
+                    transactionContext: TransactionContext,
+                ) = kastKanKunKallesFraAnnenService()
 
-                override fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> =
+                override fun hentPlanlagteKontrollsamtaler(sessionContext: SessionContext) =
                     kastKanKunKallesFraAnnenService()
 
                 override fun opprettPlanlagtKontrollsamtale(
                     vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
-                    transactionContext: TransactionContext,
-                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> = kastKanKunKallesFraAnnenService()
+                    sessionContext: SessionContext,
+                ) = kastKanKunKallesFraAnnenService()
 
-                override fun annullerKontrollsamtale(
-                    sakId: UUID,
-                    transactionContext: TransactionContext,
-                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> =
+                override fun annullerKontrollsamtale(sakId: UUID, sessionContext: SessionContext) =
                     kastKanKunKallesFraAnnenService()
+
+                override fun defaultSessionContext() = services.kontrollsamtale.defaultSessionContext()
             },
             klageService = object : KlageService {
                 override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
@@ -919,6 +940,27 @@ open class AccessCheckProxy(
 
                 override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
                     return hentSakerMedÅpenBehandlingEllerStans()
+                }
+            },
+            tilbakekrevingService = object : TilbakekrevingService {
+                override fun lagre(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun sendTilbakekrevingsvedtak(mapper: (RåttKravgrunnlag) -> Kravgrunnlag) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentAvventerKravgrunnlag(utbetalingId: UUID30): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag? {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
+                    kastKanKunKallesFraAnnenService()
                 }
             },
         )

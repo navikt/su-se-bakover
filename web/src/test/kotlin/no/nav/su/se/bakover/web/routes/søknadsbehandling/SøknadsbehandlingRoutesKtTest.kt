@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldContainAll
@@ -60,6 +61,7 @@ import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
@@ -99,7 +101,10 @@ internal class SøknadsbehandlingRoutesKtTest {
         clock = fixedClock,
     )
 
-    private fun services(databaseRepos: DatabaseRepos, clients: Clients = TestClientsBuilder(fixedClock, databaseRepos).build(applicationConfig)) =
+    private fun services(
+        databaseRepos: DatabaseRepos,
+        clients: Clients = TestClientsBuilder(fixedClock, databaseRepos).build(applicationConfig),
+    ) =
         ServiceBuilder.build(
             databaseRepos = databaseRepos,
             clients = clients,
@@ -838,7 +843,6 @@ internal class SøknadsbehandlingRoutesKtTest {
             sakId = sak.id,
             søknad = søknadMedOppgave,
             oppgaveId = OppgaveId("1234"),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = sak.fnr,
             avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
         )
@@ -876,13 +880,18 @@ internal class SøknadsbehandlingRoutesKtTest {
 
         val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
         services.søknadsbehandling.leggTilUførevilkår(
-            LeggTilUførevilkårRequest(
+            LeggTilUførevurderingerRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                periode = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.periode,
-                uføregrad = Uføregrad.parse(100),
-                forventetInntekt = 0,
-                oppfylt = UførevilkårStatus.VilkårOppfylt,
-                begrunnelse = "Må få være ufør vel",
+                vurderinger = nonEmptyListOf(
+                    LeggTilUførevilkårRequest(
+                        behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                        periode = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.periode,
+                        uføregrad = Uføregrad.parse(100),
+                        forventetInntekt = 0,
+                        oppfylt = UførevilkårStatus.VilkårOppfylt,
+                        begrunnelse = "Må få være ufør vel",
+                    ),
+                ),
             ),
         )
         services.søknadsbehandling.leggTilUtenlandsopphold(
@@ -891,7 +900,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 periode = periode2021,
                 status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                 begrunnelse = "Skal være her hele tiden",
-            )
+            ),
         )
         services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(
@@ -920,8 +929,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                             pengerSkyldt = 0,
                             kontanter = 0,
                             depositumskonto = 0,
-                        )
-                    )
+                        ),
+                    ),
                 ),
             ),
         )

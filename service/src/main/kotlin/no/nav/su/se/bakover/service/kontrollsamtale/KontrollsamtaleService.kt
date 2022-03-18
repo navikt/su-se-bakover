@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.service.kontrollsamtale
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import arrow.core.rightIfNotNull
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Person
@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
+import no.nav.su.se.bakover.domain.kontrollsamtale.UgyldigStatusovergang
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -30,12 +31,30 @@ import java.time.LocalDate
 import java.util.UUID
 
 interface KontrollsamtaleService {
-    fun kallInn(sakId: UUID, kontrollsamtale: Kontrollsamtale): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit>
+    fun kallInn(
+        sakId: UUID,
+        kontrollsamtale: Kontrollsamtale,
+        transactionContext: TransactionContext,
+    ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit>
+
     fun nyDato(sakId: UUID, dato: LocalDate): Either<KunneIkkeSetteNyDatoForKontrollsamtale, Unit>
-    fun hentNestePlanlagteKontrollsamtale(sakId: UUID): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale>
-    fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>>
-    fun opprettPlanlagtKontrollsamtale(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, transactionContext: TransactionContext): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale>
-    fun annullerKontrollsamtale(sakId: UUID, transactionContext: TransactionContext): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit>
+    fun hentNestePlanlagteKontrollsamtale(
+        sakId: UUID,
+        sessionContext: SessionContext = defaultSessionContext(),
+    ): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale>
+
+    fun hentPlanlagteKontrollsamtaler(sessionContext: SessionContext = defaultSessionContext()): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>>
+    fun opprettPlanlagtKontrollsamtale(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
+        sessionContext: SessionContext,
+    ): OpprettPlanlagtKontrollsamtaleResultat
+
+    fun annullerKontrollsamtale(
+        sakId: UUID,
+        sessionContext: SessionContext,
+    ): Either<UgyldigStatusovergang, AnnulerKontrollsamtaleResultat>
+
+    fun defaultSessionContext(): SessionContext
 }
 
 class KontrollsamtaleServiceImpl(
@@ -51,6 +70,7 @@ class KontrollsamtaleServiceImpl(
     override fun kallInn(
         sakId: UUID,
         kontrollsamtale: Kontrollsamtale,
+        transactionContext: TransactionContext,
     ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> {
         val sak = sakService.hentSak(sakId).getOrElse {
             log.error("Fant ikke sak for sakId $sakId")
@@ -73,29 +93,26 @@ class KontrollsamtaleServiceImpl(
         }
 
         return Either.catch {
-            sessionFactory.withTransactionContext { tx ->
-                brevService.lagreDokument(dokument, tx)
-                kontrollsamtaleRepo.lagre(
-                    kontrollsamtale = kontrollsamtale.settInnkalt().getOrElse {
-                        throw RuntimeException("Kontrollsamtale er i ugyldig tilstand for å bli satt til innkalt")
-                    },
-                    transactionContext = tx,
-                )
-                Kontrollsamtale.opprettNyKontrollsamtale(gjeldendeStønadsperiode, sakId, clock).map {
-                    kontrollsamtaleRepo.lagre(it, tx)
+            brevService.lagreDokument(dokument, transactionContext)
+            kontrollsamtaleRepo.lagre(
+                kontrollsamtale = kontrollsamtale.settInnkalt(dokument.id).getOrElse {
+                    throw RuntimeException("Kontrollsamtale er i ugyldig tilstand for å bli satt til innkalt")
+                },
+                sessionContext = transactionContext,
+            )
+            Kontrollsamtale.opprettNyKontrollsamtale(gjeldendeStønadsperiode, sakId, clock).map {
+                kontrollsamtaleRepo.lagre(it, transactionContext)
+            }
+            oppgaveService.opprettOppgaveMedSystembruker(
+                config = OppgaveConfig.Kontrollsamtale(
+                    saksnummer = sak.saksnummer,
+                    aktørId = person.ident.aktørId,
+                    clock = clock,
+                ),
+            ).getOrElse {
+                throw RuntimeException("Fikk ikke opprettet oppgave").also {
+                    log.error("Fikk ikke opprettet oppgave")
                 }
-                oppgaveService.opprettOppgaveMedSystembruker(
-                    config = OppgaveConfig.Kontrollsamtale(
-                        saksnummer = sak.saksnummer,
-                        aktørId = person.ident.aktørId,
-                        clock = clock,
-                    ),
-                )
-                    .getOrElse {
-                        throw RuntimeException("Fikk ikke opprettet oppgave").also {
-                            log.error("Fikk ikke opprettet oppgave")
-                        }
-                    }
             }
         }.fold(
             ifLeft = {
@@ -138,60 +155,65 @@ class KontrollsamtaleServiceImpl(
         )
     }
 
-    override fun hentNestePlanlagteKontrollsamtale(sakId: UUID): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale> {
-        val samtaler = kontrollsamtaleRepo.hentForSakId(sakId).sortedBy { it.innkallingsdato }
+    override fun hentNestePlanlagteKontrollsamtale(
+        sakId: UUID,
+        sessionContext: SessionContext,
+    ): Either<KunneIkkeHenteKontrollsamtale.FantIkkeKontrollsamtale, Kontrollsamtale> {
+        val samtaler = kontrollsamtaleRepo.hentForSakId(sakId, sessionContext).sortedBy { it.innkallingsdato }
         return samtaler.find { it.status === Kontrollsamtalestatus.PLANLAGT_INNKALLING }?.right()
             ?: KunneIkkeHenteKontrollsamtale.FantIkkeKontrollsamtale.left()
     }
 
-    override fun hentPlanlagteKontrollsamtaler(): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> =
-        Either.catch { kontrollsamtaleRepo.hentAllePlanlagte(LocalDate.now(clock)) }.mapLeft {
+    override fun hentPlanlagteKontrollsamtaler(sessionContext: SessionContext): Either<KunneIkkeHenteKontrollsamtale, List<Kontrollsamtale>> =
+        Either.catch { kontrollsamtaleRepo.hentAllePlanlagte(LocalDate.now(clock), sessionContext) }.mapLeft {
             log.error("Kunne ikke hente planlagte kontrollsamtaler før ${LocalDate.now(clock)}", it)
             return KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler.left()
         }
 
-    override fun opprettPlanlagtKontrollsamtale(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, transactionContext: TransactionContext): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> {
-        val planlagtKontrollsamtaleEksisterer = hentNestePlanlagteKontrollsamtale(vedtak.behandling.sakId).isRight()
-
-        return if (planlagtKontrollsamtaleEksisterer) {
-            KunneIkkeKalleInnTilKontrollsamtale.PlanlagtKontrollsamtaleFinnesAllerede.left()
-        } else
-            Kontrollsamtale.opprettNyKontrollsamtaleFraVedtak(vedtak, clock).map {
-                kontrollsamtaleRepo.lagre(it, transactionContext)
-                it
-            }.mapLeft {
-                KunneIkkeKalleInnTilKontrollsamtale.SkalIkkePlanleggeKontrollsamtale
-            }
-    }
-
-    override fun annullerKontrollsamtale(sakId: UUID, transactionContext: TransactionContext): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> =
-        hentNestePlanlagteKontrollsamtale(sakId).mapLeft {
-            log.info("Fant ingen planlagt kontrollsamtale for sakId $sakId")
-            KunneIkkeKalleInnTilKontrollsamtale.FantIkkeKontrollsamtale
-        }.flatMap {
-            it.annuller().map { annullertKontrollSamtale ->
-                kontrollsamtaleRepo.lagre(annullertKontrollSamtale, transactionContext)
-            }.mapLeft {
-                KunneIkkeKalleInnTilKontrollsamtale.UgyldigStatusovergang
-            }
-        }
-
-    private fun lagreInnkallingTilKontrollsamtale(
-        kontrollsamtale: Kontrollsamtale,
-        transactionContext: TransactionContext,
-    ): Either<KunneIkkeKalleInnTilKontrollsamtale, Kontrollsamtale> =
-        Either.catch {
-            kontrollsamtaleRepo.lagre(kontrollsamtale, transactionContext)
-        }.fold(
-            ifLeft = {
-                log.error("Fikk ikke opprettet inkalling til ny kontrollsamtale for sakId ${kontrollsamtale.sakId}")
-                KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeLagreKontrollsamtale.left()
+    override fun opprettPlanlagtKontrollsamtale(
+        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
+        sessionContext: SessionContext,
+    ): OpprettPlanlagtKontrollsamtaleResultat {
+        return hentNestePlanlagteKontrollsamtale(vedtak.behandling.sakId, sessionContext).fold(
+            {
+                Kontrollsamtale.opprettNyKontrollsamtaleFraVedtak(vedtak, clock).fold(
+                    {
+                        log.info("Skal ikke planlegge kontrollsamtale for sak ${vedtak.behandling.sakId} og vedtak ${vedtak.id}")
+                        OpprettPlanlagtKontrollsamtaleResultat.SkalIkkePlanleggeKontrollsamtale
+                    },
+                    {
+                        log.info("Opprettet planlagt kontrollsamtale $it for vedtak ${vedtak.id}")
+                        kontrollsamtaleRepo.lagre(it, sessionContext)
+                        OpprettPlanlagtKontrollsamtaleResultat.Opprettet(it)
+                    },
+                )
             },
-            ifRight = {
-                log.info("Opprettet ny kontrollsamtale for sakId ${kontrollsamtale.sakId}")
-                kontrollsamtale.right()
+            {
+                log.info("Planlagt kontrollsamtale finnes allerede for sak ${vedtak.behandling.sakId} og vedtak ${vedtak.id}")
+                OpprettPlanlagtKontrollsamtaleResultat.PlanlagtKontrollsamtaleFinnesAllerede(it)
             },
         )
+    }
+
+    override fun annullerKontrollsamtale(
+        sakId: UUID,
+        sessionContext: SessionContext,
+    ): Either<UgyldigStatusovergang, AnnulerKontrollsamtaleResultat> {
+        return hentNestePlanlagteKontrollsamtale(sakId, sessionContext).fold(
+            {
+                log.info("Fant ingen planlagt kontrollsamtale for sakId $sakId")
+                AnnulerKontrollsamtaleResultat.IngenKontrollsamtaleÅAnnulere.right()
+            },
+            {
+                it.annuller().map { annullertKontrollSamtale ->
+                    kontrollsamtaleRepo.lagre(annullertKontrollSamtale, sessionContext)
+                    AnnulerKontrollsamtaleResultat.AnnulertKontrollsamtale(annullertKontrollSamtale)
+                }.mapLeft {
+                    UgyldigStatusovergang
+                }
+            },
+        )
+    }
 
     private fun lagDokument(
         person: Person,
@@ -217,11 +239,12 @@ class KontrollsamtaleServiceImpl(
             )
         }
     }
+
+    override fun defaultSessionContext(): SessionContext = sessionFactory.newSessionContext()
 }
 
 sealed interface KunneIkkeSetteNyDatoForKontrollsamtale {
     object FantIkkeSak : KunneIkkeSetteNyDatoForKontrollsamtale
-    object KunneIkkeEndreDato : KunneIkkeSetteNyDatoForKontrollsamtale
     object UgyldigStatusovergang : KunneIkkeSetteNyDatoForKontrollsamtale
     object FantIkkeGjeldendeStønadsperiode : KunneIkkeSetteNyDatoForKontrollsamtale
 }
@@ -230,17 +253,24 @@ sealed interface KunneIkkeKalleInnTilKontrollsamtale {
     object FantIkkeSak : KunneIkkeKalleInnTilKontrollsamtale
     object FantIkkePerson : KunneIkkeKalleInnTilKontrollsamtale
     object KunneIkkeGenerereDokument : KunneIkkeKalleInnTilKontrollsamtale
-    object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeKalleInnTilKontrollsamtale
     object KunneIkkeKalleInn : KunneIkkeKalleInnTilKontrollsamtale
     object FantIkkeGjeldendeStønadsperiode : KunneIkkeKalleInnTilKontrollsamtale
-    object KunneIkkeLagreKontrollsamtale : KunneIkkeKalleInnTilKontrollsamtale
-    object FantIkkeKontrollsamtale : KunneIkkeKalleInnTilKontrollsamtale
-    object SkalIkkePlanleggeKontrollsamtale : KunneIkkeKalleInnTilKontrollsamtale
-    object PlanlagtKontrollsamtaleFinnesAllerede : KunneIkkeKalleInnTilKontrollsamtale
-    object UgyldigStatusovergang : KunneIkkeKalleInnTilKontrollsamtale
 }
 
 sealed interface KunneIkkeHenteKontrollsamtale {
     object FantIkkeKontrollsamtale : KunneIkkeHenteKontrollsamtale
     object KunneIkkeHenteKontrollsamtaler : KunneIkkeHenteKontrollsamtale
+}
+
+sealed interface OpprettPlanlagtKontrollsamtaleResultat {
+    data class Opprettet(val kontrollsamtale: Kontrollsamtale) : OpprettPlanlagtKontrollsamtaleResultat
+    data class PlanlagtKontrollsamtaleFinnesAllerede(val kontrollsamtale: Kontrollsamtale) :
+        OpprettPlanlagtKontrollsamtaleResultat
+
+    object SkalIkkePlanleggeKontrollsamtale : OpprettPlanlagtKontrollsamtaleResultat
+}
+
+sealed interface AnnulerKontrollsamtaleResultat {
+    object IngenKontrollsamtaleÅAnnulere : AnnulerKontrollsamtaleResultat
+    data class AnnulertKontrollsamtale(val kontrollsamtale: Kontrollsamtale) : AnnulerKontrollsamtaleResultat
 }

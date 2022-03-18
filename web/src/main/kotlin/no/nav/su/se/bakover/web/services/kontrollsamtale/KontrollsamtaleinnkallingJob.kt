@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.services.kontrollsamtale
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.web.services.erLeaderPod
@@ -18,6 +19,7 @@ class KontrollsamtaleinnkallingJob(
     private val kontrollsamtaleService: KontrollsamtaleService,
     private val starttidspunkt: Date,
     private val periode: Duration,
+    private val sessionFactory: SessionFactory,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -38,7 +40,9 @@ class KontrollsamtaleinnkallingJob(
                 if (leaderPodLookup.erLeaderPod(hostname = hostName)) {
                     kontrollsamtaleService.hentPlanlagteKontrollsamtaler().map { kontrollsamtaler ->
                         kontrollsamtaler.forEach {
-                            kontrollsamtaleService.kallInn(it.sakId, it)
+                            // En kan se på hver kontrollsamtale som isolert fra hverandre.
+                            // Vi ønsker ikke rulle tilbakealle kontrollsamtalene dersom en feiler.
+                            kontrollsamtaleService.kallInn(it.sakId, it, sessionFactory.newTransactionContext())
                         }
                     }
                 }

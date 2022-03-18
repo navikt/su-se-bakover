@@ -83,5 +83,17 @@ internal fun KunneIkkeSendeRevurderingTilAttestering.tilResultat(): Resultat {
             "Forhåndsvarsling er ikke ferdigbehandlet",
             "forhåndsvarsling_er_ikke_ferdigbehandlet",
         )
+        KunneIkkeSendeRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig -> {
+            BadRequest.errorJson(
+                message = "Behandling av tilbakekreving er ikke fullstendig og må fullføres først.",
+                code = "tilbakekrevingsbehandling_er_ikke_fullstendig",
+            )
+        }
+        is KunneIkkeSendeRevurderingTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> {
+            BadRequest.errorJson(
+                message = "Iverksatt revurdering:${this.revurderingId} har åpent kravgrunnlag for tilbakekreving. Tilbakekrevingsvedtak må fattes før ny revurdering kan gjennomføres.",
+                code = "åpent_kravgrunnlag_må_håndteres_før_ny_revurdering",
+            )
+        }
     }
 }

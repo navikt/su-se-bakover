@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.grunnlag
 
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hent
@@ -11,25 +12,31 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
 import java.util.UUID
 
-internal class UtenlandsoppholdgrunnlagPostgresRepo {
+internal class UtenlandsoppholdgrunnlagPostgresRepo(
+    private val dbMetrics: DbMetrics,
+) {
 
     internal fun lagre(behandlingId: UUID, grunnlag: List<Utenlandsoppholdgrunnlag>, tx: TransactionalSession) {
-        slettForBehandlingId(behandlingId, tx)
-        grunnlag.forEach {
-            lagre(it, behandlingId, tx)
+        dbMetrics.timeQuery("lagreUtenlandsoppholdgrunnlag") {
+            slettForBehandlingId(behandlingId, tx)
+            grunnlag.forEach {
+                lagre(it, behandlingId, tx)
+            }
         }
     }
 
-    internal fun hentForUtenlandsoppholdgrunnlagId(id: UUID, session: Session): Utenlandsoppholdgrunnlag? {
-        return """ select * from grunnlag_utland where id=:id""".trimIndent()
-            .hent(
-                mapOf(
-                    "id" to id,
-                ),
-                session,
-            ) {
-                it.toUtenlandsoppholdgrunnlag()
-            }
+    internal fun hent(id: UUID, session: Session): Utenlandsoppholdgrunnlag? {
+        return dbMetrics.timeQuery("hentUtenlandsoppholdgrunnlag") {
+            """select * from grunnlag_utland where id=:id""".trimIndent()
+                .hent(
+                    mapOf(
+                        "id" to id,
+                    ),
+                    session,
+                ) {
+                    it.toUtenlandsoppholdgrunnlag()
+                }
+        }
     }
 
     private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {

@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -15,7 +14,6 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.attesteringUnderkjent
@@ -285,96 +283,6 @@ internal class RevurderingIngenEndringTest {
             verify(revurderingRepoMock).defaultTransactionContext()
             verify(revurderingRepoMock).lagre(any(), anyOrNull())
             verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
-    fun `iverksetter revurdering som ikke fører til endring i ytelse svarer med feil hvis vi ikke kan hente person`() {
-        val (_, revurderingTilAttestering) = tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
-            skalFøreTilBrevutsending = true,
-        )
-
-        RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn revurderingTilAttestering
-            },
-            brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
-            },
-        ).let {
-
-            it.revurderingService.iverksett(
-                revurderingId,
-                attestant,
-            ) shouldBe KunneIkkeIverksetteRevurdering.FantIkkePerson.left()
-
-            inOrder(
-                *it.all(),
-            ) {
-                verify(it.revurderingRepo).hent(revurderingTilAttestering.id)
-                verify(it.brevService).lagDokument(any())
-                verifyNoMoreInteractions()
-            }
-        }
-    }
-
-    @Test
-    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
-    fun `iverksetter revurdering som ikke fører til endring i ytelse svarer med feil hvis vi ikke kan hente gjeldende utbetaling`() {
-        val (_, revurderingTilAttestering) = tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
-            skalFøreTilBrevutsending = true,
-        )
-
-        RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn revurderingTilAttestering
-            },
-            brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling.left()
-            },
-        ).let {
-            it.revurderingService.iverksett(
-                revurderingId,
-                attestant,
-            ) shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling.left()
-
-            inOrder(
-                *it.all(),
-            ) {
-                verify(it.revurderingRepo).hent(revurderingTilAttestering.id)
-                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<VedtakSomKanRevurderes.IngenEndringIYtelse>() })
-                verifyNoMoreInteractions()
-            }
-        }
-    }
-
-    @Test
-    fun `iverksetter revurdering som ikke fører til endring i ytelse svarer med feil hvis generering av brev feiler`() {
-        val (_, revurderingTilAttestering) = tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
-            skalFøreTilBrevutsending = true,
-        )
-
-        RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn revurderingTilAttestering
-            },
-            brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
-            },
-        ).let {
-            it.revurderingService.iverksett(
-                revurderingId,
-                attestant,
-            ) shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeGenerereBrev.left()
-
-            inOrder(
-                *it.all(),
-            ) {
-                verify(it.revurderingRepo).hent(revurderingTilAttestering.id)
-                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<VedtakSomKanRevurderes.IngenEndringIYtelse>() })
-                verifyNoMoreInteractions()
-            }
         }
     }
 }

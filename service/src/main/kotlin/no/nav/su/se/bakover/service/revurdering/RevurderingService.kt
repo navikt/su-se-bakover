@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -90,6 +91,10 @@ interface RevurderingService {
         request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
 
+    fun oppdaterTilbakekrevingsbehandling(
+        request: OppdaterTilbakekrevingsbehandlingRequest,
+    ): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, SimulertRevurdering>
+
     fun lagBrevutkastForRevurdering(
         revurderingId: UUID,
         fritekst: String?,
@@ -109,9 +114,9 @@ interface RevurderingService {
         request: FortsettEtterForhåndsvarslingRequest,
     ): Either<FortsettEtterForhåndsvarselFeil, Revurdering>
 
-    fun leggTilUføregrunnlag(
+    fun leggTilUførevilkår(
         request: LeggTilUførevurderingerRequest,
-    ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse>
+    ): Either<KunneIkkeLeggeTilUføreVilkår, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilUtenlandsopphold(
         request: LeggTilFlereUtenlandsoppholdRequest,
@@ -153,10 +158,17 @@ data class RevurderingOgFeilmeldingerResponse(
     fun leggTil(varselmelding: Varselmelding): RevurderingOgFeilmeldingerResponse {
         return copy(varselmeldinger = (varselmeldinger + varselmelding).distinct())
     }
+
+    fun leggTil(varselmeldinger: List<Pair<Boolean, Varselmelding>>): RevurderingOgFeilmeldingerResponse {
+        return varselmeldinger.fold(this) { acc, (leggTil, varselmelding) ->
+            if (leggTil) acc.leggTil(varselmelding) else acc
+        }
+    }
 }
 
 sealed interface Varselmelding {
     object BeløpsendringUnder10Prosent : Varselmelding
+    object FradragOgFormueForEPSErFjernet : Varselmelding
 }
 
 object FantIkkeRevurdering
@@ -186,7 +198,9 @@ sealed class KunneIkkeOppretteRevurdering {
     object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppretteRevurdering()
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
     object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppretteRevurdering()
-    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) : KunneIkkeOppretteRevurdering()
+    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) :
+        KunneIkkeOppretteRevurdering()
+
     object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
 }
 
@@ -206,7 +220,9 @@ sealed class KunneIkkeOppdatereRevurdering {
     object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppdatereRevurdering()
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
     object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppdatereRevurdering()
-    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) : KunneIkkeOppdatereRevurdering()
+    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) :
+        KunneIkkeOppdatereRevurdering()
+
     object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
 }
 
@@ -251,24 +267,26 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
     object FeilutbetalingStøttesIkke : KunneIkkeSendeRevurderingTilAttestering()
     data class RevurderingsutfallStøttesIkke(val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes>) :
         KunneIkkeSendeRevurderingTilAttestering()
+
+    object TilbakekrevingsbehandlingErIkkeFullstendig : KunneIkkeSendeRevurderingTilAttestering()
+    data class SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
+        val revurderingId: UUID
+    ) : KunneIkkeSendeRevurderingTilAttestering()
 }
 
-sealed class KunneIkkeIverksetteRevurdering {
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
-    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteRevurdering()
-    object KunneIkkeGenerereBrev : KunneIkkeIverksetteRevurdering()
-    object FantIkkePerson : KunneIkkeIverksetteRevurdering()
-    object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeIverksetteRevurdering()
-    object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeIverksetteRevurdering()
-    object IngenEndringErIkkeGyldig : KunneIkkeIverksetteRevurdering()
-    object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
-    object LagringFeilet : KunneIkkeIverksetteRevurdering()
-    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksetteRevurdering()
-    object HarAlleredeBlittAnnullertAvEnAnnen : KunneIkkeIverksetteRevurdering()
+sealed interface KunneIkkeIverksetteRevurdering {
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering
+    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteRevurdering
+    object IngenEndringErIkkeGyldig : KunneIkkeIverksetteRevurdering
+    object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering
+    object LagringFeilet : KunneIkkeIverksetteRevurdering
+    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksetteRevurdering
+    object KunneIkkeAnnulereKontrollsamtale : KunneIkkeIverksetteRevurdering
+
     data class UgyldigTilstand(
         val fra: KClass<out AbstraktRevurdering>,
         val til: KClass<out AbstraktRevurdering>,
-    ) : KunneIkkeIverksetteRevurdering()
+    ) : KunneIkkeIverksetteRevurdering
 }
 
 sealed class KunneIkkeLageBrevutkastForRevurdering {
@@ -296,18 +314,17 @@ sealed class KunneIkkeUnderkjenneRevurdering {
     object SaksbehandlerOgAttestantKanIkkeVæreSammePerson : KunneIkkeUnderkjenneRevurdering()
 }
 
-sealed class KunneIkkeLeggeTilGrunnlag {
-    object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
-    object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
-    object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
-    object OverlappendeVurderingsperioder : KunneIkkeLeggeTilGrunnlag()
-    object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilGrunnlag()
-    object AlleVurderingeneMåHaSammeResultat : KunneIkkeLeggeTilGrunnlag()
-    object HeleBehandlingsperiodenMåHaVurderinger : KunneIkkeLeggeTilGrunnlag()
+sealed class KunneIkkeLeggeTilUføreVilkår {
+    object FantIkkeBehandling : KunneIkkeLeggeTilUføreVilkår()
+    object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilUføreVilkår()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
-    ) : KunneIkkeLeggeTilGrunnlag()
+    ) : KunneIkkeLeggeTilUføreVilkår()
+
+    data class UgyldigInput(
+        val originalFeil: LeggTilUførevurderingerRequest.UgyldigUførevurdering,
+    ) : KunneIkkeLeggeTilUføreVilkår()
 }
 
 sealed class KunneIkkeLeggeTilFradragsgrunnlag {
@@ -544,5 +561,24 @@ data class LeggTilBosituasjongrunnlagRequest(
         }
 
         return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
+    }
+}
+
+sealed interface KunneIkkeOppdatereTilbakekrevingsbehandling {
+    object FantIkkeRevurdering : KunneIkkeOppdatereTilbakekrevingsbehandling
+    data class UgyldigTilstand(
+        val fra: KClass<out Revurdering>,
+        val til: KClass<out Revurdering> = SimulertRevurdering::class,
+    ) : KunneIkkeOppdatereTilbakekrevingsbehandling
+}
+
+data class OppdaterTilbakekrevingsbehandlingRequest(
+    val revurderingId: UUID,
+    val avgjørelse: Avgjørelse,
+    val saksbehandler: NavIdentBruker.Saksbehandler,
+) {
+    enum class Avgjørelse {
+        TILBAKEKREV,
+        IKKE_TILBAKEKREV
     }
 }

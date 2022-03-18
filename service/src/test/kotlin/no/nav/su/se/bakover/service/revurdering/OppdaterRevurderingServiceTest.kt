@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -76,7 +77,7 @@ import no.nav.su.se.bakover.test.utlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -305,6 +306,7 @@ internal class OppdaterRevurderingServiceTest {
                     vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                     informasjonSomRevurderes = it.informasjonSomRevurderes,
                     avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
+                    tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
                 )
             }
         }
@@ -312,7 +314,7 @@ internal class OppdaterRevurderingServiceTest {
         val mocks = RevurderingServiceMocks(
             vedtakService = vedtakServiceMock,
             revurderingRepo = revurderingRepoMock,
-            avkortingsvarselRepo = mock() {
+            avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
         )
@@ -358,7 +360,7 @@ internal class OppdaterRevurderingServiceTest {
         val mocks = RevurderingServiceMocks(
             vedtakService = vedtakServiceMock,
             revurderingRepo = revurderingRepoMock,
-            avkortingsvarselRepo = mock() {
+            avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
         )
@@ -458,7 +460,7 @@ internal class OppdaterRevurderingServiceTest {
         val mocks = RevurderingServiceMocks(
             vedtakService = vedtakServiceMock,
             revurderingRepo = revurderingRepoMock,
-            avkortingsvarselRepo = mock() {
+            avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
         )
@@ -700,18 +702,18 @@ internal class OppdaterRevurderingServiceTest {
                     ),
                     fradragsgrunnlag = listOf(
                         fradragsgrunnlagArbeidsinntekt(
-                            periodeMedEPS,
-                            5000.0,
-                            FradragTilhører.EPS,
+                            periode = periodeMedEPS,
+                            arbeidsinntekt = 5000.0,
+                            tilhører = FradragTilhører.EPS,
                         ),
                         fradragsgrunnlagArbeidsinntekt(
-                            periodeMedEPS,
-                            5000.0,
-                            FradragTilhører.BRUKER,
+                            periode = periodeMedEPS,
+                            arbeidsinntekt = 5000.0,
+                            tilhører = FradragTilhører.BRUKER,
                         ),
                     ),
                 ),
-                vilkårsvurderinger = vilkårsvurderingerInnvilget(periodeMedEPS),
+                vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(periodeMedEPS),
             ),
         )
 

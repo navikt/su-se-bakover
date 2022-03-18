@@ -4,7 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
-import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -46,7 +46,8 @@ internal class OpprettKlageTest {
             sakId = UUID.randomUUID(),
             journalpostId = JournalpostId("j2"),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
-            datoKlageMottatt = 1.desember(2021),
+            datoKlageMottatt = 1.januar(2021),
+            clock = fixedClock,
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.FantIkkeSak.left()
 
@@ -72,7 +73,8 @@ internal class OpprettKlageTest {
             sakId = UUID.randomUUID(),
             journalpostId = alleredeEksisterendeKlagebehandling.journalpostId,
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
-            datoKlageMottatt = 1.desember(2021),
+            datoKlageMottatt = 1.januar(2021),
+            clock = fixedClock,
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.HarAlleredeEnKlageBehandling.left()
 
@@ -109,7 +111,8 @@ internal class OpprettKlageTest {
             sakId = UUID.randomUUID(),
             journalpostId = avsluttetKlage.journalpostId,
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
-            datoKlageMottatt = 1.desember(2021),
+            datoKlageMottatt = 1.januar(2021),
+            clock = fixedClock,
         )
 
         val nyKlage = mocks.service.opprett(request).getOrFail()
@@ -135,7 +138,8 @@ internal class OpprettKlageTest {
             sakId = sakId,
             journalpostId = JournalpostId("j2"),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
-            datoKlageMottatt = 1.desember(2021),
+            datoKlageMottatt = 1.januar(2021),
+            clock = fixedClock,
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
 
@@ -168,7 +172,8 @@ internal class OpprettKlageTest {
             sakId = sakId,
             journalpostId = JournalpostId("j2"),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
-            datoKlageMottatt = 1.desember(2021),
+            datoKlageMottatt = 1.januar(2021),
+            clock = fixedClock,
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
 
@@ -212,7 +217,8 @@ internal class OpprettKlageTest {
             sakId = sakId,
             journalpostId = JournalpostId("j2"),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
-            datoKlageMottatt = 1.desember(2021),
+            datoKlageMottatt = 1.januar(2021),
+            clock = fixedClock,
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
 
@@ -274,11 +280,12 @@ internal class OpprettKlageTest {
             sakId = sak.id,
             journalpostId = JournalpostId("1"),
             saksbehandler = NavIdentBruker.Saksbehandler("2"),
-            datoKlageMottatt = 1.desember(2021),
+            datoKlageMottatt = 1.januar(2021),
+            clock = fixedClock,
         )
         var expectedKlage: OpprettetKlage?
         mocks.service.opprett(request).orNull()!!.also {
-            expectedKlage = OpprettetKlage.create(
+            expectedKlage = OpprettetKlage(
                 id = it.id,
                 opprettet = fixedTidspunkt,
                 sakId = sak.id,
@@ -289,7 +296,7 @@ internal class OpprettKlageTest {
                 saksbehandler = NavIdentBruker.Saksbehandler(
                     navIdent = "2",
                 ),
-                datoKlageMottatt = 1.desember(2021),
+                datoKlageMottatt = 1.januar(2021),
             )
             it shouldBe expectedKlage
         }

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -164,11 +165,15 @@ internal class PersonPostgresRepoTest {
     ) {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val (innvilget, utbetaling) = testDataHelper.nyIverksattInnvilget(epsFnr = epsFnr)
-            val vedtak = testDataHelper.vedtakForSøknadsbehandlingOgUtbetalingId(innvilget, utbetaling.id)
-            val revurdering = testDataHelper.nyRevurdering(vedtak, vedtak.periode, epsFnr)
+            val (sak, vedtak, utbetaling) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+                epsFnr = epsFnr,
+            )
+            val revurdering = testDataHelper.persisterRevurderingOpprettet(vedtak, vedtak.periode, epsFnr)
 
-            Ctx(dataSource, testDataHelper.personRepo, innvilget, utbetaling, revurdering).test()
+            Ctx(
+                dataSource, testDataHelper.personRepo,
+                sak.søknadsbehandlinger.first() as Søknadsbehandling.Iverksatt.Innvilget, utbetaling, revurdering,
+            ).test()
         }
     }
 
@@ -180,11 +185,17 @@ internal class PersonPostgresRepoTest {
 
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val (innvilget, utbetaling) = testDataHelper.nyIverksattInnvilget(epsFnr = epsFnrBehandling)
-            val vedtak = testDataHelper.vedtakForSøknadsbehandlingOgUtbetalingId(innvilget, utbetaling.id)
-            val revurdering = testDataHelper.nyRevurdering(vedtak, vedtak.periode, epsFnrRevurdering)
+            val (sak, vedtak, utbetaling) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+                epsFnr = epsFnrBehandling,
+            )
+            val revurdering = testDataHelper.persisterRevurderingOpprettet(vedtak, vedtak.periode, epsFnrRevurdering)
 
-            Ctx(dataSource, testDataHelper.personRepo, innvilget, utbetaling, revurdering).test()
+            Ctx(
+                dataSource = dataSource, repo = testDataHelper.personRepo,
+                innvilgetSøknadsbehandling = sak.søknadsbehandlinger.first() as Søknadsbehandling.Iverksatt.Innvilget,
+                utbetaling = utbetaling,
+                revurdering = revurdering,
+            ).test()
         }
     }
 
@@ -196,29 +207,32 @@ internal class PersonPostgresRepoTest {
 
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val (innvilget, utbetaling) = testDataHelper.nyIverksattInnvilget(epsFnr = epsFnrBehandling)
-            val vedtak = testDataHelper.vedtakForSøknadsbehandlingOgUtbetalingId(innvilget, utbetaling.id)
-            val revurdering = testDataHelper.nyRevurdering(vedtak, vedtak.periode, epsFnrRevurdering)
-            val revurderingVedtak = testDataHelper.vedtakForRevurdering(
-                RevurderingTilAttestering.Innvilget(
-                    id = revurdering.id,
-                    periode = revurdering.periode,
-                    opprettet = revurdering.opprettet,
-                    tilRevurdering = revurdering.tilRevurdering,
-                    saksbehandler = revurdering.saksbehandler,
-                    oppgaveId = revurdering.oppgaveId,
-                    fritekstTilBrev = revurdering.fritekstTilBrev,
-                    revurderingsårsak = revurdering.revurderingsårsak,
-                    beregning = innvilgetBeregning(revurdering.periode),
-                    simulering = simulering(revurdering.fnr),
-                    forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-                    grunnlagsdata = revurdering.grunnlagsdata,
-                    vilkårsvurderinger = revurdering.vilkårsvurderinger,
-                    informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
-                    attesteringer = Attesteringshistorikk.empty(),
-                    avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
-                ),
-            ).first
+            val (_, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+                epsFnr = epsFnrBehandling,
+            )
+            val revurdering = testDataHelper.persisterRevurderingOpprettet(vedtak, vedtak.periode, epsFnrRevurdering)
+            val revurderingVedtak =
+                testDataHelper.persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering(
+                    RevurderingTilAttestering.Innvilget(
+                        id = revurdering.id,
+                        periode = revurdering.periode,
+                        opprettet = revurdering.opprettet,
+                        tilRevurdering = revurdering.tilRevurdering,
+                        saksbehandler = revurdering.saksbehandler,
+                        oppgaveId = revurdering.oppgaveId,
+                        fritekstTilBrev = revurdering.fritekstTilBrev,
+                        revurderingsårsak = revurdering.revurderingsårsak,
+                        beregning = innvilgetBeregning(revurdering.periode),
+                        simulering = simulering(revurdering.fnr),
+                        forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
+                        grunnlagsdata = revurdering.grunnlagsdata,
+                        vilkårsvurderinger = revurdering.vilkårsvurderinger,
+                        informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
+                        attesteringer = Attesteringshistorikk.empty(),
+                        avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+                        tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+                    ),
+                ).first
 
             VedtakCtx(
                 dataSource = dataSource,
@@ -237,35 +251,44 @@ internal class PersonPostgresRepoTest {
     ) {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val (innvilget, utbetaling) = testDataHelper.nyIverksattInnvilget(epsFnr = epsFnrBehandling)
-            val vedtak = testDataHelper.vedtakForSøknadsbehandlingOgUtbetalingId(innvilget, utbetaling.id)
-            val revurdering = testDataHelper.nyRevurdering(vedtak, vedtak.periode, epsFnrRevurdering)
-            val revurderingVedtak = testDataHelper.vedtakForRevurdering(
-                RevurderingTilAttestering.Innvilget(
-                    id = revurdering.id,
-                    periode = revurdering.periode,
-                    opprettet = revurdering.opprettet,
-                    tilRevurdering = revurdering.tilRevurdering,
-                    saksbehandler = revurdering.saksbehandler,
-                    oppgaveId = revurdering.oppgaveId,
-                    fritekstTilBrev = revurdering.fritekstTilBrev,
-                    revurderingsårsak = revurdering.revurderingsårsak,
-                    beregning = innvilgetBeregning(revurdering.periode),
-                    simulering = simulering(revurdering.fnr),
-                    forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-                    grunnlagsdata = revurdering.grunnlagsdata,
-                    vilkårsvurderinger = revurdering.vilkårsvurderinger,
-                    informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
-                    attesteringer = Attesteringshistorikk.empty(),
-                    avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
-                ),
-            ).first
-            val revurderingAvRevurdering = testDataHelper.nyRevurdering(
-                revurderingVedtak,
-                revurderingVedtak.periode,
-                epsFnrRevurderingAvRevurdering,
+            val (sak, vedtak, utbetaling) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+                epsFnr = epsFnrBehandling,
             )
-            Ctx(dataSource, testDataHelper.personRepo, innvilget, utbetaling, revurderingAvRevurdering).test()
+            val revurdering = testDataHelper.persisterRevurderingOpprettet(vedtak, vedtak.periode, epsFnrRevurdering)
+            val revurderingVedtak =
+                testDataHelper.persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering(
+                    RevurderingTilAttestering.Innvilget(
+                        id = revurdering.id,
+                        periode = revurdering.periode,
+                        opprettet = revurdering.opprettet,
+                        tilRevurdering = revurdering.tilRevurdering,
+                        saksbehandler = revurdering.saksbehandler,
+                        oppgaveId = revurdering.oppgaveId,
+                        fritekstTilBrev = revurdering.fritekstTilBrev,
+                        revurderingsårsak = revurdering.revurderingsårsak,
+                        beregning = innvilgetBeregning(revurdering.periode),
+                        simulering = simulering(revurdering.fnr),
+                        forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
+                        grunnlagsdata = revurdering.grunnlagsdata,
+                        vilkårsvurderinger = revurdering.vilkårsvurderinger,
+                        informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
+                        attesteringer = Attesteringshistorikk.empty(),
+                        avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+                        tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling
+                    ),
+                ).first
+            val revurderingAvRevurdering = testDataHelper.persisterRevurderingOpprettet(
+                innvilget = revurderingVedtak,
+                periode = revurderingVedtak.periode,
+                epsFnr = epsFnrRevurderingAvRevurdering,
+            )
+            Ctx(
+                dataSource = dataSource,
+                repo = testDataHelper.personRepo,
+                innvilgetSøknadsbehandling = sak.søknadsbehandlinger.first() as Søknadsbehandling.Iverksatt.Innvilget,
+                utbetaling = utbetaling,
+                revurdering = revurderingAvRevurdering,
+            ).test()
         }
     }
 
@@ -273,7 +296,7 @@ internal class PersonPostgresRepoTest {
         val dataSource: DataSource,
         val repo: PersonPostgresRepo,
         val innvilgetSøknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
-        val utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering,
+        val utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
         val revurdering: Revurdering,
     )
 

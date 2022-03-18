@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonS
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -45,6 +46,7 @@ object TestServicesBuilder {
         klageService: KlageService = mock(),
         klageinstanshendelseService: KlageinstanshendelseService = mock(),
         regulerServices: ReguleringService = mock(),
+        tilbakekrevingService: TilbakekrevingService = mock(),
     ): Services = Services(
         avstemming = avstemming,
         utbetaling = utbetaling,
@@ -66,5 +68,6 @@ object TestServicesBuilder {
         klageService = klageService,
         klageinstanshendelseService = klageinstanshendelseService,
         reguleringService = regulerServices,
+        tilbakekrevingService = tilbakekrevingService,
     )
 }

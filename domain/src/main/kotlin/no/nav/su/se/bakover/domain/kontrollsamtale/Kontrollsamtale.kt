@@ -26,19 +26,24 @@ data class Kontrollsamtale(
     val dokumentId: UUID?,
 ) {
 
-    fun settInnkalt(): Either<UgyldigStatusovergang, Kontrollsamtale> {
-        if (this.status !== Kontrollsamtalestatus.PLANLAGT_INNKALLING) return UgyldigStatusovergang.left()
-        return this.copy(status = Kontrollsamtalestatus.INNKALT).right()
+    fun settInnkalt(dokumentId: UUID): Either<UgyldigStatusovergang, Kontrollsamtale> {
+        if (this.status != Kontrollsamtalestatus.PLANLAGT_INNKALLING) return UgyldigStatusovergang.left()
+        return this.copy(
+            status = Kontrollsamtalestatus.INNKALT,
+            dokumentId = dokumentId
+        ).right()
     }
 
-    fun annuller(): Either<UgyldigStatusovergang, Kontrollsamtale> {
-        if (this.status !== Kontrollsamtalestatus.PLANLAGT_INNKALLING || this.status !== Kontrollsamtalestatus.INNKALT) return UgyldigStatusovergang.left()
-        return this.copy(status = Kontrollsamtalestatus.ANNULLERT).right()
-    }
+    fun annuller(): Either<UgyldigStatusovergang, Kontrollsamtale> =
+        if (this.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING || this.status == Kontrollsamtalestatus.INNKALT) {
+            this.copy(status = Kontrollsamtalestatus.ANNULLERT).right()
+        } else {
+            UgyldigStatusovergang.left()
+        }
 
     fun endreDato(innkallingsdato: LocalDate): Either<UgyldigStatusovergang, Kontrollsamtale> {
-        if (this.status !== Kontrollsamtalestatus.PLANLAGT_INNKALLING) return UgyldigStatusovergang.left()
-        return this.copy(innkallingsdato = innkallingsdato).right()
+        if (this.status != Kontrollsamtalestatus.PLANLAGT_INNKALLING) return UgyldigStatusovergang.left()
+        return this.copy(innkallingsdato = innkallingsdato, frist = regnUtFristFraInnkallingsdato(innkallingsdato)).right()
     }
 
     companion object {

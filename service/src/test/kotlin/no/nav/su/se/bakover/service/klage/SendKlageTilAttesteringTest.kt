@@ -3,14 +3,11 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
-import no.nav.su.se.bakover.domain.klage.Klageinstanshendelser
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -25,7 +22,6 @@ import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
@@ -109,7 +105,7 @@ internal class SendKlageTilAttesteringTest {
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.oppgaveService).opprettOppgave(
             argThat {
-                it shouldBe OppgaveConfig.Klage.Saksbehandler(
+                it shouldBe OppgaveConfig.Klage.Attestering(
                     saksnummer = klage.saksnummer,
                     aktørId = AktørId("aktørId"),
                     journalpostId = klage.journalpostId,
@@ -217,7 +213,7 @@ internal class SendKlageTilAttesteringTest {
         mocks.service.sendTilAttestering(
             klageId = klage.id,
             saksbehandler = klage.saksbehandler,
-        ) shouldBe KunneIkkeSendeTilAttestering.UgyldigTilstand(klage::class, KlageTilAttestering::class).left()
+        ) shouldBe KunneIkkeSendeTilAttestering.UgyldigTilstand(klage::class).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
@@ -239,27 +235,24 @@ internal class SendKlageTilAttesteringTest {
             verifiserGyldigStatusovergang(
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
-                attesteringer = it.second.attesteringer,
-                tilordnetRessurs = it.second.attesteringer.let {
-                    assert(it.size == 1)
-                    it.first().attestant
+                tilordnetRessurs = it.second.attesteringer.let { attesteringshistorikk ->
+                    assert(attesteringshistorikk.size == 1)
+                    attesteringshistorikk.first().attestant
                 },
             )
         }
     }
 
     @Test
-    fun `skal kunne sende en underkjent avvist klage klage til attestering`() {
+    fun `skal kunne sende en underkjent avvist klage til attestering`() {
         underkjentAvvistKlage().let {
             verifiserGyldigStatusovergang(
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
-                attesteringer = it.second.attesteringer,
-                tilordnetRessurs = it.second.attesteringer.let {
-                    assert(it.size == 1)
-                    it.first().attestant
+                tilordnetRessurs = it.second.attesteringer.let { attesteringshistorikk ->
+                    assert(attesteringshistorikk.size == 1)
+                    attesteringshistorikk.first().attestant
                 },
-                fritekstTilBrev = it.second.fritekstTilBrev,
             )
         }
     }
@@ -267,84 +260,60 @@ internal class SendKlageTilAttesteringTest {
     private fun verifiserGyldigStatusovergang(
         vedtak: Vedtak,
         klage: Klage,
-        attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
         tilordnetRessurs: NavIdentBruker.Attestant? = null,
-        fritekstTilBrev: String = "attesterings fritekst for brevet",
     ) {
-        val session = TestSessionFactory()
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            vedtakServiceMock = mock {
+                on { hentForVedtakId(any()) } doReturn vedtak
+            },
+            personServiceMock = mock {
+                on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveIdTilAttestering").right()
+            },
+        )
 
-        session.withTransactionContext { transactionContext ->
-
-            val mocks = KlageServiceMocks(
-                klageRepoMock = mock {
-                    on { hentKlage(any()) } doReturn klage
-                    on { defaultTransactionContext() } doReturn transactionContext
-                },
-                vedtakServiceMock = mock {
-                    on { hentForVedtakId(any()) } doReturn vedtak
-                },
-                personServiceMock = mock {
-                    on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
-                },
-                oppgaveService = mock {
-                    on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
-                },
+        var expectedKlage: KlageTilAttestering?
+        mocks.service.sendTilAttestering(
+            klageId = klage.id,
+            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomSendteTilAttestering"),
+        ).orNull()!!.also {
+            expectedKlage = if (klage is AvvistKlage) KlageTilAttestering.Avvist(
+                forrigeSteg = klage,
+                oppgaveId = OppgaveId("oppgaveIdTilAttestering"),
+                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomSendteTilAttestering"),
+            ) else KlageTilAttestering.Vurdert(
+                forrigeSteg = klage as VurdertKlage.Bekreftet,
+                oppgaveId = OppgaveId("oppgaveIdTilAttestering"),
+                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomSendteTilAttestering"),
             )
-
-            var expectedKlage: KlageTilAttestering?
-            mocks.service.sendTilAttestering(
-                klageId = klage.id,
-                saksbehandler = NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene"),
-            ).orNull()!!.also {
-                expectedKlage = KlageTilAttestering.create(
-                    id = it.id,
-                    opprettet = fixedTidspunkt,
-                    sakId = klage.sakId,
-                    saksnummer = klage.saksnummer,
-                    fnr = klage.fnr,
-                    journalpostId = klage.journalpostId,
-                    oppgaveId = OppgaveId("nyOppgaveId"),
-                    saksbehandler = NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene"),
-                    vilkårsvurderinger = when (klage) {
-                        is AvvistKlage -> klage.vilkårsvurderinger
-                        is VurdertKlage.Bekreftet -> klage.vilkårsvurderinger
-                        else -> throw IllegalStateException("Bare VilkårsvurdertKlage.Bekreftet(Avvist), og VurdertKlage.Bekreftet kan sendes til attestering")
-                    },
-                    vurderinger = when (klage) {
-                        is AvvistKlage -> null
-                        is VurdertKlage.Bekreftet -> klage.vurderinger
-                        else -> throw IllegalStateException("Bare VilkårsvurdertKlage.Bekreftet(Avvist), og VurdertKlage.Bekreftet kan sendes til attestering")
-                    },
-                    attesteringer = attesteringer,
-                    datoKlageMottatt = 1.desember(2021),
-                    fritekstTilBrev = fritekstTilBrev,
-                    klageinstanshendelser = Klageinstanshendelser.empty()
-                )
-                it shouldBe expectedKlage
-            }
-
-            verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-            verify(mocks.klageRepoMock).lagre(
-                argThat {
-                    it shouldBe expectedKlage
-                },
-                argThat { it shouldBe transactionContext },
-            )
-            verify(mocks.klageRepoMock).defaultTransactionContext()
-            verify(mocks.oppgaveService).opprettOppgave(
-                argThat {
-                    it shouldBe OppgaveConfig.Klage.Saksbehandler(
-                        saksnummer = klage.saksnummer,
-                        aktørId = AktørId("aktørId"),
-                        journalpostId = klage.journalpostId,
-                        tilordnetRessurs = tilordnetRessurs,
-                        clock = fixedClock,
-                    )
-                },
-            )
-            verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
-            verify(mocks.oppgaveService).lukkOppgave(klage.oppgaveId)
-            mocks.verifyNoMoreInteractions()
+            it shouldBe expectedKlage!!
         }
+
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.klageRepoMock).lagre(
+            argThat { it shouldBe expectedKlage },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
+        verify(mocks.klageRepoMock).defaultTransactionContext()
+        verify(mocks.oppgaveService).opprettOppgave(
+            argThat {
+                it shouldBe OppgaveConfig.Klage.Attestering(
+                    saksnummer = klage.saksnummer,
+                    aktørId = AktørId("aktørId"),
+                    journalpostId = klage.journalpostId,
+                    tilordnetRessurs = tilordnetRessurs,
+                    clock = fixedClock,
+                )
+            },
+        )
+        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
+        verify(mocks.oppgaveService).lukkOppgave(klage.oppgaveId)
+        mocks.verifyNoMoreInteractions()
     }
 }

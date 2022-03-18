@@ -9,7 +9,11 @@ import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withSession as transactionContextWithSession
 
-internal open class PostgresSessionContext(private val dataSource: DataSource) : SessionContext {
+internal open class PostgresSessionContext(
+    private val dataSource: DataSource,
+    private val dbMetrics: DbMetrics,
+    private val sessionCounter: SessionCounter,
+) : SessionContext {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -31,7 +35,11 @@ internal open class PostgresSessionContext(private val dataSource: DataSource) :
             this as PostgresSessionContext
             return if (session == null) {
                 // Vi ønsker kun at den ytterste blokka lukker sesjonen (using)
-                using(sessionOf(dataSource).also { session = it }) { action(it) }
+                using(sessionOf(dataSource, dbMetrics).also { session = it }) {
+                    sessionCounter.withCountSessions {
+                        action(it)
+                    }
+                }
             } else {
                 if (isClosed()) {
                     throw IllegalStateException("Sesjonen er lukket.")

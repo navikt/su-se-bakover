@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
+import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
@@ -64,7 +65,9 @@ class KlageinstanshendelseServiceImpl(
     }
 
     private fun prosesserTolketKlageinstanshendelse(hendelse: TolketKlageinstanshendelse) {
-        val klage = klageRepo.hentKlage(hendelse.klageId)
+        // TODO jah: Vi har ikke håndtert muligheten for at det kan komme en oversendelse fra klageinstansen mens vi er i en annen tilstand enn [OversendtKlage]
+        //  Vi kan løse problemet dersom det dukker opp.
+        val klage = klageRepo.hentKlage(hendelse.klageId) as? OversendtKlage
 
         if (klage == null) {
             log.error("Kunne ikke prosessere melding fra Klageinstans. Fant ikke klage med klageId: ${hendelse.klageId}")
@@ -96,6 +99,7 @@ class KlageinstanshendelseServiceImpl(
                 when (it) {
                     is OpprettetKlage,
                     is VilkårsvurdertKlage,
+                    is AvvistKlage,
                     is KlageTilAttestering,
                     is IverksattAvvistKlage,
                     is AvsluttetKlage,

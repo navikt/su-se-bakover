@@ -20,7 +20,7 @@ data class KontrollerSimulering(
 
     val resultat: Either<KontrollAvSimuleringFeilet, Utbetaling.SimulertUtbetaling> by lazy {
         try {
-            val tolketSimulering = TolketSimulering(simulertUtbetaling.simulering).also { tolketSimulering ->
+            val tolketSimulering = simulertUtbetaling.simulering.tolk().also { tolketSimulering ->
                 if (tolketSimulering.harFeilutbetalinger()) {
                     log.error("Simulering inneholder feilutbetalinger, se sikkerlogg for simulering")
                     sikkerLogg.error(objectMapper.writeValueAsString(simulertUtbetaling.simulering))

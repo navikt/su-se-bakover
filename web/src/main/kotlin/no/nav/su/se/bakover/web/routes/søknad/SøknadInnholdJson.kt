@@ -340,7 +340,6 @@ data class SøknadInnholdJson(
         val andreYtelserINav: String? = null,
         val andreYtelserINavBeløp: Number? = null,
         val søktAndreYtelserIkkeBehandletBegrunnelse: String? = null,
-        val sosialstønadBeløp: Number? = null,
         val trygdeytelserIUtlandet: List<TrygdeytelserIUtlandetJson>? = null,
         val pensjon: List<PensjonsOrdningBeløpJson>? = null
     ) {
@@ -349,7 +348,6 @@ data class SøknadInnholdJson(
             andreYtelserINav = andreYtelserINav,
             andreYtelserINavBeløp = andreYtelserINavBeløp,
             søktAndreYtelserIkkeBehandletBegrunnelse = søktAndreYtelserIkkeBehandletBegrunnelse,
-            sosialstønadBeløp = sosialstønadBeløp,
             trygdeytelseIUtlandet = trygdeytelserIUtlandet.toTrygdeytelseList(),
             pensjon = pensjon.toPensjonList()
         )
@@ -369,7 +367,6 @@ data class SøknadInnholdJson(
                     andreYtelserINav = andreYtelserINav,
                     andreYtelserINavBeløp = andreYtelserINavBeløp,
                     søktAndreYtelserIkkeBehandletBegrunnelse = søktAndreYtelserIkkeBehandletBegrunnelse,
-                    sosialstønadBeløp = sosialstønadBeløp,
                     trygdeytelserIUtlandet = trygdeytelseIUtlandet.toTrygdeytelseIUtlandetJson(),
                     pensjon = pensjon.toPensjonsOrdningBeløpListJson()
                 )

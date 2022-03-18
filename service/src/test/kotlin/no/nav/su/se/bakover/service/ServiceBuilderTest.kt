@@ -19,7 +19,6 @@ internal class ServiceBuilderTest {
                 avstemming = mock(),
                 utbetaling = mock(),
                 søknad = mock(),
-                hendelseslogg = mock(),
                 sak = mock(),
                 person = mock(),
                 søknadsbehandling = mock(),
@@ -34,6 +33,7 @@ internal class ServiceBuilderTest {
                 kontrollsamtaleRepo = mock(),
                 avkortingsvarselRepo = mock(),
                 reguleringRepo = defaultMock(),
+                tilbakekrevingRepo = mock(),
             ),
             clients = Clients(
                 oauth = mock(),
@@ -52,7 +52,8 @@ internal class ServiceBuilderTest {
                 leaderPodLookup = mock(),
                 kafkaPublisher = mock(),
                 klageClient = mock(),
-                journalpostClient = mock()
+                journalpostClient = mock(),
+                tilbakekrevingClient = mock(),
             ),
             behandlingMetrics = mock(),
             søknadMetrics = mock(),

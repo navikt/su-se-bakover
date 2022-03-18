@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
 import no.nav.su.se.bakover.client.stubs.nais.LeaderPodLookupStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.AvstemmingStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
+import no.nav.su.se.bakover.client.stubs.oppdrag.TilbakekrevingClientStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
@@ -93,6 +94,14 @@ internal object SharedRegressionTestData {
             simulering = ApplicationConfig.OppdragConfig.SimuleringConfig(
                 url = "simuleringTestUrl",
                 stsSoapUrl = "simuleringStsTestSoapUrl",
+            ),
+            tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
+                mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq(
+                    mottak = "tilbakekrevingMqTestSendQueue"
+                ),
+                soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap(
+                    url = "tilbakekrevingUrl"
+                ),
             ),
         ),
         database = ApplicationConfig.DatabaseConfig.StaticCredentials(
@@ -247,6 +256,7 @@ data class TestClientsBuilder(
         kafkaPublisher = KafkaPublisherStub,
         klageClient = KlageClientStub,
         journalpostClient = JournalpostClientStub,
+        tilbakekrevingClient = TilbakekrevingClientStub(clock),
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

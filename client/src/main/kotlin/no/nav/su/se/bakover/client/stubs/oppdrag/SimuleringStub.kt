@@ -86,20 +86,22 @@ class SimuleringStub(
                                             tilOgMed = måned.tilOgMed,
                                             beløp = utbetaltLinje.beløp,
                                         ),
+                                        createOrdinær(
+                                            fraOgMed = måned.fraOgMed,
+                                            tilOgMed = måned.tilOgMed,
+                                            beløp = nyLinje.beløp,
+                                        ),
+                                    ).let {
                                         if (feilutbetaling) {
-                                            createFeilutbetaling(
+                                            it + createFeilutbetaling(
                                                 fraOgMed = måned.fraOgMed,
                                                 tilOgMed = måned.tilOgMed,
                                                 beløp = utbetaltLinje.beløp - nyLinje.beløp,
                                             )
                                         } else {
-                                            createOrdinær(
-                                                fraOgMed = måned.fraOgMed,
-                                                tilOgMed = måned.tilOgMed,
-                                                beløp = nyLinje.beløp,
-                                            )
-                                        },
-                                    ),
+                                            it
+                                        }
+                                    },
                                 )
                             } else {
                                 måned to SimulertUtbetaling(

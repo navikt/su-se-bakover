@@ -65,20 +65,19 @@ class ReguleringServiceImpl(
                     return@map KunneIkkeOppretteRegulering.FantIkkeSak.left()
                 }
 
-            val gjeldendeVedtaksdata = Either.catch {
-                sak.kopierGjeldendeVedtaksdata(fraOgMed = startDato, clock = clock).getOrHandle {
-                    return@map when (it) {
-                        Sak.KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak -> {
-                            log.info("Sak $saksnummer har ingen vedtak å regulere for denne perioden")
-                            KunneIkkeOppretteRegulering.KunneIkkeHenteGjeldendeVedtaksdata(feil = it).left()
-                        }
+            val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(fraOgMed = startDato, clock = clock).getOrHandle {
+                return@map when (it) {
+                    Sak.KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak -> {
+                        log.info("Sak $saksnummer har ingen vedtak å regulere for denne perioden ($startDato -> Inf)")
+                        KunneIkkeOppretteRegulering.KunneIkkeHenteGjeldendeVedtaksdata(feil = it).left()
                     }
-                }.also {
-                    if (it.helePeriodenErOpphør()) return@map KunneIkkeOppretteRegulering.HelePeriodenErOpphør.left().also { log.info("Hele perioden er opphør. Lager ingen regulering for denne") }
+                    is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {
+                        log.info("Finnes ingen vedtak etter fradato")
+                        return@map KunneIkkeOppretteRegulering.FantIngenVedtak.left()
+                    }
                 }
-            }.getOrHandle {
-                log.info("Finnes ingen vedtak etter fradato")
-                return@map KunneIkkeOppretteRegulering.FantIngenVedtak.left()
+            }.also {
+                if (it.helePeriodenErOpphør()) return@map KunneIkkeOppretteRegulering.HelePeriodenErOpphør.left().also { log.info("Hele perioden er opphør. Lager ingen regulering for denne") }
             }
 
             val reguleringType = utledAutomatiskEllerManuellRegulering(gjeldendeVedtaksdata)

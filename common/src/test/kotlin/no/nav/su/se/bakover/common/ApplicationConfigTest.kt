@@ -52,6 +52,10 @@ internal class ApplicationConfigTest {
                 url = "simuleringUrl",
                 stsSoapUrl = "stsSoapUrl",
             ),
+            tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
+                mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq("tilbakekrevingMottak"),
+                soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap("tilbakekrevingUrl"),
+            ),
         ),
         database = ApplicationConfig.DatabaseConfig.RotatingCredentials(
             databaseName = "databaseName",
@@ -188,6 +192,8 @@ internal class ApplicationConfigTest {
                 "SAF_URL" to "safUrl",
                 "SAF_CLIENT_ID" to "safClientId",
                 "HOSTNAME" to "hostname",
+                "MQ_TILBAKEKREVING_MOTTAK" to "tilbakekrevingMottak",
+                "TILBAKEKREVING_URL" to "tilbakekrevingUrl",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -232,6 +238,10 @@ internal class ApplicationConfigTest {
                     simulering = ApplicationConfig.OppdragConfig.SimuleringConfig(
                         url = "unused",
                         stsSoapUrl = "unused",
+                    ),
+                    tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
+                        mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq("unused"),
+                        soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap("unused"),
                     ),
                 ),
                 database = ApplicationConfig.DatabaseConfig.StaticCredentials(

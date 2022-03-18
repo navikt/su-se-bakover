@@ -75,7 +75,7 @@ internal fun OppdragForKonsistensavstemming.toOppdragdata(): Konsistensavstemmin
         oppdragGjelderId = fnr.toString(),
         oppdragGjelderFom = OppdragDefaults.datoOppdragGjelderFom,
         saksbehandlerId = OppdragslinjeDefaults.SAKSBEHANDLER_ID,
-        oppdragsenhetListe = OppdragDefaults.oppdragsenheter.map {
+        oppdragsenhetListe = listOf(OppdragDefaults.oppdragsenhet).map {
             KonsistensavstemmingData.Enhet(
                 enhetType = it.typeEnhet,
                 enhet = it.enhet,

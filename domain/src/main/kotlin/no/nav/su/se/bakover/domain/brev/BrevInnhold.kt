@@ -89,7 +89,36 @@ abstract class BrevInnhold {
         val opphørsdato: String,
         val avkortingsBeløp: Int?,
     ) : BrevInnhold() {
-        override val brevTemplate: BrevTemplate = BrevTemplate.Opphørsvedtak
+        override val brevTemplate: BrevTemplate = BrevTemplate.Opphør.Opphørsvedtak
+
+        @Suppress("unused")
+        @JsonInclude
+        val harFradrag: Boolean = beregningsperioder.harFradrag()
+
+        @Suppress("unused")
+        @JsonInclude
+        val harAvkorting: Boolean = beregningsperioder.harAvkorting()
+    }
+
+    data class OpphørMedTilbakekrevingAvPenger(
+        val personalia: Personalia,
+        val opphørsgrunner: List<Opphørsgrunn>,
+        val avslagsparagrafer: List<Int>,
+        val sats: String,
+        val satsBeløp: Int,
+        val satsGjeldendeFraDato: String,
+        val harEktefelle: Boolean,
+        val beregningsperioder: List<Beregningsperiode>,
+        val saksbehandlerNavn: String,
+        val attestantNavn: String,
+        val fritekst: String,
+        val forventetInntektStørreEnn0: Boolean,
+        val halvGrunnbeløp: Int?,
+        val opphørsdato: String,
+        val avkortingsBeløp: Int?,
+        val bruttoTilbakekreving: Int,
+    ) : BrevInnhold() {
+        override val brevTemplate: BrevTemplate = BrevTemplate.Opphør.OpphørMedTilbakekreving
 
         @Suppress("unused")
         @JsonInclude
@@ -120,6 +149,33 @@ abstract class BrevInnhold {
         val forventetInntektStørreEnn0: Boolean,
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.Revurdering.Inntekt
+
+        @Suppress("unused")
+        @JsonInclude
+        val satsBeløp = beregningsperioder.lastOrNull()?.satsbeløpPerMåned
+
+        @Suppress("unused")
+        @JsonInclude
+        val harFradrag: Boolean = beregningsperioder.harFradrag()
+
+        @Suppress("unused")
+        @JsonInclude
+        val harAvkorting: Boolean = beregningsperioder.harAvkorting()
+    }
+
+    data class RevurderingMedTilbakekrevingAvPenger(
+        val personalia: Personalia,
+        val saksbehandlerNavn: String,
+        val attestantNavn: String,
+        val beregningsperioder: List<Beregningsperiode>,
+        val fritekst: String,
+        val sats: Sats,
+        val satsGjeldendeFraDato: String,
+        val harEktefelle: Boolean,
+        val forventetInntektStørreEnn0: Boolean,
+        val bruttoTilbakekreving: Int,
+    ) : BrevInnhold() {
+        override val brevTemplate = BrevTemplate.Revurdering.MedTilbakekreving
 
         @Suppress("unused")
         @JsonInclude
@@ -167,6 +223,15 @@ abstract class BrevInnhold {
         val fritekst: String,
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.Forhåndsvarsel
+    }
+
+    data class ForhåndsvarselTilbakekreving(
+        val personalia: Personalia,
+        val saksbehandlerNavn: String,
+        val fritekst: String,
+        val bruttoTilbakekreving: Int,
+    ) : BrevInnhold() {
+        override val brevTemplate = BrevTemplate.ForhåndsvarselTilbakekreving
     }
 
     /**

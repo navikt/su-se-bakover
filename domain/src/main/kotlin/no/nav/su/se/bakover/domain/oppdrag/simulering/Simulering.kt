@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.oppdrag.simulering
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnore
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Månedsbeløp
 import java.time.LocalDate
@@ -18,16 +17,19 @@ data class Simulering(
         .sumOf { it.bruttoYtelse() }
 
     fun harFeilutbetalinger(): Boolean {
-        return TolketSimulering(this).simulertePerioder.any { it.harFeilutbetalinger() }
+        return tolk().simulertePerioder.any { it.harFeilutbetalinger() }
+    }
+
+    fun tolk(): TolketSimulering {
+        return TolketSimulering(this)
     }
 
     fun hentUtbetalteBeløp(): Månedsbeløp {
-        return TolketSimulering(this).hentUtbetalteBeløp(
-            Periode.create(
-                periodeList.minOf { it.fraOgMed },
-                periodeList.maxOf { it.tilOgMed },
-            ),
-        )
+        return tolk().hentUtbetalteBeløp()
+    }
+
+    fun hentFeilutbetalteBeløp(): Månedsbeløp {
+        return tolk().hentFeilutbetalteBeløp()
     }
 
     /**
@@ -124,7 +126,10 @@ enum class KlasseType {
     FEIL,
 
     @Deprecated("Filtreres ut av klient") // TODO flytt dette lenger ut
-    MOTP,
+    MOTP;
+
+    fun erFeil() = this == FEIL
+    fun erYtelse() = this == YTEL
 }
 
 enum class KlasseKode {

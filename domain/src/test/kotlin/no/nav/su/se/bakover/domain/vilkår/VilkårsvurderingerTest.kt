@@ -27,8 +27,8 @@ import no.nav.su.se.bakover.test.periodeJuli2021
 import no.nav.su.se.bakover.test.periodeMai2021
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlle
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlleRevurdering
-import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilgetRevurdering
+import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -40,7 +40,7 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `alle vilkår innvilget gir resultat innvilget`() {
-            vilkårsvurderingerInnvilget().let {
+            vilkårsvurderingerSøknadsbehandlingInnvilget().let {
                 it.resultat shouldBe Vilkårsvurderingsresultat.Innvilget(
                     setOf(
                         it.uføre,
@@ -58,7 +58,7 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `alle vilkår innvilget bortsett fra en enkelt vurderingsperiode gir avslag`() {
-            vilkårsvurderingerInnvilget(
+            vilkårsvurderingerSøknadsbehandlingInnvilget(
                 uføre = Vilkår.Uførhet.Vurdert.tryCreate(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.tryCreate(
@@ -125,7 +125,7 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `et vilkår uavklart gir uavklart`() {
-            vilkårsvurderingerInnvilget(
+            vilkårsvurderingerSøknadsbehandlingInnvilget(
                 behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt().patch(
                     Behandlingsinformasjon(
                         lovligOpphold = Behandlingsinformasjon.LovligOpphold(
@@ -163,7 +163,7 @@ internal class VilkårsvurderingerTest {
             val gammel = Periode.create(1.januar(2021), 31.desember(2021))
             val ny = Periode.create(1.juli(2021), 31.desember(2021))
 
-            vilkårsvurderingerInnvilget(periode = gammel)
+            vilkårsvurderingerSøknadsbehandlingInnvilget(periode = gammel)
                 .let {
                     it.periode shouldBe gammel
                     it.oppdaterStønadsperiode(Stønadsperiode.create(ny, "")).periode shouldBe ny
@@ -172,8 +172,8 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `likhet`() {
-            val a = vilkårsvurderingerInnvilget()
-            val b = vilkårsvurderingerInnvilget()
+            val a = vilkårsvurderingerSøknadsbehandlingInnvilget()
+            val b = vilkårsvurderingerSøknadsbehandlingInnvilget()
             a shouldBe b
             (a == b) shouldBe true
             a.erLik(b) shouldBe true
@@ -191,8 +191,8 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `likhet bryr seg bare om den funksjonelle betydningen av verdiene`() {
-            val a = vilkårsvurderingerInnvilget(periode = periodeMai2021)
-            val b = vilkårsvurderingerInnvilget(periode = periodeJuli2021)
+            val a = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periodeMai2021)
+            val b = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periodeJuli2021)
 
             a shouldBe b
             (a == b) shouldBe true
@@ -201,7 +201,7 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `oppdaterer vilkårsvurderinger med informasjon fra behandlingsinformasjon`() {
-            val innvilget = vilkårsvurderingerInnvilget()
+            val innvilget = vilkårsvurderingerSøknadsbehandlingInnvilget()
             innvilget.resultat shouldBe beOfType<Vilkårsvurderingsresultat.Innvilget>()
 
             innvilget.oppdater(
@@ -221,7 +221,7 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `legg til erstatter eksisternde vilkår med nytt`() {
-            val innvilget = vilkårsvurderingerInnvilget()
+            val innvilget = vilkårsvurderingerSøknadsbehandlingInnvilget()
             val uavklart = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert
 
             uavklart.vilkår shouldBe setOf(
@@ -268,7 +268,7 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `alle vilkår innvilget gir resultat innvilget`() {
-            vilkårsvurderingerInnvilgetRevurdering().let {
+            vilkårsvurderingerRevurderingInnvilget().let {
                 it.resultat shouldBe Vilkårsvurderingsresultat.Innvilget(
                     setOf(
                         it.uføre,
@@ -281,7 +281,7 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `alle vilkår innvilget bortsett fra en enkelt vurderingsperiode gir avslag`() {
-            vilkårsvurderingerInnvilgetRevurdering(
+            vilkårsvurderingerRevurderingInnvilget(
                 uføre = Vilkår.Uførhet.Vurdert.tryCreate(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.tryCreate(
@@ -343,7 +343,7 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `et vilkår uavklart gir uavklart`() {
-            vilkårsvurderingerInnvilgetRevurdering(
+            vilkårsvurderingerRevurderingInnvilget(
                 uføre = Vilkår.Uførhet.IkkeVurdert,
             ).let {
                 it.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
@@ -370,7 +370,7 @@ internal class VilkårsvurderingerTest {
             val gammel = Periode.create(1.januar(2021), 31.desember(2021))
             val ny = Periode.create(1.juli(2021), 31.desember(2021))
 
-            vilkårsvurderingerInnvilgetRevurdering(periode = gammel)
+            vilkårsvurderingerRevurderingInnvilget(periode = gammel)
                 .let {
                     it.periode shouldBe gammel
                     it.oppdaterStønadsperiode(Stønadsperiode.create(ny, "")).periode shouldBe ny
@@ -391,8 +391,8 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `likhet`() {
-            val a = vilkårsvurderingerInnvilgetRevurdering()
-            val b = vilkårsvurderingerInnvilgetRevurdering()
+            val a = vilkårsvurderingerRevurderingInnvilget()
+            val b = vilkårsvurderingerRevurderingInnvilget()
             a shouldBe b
             (a == b) shouldBe true
             a.erLik(b) shouldBe true
@@ -410,8 +410,8 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `likhet bryr seg bare om den funksjonelle betydningen av verdiene`() {
-            val a = vilkårsvurderingerInnvilgetRevurdering(periode = periodeMai2021)
-            val b = vilkårsvurderingerInnvilgetRevurdering(periode = periodeJuli2021)
+            val a = vilkårsvurderingerRevurderingInnvilget(periode = periodeMai2021)
+            val b = vilkårsvurderingerRevurderingInnvilget(periode = periodeJuli2021)
 
             a shouldBe b
             (a == b) shouldBe true

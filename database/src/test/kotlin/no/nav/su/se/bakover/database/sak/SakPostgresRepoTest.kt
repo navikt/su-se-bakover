@@ -5,13 +5,12 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.TestDataHelper.Companion.søknadNy
-import no.nav.su.se.bakover.database.stønadsperiode
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
-import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 
 internal class SakPostgresRepoTest {
@@ -21,7 +20,7 @@ internal class SakPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
-            val nySak = testDataHelper.nySakMedNySøknad()
+            val nySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
             val opprettet: Sak = repo.hentSak(nySak.fnr)!!
             val hentetId = repo.hentSak(opprettet.id)!!
             val hentetFnr = repo.hentSak(opprettet.fnr)!!
@@ -41,7 +40,7 @@ internal class SakPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
-            val nySak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val nySak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             repo.hentSakIdOgNummerForIdenter(nonEmptyListOf(nySak.fnr.toString())) shouldBe SakIdSaksnummerFnr(
                 nySak.id,
                 nySak.saksnummer,
@@ -55,7 +54,7 @@ internal class SakPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
-            val nySak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val nySak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             repo.hentSakIdOgNummerForIdenter(nonEmptyListOf("1234567890123", nySak.fnr.toString())) shouldBe SakIdSaksnummerFnr(
                 nySak.id,
                 nySak.saksnummer,
@@ -74,7 +73,7 @@ internal class SakPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
-            val nySak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val nySak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             repo.hentSakIdOgNummerForIdenter(
                 nonEmptyListOf(
                     "1234567890123",
@@ -91,10 +90,10 @@ internal class SakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
 
-            val sak = testDataHelper.nySakMedNySøknad()
-            testDataHelper.nyLukketSøknadForEksisterendeSak(sak.id)
-            testDataHelper.avsluttetRevurdering()
-            testDataHelper.avsluttetKlage()
+            val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+            testDataHelper.persisterLukketJournalførtSøknadMedOppgave(sak.id)
+            testDataHelper.persisterRevurderingAvsluttet()
+            testDataHelper.persisterKlageAvsluttet()
 
             val åpneBehandlinger = repo.hentÅpneBehandlinger()
 
@@ -117,27 +116,27 @@ internal class SakPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
-            val sak = testDataHelper.nySakMedNySøknad()
-            testDataHelper.nyLukketSøknadForEksisterendeSak(sak.id)
-            testDataHelper.nyLukketSøknadsbehandlingOgSøknadForEksisterendeSak(sak.toSak(saksnummer))
-            val søknadsbehandling = testDataHelper.nySøknadsbehandling()
-            val underkjent = testDataHelper.nyUnderkjenningMedBeregning()
-            val tilAttestering = testDataHelper.nyTilAvslåttAttesteringUtenBeregning()
-            testDataHelper.nyIverksattInnvilget()
+            val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+            testDataHelper.persisterLukketJournalførtSøknadMedOppgave(sakId = sak.id)
+            testDataHelper.persisterSøknadsbehandlingAvsluttet(sakId = sak.id)
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val underkjent = testDataHelper.persisterSøknadsbehandlingUnderkjentAvslagMedBeregning().second
+            val tilAttestering = testDataHelper.persisterSøknadsbehandlingTilAttesteringAvslagUtenBeregning().second
+            testDataHelper.persisterSøknadsbehandlingIverksattInnvilget()
 
             val opprettetRevurdering =
-                testDataHelper.nyRevurdering(
-                    testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first,
-                    stønadsperiode.periode,
+                testDataHelper.persisterRevurderingOpprettet(
+                    testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second,
+                    stønadsperiode2021.periode,
                 )
-            val tilAttesteringRevurdering = testDataHelper.revurderingTilAttesteringInnvilget()
-            val underkjentRevurdering = testDataHelper.underkjentRevurderingFraInnvilget()
-            testDataHelper.iverksattRevurderingInnvilget()
+            val tilAttesteringRevurdering = testDataHelper.persisterRevurderingTilAttesteringInnvilget()
+            val underkjentRevurdering = testDataHelper.persisterRevurderingUnderkjentInnvilget()
+            testDataHelper.persisterRevurderingIverksattInnvilget()
 
-            val opprettetKlage = testDataHelper.nyKlage()
-            val vurdertKlage = testDataHelper.påbegyntVurdertKlage()
-            val klageTilAttestering = testDataHelper.avvistKlageTilAttestering()
-            testDataHelper.iverksattAvvistKlage()
+            val opprettetKlage = testDataHelper.persisterKlageOpprettet()
+            val vurdertKlage = testDataHelper.persisterKlageVurdertPåbegynt()
+            val klageTilAttestering = testDataHelper.persisterKlageTilAttesteringAvvist()
+            testDataHelper.persisterKlageIverksattAvvist()
 
             val alleRestanser = repo.hentÅpneBehandlinger()
 

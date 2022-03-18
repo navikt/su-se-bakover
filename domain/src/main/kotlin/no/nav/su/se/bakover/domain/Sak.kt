@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonValue
@@ -113,17 +114,21 @@ data class Sak(
             .filterIsInstance<VedtakSomKanRevurderes>()
             .ifEmpty { return KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak.left() }
             .let { vedtakSomKanRevurderes ->
-                hentGjeldendeVedtaksdata(
-                    periode = Periode.create(fraOgMed, vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed }),
-                    clock = clock,
-                )
+                Periode.tryCreate(fraOgMed, vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed })
+                    .mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode(it) }
+                    .flatMap {
+                        hentGjeldendeVedtaksdata(
+                            periode = it,
+                            clock = clock,
+                        )
+                    }
             }
     }
 
     private fun hentGjeldendeVedtaksdata(
         periode: Periode,
         clock: Clock,
-    ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+    ): Either<KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak, GjeldendeVedtaksdata> {
         return vedtakListe
             .filterIsInstance<VedtakSomKanRevurderes>()
             .ifEmpty { return KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak.left() }
@@ -138,6 +143,7 @@ data class Sak(
 
     sealed class KunneIkkeHenteGjeldendeVedtaksdata {
         object FantIngenVedtak : KunneIkkeHenteGjeldendeVedtaksdata()
+        data class UgyldigPeriode(val feil: Periode.UgyldigPeriode) : KunneIkkeHenteGjeldendeVedtaksdata()
     }
 
     /**
@@ -206,7 +212,8 @@ data class Sak(
             }.reduser()
     }
 
-    fun hentÅpneKlager(): List<Klage> = klager.filter { it.erÅpen() }
+/** Skal ikke kunne ha mer enn én åpen klage av gangen. */
+    fun kanOppretteKlage(): Boolean = klager.none { it.erÅpen() }
 
     fun hentKlage(klageId: UUID): Klage? = klager.find { it.id == klageId }
 

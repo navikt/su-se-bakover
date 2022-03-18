@@ -83,7 +83,6 @@ object SøknadInnholdTestdataBuilder {
             andreYtelserINav = "sosialstønad",
             andreYtelserINavBeløp = 33,
             søktAndreYtelserIkkeBehandletBegrunnelse = "uføre",
-            sosialstønadBeløp = 7000.0,
             trygdeytelseIUtlandet = listOf(
                 TrygdeytelseIUtlandet(beløp = 200, type = "trygd", valuta = "En valuta"),
                 TrygdeytelseIUtlandet(beløp = 500, type = "Annen trygd", valuta = "En annen valuta")
@@ -138,7 +137,6 @@ object SøknadInnholdTestdataBuilder {
                 andreYtelserINav = null,
                 andreYtelserINavBeløp = null,
                 søktAndreYtelserIkkeBehandletBegrunnelse = null,
-                sosialstønadBeløp = null,
                 trygdeytelseIUtlandet = null,
                 pensjon = null
             )
