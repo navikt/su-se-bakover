@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringType
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -300,6 +301,41 @@ data class Sak(
                 }
             }
         }
+    }
+
+    /**
+     * Iverksatte regulering vil ikke bli oppdatert
+     */
+    fun opprettEllerOppdaterRegulering(startDato: LocalDate, reguleringType: ReguleringType, gjeldendeVedtaksdata: GjeldendeVedtaksdata, clock: Clock): Either<KunneIkkeHenteEllerOppretteRegulering, Regulering.OpprettetRegulering> {
+        return reguleringer.filterIsInstance<Regulering.OpprettetRegulering>().let {
+            when (it.size) {
+                0 -> Regulering.opprettRegulering(
+                    startDato = startDato,
+                    sakId = id,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    gjeldendeVedtaksdata = gjeldendeVedtaksdata,
+                    reguleringType = reguleringType,
+                    clock = clock
+                ).mapLeft { feil -> KunneIkkeHenteEllerOppretteRegulering.KunneIkkeOppretteRegulering(feil = feil) }
+                1 -> Regulering.opprettRegulering(
+                    id = it.first().id,
+                    startDato = startDato,
+                    sakId = id,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    gjeldendeVedtaksdata = gjeldendeVedtaksdata,
+                    reguleringType = reguleringType,
+                    clock = clock
+                ).mapLeft { feil -> KunneIkkeHenteEllerOppretteRegulering.KunneIkkeOppretteRegulering(feil = feil) }
+                else -> KunneIkkeHenteEllerOppretteRegulering.DetFinnesFlerEnnEnÅpenRegulering.left()
+            }
+        }
+    }
+
+    sealed interface KunneIkkeHenteEllerOppretteRegulering {
+        object DetFinnesFlerEnnEnÅpenRegulering : KunneIkkeHenteEllerOppretteRegulering
+        data class KunneIkkeOppretteRegulering(val feil: Regulering.KunneIkkeOppretteRegulering) : KunneIkkeHenteEllerOppretteRegulering
     }
 
     sealed class KunneIkkeOppdatereStønadsperiode {

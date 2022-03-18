@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.regulering
 
 import arrow.core.Either
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -37,19 +38,20 @@ sealed class KunneIkkeLeggeTilFradrag {
 
 sealed class KunneIkkeOppretteRegulering {
     object FantIkkeSak : KunneIkkeOppretteRegulering()
-    object FantIkkeRegulering : KunneIkkeOppretteRegulering()
     object FantIngenVedtak : KunneIkkeOppretteRegulering()
+    object HelePeriodenErOpphør : KunneIkkeOppretteRegulering()
     object UgyldigPeriode : KunneIkkeOppretteRegulering()
-    object TidslinjeForVedtakErIkkeKontinuerlig : KunneIkkeOppretteRegulering()
     object GrunnlagErIkkeKonsistent : KunneIkkeOppretteRegulering()
-    object KunneIkkeLageFradragsgrunnlag : KunneIkkeOppretteRegulering()
+    object FørerIkkeTilEnEndring : KunneIkkeOppretteRegulering()
+    data class KunneIkkeHenteGjeldendeVedtaksdata(val feil: Sak.KunneIkkeHenteGjeldendeVedtaksdata) : KunneIkkeOppretteRegulering()
+    data class KunneIkkeHenteEllerOppretteRegulering(val feil: Sak.KunneIkkeHenteEllerOppretteRegulering) : KunneIkkeOppretteRegulering()
+    data class KunneIkkeRegulereAutomatisk(val feil: KunneIkkeRegulereAutomatiskt) : KunneIkkeOppretteRegulering()
 }
 
 sealed class KunneIkkeHenteGjeldendeVedtaksdata {
     object FantIngenVedtak : KunneIkkeHenteGjeldendeVedtaksdata()
     object FantIkkeSak : KunneIkkeHenteGjeldendeVedtaksdata()
     object UgyldigPeriode : KunneIkkeHenteGjeldendeVedtaksdata()
-    object TidslinjeForVedtakErIkkeKontinuerlig : KunneIkkeHenteGjeldendeVedtaksdata()
     data class GrunnlagErIkkeKonsistent(val gjeldendeVedtaksdata: GjeldendeVedtaksdata) : KunneIkkeHenteGjeldendeVedtaksdata()
 }
 

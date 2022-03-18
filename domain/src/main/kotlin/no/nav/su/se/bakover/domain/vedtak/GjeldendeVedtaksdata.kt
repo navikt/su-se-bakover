@@ -88,6 +88,14 @@ data class GjeldendeVedtaksdata(
         return vedtakPåTidslinje.map { it.originaltVedtak }.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse>().isNotEmpty()
     }
 
+    fun helePeriodenErOpphør(): Boolean {
+        return vedtakPåTidslinje.all { it.erOpphør() }
+    }
+
+    fun delerAvPeriodenErOpphør(): Boolean {
+        return !helePeriodenErOpphør() && vedtakPåTidslinje.any { it.erOpphør() }
+    }
+
     fun gjeldendeVedtakPåDato(dato: LocalDate): VedtakSomKanRevurderes? =
         tidslinje.gjeldendeForDato(dato)?.originaltVedtak
 

@@ -361,6 +361,10 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                     )
                 }
             }
+
+        fun erOpphør(): Boolean {
+            return originaltVedtak.erOpphør()
+        }
     }
 }
 

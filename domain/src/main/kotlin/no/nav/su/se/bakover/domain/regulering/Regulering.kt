@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
@@ -18,14 +19,15 @@ import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
-fun List<Regulering>.harÅpenRegulering() = this.any { it is Regulering.OpprettetRegulering }
-fun List<Regulering>.hentÅpenRegulering() = this.filterIsInstance<Regulering.OpprettetRegulering>().single()
+fun Regulering.inneholderAvslag(): Boolean = this.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.resultat is Vilkårsvurderingsresultat.Avslag
 
 sealed interface Regulering : Behandling {
     val beregning: Beregning?
@@ -34,15 +36,58 @@ sealed interface Regulering : Behandling {
     val reguleringType: ReguleringType
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger
 
-    sealed class KunneIkkeBeregne {
-        object BeregningFeilet : KunneIkkeBeregne()
-        data class IkkeLovÅBeregneIDenneStatusen(val status: KClass<out Regulering>) :
-            KunneIkkeBeregne()
+    companion object {
+        fun opprettRegulering(
+            id: UUID = UUID.randomUUID(),
+            startDato: LocalDate,
+            sakId: UUID,
+            saksnummer: Saksnummer,
+            fnr: Fnr,
+            gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+            reguleringType: ReguleringType,
+            clock: Clock,
+            opprettet: Tidspunkt = Tidspunkt.now(clock),
+        ): Either<KunneIkkeOppretteRegulering, OpprettetRegulering> {
+            val fraOgMed = maxOf(gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.fraOgMed, startDato)
+            val tilOgMed = gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.tilOgMed
+
+            val grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+                grunnlagsdata = Grunnlagsdata.tryCreate(
+                    fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
+                    bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
+                ).getOrHandle { return KunneIkkeOppretteRegulering.KunneIkkeLageFradragsgrunnlag.left() },
+                vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
+            )
+
+            return OpprettetRegulering(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
+                fnr = fnr,
+                periode = Periode.create(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                beregning = null,
+                simulering = null,
+                reguleringType = reguleringType,
+            ).right()
+        }
     }
 
-    sealed class KunneIkkeSimulere {
-        object FantIngenBeregning : KunneIkkeSimulere()
-        object SimuleringFeilet : KunneIkkeSimulere()
+    sealed interface KunneIkkeOppretteRegulering {
+        object KunneIkkeLageFradragsgrunnlag : KunneIkkeOppretteRegulering
+    }
+
+    sealed interface KunneIkkeBeregne {
+        object BeregningFeilet : KunneIkkeBeregne
+        data class IkkeLovÅBeregneIDenneStatusen(val status: KClass<out Regulering>) :
+            KunneIkkeBeregne
+    }
+
+    sealed interface KunneIkkeSimulere {
+        object FantIngenBeregning : KunneIkkeSimulere
+        object SimuleringFeilet : KunneIkkeSimulere
     }
 
     fun beregn(clock: Clock, begrunnelse: String?): Either<KunneIkkeBeregne, OpprettetRegulering> =
@@ -81,21 +126,10 @@ sealed interface Regulering : Behandling {
             )
 
         override fun beregn(clock: Clock, begrunnelse: String?): Either<KunneIkkeBeregne, OpprettetRegulering> {
-            val reguleringMedNyForventetInntekt = copy(
-                grunnlagsdataOgVilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.copy(
-                    vilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.copy(
-                        uføre = (vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).regulerForventetInntekt()
-                            .getOrHandle {
-                                throw RuntimeException("")
-                            },
-                    ),
-                ),
-            )
-
-            return reguleringMedNyForventetInntekt.gjørBeregning(
+            return this.gjørBeregning(
                 begrunnelse = begrunnelse,
                 clock = clock,
-            ).map { reguleringMedNyForventetInntekt.copy(beregning = it) }
+            ).map { this.copy(beregning = it) }
         }
 
         fun simuler(callback: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>): Either<KunneIkkeSimulere, OpprettetRegulering> {

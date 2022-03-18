@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.regulering
 
+import arrow.core.left
 import arrow.core.right
 import arrow.core.rightIfNotNull
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
@@ -18,10 +18,14 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
 import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
@@ -38,6 +42,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 internal class ReguleringServiceImplTest {
 
@@ -56,7 +61,7 @@ internal class ReguleringServiceImplTest {
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
                     fradragsgrunnlag = listOf(
                         Grunnlag.Fradragsgrunnlag.create(
-                            opprettet = Tidspunkt.now(),
+                            opprettet = fixedTidspunkt,
                             fradrag = FradragFactory.ny(
                                 type = Fradragstype.OffentligPensjon,
                                 månedsbeløp = 8000.0,
@@ -110,8 +115,7 @@ internal class ReguleringServiceImplTest {
 
             val reguleringService = lagReguleringServiceImpl(revurdertSak)
 
-            val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
-            regulering.reguleringType shouldBe ReguleringType.MANUELL
+            reguleringService.startRegulering(1.mai(2021)).first() shouldBe KunneIkkeOppretteRegulering.HelePeriodenErOpphør.left()
         }
 
         @Test
@@ -164,7 +168,19 @@ internal class ReguleringServiceImplTest {
         sak: Sak,
     ): ReguleringServiceImpl {
         val testData = lagTestdata(sak)
-        val utbetaling = oversendtUtbetalingUtenKvittering()
+        val utbetaling = oversendtUtbetalingUtenKvittering(
+            beregning = beregning(
+                fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000())
+            )
+        )
+        val gjeldendeUtbetaling = TidslinjeForUtbetalinger(
+            periode = Periode.create(
+                fraOgMed = utbetaling.utbetalingslinjer.minOf { it.fraOgMed },
+                tilOgMed = utbetaling.utbetalingslinjer.maxOf { it.tilOgMed },
+            ),
+            utbetalingslinjer = utbetaling.utbetalingslinjer,
+            clock = fixedClock,
+        ).gjeldendeForDato(1.mai(2021)).rightIfNotNull { FantIkkeGjeldendeUtbetaling }
 
         return ReguleringServiceImpl(
             reguleringRepo = mock {
@@ -179,6 +195,7 @@ internal class ReguleringServiceImplTest {
                         fnr = testData.first.fnr,
                     ),
                 )
+                on { hentSak(any<UUID>()) } doReturn sak
             },
             utbetalingService = mock {
                 on { simulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
@@ -187,7 +204,7 @@ internal class ReguleringServiceImplTest {
                         any(),
                         any(),
                     )
-                } doReturn testData.third.rightIfNotNull { FantIkkeGjeldendeUtbetaling }
+                } doReturn gjeldendeUtbetaling
                 on { utbetal(any()) } doReturn utbetaling.right()
             },
             vedtakService = mock {
