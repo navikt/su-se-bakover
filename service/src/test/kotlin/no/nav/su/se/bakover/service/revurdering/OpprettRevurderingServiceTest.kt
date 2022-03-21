@@ -72,8 +72,8 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt12000
-import no.nav.su.se.bakover.test.utlandsoppholdAvslag
-import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
+import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
@@ -459,7 +459,7 @@ internal class OpprettRevurderingServiceTest {
             on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering(
                 vilkårsvurderingUføre,
                 formueVilkår(periodeNesteMånedOgTreMånederFram),
-                utlandsoppholdInnvilget(periode = periodeNesteMånedOgTreMånederFram),
+                utenlandsoppholdInnvilget(periode = periodeNesteMånedOgTreMånederFram),
             )
         }
         val vedtakForFørsteJanuarLagetNå = mock<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
@@ -929,7 +929,7 @@ internal class OpprettRevurderingServiceTest {
             clock = clock,
             revurderingsperiode = Periode.create(1.juni(2021), 31.desember(2021)),
             vilkårOverrides = listOf(
-                utlandsoppholdAvslag(
+                utenlandsoppholdAvslag(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     periode = Periode.create(1.juni(2021), 31.desember(2021)),

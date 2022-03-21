@@ -31,8 +31,8 @@ import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.utlandsoppholdAvslag
-import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
+import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Nested
@@ -90,7 +90,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 vilkårOverrides = listOf(
-                    utlandsoppholdAvslag(
+                    utenlandsoppholdAvslag(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -135,7 +135,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
             vilkårOverrides = listOf(
-                utlandsoppholdAvslag(
+                utenlandsoppholdAvslag(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     periode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -161,7 +161,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             sakOgVedtakSomKanRevurderes = sak3 to nyStønadsperiode,
             revurderingsperiode = Periode.create(1.februar(2021), 30.juni(2022)),
             vilkårOverrides = listOf(
-                utlandsoppholdInnvilget(
+                utenlandsoppholdInnvilget(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     periode = Periode.create(1.februar(2021), 30.juni(2022)),
@@ -245,7 +245,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 vilkårOverrides = listOf(
-                    utlandsoppholdAvslag(
+                    utenlandsoppholdAvslag(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -283,7 +283,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 vilkårOverrides = listOf(
-                    utlandsoppholdAvslag(
+                    utenlandsoppholdAvslag(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -300,7 +300,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         avkortingsvarsel = opphørUtenlandsopphold.hentUteståendeAvkorting().avkortingsvarsel(),
                     ),
                     vilkårOverrides = listOf(
-                        utlandsoppholdInnvilget(
+                        utenlandsoppholdInnvilget(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             periode = Periode.create(1.mars(2021), 31.desember(2021)),
@@ -336,7 +336,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 vilkårOverrides = listOf(
-                    utlandsoppholdAvslag(
+                    utenlandsoppholdAvslag(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -353,7 +353,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         avkortingsvarsel = opphørUtenlandsopphold.hentUteståendeAvkorting().avkortingsvarsel(),
                     ),
                     vilkårOverrides = listOf(
-                        utlandsoppholdInnvilget(
+                        utenlandsoppholdInnvilget(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             periode = Periode.create(1.august(2021), 31.desember(2021)),
@@ -415,7 +415,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 vilkårOverrides = listOf(
-                    utlandsoppholdAvslag(
+                    utenlandsoppholdAvslag(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -469,7 +469,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 vilkårOverrides = listOf(
-                    utlandsoppholdAvslag(
+                    utenlandsoppholdAvslag(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -495,7 +495,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 sakOgVedtakSomKanRevurderes = sak3 to nyStønadsperiode,
                 revurderingsperiode = Periode.create(1.februar(2021), 30.juni(2022)),
                 vilkårOverrides = listOf(
-                    utlandsoppholdInnvilget(
+                    utenlandsoppholdInnvilget(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         periode = Periode.create(1.februar(2021), 30.juni(2022)),
@@ -529,7 +529,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 vilkårOverrides = listOf(
-                    utlandsoppholdAvslag(
+                    utenlandsoppholdAvslag(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -563,7 +563,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 vilkårOverrides = listOf(
-                    utlandsoppholdAvslag(
+                    utenlandsoppholdAvslag(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -578,7 +578,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     avkortingsvarsel = opphørUtenlandsopphold.hentUteståendeAvkorting().avkortingsvarsel()
                 ),
                 vilkårOverrides = listOf(
-                    utlandsoppholdInnvilget(
+                    utenlandsoppholdInnvilget(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),

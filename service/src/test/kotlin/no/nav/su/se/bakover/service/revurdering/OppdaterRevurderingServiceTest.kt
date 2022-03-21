@@ -73,7 +73,7 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.utlandsoppholdAvslag
+import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -770,7 +770,7 @@ internal class OppdaterRevurderingServiceTest {
             revurderingsperiode = revurderingsperiode,
             sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtak,
             vilkårOverrides = listOf(
-                utlandsoppholdAvslag(
+                utenlandsoppholdAvslag(
                     periode = revurderingsperiode,
                 ),
             ),
@@ -814,7 +814,7 @@ internal class OppdaterRevurderingServiceTest {
             clock = clock,
             revurderingsperiode = Periode.create(1.juni(2021), 31.desember(2021)),
             vilkårOverrides = listOf(
-                utlandsoppholdAvslag(
+                utenlandsoppholdAvslag(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     periode = Periode.create(1.juni(2021), 31.desember(2021)),

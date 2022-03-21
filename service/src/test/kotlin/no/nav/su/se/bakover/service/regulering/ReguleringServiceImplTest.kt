@@ -155,9 +155,11 @@ internal class ReguleringServiceImplTest {
 
             val reguleringService = lagReguleringServiceImpl(revurdertSak, simulertFeilutbetaling().right())
 
-            reguleringService.startRegulering(1.mai(2021)) shouldBe listOf(KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(
-                KunneIkkeRegulereAutomatiskt.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling,
-            ).left())
+            reguleringService.startRegulering(1.mai(2021)) shouldBe listOf(
+                KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(
+                    KunneIkkeRegulereAutomatiskt.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling,
+                ).left(),
+            )
         }
     }
 

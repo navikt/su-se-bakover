@@ -245,6 +245,10 @@ class ReguleringServiceImpl(
             return ReguleringType.MANUELL
         }
 
+        if (gjeldendeVedtaksdata.harAvkortingsvarselEllerUteståendeAvkorting) {
+            return ReguleringType.MANUELL
+        }
+
         return ReguleringType.AUTOMATISK
     }
 

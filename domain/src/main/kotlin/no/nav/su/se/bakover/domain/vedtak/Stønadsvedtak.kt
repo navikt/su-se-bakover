@@ -5,6 +5,8 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -44,6 +46,8 @@ sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
             it.sendBrev
         }
     }
+
+    fun harAvkortingsvarselEllerUteståendeAvkorting(): Boolean
 }
 
 /**
@@ -190,6 +194,8 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         ) : EndringIYtelse {
             override fun erOpphør() = false
 
+            override fun harAvkortingsvarselEllerUteståendeAvkorting() = behandling.avkorting is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående
+
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
             }
@@ -208,6 +214,8 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         ) : EndringIYtelse {
             override fun erOpphør() = false
 
+            override fun harAvkortingsvarselEllerUteståendeAvkorting() = behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
+
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
             }
@@ -225,6 +233,8 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
             override fun erOpphør() = false
+
+            override fun harAvkortingsvarselEllerUteståendeAvkorting() = false
 
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
@@ -247,6 +257,8 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
 
             override fun erOpphør() = true
 
+            override fun harAvkortingsvarselEllerUteståendeAvkorting() = behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
+
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
             }
@@ -265,6 +277,8 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
 
             override fun erOpphør() = false
 
+            override fun harAvkortingsvarselEllerUteståendeAvkorting() = false
+
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
             }
@@ -282,6 +296,8 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         ) : EndringIYtelse {
             override fun erOpphør() = false
 
+            override fun harAvkortingsvarselEllerUteståendeAvkorting() = false
+
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
             }
@@ -298,6 +314,8 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         val beregning: Beregning,
     ) : VedtakSomKanRevurderes {
         override fun erOpphør() = false
+
+        override fun harAvkortingsvarselEllerUteståendeAvkorting() = behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
 
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
@@ -432,6 +450,8 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
     ) : Avslagsvedtak {
         override fun erOpphør() = false
 
+        override fun harAvkortingsvarselEllerUteståendeAvkorting() = false
+
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
         }
@@ -448,6 +468,8 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         override val avslagsgrunner: List<Avslagsgrunn>,
     ) : Avslagsvedtak {
         override fun erOpphør() = false
+
+        override fun harAvkortingsvarselEllerUteståendeAvkorting() = false
 
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)

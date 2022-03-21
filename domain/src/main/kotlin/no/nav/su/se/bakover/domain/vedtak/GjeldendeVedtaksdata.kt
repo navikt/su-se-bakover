@@ -28,6 +28,9 @@ data class GjeldendeVedtaksdata(
 
     private val vedtakPåTidslinje: List<VedtakSomKanRevurderes.VedtakPåTidslinje> = tidslinje.tidslinje
 
+    val harAvkortingsvarselEllerUteståendeAvkorting: Boolean =
+        vedtakPåTidslinje.any { it.originaltVedtak.harAvkortingsvarselEllerUteståendeAvkorting() }
+
     private val vilkårsvurderingerFraTidslinje: Vilkårsvurderinger = vedtakPåTidslinje.vilkårsvurderinger()
 
     // Utleder grunnlagstyper som kan knyttes til vilkår via deres respektive vilkårsvurderinger

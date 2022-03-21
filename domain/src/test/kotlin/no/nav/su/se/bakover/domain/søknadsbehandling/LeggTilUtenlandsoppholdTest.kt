@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
-import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
 
 class LeggTilUtenlandsoppholdTest {
@@ -32,21 +32,21 @@ class LeggTilUtenlandsoppholdTest {
         val uavklart = søknadsbehandlingVilkårsvurdertUavklart().second
 
         uavklart.leggTilUtenlandsopphold(
-            utenlandsopphold = utlandsoppholdInnvilget(
+            utenlandsopphold = utenlandsoppholdInnvilget(
                 periode = Periode.create(1.januar(2020), 31.januar(2020)),
             ),
             clock = fixedClock,
         ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUtenlandsopphold(
-            utenlandsopphold = utlandsoppholdInnvilget(
+            utenlandsopphold = utenlandsoppholdInnvilget(
                 periode = Periode.create(1.januar(2020), 31.januar(2025)),
             ),
             clock = fixedClock,
         ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUtenlandsopphold(
-            utenlandsopphold = utlandsoppholdInnvilget(
+            utenlandsopphold = utenlandsoppholdInnvilget(
                 periode = uavklart.periode,
             ),
             clock = fixedClock,
@@ -68,7 +68,7 @@ class LeggTilUtenlandsoppholdTest {
         ).map {
             it.second
         }.forEach {
-            it.leggTilUtenlandsopphold(utlandsoppholdInnvilget(), fixedClock).let { oppdatert ->
+            it.leggTilUtenlandsopphold(utenlandsoppholdInnvilget(), fixedClock).let { oppdatert ->
                 oppdatert.isRight() shouldBe true
                 oppdatert.getOrFail() shouldBe beInstanceOf<Søknadsbehandling.Vilkårsvurdert>()
             }
@@ -85,7 +85,7 @@ class LeggTilUtenlandsoppholdTest {
             it.second
         }.forEach {
             it.leggTilUtenlandsopphold(
-                utlandsoppholdInnvilget(),
+                utenlandsoppholdInnvilget(),
                 fixedClock,
             ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(fra = it::class, til = Søknadsbehandling.Vilkårsvurdert::class).left()
         }
