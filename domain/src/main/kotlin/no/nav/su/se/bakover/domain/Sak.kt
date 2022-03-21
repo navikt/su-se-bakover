@@ -70,7 +70,7 @@ data class Sak(
     val revurderinger: List<AbstraktRevurdering> = emptyList(),
     val vedtakListe: List<Vedtak> = emptyList(),
     val klager: List<Klage> = emptyList(),
-    val reguleringer: List<Regulering> = emptyList()
+    val reguleringer: List<Regulering> = emptyList(),
 ) {
     fun utbetalingstidslinje(
         periode: Periode = Periode.create(
@@ -212,7 +212,7 @@ data class Sak(
             }.reduser()
     }
 
-/** Skal ikke kunne ha mer enn én åpen klage av gangen. */
+    /** Skal ikke kunne ha mer enn én åpen klage av gangen. */
     fun kanOppretteKlage(): Boolean = klager.none { it.erÅpen() }
 
     fun hentKlage(klageId: UUID): Klage? = klager.find { it.id == klageId }
@@ -313,7 +313,12 @@ data class Sak(
     /**
      * Iverksatte regulering vil ikke bli oppdatert
      */
-    fun opprettEllerOppdaterRegulering(startDato: LocalDate, reguleringType: ReguleringType, gjeldendeVedtaksdata: GjeldendeVedtaksdata, clock: Clock): Either<KunneIkkeHenteEllerOppretteRegulering, Regulering.OpprettetRegulering> {
+    fun opprettEllerOppdaterRegulering(
+        startDato: LocalDate,
+        reguleringType: ReguleringType,
+        gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+        clock: Clock,
+    ): Either<KunneIkkeHenteEllerOppretteRegulering, Regulering.OpprettetRegulering> {
         return reguleringer.filterIsInstance<Regulering.OpprettetRegulering>().let {
             when (it.size) {
                 0 -> Regulering.opprettRegulering(
@@ -323,26 +328,37 @@ data class Sak(
                     fnr = fnr,
                     gjeldendeVedtaksdata = gjeldendeVedtaksdata,
                     reguleringType = reguleringType,
-                    clock = clock
+                    clock = clock,
                 ).mapLeft { feil -> KunneIkkeHenteEllerOppretteRegulering.KunneIkkeOppretteRegulering(feil = feil) }
-                1 -> Regulering.opprettRegulering(
-                    id = it.first().id,
-                    startDato = startDato,
-                    sakId = id,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    gjeldendeVedtaksdata = gjeldendeVedtaksdata,
-                    reguleringType = reguleringType,
-                    clock = clock
-                ).mapLeft { feil -> KunneIkkeHenteEllerOppretteRegulering.KunneIkkeOppretteRegulering(feil = feil) }
+                1 -> minOf(startDato, it.first().periode.fraOgMed).let { tidligestStartDato ->
+                    kopierGjeldendeVedtaksdata(tidligestStartDato, clock)
+                        .mapLeft { KunneIkkeHenteEllerOppretteRegulering.KunneIkkeHenteGjeldendeVedtaksdata }
+                        .flatMap { gjeldendeVedtaksdata ->
+                            Regulering.opprettRegulering(
+                                id = it.first().id,
+                                opprettet = it.first().opprettet,
+                                startDato = tidligestStartDato,
+                                sakId = id,
+                                saksnummer = saksnummer,
+                                fnr = fnr,
+                                gjeldendeVedtaksdata = gjeldendeVedtaksdata,
+                                reguleringType = reguleringType,
+                                clock = clock,
+                            ).mapLeft { feil ->
+                                KunneIkkeHenteEllerOppretteRegulering.KunneIkkeOppretteRegulering(feil = feil)
+                            }
+                        }
+                }
                 else -> KunneIkkeHenteEllerOppretteRegulering.DetFinnesFlerEnnEnÅpenRegulering.left()
             }
         }
     }
 
     sealed interface KunneIkkeHenteEllerOppretteRegulering {
+        object KunneIkkeHenteGjeldendeVedtaksdata : KunneIkkeHenteEllerOppretteRegulering
         object DetFinnesFlerEnnEnÅpenRegulering : KunneIkkeHenteEllerOppretteRegulering
-        data class KunneIkkeOppretteRegulering(val feil: Regulering.KunneIkkeOppretteRegulering) : KunneIkkeHenteEllerOppretteRegulering
+        data class KunneIkkeOppretteRegulering(val feil: Regulering.KunneIkkeOppretteRegulering) :
+            KunneIkkeHenteEllerOppretteRegulering
     }
 
     sealed class KunneIkkeOppdatereStønadsperiode {

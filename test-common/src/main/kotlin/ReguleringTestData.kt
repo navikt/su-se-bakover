@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -48,10 +49,10 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         fnr = fnr,
         periode = periode,
         grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata,
-        beregning = søknadsbehandling.beregning,
-        simulering = søknadsbehandling.simulering,
-        saksbehandler = saksbehandler,
-        reguleringType = ReguleringType.AUTOMATISK,
+        beregning = null,
+        simulering = null,
+        saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
+        reguleringType = ReguleringType.MANUELL,
     )
 
     return Pair(

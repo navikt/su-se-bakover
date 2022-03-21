@@ -3,8 +3,12 @@ package no.nav.su.se.bakover.service.regulering
 import arrow.core.left
 import arrow.core.right
 import arrow.core.rightIfNotNull
+import io.kotest.matchers.equality.shouldBeEqualToComparingFieldsExcept
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
@@ -15,6 +19,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
 import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -28,6 +33,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
+import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.plus
@@ -115,7 +121,8 @@ internal class ReguleringServiceImplTest {
 
             val reguleringService = lagReguleringServiceImpl(revurdertSak)
 
-            reguleringService.startRegulering(1.mai(2021)).first() shouldBe KunneIkkeOppretteRegulering.HelePeriodenErOpphør.left()
+            reguleringService.startRegulering(1.mai(2021))
+                .first() shouldBe KunneIkkeOppretteRegulering.HelePeriodenErOpphør.left()
         }
 
         @Test
@@ -162,6 +169,90 @@ internal class ReguleringServiceImplTest {
             val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
             regulering.periode.fraOgMed shouldBe 1.juni(2021)
         }
+
+        @Test
+        fun `oppdaterer reguleringen hvis det finnes en åpen regulering allerede og reguleringsperioden er større`() {
+            val sakOgVedtak = innvilgetSøknadsbehandlingMedÅpenRegulering(
+                regulerFraOgMed = 1.august(2021),
+                /* Manuell regulering */
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
+                    fradragsgrunnlag = listOf(
+                        Grunnlag.Fradragsgrunnlag.create(
+                            opprettet = fixedTidspunkt,
+                            fradrag = FradragFactory.ny(
+                                type = Fradragstype.OffentligPensjon,
+                                månedsbeløp = 8000.0,
+                                periode = periode2021,
+                                utenlandskInntekt = null,
+                                tilhører = FradragTilhører.BRUKER,
+                            ),
+                        ),
+                    ),
+                ),
+            )
+            val (sak, regulering) = sakOgVedtak
+
+            val reguleringService = lagReguleringServiceImpl(sak)
+            reguleringService.startRegulering(1.mai(2021)).first().getOrFail().let {
+                it.shouldBeInstanceOf<Regulering.OpprettetRegulering>()
+                it.shouldBeEqualToComparingFieldsExcept(
+                    regulering,
+                    Regulering.OpprettetRegulering::periode,
+                    Regulering.OpprettetRegulering::grunnlagsdataOgVilkårsvurderinger,
+                    Regulering.OpprettetRegulering::opprettet,
+                )
+
+                it.periode.fraOgMed shouldBe 1.mai(2021)
+                it.periode.tilOgMed shouldBe regulering.periode.tilOgMed
+
+                it.grunnlagsdataOgVilkårsvurderinger.periode()?.fraOgMed shouldBe 1.mai(2021)
+                it.grunnlagsdataOgVilkårsvurderinger.periode()?.tilOgMed shouldBe regulering.periode.tilOgMed
+
+                it.opprettet shouldBe regulering.opprettet
+            }
+        }
+
+        @Test
+        fun `oppdaterer ikke reguleringen hvis det finnes en åpen regulering men reguleringsperioden er mindre`() {
+            val sakOgVedtak = innvilgetSøknadsbehandlingMedÅpenRegulering(
+                regulerFraOgMed = 1.januar(2021),
+                /* Manuell regulering */
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
+                    fradragsgrunnlag = listOf(
+                        Grunnlag.Fradragsgrunnlag.create(
+                            opprettet = fixedTidspunkt,
+                            fradrag = FradragFactory.ny(
+                                type = Fradragstype.OffentligPensjon,
+                                månedsbeløp = 8000.0,
+                                periode = periode2021,
+                                utenlandskInntekt = null,
+                                tilhører = FradragTilhører.BRUKER,
+                            ),
+                        ),
+                    ),
+                ),
+            )
+            val (sak, regulering) = sakOgVedtak
+
+            val reguleringService = lagReguleringServiceImpl(sak)
+            reguleringService.startRegulering(1.mai(2021)).first().getOrFail().let {
+                it.shouldBeInstanceOf<Regulering.OpprettetRegulering>()
+                it.shouldBeEqualToComparingFieldsExcept(
+                    regulering,
+                    Regulering.OpprettetRegulering::periode,
+                    Regulering.OpprettetRegulering::grunnlagsdataOgVilkårsvurderinger,
+                    Regulering.OpprettetRegulering::opprettet,
+                )
+
+                it.periode.fraOgMed shouldBe regulering.periode.fraOgMed
+                it.periode.tilOgMed shouldBe regulering.periode.tilOgMed
+
+                it.grunnlagsdataOgVilkårsvurderinger.periode()?.fraOgMed shouldBe regulering.periode.fraOgMed
+                it.grunnlagsdataOgVilkårsvurderinger.periode()?.tilOgMed shouldBe regulering.periode.tilOgMed
+
+                it.opprettet shouldBe regulering.opprettet
+            }
+        }
     }
 
     private fun lagReguleringServiceImpl(
@@ -170,8 +261,8 @@ internal class ReguleringServiceImplTest {
         val testData = lagTestdata(sak)
         val utbetaling = oversendtUtbetalingUtenKvittering(
             beregning = beregning(
-                fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000())
-            )
+                fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000()),
+            ),
         )
         val gjeldendeUtbetaling = TidslinjeForUtbetalinger(
             periode = Periode.create(
