@@ -32,10 +32,6 @@ interface UtbetalingService {
         request: SimulerUtbetalingRequest.OpphørRequest,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
-    fun utbetal(
-        request: UtbetalRequest.NyUtbetaling,
-    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
-
     fun publiserUtbetaling(
         utbetaling: Utbetaling.SimulertUtbetaling
     ): Either<UtbetalingFeilet, Utbetalingsrequest>

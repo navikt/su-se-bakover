@@ -6,6 +6,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -13,6 +14,7 @@ import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
@@ -32,6 +34,7 @@ class ReguleringServiceImpl(
     private val sakRepo: SakRepo,
     private val utbetalingService: UtbetalingService,
     private val vedtakService: VedtakService,
+    private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) : ReguleringService {
 
@@ -151,6 +154,9 @@ class ReguleringServiceImpl(
         }
     }
 
+    /**
+     * Denne brukes kun i den manuelle flyten som ikke er implementert ferdig enda.
+     */
     override fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering> {
         reguleringRepo.hent(request.behandlingId)?.let { regulering ->
             return when (regulering) {
@@ -167,9 +173,13 @@ class ReguleringServiceImpl(
         return KunneIkkeLeggeTilFradrag.FantIkkeRegulering.left()
     }
 
+    /**
+     * Denne brukes kun i den manuelle flyten som ikke er implementert ferdig enda.
+     */
     override fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering> {
         val regulering =
-            (reguleringRepo.hent(request.behandlingId) as? Regulering.OpprettetRegulering) ?: return BeregnOgSimulerFeilet.FantIkkeRegulering.left()
+            (reguleringRepo.hent(request.behandlingId) as? Regulering.OpprettetRegulering)
+                ?: return BeregnOgSimulerFeilet.FantIkkeRegulering.left()
 
         val beregnetRegulering = regulering.beregn(clock = clock, begrunnelse = request.begrunnelse).getOrHandle {
             when (it) {
@@ -191,6 +201,9 @@ class ReguleringServiceImpl(
         return reguleringRepo.hentSakerMedÅpenBehandlingEllerStans()
     }
 
+    /**
+     * Denne brukes kun i den manuelle flyten som ikke er implementert ferdig enda.
+     */
     override fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering> {
         reguleringRepo.hent(reguleringId)?.let { regulering ->
             return when (regulering) {
@@ -232,8 +245,8 @@ class ReguleringServiceImpl(
     }
 
     private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeUtbetale, Regulering.IverksattRegulering> {
-        val utbetaling = utbetalingService.utbetal(
-            UtbetalRequest.NyUtbetaling(
+        return utbetalingService.verifiserOgSimulerUtbetaling(
+            request = UtbetalRequest.NyUtbetaling(
                 request = SimulerUtbetalingRequest.NyUtbetaling(
                     sakId = regulering.sakId,
                     saksbehandler = regulering.saksbehandler,
@@ -242,11 +255,30 @@ class ReguleringServiceImpl(
                 ),
                 simulering = regulering.simulering,
             ),
-        ).getOrHandle {
-            return KunneIkkeUtbetale.left()
+        ).mapLeft {
+            KunneIkkeUtbetale
+        }.flatMap {
+            Either.catch {
+                sessionFactory.withTransactionContext { tx ->
+                    utbetalingService.lagreUtbetaling(it, tx)
+                    vedtakService.lagre(
+                        vedtak = VedtakSomKanRevurderes.from(regulering, it.id, clock),
+                        sessionContext = tx,
+                    )
+                    utbetalingService.publiserUtbetaling(it).mapLeft {
+                        throw KunneIkkeSendeTilUtbetalingException(it)
+                    }
+                    regulering
+                }
+            }.mapLeft {
+                log.error(
+                    "En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag",
+                    it,
+                )
+                KunneIkkeUtbetale
+            }
         }
-        val vedtak = VedtakSomKanRevurderes.from(regulering, utbetaling.id, clock)
-        vedtakService.lagre(vedtak)
-        return regulering.right()
     }
+
+    private data class KunneIkkeSendeTilUtbetalingException(val feil: UtbetalingFeilet) : RuntimeException()
 }

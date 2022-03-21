@@ -240,14 +240,6 @@ open class AccessCheckProxy(
                     return services.utbetaling.simulerOpphør(request)
                 }
 
-                override fun utbetal(
-                    request: UtbetalRequest.NyUtbetaling,
-                ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                    assertHarTilgangTilSak(request.sakId)
-
-                    return services.utbetaling.utbetal(request)
-                }
-
                 override fun publiserUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling): Either<UtbetalingFeilet, Utbetalingsrequest> =
                     kastKanKunKallesFraAnnenService()
 

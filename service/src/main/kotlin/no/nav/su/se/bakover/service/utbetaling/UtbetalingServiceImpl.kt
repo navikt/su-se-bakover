@@ -93,22 +93,6 @@ internal class UtbetalingServiceImpl(
         ).gjeldendeForDato(forDato).rightIfNotNull { FantIkkeGjeldendeUtbetaling }
     }
 
-    override fun utbetal(
-        request: UtbetalRequest.NyUtbetaling,
-    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-        return simulerUtbetaling(request)
-            .mapLeft {
-                UtbetalingFeilet.KunneIkkeSimulere(it)
-            }.flatMap { simulertUtbetaling ->
-                if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
-                        saksbehandlersSimulering = request.simulering,
-                        attestantsSimulering = simulertUtbetaling,
-                    )
-                ) return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
-                utbetal(simulertUtbetaling)
-            }
-    }
-
     override fun verifiserOgSimulerUtbetaling(
         request: UtbetalRequest.NyUtbetaling,
     ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> {

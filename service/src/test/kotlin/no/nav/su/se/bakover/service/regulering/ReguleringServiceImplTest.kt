@@ -290,17 +290,18 @@ internal class ReguleringServiceImplTest {
             },
             utbetalingService = mock {
                 on { simulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
+                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
                 on {
                     hentGjeldendeUtbetaling(
                         any(),
                         any(),
                     )
                 } doReturn gjeldendeUtbetaling
-                on { utbetal(any()) } doReturn utbetaling.right()
             },
             vedtakService = mock {
                 on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn testData.second.right()
             },
+            sessionFactory = TestSessionFactory(),
             clock = fixedClock,
         )
     }
