@@ -128,30 +128,34 @@ class ReguleringServiceImpl(
     }
 
     private fun regulerAutomatisk(regulering: Regulering.OpprettetRegulering): Either<KunneIkkeRegulereAutomatiskt, Regulering.IverksattRegulering> {
-        val reguleringMedBeregningOgSimulering = regulering.beregn(clock = clock, begrunnelse = null)
-            .mapLeft { KunneIkkeRegulereAutomatiskt.KunneIkkeBeregne }
+        return regulering.beregn(clock = clock, begrunnelse = null)
+            .mapLeft {
+                log.error("Regulering feilet. Beregning feilet for saksnummer: ${regulering.saksnummer}.")
+                KunneIkkeRegulereAutomatiskt.KunneIkkeBeregne
+            }
             .flatMap { beregnetRegulering ->
                 beregnetRegulering.simuler(utbetalingService::simulerUtbetaling)
-                    .mapLeft { KunneIkkeRegulereAutomatiskt.KunneIkkeSimulere }
+                    .mapLeft {
+                        log.error("Regulering feilet. Simulering feilet for saksnummer: ${regulering.saksnummer}.")
+                        KunneIkkeRegulereAutomatiskt.KunneIkkeSimulere
+                    }.flatMap {
+                        if (it.simulering!!.harFeilutbetalinger()) {
+                            log.error("Regulering feilet. Simuleringen inneholdt feilutbetalinger for saksnummer: ${regulering.saksnummer}.")
+                            KunneIkkeRegulereAutomatiskt.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling.left()
+                        } else {
+                            it.right()
+                        }
+                    }
             }
             .map { simulertRegulering -> simulertRegulering.tilIverksatt() }
-
-        return when (reguleringMedBeregningOgSimulering) {
-            is Either.Left -> {
-                when (reguleringMedBeregningOgSimulering.value) {
-                    KunneIkkeRegulereAutomatiskt.KunneIkkeBeregne -> log.error("Regulering feilet. Beregning feilet for saksnummer: ${regulering.saksnummer}.")
-                    KunneIkkeRegulereAutomatiskt.KunneIkkeSimulere -> log.error("Regulering feilet. Simulering feilet for ${regulering.saksnummer}.")
-                    KunneIkkeRegulereAutomatiskt.KunneIkkeUtbetale -> log.error("Regulering feilet. Utbetaling feilet for ${regulering.saksnummer}.")
+            .flatMap {
+                lagVedtakOgUtbetal(it).tap {
+                    reguleringRepo.lagre(it)
                 }
+            }
+            .tapLeft {
                 reguleringRepo.lagre(regulering.copy(reguleringType = ReguleringType.MANUELL))
-                reguleringMedBeregningOgSimulering.value.left()
             }
-            is Either.Right -> {
-                val iverksattRegulering = reguleringMedBeregningOgSimulering.value
-                lagVedtakOgUtbetal(iverksattRegulering).map { reguleringRepo.lagre(it) }
-                iverksattRegulering.right()
-            }
-        }
     }
 
     /**
@@ -244,7 +248,7 @@ class ReguleringServiceImpl(
         return ReguleringType.AUTOMATISK
     }
 
-    private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeUtbetale, Regulering.IverksattRegulering> {
+    private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeRegulereAutomatiskt.KunneIkkeUtbetale, Regulering.IverksattRegulering> {
         return utbetalingService.verifiserOgSimulerUtbetaling(
             request = UtbetalRequest.NyUtbetaling(
                 request = SimulerUtbetalingRequest.NyUtbetaling(
@@ -256,7 +260,8 @@ class ReguleringServiceImpl(
                 simulering = regulering.simulering,
             ),
         ).mapLeft {
-            KunneIkkeUtbetale
+            log.error("Kunne ikke verifisere og simulere utbetaling for regulering med saksnummer ${regulering.saksnummer} med underliggende grunn: $it")
+            KunneIkkeRegulereAutomatiskt.KunneIkkeUtbetale
         }.flatMap {
             Either.catch {
                 sessionFactory.withTransactionContext { tx ->
@@ -272,10 +277,10 @@ class ReguleringServiceImpl(
                 }
             }.mapLeft {
                 log.error(
-                    "En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag",
+                    "En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering med saksnummer ${regulering.saksnummer}",
                     it,
                 )
-                KunneIkkeUtbetale
+                KunneIkkeRegulereAutomatiskt.KunneIkkeUtbetale
             }
         }
     }

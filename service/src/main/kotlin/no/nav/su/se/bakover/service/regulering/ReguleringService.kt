@@ -18,6 +18,7 @@ sealed class KunneIkkeRegulereAutomatiskt {
     object KunneIkkeBeregne : KunneIkkeRegulereAutomatiskt()
     object KunneIkkeSimulere : KunneIkkeRegulereAutomatiskt()
     object KunneIkkeUtbetale : KunneIkkeRegulereAutomatiskt()
+    object KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling : KunneIkkeRegulereAutomatiskt()
 }
 
 sealed class BeregnOgSimulerFeilet {

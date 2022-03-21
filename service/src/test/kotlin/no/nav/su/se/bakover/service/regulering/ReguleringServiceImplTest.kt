@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.regulering
 
+import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import arrow.core.rightIfNotNull
@@ -18,7 +19,10 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
 import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
@@ -37,6 +41,7 @@ import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.plus
+import no.nav.su.se.bakover.test.simulertFeilutbetaling
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
@@ -103,7 +108,7 @@ internal class ReguleringServiceImplTest {
         }
 
         @Test
-        fun `Stans må håndteres manuellt`() {
+        fun `Stans må håndteres manuelt`() {
             val stansAvYtelse = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().first
             val reguleringService = lagReguleringServiceImpl(stansAvYtelse)
 
@@ -112,7 +117,7 @@ internal class ReguleringServiceImplTest {
         }
 
         @Test
-        fun `En periode med opphør må behandles manuellt`() {
+        fun `En periode med opphør må behandles manuelt`() {
             val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(clock = fixedClock)
             val revurdertSak = vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
                 sakOgVedtakSomKanRevurderes = sakOgVedtak,
@@ -126,7 +131,7 @@ internal class ReguleringServiceImplTest {
         }
 
         @Test
-        fun `en behandling med delvis opphør skal reguleres manuellt`() {
+        fun `en behandling med delvis opphør skal reguleres manuelt`() {
             val revurdertSak =
                 vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
                     revurderingsperiode = Periode.create(
@@ -141,6 +146,18 @@ internal class ReguleringServiceImplTest {
 
             val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
             regulering.reguleringType shouldBe ReguleringType.MANUELL
+        }
+
+        @Test
+        fun `en simulering med feilutbetalinger skal føre til manuell`() {
+            val revurdertSak =
+                vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(periode2021)).first
+
+            val reguleringService = lagReguleringServiceImpl(revurdertSak, simulertFeilutbetaling().right())
+
+            reguleringService.startRegulering(1.mai(2021)) shouldBe listOf(KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(
+                KunneIkkeRegulereAutomatiskt.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling,
+            ).left())
         }
     }
 
@@ -257,6 +274,7 @@ internal class ReguleringServiceImplTest {
 
     private fun lagReguleringServiceImpl(
         sak: Sak,
+        simulerUtbetaling: Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> = simulertUtbetaling().right(),
     ): ReguleringServiceImpl {
         val testData = lagTestdata(sak)
         val utbetaling = oversendtUtbetalingUtenKvittering(
@@ -289,7 +307,7 @@ internal class ReguleringServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn sak
             },
             utbetalingService = mock {
-                on { simulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
+                on { simulerUtbetaling(any()) } doReturn simulerUtbetaling
                 on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
                 on {
                     hentGjeldendeUtbetaling(
@@ -297,6 +315,8 @@ internal class ReguleringServiceImplTest {
                         any(),
                     )
                 } doReturn gjeldendeUtbetaling
+                on { lagreUtbetaling(any(), any()) } doReturn utbetaling
+                on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("").right()
             },
             vedtakService = mock {
                 on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn testData.second.right()
