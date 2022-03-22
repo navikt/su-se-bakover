@@ -11,14 +11,6 @@ create table if not exists regulering
     reguleringType   text -- AUTOMATISK / MANUELL
 );
 
--- create table if not exists regulering_jobb
--- (
---     id              uuid primary key,
---     opprettet       timestamptz              not null,
---     navn            text,
---     dato            date
--- );
-
 alter table behandling_vedtak
     add column if not exists reguleringId uuid references regulering (id);
 
