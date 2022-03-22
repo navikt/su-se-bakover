@@ -139,6 +139,7 @@ object ServiceBuilder {
             utbetalingService = utbetalingService,
             vedtakService = vedtakService,
             sessionFactory = databaseRepos.sessionFactory,
+            tilbakekrevingService = tilbakekrevingService,
             clock = clock,
         )
 

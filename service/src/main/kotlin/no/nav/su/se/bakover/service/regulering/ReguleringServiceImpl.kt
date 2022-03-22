@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
+import no.nav.su.se.bakover.domain.grunnlag.erGyldigTilstand
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
@@ -23,8 +24,10 @@ import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -36,6 +39,7 @@ class ReguleringServiceImpl(
     private val vedtakService: VedtakService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
+    private val tilbakekrevingService: TilbakekrevingService,
 ) : ReguleringService {
 
     private fun blirBeregningEndret(regulering: Regulering.OpprettetRegulering): Boolean {
@@ -86,7 +90,8 @@ class ReguleringServiceImpl(
             val reguleringType = utledAutomatiskEllerManuellRegulering(gjeldendeVedtaksdata)
 
             val regulering = sak.opprettEllerOppdaterRegulering(startDato, reguleringType, gjeldendeVedtaksdata, clock).getOrHandle { feil ->
-                return@map KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil).left().also { log.info("Klarte ikke å lage regulering pga : $feil") }
+                return@map KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil).left()
+                    .also { log.error("Klarte ikke å lage regulering pga : $feil") }
             }
 
             SjekkOmGrunnlagErKonsistent(
@@ -94,7 +99,7 @@ class ReguleringServiceImpl(
                 uføregrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.uføre.grunnlag,
                 bosituasjongrunnlag = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
                 fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
-            ).resultat.getOrHandle {
+            ).resultat.getOrHandle { konsistensproblemer ->
                 return@map Regulering.opprettRegulering(
                     id = regulering.id,
                     opprettet = regulering.opprettet,
@@ -107,13 +112,31 @@ class ReguleringServiceImpl(
                     clock = clock,
                 ).orNull()!!.right().tap {
                     reguleringRepo.lagre(it)
-                    log.info("Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert")
+                    val message =
+                        "Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert"
+                    if (konsistensproblemer.erGyldigTilstand()) {
+                        log.info(message)
+                    } else {
+                        log.error(message)
+                    }
                 }
             }
 
             if (!blirBeregningEndret(regulering)) {
-                return@map KunneIkkeOppretteRegulering.FørerIkkeTilEnEndring.left().also { log.info("Lager ikke regulering for $saksnummer, da den ikke fører til noen endring i utbetaling") }
+                return@map KunneIkkeOppretteRegulering.FørerIkkeTilEnEndring.left()
+                    .also { log.info("Lager ikke regulering for $saksnummer, da den ikke fører til noen endring i utbetaling") }
             }
+
+            tilbakekrevingService.hentAvventerKravgrunnlag(sak.id)
+                .ifNotEmpty {
+                    // TODO Jacob Meidell: Støtte at kravgrunnlag annuleres :p
+                    log.info("Kan ikke sende oppdragslinjer mens vi venter på et kravgrunnlag, siden det kan annulere nåværende kravgrunnlag.")
+                    return@map regulering.copy(
+                        reguleringType = ReguleringType.MANUELL,
+                    ).right().tap {
+                        reguleringRepo.lagre(regulering)
+                    }
+                }
 
             reguleringRepo.lagre(regulering)
 

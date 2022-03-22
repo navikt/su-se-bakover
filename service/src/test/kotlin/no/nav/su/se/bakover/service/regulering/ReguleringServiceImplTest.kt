@@ -324,6 +324,9 @@ internal class ReguleringServiceImplTest {
                 on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn testData.second.right()
             },
             sessionFactory = TestSessionFactory(),
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            },
             clock = fixedClock,
         )
     }

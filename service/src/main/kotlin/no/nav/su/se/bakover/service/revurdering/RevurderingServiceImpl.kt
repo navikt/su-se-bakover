@@ -201,6 +201,7 @@ internal class RevurderingServiceImpl(
             }
         }
 
+        // TODO jah: Spør Jacob om denne og bør inkl. fjerning av EPS formue.
         val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragHvisIkkeEntydig(
             gjeldendeVedtaksdata,
         )
@@ -274,6 +275,7 @@ internal class RevurderingServiceImpl(
     }
 
     private fun hentUteståendeAvkorting(sakId: UUID): AvkortingVedRevurdering.Uhåndtert {
+        // TODO jah: Bør flyttes til sak
         return when (val utestående = avkortingsvarselRepo.hentUtestående(sakId)) {
             is Avkortingsvarsel.Ingen -> {
                 AvkortingVedRevurdering.Uhåndtert.IngenUtestående
