@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
+import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -28,6 +29,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
+import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import java.util.UUID
 
 internal class ReguleringPostgresRepo(
@@ -71,20 +73,14 @@ internal class ReguleringPostgresRepo(
                 select saksnummer
                 from behandling
                          left join sak s on sakid = s.id
-                where status like 'BEREGNET_%'
-                   or status like 'SIMULERT'
-                   or status like 'TIL_ATTESTERING_%'
-                   or status like 'UNDERKJENT_%'
+                where status in (${BehandlingsStatus.åpneSøknadsbehandlingerKommaseparert()}) and lukket is false
 
                 union
 
                 select saksnummer
                 from ( revurdering r left join behandling_vedtak bv on r.vedtaksomrevurderesid = bv.vedtakid )
                          left join sak s on s.id = sakid
-                where revurderingstype like 'BEREGNET_%'
-                   or revurderingstype like 'SIMULERT_%'
-                   or revurderingstype like 'TIL_ATTESTERING_%'
-                   or revurderingstype like 'UNDERKJENT_%'
+                where revurderingstype in (${RevurderingsType.åpneRevurderingstyperKommaseparert()}) and avsluttet is null
 
                 union
 

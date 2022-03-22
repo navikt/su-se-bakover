@@ -106,6 +106,25 @@ enum class RevurderingsType {
                 is AvsluttetRevurdering -> this.underliggendeRevurdering.toRevurderingsType()
             }.toString()
         }
+
+        fun åpneRevurderingstyper() = listOf(
+            OPPRETTET,
+            BEREGNET_INNVILGET,
+            BEREGNET_OPPHØRT,
+            BEREGNET_INGEN_ENDRING,
+            SIMULERT_INNVILGET,
+            SIMULERT_OPPHØRT,
+            TIL_ATTESTERING_INNVILGET,
+            TIL_ATTESTERING_OPPHØRT,
+            TIL_ATTESTERING_INGEN_ENDRING,
+            UNDERKJENT_INNVILGET,
+            UNDERKJENT_OPPHØRT,
+            UNDERKJENT_INGEN_ENDRING,
+            SIMULERT_STANS,
+            SIMULERT_GJENOPPTAK,
+        )
+
+        fun åpneRevurderingstyperKommaseparert(): String = åpneRevurderingstyper().joinToString(",")
     }
 }
 
