@@ -21,7 +21,7 @@ data class GjeldendeVedtaksdata(
     private val clock: Clock,
 ) {
     val grunnlagsdata: Grunnlagsdata
-    val vilkårsvurderinger: Vilkårsvurderinger.Revurdering // TODO. Kan vi bruke denne til Regulering også, eller skal vi lage en ny ReguleringType
+    val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
 
     private val tidslinje: Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> = vedtakListe
         .lagTidslinje(periode)
