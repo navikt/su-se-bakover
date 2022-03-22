@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -83,6 +84,7 @@ sealed class Revurdering :
 
     abstract val forhåndsvarsel: Forhåndsvarsel?
     abstract val avkorting: AvkortingVedRevurdering
+    abstract val erOpphørt: Boolean
 
     fun vilkårsvurderingsResultat(): Vilkårsvurderingsresultat {
         return vilkårsvurderinger.resultat
@@ -501,6 +503,7 @@ data class OpprettetRevurdering(
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     override val avkorting: AvkortingVedRevurdering.Uhåndtert,
 ) : Revurdering() {
+    override val erOpphørt = false
 
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
@@ -620,6 +623,8 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
     ) : BeregnetRevurdering() {
+        override val erOpphørt = false
+
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
@@ -679,6 +684,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
     ) : BeregnetRevurdering() {
+        override val erOpphørt = false
 
         fun tilAttestering(
             attesteringsoppgaveId: OppgaveId,
@@ -726,6 +732,8 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
     ) : BeregnetRevurdering() {
+        override val erOpphørt = true
+
         fun toSimulert(
             simuler: (sakId: UUID, saksbehandler: NavIdentBruker, opphørsdato: LocalDate) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
             tilbakekrevingTillatt: Boolean
@@ -936,6 +944,8 @@ sealed class SimulertRevurdering : Revurdering() {
                         dagensDato = LocalDate.now(clock),
                         saksnummer = saksnummer,
                         bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
+                        tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
+                        opphør = erOpphørt,
                     )
                 } else {
                     LagBrevRequest.Forhåndsvarsel(
@@ -1031,6 +1041,8 @@ sealed class SimulertRevurdering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
     ) : SimulertRevurdering() {
+        override val erOpphørt = false
+
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
@@ -1137,6 +1149,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
     ) : SimulertRevurdering() {
+        override val erOpphørt = true
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -1304,6 +1317,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
     ) : RevurderingTilAttestering() {
 
+        override val erOpphørt = false
+
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
@@ -1370,6 +1385,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
     ) : RevurderingTilAttestering() {
+        override val erOpphørt = true
+
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
@@ -1449,6 +1466,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
     ) : RevurderingTilAttestering() {
+
+        override val erOpphørt = false
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -1604,6 +1623,8 @@ sealed class IverksattRevurdering : Revurdering() {
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
     ) : IverksattRevurdering() {
 
+        override val erOpphørt = false
+
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
@@ -1632,6 +1653,8 @@ sealed class IverksattRevurdering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
     ) : IverksattRevurdering() {
+        override val erOpphørt = true
+
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
@@ -1683,6 +1706,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
     ) : IverksattRevurdering() {
+        override val erOpphørt = false
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -1747,6 +1771,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
     ) : UnderkjentRevurdering() {
+        override val erOpphørt = false
+
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
@@ -1801,6 +1827,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
     ) : UnderkjentRevurdering() {
+        override val erOpphørt = true
+
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
@@ -1875,6 +1903,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
     ) : UnderkjentRevurdering() {
+        override val erOpphørt = false
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)

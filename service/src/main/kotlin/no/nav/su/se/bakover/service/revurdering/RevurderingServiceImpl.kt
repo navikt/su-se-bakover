@@ -1284,7 +1284,8 @@ internal class RevurderingServiceImpl(
                         request = UtbetalRequest.NyUtbetaling(
                             request = SimulerUtbetalingRequest.NyUtbetaling(
                                 sakId = revurdering.sakId,
-                                saksbehandler = attestant, beregning = revurdering.beregning,
+                                saksbehandler = attestant,
+                                beregning = revurdering.beregning,
                                 uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
                             ),
                             simulering = revurdering.simulering,
