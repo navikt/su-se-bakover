@@ -142,6 +142,7 @@ object DatabaseBuilder {
         val reguleringRepo = ReguleringPostgresRepo(
             sessionFactory = sessionFactory,
             grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
+            dbMetrics = dbMetrics,
         )
         val revurderingRepo = RevurderingPostgresRepo(
             sessionFactory = sessionFactory,

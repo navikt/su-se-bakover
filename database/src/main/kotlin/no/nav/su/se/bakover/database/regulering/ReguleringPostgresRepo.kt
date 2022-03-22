@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
@@ -18,7 +19,6 @@ import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.database.vedtak.VedtakType
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -28,22 +28,12 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringType
-import no.nav.su.se.bakover.domain.regulering.VedtakSomKanReguleres
-import no.nav.su.se.bakover.domain.regulering.VedtakType.AVSLAG
-import no.nav.su.se.bakover.domain.regulering.VedtakType.AVVIST_KLAGE
-import no.nav.su.se.bakover.domain.regulering.VedtakType.ENDRING
-import no.nav.su.se.bakover.domain.regulering.VedtakType.GJENOPPTAK_AV_YTELSE
-import no.nav.su.se.bakover.domain.regulering.VedtakType.INGEN_ENDRING
-import no.nav.su.se.bakover.domain.regulering.VedtakType.OPPHØR
-import no.nav.su.se.bakover.domain.regulering.VedtakType.REGULERING
-import no.nav.su.se.bakover.domain.regulering.VedtakType.STANS_AV_YTELSE
-import no.nav.su.se.bakover.domain.regulering.VedtakType.SØKNAD
 import java.util.UUID
 
-// TODO Vurdere om vi skal lage et felles repo for alle grunnlag, så vi slipper å sende inn alle sammen
 internal class ReguleringPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
+    private val dbMetrics: DbMetrics,
 ) : ReguleringRepo {
     override fun hent(id: UUID): Regulering? {
         return sessionFactory.withSession { session ->
@@ -52,27 +42,32 @@ internal class ReguleringPostgresRepo(
     }
 
     override fun hentReguleringerSomIkkeErIverksatt(): List<Regulering.OpprettetRegulering> =
-        sessionFactory.withSession { session ->
-            """ select * from regulering r left join sak s on r.sakid = s.id
-                where reguleringstatus = :reguleringstatus
-            """.trimIndent().hentListe(
-                mapOf("reguleringstatus" to ReguleringStatus.OPPRETTET.toString()),
-                session,
-            ) { it.toRegulering(session) as Regulering.OpprettetRegulering }
+        dbMetrics.timeQuery("hentReguleringerSomIkkeErIverksatt") {
+            sessionFactory.withSession { session ->
+                """ select * from regulering r left join sak s on r.sakid = s.id
+                    where reguleringstatus = :reguleringstatus
+                """.trimIndent().hentListe(
+                    mapOf("reguleringstatus" to ReguleringStatus.OPPRETTET.toString()),
+                    session,
+                ) { it.toRegulering(session) as Regulering.OpprettetRegulering }
+            }
         }
 
     override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): List<Regulering> =
-        sessionContext.withSession { session ->
-            """ select * from regulering r inner join sak s on s.id = r.sakid where sakid = :sakid """.trimIndent()
-                .hentListe(
-                    mapOf("sakid" to sakId),
-                    session,
-                ) { it.toRegulering(session) }
+        dbMetrics.timeQuery("hentReguleringerForSakId") {
+            sessionContext.withSession { session ->
+                """ select * from regulering r inner join sak s on s.id = r.sakid where sakid = :sakid """.trimIndent()
+                    .hentListe(
+                        mapOf("sakid" to sakId),
+                        session,
+                    ) { it.toRegulering(session) }
+            }
         }
 
     override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
-        return sessionFactory.withSession { session ->
-            """
+        return dbMetrics.timeQuery("hentSakerMedÅpenBehandlingEllerStans") {
+            sessionFactory.withSession { session ->
+                """
                 select saksnummer
                 from behandling
                          left join sak s on sakid = s.id
@@ -103,14 +98,16 @@ internal class ReguleringPostgresRepo(
                                               inner join sak s on bv.sakid = s.id group by s.id) sisteVedtak on
                             sisteVedtak.saksnummer = s.saksnummer and sisteVedtak.vedtaksdato = v.opprettet
                 where v.vedtaktype = 'STANS_AV_YTELSE';
-            """.trimIndent().hentListe(mapOf(), session) {
-                Saksnummer(it.long("saksnummer"))
+                """.trimIndent().hentListe(mapOf(), session) {
+                    Saksnummer(it.long("saksnummer"))
+                }
             }
         }
     }
 
     internal fun hent(id: UUID, session: Session): Regulering? =
-        """
+        dbMetrics.timeQuery("hentReguleringFraId") {
+            """
             select *
             from regulering r
             
@@ -118,14 +115,16 @@ internal class ReguleringPostgresRepo(
             on s.id = r.sakId
             
             where r.id = :id
-        """.trimIndent()
-            .hent(mapOf("id" to id), session) { row ->
-                row.toRegulering(session)
-            }
+            """.trimIndent()
+                .hent(mapOf("id" to id), session) { row ->
+                    row.toRegulering(session)
+                }
+        }
 
     override fun lagre(regulering: Regulering, sessionContext: TransactionContext) {
-        sessionContext.withTransaction { session ->
-            """
+        dbMetrics.timeQuery("lagreRegulering") {
+            sessionContext.withTransaction { session ->
+                """
             insert into regulering (
                 id,
                 sakId,
@@ -157,29 +156,30 @@ internal class ReguleringPostgresRepo(
                 saksbehandler=:saksbehandler,
                 reguleringStatus=:reguleringStatus,
                 reguleringType=:reguleringType
-            """.trimIndent()
-                .insert(
-                    mapOf(
-                        "id" to regulering.id,
-                        "sakId" to regulering.sakId,
-                        "periode" to serialize(regulering.periode),
-                        "opprettet" to regulering.opprettet,
-                        "saksbehandler" to regulering.saksbehandler.navIdent,
-                        "beregning" to regulering.beregning,
-                        "simulering" to regulering.simulering?.let { serialize(it) },
-                        "reguleringType" to regulering.reguleringType.toString(),
-                        "reguleringStatus" to when (regulering) {
-                            is Regulering.IverksattRegulering -> ReguleringStatus.IVERKSATT
-                            is Regulering.OpprettetRegulering -> ReguleringStatus.OPPRETTET
-                        }.toString(),
-                    ),
-                    session,
+                """.trimIndent()
+                    .insert(
+                        mapOf(
+                            "id" to regulering.id,
+                            "sakId" to regulering.sakId,
+                            "periode" to serialize(regulering.periode),
+                            "opprettet" to regulering.opprettet,
+                            "saksbehandler" to regulering.saksbehandler.navIdent,
+                            "beregning" to regulering.beregning,
+                            "simulering" to regulering.simulering?.let { serialize(it) },
+                            "reguleringType" to regulering.reguleringType.toString(),
+                            "reguleringStatus" to when (regulering) {
+                                is Regulering.IverksattRegulering -> ReguleringStatus.IVERKSATT
+                                is Regulering.OpprettetRegulering -> ReguleringStatus.OPPRETTET
+                            }.toString(),
+                        ),
+                        session,
+                    )
+                grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
+                    behandlingId = regulering.id,
+                    grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
+                    tx = session,
                 )
-            grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
-                behandlingId = regulering.id,
-                grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
-                tx = session,
-            )
+            }
         }
     }
 
@@ -220,38 +220,6 @@ internal class ReguleringPostgresRepo(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             beregning = beregning,
             simulering = simulering,
-            reguleringType = reguleringType,
-        )
-    }
-
-    private fun Row.toVedtakSomKanReguleres(): VedtakSomKanReguleres {
-        val sakId = uuid("sakid")
-        val behandlingId = uuid("bid")
-        val saksnummer = Saksnummer(long("saksnummer"))
-        val opprettet = tidspunkt("opprettet")
-        val fraOgMed = localDate("fraOgMed")
-        val tilOgMed = localDate("tilOgMed")
-        val vedtakType = when (VedtakType.valueOf(string("vedtaktype"))) {
-            VedtakType.SØKNAD -> SØKNAD
-            VedtakType.AVSLAG -> AVSLAG
-            VedtakType.ENDRING -> ENDRING
-            VedtakType.INGEN_ENDRING -> INGEN_ENDRING
-            VedtakType.OPPHØR -> OPPHØR
-            VedtakType.STANS_AV_YTELSE -> STANS_AV_YTELSE
-            VedtakType.GJENOPPTAK_AV_YTELSE -> GJENOPPTAK_AV_YTELSE
-            VedtakType.AVVIST_KLAGE -> AVVIST_KLAGE
-            VedtakType.REGULERING -> REGULERING
-        }
-        val reguleringType = ReguleringType.valueOf(string("behandlingtype"))
-
-        return VedtakSomKanReguleres(
-            sakId = sakId,
-            saksnummer = saksnummer,
-            opprettet = opprettet,
-            behandlingId = behandlingId,
-            fraOgMed = fraOgMed,
-            tilOgMed = tilOgMed,
-            vedtakType = vedtakType,
             reguleringType = reguleringType,
         )
     }

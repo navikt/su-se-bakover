@@ -292,6 +292,7 @@ internal class TestDataHelper(
     internal val reguleringRepo = ReguleringPostgresRepo(
         sessionFactory = sessionFactory,
         grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
+        dbMetrics = dbMetrics,
     )
     internal val revurderingRepo = RevurderingPostgresRepo(
         sessionFactory = sessionFactory,
