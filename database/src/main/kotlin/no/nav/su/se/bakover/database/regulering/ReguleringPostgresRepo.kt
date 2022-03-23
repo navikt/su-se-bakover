@@ -73,7 +73,7 @@ internal class ReguleringPostgresRepo(
                 select saksnummer
                 from behandling
                          left join sak s on sakid = s.id
-                where status in (${BehandlingsStatus.åpneSøknadsbehandlingerKommaseparert()}) and lukket is false
+                where status in (${BehandlingsStatus.åpneBeregnetSøknadsbehandlingerKommaseparert()}) and lukket is false
 
                 union
 

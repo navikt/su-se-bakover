@@ -2105,10 +2105,7 @@ enum class BehandlingsStatus {
     IVERKSATT_AVSLAG;
 
     companion object {
-        fun åpneSøknadsbehandlinger() = listOf(
-            OPPRETTET,
-            VILKÅRSVURDERT_INNVILGET,
-            VILKÅRSVURDERT_AVSLAG,
+        fun åpneBeregnetSøknadsbehandlinger() = listOf(
             BEREGNET_INNVILGET,
             BEREGNET_AVSLAG,
             SIMULERT,
@@ -2118,7 +2115,7 @@ enum class BehandlingsStatus {
             UNDERKJENT_AVSLAG,
         )
 
-        fun åpneSøknadsbehandlingerKommaseparert(): String = åpneSøknadsbehandlinger().joinToString(",")
+        fun åpneBeregnetSøknadsbehandlingerKommaseparert(): String = åpneBeregnetSøknadsbehandlinger().joinToString(",") { "'$it'" }
     }
 }
 

@@ -124,7 +124,7 @@ enum class RevurderingsType {
             SIMULERT_GJENOPPTAK,
         )
 
-        fun åpneRevurderingstyperKommaseparert(): String = åpneRevurderingstyper().joinToString(",")
+        fun åpneRevurderingstyperKommaseparert(): String = åpneRevurderingstyper().joinToString(",") { "'$it'" }
     }
 }
 
