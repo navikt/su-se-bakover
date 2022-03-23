@@ -1,14 +1,22 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.rightIfNotNull
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 sealed class Utbetaling {
@@ -164,3 +172,27 @@ sealed class UtbetalingFeilet {
     object KontrollAvSimuleringFeilet : UtbetalingFeilet()
     object FantIkkeSak : UtbetalingFeilet()
 }
+
+fun Sak.hentGjeldendeUtbetaling(
+    forDato: LocalDate,
+    clock: Clock,
+): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
+    return this.utbetalinger.hentGjeldendeUtbetaling(forDato, clock)
+}
+
+fun List<Utbetaling>.hentGjeldendeUtbetaling(
+    forDato: LocalDate,
+    clock: Clock,
+): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
+    return this
+        .flatMap { it.utbetalingslinjer }
+        .ifNotEmpty {
+            TidslinjeForUtbetalinger(
+                periode = this.map { it.periode }.minAndMaxOf(),
+                utbetalingslinjer = this,
+                clock = clock,
+            ).gjeldendeForDato(forDato)
+        }.rightIfNotNull { FantIkkeGjeldendeUtbetaling }
+}
+
+object FantIkkeGjeldendeUtbetaling

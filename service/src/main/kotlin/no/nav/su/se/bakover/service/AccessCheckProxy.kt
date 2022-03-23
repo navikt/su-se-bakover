@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
@@ -51,8 +50,6 @@ import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -60,7 +57,6 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonRepo
@@ -74,7 +70,6 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
-import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
@@ -88,7 +83,6 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
-import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
@@ -104,7 +98,6 @@ import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.regulering.ReguleringService
-import no.nav.su.se.bakover.service.regulering.SakerSomKanReguleres
 import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
@@ -156,16 +149,10 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
-import no.nav.su.se.bakover.service.utbetaling.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
-import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
-import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
-import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
-import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
-import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
@@ -209,15 +196,12 @@ open class AccessCheckProxy(
                     return services.utbetaling.hentUtbetaling(utbetalingId)
                 }
 
-                override fun hentUtbetalinger(sakId: UUID): List<Utbetaling> {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun hentUtbetalingerForSakId(sakId: UUID) = kastKanKunKallesFraAnnenService()
 
                 override fun oppdaterMedKvittering(
                     avstemmingsnøkkel: Avstemmingsnøkkel,
                     kvittering: Kvittering,
-                ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering> =
-                    kastKanKunKallesFraAnnenService()
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun simulerUtbetaling(
                     request: SimulerUtbetalingRequest.NyUtbetalingRequest,
@@ -243,52 +227,43 @@ open class AccessCheckProxy(
                     return services.utbetaling.utbetal(request)
                 }
 
-                override fun publiserUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling): Either<UtbetalingFeilet, Utbetalingsrequest> =
-                    kastKanKunKallesFraAnnenService()
+                override fun publiserUtbetaling(
+                    utbetaling: Utbetaling.SimulertUtbetaling,
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun lagreUtbetaling(
                     utbetaling: Utbetaling.SimulertUtbetaling,
                     transactionContext: TransactionContext?,
-                ): Utbetaling.OversendtUtbetaling.UtenKvittering = kastKanKunKallesFraAnnenService()
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun verifiserOgSimulerUtbetaling(
                     request: UtbetalRequest.NyUtbetaling,
-                ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> = kastKanKunKallesFraAnnenService()
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun simulerStans(
                     request: SimulerUtbetalingRequest.StansRequest,
-                ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
-                    kastKanKunKallesFraAnnenService()
-                }
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun stansUtbetalinger(
                     request: UtbetalRequest.Stans,
-                ): Either<UtbetalStansFeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                    kastKanKunKallesFraAnnenService()
-                }
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun simulerGjenopptak(
                     request: SimulerUtbetalingRequest.GjenopptakRequest,
-                ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
-                    kastKanKunKallesFraAnnenService()
-                }
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun gjenopptaUtbetalinger(
                     request: UtbetalRequest.Gjenopptak,
-                ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                    kastKanKunKallesFraAnnenService()
-                }
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun verifiserOgSimulerOpphør(
                     request: UtbetalRequest.Opphør,
-                ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> = kastKanKunKallesFraAnnenService()
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun hentGjeldendeUtbetaling(
                     sakId: UUID,
                     forDato: LocalDate,
-                ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
-                    kastKanKunKallesFraAnnenService()
-                }
+                ) = kastKanKunKallesFraAnnenService()
             },
             sak = object : SakService {
                 override fun hentSak(sakId: UUID): Either<FantIkkeSak, Sak> {
@@ -313,9 +288,7 @@ open class AccessCheckProxy(
                         }
                 }
 
-                override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakIdOgNummer> {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun hentSakidOgSaksnummer(fnr: Fnr) = kastKanKunKallesFraAnnenService()
 
                 override fun opprettSak(sak: NySak) {
                     assertHarTilgangTilPerson(sak.fnr)
@@ -345,9 +318,10 @@ open class AccessCheckProxy(
                     return services.søknad.nySøknad(søknadInnhold)
                 }
 
-                override fun lukkSøknad(søknad: Søknad.Journalført.MedOppgave.Lukket, sessionContext: SessionContext) {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun lukkSøknad(
+                    søknad: Søknad.Journalført.MedOppgave.Lukket,
+                    sessionContext: SessionContext,
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun hentSøknad(søknadId: UUID): Either<FantIkkeSøknad, Søknad> {
                     assertHarTilgangTilSøknad(søknadId)
@@ -370,17 +344,14 @@ open class AccessCheckProxy(
             brev = object : BrevService {
                 override fun lagBrev(request: LagBrevRequest) = kastKanKunKallesFraAnnenService()
 
-                override fun journalførOgDistribuerUtgåendeDokumenter() {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun journalførOgDistribuerUtgåendeDokumenter() = kastKanKunKallesFraAnnenService()
 
-                override fun lagreDokument(dokument: Dokument.MedMetadata) {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun lagreDokument(dokument: Dokument.MedMetadata) = kastKanKunKallesFraAnnenService()
 
-                override fun lagreDokument(dokument: Dokument.MedMetadata, transactionContext: TransactionContext) {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun lagreDokument(
+                    dokument: Dokument.MedMetadata,
+                    transactionContext: TransactionContext,
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument> {
                     when (hentDokumenterForIdType) {
@@ -393,13 +364,13 @@ open class AccessCheckProxy(
                     }
                 }
 
-                override fun lagDokument(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun lagDokument(
+                    visitable: Visitable<LagBrevRequestVisitor>,
+                ) = kastKanKunKallesFraAnnenService()
 
-                override fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<LagBrevRequestVisitor.KunneIkkeLageBrevRequest, LagBrevRequest> {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun lagBrevRequest(
+                    visitable: Visitable<LagBrevRequestVisitor>,
+                ) = kastKanKunKallesFraAnnenService()
             },
             lukkSøknad = object : LukkSøknadService {
                 override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak> {
@@ -424,8 +395,7 @@ open class AccessCheckProxy(
                 override fun oppdaterOppgave(
                     oppgaveId: OppgaveId,
                     beskrivelse: String,
-                ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> =
-                    kastKanKunKallesFraAnnenService()
+                ) = kastKanKunKallesFraAnnenService()
             },
             person = object : PersonService {
                 override fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
@@ -434,9 +404,7 @@ open class AccessCheckProxy(
                     return services.person.hentPerson(fnr)
                 }
 
-                override fun hentPersonMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun hentPersonMedSystembruker(fnr: Fnr) = kastKanKunKallesFraAnnenService()
 
                 override fun hentAktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
                     assertHarTilgangTilPerson(fnr)
@@ -444,18 +412,14 @@ open class AccessCheckProxy(
                     return services.person.hentAktørId(fnr)
                 }
 
-                override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun hentAktørIdMedSystembruker(fnr: Fnr) = kastKanKunKallesFraAnnenService()
 
                 override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
                     return services.person.sjekkTilgangTilPerson(fnr)
                 }
             },
             statistikk = object : StatistikkService {
-                override fun publiser(statistikk: Statistikk) {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun publiser(statistikk: Statistikk) = kastKanKunKallesFraAnnenService()
             },
             toggles = services.toggles,
             søknadsbehandling = object : SøknadsbehandlingService {
@@ -529,17 +493,17 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.leggTilFradragsgrunnlag(request)
                 }
 
-                override fun hentForSøknad(søknadId: UUID): Søknadsbehandling? {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun hentForSøknad(søknadId: UUID) = kastKanKunKallesFraAnnenService()
 
-                override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext) {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun lukk(
+                    lukketSøknadbehandling: LukketSøknadsbehandling,
+                    tx: TransactionContext,
+                ) = kastKanKunKallesFraAnnenService()
 
-                override fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext) {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun lagre(
+                    avslag: AvslagManglendeDokumentasjon,
+                    tx: TransactionContext,
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun leggTilUtenlandsopphold(request: LeggTilUtenlandsoppholdRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold, Søknadsbehandling.Vilkårsvurdert> {
                     assertHarTilgangTilBehandling(request.behandlingId)
@@ -547,11 +511,11 @@ open class AccessCheckProxy(
                 }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
-                override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak, Unit> =
-                    kastKanKunKallesFraAnnenService()
+                override fun ferdigstillVedtakEtterUtbetaling(
+                    utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
+                ) = kastKanKunKallesFraAnnenService()
 
-                override fun lukkOppgaveMedBruker(behandling: Behandling): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit> =
-                    kastKanKunKallesFraAnnenService()
+                override fun lukkOppgaveMedBruker(behandling: Behandling) = kastKanKunKallesFraAnnenService()
             },
             revurdering = object : RevurderingService {
                 override fun hentRevurdering(revurderingId: UUID): AbstraktRevurdering? {
@@ -726,25 +690,18 @@ open class AccessCheckProxy(
                 }
             },
             vedtakService = object : VedtakService {
-                override fun lagre(vedtak: Vedtak) {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun lagre(vedtak: Vedtak) = kastKanKunKallesFraAnnenService()
 
-                override fun lagre(vedtak: Vedtak, sessionContext: TransactionContext) {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun lagre(
+                    vedtak: Vedtak,
+                    sessionContext: TransactionContext,
+                ) = kastKanKunKallesFraAnnenService()
 
-                override fun hentForVedtakId(vedtakId: UUID): Vedtak? {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun hentForVedtakId(vedtakId: UUID) = kastKanKunKallesFraAnnenService()
 
-                override fun hentForRevurderingId(revurderingId: UUID): Vedtak? {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun hentForRevurderingId(revurderingId: UUID) = kastKanKunKallesFraAnnenService()
 
-                override fun hentJournalpostId(vedtakId: UUID): JournalpostId? {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun hentJournalpostId(vedtakId: UUID) = kastKanKunKallesFraAnnenService()
 
                 override fun hentAktiveFnr(fomDato: LocalDate): List<Fnr> {
                     return services.vedtakService.hentAktiveFnr(fomDato)
@@ -753,13 +710,9 @@ open class AccessCheckProxy(
                 override fun kopierGjeldendeVedtaksdata(
                     sakId: UUID,
                     fraOgMed: LocalDate,
-                ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
-                    kastKanKunKallesFraAnnenService()
-                }
+                ) = kastKanKunKallesFraAnnenService()
 
-                override fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes? {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun hentForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
 
                 override fun historiskGrunnlagForVedtaksperiode(
                     sakId: UUID,
@@ -802,16 +755,19 @@ open class AccessCheckProxy(
                     transactionContext: TransactionContext,
                 ) = kastKanKunKallesFraAnnenService()
 
-                override fun hentPlanlagteKontrollsamtaler(sessionContext: SessionContext) =
-                    kastKanKunKallesFraAnnenService()
+                override fun hentPlanlagteKontrollsamtaler(
+                    sessionContext: SessionContext,
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun opprettPlanlagtKontrollsamtale(
                     vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
                     sessionContext: SessionContext,
                 ) = kastKanKunKallesFraAnnenService()
 
-                override fun annullerKontrollsamtale(sakId: UUID, sessionContext: SessionContext) =
-                    kastKanKunKallesFraAnnenService()
+                override fun annullerKontrollsamtale(
+                    sakId: UUID,
+                    sessionContext: SessionContext,
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun defaultSessionContext() = services.kontrollsamtale.defaultSessionContext()
             },
@@ -908,35 +864,27 @@ open class AccessCheckProxy(
             },
             klageinstanshendelseService = object : KlageinstanshendelseService {
                 override fun lagre(hendelse: UprosessertKlageinstanshendelse) = kastKanKunKallesFraAnnenService()
-                override fun håndterUtfallFraKlageinstans(deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KunneIkkeTolkeKlageinstanshendelse, TolketKlageinstanshendelse>) {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun håndterUtfallFraKlageinstans(
+                    deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KunneIkkeTolkeKlageinstanshendelse, TolketKlageinstanshendelse>,
+                ) = kastKanKunKallesFraAnnenService()
             },
             reguleringService = object : ReguleringService {
-                override fun hentAlleSakerSomKanReguleres(fraDato: LocalDate?): SakerSomKanReguleres {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun hentAlleSakerSomKanReguleres(fraDato: LocalDate?) = kastKanKunKallesFraAnnenService()
             },
             tilbakekrevingService = object : TilbakekrevingService {
-                override fun lagre(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag) {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun lagre(
+                    tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
+                ) = kastKanKunKallesFraAnnenService()
 
-                override fun sendTilbakekrevingsvedtak(mapper: (RåttKravgrunnlag) -> Kravgrunnlag) {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun sendTilbakekrevingsvedtak(
+                    mapper: (RåttKravgrunnlag) -> Kravgrunnlag,
+                ) = kastKanKunKallesFraAnnenService()
 
-                override fun hentAvventerKravgrunnlag(sakId: UUID): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun hentAvventerKravgrunnlag(sakId: UUID) = kastKanKunKallesFraAnnenService()
 
-                override fun hentAvventerKravgrunnlag(utbetalingId: UUID30): Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag? {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun hentAvventerKravgrunnlag(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
 
-                override fun hentAvventerKravgrunnlag(): List<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag> {
-                    kastKanKunKallesFraAnnenService()
-                }
+                override fun hentAvventerKravgrunnlag() = kastKanKunKallesFraAnnenService()
             },
         )
     }

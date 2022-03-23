@@ -6,13 +6,13 @@ import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import arrow.core.rightIfNotNull
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollerSimulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -30,7 +31,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
-import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -51,7 +51,7 @@ internal class UtbetalingServiceImpl(
         return utbetalingRepo.hentUtbetaling(utbetalingId)?.right() ?: FantIkkeUtbetaling.left()
     }
 
-    override fun hentUtbetalinger(sakId: UUID): List<Utbetaling> {
+    override fun hentUtbetalingerForSakId(sakId: UUID): List<Utbetaling> {
         return utbetalingRepo.hentUtbetalinger(sakId)
     }
 
@@ -81,16 +81,7 @@ internal class UtbetalingServiceImpl(
         sakId: UUID,
         forDato: LocalDate,
     ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
-        val utbetalingslinjer = hentUtbetalinger(sakId).flatMap { it.utbetalingslinjer }
-
-        return TidslinjeForUtbetalinger(
-            periode = Periode.create(
-                fraOgMed = utbetalingslinjer.minOf { it.fraOgMed },
-                tilOgMed = utbetalingslinjer.maxOf { it.tilOgMed },
-            ),
-            utbetalingslinjer = utbetalingslinjer,
-            clock = clock,
-        ).gjeldendeForDato(forDato).rightIfNotNull { FantIkkeGjeldendeUtbetaling }
+        return hentUtbetalingerForSakId(sakId).hentGjeldendeUtbetaling(forDato, clock)
     }
 
     override fun utbetal(
