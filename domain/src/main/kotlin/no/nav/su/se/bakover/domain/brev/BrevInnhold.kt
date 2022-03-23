@@ -234,7 +234,7 @@ abstract class BrevInnhold {
         val personalia: Personalia,
         val saksbehandlerNavn: String,
         val fritekst: String,
-        val bruttoTilbakekreving: Int,
+        val bruttoTilbakekreving: String,
         val tilbakekreving: List<BrevTilbakekrevingInfo>,
         val periodeStart: String,
         val periodeSlutt: String,

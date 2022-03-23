@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -309,7 +310,7 @@ interface LagBrevRequest {
             personalia = lagPersonalia(),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = fritekst,
-            bruttoTilbakekreving = bruttoTilbakekreving,
+            bruttoTilbakekreving = NumberFormat.getNumberInstance(Locale("nb", "NO")).format(bruttoTilbakekreving),
             periodeStart = tilbakekreving.periodeStart,
             periodeSlutt = tilbakekreving.periodeSlutt,
             tilbakekreving = tilbakekreving.tilbakekrevingavdrag,

@@ -34,11 +34,7 @@ data class AvsluttetRevurdering private constructor(
     override val forhåndsvarsel: Forhåndsvarsel? = underliggendeRevurdering.forhåndsvarsel
     override val oppgaveId: OppgaveId = underliggendeRevurdering.oppgaveId
     override val attesteringer: Attesteringshistorikk = underliggendeRevurdering.attesteringer
-
-    override val erOpphørt: Boolean = when (underliggendeRevurdering) {
-        is UnderkjentRevurdering.Opphørt -> true
-        else -> false
-    }
+    override val erOpphørt: Boolean = underliggendeRevurdering.erOpphørt
 
     override val avkorting: AvkortingVedRevurdering = when (val avkorting = underliggendeRevurdering.avkorting) {
         is AvkortingVedRevurdering.DelvisHåndtert -> {
