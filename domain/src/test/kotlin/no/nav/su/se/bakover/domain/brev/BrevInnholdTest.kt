@@ -3,21 +3,26 @@ package no.nav.su.se.bakover.domain.brev
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.MånedBeløp
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
+import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevInnhold
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.periodeJanuar2021
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
+import kotlin.text.Typography.nbsp
 
 internal class BrevInnholdTest {
     private val personalia = BrevInnhold.Personalia(
@@ -251,7 +256,9 @@ internal class BrevInnholdTest {
             fritekst = "fri",
             dagensDato = LocalDate.now(fixedClock),
             saksnummer = saksnummer,
-            bruttoTilbakekreving = 5000,
+            bruttoTilbakekreving = 5000000,
+            opphør = false,
+            tilbakekreving = Tilbakekreving(listOf(MånedBeløp(periodeJanuar2021, Beløp.invoke(1000))))
         )
 
         val expected = """
@@ -265,7 +272,12 @@ internal class BrevInnholdTest {
                 },
                 "saksbehandlerNavn": "saks",
                 "fritekst": "fri",
-                "bruttoTilbakekreving": 5000
+                "bruttoTilbakekreving":"5${nbsp}000${nbsp}000",
+                "tilbakekreving": [{"periode": "1. januar 2021 - 31. januar 2021", "beløp":"1${nbsp}000", "tilbakekrevingsgrad": "100%"}],
+                "periodeStart": "1. januar 2021",
+                "periodeSlutt": "31. januar 2021",
+                "dato": "1. januar 2021",
+                "opphør": false
             }
         """.trimIndent()
 

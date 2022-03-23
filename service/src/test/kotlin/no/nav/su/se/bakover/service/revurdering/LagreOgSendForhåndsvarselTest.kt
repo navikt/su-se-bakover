@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -474,7 +475,9 @@ internal class LagreOgSendForhåndsvarselTest {
                             saksnummer = simulertMedTilbakekreving.saksnummer,
                             saksbehandlerNavn = "saksbehandler",
                             fritekst = "det kreves",
-                            bruttoTilbakekreving = simulertMedTilbakekreving.simulering.hentFeilutbetalteBeløp().sum()
+                            bruttoTilbakekreving = simulertMedTilbakekreving.simulering.hentFeilutbetalteBeløp().sum(),
+                            opphør = false,
+                            tilbakekreving = Tilbakekreving(simulertMedTilbakekreving.simulering.hentFeilutbetalteBeløp().månedbeløp)
                         )
                     },
                 )
