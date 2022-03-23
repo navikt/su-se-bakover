@@ -46,7 +46,16 @@ class ReguleringServiceImpl(
         if (regulering.inneholderAvslag()) return true
 
         val reguleringMedBeregning = regulering.beregn(clock = clock, begrunnelse = null)
-            .getOrHandle { throw RuntimeException("Vi klarte ikke å beregne. Underliggende grunn $it") }
+            .getOrHandle {
+                when (it) {
+                    is Regulering.KunneIkkeBeregne.BeregningFeilet -> {
+                        throw RuntimeException("Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
+                    }
+                    is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> {
+                        throw RuntimeException("Vi klarte ikke å beregne. Feil status")
+                    }
+                }
+            }
 
         return !reguleringMedBeregning.beregning!!.getMånedsberegninger().all { månedsberegning ->
             utbetalingService.hentGjeldendeUtbetaling(
@@ -152,8 +161,15 @@ class ReguleringServiceImpl(
 
     private fun regulerAutomatisk(regulering: Regulering.OpprettetRegulering): Either<KunneIkkeRegulereAutomatiskt, Regulering.IverksattRegulering> {
         return regulering.beregn(clock = clock, begrunnelse = null)
-            .mapLeft {
-                log.error("Regulering feilet. Beregning feilet for saksnummer: ${regulering.saksnummer}.")
+            .mapLeft { kunneikkeBeregne ->
+                when (kunneikkeBeregne) {
+                    is Regulering.KunneIkkeBeregne.BeregningFeilet -> {
+                        log.error("Regulering feilet. Beregning feilet for saksnummer: ${regulering.saksnummer}", kunneikkeBeregne.feil)
+                    }
+                    is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> {
+                        log.error("Regulering feilet. Beregning feilet for saksnummer: ${regulering.saksnummer}. Ikke lov å beregne i denne statusen")
+                    }
+                }
                 KunneIkkeRegulereAutomatiskt.KunneIkkeBeregne
             }
             .flatMap { beregnetRegulering ->
@@ -210,7 +226,7 @@ class ReguleringServiceImpl(
 
         val beregnetRegulering = regulering.beregn(clock = clock, begrunnelse = request.begrunnelse).getOrHandle {
             when (it) {
-                Regulering.KunneIkkeBeregne.BeregningFeilet -> log.error("Regulering feilet. Kunne ikke beregne")
+                is Regulering.KunneIkkeBeregne.BeregningFeilet -> log.error("Regulering feilet. Kunne ikke beregne", it.feil)
                 is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> log.error("Regulering feilet. Kan ikke beregne i status ${it.status}")
             }
             return BeregnOgSimulerFeilet.KunneIkkeBeregne.left()

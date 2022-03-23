@@ -82,7 +82,7 @@ sealed interface Regulering : Reguleringsfelter {
     }
 
     sealed interface KunneIkkeBeregne {
-        object BeregningFeilet : KunneIkkeBeregne
+        data class BeregningFeilet(val feil: Throwable) : KunneIkkeBeregne
         data class IkkeLovÅBeregneIDenneStatusen(val status: KClass<out Regulering>) :
             KunneIkkeBeregne
     }
@@ -168,7 +168,7 @@ sealed interface Regulering : Reguleringsfelter {
                     beregningsPeriode = periode,
                     begrunnelse = begrunnelse,
                 )
-            }.mapLeft { KunneIkkeBeregne.BeregningFeilet }
+            }.mapLeft { KunneIkkeBeregne.BeregningFeilet(feil = it) }
         }
     }
 
