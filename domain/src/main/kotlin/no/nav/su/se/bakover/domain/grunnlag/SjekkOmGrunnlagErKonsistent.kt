@@ -211,4 +211,4 @@ sealed class Konsistensproblem {
     }
 }
 
-fun Set<Konsistensproblem>.erGyldigTilstand(): Boolean = this.all { erGyldigTilstand() }
+fun Set<Konsistensproblem>.erGyldigTilstand(): Boolean = this.all { it.erGyldigTilstand() }

@@ -46,7 +46,7 @@ class ReguleringServiceImpl(
         if (regulering.inneholderAvslag()) return true
 
         val reguleringMedBeregning = regulering.beregn(clock = clock, begrunnelse = null)
-            .getOrHandle { throw RuntimeException("Vi klarte ikke å beregne") }
+            .getOrHandle { throw RuntimeException("Vi klarte ikke å beregne. Underliggende grunn $it") }
 
         return !reguleringMedBeregning.beregning!!.getMånedsberegninger().all { månedsberegning ->
             utbetalingService.hentGjeldendeUtbetaling(
