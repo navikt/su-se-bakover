@@ -173,7 +173,10 @@ sealed interface Regulering : Reguleringsfelter {
     }
 
     data class IverksattRegulering(
-        private val opprettetRegulering: OpprettetRegulering,
+        /**
+         * Denne er gjort public pga å gjøre den testbar fra databasen siden vi må kunne gjøre den persistert
+         */
+        val opprettetRegulering: OpprettetRegulering,
         override val beregning: Beregning,
         override val simulering: Simulering,
     ) : Regulering, Reguleringsfelter by opprettetRegulering

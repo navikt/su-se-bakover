@@ -79,7 +79,27 @@ internal inline fun <reified T : Søknadsbehandling> T.persistertVariant(): T {
 }
 
 internal inline fun <reified T : Regulering> T.persistertVariant(): T {
-    return this
+    return when (this) {
+        is Regulering.OpprettetRegulering -> {
+            copy(
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.copy(
+                    grunnlagsdata = grunnlagsdata.persistertVariant()
+                )
+            )
+        }
+        is Regulering.IverksattRegulering -> {
+            Regulering.IverksattRegulering(
+                opprettetRegulering = opprettetRegulering.copy(
+                    grunnlagsdataOgVilkårsvurderinger = opprettetRegulering.grunnlagsdataOgVilkårsvurderinger.copy(
+                        grunnlagsdata = grunnlagsdata.persistertVariant()
+                    )
+                ),
+                beregning = beregning,
+                simulering = simulering
+            )
+        }
+        else -> null
+    } as T
 }
 
 internal inline fun <reified T : AbstraktRevurdering> T.persistertVariant(): T {

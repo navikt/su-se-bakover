@@ -9,6 +9,7 @@ import kotliquery.using
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.UUIDFactory
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
@@ -76,6 +77,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringType
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -112,6 +115,7 @@ import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
@@ -328,7 +332,7 @@ internal class TestDataHelper(
         revurderingRepo = revurderingRepo,
         vedtakPostgresRepo = vedtakRepo,
         klageRepo = klagePostgresRepo,
-        reguleringRepo = reguleringRepo
+        reguleringRepo = reguleringRepo,
     )
 
     internal val avstemmingRepo = AvstemmingPostgresRepo(
@@ -710,6 +714,28 @@ internal class TestDataHelper(
         }
     }
 
+    fun persisterReguleringOpprettet(): Regulering.OpprettetRegulering =
+        persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, _, _) ->
+            sak.opprettEllerOppdaterRegulering(
+                startDato = 1.mai(2021),
+                reguleringType = ReguleringType.MANUELL,
+                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(fraOgMed = 1.mai(2021), clock = fixedClock)
+                    .getOrFail(),
+                clock = fixedClock,
+            ).getOrFail().also {
+                reguleringRepo.lagre(it)
+            }
+        }
+
+    fun persisterReguleringOpprettetIverksatt() =
+        persisterReguleringOpprettet().let {
+            it.beregn(clock = fixedClock, begrunnelse = "Begrunnelse").getOrFail().let { opprettetRegulering ->
+                opprettetRegulering.simuler { simulertUtbetaling().right() }.getOrFail().tilIverksatt()
+            }.also { iverksattAttestering ->
+                reguleringRepo.lagre(iverksattAttestering)
+            }
+        }
+
     fun persisterRevurderingOpprettet(
         innvilget: VedtakSomKanRevurderes.EndringIYtelse,
         periode: Periode,
@@ -826,7 +852,7 @@ internal class TestDataHelper(
                     simulering = simulering(Fnr.generer()),
                 ).right()
             },
-            false
+            false,
         ).getOrFail().also {
             revurderingRepo.lagre(it)
         }
@@ -911,9 +937,10 @@ internal class TestDataHelper(
     }
 
     fun persisterRevurderingUnderkjentInnvilget(): UnderkjentRevurdering.Innvilget {
-        return persisterRevurderingTilAttesteringInnvilget().underkjenn(underkjentAttestering, OppgaveId("oppgaveid")).also {
-            revurderingRepo.lagre(it)
-        } as UnderkjentRevurdering.Innvilget
+        return persisterRevurderingTilAttesteringInnvilget().underkjenn(underkjentAttestering, OppgaveId("oppgaveid"))
+            .also {
+                revurderingRepo.lagre(it)
+            } as UnderkjentRevurdering.Innvilget
     }
 
     /**
