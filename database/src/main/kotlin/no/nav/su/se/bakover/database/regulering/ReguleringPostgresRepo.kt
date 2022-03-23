@@ -66,6 +66,7 @@ internal class ReguleringPostgresRepo(
             }
         }
 
+    // TODO jah: Flytte til [SakPostgresRepo.kt]
     override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
         return dbMetrics.timeQuery("hentSakerMedÅpenBehandlingEllerStans") {
             sessionFactory.withSession { session ->

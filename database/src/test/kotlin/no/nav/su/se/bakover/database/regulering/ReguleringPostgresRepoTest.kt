@@ -15,7 +15,7 @@ internal class ReguleringPostgresRepoTest {
             val repo = testDataHelper.reguleringRepo
 
             val regulering = testDataHelper.persisterReguleringOpprettet()
-            testDataHelper.persisterReguleringOpprettetIverksatt()
+            testDataHelper.persisterReguleringIverksatt()
 
             val hentRegulering = repo.hentReguleringerSomIkkeErIverksatt()
 
@@ -39,7 +39,7 @@ internal class ReguleringPostgresRepoTest {
     }
 
     @Test
-    fun `lagre og hent en regulering`() {
+    fun `lagre og hent en opprettet regulering`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.reguleringRepo
@@ -48,6 +48,63 @@ internal class ReguleringPostgresRepoTest {
             val hentRegulering = repo.hent(regulering.id)
 
             hentRegulering shouldBe regulering.persistertVariant()
+        }
+    }
+
+    @Test
+    fun `lagre og hent en iverksatt regulering`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.reguleringRepo
+
+            val regulering = testDataHelper.persisterReguleringIverksatt()
+            val hentRegulering = repo.hent(regulering.id)
+
+            hentRegulering shouldBe regulering.persistertVariant()
+        }
+    }
+
+    @Test
+    fun `henter saker med åpen behandling eller stans`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.reguleringRepo
+
+            // En del caser som ikke skal være åpne
+            testDataHelper.persisterVedtakMedAvslåttSøknadsbehandlingUtenBeregning()
+            testDataHelper.persisterVedtakForGjenopptak()
+            testDataHelper.persisterVedtakForKlageIverksattAvvist()
+            testDataHelper.persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering()
+            testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
+            testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingUtenKvittering()
+            testDataHelper.persisterSøknadsbehandlingIverksattAvslagMedBeregning()
+            testDataHelper.persisterSøknadsbehandlingIverksattAvslagUtenBeregning()
+            testDataHelper.persisterSøknadsbehandlingAvsluttet()
+            testDataHelper.persisterRevurderingAvsluttet()
+            testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart()
+            testDataHelper.persisterSøknadsbehandlingVilkårsvurdertAvslag()
+            testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget()
+
+            val expected = listOf(
+                testDataHelper.persisterVedtakForStans().behandling.saksnummer,
+                testDataHelper.persisterSøknadsbehandlingBeregnetAvslag().first.saksnummer,
+                testDataHelper.persisterSøknadsbehandlingBeregnetInnvilget().first.saksnummer,
+                testDataHelper.persisterSøknadsbehandlingSimulert().first.saksnummer,
+                testDataHelper.persisterSøknadsbehandlingTilAttesteringAvslagUtenBeregning().first.saksnummer,
+                testDataHelper.persisterSøknadsbehandlingTilAttesteringAvslagMedBeregning().first.saksnummer,
+                testDataHelper.persisterSøknadsbehandlingTilAttesteringInnvilget().first.saksnummer,
+                testDataHelper.persisterRevurderingBeregnetInnvilget().saksnummer,
+                testDataHelper.persisterRevurderingBeregnetOpphørt().saksnummer,
+                testDataHelper.persisterRevurderingOpprettet().saksnummer,
+                testDataHelper.persisterRevurderingSimulertInnvilget().saksnummer,
+                testDataHelper.persisterRevurderingSimulertOpphørt().saksnummer,
+                testDataHelper.persisterRevurderingTilAttesteringInnvilget().saksnummer,
+                testDataHelper.persisterRevurderingTilAttesteringOpphørt().saksnummer,
+                testDataHelper.persisterRevurderingUnderkjentInnvilget().saksnummer,
+                testDataHelper.persisterStansAvYtelseSimulert().saksnummer,
+                testDataHelper.persisterGjenopptakAvYtelseSimulert().saksnummer,
+            )
+            repo.hentSakerMedÅpenBehandlingEllerStans().sortedBy { it.nummer } shouldBe expected
         }
     }
 }
