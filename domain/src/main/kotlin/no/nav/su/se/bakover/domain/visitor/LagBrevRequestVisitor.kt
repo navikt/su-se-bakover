@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.satsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
@@ -538,7 +539,7 @@ class LagBrevRequestVisitor(
                         revurdering,
                         beregning,
                     ).getOrHandle { return it.left() },
-                    bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
+                    tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
                 ).right()
             }
         }
@@ -695,7 +696,7 @@ class LagBrevRequestVisitor(
                         beregning = beregning,
                         opphørsgrunner = opphørsgrunner,
                     ).getOrHandle { return it.left() },
-                    bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
+                    tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
                 ).right()
             }
         }
@@ -805,7 +806,7 @@ class LagBrevRequestVisitor(
                     @Suppress("useless_cast")
                     LagBrevRequest.TilbakekrevingAvPenger(
                         ordinærtRevurderingBrev = base,
-                        bruttoTilbakekreving = vedtak.simulering.hentFeilutbetalteBeløp().sum(),
+                        tilbakekreving = Tilbakekreving(vedtak.simulering.hentFeilutbetalteBeløp().månedbeløp)
                     ) as LagBrevRequest
                 },
             )
@@ -847,7 +848,7 @@ class LagBrevRequestVisitor(
                     @Suppress("useless_cast")
                     LagBrevRequest.OpphørMedTilbakekrevingAvPenger(
                         opphør = base,
-                        bruttoTilbakekreving = vedtak.simulering.hentFeilutbetalteBeløp().sum(),
+                        tilbakekreving = Tilbakekreving(vedtak.simulering.hentFeilutbetalteBeløp().månedbeløp),
                     ) as LagBrevRequest
                 },
             )

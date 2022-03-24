@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.ddMMyyyy
+import no.nav.su.se.bakover.common.toBrevformat
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -15,7 +16,9 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
+import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -189,14 +192,13 @@ interface LagBrevRequest {
 
     data class OpphørMedTilbakekrevingAvPenger(
         private val opphør: Opphør,
-        private val bruttoTilbakekreving: Int,
+        private val tilbakekreving: Tilbakekreving,
     ) : LagBrevRequest, Opphør by opphør {
         override val brevInnhold: BrevInnhold = BrevInnhold.OpphørMedTilbakekrevingAvPenger(
             personalia = lagPersonalia(),
             sats = beregning.getSats().toString().lowercase(),
             satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
-            satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed)
-                .ddMMyyyy(),
+            satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
             harEktefelle = harEktefelle,
             beregningsperioder = if (
                 opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT) ||
@@ -211,7 +213,9 @@ interface LagBrevRequest {
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             opphørsdato = opphørsdato.ddMMyyyy(),
             avkortingsBeløp = avkortingsBeløp,
-            bruttoTilbakekreving = bruttoTilbakekreving,
+            tilbakekreving = tilbakekreving.tilbakekrevingavdrag,
+            periodeStart = tilbakekreving.periodeStart,
+            periodeSlutt = tilbakekreving.periodeSlutt
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
@@ -299,12 +303,19 @@ interface LagBrevRequest {
         private val saksbehandlerNavn: String,
         private val fritekst: String,
         private val bruttoTilbakekreving: Int,
+        private val tilbakekreving: Tilbakekreving,
+        private val opphør: Boolean
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.ForhåndsvarselTilbakekreving(
             personalia = lagPersonalia(),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = fritekst,
-            bruttoTilbakekreving = bruttoTilbakekreving,
+            bruttoTilbakekreving = NumberFormat.getNumberInstance(Locale("nb", "NO")).format(bruttoTilbakekreving),
+            periodeStart = tilbakekreving.periodeStart,
+            periodeSlutt = tilbakekreving.periodeSlutt,
+            tilbakekreving = tilbakekreving.tilbakekrevingavdrag,
+            dato = dagensDato.toBrevformat(),
+            opphør = opphør
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
@@ -401,7 +412,7 @@ interface LagBrevRequest {
 
     data class TilbakekrevingAvPenger(
         private val ordinærtRevurderingBrev: Inntekt,
-        private val bruttoTilbakekreving: Int,
+        private val tilbakekreving: Tilbakekreving,
     ) : LagBrevRequest, Revurdering by ordinærtRevurderingBrev {
         override val brevInnhold: BrevInnhold = BrevInnhold.RevurderingMedTilbakekrevingAvPenger(
             personalia = lagPersonalia(),
@@ -410,11 +421,12 @@ interface LagBrevRequest {
             beregningsperioder = LagBrevinnholdForBeregning(revurdertBeregning).brevInnhold,
             fritekst = fritekst,
             sats = revurdertBeregning.getSats(),
-            satsGjeldendeFraDato = revurdertBeregning.getSats()
-                .datoForSisteEndringAvSats(revurdertBeregning.periode.tilOgMed).ddMMyyyy(),
+            satsGjeldendeFraDato = revurdertBeregning.getSats().datoForSisteEndringAvSats(revurdertBeregning.periode.tilOgMed).ddMMyyyy(),
             harEktefelle = harEktefelle,
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
-            bruttoTilbakekreving = bruttoTilbakekreving,
+            tilbakekreving = tilbakekreving.tilbakekrevingavdrag,
+            periodeStart = tilbakekreving.periodeStart,
+            periodeSlutt = tilbakekreving.periodeSlutt,
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {

@@ -140,7 +140,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 on { hent(any()) } doReturn revurdering
             },
             utbetalingService = mock {
-                on { hentUtbetalinger(any()) } doReturn sak.utbetalinger
+                on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
             vedtakService = mock {
                 on {
@@ -161,7 +161,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             *serviceAndMocks.all(),
         ) {
             verify(serviceAndMocks.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-            verify(serviceAndMocks.utbetalingService).hentUtbetalinger(argThat { it shouldBe sakId })
+            verify(serviceAndMocks.utbetalingService).hentUtbetalingerForSakId(argThat { it shouldBe sakId })
             verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(
                 argThat { it shouldBe sakId },
                 argThat { it shouldBe revurdering.periode.fraOgMed },

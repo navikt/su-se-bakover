@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getD
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
+import no.nav.su.se.bakover.domain.brev.beregning.BrevTilbakekrevingInfo
 
 abstract class BrevInnhold {
     fun toJson(): String = objectMapper.writeValueAsString(this)
@@ -116,7 +117,9 @@ abstract class BrevInnhold {
         val halvGrunnbeløp: Int?,
         val opphørsdato: String,
         val avkortingsBeløp: Int?,
-        val bruttoTilbakekreving: Int,
+        val tilbakekreving: List<BrevTilbakekrevingInfo>,
+        val periodeStart: String,
+        val periodeSlutt: String,
     ) : BrevInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.Opphør.OpphørMedTilbakekreving
 
@@ -173,7 +176,9 @@ abstract class BrevInnhold {
         val satsGjeldendeFraDato: String,
         val harEktefelle: Boolean,
         val forventetInntektStørreEnn0: Boolean,
-        val bruttoTilbakekreving: Int,
+        val tilbakekreving: List<BrevTilbakekrevingInfo>,
+        val periodeStart: String,
+        val periodeSlutt: String,
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.Revurdering.MedTilbakekreving
 
@@ -229,7 +234,12 @@ abstract class BrevInnhold {
         val personalia: Personalia,
         val saksbehandlerNavn: String,
         val fritekst: String,
-        val bruttoTilbakekreving: Int,
+        val bruttoTilbakekreving: String,
+        val tilbakekreving: List<BrevTilbakekrevingInfo>,
+        val periodeStart: String,
+        val periodeSlutt: String,
+        val dato: String,
+        val opphør: Boolean
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.ForhåndsvarselTilbakekreving
     }

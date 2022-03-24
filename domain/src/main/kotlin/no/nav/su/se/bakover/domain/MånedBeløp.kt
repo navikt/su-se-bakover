@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.periode.Periode
+import java.text.NumberFormat
 import java.time.LocalDate
+import java.util.Locale
 import kotlin.math.abs
 
 data class Månedsbeløp(
@@ -37,6 +39,8 @@ data class MånedBeløp(
     }
 }
 
+fun List<MånedBeløp>.sorterPåPeriode(): List<MånedBeløp> = this.sortedBy { it.periode }
+
 @JvmInline
 value class Beløp private constructor(
     private val value: Int,
@@ -49,5 +53,9 @@ value class Beløp private constructor(
 
     fun sum(): Int {
         return value
+    }
+
+    fun tusenseparert(): String {
+        return NumberFormat.getNumberInstance(Locale("nb", "NO")).format(value)
     }
 }

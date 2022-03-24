@@ -689,7 +689,7 @@ internal class RevurderingServiceImpl(
 
         return when (originalRevurdering) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
-                val eksisterendeUtbetalinger = utbetalingService.hentUtbetalinger(originalRevurdering.sakId)
+                val eksisterendeUtbetalinger = utbetalingService.hentUtbetalingerForSakId(originalRevurdering.sakId)
                 val gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
                     sakId = originalRevurdering.sakId,
                     fraOgMed = originalRevurdering.periode.fraOgMed,
@@ -1289,7 +1289,8 @@ internal class RevurderingServiceImpl(
                         request = UtbetalRequest.NyUtbetaling(
                             request = SimulerUtbetalingRequest.NyUtbetaling(
                                 sakId = revurdering.sakId,
-                                saksbehandler = attestant, beregning = revurdering.beregning,
+                                saksbehandler = attestant,
+                                beregning = revurdering.beregning,
                                 uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
                             ),
                             simulering = revurdering.simulering,
