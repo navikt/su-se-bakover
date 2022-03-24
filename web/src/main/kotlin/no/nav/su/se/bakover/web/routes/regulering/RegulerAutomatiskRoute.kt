@@ -15,7 +15,7 @@ import java.time.LocalDate
 
 private data class Request(val startDato: LocalDate)
 
-internal fun Route.oppdaterReguleringer(
+internal fun Route.regulerAutomatisk(
     reguleringService: ReguleringService,
 ) {
     authorize(Brukerrolle.Drift) {

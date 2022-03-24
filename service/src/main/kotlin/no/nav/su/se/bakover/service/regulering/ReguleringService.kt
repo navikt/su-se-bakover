@@ -4,7 +4,6 @@ import arrow.core.Either
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import java.time.LocalDate
 import java.util.UUID
@@ -14,11 +13,11 @@ data class BeregnRequest(
     val begrunnelse: String?,
 )
 
-sealed class KunneIkkeRegulereAutomatiskt {
-    object KunneIkkeBeregne : KunneIkkeRegulereAutomatiskt()
-    object KunneIkkeSimulere : KunneIkkeRegulereAutomatiskt()
-    object KunneIkkeUtbetale : KunneIkkeRegulereAutomatiskt()
-    object KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling : KunneIkkeRegulereAutomatiskt()
+sealed class KunneIkkeRegulereAutomatisk {
+    object KunneIkkeBeregne : KunneIkkeRegulereAutomatisk()
+    object KunneIkkeSimulere : KunneIkkeRegulereAutomatisk()
+    object KunneIkkeUtbetale : KunneIkkeRegulereAutomatisk()
+    object KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling : KunneIkkeRegulereAutomatisk()
 }
 
 sealed class BeregnOgSimulerFeilet {
@@ -41,17 +40,8 @@ sealed class KunneIkkeOppretteRegulering {
     object FantIkkeSak : KunneIkkeOppretteRegulering()
     object FørerIkkeTilEnEndring : KunneIkkeOppretteRegulering()
     data class KunneIkkeHenteEllerOppretteRegulering(val feil: Sak.KunneIkkeOppretteEllerOppdatereRegulering) : KunneIkkeOppretteRegulering()
-    data class KunneIkkeRegulereAutomatisk(val feil: KunneIkkeRegulereAutomatiskt) : KunneIkkeOppretteRegulering()
+    data class KunneIkkeRegulereAutomatisk(val feil: no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereAutomatisk) : KunneIkkeOppretteRegulering()
 }
-
-sealed class KunneIkkeHenteGjeldendeVedtaksdata {
-    object FantIngenVedtak : KunneIkkeHenteGjeldendeVedtaksdata()
-    object FantIkkeSak : KunneIkkeHenteGjeldendeVedtaksdata()
-    object UgyldigPeriode : KunneIkkeHenteGjeldendeVedtaksdata()
-    data class GrunnlagErIkkeKonsistent(val gjeldendeVedtaksdata: GjeldendeVedtaksdata) : KunneIkkeHenteGjeldendeVedtaksdata()
-}
-
-object KunneIkkeUtbetale
 
 interface ReguleringService {
     fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>>

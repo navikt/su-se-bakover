@@ -84,7 +84,7 @@ internal class ReguleringServiceImplTest {
         )
 
         @Test
-        fun `behandlinger som ikke har OffentligPensjon eller NAVytelserTilLivsopphold blir automatiskt regulert`() {
+        fun `behandlinger som ikke har OffentligPensjon eller NAVytelserTilLivsopphold blir automatisk regulert`() {
             val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
             val reguleringService = lagReguleringServiceImpl(sak)
 
@@ -154,7 +154,7 @@ internal class ReguleringServiceImplTest {
 
             reguleringService.startRegulering(1.mai(2021)) shouldBe listOf(
                 KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(
-                    KunneIkkeRegulereAutomatiskt.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling,
+                    KunneIkkeRegulereAutomatisk.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling,
                 ).left(),
             )
         }

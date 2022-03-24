@@ -114,7 +114,7 @@ class ReguleringServiceImpl(
         }
     }
 
-    private fun regulerAutomatisk(regulering: Regulering.OpprettetRegulering): Either<KunneIkkeRegulereAutomatiskt, Regulering.IverksattRegulering> {
+    private fun regulerAutomatisk(regulering: Regulering.OpprettetRegulering): Either<KunneIkkeRegulereAutomatisk, Regulering.IverksattRegulering> {
         return regulering.beregn(clock = clock, begrunnelse = null)
             .mapLeft { kunneikkeBeregne ->
                 when (kunneikkeBeregne) {
@@ -125,17 +125,17 @@ class ReguleringServiceImpl(
                         log.error("Regulering feilet. Beregning feilet for saksnummer: ${regulering.saksnummer}. Ikke lov å beregne i denne statusen")
                     }
                 }
-                KunneIkkeRegulereAutomatiskt.KunneIkkeBeregne
+                KunneIkkeRegulereAutomatisk.KunneIkkeBeregne
             }
             .flatMap { beregnetRegulering ->
                 beregnetRegulering.simuler(utbetalingService::simulerUtbetaling)
                     .mapLeft {
                         log.error("Regulering feilet. Simulering feilet for saksnummer: ${regulering.saksnummer}.")
-                        KunneIkkeRegulereAutomatiskt.KunneIkkeSimulere
+                        KunneIkkeRegulereAutomatisk.KunneIkkeSimulere
                     }.flatMap {
                         if (it.simulering!!.harFeilutbetalinger()) {
                             log.error("Regulering feilet. Simuleringen inneholdt feilutbetalinger for saksnummer: ${regulering.saksnummer}.")
-                            KunneIkkeRegulereAutomatiskt.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling.left()
+                            KunneIkkeRegulereAutomatisk.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling.left()
                         } else {
                             it.right()
                         }
@@ -218,7 +218,7 @@ class ReguleringServiceImpl(
         return KunneIkkeIverksetteRegulering.FantIkkeRegulering.left()
     }
 
-    private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeRegulereAutomatiskt.KunneIkkeUtbetale, Regulering.IverksattRegulering> {
+    private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeRegulereAutomatisk.KunneIkkeUtbetale, Regulering.IverksattRegulering> {
         return utbetalingService.verifiserOgSimulerUtbetaling(
             request = UtbetalRequest.NyUtbetaling(
                 request = SimulerUtbetalingRequest.NyUtbetaling(
@@ -231,7 +231,7 @@ class ReguleringServiceImpl(
             ),
         ).mapLeft {
             log.error("Kunne ikke verifisere og simulere utbetaling for regulering med saksnummer ${regulering.saksnummer} med underliggende grunn: $it")
-            KunneIkkeRegulereAutomatiskt.KunneIkkeUtbetale
+            KunneIkkeRegulereAutomatisk.KunneIkkeUtbetale
         }.flatMap {
             Either.catch {
                 sessionFactory.withTransactionContext { tx ->
@@ -250,7 +250,7 @@ class ReguleringServiceImpl(
                     "En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering med saksnummer ${regulering.saksnummer}",
                     it,
                 )
-                KunneIkkeRegulereAutomatiskt.KunneIkkeUtbetale
+                KunneIkkeRegulereAutomatisk.KunneIkkeUtbetale
             }
         }
     }

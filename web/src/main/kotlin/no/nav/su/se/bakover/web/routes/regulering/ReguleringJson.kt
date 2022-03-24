@@ -36,10 +36,7 @@ internal fun Regulering.toJson() = ReguleringJson(
     beregning = beregning?.toJson(),
     simulering = simulering?.toJson(),
     reguleringstype = reguleringstype,
-    erFerdigstilt = when (this) {
-        is Regulering.IverksattRegulering -> true
-        is Regulering.OpprettetRegulering -> false
-    },
+    erFerdigstilt = this.erFerdigstilt,
     periode = periode.toJson(),
     grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger)
 )

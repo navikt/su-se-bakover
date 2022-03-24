@@ -39,6 +39,11 @@ interface Reguleringsfelter : Behandling {
 }
 sealed interface Regulering : Reguleringsfelter {
 
+    /**
+     * true dersom dette er en iverksatt regulering, false ellers.
+     */
+    val erFerdigstilt: Boolean
+
     companion object {
         fun opprettRegulering(
             id: UUID = UUID.randomUUID(),
@@ -105,6 +110,8 @@ sealed interface Regulering : Reguleringsfelter {
         override val reguleringstype: Reguleringstype,
     ) : Regulering {
 
+        override val erFerdigstilt = false
+
         override val grunnlagsdata: Grunnlagsdata
             get() = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
@@ -119,9 +126,10 @@ sealed interface Regulering : Reguleringsfelter {
             beregning?.let { assert(periode == beregning.periode) }
         }
 
+        /**
+         * Denne brukes kun i den manuelle flyten som ikke er implementert ferdig enda.
+         */
         fun leggTilFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): OpprettetRegulering =
-            // er det ok å returnere this, eller skal man lage ny OpprettetRegulering som man returnerer her?
-            // samme for beregn og simulering...
             this.copy(
                 grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                     grunnlagsdata = Grunnlagsdata.tryCreate(
@@ -182,5 +190,7 @@ sealed interface Regulering : Reguleringsfelter {
         val opprettetRegulering: OpprettetRegulering,
         override val beregning: Beregning,
         override val simulering: Simulering,
-    ) : Regulering, Reguleringsfelter by opprettetRegulering
+    ) : Regulering, Reguleringsfelter by opprettetRegulering {
+        override val erFerdigstilt = true
+    }
 }
