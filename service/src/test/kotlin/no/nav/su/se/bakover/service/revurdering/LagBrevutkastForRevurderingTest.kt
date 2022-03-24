@@ -250,7 +250,7 @@ internal class LagBrevutkastForRevurderingTest {
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { simulerOpphør(any()) } doReturn simulertUtbetalingMock.right()
-            on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
+            on { hentUtbetalingerForSakId(any()) } doReturn listOf(utbetalingMock)
         }
 
         val actual = RevurderingTestUtils.createRevurderingService(
@@ -276,7 +276,7 @@ internal class LagBrevutkastForRevurderingTest {
             utbetalingServiceMock,
         ) {
             verify(revurderingRepoMock).hent(revurderingId)
-            verify(utbetalingServiceMock).hentUtbetalinger(sakId)
+            verify(utbetalingServiceMock).hentUtbetalingerForSakId(sakId)
             verify(utbetalingServiceMock).simulerOpphør(
                 argThat {
                     it shouldBe SimulerUtbetalingRequest.Opphør(
@@ -314,7 +314,7 @@ internal class LagBrevutkastForRevurderingTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
+            on { hentUtbetalingerForSakId(any()) } doReturn listOf(utbetalingMock)
         }
 
         assertThrows<IllegalStateException> {

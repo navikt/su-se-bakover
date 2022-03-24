@@ -1,13 +1,17 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.september
@@ -16,14 +20,15 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
 internal class UtbetalingTest {
-
-    private val fnr = Fnr("12345678910")
 
     @Test
     fun `tidligste og seneste dato`() {
@@ -47,16 +52,40 @@ internal class UtbetalingTest {
         createUtbetaling(
             utbetalingsLinjer = nonEmptyListOf(
                 createUtbetalingslinje(forrigeUtbetalingslinjeId = null),
-                createUtbetalingslinje(forrigeUtbetalingslinjeId = UUID30.randomUUID())
-            )
+                createUtbetalingslinje(forrigeUtbetalingslinjeId = UUID30.randomUUID()),
+            ),
         ).erFørstegangsUtbetaling() shouldBe true
 
         createUtbetaling(
             utbetalingsLinjer = nonEmptyListOf(
                 createUtbetalingslinje(forrigeUtbetalingslinjeId = UUID30.randomUUID()),
-                createUtbetalingslinje(forrigeUtbetalingslinjeId = UUID30.randomUUID())
-            )
+                createUtbetalingslinje(forrigeUtbetalingslinjeId = UUID30.randomUUID()),
+            ),
         ).erFørstegangsUtbetaling() shouldBe false
+    }
+
+    @Test
+    fun `finner ikke gjeldende utbetaling for en tom liste`() {
+        emptyList<Utbetaling>().hentGjeldendeUtbetaling(
+            forDato = fixedLocalDate,
+            clock = fixedClock,
+        ) shouldBe FantIkkeGjeldendeUtbetaling.left()
+    }
+
+    @Test
+    fun `finner ikke gjeldende utbetaling for dato utenfor tidslinja`() {
+        listOf(createUtbetaling()).hentGjeldendeUtbetaling(
+            forDato = 1.februar(2021),
+            clock = fixedClock,
+        ) shouldBe FantIkkeGjeldendeUtbetaling.left()
+    }
+
+    @Test
+    fun `finner gjeldende utbetaling for dato innenfor tidslinja`() {
+        listOf(createUtbetaling()).hentGjeldendeUtbetaling(
+            forDato = 31.januar(2021),
+            clock = fixedClock,
+        ).shouldBeTypeOf<Either.Right<UtbetalingslinjePåTidslinje.Ny>>()
     }
 
     private fun createUtbetaling(
@@ -66,11 +95,11 @@ internal class UtbetalingTest {
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(2021),
         utbetalingslinjer = utbetalingsLinjer,
-        fnr = fnr,
+        fnr = Fnr.generer(),
         opprettet = opprettet,
         type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Saksbehandler("Z123"),
-        avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt)
+        avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
     )
 
     private fun createUtbetalingslinje(
