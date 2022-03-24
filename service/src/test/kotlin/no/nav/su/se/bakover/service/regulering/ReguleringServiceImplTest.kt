@@ -302,7 +302,7 @@ internal class ReguleringServiceImplTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             sakRepo = mock {
-                on { hentAlleIdFnrOgSaksnummer() } doReturn listOf(
+                on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(
                     SakIdSaksnummerFnr(
                         sakId = testData.first.sakId,
                         saksnummer = testData.first.saksnummer,

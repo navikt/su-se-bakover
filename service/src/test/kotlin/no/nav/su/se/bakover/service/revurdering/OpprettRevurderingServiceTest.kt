@@ -458,8 +458,8 @@ internal class OpprettRevurderingServiceTest {
             )
             on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering(
                 vilkårsvurderingUføre,
-                formueVilkår(periodeNesteMånedOgTreMånederFram),
-                utenlandsoppholdInnvilget(periode = periodeNesteMånedOgTreMånederFram),
+                formueVilkår(periode = vedtaksperiode),
+                utenlandsoppholdInnvilget(periode = vedtaksperiode),
             )
         }
         val vedtakForFørsteJanuarLagetNå = mock<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {

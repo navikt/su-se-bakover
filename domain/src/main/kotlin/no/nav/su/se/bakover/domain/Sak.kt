@@ -377,7 +377,6 @@ data class Sak(
         return Regulering.opprettRegulering(
             id = reguleringsId,
             opprettet = opprettet,
-            startDato = _startDato,
             sakId = id,
             saksnummer = saksnummer,
             fnr = fnr,

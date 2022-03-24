@@ -65,7 +65,7 @@ class ReguleringServiceImpl(
     }
 
     override fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-        return sakRepo.hentAlleIdFnrOgSaksnummer().map { (sakid, saksnummer, _) ->
+        return sakRepo.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
             log.info("Starter på : $saksnummer")
 
             val sak = Either.catch {

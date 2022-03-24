@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -43,7 +42,6 @@ sealed interface Regulering : Reguleringsfelter {
     companion object {
         fun opprettRegulering(
             id: UUID = UUID.randomUUID(),
-            startDato: LocalDate,
             sakId: UUID,
             saksnummer: Saksnummer,
             fnr: Fnr,
@@ -67,14 +65,6 @@ sealed interface Regulering : Reguleringsfelter {
                     gjeldendeVedtaksdata.utledReguleringstype()
                 },
             )
-
-            val fraOgMed = maxOf(gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.fraOgMed, startDato)
-            val tilOgMed = gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.tilOgMed
-
-            val grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-                grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
-                vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
-            )
             return OpprettetRegulering(
                 id = id,
                 opprettet = opprettet,
@@ -82,17 +72,12 @@ sealed interface Regulering : Reguleringsfelter {
                 saksnummer = saksnummer,
                 saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
                 fnr = fnr,
-                periode = Periode.create(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata.grunnlagsdataOgVilkårsvurderinger,
                 beregning = null,
                 simulering = null,
                 reguleringstype = reguleringstype,
             )
         }
-    }
-
-    sealed interface KunneIkkeOppretteRegulering {
-        object KunneIkkeLageFradragsgrunnlag : KunneIkkeOppretteRegulering
     }
 
     sealed interface KunneIkkeBeregne {
@@ -106,30 +91,34 @@ sealed interface Regulering : Reguleringsfelter {
         object SimuleringFeilet : KunneIkkeSimulere
     }
 
-    // TODO ai: Sørg for att vilkårsvurderingene er innvilget for HELE perioden.
     data class OpprettetRegulering(
         override val id: UUID,
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val periode: Periode,
         override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
+        override val periode: Periode = grunnlagsdataOgVilkårsvurderinger.periode()!!,
         override val beregning: Beregning?,
         override val simulering: Simulering?,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val reguleringstype: Reguleringstype,
     ) : Regulering {
+
         override val grunnlagsdata: Grunnlagsdata
             get() = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
             get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
 
         init {
+            if (reguleringstype == Reguleringstype.AUTOMATISK) {
+                assert(vilkårsvurderinger.resultat is Vilkårsvurderingsresultat.Innvilget)
+            }
             assert(grunnlagsdataOgVilkårsvurderinger.erVurdert())
             assert(periode == grunnlagsdataOgVilkårsvurderinger.periode())
             beregning?.let { assert(periode == beregning.periode) }
         }
+
         fun leggTilFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): OpprettetRegulering =
             // er det ok å returnere this, eller skal man lage ny OpprettetRegulering som man returnerer her?
             // samme for beregn og simulering...

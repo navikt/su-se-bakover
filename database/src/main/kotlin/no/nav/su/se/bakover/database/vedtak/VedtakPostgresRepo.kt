@@ -201,18 +201,18 @@ internal class VedtakPostgresRepo(
             (fraOgMed == null) xor (fraOgMed == null) -> throw IllegalStateException("fraOgMed og tilOgMed må enten begge være fylt ut, eller begge være null. fraOgMed=$fraOgMed, tilOgMed=$tilOgMed")
             else -> null
         }
-        val knytning = hentBehandlingVedtakKnytning(id, session)
+        val knytning = hentBehandlingVedtaksknytning(id, session)
             ?: throw IllegalStateException("Fant ikke knytning mellom vedtak og søknadsbehandling/revurdering.")
         val behandling: Behandling? = when (knytning) {
-            is BehandlingVedtakKnytning.ForSøknadsbehandling ->
+            is BehandlingVedtaksknytning.ForSøknadsbehandling ->
                 søknadsbehandlingRepo.hent(knytning.søknadsbehandlingId, session)!!
-            is BehandlingVedtakKnytning.ForRevurdering ->
+            is BehandlingVedtaksknytning.ForRevurdering ->
                 revurderingRepo.hent(knytning.revurderingId, session)!!
-            is BehandlingVedtakKnytning.ForKlage -> null
-            is BehandlingVedtakKnytning.ForRegulering ->
+            is BehandlingVedtaksknytning.ForKlage -> null
+            is BehandlingVedtaksknytning.ForRegulering ->
                 reguleringRepo.hent(knytning.reguleringId)
         }
-        val klage: Klage? = (knytning as? BehandlingVedtakKnytning.ForKlage)?.let {
+        val klage: Klage? = (knytning as? BehandlingVedtaksknytning.ForKlage)?.let {
             klageRepo.hentKlage(knytning.klageId, session)
         }
 
@@ -404,7 +404,7 @@ internal class VedtakPostgresRepo(
                 ),
                 session,
             )
-        lagreKlagevedtakKnytningTilBehandling(vedtak, session)
+        lagreKlagevedtaksknytningTilBehandling(vedtak, session)
     }
 
     private fun lagreInternt(vedtak: Avslagsvedtak, session: Session) {
@@ -453,7 +453,7 @@ internal class VedtakPostgresRepo(
                 ),
                 session,
             )
-        lagreKlagevedtakKnytningTilSøknadsbehandling(vedtak, session)
+        lagreKlagevedtaksknytningTilSøknadsbehandling(vedtak, session)
     }
 
     private fun lagreInternt(vedtak: VedtakSomKanRevurderes.IngenEndringIYtelse, session: Session) {
@@ -497,7 +497,7 @@ internal class VedtakPostgresRepo(
                 ),
                 session,
             )
-        lagreKlagevedtakKnytningTilRevurdering(vedtak, session)
+        lagreKlagevedtaksknytningTilRevurdering(vedtak, session)
     }
 
     private fun lagreInternt(vedtak: Klagevedtak.Avvist, session: Session) {
@@ -535,27 +535,27 @@ internal class VedtakPostgresRepo(
             ),
             session,
         )
-        lagreKlagevedtakKnytningTilKlage(vedtak, session)
+        lagreKlagevedtaksknytningTilKlage(vedtak, session)
     }
 }
 
 /** Kan være en Søknadsbehandling eller Revurdering */
-private fun lagreKlagevedtakKnytningTilBehandling(vedtak: Stønadsvedtak, session: Session) {
+private fun lagreKlagevedtaksknytningTilBehandling(vedtak: Stønadsvedtak, session: Session) {
     when (vedtak.behandling) {
         is AbstraktRevurdering ->
-            lagreKlagevedtakKnytningTilRevurdering(vedtak, session)
+            lagreKlagevedtaksknytningTilRevurdering(vedtak, session)
         is Søknadsbehandling ->
-            lagreKlagevedtakKnytningTilSøknadsbehandling(vedtak, session)
+            lagreKlagevedtaksknytningTilSøknadsbehandling(vedtak, session)
         is Regulering ->
-            lagreKlagevedtakKnytningTilRegulering(vedtak, session)
+            lagreKlagevedtaksknytningTilRegulering(vedtak, session)
         else ->
             throw IllegalArgumentException("vedtak.behandling er av ukjent type. Den må være en revurdering eller en søknadsbehandling.")
     }
 }
 
-private fun lagreKlagevedtakKnytningTilRevurdering(vedtak: Stønadsvedtak, session: Session) {
+private fun lagreKlagevedtaksknytningTilRevurdering(vedtak: Stønadsvedtak, session: Session) {
     lagreVedtaksknytning(
-        behandlingVedtakKnytning = BehandlingVedtakKnytning.ForRevurdering(
+        behandlingVedtaksknytning = BehandlingVedtaksknytning.ForRevurdering(
             vedtakId = vedtak.id,
             sakId = vedtak.behandling.sakId,
             revurderingId = vedtak.behandling.id,
@@ -564,9 +564,9 @@ private fun lagreKlagevedtakKnytningTilRevurdering(vedtak: Stønadsvedtak, sessi
     )
 }
 
-private fun lagreKlagevedtakKnytningTilRegulering(vedtak: Stønadsvedtak, session: Session) {
+private fun lagreKlagevedtaksknytningTilRegulering(vedtak: Stønadsvedtak, session: Session) {
     lagreVedtaksknytning(
-        behandlingVedtakKnytning = BehandlingVedtakKnytning.ForRegulering(
+        behandlingVedtaksknytning = BehandlingVedtaksknytning.ForRegulering(
             vedtakId = vedtak.id,
             sakId = vedtak.behandling.sakId,
             reguleringId = vedtak.behandling.id,
@@ -575,9 +575,9 @@ private fun lagreKlagevedtakKnytningTilRegulering(vedtak: Stønadsvedtak, sessio
     )
 }
 
-private fun lagreKlagevedtakKnytningTilSøknadsbehandling(vedtak: Stønadsvedtak, session: Session) {
+private fun lagreKlagevedtaksknytningTilSøknadsbehandling(vedtak: Stønadsvedtak, session: Session) {
     lagreVedtaksknytning(
-        behandlingVedtakKnytning = BehandlingVedtakKnytning.ForSøknadsbehandling(
+        behandlingVedtaksknytning = BehandlingVedtaksknytning.ForSøknadsbehandling(
             vedtakId = vedtak.id,
             sakId = vedtak.behandling.sakId,
             søknadsbehandlingId = vedtak.behandling.id,
@@ -586,9 +586,9 @@ private fun lagreKlagevedtakKnytningTilSøknadsbehandling(vedtak: Stønadsvedtak
     )
 }
 
-private fun lagreKlagevedtakKnytningTilKlage(vedtak: Klagevedtak, session: Session) {
+private fun lagreKlagevedtaksknytningTilKlage(vedtak: Klagevedtak, session: Session) {
     lagreVedtaksknytning(
-        behandlingVedtakKnytning = BehandlingVedtakKnytning.ForKlage(
+        behandlingVedtaksknytning = BehandlingVedtaksknytning.ForKlage(
             vedtakId = vedtak.id,
             sakId = vedtak.klage.sakId,
             klageId = vedtak.klage.id,
@@ -598,7 +598,7 @@ private fun lagreKlagevedtakKnytningTilKlage(vedtak: Klagevedtak, session: Sessi
 }
 
 private fun lagreVedtaksknytning(
-    behandlingVedtakKnytning: BehandlingVedtakKnytning,
+    behandlingVedtaksknytning: BehandlingVedtaksknytning,
     session: Session,
 ) {
     """
@@ -622,19 +622,19 @@ private fun lagreVedtaksknytning(
         ) ON CONFLICT ON CONSTRAINT unique_vedtakid DO NOTHING
     """.trimIndent().insert(
         mapOf(
-            "id" to behandlingVedtakKnytning.id,
-            "vedtakId" to behandlingVedtakKnytning.vedtakId,
-            "sakId" to behandlingVedtakKnytning.sakId,
-            "soknadsbehandlingId" to behandlingVedtakKnytning.søknadsbehandlingId,
-            "revurderingId" to behandlingVedtakKnytning.revurderingId,
-            "klageId" to behandlingVedtakKnytning.klageId,
-            "reguleringId" to behandlingVedtakKnytning.reguleringId,
+            "id" to behandlingVedtaksknytning.id,
+            "vedtakId" to behandlingVedtaksknytning.vedtakId,
+            "sakId" to behandlingVedtaksknytning.sakId,
+            "soknadsbehandlingId" to behandlingVedtaksknytning.søknadsbehandlingId,
+            "revurderingId" to behandlingVedtaksknytning.revurderingId,
+            "klageId" to behandlingVedtaksknytning.klageId,
+            "reguleringId" to behandlingVedtaksknytning.reguleringId,
         ),
         session,
     )
 }
 
-private fun hentBehandlingVedtakKnytning(vedtakId: UUID, session: Session): BehandlingVedtakKnytning? = """
+private fun hentBehandlingVedtaksknytning(vedtakId: UUID, session: Session): BehandlingVedtaksknytning? = """
             SELECT *
             FROM behandling_vedtak
             WHERE vedtakId = :vedtakId
@@ -652,7 +652,7 @@ private fun hentBehandlingVedtakKnytning(vedtakId: UUID, session: Session): Beha
 
     when {
         revurderingId == null && søknadsbehandlingId != null && klageId == null && reguleringId == null -> {
-            BehandlingVedtakKnytning.ForSøknadsbehandling(
+            BehandlingVedtaksknytning.ForSøknadsbehandling(
                 id = id,
                 vedtakId = vedtakId,
                 sakId = sakId,
@@ -660,7 +660,7 @@ private fun hentBehandlingVedtakKnytning(vedtakId: UUID, session: Session): Beha
             )
         }
         revurderingId != null && søknadsbehandlingId == null && klageId == null && reguleringId == null -> {
-            BehandlingVedtakKnytning.ForRevurdering(
+            BehandlingVedtaksknytning.ForRevurdering(
                 id = id,
                 vedtakId = vedtakId,
                 sakId = sakId,
@@ -668,7 +668,7 @@ private fun hentBehandlingVedtakKnytning(vedtakId: UUID, session: Session): Beha
             )
         }
         revurderingId == null && søknadsbehandlingId == null && klageId != null && reguleringId == null -> {
-            BehandlingVedtakKnytning.ForKlage(
+            BehandlingVedtaksknytning.ForKlage(
                 id = id,
                 vedtakId = vedtakId,
                 sakId = sakId,
@@ -676,7 +676,7 @@ private fun hentBehandlingVedtakKnytning(vedtakId: UUID, session: Session): Beha
             )
         }
         revurderingId == null && søknadsbehandlingId == null && klageId == null && reguleringId != null -> {
-            BehandlingVedtakKnytning.ForRegulering(
+            BehandlingVedtaksknytning.ForRegulering(
                 id = id,
                 vedtakId = vedtakId,
                 sakId = sakId,
@@ -691,7 +691,7 @@ private fun hentBehandlingVedtakKnytning(vedtakId: UUID, session: Session): Beha
     }
 }
 
-private sealed interface BehandlingVedtakKnytning {
+private sealed interface BehandlingVedtaksknytning {
     val id: UUID
     val vedtakId: UUID
     val sakId: UUID
@@ -706,7 +706,7 @@ private sealed interface BehandlingVedtakKnytning {
         override val vedtakId: UUID,
         override val sakId: UUID,
         override val søknadsbehandlingId: UUID,
-    ) : BehandlingVedtakKnytning {
+    ) : BehandlingVedtaksknytning {
         override val revurderingId: UUID? = null
         override val klageId: UUID? = null
         override val reguleringId: UUID? = null
@@ -717,7 +717,7 @@ private sealed interface BehandlingVedtakKnytning {
         override val vedtakId: UUID,
         override val sakId: UUID,
         override val revurderingId: UUID,
-    ) : BehandlingVedtakKnytning {
+    ) : BehandlingVedtaksknytning {
         override val søknadsbehandlingId: UUID? = null
         override val klageId: UUID? = null
         override val reguleringId: UUID? = null
@@ -728,7 +728,7 @@ private sealed interface BehandlingVedtakKnytning {
         override val vedtakId: UUID,
         override val sakId: UUID,
         override val klageId: UUID,
-    ) : BehandlingVedtakKnytning {
+    ) : BehandlingVedtaksknytning {
         override val søknadsbehandlingId: UUID? = null
         override val revurderingId: UUID? = null
         override val reguleringId: UUID? = null
@@ -739,7 +739,7 @@ private sealed interface BehandlingVedtakKnytning {
         override val vedtakId: UUID,
         override val sakId: UUID,
         override val reguleringId: UUID,
-    ) : BehandlingVedtakKnytning {
+    ) : BehandlingVedtaksknytning {
         override val søknadsbehandlingId: UUID? = null
         override val klageId: UUID? = null
         override val revurderingId: UUID? = null

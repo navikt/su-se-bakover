@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -22,6 +23,7 @@ data class GjeldendeVedtaksdata(
 ) {
     val grunnlagsdata: Grunnlagsdata
     val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
+    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
 
     private val tidslinje: Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> = vedtakListe
         .lagTidslinje(periode)
@@ -84,6 +86,10 @@ data class GjeldendeVedtaksdata(
             uføre = uføreGrunnlagOgVilkår,
             formue = formuevilkårOgGrunnlag,
             utenlandsopphold = utlandsoppholdvilkårOgGrunnlag,
+        )
+        grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
         )
     }
 
