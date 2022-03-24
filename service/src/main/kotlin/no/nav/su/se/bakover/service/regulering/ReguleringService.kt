@@ -39,13 +39,8 @@ sealed class KunneIkkeLeggeTilFradrag {
 
 sealed class KunneIkkeOppretteRegulering {
     object FantIkkeSak : KunneIkkeOppretteRegulering()
-    object FantIngenVedtak : KunneIkkeOppretteRegulering()
-    object HelePeriodenErOpphør : KunneIkkeOppretteRegulering()
-    object UgyldigPeriode : KunneIkkeOppretteRegulering()
-    object GrunnlagErIkkeKonsistent : KunneIkkeOppretteRegulering()
     object FørerIkkeTilEnEndring : KunneIkkeOppretteRegulering()
-    data class KunneIkkeHenteGjeldendeVedtaksdata(val feil: Sak.KunneIkkeHenteGjeldendeVedtaksdata) : KunneIkkeOppretteRegulering()
-    data class KunneIkkeHenteEllerOppretteRegulering(val feil: Sak.KunneIkkeHenteEllerOppretteRegulering) : KunneIkkeOppretteRegulering()
+    data class KunneIkkeHenteEllerOppretteRegulering(val feil: Sak.KunneIkkeOppretteEllerOppdatereRegulering) : KunneIkkeOppretteRegulering()
     data class KunneIkkeRegulereAutomatisk(val feil: KunneIkkeRegulereAutomatiskt) : KunneIkkeOppretteRegulering()
 }
 

@@ -3,12 +3,17 @@ package no.nav.su.se.bakover.domain
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.flatMap
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
+import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato
+import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
+import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.periode.reduser
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -17,7 +22,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.regulering.ReguleringType
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -112,10 +116,22 @@ data class Sak(
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
         return vedtakListe
             .filterIsInstance<VedtakSomKanRevurderes>()
-            .ifEmpty { return KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak.left() }
+            .ifEmpty {
+                return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(fraOgMed).left()
+            }
             .let { vedtakSomKanRevurderes ->
-                Periode.tryCreate(fraOgMed, vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed })
-                    .mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode(it) }
+                val tilOgMed = vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed }
+                Periode.tryCreate(fraOgMed, tilOgMed)
+                    .mapLeft {
+                        when (it) {
+                            FraOgMedDatoMåVæreFørTilOgMedDato -> KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(
+                                fraOgMed,
+                                tilOgMed,
+                            )
+                            FraOgMedDatoMåVæreFørsteDagIMåneden, TilOgMedDatoMåVæreSisteDagIMåneden,
+                            -> KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode(it)
+                        }
+                    }
                     .flatMap {
                         hentGjeldendeVedtaksdata(
                             periode = it,
@@ -128,10 +144,10 @@ data class Sak(
     private fun hentGjeldendeVedtaksdata(
         periode: Periode,
         clock: Clock,
-    ): Either<KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak, GjeldendeVedtaksdata> {
+    ): Either<KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes, GjeldendeVedtaksdata> {
         return vedtakListe
             .filterIsInstance<VedtakSomKanRevurderes>()
-            .ifEmpty { return KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak.left() }
+            .ifEmpty { return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(periode).left() }
             .let { vedtakSomKanRevurderes ->
                 GjeldendeVedtaksdata(
                     periode = periode,
@@ -142,7 +158,14 @@ data class Sak(
     }
 
     sealed class KunneIkkeHenteGjeldendeVedtaksdata {
-        object FantIngenVedtak : KunneIkkeHenteGjeldendeVedtaksdata()
+        data class FinnesIngenVedtakSomKanRevurderes(
+            val fraOgMed: LocalDate,
+            val tilOgMed: LocalDate,
+        ) : KunneIkkeHenteGjeldendeVedtaksdata() {
+            constructor(periode: Periode) : this(periode.fraOgMed, periode.tilOgMed)
+            constructor(fraOgMed: LocalDate) : this(fraOgMed, LocalDate.MAX)
+        }
+
         data class UgyldigPeriode(val feil: Periode.UgyldigPeriode) : KunneIkkeHenteGjeldendeVedtaksdata()
     }
 
@@ -276,8 +299,9 @@ data class Sak(
             clock = clock,
         ).fold(
             {
+                @Suppress("USELESS_IS_CHECK") // Ønsker compile error dersom Left endrer seg til en sealed class
                 when (it) {
-                    KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak -> {
+                    is KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {
                         // Ignoreres da dette er et gyldig og vanlig case for søknadsbehandling
                     }
                 }
@@ -310,55 +334,56 @@ data class Sak(
         }
     }
 
-    /**
-     * Iverksatte regulering vil ikke bli oppdatert
-     */
-    fun opprettEllerOppdaterRegulering(
-        startDato: LocalDate,
-        reguleringType: ReguleringType,
-        gjeldendeVedtaksdata: GjeldendeVedtaksdata,
-        clock: Clock,
-    ): Either<KunneIkkeHenteEllerOppretteRegulering, Regulering.OpprettetRegulering> {
-        return reguleringer.filterIsInstance<Regulering.OpprettetRegulering>().let {
-            when (it.size) {
-                0 -> Regulering.opprettRegulering(
-                    startDato = startDato,
-                    sakId = id,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    gjeldendeVedtaksdata = gjeldendeVedtaksdata,
-                    reguleringType = reguleringType,
-                    clock = clock,
-                ).mapLeft { feil -> KunneIkkeHenteEllerOppretteRegulering.KunneIkkeOppretteRegulering(feil = feil) }
-                1 -> minOf(startDato, it.first().periode.fraOgMed).let { tidligestStartDato ->
-                    kopierGjeldendeVedtaksdata(tidligestStartDato, clock)
-                        .mapLeft { KunneIkkeHenteEllerOppretteRegulering.KunneIkkeHenteGjeldendeVedtaksdata }
-                        .flatMap { gjeldendeVedtaksdata ->
-                            Regulering.opprettRegulering(
-                                id = it.first().id,
-                                opprettet = it.first().opprettet,
-                                startDato = tidligestStartDato,
-                                sakId = id,
-                                saksnummer = saksnummer,
-                                fnr = fnr,
-                                gjeldendeVedtaksdata = gjeldendeVedtaksdata,
-                                reguleringType = reguleringType,
-                                clock = clock,
-                            ).mapLeft { feil ->
-                                KunneIkkeHenteEllerOppretteRegulering.KunneIkkeOppretteRegulering(feil = feil)
-                            }
-                        }
-                }
-                else -> KunneIkkeHenteEllerOppretteRegulering.DetFinnesFlerEnnEnÅpenRegulering.left()
-            }
-        }
+    sealed interface KunneIkkeOppretteEllerOppdatereRegulering {
+        object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KunneIkkeOppretteEllerOppdatereRegulering
+        object HelePeriodenErOpphør : KunneIkkeOppretteEllerOppdatereRegulering
     }
 
-    sealed interface KunneIkkeHenteEllerOppretteRegulering {
-        object KunneIkkeHenteGjeldendeVedtaksdata : KunneIkkeHenteEllerOppretteRegulering
-        object DetFinnesFlerEnnEnÅpenRegulering : KunneIkkeHenteEllerOppretteRegulering
-        data class KunneIkkeOppretteRegulering(val feil: Regulering.KunneIkkeOppretteRegulering) :
-            KunneIkkeHenteEllerOppretteRegulering
+    /**
+     * Iverksatte regulering vil ikke bli oppdatert
+     *
+     * @return Dersom Either.Left: Disse skal det ikke lages noen regulering for. Denne funksjonen har logget.
+     */
+    fun opprettEllerOppdaterRegulering(
+        // TODO jah: Bytt til three ten sin MonthYear (Da slipper vi en unødvendig left)
+        startDato: LocalDate,
+        clock: Clock,
+    ): Either<KunneIkkeOppretteEllerOppdatereRegulering, Regulering.OpprettetRegulering> {
+
+        val (reguleringsId, opprettet, _startDato) = reguleringer.filterIsInstance<Regulering.OpprettetRegulering>()
+            .let { r ->
+                when (r.size) {
+                    0 -> Triple(UUID.randomUUID(), Tidspunkt.now(clock), startDato)
+                    1 -> Triple(r.first().id, r.first().opprettet, minOf(startDato, r.first().periode.fraOgMed))
+                    else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
+                }
+            }
+        val gjeldendeVedtaksdata =
+            this.kopierGjeldendeVedtaksdata(fraOgMed = _startDato, clock = clock).getOrHandle { feil ->
+                return when (feil) {
+                    is KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {
+                        log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
+                        KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
+                    }
+                    is KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {
+                        throw IllegalArgumentException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: $feil")
+                    }
+                }
+            }.also {
+                if (it.helePeriodenErOpphør()) return KunneIkkeOppretteEllerOppdatereRegulering.HelePeriodenErOpphør.left()
+                    .also { log.info("Hele perioden er opphør. Lager ingen regulering for denne") }
+            }
+
+        return Regulering.opprettRegulering(
+            id = reguleringsId,
+            opprettet = opprettet,
+            startDato = _startDato,
+            sakId = id,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            gjeldendeVedtaksdata = gjeldendeVedtaksdata,
+            clock = clock,
+        ).right()
     }
 
     sealed class KunneIkkeOppdatereStønadsperiode {

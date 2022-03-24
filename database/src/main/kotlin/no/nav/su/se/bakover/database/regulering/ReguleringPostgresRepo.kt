@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
-import no.nav.su.se.bakover.domain.regulering.ReguleringType
+import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import java.util.UUID
 
@@ -163,7 +163,7 @@ internal class ReguleringPostgresRepo(
                             "saksbehandler" to regulering.saksbehandler.navIdent,
                             "beregning" to regulering.beregning,
                             "simulering" to regulering.simulering?.let { serialize(it) },
-                            "reguleringType" to regulering.reguleringType.toString(),
+                            "reguleringType" to regulering.reguleringstype.toString(),
                             "reguleringStatus" to when (regulering) {
                                 is Regulering.IverksattRegulering -> ReguleringStatus.IVERKSATT
                                 is Regulering.OpprettetRegulering -> ReguleringStatus.OPPRETTET
@@ -195,7 +195,7 @@ internal class ReguleringPostgresRepo(
         val saksnummer = Saksnummer(long("saksnummer"))
         val fnr = Fnr(string("fnr"))
         val status = ReguleringStatus.valueOf(string("reguleringStatus"))
-        val reguleringType = ReguleringType.valueOf(string("reguleringType"))
+        val reguleringstype = Reguleringstype.valueOf(string("reguleringType"))
 
         val beregning = deserialiserBeregning(stringOrNull("beregning"))
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
@@ -217,7 +217,7 @@ internal class ReguleringPostgresRepo(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             beregning = beregning,
             simulering = simulering,
-            reguleringType = reguleringType,
+            reguleringstype = reguleringstype,
         )
     }
 
@@ -238,7 +238,7 @@ internal class ReguleringPostgresRepo(
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering,
         beregning: Beregning?,
         simulering: Simulering?,
-        reguleringType: ReguleringType,
+        reguleringstype: Reguleringstype,
     ): Regulering {
         return when (status) {
             ReguleringStatus.OPPRETTET -> Regulering.OpprettetRegulering(
@@ -252,7 +252,7 @@ internal class ReguleringPostgresRepo(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 beregning = beregning,
                 simulering = simulering,
-                reguleringType = reguleringType,
+                reguleringstype = reguleringstype,
             )
             ReguleringStatus.IVERKSATT -> Regulering.IverksattRegulering(
                 opprettetRegulering = Regulering.OpprettetRegulering(
@@ -266,7 +266,7 @@ internal class ReguleringPostgresRepo(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                     beregning = beregning,
                     simulering = simulering,
-                    reguleringType = reguleringType,
+                    reguleringstype = reguleringstype,
                 ),
                 beregning = beregning!!,
                 simulering = simulering!!,

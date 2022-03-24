@@ -15,13 +15,8 @@ data class VedtakSomKanReguleres(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
     val vedtakType: VedtakType,
-    val reguleringType: ReguleringType,
+    val reguleringstype: Reguleringstype,
 )
-
-enum class ReguleringType {
-    AUTOMATISK,
-    MANUELL,
-}
 
 enum class VedtakType {
     SØKNAD,

@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.routes.regulering
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.regulering.ReguleringType
+import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
@@ -21,7 +21,7 @@ internal data class ReguleringJson(
     val simulering: SimuleringJson?,
     val sakId: UUID,
     val saksnummer: Saksnummer,
-    val reguleringType: ReguleringType,
+    val reguleringstype: Reguleringstype,
     val periode: PeriodeJson,
     val erFerdigstilt: Boolean,
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson
@@ -35,7 +35,7 @@ internal fun Regulering.toJson() = ReguleringJson(
     saksnummer = saksnummer,
     beregning = beregning?.toJson(),
     simulering = simulering?.toJson(),
-    reguleringType = reguleringType,
+    reguleringstype = reguleringstype,
     erFerdigstilt = when (this) {
         is Regulering.IverksattRegulering -> true
         is Regulering.OpprettetRegulering -> false

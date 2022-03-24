@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.harEpsInntekt
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 
 data class SjekkOmGrunnlagErKonsistent(
     private val formuegrunnlag: List<Formuegrunnlag>,
@@ -12,6 +13,13 @@ data class SjekkOmGrunnlagErKonsistent(
     private val bosituasjongrunnlag: List<Grunnlag.Bosituasjon>,
     private val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
 ) {
+    constructor(gjeldendeVedtaksdata: GjeldendeVedtaksdata) : this(
+        formuegrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.formue.grunnlag,
+        uføregrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.uføre.grunnlag,
+        bosituasjongrunnlag = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
+        fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
+    )
+
     val resultat: Either<Set<Konsistensproblem>, Unit> = setOf(
         Uføre(uføregrunnlag).resultat,
         Bosituasjon(bosituasjongrunnlag).resultat,

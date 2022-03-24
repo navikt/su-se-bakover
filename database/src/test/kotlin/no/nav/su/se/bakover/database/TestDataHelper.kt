@@ -78,7 +78,6 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.regulering.ReguleringType
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -721,9 +720,6 @@ internal class TestDataHelper(
         persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().first.let { sak ->
             sak.opprettEllerOppdaterRegulering(
                 startDato = 1.mai(2021),
-                reguleringType = ReguleringType.MANUELL,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(fraOgMed = 1.mai(2021), clock = fixedClock)
-                    .getOrFail(),
                 clock = fixedClock,
             ).getOrFail().also {
                 reguleringRepo.lagre(it)

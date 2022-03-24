@@ -1,21 +1,15 @@
 package no.nav.su.se.bakover.test
 
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.regulering.ReguleringType
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.time.LocalDate
-import java.util.UUID
 
 fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: LocalDate,
@@ -37,23 +31,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         avkorting = avkorting,
     )
     val sak = sakOgVedtak.first
-    val søknadsbehandling = sak.søknadsbehandlinger.single() as Søknadsbehandling.Iverksatt.Innvilget
-    val periode = Periode.create(regulerFraOgMed, søknadsbehandling.periode.tilOgMed)
-
-    val gjeldendeVedtaksdata = sak.hentGjeldendeVilkårOgGrunnlag(periode, clock)
-    val regulering = Regulering.OpprettetRegulering(
-        id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(clock),
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        periode = periode,
-        grunnlagsdataOgVilkårsvurderinger = gjeldendeVedtaksdata,
-        beregning = null,
-        simulering = null,
-        saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
-        reguleringType = ReguleringType.MANUELL,
-    )
+    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, fixedClock).getOrFail()
 
     return Pair(
         sak.copy(

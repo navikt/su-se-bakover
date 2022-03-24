@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
+import no.nav.su.se.bakover.domain.grunnlag.erGyldigTilstand
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -33,7 +35,7 @@ interface Reguleringsfelter : Behandling {
     val beregning: Beregning?
     val simulering: Simulering?
     val saksbehandler: NavIdentBruker.Saksbehandler
-    val reguleringType: ReguleringType
+    val reguleringstype: Reguleringstype
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger
 }
 sealed interface Regulering : Reguleringsfelter {
@@ -46,21 +48,33 @@ sealed interface Regulering : Reguleringsfelter {
             saksnummer: Saksnummer,
             fnr: Fnr,
             gjeldendeVedtaksdata: GjeldendeVedtaksdata,
-            reguleringType: ReguleringType,
             clock: Clock,
             opprettet: Tidspunkt = Tidspunkt.now(clock),
-        ): Either<KunneIkkeOppretteRegulering, OpprettetRegulering> {
+        ): OpprettetRegulering {
+
+            val reguleringstype = SjekkOmGrunnlagErKonsistent(gjeldendeVedtaksdata).resultat.fold(
+                { konsistensproblemer ->
+                    val message =
+                        "Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert"
+                    if (konsistensproblemer.erGyldigTilstand()) {
+                        log.info(message)
+                    } else {
+                        log.error(message)
+                    }
+                    Reguleringstype.MANUELL
+                },
+                {
+                    gjeldendeVedtaksdata.utledReguleringstype()
+                },
+            )
+
             val fraOgMed = maxOf(gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.fraOgMed, startDato)
             val tilOgMed = gjeldendeVedtaksdata.vilkårsvurderinger.periode!!.tilOgMed
 
             val grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-                grunnlagsdata = Grunnlagsdata.tryCreate(
-                    fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
-                    bosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
-                ).getOrHandle { return KunneIkkeOppretteRegulering.KunneIkkeLageFradragsgrunnlag.left() },
+                grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                 vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
             )
-
             return OpprettetRegulering(
                 id = id,
                 opprettet = opprettet,
@@ -72,8 +86,8 @@ sealed interface Regulering : Reguleringsfelter {
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
                 beregning = null,
                 simulering = null,
-                reguleringType = reguleringType,
-            ).right()
+                reguleringstype = reguleringstype,
+            )
         }
     }
 
@@ -104,7 +118,7 @@ sealed interface Regulering : Reguleringsfelter {
         override val beregning: Beregning?,
         override val simulering: Simulering?,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val reguleringType: ReguleringType,
+        override val reguleringstype: Reguleringstype,
     ) : Regulering {
         override val grunnlagsdata: Grunnlagsdata
             get() = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata

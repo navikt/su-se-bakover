@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.regulering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import arrow.core.rightIfNotNull
 import io.kotest.matchers.equality.shouldBeEqualToComparingFieldsExcept
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -19,16 +18,14 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.domain.regulering.ReguleringType
+import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.beregning
@@ -92,19 +89,19 @@ internal class ReguleringServiceImplTest {
             val reguleringService = lagReguleringServiceImpl(sak)
 
             val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
-            regulering.reguleringType shouldBe ReguleringType.AUTOMATISK
+            regulering.reguleringstype shouldBe Reguleringstype.AUTOMATISK
         }
 
         @Test
         fun `OffentligPensjon gir manuell`() {
             reguleringService.startRegulering(1.mai(2021)).single()
-                .getOrFail().reguleringType shouldBe ReguleringType.MANUELL
+                .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL
         }
 
         @Test
         fun `NAVytelserTilLivsopphold gir manuell`() {
             reguleringService.startRegulering(1.mai(2021)).single()
-                .getOrFail().reguleringType shouldBe ReguleringType.MANUELL
+                .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL
         }
 
         @Test
@@ -113,11 +110,11 @@ internal class ReguleringServiceImplTest {
             val reguleringService = lagReguleringServiceImpl(stansAvYtelse)
 
             reguleringService.startRegulering(1.mai(2021)).single()
-                .getOrFail().reguleringType shouldBe ReguleringType.MANUELL
+                .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL
         }
 
         @Test
-        fun `En periode med opphør må behandles manuelt`() {
+        fun `En periode med hele perioden som opphør må behandles manuelt`() {
             val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(clock = fixedClock)
             val revurdertSak = vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
                 sakOgVedtakSomKanRevurderes = sakOgVedtak,
@@ -127,7 +124,7 @@ internal class ReguleringServiceImplTest {
             val reguleringService = lagReguleringServiceImpl(revurdertSak)
 
             reguleringService.startRegulering(1.mai(2021))
-                .first() shouldBe KunneIkkeOppretteRegulering.HelePeriodenErOpphør.left()
+                .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(Sak.KunneIkkeOppretteEllerOppdatereRegulering.HelePeriodenErOpphør).left()
         }
 
         @Test
@@ -145,7 +142,7 @@ internal class ReguleringServiceImplTest {
             val reguleringService = lagReguleringServiceImpl(revurdertSak)
 
             val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
-            regulering.reguleringType shouldBe ReguleringType.MANUELL
+            regulering.reguleringstype shouldBe Reguleringstype.MANUELL
         }
 
         @Test
@@ -274,28 +271,34 @@ internal class ReguleringServiceImplTest {
         }
     }
 
+    /**
+     * @param scrambleUtbetaling Endrer utbetalingslinjene på saken slik at de ikke lenger matcher gjeldendeVedtaksdata. Da tvinger vi fram en ny beregning som har andre beløp enn tidligere utbetalinger.
+     */
     private fun lagReguleringServiceImpl(
         sak: Sak,
         simulerUtbetaling: Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> = simulertUtbetaling().right(),
+        scrambleUtbetaling: Boolean = true,
     ): ReguleringServiceImpl {
-        val testData = lagTestdata(sak)
+        val _sak = if (scrambleUtbetaling) sak.copy(
+            // Endrer utbetalingene for å trigge behov for regulering (hvis ikke vil vi ikke ha beregningsdiff)
+            utbetalinger = listOf(
+                oversendtUtbetalingUtenKvittering(
+                    beregning = beregning(
+                        fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000()),
+                    ),
+                ),
+            ),
+        ) else sak
+        val testData = lagTestdata(_sak)
         val utbetaling = oversendtUtbetalingUtenKvittering(
             beregning = beregning(
                 fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000()),
             ),
         )
-        val gjeldendeUtbetaling = TidslinjeForUtbetalinger(
-            periode = Periode.create(
-                fraOgMed = utbetaling.utbetalingslinjer.minOf { it.fraOgMed },
-                tilOgMed = utbetaling.utbetalingslinjer.maxOf { it.tilOgMed },
-            ),
-            utbetalingslinjer = utbetaling.utbetalingslinjer,
-            clock = fixedClock,
-        ).gjeldendeForDato(1.mai(2021)).rightIfNotNull { FantIkkeGjeldendeUtbetaling }
 
         return ReguleringServiceImpl(
             reguleringRepo = mock {
-                on { hentForSakId(any(), any()) } doReturn sak.reguleringer
+                on { hentForSakId(any(), any()) } doReturn _sak.reguleringer
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             sakRepo = mock {
@@ -306,17 +309,11 @@ internal class ReguleringServiceImplTest {
                         fnr = testData.first.fnr,
                     ),
                 )
-                on { hentSak(any<UUID>()) } doReturn sak
+                on { hentSak(any<UUID>()) } doReturn _sak
             },
             utbetalingService = mock {
                 on { simulerUtbetaling(any()) } doReturn simulerUtbetaling
                 on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
-                on {
-                    hentGjeldendeUtbetaling(
-                        any(),
-                        any(),
-                    )
-                } doReturn gjeldendeUtbetaling
                 on { lagreUtbetaling(any(), any()) } doReturn utbetaling
                 on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("").right()
             },
