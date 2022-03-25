@@ -194,6 +194,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         ) : EndringIYtelse {
             override fun erOpphør() = false
 
+            // TODO ai: Sjekk om dette er korrekt i forbindelse med avkorting
             override fun harAvkortingsvarselEllerUteståendeAvkorting() = behandling.avkorting is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående
 
             override fun accept(visitor: VedtakVisitor) {
