@@ -135,9 +135,7 @@ fun opprettRevurderingFraSaksopplysninger(
         clock = clock,
     ).getOrFail()
 
-    val gjeldendeVedtak = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(revurderingsperiode.fraOgMed)?.let {
-        it
-    }
+    val gjeldendeVedtak = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(revurderingsperiode.fraOgMed)
         ?: throw IllegalStateException("Fant ingen gjelende vedtak for fra og med dato for revurderingen: ${revurderingsperiode.fraOgMed}")
 
     val grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
@@ -526,8 +524,10 @@ fun vedtakRevurdering(
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     attestering: Attestering = attesteringIverksatt(clock),
 ): Pair<Sak, VedtakSomKanRevurderes> {
+    // Kan ikke lage tidslinje for vedtak dersom de er opprettet samtidig.
+    val clockPlusOneTick = clock.plus(1, ChronoUnit.SECONDS)
     return iverksattRevurdering(
-        clock = clock,
+        clock = clockPlusOneTick,
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
@@ -541,13 +541,13 @@ fun vedtakRevurdering(
     ).let { (sak, iverksatt, utbetaling) ->
         val vedtak = when (iverksatt) {
             is IverksattRevurdering.IngenEndring -> {
-                VedtakSomKanRevurderes.from(iverksatt, clock)
+                VedtakSomKanRevurderes.from(iverksatt, clockPlusOneTick)
             }
             is IverksattRevurdering.Innvilget -> {
-                VedtakSomKanRevurderes.from(iverksatt, utbetaling!!.id, clock)
+                VedtakSomKanRevurderes.from(iverksatt, utbetaling!!.id, clockPlusOneTick)
             }
             is IverksattRevurdering.Opphørt -> {
-                VedtakSomKanRevurderes.from(iverksatt, utbetaling!!.id, clock)
+                VedtakSomKanRevurderes.from(iverksatt, utbetaling!!.id, clockPlusOneTick)
             }
         }
 

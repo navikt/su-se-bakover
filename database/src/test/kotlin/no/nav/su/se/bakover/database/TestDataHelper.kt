@@ -9,6 +9,7 @@ import kotliquery.using
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.UUIDFactory
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
@@ -76,6 +77,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -112,6 +114,8 @@ import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.simulertUtbetaling
+import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
@@ -289,6 +293,11 @@ internal class TestDataHelper(
     internal val klageinstanshendelsePostgresRepo = KlageinstanshendelsePostgresRepo(sessionFactory, dbMetrics)
     internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory, dbMetrics, klageinstanshendelsePostgresRepo)
     internal val tilbakekrevingRepo = TilbakekrevingPostgresRepo(sessionFactory)
+    internal val reguleringRepo = ReguleringPostgresRepo(
+        sessionFactory = sessionFactory,
+        grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
+        dbMetrics = dbMetrics,
+    )
     internal val revurderingRepo = RevurderingPostgresRepo(
         sessionFactory = sessionFactory,
         dbMetrics = dbMetrics,
@@ -297,6 +306,7 @@ internal class TestDataHelper(
         klageRepo = klagePostgresRepo,
         avkortingsvarselRepo = avkortingsvarselRepo,
         tilbakekrevingRepo = tilbakekrevingRepo,
+        reguleringPostgresRepo = reguleringRepo,
     )
     internal val vedtakRepo = VedtakPostgresRepo(
         sessionFactory = sessionFactory,
@@ -304,6 +314,7 @@ internal class TestDataHelper(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         revurderingRepo = revurderingRepo,
         klageRepo = klagePostgresRepo,
+        reguleringRepo = reguleringRepo,
     )
     internal val personRepo = PersonPostgresRepo(
         sessionFactory = sessionFactory,
@@ -321,10 +332,7 @@ internal class TestDataHelper(
         revurderingRepo = revurderingRepo,
         vedtakPostgresRepo = vedtakRepo,
         klageRepo = klagePostgresRepo,
-    )
-    internal val reguleringRepo = ReguleringPostgresRepo(
-        sessionFactory = sessionFactory,
-        dbMetrics = dbMetrics,
+        reguleringRepo = reguleringRepo,
     )
 
     internal val avstemmingRepo = AvstemmingPostgresRepo(
@@ -608,7 +616,7 @@ internal class TestDataHelper(
      * 1. [VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering]
      */
     fun persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering(
-        revurdering: RevurderingTilAttestering.Innvilget,
+        revurdering: RevurderingTilAttestering.Innvilget = persisterRevurderingTilAttesteringInnvilget(),
         periode: Periode = stønadsperiode2021.periode,
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
         utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode)),
@@ -634,7 +642,9 @@ internal class TestDataHelper(
                     hentOpprinneligAvkorting = { avkortingid ->
                         avkortingsvarselRepo.hent(id = avkortingid)
                     },
-                ).orNull()!!,
+                ).orNull()!!.also {
+                    revurderingRepo.lagre(it)
+                },
                 utbetalingId = utbetaling.id,
                 fixedClock,
             ).also {
@@ -706,9 +716,29 @@ internal class TestDataHelper(
         }
     }
 
+    fun persisterReguleringOpprettet(): Regulering.OpprettetRegulering =
+        persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().first.let { sak ->
+            sak.opprettEllerOppdaterRegulering(
+                startDato = 1.mai(2021),
+                clock = fixedClock,
+            ).getOrFail().also {
+                reguleringRepo.lagre(it)
+            }
+        }
+
+    fun persisterReguleringIverksatt() =
+        persisterReguleringOpprettet().let {
+            it.beregn(clock = fixedClock, begrunnelse = "Begrunnelse").getOrFail()
+                .simuler { simulertUtbetaling().right() }
+                .getOrFail().tilIverksatt()
+                .also { iverksattAttestering ->
+                    reguleringRepo.lagre(iverksattAttestering)
+                }
+        }
+
     fun persisterRevurderingOpprettet(
-        innvilget: VedtakSomKanRevurderes.EndringIYtelse,
-        periode: Periode,
+        innvilget: VedtakSomKanRevurderes.EndringIYtelse = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second,
+        periode: Periode = periode2021,
         epsFnr: Fnr? = null,
         grunnlagsdata: Grunnlagsdata = if (epsFnr != null) grunnlagsdataMedEpsMedFradrag(
             periode,
@@ -758,8 +788,10 @@ internal class TestDataHelper(
         } as BeregnetRevurdering.Innvilget
     }
 
-    fun persisterRevurderingBeregnetOpphørt(): BeregnetRevurdering.Opphørt {
-        val (sak, vedtak, _) = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
+    fun persisterRevurderingBeregnetOpphørt(
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { Pair(it.first, it.second) }
+    ): BeregnetRevurdering.Opphørt {
+        val (sak, vedtak) = sakOgVedtak
         return persisterRevurderingOpprettet(
             innvilget = vedtak,
             periode = stønadsperiode2021.periode,
@@ -806,25 +838,27 @@ internal class TestDataHelper(
         }
     }
 
-    private fun persisterRevurderingSimulertOpphørt(): SimulertRevurdering.Opphørt {
-        return persisterRevurderingBeregnetOpphørt().toSimulert(
-            { _, _, _ ->
-                Utbetaling.SimulertUtbetaling(
-                    id = UUID30.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    sakId = UUID.randomUUID(),
-                    saksnummer = Saksnummer(nummer = 2021),
-                    fnr = Fnr.generer(),
-                    utbetalingslinjer = nonEmptyListOf(utbetalingslinje()),
-                    type = Utbetaling.UtbetalingsType.OPPHØR,
-                    behandler = saksbehandler,
-                    avstemmingsnøkkel = avstemmingsnøkkel,
-                    simulering = simulering(Fnr.generer()),
-                ).right()
-            },
-            false
-        ).getOrFail().also {
-            revurderingRepo.lagre(it)
+    fun persisterRevurderingSimulertOpphørt(
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { Pair(it.first, it.second) }
+    ): SimulertRevurdering.Opphørt {
+        return persisterRevurderingBeregnetOpphørt(sakOgVedtak).let {
+            it.toSimulert(
+                { sakId, saksbehandler, opphørsdato ->
+                    require(it.sakId == sakId)
+                    simulertUtbetalingOpphør(
+                        periode = it.periode,
+                        opphørsdato = opphørsdato,
+                        fnr = it.fnr,
+                        sakId = it.sakId,
+                        saksnummer = it.saksnummer,
+                        behandler = saksbehandler,
+                        eksisterendeUtbetalinger = sakOgVedtak.first.utbetalinger,
+                    ).getOrFail().right()
+                },
+                false,
+            ).getOrFail().also {
+                revurderingRepo.lagre(it)
+            }
         }
     }
 
@@ -865,7 +899,7 @@ internal class TestDataHelper(
     /**
      * Setter forhåndsvarsel til SkalIkkeForhåndsvarsel.
      */
-    private fun persisterRevurderingTilAttesteringOpphørt(): RevurderingTilAttestering.Opphørt {
+    fun persisterRevurderingTilAttesteringOpphørt(): RevurderingTilAttestering.Opphørt {
         return persisterRevurderingSimulertOpphørt().ikkeSendForhåndsvarsel().getOrFail().tilAttestering(
             attesteringsoppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
@@ -907,9 +941,10 @@ internal class TestDataHelper(
     }
 
     fun persisterRevurderingUnderkjentInnvilget(): UnderkjentRevurdering.Innvilget {
-        return persisterRevurderingTilAttesteringInnvilget().underkjenn(underkjentAttestering, OppgaveId("oppgaveid")).also {
-            revurderingRepo.lagre(it)
-        } as UnderkjentRevurdering.Innvilget
+        return persisterRevurderingTilAttesteringInnvilget().underkjenn(underkjentAttestering, OppgaveId("oppgaveid"))
+            .also {
+                revurderingRepo.lagre(it)
+            } as UnderkjentRevurdering.Innvilget
     }
 
     /**
@@ -929,7 +964,7 @@ internal class TestDataHelper(
         ).getOrFail().also { revurderingRepo.lagre(it) }
     }
 
-    private fun persisterStansAvYtelseSimulert(
+    fun persisterStansAvYtelseSimulert(
         id: UUID = UUID.randomUUID(),
         opprettet: Tidspunkt = fixedTidspunkt,
         periode: Periode = Periode.create(
@@ -996,7 +1031,7 @@ internal class TestDataHelper(
         }
     }
 
-    private fun persisterGjenopptakAvYtelseSimulert(
+    fun persisterGjenopptakAvYtelseSimulert(
         id: UUID = UUID.randomUUID(),
         opprettet: Tidspunkt = fixedTidspunkt,
         periode: Periode = Periode.create(
@@ -1183,7 +1218,7 @@ internal class TestDataHelper(
             }
     }
 
-    private fun persisterSøknadsbehandlingBeregnetInnvilget(
+    fun persisterSøknadsbehandlingBeregnetInnvilget(
         sakId: UUID = UUID.randomUUID(),
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -1239,7 +1274,7 @@ internal class TestDataHelper(
         }
     }
 
-    private fun persisterSøknadsbehandlingSimulert(
+    internal fun persisterSøknadsbehandlingSimulert(
         sakId: UUID = UUID.randomUUID(),
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,

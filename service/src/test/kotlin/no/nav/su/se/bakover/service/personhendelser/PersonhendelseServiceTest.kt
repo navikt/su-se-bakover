@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
-import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
+import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -34,8 +34,9 @@ internal class PersonhendelseServiceTest {
     @Test
     internal fun `kan lagre personhendelser`() {
         val sakId = UUID.randomUUID()
+        val fnr = Fnr.generer()
         val sakRepoMock = mock<SakRepo> {
-            on { hentSakIdOgNummerForIdenter(any()) } doReturn SakIdOgNummer(sakId, Saksnummer(2021))
+            on { hentSakIdOgNummerForIdenter(any()) } doReturn SakIdSaksnummerFnr(sakId, Saksnummer(2021), fnr)
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo>()
         val oppgaveServiceMock: OppgaveService = mock()
@@ -51,7 +52,16 @@ internal class PersonhendelseServiceTest {
 
         verify(sakRepoMock).hentSakIdOgNummerForIdenter(argThat { it shouldBe nyPersonhendelse.metadata.personidenter })
         verify(personhendelseRepoMock).lagre(
-            personhendelse = argThat<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> { it shouldBe nyPersonhendelse.tilknyttSak(it.id, SakIdOgNummer(sakId, Saksnummer(2021))) },
+            personhendelse = argThat<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
+                it shouldBe nyPersonhendelse.tilknyttSak(
+                    it.id,
+                    SakIdSaksnummerFnr(
+                        sakId,
+                        Saksnummer(2021),
+                        fnr,
+                    ),
+                )
+            },
         )
         verifyNoMoreInteractions(personhendelseRepoMock, sakRepoMock, oppgaveServiceMock)
     }
@@ -119,7 +129,11 @@ internal class PersonhendelseServiceTest {
             },
         )
 
-        verify(personhendelseRepoMock).lagre(argThat<Personhendelse.TilknyttetSak.SendtTilOppgave> { it shouldBe personhendelse.tilSendtTilOppgave(OppgaveId("oppgaveId")) })
+        verify(personhendelseRepoMock).lagre(
+            argThat<Personhendelse.TilknyttetSak.SendtTilOppgave> {
+                it shouldBe personhendelse.tilSendtTilOppgave(OppgaveId("oppgaveId"))
+            },
+        )
         verifyNoMoreInteractions(oppgaveServiceMock, personhendelseRepoMock, sakRepoMock, personServiceMock)
     }
 
@@ -182,21 +196,22 @@ internal class PersonhendelseServiceTest {
         ),
     )
 
-    private fun lagPersonhendelseTilknyttetSak(sakId: UUID = UUID.randomUUID()) = Personhendelse.TilknyttetSak.IkkeSendtTilOppgave(
-        endringstype = Personhendelse.Endringstype.OPPRETTET,
-        hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = fixedLocalDate),
-        id = UUID.randomUUID(),
-        saksnummer = Saksnummer(2021),
-        sakId = sakId,
-        metadata = Personhendelse.Metadata(
-            hendelseId = UUID.randomUUID().toString(),
-            tidligereHendelseId = null,
-            offset = 0,
-            partisjon = 0,
-            master = "FREG",
-            key = "key",
-            personidenter = NonEmptyList.fromListUnsafe(listOf(UUID.randomUUID().toString()))
-        ),
-        antallFeiledeForsøk = 0
-    )
+    private fun lagPersonhendelseTilknyttetSak(sakId: UUID = UUID.randomUUID()) =
+        Personhendelse.TilknyttetSak.IkkeSendtTilOppgave(
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = fixedLocalDate),
+            id = UUID.randomUUID(),
+            saksnummer = Saksnummer(2021),
+            sakId = sakId,
+            metadata = Personhendelse.Metadata(
+                hendelseId = UUID.randomUUID().toString(),
+                tidligereHendelseId = null,
+                offset = 0,
+                partisjon = 0,
+                master = "FREG",
+                key = "key",
+                personidenter = NonEmptyList.fromListUnsafe(listOf(UUID.randomUUID().toString())),
+            ),
+            antallFeiledeForsøk = 0,
+        )
 }

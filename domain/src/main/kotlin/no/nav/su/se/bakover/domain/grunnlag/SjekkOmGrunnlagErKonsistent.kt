@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.harEpsInntekt
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 
 data class SjekkOmGrunnlagErKonsistent(
     private val formuegrunnlag: List<Formuegrunnlag>,
@@ -12,6 +13,13 @@ data class SjekkOmGrunnlagErKonsistent(
     private val bosituasjongrunnlag: List<Grunnlag.Bosituasjon>,
     private val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
 ) {
+    constructor(gjeldendeVedtaksdata: GjeldendeVedtaksdata) : this(
+        formuegrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.formue.grunnlag,
+        uføregrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.uføre.grunnlag,
+        bosituasjongrunnlag = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
+        fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
+    )
+
     val resultat: Either<Set<Konsistensproblem>, Unit> = setOf(
         Uføre(uføregrunnlag).resultat,
         Bosituasjon(bosituasjongrunnlag).resultat,
@@ -91,7 +99,11 @@ data class SjekkOmGrunnlagErKonsistent(
                     bosituasjon.any { !it.harEPS() } -> {
                         add(Konsistensproblem.BosituasjonOgFradrag.IngenEPSMenFradragForEPS)
                     }
-                    // TODO jah: Vi sjekker ikke på om epsFormue/epsInntekt er innenfor sin respektive bosituasjonsperiode
+                    bosituasjon.any { bosituasjon ->
+                        fradrag.any { fradrag ->
+                            !bosituasjon.periode.inneholder(fradrag.periode)
+                        }
+                    } -> add(Konsistensproblem.BosituasjonOgFradrag.EPSFradragsperiodeErUtenforBosituasjonPeriode)
                 }
                 return if (this.isEmpty()) Unit.right() else this.left()
             }
@@ -132,7 +144,6 @@ data class SjekkOmGrunnlagErKonsistent(
                             !bosituasjon.periode.inneholder(formue.periode)
                         }
                     } -> add(Konsistensproblem.BosituasjonOgFormue.EPSFormueperiodeErUtenforBosituasjonPeriode)
-                    // TODO jah: Vi sjekker ikke på om epsFormue/epsInntekt er innenfor sin respektive bosituasjonsperiode
                 }
                 return if (this.isEmpty()) Unit.right() else this.left()
             }
@@ -142,24 +153,70 @@ data class SjekkOmGrunnlagErKonsistent(
 
 sealed class Konsistensproblem {
 
+    /**
+     * Konsistensproblemene er delt opp i 2:
+     * 1. Gyldige tilstander som vi ikke støtter å revurdere enda.
+     * 1. Ugyldige tilstander som kan oppstå på grunn av svak typing/domenemodell/validering
+     */
+    abstract fun erGyldigTilstand(): Boolean
+
     sealed class Uføre : Konsistensproblem() {
-        object Mangler : Uføre()
+        /** Da er ikke vilkåret for Uføre innfridd. Dette vil føre til avslag eller opphør. */
+        object Mangler : Uføre() {
+            override fun erGyldigTilstand() = true
+        }
     }
 
     sealed class Bosituasjon : Konsistensproblem() {
-        object Flere : Bosituasjon()
-        object Ufullstendig : Bosituasjon()
-        object Mangler : Bosituasjon()
+        /** Det er generelt gyldig at bosituasjon kan variere fra måned til måned, men vi støtter det ikke enda. */
+        object Flere : Bosituasjon() {
+            override fun erGyldigTilstand() = true
+        }
+
+        /** Du har f.eks. valgt EPS, men ikke tatt stilling til om hen bor med voksne/alene etc.  */
+        object Ufullstendig : Bosituasjon() {
+            override fun erGyldigTilstand() = false
+        }
+
+        /** Vi må alltid ha en utfylt bosituasjon når vi vedtar en stønadsbehandling (revurdering,søknad,regulering etc.)*/
+        object Mangler : Bosituasjon() {
+            override fun erGyldigTilstand() = false
+        }
     }
 
     sealed class BosituasjonOgFradrag : Konsistensproblem() {
-        object FlereBosituasjonerOgFradragForEPS : BosituasjonOgFradrag()
-        object IngenEPSMenFradragForEPS : BosituasjonOgFradrag()
+        /** Dette er en gyldig case som vi ikke støtter enda. Her har vi EPS-fradrag i tillegg til flere bosituasjoner */
+        object FlereBosituasjonerOgFradragForEPS : BosituasjonOgFradrag() {
+            override fun erGyldigTilstand() = true
+        }
+
+        /** Ugyldig case. Vi må ha EPS for å kunne ha fradrag tilhørende EPS. */
+        object IngenEPSMenFradragForEPS : BosituasjonOgFradrag() {
+            override fun erGyldigTilstand() = false
+        }
+
+        /** Ugyldig case. Vi har fradragsperioder for EPS som vi mangler bosituasjonsperiode for. Disse bør være 1-1. */
+        object EPSFradragsperiodeErUtenforBosituasjonPeriode : BosituasjonOgFradrag() {
+            override fun erGyldigTilstand() = false
+        }
     }
 
     sealed class BosituasjonOgFormue : Konsistensproblem() {
-        object FlereBosituasjonerOgFormueForEPS : BosituasjonOgFormue()
-        object IngenEPSMenFormueForEPS : BosituasjonOgFormue()
-        object EPSFormueperiodeErUtenforBosituasjonPeriode : BosituasjonOgFormue()
+        /** Dette er en gyldig case som vi ikke støtter enda. Her har vi EPS-formue i tillegg til flere bosituasjoner */
+        object FlereBosituasjonerOgFormueForEPS : BosituasjonOgFormue() {
+            override fun erGyldigTilstand() = true
+        }
+
+        /** Ugyldig case. Vi må ha EPS for å kunne ha formue tilhørende EPS. */
+        object IngenEPSMenFormueForEPS : BosituasjonOgFormue() {
+            override fun erGyldigTilstand() = false
+        }
+
+        /** Ugyldig case. Vi har formueperioder for EPS som vi mangler bosituasjonsperiode for. Disse bør være 1-1. */
+        object EPSFormueperiodeErUtenforBosituasjonPeriode : BosituasjonOgFormue() {
+            override fun erGyldigTilstand() = false
+        }
     }
 }
+
+fun Set<Konsistensproblem>.erGyldigTilstand(): Boolean = this.all { it.erGyldigTilstand() }

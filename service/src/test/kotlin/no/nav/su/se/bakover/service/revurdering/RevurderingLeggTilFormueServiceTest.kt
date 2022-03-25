@@ -52,7 +52,7 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -110,7 +110,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     ),
                 ),
             ),
-            utenlandsopphold = utlandsoppholdInnvilget(periode = periodeHele2021),
+            utenlandsopphold = utenlandsoppholdInnvilget(periode = periodeHele2021),
             formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Formue.tryCreate(
@@ -530,7 +530,7 @@ internal class RevurderingLeggTilFormueServiceTest {
             ),
         ),
         formue = Vilkår.Formue.IkkeVurdert,
-        utenlandsopphold = utlandsoppholdInnvilget(periode = periodeHele2021)
+        utenlandsopphold = utenlandsoppholdInnvilget(periode = periodeHele2021)
     )
 
     private val opprettetRevurdering = OpprettetRevurdering(

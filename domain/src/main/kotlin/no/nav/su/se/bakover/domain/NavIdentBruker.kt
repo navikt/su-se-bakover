@@ -31,6 +31,10 @@ sealed class NavIdentBruker {
             validate()
         }
 
+        companion object {
+            fun systembruker() = NavIdentBruker.Saksbehandler("srvsupstonad")
+        }
+
         override fun toString(): String = navIdent
     }
 }

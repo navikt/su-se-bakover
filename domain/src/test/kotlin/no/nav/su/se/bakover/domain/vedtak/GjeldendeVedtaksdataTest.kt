@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.periode2021
-import no.nav.su.se.bakover.test.utlandsoppholdAvslag
+import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -129,7 +129,7 @@ internal class GjeldendeVedtaksdataTest {
             clock = TikkendeKlokke(),
             revurderingsperiode = periode2021,
             vilkårOverrides = listOf(
-                utlandsoppholdAvslag(
+                utenlandsoppholdAvslag(
                     periode = periode2021,
                 ),
             ),

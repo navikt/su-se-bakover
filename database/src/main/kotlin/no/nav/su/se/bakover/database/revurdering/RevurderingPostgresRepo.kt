@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.oppdatering
+import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType.Companion.toRevurderingsType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.tidspunkt
@@ -105,6 +106,25 @@ enum class RevurderingsType {
                 is AvsluttetRevurdering -> this.underliggendeRevurdering.toRevurderingsType()
             }.toString()
         }
+
+        fun åpneRevurderingstyper() = listOf(
+            OPPRETTET,
+            BEREGNET_INNVILGET,
+            BEREGNET_OPPHØRT,
+            BEREGNET_INGEN_ENDRING,
+            SIMULERT_INNVILGET,
+            SIMULERT_OPPHØRT,
+            TIL_ATTESTERING_INNVILGET,
+            TIL_ATTESTERING_OPPHØRT,
+            TIL_ATTESTERING_INGEN_ENDRING,
+            UNDERKJENT_INNVILGET,
+            UNDERKJENT_OPPHØRT,
+            UNDERKJENT_INGEN_ENDRING,
+            SIMULERT_STANS,
+            SIMULERT_GJENOPPTAK,
+        )
+
+        fun åpneRevurderingstyperKommaseparert(): String = åpneRevurderingstyper().joinToString(",") { "'$it'" }
     }
 }
 
@@ -116,6 +136,7 @@ internal class RevurderingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
     private val tilbakekrevingRepo: TilbakekrevingPostgresRepo,
+    reguleringPostgresRepo: ReguleringPostgresRepo,
 ) : RevurderingRepo {
     private val vedtakRepo = VedtakPostgresRepo(
         sessionFactory = sessionFactory,
@@ -123,6 +144,7 @@ internal class RevurderingPostgresRepo(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         revurderingRepo = this,
         klageRepo = klageRepo,
+        reguleringRepo = reguleringPostgresRepo,
     )
 
     private val stansAvYtelseRepo = StansAvYtelsePostgresRepo(

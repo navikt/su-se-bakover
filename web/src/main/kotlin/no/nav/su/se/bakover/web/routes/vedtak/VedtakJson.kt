@@ -33,6 +33,7 @@ internal enum class VedtakTypeJson(private val beskrivelse: String) {
     SØKNAD("SØKNAD"),
     AVSLAG("AVSLAG"),
     ENDRING("ENDRING"),
+    REGULERING("REGULERING"),
     INGEN_ENDRING("INGEN_ENDRING"),
     OPPHØR("OPPHØR"),
     STANS_AV_YTELSE("STANS_AV_YTELSE"),
@@ -67,7 +68,7 @@ internal fun Avslagsvedtak.AvslagVilkår.toJson(): VedtakJson = VedtakJson(
     saksnummer = behandling.saksnummer.toString(),
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
-    type = VedtakTypeJson.AVSLAG.toString()
+    type = VedtakTypeJson.AVSLAG.toString(),
 )
 
 internal fun Avslagsvedtak.AvslagBeregning.toJson(): VedtakJson = VedtakJson(
@@ -83,7 +84,7 @@ internal fun Avslagsvedtak.AvslagBeregning.toJson(): VedtakJson = VedtakJson(
     saksnummer = behandling.saksnummer.toString(),
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
-    type = VedtakTypeJson.AVSLAG.toString()
+    type = VedtakTypeJson.AVSLAG.toString(),
 )
 
 internal fun VedtakSomKanRevurderes.EndringIYtelse.toJson(): VedtakJson = VedtakJson(
@@ -95,6 +96,7 @@ internal fun VedtakSomKanRevurderes.EndringIYtelse.toJson(): VedtakJson = Vedtak
         is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> this.beregning.toJson()
         is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> this.beregning.toJson()
         is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> null
+        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> this.beregning.toJson()
     },
     simulering = simulering.toJson(),
     attestant = attestant.navIdent,
@@ -111,7 +113,8 @@ internal fun VedtakSomKanRevurderes.EndringIYtelse.toJson(): VedtakJson = Vedtak
         is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> VedtakTypeJson.SØKNAD.toString()
         is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> VedtakTypeJson.OPPHØR.toString()
         is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> VedtakTypeJson.STANS_AV_YTELSE.toString()
-    }
+        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> VedtakTypeJson.REGULERING.toString()
+    },
 )
 
 internal fun VedtakSomKanRevurderes.IngenEndringIYtelse.toJson(): VedtakJson = VedtakJson(
@@ -127,7 +130,7 @@ internal fun VedtakSomKanRevurderes.IngenEndringIYtelse.toJson(): VedtakJson = V
     saksnummer = behandling.saksnummer.toString(),
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
-    type = VedtakTypeJson.INGEN_ENDRING.toString()
+    type = VedtakTypeJson.INGEN_ENDRING.toString(),
 )
 
 internal fun Klagevedtak.toJson(): VedtakJson = VedtakJson(
@@ -143,7 +146,7 @@ internal fun Klagevedtak.toJson(): VedtakJson = VedtakJson(
     saksnummer = klage.saksnummer.toString(),
     fnr = klage.fnr.toString(),
     periode = null,
-    type = VedtakTypeJson.AVVIST_KLAGE.toString()
+    type = VedtakTypeJson.AVVIST_KLAGE.toString(),
 )
 
 internal fun VedtakSomKanRevurderes.toJson(): VedtakJson = when (this) {

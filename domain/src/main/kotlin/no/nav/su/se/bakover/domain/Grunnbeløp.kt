@@ -5,15 +5,18 @@ import java.time.LocalDate
 import java.time.Month
 import kotlin.math.roundToInt
 
-class Grunnbeløp private constructor(private val multiplier: Double) {
-    private val datoToBeløp: Map<LocalDate, Int> = listOfNotNull(
-        LocalDate.of(2017, Month.MAY, 1) to 93634,
-        LocalDate.of(2018, Month.MAY, 1) to 96883,
-        LocalDate.of(2019, Month.MAY, 1) to 99858,
-        LocalDate.of(2020, Month.MAY, 1) to 101351,
-        LocalDate.of(2021, Month.MAY, 1) to 106399,
-    ).toMap()
+private val defaultGrunnbeløp: Map<LocalDate, Int> = listOfNotNull(
+    LocalDate.of(2017, Month.MAY, 1) to 93634,
+    LocalDate.of(2018, Month.MAY, 1) to 96883,
+    LocalDate.of(2019, Month.MAY, 1) to 99858,
+    LocalDate.of(2020, Month.MAY, 1) to 101351,
+    LocalDate.of(2021, Month.MAY, 1) to 106399,
+).toMap()
 
+class Grunnbeløp private constructor(
+    private val multiplier: Double,
+    private val datoToBeløp: Map<LocalDate, Int> = defaultGrunnbeløp
+) {
     fun påDato(dato: LocalDate): Double = datoToBeløp.entries
         .sortedByDescending { it.key }
         .first { dato.isAfter(it.key) || dato.isEqual(it.key) }.value * multiplier

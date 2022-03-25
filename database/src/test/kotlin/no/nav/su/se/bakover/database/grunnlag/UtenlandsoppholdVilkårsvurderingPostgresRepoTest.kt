@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.periode2021
-import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -156,7 +156,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
-            val (vilkår, grunnlag) = utlandsoppholdInnvilget(
+            val (vilkår, grunnlag) = utenlandsoppholdInnvilget(
                 grunnlag = Utenlandsoppholdgrunnlag(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,

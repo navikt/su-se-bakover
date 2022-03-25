@@ -7,6 +7,9 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 
 internal class FerdigeBehandlingerRepoTest {
@@ -79,63 +82,63 @@ internal class FerdigeBehandlingerRepoTest {
                     saksnummer = Saksnummer(2021),
                     behandlingsId = iverksattRevurderingInnvilget.tilRevurdering.behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    behandlingStartet = iverksattRevurderingInnvilget.tilRevurdering.behandling.attesteringer.hentSisteAttestering().opprettet,
+                    behandlingStartet = enUkeEtterFixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
                 ),
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2021),
                     behandlingsId = iverksattRevurderingInnvilget.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                    behandlingStartet = iverksattRevurderingInnvilget.attesteringer.hentSisteAttestering().opprettet,
+                    behandlingStartet = fixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
                 ),
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2022),
                     behandlingsId = iverksattRevurderingOpphørt.tilRevurdering.behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    behandlingStartet = iverksattRevurderingOpphørt.tilRevurdering.behandling.attesteringer.hentSisteAttestering().opprettet,
+                    behandlingStartet = enUkeEtterFixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
                 ),
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2022),
                     behandlingsId = iverksattRevurderingOpphørt.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                    behandlingStartet = iverksattRevurderingOpphørt.attesteringer.hentSisteAttestering().opprettet,
+                    behandlingStartet = fixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.OPPHØR,
                 ),
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2023),
                     behandlingsId = iverksattStansAvYtelse.tilRevurdering.behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    behandlingStartet = iverksattStansAvYtelse.tilRevurdering.behandling.attesteringer.hentSisteAttestering().opprettet,
+                    behandlingStartet = enUkeEtterFixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
                 ),
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2023),
                     behandlingsId = iverksattStansAvYtelse.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                    behandlingStartet = iverksattStansAvYtelse.attesteringer.hentSisteAttestering().opprettet,
+                    behandlingStartet = enUkeEtterFixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.STANS,
                 ),
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2024),
                     behandlingsId = iverksattGjenopptak.tilRevurdering.behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    behandlingStartet = iverksattGjenopptak.tilRevurdering.behandling.attesteringer.hentSisteAttestering().opprettet,
+                    behandlingStartet = enUkeEtterFixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
                 ),
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2024),
                     behandlingsId = iverksattGjenopptak.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                    behandlingStartet = iverksattGjenopptak.attesteringer.hentSisteAttestering().opprettet,
+                    behandlingStartet = enUkeEtterFixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.GJENOPPTAK,
                 ),
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2025),
                     behandlingsId = beregnetRevurdering.tilRevurdering.behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    behandlingStartet = beregnetRevurdering.tilRevurdering.behandling.attesteringer.hentSisteAttestering().opprettet,
+                    behandlingStartet = enUkeEtterFixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
                 ),
             )

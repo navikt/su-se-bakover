@@ -108,7 +108,7 @@ fun innvilgetUførevilkårForventetInntekt0(
     )
 }
 
-fun utlandsoppholdInnvilget(
+fun utenlandsoppholdInnvilget(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = periode2021,
@@ -128,7 +128,7 @@ fun utlandsoppholdInnvilget(
     ).getOrFail()
 }
 
-fun utlandsoppholdAvslag(
+fun utenlandsoppholdAvslag(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = periode2021,
@@ -212,15 +212,13 @@ fun avslåttUførevilkårUtenGrunnlag(
     )
 }
 
-val formuegrunnlagId: UUID = UUID.randomUUID()
-
 fun formueGrunnlagUtenEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = periode2021,
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
 ): Formuegrunnlag {
     return Formuegrunnlag.create(
-        id = formuegrunnlagId,
+        id = UUID.randomUUID(),
         opprettet = opprettet,
         periode = periode,
         epsFormue = null,
@@ -246,7 +244,7 @@ fun formueGrunnlagUtenEpsAvslått(
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
 ): Formuegrunnlag {
     return Formuegrunnlag.create(
-        id = formuegrunnlagId,
+        id = UUID.randomUUID(),
         opprettet = opprettet,
         periode = periode,
         epsFormue = null,
@@ -266,8 +264,6 @@ fun formueGrunnlagUtenEpsAvslått(
     )
 }
 
-val formuevurderingId: UUID = UUID.randomUUID()
-
 fun formuevilkårUtenEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = periode2021,
@@ -276,7 +272,7 @@ fun formuevilkårUtenEps0Innvilget(
     return Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
         vurderingsperioder = nonEmptyListOf(
             Vurderingsperiode.Formue.create(
-                id = formuevurderingId,
+                id = UUID.randomUUID(),
                 opprettet = opprettet,
                 periode = periode,
                 resultat = Resultat.Innvilget,
@@ -294,7 +290,7 @@ fun formuevilkårAvslåttPgrBrukersformue(
     return Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
         vurderingsperioder = nonEmptyListOf(
             Vurderingsperiode.Formue.create(
-                id = formuevurderingId,
+                id = UUID.randomUUID(),
                 opprettet = opprettet,
                 periode = periode,
                 resultat = Resultat.Avslag,
@@ -322,7 +318,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
         periode = periode,
     ),
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
-    utenlandsopphold: UtenlandsoppholdVilkår = utlandsoppholdInnvilget(
+    utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdInnvilget(
         id = UUID.randomUUID(),
         periode = periode,
     ),
@@ -346,12 +342,12 @@ fun vilkårsvurderingerRevurderingInnvilget(
     uføre: Vilkår.Uførhet = innvilgetUførevilkårForventetInntekt0(periode = periode),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode = periode),
     formue: Vilkår.Formue = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
-    utlandsopphold: UtenlandsoppholdVilkår = utlandsoppholdInnvilget(periode = periode),
+    utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdInnvilget(periode = periode),
 ): Vilkårsvurderinger.Revurdering {
     return Vilkårsvurderinger.Revurdering(
         uføre = uføre,
         formue = formue,
-        utenlandsopphold = utlandsopphold,
+        utenlandsopphold = utenlandsopphold,
     )
 }
 
@@ -369,7 +365,7 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
     uføre: Vilkår.Uførhet = avslåttUførevilkårUtenGrunnlag(periode = periode),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode = periode),
     formue: Vilkår.Formue = formuevilkårAvslåttPgrBrukersformue(periode = periode, bosituasjon = bosituasjon),
-    utenlandsopphold: UtenlandsoppholdVilkår = utlandsoppholdAvslag(periode = periode),
+    utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdAvslag(periode = periode),
 ): Vilkårsvurderinger.Revurdering {
     return Vilkårsvurderinger.Revurdering(
         uføre = uføre,
@@ -396,7 +392,7 @@ fun vilkårsvurderingerAvslåttAlle(
         uføre = avslåttUførevilkårUtenGrunnlag(
             periode = periode,
         ),
-        utenlandsopphold = utlandsoppholdAvslag(periode = periode),
+        utenlandsopphold = utenlandsoppholdAvslag(periode = periode),
     ).oppdater(
         stønadsperiode = Stønadsperiode.create(
             periode = periode,
@@ -432,7 +428,7 @@ fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
             periode = periode,
             bosituasjon = bosituasjon,
         ),
-        utenlandsopphold = utlandsoppholdInnvilget(
+        utenlandsopphold = utenlandsoppholdInnvilget(
             periode = periode,
         ),
     )

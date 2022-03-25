@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
-import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -175,7 +175,7 @@ internal class StatusovergangTest {
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
-                        utenlandsopphold = utlandsoppholdInnvilget(),
+                        utenlandsopphold = utenlandsoppholdInnvilget(),
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
@@ -291,7 +291,7 @@ internal class StatusovergangTest {
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
-                        utenlandsopphold = utlandsoppholdInnvilget(),
+                        utenlandsopphold = utenlandsoppholdInnvilget(),
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
@@ -319,7 +319,7 @@ internal class StatusovergangTest {
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
-                        utenlandsopphold = utlandsoppholdInnvilget(),
+                        utenlandsopphold = utenlandsoppholdInnvilget(),
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(

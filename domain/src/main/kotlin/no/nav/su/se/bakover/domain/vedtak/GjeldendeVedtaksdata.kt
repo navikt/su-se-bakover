@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -15,17 +16,22 @@ import java.time.Clock
 import java.time.LocalDate
 
 data class GjeldendeVedtaksdata(
+    // TODO Finne et bedre navn. Dette er ikke all vedtaksdata, men kun det som kan Revurderes og Reguleres
     val periode: Periode,
     private val vedtakListe: NonEmptyList<VedtakSomKanRevurderes>,
     private val clock: Clock,
 ) {
     val grunnlagsdata: Grunnlagsdata
     val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
+    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
 
     private val tidslinje: Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> = vedtakListe
         .lagTidslinje(periode)
 
     private val vedtakPåTidslinje: List<VedtakSomKanRevurderes.VedtakPåTidslinje> = tidslinje.tidslinje
+
+    val harAvkortingsvarselEllerUteståendeAvkorting: Boolean =
+        vedtakPåTidslinje.any { it.originaltVedtak.harAvkortingsvarselEllerUteståendeAvkorting() }
 
     private val vilkårsvurderingerFraTidslinje: Vilkårsvurderinger = vedtakPåTidslinje.vilkårsvurderinger()
 
@@ -81,6 +87,22 @@ data class GjeldendeVedtaksdata(
             formue = formuevilkårOgGrunnlag,
             utenlandsopphold = utlandsoppholdvilkårOgGrunnlag,
         )
+        grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
+        )
+    }
+
+    fun harStans(): Boolean {
+        return vedtakPåTidslinje.map { it.originaltVedtak }.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse>().isNotEmpty()
+    }
+
+    fun helePeriodenErOpphør(): Boolean {
+        return vedtakPåTidslinje.all { it.erOpphør() }
+    }
+
+    fun delerAvPeriodenErOpphør(): Boolean {
+        return !helePeriodenErOpphør() && vedtakPåTidslinje.any { it.erOpphør() }
     }
 
     fun gjeldendeVedtakPåDato(dato: LocalDate): VedtakSomKanRevurderes? =

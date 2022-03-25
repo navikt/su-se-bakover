@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.utlandsoppholdAvslag
+import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -34,7 +34,7 @@ internal class OpphørsdatoForUtbetalingerTest {
     fun `opphørsdato er lik første måned uten utbetalte beløp hvis feilutbetalinger kan avkortes`() {
         val tidligsteFraOgMedSomIkkeErUtbetalt = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
         val simulert = simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
-            vilkårSomFørerTilOpphør = utlandsoppholdAvslag(),
+            vilkårSomFørerTilOpphør = utenlandsoppholdAvslag(),
         ).second
         OpphørsdatoForUtbetalinger(simulert).value shouldBe tidligsteFraOgMedSomIkkeErUtbetalt
         simulert.avkorting shouldBe beOfType<AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel>()
@@ -45,7 +45,7 @@ internal class OpphørsdatoForUtbetalingerTest {
         assertThrows<IllegalStateException> {
             simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
                 revurderingsperiode = Periode.create(1.januar(2021), 31.mars(2021)),
-                vilkårSomFørerTilOpphør = utlandsoppholdAvslag(periode = Periode.create(1.januar(2021), 31.mars(2021))),
+                vilkårSomFørerTilOpphør = utenlandsoppholdAvslag(periode = Periode.create(1.januar(2021), 31.mars(2021))),
             ).second
         }.also {
             it.message shouldContain "Opphørsdato er utenfor revurderingsperioden"

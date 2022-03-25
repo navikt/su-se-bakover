@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -308,6 +309,7 @@ fun simulertUtbetalingOpphør(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    behandler: NavIdentBruker = attestant,
     clock: Clock = fixedClock,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     eksisterendeUtbetalinger: List<Utbetaling>,
@@ -326,7 +328,7 @@ fun simulertUtbetalingOpphør(
             ),
         ),
         type = Utbetaling.UtbetalingsType.OPPHØR,
-        behandler = attestant,
+        behandler = behandler,
         avstemmingsnøkkel = avstemmingsnøkkel,
         simulering = simuleringOpphørt(
             opphørsdato = opphørsdato,
@@ -337,6 +339,34 @@ fun simulertUtbetalingOpphør(
         ),
     ).right()
 }
+
+fun simulertFeilutbetaling(
+    id: UUID30 = UUID30.randomUUID(),
+    periode: Periode = periode2021,
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    clock: Clock = fixedClock,
+    utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(
+        utbetalingslinje(
+            periode = periode,
+            clock = clock,
+        ),
+    ),
+    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
+    type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
+) = Utbetaling.SimulertUtbetaling(
+    id = id,
+    opprettet = Tidspunkt.now(clock),
+    sakId = sakId,
+    saksnummer = saksnummer,
+    fnr = fnr,
+    utbetalingslinjer = utbetalingslinjer,
+    type = type,
+    behandler = attestant,
+    avstemmingsnøkkel = avstemmingsnøkkel,
+    simulering = simuleringFeilutbetaling(periode),
+)
 
 /**
  * Defaultverdier:

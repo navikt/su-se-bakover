@@ -11,7 +11,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.oktober
@@ -73,7 +72,7 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.utlandsoppholdAvslag
+import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -498,50 +497,51 @@ internal class OppdaterRevurderingServiceTest {
     @Test
     fun `støtter ikke tilfeller hvor gjeldende vedtaksdata ikke er sammenhengende i tid`() {
         val førsteVedtak = vedtakSøknadsbehandlingIverksattInnvilget().second
-        val periodePlussEtÅr = periodeNesteMånedOgTreMånederFram.copy(
+        val periodePlussEtÅr = førsteVedtak.periode.copy(
             periodeNesteMånedOgTreMånederFram.fraOgMed.plusYears(1),
             periodeNesteMånedOgTreMånederFram.tilOgMed.plusYears(1),
-        )
-        val uføregrunnlag = Grunnlag.Uføregrunnlag(
-            periode = periodePlussEtÅr,
-            uføregrad = Uføregrad.parse(25),
-            forventetInntekt = 12000,
-            opprettet = fixedTidspunkt,
-        )
-        val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
-            begrunnelse = null,
-        )
-        val uførevilkår = Vilkår.Uførhet.Vurdert.create(
-            vurderingsperioder = nonEmptyListOf(
-                Vurderingsperiode.Uføre.create(
-                    resultat = Resultat.Innvilget,
-                    grunnlag = uføregrunnlag,
-                    periode = periodePlussEtÅr,
-                    begrunnelse = "ok",
-                    opprettet = fixedTidspunkt,
-                ),
-            ),
         )
         val andreVedtakFormueVilkår = formueVilkår(periodePlussEtÅr)
         val andreVedtak = vedtakSøknadsbehandlingIverksattInnvilget().second.copy(
             periode = periodePlussEtÅr,
             behandling = vedtakSøknadsbehandlingIverksattInnvilget().second.behandling.copy(
                 stønadsperiode = Stønadsperiode.create(periodePlussEtÅr),
-                grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjon)),
+                grunnlagsdata = Grunnlagsdata.create(
+                    bosituasjon = listOf(
+                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            periode = periodePlussEtÅr,
+                            begrunnelse = null,
+                        )
+                    )
+                ),
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                    uførevilkår,
+                    Vilkår.Uførhet.Vurdert.create(
+                        vurderingsperioder = nonEmptyListOf(
+                            Vurderingsperiode.Uføre.create(
+                                resultat = Resultat.Innvilget,
+                                grunnlag = Grunnlag.Uføregrunnlag(
+                                    periode = periodePlussEtÅr,
+                                    uføregrad = Uføregrad.parse(25),
+                                    forventetInntekt = 12000,
+                                    opprettet = fixedTidspunkt,
+                                ),
+                                periode = periodePlussEtÅr,
+                                begrunnelse = "ok",
+                                opprettet = fixedTidspunkt,
+                            ),
+                        ),
+                    ),
                     andreVedtakFormueVilkår,
                 ),
             ),
         )
 
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram.copy(
-                førsteVedtak.periode.fraOgMed,
-                andreVedtak.periode.tilOgMed,
+            periode = Periode.create(
+                fraOgMed = førsteVedtak.periode.fraOgMed,
+                tilOgMed = andreVedtak.periode.tilOgMed,
             ),
             vedtakListe = nonEmptyListOf(
                 førsteVedtak,
@@ -770,7 +770,7 @@ internal class OppdaterRevurderingServiceTest {
             revurderingsperiode = revurderingsperiode,
             sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtak,
             vilkårOverrides = listOf(
-                utlandsoppholdAvslag(
+                utenlandsoppholdAvslag(
                     periode = revurderingsperiode,
                 ),
             ),
@@ -814,7 +814,7 @@ internal class OppdaterRevurderingServiceTest {
             clock = clock,
             revurderingsperiode = Periode.create(1.juni(2021), 31.desember(2021)),
             vilkårOverrides = listOf(
-                utlandsoppholdAvslag(
+                utenlandsoppholdAvslag(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     periode = Periode.create(1.juni(2021), 31.desember(2021)),
