@@ -337,6 +337,7 @@ data class Sak(
     sealed interface KunneIkkeOppretteEllerOppdatereRegulering {
         object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KunneIkkeOppretteEllerOppdatereRegulering
         object HelePeriodenErOpphør : KunneIkkeOppretteEllerOppdatereRegulering
+        object BleIkkeLagetReguleringDaDenneUansettMåRevurderes : KunneIkkeOppretteEllerOppdatereRegulering
     }
 
     /**
@@ -382,7 +383,9 @@ data class Sak(
             fnr = fnr,
             gjeldendeVedtaksdata = gjeldendeVedtaksdata,
             clock = clock,
-        ).right()
+        ).mapLeft {
+            KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes
+        }
     }
 
     sealed class KunneIkkeOppdatereStønadsperiode {

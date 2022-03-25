@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
@@ -53,7 +54,7 @@ sealed interface Regulering : Reguleringsfelter {
             gjeldendeVedtaksdata: GjeldendeVedtaksdata,
             clock: Clock,
             opprettet: Tidspunkt = Tidspunkt.now(clock),
-        ): OpprettetRegulering {
+        ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, OpprettetRegulering> {
 
             val reguleringstype = SjekkOmGrunnlagErKonsistent(gjeldendeVedtaksdata).resultat.fold(
                 { konsistensproblemer ->
@@ -64,12 +65,13 @@ sealed interface Regulering : Reguleringsfelter {
                     } else {
                         log.error(message)
                     }
-                    Reguleringstype.MANUELL
+                    return LagerIkkeReguleringDaDenneUansettMåRevurderes.left()
                 },
                 {
                     gjeldendeVedtaksdata.utledReguleringstype()
                 },
             )
+
             return OpprettetRegulering(
                 id = id,
                 opprettet = opprettet,
@@ -81,9 +83,11 @@ sealed interface Regulering : Reguleringsfelter {
                 beregning = null,
                 simulering = null,
                 reguleringstype = reguleringstype,
-            )
+            ).right()
         }
     }
+
+    object LagerIkkeReguleringDaDenneUansettMåRevurderes
 
     sealed interface KunneIkkeBeregne {
         data class BeregningFeilet(val feil: Throwable) : KunneIkkeBeregne
