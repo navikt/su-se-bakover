@@ -257,7 +257,6 @@ internal class BrevInnholdTest {
             dagensDato = LocalDate.now(fixedClock),
             saksnummer = saksnummer,
             bruttoTilbakekreving = 5000000,
-            opphør = false,
             tilbakekreving = Tilbakekreving(listOf(MånedBeløp(periodeJanuar2021, Beløp.invoke(1000))))
         )
 

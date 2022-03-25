@@ -476,7 +476,6 @@ internal class LagreOgSendForhåndsvarselTest {
                             saksbehandlerNavn = "saksbehandler",
                             fritekst = "det kreves",
                             bruttoTilbakekreving = simulertMedTilbakekreving.simulering.hentFeilutbetalteBeløp().sum(),
-                            opphør = false,
                             tilbakekreving = Tilbakekreving(simulertMedTilbakekreving.simulering.hentFeilutbetalteBeløp().månedbeløp)
                         )
                     },

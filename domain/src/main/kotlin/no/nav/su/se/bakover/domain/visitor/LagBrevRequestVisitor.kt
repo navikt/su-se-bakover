@@ -686,11 +686,10 @@ class LagBrevRequestVisitor(
                 ).getOrHandle { return it.left() }.right()
             }
             is Tilbakekrev -> {
-                LagBrevRequest.OpphørMedTilbakekrevingAvPenger(
-                    opphør = opphørtRevurdering(
-                        revurdering = revurdering,
-                        beregning = beregning,
-                        opphørsgrunner = opphørsgrunner,
+                LagBrevRequest.TilbakekrevingAvPenger(
+                    ordinærtRevurderingBrev = innvilgetRevurdering(
+                        revurdering,
+                        beregning,
                     ).getOrHandle { return it.left() },
                     tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
                 ).right()
@@ -813,37 +812,46 @@ class LagBrevRequestVisitor(
             fnr = vedtak.behandling.fnr,
             saksbehandler = vedtak.saksbehandler,
             attestant = vedtak.attestant,
-        ).map {
-            val base = LagBrevRequest.Opphørsvedtak(
-                person = it.person,
-                saksbehandlerNavn = it.saksbehandlerNavn,
-                attestantNavn = it.attestantNavn,
-                beregning = vedtak.beregning,
-                fritekst = vedtak.behandling.fritekstTilBrev,
-                harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEPS(),
-                forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
-                opphørsgrunner = vedtak.utledOpphørsgrunner(clock),
-                dagensDato = LocalDate.now(clock),
-                saksnummer = vedtak.behandling.saksnummer,
-                opphørsdato = vedtak.periode.fraOgMed,
-                avkortingsBeløp = when (val avkorting = vedtak.behandling.avkorting) {
-                    is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> null
-                    is AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> null
-                    is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> null
-                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> avkorting.avkortingsvarsel.hentUtbetalteBeløp()
-                        .sum()
-                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> avkorting.avkortingsvarsel.hentUtbetalteBeløp()
-                        .sum()
-                },
-            )
+        ).map { personOgNavn ->
             vedtak.behandling.tilbakekrevingErVurdert().fold(
                 {
-                    base
+                    LagBrevRequest.Opphørsvedtak(
+                        person = personOgNavn.person,
+                        saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
+                        attestantNavn = personOgNavn.attestantNavn,
+                        beregning = vedtak.beregning,
+                        fritekst = vedtak.behandling.fritekstTilBrev,
+                        harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEPS(),
+                        forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
+                        opphørsgrunner = vedtak.utledOpphørsgrunner(clock),
+                        dagensDato = LocalDate.now(clock),
+                        saksnummer = vedtak.behandling.saksnummer,
+                        opphørsdato = vedtak.periode.fraOgMed,
+                        avkortingsBeløp = when (val avkorting = vedtak.behandling.avkorting) {
+                            is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> null
+                            is AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> null
+                            is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> null
+                            is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> avkorting.avkortingsvarsel.hentUtbetalteBeløp()
+                                .sum()
+                            is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> avkorting.avkortingsvarsel.hentUtbetalteBeløp()
+                                .sum()
+                        },
+                    )
                 },
                 {
                     @Suppress("useless_cast")
-                    LagBrevRequest.OpphørMedTilbakekrevingAvPenger(
-                        opphør = base,
+                    LagBrevRequest.TilbakekrevingAvPenger(
+                        ordinærtRevurderingBrev = LagBrevRequest.Inntekt(
+                            person = personOgNavn.person,
+                            saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
+                            attestantNavn = personOgNavn.attestantNavn,
+                            revurdertBeregning = vedtak.beregning,
+                            fritekst = vedtak.behandling.fritekstTilBrev,
+                            harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEPS(),
+                            forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
+                            dagensDato = LocalDate.now(clock),
+                            saksnummer = vedtak.behandling.saksnummer,
+                        ),
                         tilbakekreving = Tilbakekreving(vedtak.simulering.hentFeilutbetalteBeløp().månedbeløp),
                     ) as LagBrevRequest
                 },
