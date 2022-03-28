@@ -945,7 +945,6 @@ sealed class SimulertRevurdering : Revurdering() {
                         saksnummer = saksnummer,
                         bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
                         tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
-                        opphør = erOpphørt,
                     )
                 } else {
                     LagBrevRequest.Forhåndsvarsel(

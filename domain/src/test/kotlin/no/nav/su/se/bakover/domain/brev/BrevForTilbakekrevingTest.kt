@@ -170,7 +170,7 @@ class BrevForTilbakekrevingTest {
                         .getOrFail(),
                 )
 
-                requireType<LagBrevRequest.OpphørMedTilbakekrevingAvPenger>(
+                requireType<LagBrevRequest.TilbakekrevingAvPenger>(
                     lagVisitor(sak = sak).let { visitor ->
                         revurdering.accept(visitor)
                         visitor.brevRequest.getOrFail()
@@ -189,7 +189,7 @@ class BrevForTilbakekrevingTest {
                 ).getOrFail()
             }.let { (sak, revurdering) ->
                 requireType<Pair<Sak, RevurderingTilAttestering.Opphørt>>(sak to revurdering)
-                requireType<LagBrevRequest.OpphørMedTilbakekrevingAvPenger>(
+                requireType<LagBrevRequest.TilbakekrevingAvPenger>(
                     lagVisitor(sak = sak).let { visitor ->
                         revurdering.accept(visitor)
                         visitor.brevRequest.getOrFail()
@@ -211,7 +211,7 @@ class BrevForTilbakekrevingTest {
                 )
             }.let { (sak, revurdering) ->
                 requireType<Pair<Sak, UnderkjentRevurdering.Opphørt>>(sak to revurdering)
-                requireType<LagBrevRequest.OpphørMedTilbakekrevingAvPenger>(
+                requireType<LagBrevRequest.TilbakekrevingAvPenger>(
                     lagVisitor(sak = sak).let { visitor ->
                         revurdering.accept(visitor)
                         visitor.brevRequest.getOrFail()
@@ -234,7 +234,7 @@ class BrevForTilbakekrevingTest {
                 ).getOrFail()
             }.let { (sak, revurdering) ->
                 requireType<Pair<Sak, IverksattRevurdering.Opphørt>>(sak to revurdering)
-                val brev = requireType<LagBrevRequest.OpphørMedTilbakekrevingAvPenger>(
+                val brev = requireType<LagBrevRequest.TilbakekrevingAvPenger>(
                     lagVisitor(sak = sak).let { visitor ->
                         revurdering.accept(visitor)
                         visitor.brevRequest.getOrFail()

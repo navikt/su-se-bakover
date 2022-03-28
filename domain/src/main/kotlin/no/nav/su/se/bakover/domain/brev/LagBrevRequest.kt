@@ -190,47 +190,6 @@ interface LagBrevRequest {
         }
     }
 
-    data class OpphørMedTilbakekrevingAvPenger(
-        private val opphør: Opphør,
-        private val tilbakekreving: Tilbakekreving,
-    ) : LagBrevRequest, Opphør by opphør {
-        override val brevInnhold: BrevInnhold = BrevInnhold.OpphørMedTilbakekrevingAvPenger(
-            personalia = lagPersonalia(),
-            sats = beregning.getSats().toString().lowercase(),
-            satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
-            satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
-            harEktefelle = harEktefelle,
-            beregningsperioder = if (
-                opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT) ||
-                opphørsgrunner.contains(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
-            ) LagBrevinnholdForBeregning(beregning).brevInnhold else emptyList(),
-            saksbehandlerNavn = saksbehandlerNavn,
-            attestantNavn = attestantNavn,
-            halvGrunnbeløp = Grunnbeløp.`0,5G`.påDato(beregning.periode.fraOgMed).toInt(),
-            fritekst = fritekst,
-            opphørsgrunner = opphørsgrunner,
-            avslagsparagrafer = opphørsgrunner.getDistinkteParagrafer(),
-            forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
-            opphørsdato = opphørsdato.ddMMyyyy(),
-            avkortingsBeløp = avkortingsBeløp,
-            tilbakekreving = tilbakekreving.tilbakekrevingavdrag,
-            periodeStart = tilbakekreving.periodeStart,
-            periodeSlutt = tilbakekreving.periodeSlutt
-        )
-
-        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
-            return genererDokument(genererPdf).map {
-                Dokument.UtenMetadata.Vedtak(
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
-                    tittel = it.first,
-                    generertDokument = it.second,
-                    generertDokumentJson = it.third,
-                )
-            }
-        }
-    }
-
     data class VedtakIngenEndring(
         override val person: Person,
         private val saksbehandlerNavn: String,
@@ -304,7 +263,6 @@ interface LagBrevRequest {
         private val fritekst: String,
         private val bruttoTilbakekreving: Int,
         private val tilbakekreving: Tilbakekreving,
-        private val opphør: Boolean
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.ForhåndsvarselTilbakekreving(
             personalia = lagPersonalia(),
@@ -315,7 +273,6 @@ interface LagBrevRequest {
             periodeSlutt = tilbakekreving.periodeSlutt,
             tilbakekreving = tilbakekreving.tilbakekrevingavdrag,
             dato = dagensDato.toBrevformat(),
-            opphør = opphør
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {

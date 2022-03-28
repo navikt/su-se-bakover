@@ -239,7 +239,6 @@ abstract class BrevInnhold {
         val periodeStart: String,
         val periodeSlutt: String,
         val dato: String,
-        val opphør: Boolean
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.ForhåndsvarselTilbakekreving
     }
