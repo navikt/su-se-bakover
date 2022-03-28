@@ -1,20 +1,53 @@
 package no.nav.su.se.bakover.service.regulering
 
+import arrow.core.Either
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.regulering.ReguleringType
+import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import java.time.LocalDate
 import java.util.UUID
 
-data class SakSomKanReguleres(
-    val sakId: UUID,
-    val saksnummer: Saksnummer,
-    val reguleringType: ReguleringType,
+data class BeregnRequest(
+    val behandlingId: UUID,
+    val begrunnelse: String?,
 )
 
-data class SakerSomKanReguleres(
-    val saker: List<SakSomKanReguleres>,
-)
+sealed class KunneIkkeRegulereAutomatisk {
+    object KunneIkkeBeregne : KunneIkkeRegulereAutomatisk()
+    object KunneIkkeSimulere : KunneIkkeRegulereAutomatisk()
+    object KunneIkkeUtbetale : KunneIkkeRegulereAutomatisk()
+    object KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling : KunneIkkeRegulereAutomatisk()
+}
+
+sealed class BeregnOgSimulerFeilet {
+    object FantIkkeRegulering : BeregnOgSimulerFeilet()
+    object KunneIkkeBeregne : BeregnOgSimulerFeilet()
+    object KunneIkkeSimulere : BeregnOgSimulerFeilet()
+}
+
+sealed class KunneIkkeIverksetteRegulering {
+    object ReguleringErAlleredeIverksatt : KunneIkkeIverksetteRegulering()
+    object FantIkkeRegulering : KunneIkkeIverksetteRegulering()
+}
+
+sealed class KunneIkkeLeggeTilFradrag {
+    object ReguleringErAlleredeIverksatt : KunneIkkeLeggeTilFradrag()
+    object FantIkkeRegulering : KunneIkkeLeggeTilFradrag()
+}
+
+sealed class KunneIkkeOppretteRegulering {
+    object FantIkkeSak : KunneIkkeOppretteRegulering()
+    object FørerIkkeTilEnEndring : KunneIkkeOppretteRegulering()
+    data class KunneIkkeHenteEllerOppretteRegulering(val feil: Sak.KunneIkkeOppretteEllerOppdatereRegulering) : KunneIkkeOppretteRegulering()
+    data class KunneIkkeRegulereAutomatisk(val feil: no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereAutomatisk) : KunneIkkeOppretteRegulering()
+}
 
 interface ReguleringService {
-    fun hentAlleSakerSomKanReguleres(fraDato: LocalDate?): SakerSomKanReguleres
+    fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>>
+    fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering>
+    fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering>
+    fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering>
+    fun hentStatus(): List<Regulering>
+    fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
 }

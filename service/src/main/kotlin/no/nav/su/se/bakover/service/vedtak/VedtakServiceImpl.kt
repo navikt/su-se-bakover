@@ -61,7 +61,7 @@ internal class VedtakServiceImpl(
                 sak.kopierGjeldendeVedtaksdata(fraOgMed, clock)
                     .mapLeft {
                         when (it) {
-                            Sak.KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak -> {
+                            is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {
                                 KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak
                             }
                             is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {

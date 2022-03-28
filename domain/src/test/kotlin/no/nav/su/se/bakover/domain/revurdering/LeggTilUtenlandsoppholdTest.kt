@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetS�
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
 
 class LeggTilUtenlandsoppholdTest {
@@ -36,7 +36,7 @@ class LeggTilUtenlandsoppholdTest {
         val uavklart = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
 
         uavklart.oppdaterUtenlandsoppholdOgMarkerSomVurdert(
-            utenlandsopphold = utlandsoppholdInnvilget(
+            utenlandsopphold = utenlandsoppholdInnvilget(
                 periode = Periode.create(1.januar(2020), 31.januar(2020)),
             ),
         ) shouldBe Revurdering.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
@@ -63,7 +63,7 @@ class LeggTilUtenlandsoppholdTest {
         ) shouldBe Revurdering.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.oppdaterUtenlandsoppholdOgMarkerSomVurdert(
-            utenlandsopphold = utlandsoppholdInnvilget(
+            utenlandsopphold = utenlandsoppholdInnvilget(
                 periode = uavklart.periode,
             ),
         ).isRight() shouldBe true
@@ -83,7 +83,7 @@ class LeggTilUtenlandsoppholdTest {
         ).map {
             it.second
         }.forEach {
-            it.oppdaterUtenlandsoppholdOgMarkerSomVurdert(utlandsoppholdInnvilget()).let { oppdatert ->
+            it.oppdaterUtenlandsoppholdOgMarkerSomVurdert(utenlandsoppholdInnvilget()).let { oppdatert ->
                 oppdatert.isRight() shouldBe true
                 oppdatert.getOrFail() shouldBe beOfType<OpprettetRevurdering>()
             }
@@ -103,7 +103,7 @@ class LeggTilUtenlandsoppholdTest {
             it.second
         }.forEach {
             it.oppdaterUtenlandsoppholdOgMarkerSomVurdert(
-                utlandsoppholdInnvilget(),
+                utenlandsoppholdInnvilget(),
             ) shouldBe Revurdering.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(
                 it::class,
                 OpprettetRevurdering::class,

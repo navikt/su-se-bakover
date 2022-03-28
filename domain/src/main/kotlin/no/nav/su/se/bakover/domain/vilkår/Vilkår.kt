@@ -66,6 +66,7 @@ sealed class Vilkårsvurderinger {
     abstract val uføre: Vilkår.Uførhet
     abstract val formue: Vilkår.Formue
     abstract val utenlandsopphold: UtenlandsoppholdVilkår
+    abstract val erVurdert: Boolean
 
     val periode: Periode?
         get() {
@@ -147,6 +148,8 @@ sealed class Vilkårsvurderinger {
                     personligOppmøte,
                 )
             }
+
+        override val erVurdert = vilkår.none { it.resultat == Resultat.Uavklart }
 
         override fun lagTidslinje(periode: Periode): Søknadsbehandling {
             return copy(
@@ -279,6 +282,8 @@ sealed class Vilkårsvurderinger {
                     utenlandsopphold,
                 )
             }
+
+        override val erVurdert = vilkår.none { it.resultat == Resultat.Uavklart }
 
         override fun leggTil(vilkår: Vilkår): Revurdering {
             return when (vilkår) {

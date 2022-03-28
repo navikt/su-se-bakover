@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
-import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.util.UUID
@@ -97,7 +97,7 @@ internal class VedtakPåTidslinjeTest {
                     ),
                 ),
                 formue = formuevilkår,
-                utenlandsopphold = utlandsoppholdInnvilget(periode = periode)
+                utenlandsopphold = utenlandsoppholdInnvilget(periode = periode)
             ),
             originaltVedtak = originaltVedtak,
         )
@@ -248,7 +248,7 @@ internal class VedtakPåTidslinjeTest {
                     ),
                 ),
                 formue = formuevilkår,
-                utenlandsopphold = utlandsoppholdInnvilget(periode = periode)
+                utenlandsopphold = utenlandsoppholdInnvilget(periode = periode)
             ),
             originaltVedtak = originaltVedtak,
         )

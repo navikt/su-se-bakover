@@ -43,7 +43,7 @@ import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.utlandsoppholdAvslag
+import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -491,7 +491,7 @@ internal class RevurderingBeregnOgSimulerTest {
             revurderingsperiode = revurderingsperiode1,
             sakOgVedtakSomKanRevurderes = sakEtterInnvilgelse1 to innvilget1,
             vilkårOverrides = listOf(
-                utlandsoppholdAvslag(
+                utenlandsoppholdAvslag(
                     periode = revurderingsperiode1,
                 ),
             ),

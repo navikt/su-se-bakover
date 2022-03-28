@@ -49,7 +49,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -60,6 +59,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonRepo
+import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -97,6 +97,11 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontr
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.regulering.BeregnOgSimulerFeilet
+import no.nav.su.se.bakover.service.regulering.BeregnRequest
+import no.nav.su.se.bakover.service.regulering.KunneIkkeIverksetteRegulering
+import no.nav.su.se.bakover.service.regulering.KunneIkkeLeggeTilFradrag
+import no.nav.su.se.bakover.service.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
@@ -217,14 +222,6 @@ open class AccessCheckProxy(
                     assertHarTilgangTilSak(request.sakId)
 
                     return services.utbetaling.simulerOpphør(request)
-                }
-
-                override fun utbetal(
-                    request: UtbetalRequest.NyUtbetaling,
-                ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                    assertHarTilgangTilSak(request.sakId)
-
-                    return services.utbetaling.utbetal(request)
                 }
 
                 override fun publiserUtbetaling(
@@ -869,7 +866,29 @@ open class AccessCheckProxy(
                 ) = kastKanKunKallesFraAnnenService()
             },
             reguleringService = object : ReguleringService {
-                override fun hentAlleSakerSomKanReguleres(fraDato: LocalDate?) = kastKanKunKallesFraAnnenService()
+                override fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
+                    return startRegulering(startDato)
+                }
+
+                override fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering> {
+                    return leggTilFradrag(request)
+                }
+
+                override fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering> {
+                    return iverksett(reguleringId)
+                }
+
+                override fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering> {
+                    return beregnOgSimuler(request)
+                }
+
+                override fun hentStatus(): List<Regulering> {
+                    return hentStatus()
+                }
+
+                override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
+                    return hentSakerMedÅpenBehandlingEllerStans()
+                }
             },
             tilbakekrevingService = object : TilbakekrevingService {
                 override fun lagre(

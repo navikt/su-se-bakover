@@ -16,7 +16,7 @@ subprojects {
         maven("https://packages.confluent.io/maven/")
     }
     val junitJupiterVersion = "5.8.2"
-    val kotestVersion = "5.1.0"
+    val kotestVersion = "5.2.2"
     val jacksonVersion = "2.13.2"
     val kotlinVersion: String by this
     dependencies {
@@ -35,7 +35,7 @@ subprojects {
         implementation("net.logstash.logback:logstash-logback-encoder:7.0.1")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:3.1.0")
-        implementation("com.networknt:json-schema-validator:1.0.67")
+        implementation("com.networknt:json-schema-validator:1.0.68")
         implementation("no.finn.unleash:unleash-client-java:4.4.1")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.5.0")
