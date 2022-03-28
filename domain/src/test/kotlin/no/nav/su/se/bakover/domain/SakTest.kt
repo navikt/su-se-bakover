@@ -30,7 +30,7 @@ import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
-import no.nav.su.se.bakover.test.utlandsoppholdAvslag
+import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakRevurdering
@@ -456,7 +456,7 @@ internal class SakTest {
                 revurderingsperiode = revurderingsperiode,
                 sakOgVedtakSomKanRevurderes = sakMedSøknadVedtak to søknadsbehandlingVedtak,
                 vilkårOverrides = listOf(
-                    utlandsoppholdAvslag(
+                    utenlandsoppholdAvslag(
                         periode = revurderingsperiode,
                     ),
                 ),

@@ -37,7 +37,11 @@ fun Konsistensproblem.tilResultat() = when (this) {
         code = "formue_for_eps_ingen_eps_registrert",
     )
     Konsistensproblem.BosituasjonOgFormue.EPSFormueperiodeErUtenforBosituasjonPeriode -> ErrorJson(
-        "Ikke lov med formueperiode utenfor bosituasjonperioder",
+        "Ikke lov med formueperiode utenfor bosituasjonperioder for EPS",
         "ikke_lov_med_formueperiode_utenfor_bosituasjonperiode",
+    )
+    Konsistensproblem.BosituasjonOgFradrag.EPSFradragsperiodeErUtenforBosituasjonPeriode -> ErrorJson(
+        "Ikke lov med fradragsperiode utenfor bosituasjonperioder for EPS",
+        "ikke_lov_med_fradragsperiode_utenfor_bosituasjonperiode",
     )
 }

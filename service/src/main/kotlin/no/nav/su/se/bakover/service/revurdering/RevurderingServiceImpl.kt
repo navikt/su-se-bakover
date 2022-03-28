@@ -201,6 +201,7 @@ internal class RevurderingServiceImpl(
             }
         }
 
+        // TODO jah: Spør Jacob om denne og bør inkl. fjerning av EPS formue.
         val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragHvisIkkeEntydig(
             gjeldendeVedtaksdata,
         )
@@ -255,6 +256,7 @@ internal class RevurderingServiceImpl(
                 forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles else null,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = uteståendeAvkorting,
@@ -273,6 +275,7 @@ internal class RevurderingServiceImpl(
     }
 
     private fun hentUteståendeAvkorting(sakId: UUID): AvkortingVedRevurdering.Uhåndtert {
+        // TODO jah: Bør flyttes til sak
         return when (val utestående = avkortingsvarselRepo.hentUtestående(sakId)) {
             is Avkortingsvarsel.Ingen -> {
                 AvkortingVedRevurdering.Uhåndtert.IngenUtestående
@@ -489,6 +492,7 @@ internal class RevurderingServiceImpl(
                 )
             }
             is VedtakSomKanRevurderes.IngenEndringIYtelse -> tilRevurdering.beregning
+            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> tilRevurdering.beregning
         }
 
         val feilmeldinger = when (revurdering) {
@@ -685,7 +689,7 @@ internal class RevurderingServiceImpl(
 
         return when (originalRevurdering) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
-                val eksisterendeUtbetalinger = utbetalingService.hentUtbetalinger(originalRevurdering.sakId)
+                val eksisterendeUtbetalinger = utbetalingService.hentUtbetalingerForSakId(originalRevurdering.sakId)
                 val gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
                     sakId = originalRevurdering.sakId,
                     fraOgMed = originalRevurdering.periode.fraOgMed,
@@ -1145,6 +1149,7 @@ internal class RevurderingServiceImpl(
                 }
             }
             is VedtakSomKanRevurderes.IngenEndringIYtelse -> tilRevurdering.beregning
+            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> tilRevurdering.beregning
         }
 
         tilbakekrevingService.hentAvventerKravgrunnlag(revurdering.sakId)

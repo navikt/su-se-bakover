@@ -16,7 +16,7 @@ import java.time.LocalDate
 import kotlin.math.roundToInt
 
 class StønadsstatistikkMapper(
-    private val clock: Clock
+    private val clock: Clock,
 ) {
     fun map(
         vedtak: VedtakSomKanRevurderes.EndringIYtelse,
@@ -41,6 +41,7 @@ class StønadsstatistikkMapper(
                 is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> Statistikk.Stønad.Vedtaksresultat.INNVILGET
                 is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> Statistikk.Stønad.Vedtaksresultat.OPPHØRT
                 is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> Statistikk.Stønad.Vedtaksresultat.STANSET
+                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> TODO()
             },
             behandlendeEnhetKode = "4815",
             ytelseVirkningstidspunkt = ytelseVirkningstidspunkt,
@@ -50,7 +51,10 @@ class StønadsstatistikkMapper(
             gjeldendeStonadUtbetalingsstopp = vedtak.behandling.periode.tilOgMed,
             månedsbeløp = when (vedtak) {
                 is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> mapBeregning(vedtak, vedtak.beregning)
-                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> mapBeregning(vedtak, vedtak.beregning)
+                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> mapBeregning(
+                    vedtak,
+                    vedtak.beregning,
+                )
 
                 /**
                  * TODO ai 10.11.2021: Endre når revurdering ikke trenger å opphøre behandlingen fra 'fraDato':en
@@ -59,10 +63,13 @@ class StønadsstatistikkMapper(
 
                 is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> emptyList()
                 is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> mapBeregning(vedtak, sak, clock)
+                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> TODO()
             },
             versjon = nå.toEpochMilli(),
             opphorsgrunn = when (vedtak) {
-                is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> vedtak.behandling.utledOpphørsgrunner(clock).joinToString()
+                is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> vedtak.behandling.utledOpphørsgrunner(
+                    clock,
+                ).joinToString()
                 else -> null
             },
             opphorsdato = when (vedtak) {
@@ -73,7 +80,10 @@ class StønadsstatistikkMapper(
     }
 }
 
-private fun mapBeregning(vedtak: VedtakSomKanRevurderes.EndringIYtelse, beregning: Beregning): List<Statistikk.Stønad.Månedsbeløp> =
+private fun mapBeregning(
+    vedtak: VedtakSomKanRevurderes.EndringIYtelse,
+    beregning: Beregning,
+): List<Statistikk.Stønad.Månedsbeløp> =
     beregning.getMånedsberegninger().map {
         tilMånedsbeløp(it, vedtak)
     }
@@ -112,6 +122,7 @@ private fun vedtakstype(vedtak: VedtakSomKanRevurderes.EndringIYtelse) = when (v
     is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> Statistikk.Stønad.Vedtakstype.SØKNAD
     is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> Statistikk.Stønad.Vedtakstype.REVURDERING
     is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> Statistikk.Stønad.Vedtakstype.STANS
+    is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> TODO()
 }
 
 private fun stønadsklassifisering(

@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
-import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
+import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
@@ -46,11 +46,11 @@ internal class PersonhendelsePostgresRepoTest {
             )
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             val id = UUID.randomUUID()
-            repo.lagre(hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer)))
+            repo.lagre(hendelse.tilknyttSak(id, SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr)))
 
             repo.hent(id) shouldBe hendelse.tilknyttSak(
                 id = id,
-                SakIdOgNummer(sak.id, sak.saksnummer),
+                SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr),
             )
             hentMetadata(id, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
@@ -85,11 +85,11 @@ internal class PersonhendelsePostgresRepoTest {
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             val id = UUID.randomUUID()
 
-            repo.lagre(hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer)))
+            repo.lagre(hendelse.tilknyttSak(id, SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr)))
 
             repo.hent(id) shouldBe hendelse.tilknyttSak(
                 id = id,
-                SakIdOgNummer(sak.id, sak.saksnummer),
+                SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr),
             )
             hentMetadata(id, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
@@ -129,10 +129,10 @@ internal class PersonhendelsePostgresRepoTest {
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             val id = UUID.randomUUID()
 
-            repo.lagre(hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer)))
+            repo.lagre(hendelse.tilknyttSak(id, SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr)))
             repo.hent(id) shouldBe hendelse.tilknyttSak(
                 id = id,
-                SakIdOgNummer(sak.id, sak.saksnummer),
+                SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr),
             )
             hentMetadata(id, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
@@ -171,12 +171,12 @@ internal class PersonhendelsePostgresRepoTest {
             val sak2 = testDataHelper.persisterJournalførtSøknadMedOppgave().first
             val id2 = UUID.randomUUID()
 
-            repo.lagre(hendelse.tilknyttSak(id1, SakIdOgNummer(sak1.id, sak1.saksnummer)))
-            repo.lagre(hendelse.tilknyttSak(id2, SakIdOgNummer(sak2.id, sak2.saksnummer)))
+            repo.lagre(hendelse.tilknyttSak(id1, SakIdSaksnummerFnr(sak1.id, sak1.saksnummer, sak1.fnr)))
+            repo.lagre(hendelse.tilknyttSak(id2, SakIdSaksnummerFnr(sak2.id, sak2.saksnummer, sak2.fnr)))
 
             repo.hent(id1) shouldBe hendelse.tilknyttSak(
                 id = id1,
-                SakIdOgNummer(sak1.id, sak1.saksnummer),
+                SakIdSaksnummerFnr(sak1.id, sak1.saksnummer, sak1.fnr),
             )
             hentMetadata(id1, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
@@ -211,12 +211,12 @@ internal class PersonhendelsePostgresRepoTest {
             val id = UUID.randomUUID()
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
 
-            val hendelseKnyttetTilSak = hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer))
+            val hendelseKnyttetTilSak = hendelse.tilknyttSak(id, SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr))
             repo.lagre(hendelseKnyttetTilSak)
             repo.lagre(hendelseKnyttetTilSak.tilSendtTilOppgave(OppgaveId("oppgaveId")))
 
             val oppdatertHendelse = repo.hent(id)
-            oppdatertHendelse shouldBe hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer))
+            oppdatertHendelse shouldBe hendelse.tilknyttSak(id, SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr))
                 .tilSendtTilOppgave(OppgaveId("oppgaveId"))
         }
     }
@@ -256,16 +256,16 @@ internal class PersonhendelsePostgresRepoTest {
             )
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
 
-            val hendelse1KnyttetTilSak = hendelse1.tilknyttSak(id1, SakIdOgNummer(sak.id, sak.saksnummer))
+            val hendelse1KnyttetTilSak = hendelse1.tilknyttSak(id1, SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr))
             repo.lagre(hendelse1KnyttetTilSak)
-            repo.lagre(hendelse2.tilknyttSak(id2, SakIdOgNummer(sak.id, sak.saksnummer)))
+            repo.lagre(hendelse2.tilknyttSak(id2, SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr)))
 
             repo.lagre(hendelse1KnyttetTilSak.tilSendtTilOppgave(OppgaveId("oppgaveId")))
 
             repo.hentPersonhendelserUtenOppgave() shouldBe listOf(
                 hendelse2.tilknyttSak(
                     id2,
-                    SakIdOgNummer(sak.id, sak.saksnummer),
+                    SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr),
                 ),
             )
         }
@@ -308,8 +308,8 @@ internal class PersonhendelsePostgresRepoTest {
 
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
 
-            val hendelse1TilknyttetSak = hendelse1.tilknyttSak(hendelseId1, SakIdOgNummer(sak.id, sak.saksnummer))
-            val hendelse2TilknyttetSak = hendelse2.tilknyttSak(hendelseId2, SakIdOgNummer(sak.id, sak.saksnummer))
+            val hendelse1TilknyttetSak = hendelse1.tilknyttSak(hendelseId1, SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr))
+            val hendelse2TilknyttetSak = hendelse2.tilknyttSak(hendelseId2, SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr))
             repo.lagre(hendelse1TilknyttetSak)
             repo.lagre(hendelse2TilknyttetSak)
 
@@ -344,7 +344,7 @@ internal class PersonhendelsePostgresRepoTest {
             val id = UUID.randomUUID()
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
 
-            val hendelseKnyttetTilSak = hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer))
+            val hendelseKnyttetTilSak = hendelse.tilknyttSak(id, SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr))
             repo.lagre(hendelseKnyttetTilSak)
             repo.inkrementerAntallFeiledeForsøk(hendelseKnyttetTilSak)
             repo.inkrementerAntallFeiledeForsøk(hendelseKnyttetTilSak)
@@ -352,7 +352,7 @@ internal class PersonhendelsePostgresRepoTest {
             val oppdatertHendelse = repo.hent(id)
             oppdatertHendelse shouldBe
                 hendelse
-                    .tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer))
+                    .tilknyttSak(id, SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr))
                     .copy(
                         antallFeiledeForsøk = 2,
                     )

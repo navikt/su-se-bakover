@@ -29,6 +29,11 @@ data class Grunnlagsdata private constructor(
      * */
     val bosituasjon: List<Bosituasjon>,
 ) {
+    /**
+     * Det er vanskelig å si noe her om den er ferdig utfylt eller ikke, da det er akseptabelt med ingen fradragsgrunnlag.
+     * Men dersom vi har minst en bosituasjon, betyr det at den lovlig kan iverksettes.
+     */
+    val erUtfylt: Boolean = bosituasjon.isNotEmpty()
     fun oppdaterGrunnlagsperioder(
         oppdatertPeriode: Periode,
     ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {

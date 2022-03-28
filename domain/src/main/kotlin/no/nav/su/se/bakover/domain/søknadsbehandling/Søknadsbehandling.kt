@@ -2102,7 +2102,21 @@ enum class BehandlingsStatus {
     UNDERKJENT_INNVILGET,
     UNDERKJENT_AVSLAG,
     IVERKSATT_INNVILGET,
-    IVERKSATT_AVSLAG,
+    IVERKSATT_AVSLAG;
+
+    companion object {
+        fun åpneBeregnetSøknadsbehandlinger() = listOf(
+            BEREGNET_INNVILGET,
+            BEREGNET_AVSLAG,
+            SIMULERT,
+            TIL_ATTESTERING_INNVILGET,
+            TIL_ATTESTERING_AVSLAG,
+            UNDERKJENT_INNVILGET,
+            UNDERKJENT_AVSLAG,
+        )
+
+        fun åpneBeregnetSøknadsbehandlingerKommaseparert(): String = åpneBeregnetSøknadsbehandlinger().joinToString(",") { "'$it'" }
+    }
 }
 
 sealed interface KunneIkkeIverksette {

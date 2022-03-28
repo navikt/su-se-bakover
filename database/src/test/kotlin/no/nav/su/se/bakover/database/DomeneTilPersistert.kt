@@ -4,6 +4,8 @@ import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -214,6 +216,28 @@ internal inline fun <reified T : AbstraktRevurdering> T.persistertVariant(): T {
     } as T
 }
 
+internal inline fun <reified T : Regulering> T.persistertVariant(): T {
+    return when (this) {
+        is Regulering.OpprettetRegulering -> this.persistertVariant()
+        is Regulering.IverksattRegulering -> this.persistertVariant()
+        else -> null
+    } as T
+}
+
+internal fun Regulering.OpprettetRegulering.persistertVariant(): Regulering.OpprettetRegulering {
+    return this.copy(
+        grunnlagsdataOgVilkårsvurderinger = this.grunnlagsdataOgVilkårsvurderinger.persistertVariant(),
+        beregning = this.beregning?.persistertVariant()
+    )
+}
+
+internal fun Regulering.IverksattRegulering.persistertVariant(): Regulering.IverksattRegulering {
+    return this.copy(
+        opprettetRegulering = opprettetRegulering.persistertVariant(),
+        beregning = beregning.persistertVariant(),
+    )
+}
+
 internal fun VedtakSomKanRevurderes.persistertVariant(): VedtakSomKanRevurderes {
     return when (this) {
         is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> {
@@ -250,6 +274,12 @@ internal fun VedtakSomKanRevurderes.persistertVariant(): VedtakSomKanRevurderes 
                 beregning = beregning.persistertVariant(),
             )
         }
+        is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> {
+            copy(
+                behandling = behandling.persistertVariant(),
+                beregning = beregning.persistertVariant(),
+            )
+        }
     }
 }
 
@@ -280,5 +310,24 @@ internal fun Grunnlagsdata.persistertVariant(): Grunnlagsdata {
                 fradrag = it.fradrag.toSnapshot(),
             )
         },
+    )
+}
+
+internal fun GrunnlagsdataOgVilkårsvurderinger.persistertVariant(): GrunnlagsdataOgVilkårsvurderinger {
+    return when (this) {
+        is GrunnlagsdataOgVilkårsvurderinger.Revurdering -> this.persistertVariant()
+        is GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling -> this.persistertVariant()
+    }
+}
+
+internal fun GrunnlagsdataOgVilkårsvurderinger.Revurdering.persistertVariant(): GrunnlagsdataOgVilkårsvurderinger.Revurdering {
+    return this.copy(
+        grunnlagsdata = this.grunnlagsdata.persistertVariant(),
+    )
+}
+
+internal fun GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling.persistertVariant(): GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling {
+    return this.copy(
+        grunnlagsdata = this.grunnlagsdata.persistertVariant(),
     )
 }

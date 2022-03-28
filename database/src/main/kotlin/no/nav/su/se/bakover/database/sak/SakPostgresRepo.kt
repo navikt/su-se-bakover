@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
@@ -20,8 +21,9 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
-import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
+import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import java.util.UUID
 
@@ -32,6 +34,7 @@ internal class SakPostgresRepo(
     private val revurderingRepo: RevurderingPostgresRepo,
     private val vedtakPostgresRepo: VedtakPostgresRepo,
     private val klageRepo: KlageRepo,
+    private val reguleringRepo: ReguleringRepo,
 ) : SakRepo {
 
     private val åpneBehandlingerRepo = ÅpneBehandlingerRepo(
@@ -69,12 +72,12 @@ internal class SakPostgresRepo(
     /***
      * @param personidenter Inneholder alle identer til brukeren, f.eks fnr og aktørid.
      */
-    override fun hentSakIdOgNummerForIdenter(personidenter: NonEmptyList<String>): SakIdOgNummer? {
+    override fun hentSakIdOgNummerForIdenter(personidenter: NonEmptyList<String>): SakIdSaksnummerFnr? {
         return dbMetrics.timeQuery("hentSakIdOgNummerForIdenter") {
             sessionFactory.withSession { session ->
                 """
                 SELECT
-                    id, saksnummer
+                    id, saksnummer, fnr
                 FROM sak
                 WHERE fnr = ANY (:fnrs)
                 """.trimIndent().hent(
@@ -82,9 +85,10 @@ internal class SakPostgresRepo(
                     session,
                 ) { row ->
                     row.uuidOrNull("id")?.let { id ->
-                        SakIdOgNummer(
+                        SakIdSaksnummerFnr(
                             sakId = id,
                             saksnummer = Saksnummer(row.long("saksnummer")),
+                            fnr = Fnr(row.string("fnr")),
                         )
                     }
                 }
@@ -125,6 +129,16 @@ internal class SakPostgresRepo(
             sessionFactory.withSession { session ->
                 ferdigeBehandlingerRepo.hentFerdigeBehandlinger(session)
             }
+        }
+    }
+
+    override fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakIdSaksnummerFnr> = sessionFactory.withSession { session ->
+        """ select id, saksnummer, fnr from sak
+        """.trimMargin().hentListe(
+            mapOf(),
+            session,
+        ) {
+            SakIdSaksnummerFnr(it.uuid("id"), Saksnummer(it.long("saksnummer")), Fnr(it.string("fnr")))
         }
     }
 
@@ -169,7 +183,8 @@ internal class SakPostgresRepo(
                 utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
                 revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
                 vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
-                klager = klageRepo.hentKlager(sakId, sessionContext)
+                klager = klageRepo.hentKlager(sakId, sessionContext),
+                reguleringer = reguleringRepo.hentForSakId(sakId, sessionContext)
             )
         }
     }

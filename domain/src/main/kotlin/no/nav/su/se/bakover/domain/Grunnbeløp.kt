@@ -2,28 +2,27 @@ package no.nav.su.se.bakover.domain
 
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.ApplicationConfig
-import org.slf4j.LoggerFactory
+import no.nav.su.se.bakover.common.log
 import java.time.LocalDate
 import java.time.Month
 import kotlin.math.roundToInt
 
+private val defaultGrunnbeløp: Map<LocalDate, Int> = listOfNotNull(
+    LocalDate.of(2017, Month.MAY, 1) to 93634,
+    LocalDate.of(2018, Month.MAY, 1) to 96883,
+    LocalDate.of(2019, Month.MAY, 1) to 99858,
+    LocalDate.of(2020, Month.MAY, 1) to 101351,
+    LocalDate.of(2021, Month.MAY, 1) to 106399,
+    if (ApplicationConfig.isNotProd()) {
+        log.warn("Inkluderer fiktiv G-verdi for 2022. Skal ikke dukke opp i prod!")
+        LocalDate.of(2022, Month.MAY, 1) to 110000
+    } else null,
+).toMap()
+
 class Grunnbeløp private constructor(
     private val multiplier: Double,
+    private val datoToBeløp: Map<LocalDate, Int> = defaultGrunnbeløp,
 ) {
-    private val log = LoggerFactory.getLogger(this::class.java)
-
-    private val datoToBeløp: Map<LocalDate, Int> = listOfNotNull(
-        LocalDate.of(2017, Month.MAY, 1) to 93634,
-        LocalDate.of(2018, Month.MAY, 1) to 96883,
-        LocalDate.of(2019, Month.MAY, 1) to 99858,
-        LocalDate.of(2020, Month.MAY, 1) to 101351,
-        LocalDate.of(2021, Month.MAY, 1) to 106399,
-        if (ApplicationConfig.isNotProd()) {
-            log.warn("Inkluderer fiktiv G-verdi for 2022. Skal ikke dukke opp i prod!")
-            LocalDate.of(2022, Month.MAY, 1) to 110000
-        } else null
-    ).toMap()
-
     fun påDato(dato: LocalDate): Double = datoToBeløp.entries
         .sortedByDescending { it.key }
         .first { dato.isAfter(it.key) || dato.isEqual(it.key) }.value * multiplier

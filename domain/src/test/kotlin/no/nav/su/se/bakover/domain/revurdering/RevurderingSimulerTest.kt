@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.test.opprettetRevurderingAvslagSpesifiktVilkår
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simuleringNy
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
-import no.nav.su.se.bakover.test.utlandsoppholdAvslag
+import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
@@ -27,7 +27,7 @@ class RevurderingSimulerTest {
     @Test
     fun `avkortingsvarsel dersom opphør skyldes utenlandsopphold og simulering inneholder feilutbetaling`() {
         opprettetRevurderingAvslagSpesifiktVilkår(
-            avslåttVilkår = utlandsoppholdAvslag(),
+            avslåttVilkår = utenlandsoppholdAvslag(),
         ).let { (sak, revurdering) ->
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
@@ -70,7 +70,7 @@ class RevurderingSimulerTest {
     fun `kaster exception dersom simulering med justert opphørsdato for utbetaling inneholder feilutbetalinger`() {
         assertThrows<IllegalStateException> {
             opprettetRevurderingAvslagSpesifiktVilkår(
-                avslåttVilkår = utlandsoppholdAvslag(),
+                avslåttVilkår = utenlandsoppholdAvslag(),
             ).let { (sak, revurdering) ->
                 revurdering.beregn(
                     eksisterendeUtbetalinger = sak.utbetalinger,

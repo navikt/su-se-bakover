@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.web.routes.klage.KlageJson
 import no.nav.su.se.bakover.web.routes.klage.toJson
+import no.nav.su.se.bakover.web.routes.regulering.ReguleringJson
+import no.nav.su.se.bakover.web.routes.regulering.toJson
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingJson
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
@@ -29,6 +31,7 @@ internal data class SakJson(
     val revurderinger: List<RevurderingJson>,
     val vedtak: List<VedtakJson>,
     val klager: List<KlageJson>,
+    val reguleringer: List<ReguleringJson>,
 ) {
     companion object {
         internal fun Sak.toJson(clock: Clock) = SakJson(
@@ -54,6 +57,9 @@ internal data class SakJson(
             revurderinger = revurderinger.map { it.toJson() },
             vedtak = vedtakListe.map { it.toJson() },
             klager = klager.map { it.toJson() },
+            reguleringer = reguleringer.map {
+                it.toJson()
+            },
         )
     }
 }

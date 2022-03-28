@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Saksnummer
 import java.time.LocalDate
 import java.util.UUID
@@ -13,18 +15,14 @@ data class VedtakSomKanReguleres(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
     val vedtakType: VedtakType,
-    val reguleringType: ReguleringType,
+    val reguleringstype: Reguleringstype,
 )
-
-enum class ReguleringType {
-    AUTOMATISK,
-    MANUELL,
-}
 
 enum class VedtakType {
     SØKNAD,
     AVSLAG,
     ENDRING,
+    REGULERING,
     INGEN_ENDRING,
     OPPHØR,
     STANS_AV_YTELSE,
@@ -33,5 +31,11 @@ enum class VedtakType {
 }
 
 interface ReguleringRepo {
-    fun hentVedtakSomKanReguleres(fraOgMed: LocalDate): List<VedtakSomKanReguleres>
+    fun hent(id: UUID): Regulering?
+    fun hentReguleringerSomIkkeErIverksatt(): List<Regulering.OpprettetRegulering>
+    fun hentForSakId(sakId: UUID, sessionContext: SessionContext = defaultSessionContext()): List<Regulering>
+    fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
+    fun lagre(regulering: Regulering, sessionContext: TransactionContext = defaultTransactionContext())
+    fun defaultSessionContext(): SessionContext
+    fun defaultTransactionContext(): TransactionContext
 }

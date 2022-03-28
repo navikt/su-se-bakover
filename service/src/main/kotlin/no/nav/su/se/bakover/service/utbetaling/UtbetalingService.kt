@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.utbetaling
 import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
@@ -18,7 +19,7 @@ import java.util.UUID
 
 interface UtbetalingService {
     fun hentUtbetaling(utbetalingId: UUID30): Either<FantIkkeUtbetaling, Utbetaling>
-    fun hentUtbetalinger(sakId: UUID): List<Utbetaling>
+    fun hentUtbetalingerForSakId(sakId: UUID): List<Utbetaling>
     fun oppdaterMedKvittering(
         avstemmingsnøkkel: Avstemmingsnøkkel,
         kvittering: Kvittering,
@@ -31,10 +32,6 @@ interface UtbetalingService {
     fun simulerOpphør(
         request: SimulerUtbetalingRequest.OpphørRequest,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
-
-    fun utbetal(
-        request: UtbetalRequest.NyUtbetaling,
-    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun publiserUtbetaling(
         utbetaling: Utbetaling.SimulertUtbetaling
@@ -76,7 +73,6 @@ interface UtbetalingService {
 }
 
 object FantIkkeUtbetaling
-object FantIkkeGjeldendeUtbetaling
 
 sealed class SimulerGjenopptakFeil {
     data class KunneIkkeSimulere(val feil: SimuleringFeilet) : SimulerGjenopptakFeil()

@@ -18,6 +18,10 @@ internal class SkalSendeBrevVisitor : VedtakVisitor {
         sendBrev = !vedtak.innvilgetGRegulering()
     }
 
+    override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering) {
+        sendBrev = false
+    }
+
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering) {
         sendBrev = !vedtak.innvilgetGRegulering()
     }
