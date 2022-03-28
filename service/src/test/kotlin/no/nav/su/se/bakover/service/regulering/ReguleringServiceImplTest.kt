@@ -6,6 +6,7 @@ import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToComparingFieldsExcept
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -27,7 +28,10 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -48,6 +52,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -269,6 +274,17 @@ internal class ReguleringServiceImplTest {
                 it.opprettet shouldBe regulering.opprettet
             }
         }
+    }
+
+    @Test
+    fun `iverksatte reguleringer sender statistikk`() {
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
+        val eventObserverMock: EventObserver = mock()
+        lagReguleringServiceImpl(sak).apply {
+            addObserver(eventObserverMock)
+        }.startRegulering(1.mai(2021))
+
+        verify(eventObserverMock).handle(argThat { it.shouldBeTypeOf<Event.Statistikk.Vedtaksstatistikk>() })
     }
 
     /**

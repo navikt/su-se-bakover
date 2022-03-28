@@ -167,12 +167,14 @@ sealed class Statistikk {
             REVURDERING("Revurdering"),
             STANS("Stans"),
             GJENOPPTAK("Gjenopptak"),
+            REGULERING("Regulering"),
         }
         enum class Vedtaksresultat(val beskrivelse: String) {
             INNVILGET("Innvilget"),
             OPPHØRT("Opphørt"),
             STANSET("Stanset"),
             GJENOPPTATT("Gjenopptatt"),
+            REGULERT("Regulert"),
         }
 
         data class Månedsbeløp(
