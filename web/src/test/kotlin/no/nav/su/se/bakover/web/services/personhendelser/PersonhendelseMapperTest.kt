@@ -42,6 +42,8 @@ internal class PersonhendelseMapperTest {
             Doedsfall(fixedLocalDate),
             null,
             null,
+            null,
+            null,
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
         val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
@@ -70,6 +72,8 @@ internal class PersonhendelseMapperTest {
             opprettet,
             "DOEDSFALL_V1",
             Endringstype.OPPRETTET,
+            null,
+            null,
             null,
             null,
             null,
@@ -106,6 +110,8 @@ internal class PersonhendelseMapperTest {
             null,
             null,
             UtflyttingFraNorge("Sverige", "Stockholm", fixedLocalDate),
+            null,
+            null,
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
         val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
@@ -134,6 +140,8 @@ internal class PersonhendelseMapperTest {
             opprettet,
             "UTFLYTTING_FRA_NORGE",
             Endringstype.OPPRETTET,
+            null,
+            null,
             null,
             null,
             null,
@@ -170,6 +178,8 @@ internal class PersonhendelseMapperTest {
             null,
             Sivilstand("UGIFT", null, null, null),
             null,
+            null,
+            null,
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
         val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
@@ -198,6 +208,8 @@ internal class PersonhendelseMapperTest {
             opprettet,
             "SIVILSTAND_V1",
             Endringstype.OPPRETTET,
+            null,
+            null,
             null,
             null,
             null,
@@ -234,6 +246,8 @@ internal class PersonhendelseMapperTest {
             null,
             null,
             UtflyttingFraNorge("Sverige", "Stockholm", fixedLocalDate),
+            null,
+            null,
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, "\u0000$aktørId", personhendelse)
         val actual = PersonhendelseMapper.map(message)
@@ -266,6 +280,8 @@ internal class PersonhendelseMapperTest {
             null,
             null,
             UtflyttingFraNorge("Sverige", "Stockholm", fixedLocalDate),
+            null,
+            null,
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
         val actual = PersonhendelseMapper.map(message)
