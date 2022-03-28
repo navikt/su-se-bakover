@@ -276,7 +276,6 @@ internal class BrevInnholdTest {
                 "periodeStart": "1. januar 2021",
                 "periodeSlutt": "31. januar 2021",
                 "dato": "1. januar 2021",
-                "opphør": false
             }
         """.trimIndent()
 
