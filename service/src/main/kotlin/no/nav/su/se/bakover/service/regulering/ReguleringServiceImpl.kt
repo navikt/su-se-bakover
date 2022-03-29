@@ -243,18 +243,19 @@ class ReguleringServiceImpl(
             log.error("Regulering for saksnummer ${regulering.saksnummer}: Kunne ikke verifisere og simulere utbetaling for regulering med underliggende grunn: $it")
             KunneIkkeRegulereAutomatisk.KunneIkkeUtbetale
         }.flatMap {
+            val vedtak = VedtakSomKanRevurderes.from(regulering, it.id, clock)
+
             Either.catch {
                 sessionFactory.withTransactionContext { tx ->
                     utbetalingService.lagreUtbetaling(it, tx)
-                    val vedtak = VedtakSomKanRevurderes.from(regulering, it.id, clock)
                     vedtakService.lagre(vedtak = vedtak, sessionContext = tx)
                     reguleringRepo.lagre(regulering, tx)
-                    utbetalingService.publiserUtbetaling(it).mapLeft {
-                        throw KunneIkkeSendeTilUtbetalingException(it)
+                    utbetalingService.publiserUtbetaling(it).getOrHandle { utbetalingsfeil ->
+                        throw KunneIkkeSendeTilUtbetalingException(utbetalingsfeil)
                     }
-                    observers.forEach { it.handle(Event.Statistikk.Vedtaksstatistikk(vedtak)) }
-                    regulering
                 }
+                observers.forEach { observer -> observer.handle(Event.Statistikk.Vedtaksstatistikk(vedtak)) }
+                regulering
             }.mapLeft {
                 log.error(
                     "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering",
