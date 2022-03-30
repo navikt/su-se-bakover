@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -50,6 +51,7 @@ internal fun createSøknadsbehandlingService(
     kontrollsamtaleService: KontrollsamtaleService = mock(),
     sessionFactory: SessionFactory = TestSessionFactory(),
     avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
+    tilbakekrevingService: TilbakekrevingService = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadService = søknadService,
     søknadsbehandlingRepo = søknadsbehandlingRepo,
@@ -64,7 +66,8 @@ internal fun createSøknadsbehandlingService(
     sakService = sakService,
     kontrollsamtaleService = kontrollsamtaleService,
     sessionFactory = sessionFactory,
-    avkortingsvarselRepo
+    avkortingsvarselRepo = avkortingsvarselRepo,
+    tilbakekrevingService = tilbakekrevingService,
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
@@ -83,6 +86,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val kontrollsamtaleService: KontrollsamtaleService = defaultMock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
+    val tilbakekrevingService: TilbakekrevingService = defaultMock(),
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadService = søknadService,
@@ -99,6 +103,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
         kontrollsamtaleService = kontrollsamtaleService,
         sessionFactory = sessionFactory,
         avkortingsvarselRepo = avkortingsvarselRepo,
+        tilbakekrevingService = tilbakekrevingService,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {
@@ -115,7 +120,8 @@ internal data class SøknadsbehandlingServiceAndMocks(
             ferdigstillVedtakService,
             sakService,
             kontrollsamtaleService,
-            avkortingsvarselRepo
+            avkortingsvarselRepo,
+            tilbakekrevingService,
         ).toTypedArray()
     }
 
@@ -133,7 +139,8 @@ internal data class SøknadsbehandlingServiceAndMocks(
             ferdigstillVedtakService,
             sakService,
             kontrollsamtaleService,
-            avkortingsvarselRepo
+            avkortingsvarselRepo,
+            tilbakekrevingService,
         )
     }
 }

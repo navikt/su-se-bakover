@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
+import no.nav.su.se.bakover.web.routes.revurdering.tilResultat
 import kotlin.reflect.KClass
 
 internal object Feilresponser {
@@ -270,6 +271,11 @@ internal object Feilresponser {
     val harIkkeEktefelle = BadRequest.errorJson(
         "Kan ikke ha formue for eps når søker ikke har eps",
         "har_ikke_ektefelle",
+    )
+
+    val sakAvventerKravgrunnlagForTilbakekreving = BadRequest.errorJson(
+        message = "Saken avventer kravgrunnlag for tilbakekreving. Nye utbetalinger kan ikke håndteres før kravgrunnlaget er ferdigbehandlet.",
+        code = "åpent_kravgrunnlag_må_håndteres_før_ny_søknadsbehandling",
     )
 
     object Brev {

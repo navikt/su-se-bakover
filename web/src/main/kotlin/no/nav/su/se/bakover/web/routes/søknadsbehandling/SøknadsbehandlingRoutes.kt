@@ -414,9 +414,18 @@ internal fun Route.søknadsbehandlingRoutes(
                         ).fold(
                             {
                                 val resultat = when (it) {
-                                    KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
-                                    KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> Feilresponser.fantIkkeAktørId
-                                    KunneIkkeSendeTilAttestering.FantIkkeBehandling -> fantIkkeBehandling
+                                    KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> {
+                                        Feilresponser.kunneIkkeOppretteOppgave
+                                    }
+                                    KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> {
+                                        Feilresponser.fantIkkeAktørId
+                                    }
+                                    KunneIkkeSendeTilAttestering.FantIkkeBehandling -> {
+                                        fantIkkeBehandling
+                                    }
+                                    KunneIkkeSendeTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> {
+                                        Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
+                                    }
                                 }
                                 call.svar(resultat)
                             },
