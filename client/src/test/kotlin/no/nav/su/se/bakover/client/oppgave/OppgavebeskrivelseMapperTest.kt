@@ -39,4 +39,18 @@ internal class OppgavebeskrivelseMapperTest {
         OppgavebeskrivelseMapper.map(personhendelse) shouldBe "Utflytting fra Norge\n" +
             "\tUtflyttingsdato: 2021-01-01"
     }
+
+    @Test
+    fun `mapper bostedsadresse riktig`() {
+        val personhendelse = Personhendelse.Hendelse.Bostedsadresse
+
+        OppgavebeskrivelseMapper.map(personhendelse) shouldBe "Endring i bostedsadresse"
+    }
+
+    @Test
+    fun `mapper kontaktadresse riktig`() {
+        val personhendelse = Personhendelse.Hendelse.Kontaktadresse
+
+        OppgavebeskrivelseMapper.map(personhendelse) shouldBe "Endring i kontaktadresse"
+    }
 }

@@ -29,6 +29,8 @@ object OppgavebeskrivelseMapper {
             "Utflytting fra Norge\n" +
                 "\tUtflyttingsdato: ${hendelse.utflyttingsdato ?: "Ikke oppgitt"}"
         }
+        is Personhendelse.Hendelse.Bostedsadresse -> "Endring i bostedsadresse"
+        is Personhendelse.Hendelse.Kontaktadresse -> "Endring i kontaktadresse"
     }
 
     private fun SivilstandTyper.toReadableName() = when (this) {

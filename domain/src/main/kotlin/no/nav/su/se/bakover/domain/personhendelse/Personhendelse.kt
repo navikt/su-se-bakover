@@ -114,6 +114,16 @@ sealed class Personhendelse {
                 return "Sivilstand(type=$type, gyldigFraOgMed=$gyldigFraOgMed, relatertVedSivilstand=${relatertVedSivilstand.let { "****" }}, bekreftelsesdato=$bekreftelsesdato)"
             }
         }
+
+        /**
+         * @see <a href="https://pdldocs-navno.msappproxy.net/ekstern/index.html#opplysningstyper-adresser-bostedsAdresse">Dokumentasjonen</a>
+         * */
+        object Bostedsadresse : Hendelse()
+
+        /**
+         * @see <a href="https://pdldocs-navno.msappproxy.net/ekstern/index.html#opplysningstyper-adresser-kontaktAdresse">Dokumentasjonen</a>
+         * */
+        object Kontaktadresse : Hendelse()
     }
 
     /** Metadata rundt hendelsen

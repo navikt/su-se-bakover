@@ -147,6 +147,82 @@ internal class PersonhendelsePostgresRepoTest {
     }
 
     @Test
+    fun `Kan lagre og hente bostedsadresse`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.hendelsePostgresRepo
+            val hendelse = Personhendelse.IkkeTilknyttetSak(
+                endringstype = Personhendelse.Endringstype.OPPRETTET,
+                hendelse = Personhendelse.Hendelse.Bostedsadresse,
+                metadata = Personhendelse.Metadata(
+                    personidenter = nonEmptyListOf(aktørId, fnr.toString()),
+                    hendelseId = hendelseId,
+                    tidligereHendelseId = null,
+                    offset = 0,
+                    partisjon = 0,
+                    master = "FREG",
+                    key = "someKey",
+                ),
+            )
+            val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
+            val id = UUID.randomUUID()
+
+            repo.lagre(hendelse.tilknyttSak(id, SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr)))
+            repo.hent(id) shouldBe hendelse.tilknyttSak(
+                id = id,
+                SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr),
+            )
+            hentMetadata(id, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
+                hendelseId = hendelseId,
+                tidligereHendelseId = null,
+                offset = 0,
+                partisjon = 0,
+                master = "FREG",
+                key = "someKey",
+                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
+            )
+        }
+    }
+
+    @Test
+    fun `Kan lagre og hente kontaktadresse`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.hendelsePostgresRepo
+            val hendelse = Personhendelse.IkkeTilknyttetSak(
+                endringstype = Personhendelse.Endringstype.OPPRETTET,
+                hendelse = Personhendelse.Hendelse.Kontaktadresse,
+                metadata = Personhendelse.Metadata(
+                    personidenter = nonEmptyListOf(aktørId, fnr.toString()),
+                    hendelseId = hendelseId,
+                    tidligereHendelseId = null,
+                    offset = 0,
+                    partisjon = 0,
+                    master = "FREG",
+                    key = "someKey",
+                ),
+            )
+            val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
+            val id = UUID.randomUUID()
+
+            repo.lagre(hendelse.tilknyttSak(id, SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr)))
+            repo.hent(id) shouldBe hendelse.tilknyttSak(
+                id = id,
+                SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr),
+            )
+            hentMetadata(id, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
+                hendelseId = hendelseId,
+                tidligereHendelseId = null,
+                offset = 0,
+                partisjon = 0,
+                master = "FREG",
+                key = "someKey",
+                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
+            )
+        }
+    }
+
+    @Test
     fun `lagring av duplikate hendelser ignoreres`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)

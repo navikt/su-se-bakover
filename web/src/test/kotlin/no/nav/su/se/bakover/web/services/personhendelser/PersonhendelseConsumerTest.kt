@@ -11,13 +11,6 @@ import no.nav.common.JAAS_REQUIRED
 import no.nav.common.KafkaEnvironment
 import no.nav.person.pdl.leesah.Endringstype
 import no.nav.person.pdl.leesah.bostedsadresse.Bostedsadresse
-import no.nav.person.pdl.leesah.common.adresse.Koordinater
-import no.nav.person.pdl.leesah.common.adresse.Matrikkeladresse
-import no.nav.person.pdl.leesah.common.adresse.PostadresseIFrittFormat
-import no.nav.person.pdl.leesah.common.adresse.Postboksadresse
-import no.nav.person.pdl.leesah.common.adresse.UkjentBosted
-import no.nav.person.pdl.leesah.common.adresse.UtenlandskAdresse
-import no.nav.person.pdl.leesah.common.adresse.UtenlandskAdresseIFrittFormat
 import no.nav.person.pdl.leesah.common.adresse.Vegadresse
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.kontaktadresse.Kontaktadresse
@@ -123,18 +116,12 @@ internal class PersonhendelseConsumerTest {
         offset: Long,
         personIdenter: List<String> = listOf(ident, fnr.toString()),
     ): ProducerRecord<String, EksternPersonhendelse> {
-        val koordinater = Koordinater(1F, 1F, 1F)
         val vegadresse = Vegadresse(
             "matrikkelId", "husnummer",
             "husbokstav", "bruksenhetsnummer",
             "adressenavn", "kommunenummer",
             "bydelsnummer", "tilleggsnavn",
-            "postnummer", koordinater,
-        )
-        val utenlandskAdresse = UtenlandskAdresse(
-            "adressenavnNummer", "bygningEtasjeLeilighet",
-            "postboksNummerNavn", "postkode", "bySted",
-            "regionDistriktOmraade", "landkode",
+            "postnummer", null,
         )
 
         val personhendelse = EksternPersonhendelse(
@@ -159,26 +146,12 @@ internal class PersonhendelseConsumerTest {
             ), // utflyttingFraNorge (https://navikt.github.io/pdl/#_utflytting)
             Kontaktadresse(
                 1.januar(2021), 5.juni(2025),
-                "Innland", "coAdressenavn",
-                Postboksadresse("postbokseier", "postboks", "postnummer"),
-                vegadresse,
-                PostadresseIFrittFormat(
-                    "adresselinje1", "adresselinje2", "adresselinje3", "postnummer",
-                ),
-                utenlandskAdresse,
-                UtenlandskAdresseIFrittFormat(
-                    "adresselinje1", "adresselinje2", "adresselinje3", "postkode", "byEllerStedsnavn", "landkode",
-                ),
+                "Innland", "coAdressenavn", null,
+                vegadresse, null, null, null,
             ),
             Bostedsadresse(
-                1.januar(2021), 1.januar(2021), 5.juni(2025),
-                "coAdressenavn", vegadresse,
-                Matrikkeladresse(
-                    "matrikkelId", "bruksenhetsnummer",
-                    "tilleggsnavn", "postnummer",
-                    "kommunenummer", koordinater,
-                ),
-                utenlandskAdresse, UkjentBosted("bostedskommune"),
+                1.januar(2021), 1.januar(2021), 5.juni(2025), "coAdressenavn",
+                vegadresse, null, null, null,
             ),
         )
         // Emulerer at PDL-kafka legger på 6 ukjente karakterer før de appender key

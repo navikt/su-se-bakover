@@ -78,12 +78,8 @@ internal object PersonhendelseMapper {
                     }.orNull() ?: Personhendelse.Hendelse.Sivilstand.EMPTY
                     ).right()
             }
-            Opplysningstype.BOSTEDSADRESSE.value -> {
-                TODO()
-            }
-            Opplysningstype.KONTAKTADRESSE.value -> {
-                TODO()
-            }
+            Opplysningstype.BOSTEDSADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse.right()
+            Opplysningstype.KONTAKTADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse.right()
             else -> {
                 IkkeAktuellOpplysningstype(personhendelse.getHendelseId(), personhendelse.getOpplysningstype()).left()
             }
