@@ -8,6 +8,16 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
+import no.nav.su.se.bakover.domain.klage.AvvistKlage
+import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
+import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
+import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
+import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -22,6 +32,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.stønadsklassifisering
 import java.time.Clock
+import java.util.UUID
 
 class BehandlingStatistikkMapper(
     private val clock: Clock,
@@ -76,7 +87,7 @@ class BehandlingStatistikkMapper(
                         resultat = ResultatOgBegrunnelseMapper.map(søknadsbehandling).resultat,
                         avsluttet = true,
                         behandlingStatus = "LUKKET",
-                        behandlingStatusBeskrivelse = "Søknadsbehandling lukket"
+                        behandlingStatusBeskrivelse = "Søknadsbehandling lukket",
                     )
                 }
                 else -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
@@ -261,6 +272,58 @@ class BehandlingStatistikkMapper(
         }
     }
 
+    fun map(klage: Klage): Statistikk.Behandling {
+        val nå = Tidspunkt.now(clock)
+        Statistikk.Behandling(
+            behandlingType = Statistikk.Behandling.BehandlingType.KLAGE,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.KLAGE.beskrivelse,
+            funksjonellTid = nå,
+            tekniskTid = nå,
+            registrertDato = klage.opprettet.toLocalDate(zoneIdOslo),
+            mottattDato = klage.opprettet.toLocalDate(zoneIdOslo),
+            behandlingId = klage.id,
+            sakId = klage.sakId,
+            saksnummer = klage.saksnummer.nummer,
+            behandlingStatus = BehandlingStatusMapper.map(klage),
+            behandlingStatusBeskrivelse = BehandlingStatusBeskrivelseMapper.map(klage),
+            versjon = clock.millis(),
+            saksbehandler = klage.saksbehandler.navIdent,
+            relatertBehandlingId = when(klage) {
+                is OpprettetKlage -> null
+                is AvsluttetKlage -> null
+                is AvvistKlage -> klage.vilkårsvurderinger.vedtakId
+                is VilkårsvurdertKlage -> klage.vilkårsvurderinger.vedtakId
+                is KlageTilAttestering -> klage.vilkårsvurderinger.vedtakId
+                is VurdertKlage -> klage.vilkårsvurderinger.vedtakId
+                is IverksattAvvistKlage -> klage.vilkårsvurderinger.vedtakId
+                is OversendtKlage -> klage.vilkårsvurderinger.vedtakId
+            },
+            avsluttet = false,
+            totrinnsbehandling = false
+        ).apply {
+            return when (klage) {
+                is OpprettetKlage,
+                is KlageTilAttestering,
+                is VurdertKlage,
+                is VilkårsvurdertKlage,
+                is AvvistKlage,
+                -> this
+                is AvsluttetKlage -> this.copy(avsluttet = true)
+                is IverksattAvvistKlage -> this.copy(avsluttet = true)
+                is OversendtKlage -> this.copy(
+                    totrinnsbehandling = true,
+                    resultat = "Opprettholdt",
+                    resultatBegrunnelse = "Opprettholdt i henhold til lov om supplerende stønad " +
+                        "${
+                            (klage.vurderinger.vedtaksvurdering as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold).hjemler.joinToString(
+                                ", ",
+                            ) { "kapittel ${it.kapittel} - § ${it.paragrafnummer}" }
+                        }.",
+                )
+            }
+        }
+    }
+
     private fun behandlingYtelseDetaljer(
         behandling: Behandling,
     ): List<Statistikk.BehandlingYtelseDetaljer> {
@@ -312,7 +375,8 @@ class BehandlingStatistikkMapper(
                 is Søknadsbehandling.Beregnet,
                 is Søknadsbehandling.Vilkårsvurdert.Innvilget,
                 is Søknadsbehandling.Vilkårsvurdert.Avslag,
-                is Søknadsbehandling.Simulert -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
+                is Søknadsbehandling.Simulert,
+                -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
             }
     }
 
@@ -344,6 +408,17 @@ class BehandlingStatistikkMapper(
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> "SIMULERT_STANS"
             is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> "AVSLUTTET_STANS"
         }
+
+        fun map(klage: Klage) = when (klage) {
+            is OpprettetKlage -> "OPPRETTET"
+            is AvvistKlage -> "UNDER_BEHANDLING"
+            is VilkårsvurdertKlage -> "UNDER_BEHANDLING"
+            is VurdertKlage -> "UNDER_BEHANDLING"
+            is KlageTilAttestering -> "TIL_ATTESTERING"
+            is AvsluttetKlage -> "AVSLUTTET"
+            is IverksattAvvistKlage -> "AVVIST"
+            is OversendtKlage -> "OVERSENDT"
+        }
     }
 
     internal object BehandlingStatusBeskrivelseMapper {
@@ -374,6 +449,15 @@ class BehandlingStatistikkMapper(
             is StansAvYtelseRevurdering.IverksattStansAvYtelse -> "Ytelsen er stanset"
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> "Opprettet og simulert stans av ytelsen"
             is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> "Stans av ytelsen er avsluttet"
+        }
+
+        fun map(klage: Klage) = when (klage) {
+            is OpprettetKlage -> "Klagebehandling ble opprettet av saksbehandler"
+            is AvvistKlage, is VilkårsvurdertKlage, is VurdertKlage -> "Klagen er under behandling"
+            is KlageTilAttestering -> "Klagen er sendt til attestering"
+            is AvsluttetKlage -> "Klagebehandling ble avsluttet"
+            is IverksattAvvistKlage -> "Klagen ble avvist"
+            is OversendtKlage -> "Klagen er oversendt til klageinstans"
         }
     }
 
@@ -428,6 +512,7 @@ class BehandlingStatistikkMapper(
         fun map(gjenopptakAvYtelse: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse) = ResultatOgBegrunnelse(
             gjenopptak, gjenopptakAvYtelse.revurderingsårsak.årsak.hentGyldigGjenopptakBegrunnelse(),
         )
+
         fun lukket() = lukket
 
         private fun listUtOpphørsgrunner(opphørsgrunner: List<Opphørsgrunn>): String = opphørsgrunner.joinToString(",")

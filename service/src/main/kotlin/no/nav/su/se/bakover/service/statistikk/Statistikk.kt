@@ -107,7 +107,8 @@ sealed class Statistikk {
     ) : Statistikk() {
         enum class BehandlingType(val beskrivelse: String) {
             SOKNAD("Søknad for SU Uføre"),
-            REVURDERING("Revurdering av søknad for SU Uføre")
+            REVURDERING("Revurdering av søknad for SU Uføre"),
+            KLAGE("Klage for SU Uføre")
         }
         enum class SøknadStatus(val beskrivelse: String) {
             SØKNAD_MOTTATT("Søknaden er mottatt"),

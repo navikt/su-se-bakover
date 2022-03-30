@@ -3,6 +3,11 @@ package no.nav.su.se.bakover.service.statistikk
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
+import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -74,6 +79,14 @@ sealed class Event {
             data class Stans(val stans: StansAvYtelseRevurdering) : Statistikk()
             data class Gjenoppta(val gjenoppta: GjenopptaYtelseRevurdering) : Statistikk()
         }
+
+        sealed class Klagestatistikk: Statistikk() {
+            data class Opprettet(val klage: OpprettetKlage): Klagestatistikk()
+            data class TilAttestering(val klage: KlageTilAttestering): Klagestatistikk()
+            data class Oversendt(val klage: OversendtKlage): Klagestatistikk()
+            data class Avvist(val klage: IverksattAvvistKlage): Klagestatistikk()
+        }
+
 
         data class Vedtaksstatistikk(val vedtak: VedtakSomKanRevurderes.EndringIYtelse) : Statistikk()
     }
