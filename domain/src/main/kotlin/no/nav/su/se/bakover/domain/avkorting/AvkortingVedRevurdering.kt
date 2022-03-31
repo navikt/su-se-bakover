@@ -3,8 +3,16 @@ package no.nav.su.se.bakover.domain.avkorting
 import no.nav.su.se.bakover.common.periode.Periode
 import java.util.UUID
 
+/**
+ * Representerer tilstander for håndtering av et eller flere [Avkortingsvarsel] i kontekst av en revurdering.
+ * Tilstandene sier noe om hvordan den aktuelle revurdering forholder seg til de aktuelle varslene.
+ */
 sealed class AvkortingVedRevurdering {
 
+    /**
+     * Tidlige tilstander som indikerer at vi har identifisert 0 eller 1 [Avkortingsvarsel.Utenlandsopphold.SkalAvkortes]
+     * som må tas hensyn til.
+     */
     sealed class Uhåndtert : AvkortingVedRevurdering() {
 
         abstract fun håndter(): DelvisHåndtert
@@ -58,6 +66,11 @@ sealed class AvkortingVedRevurdering {
         }
     }
 
+    /**
+     * Intermediære tilstander hvor man er delvis ferdig med håndteringen av [Avkortingsvarsel.Utenlandsopphold.SkalAvkortes].
+     * "Delvis" her representerer at man har gjort håndtering av 0 eller 1 utestående varsel, men det kan fortsatt produseres
+     * nye varsel som følge av revurderingen som pågår.
+     */
     sealed class DelvisHåndtert : AvkortingVedRevurdering() {
 
         abstract fun håndter(): Håndtert
@@ -122,6 +135,9 @@ sealed class AvkortingVedRevurdering {
         }
     }
 
+    /**
+     * Intermediære tilstander hvor håndteringen av både utestående og nye varsel er ferdig.
+     */
     sealed class Håndtert : AvkortingVedRevurdering() {
 
         abstract fun uhåndtert(): Uhåndtert
@@ -218,6 +234,16 @@ sealed class AvkortingVedRevurdering {
             fun periode(): Periode
         }
 
+        /**
+         * Representerer at revurderingen både har opprettet et nytt [Avkortingsvarsel.Utenlandsopphold], i tillegg
+         * til at et utestående [Avkortingsvarsel.Utenlandsopphold] har blitt annullert. Kan oppstå hvis man
+         * revurderer en periode med en utestående avkorting. Underveis i prosessen oppdateres også status
+         * for de aktuelle varslene.
+         *
+         * @see Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående.iverksett
+         * @see Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
+         * @see Avkortingsvarsel.Utenlandsopphold.Annullert
+         */
         data class OpprettNyttAvkortingsvarselOgAnnullerUtestående(
             val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
             val annullerUtestående: Avkortingsvarsel.Utenlandsopphold.Annullert,
@@ -231,6 +257,13 @@ sealed class AvkortingVedRevurdering {
             }
         }
 
+        /**
+         * Revurderingen har endt opp med å produsere et nytt [Avkortingsvarsel.Utenlandsopphold] som skal/kan/bør
+         * håndteres av en fremtidig [AvkortingVedSøknadsbehandling].
+         *
+         * @see Håndtert.OpprettNyttAvkortingsvarsel
+         * @see Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
+         */
         data class OpprettNyttAvkortingsvarsel(
             val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
         ) : Iverksatt(), HarProdusertNyttAvkortingsvarsel {
@@ -243,12 +276,28 @@ sealed class AvkortingVedRevurdering {
             }
         }
 
+        /**
+         * Revurderingen har endt opp med å annullere et utestående [Avkortingsvarsel.Utenlandsopphold].
+         * Kan oppstå hvis man revurderer en periode med utestående varsel, og endrer resultatet slik at det ikke lenger
+         * er snakk om en feilutbetaling.
+         *
+         * @see Håndtert.AnnullerUtestående
+         * @see Avkortingsvarsel.Utenlandsopphold.Annullert
+         */
         data class AnnullerUtestående(
             val annullerUtestående: Avkortingsvarsel.Utenlandsopphold.Annullert,
         ) : Iverksatt()
 
+        /**
+         * Ingen nye varsel er produsert som følge av denne revurderingen. Ei heller er det gjort noen håndtering av
+         * utestående varsel.
+         */
         object IngenNyEllerUtestående : Iverksatt()
 
+        /**
+         * Revurdeing er ikke i stand til å håndtere avkorting. Kan f.eks skyldes at revurdering selv er i en
+         * tilstand som er for "tidlig" til at avkortingen er tatt hensyn til og/eller at den er avsluttet.
+         */
         data class KanIkkeHåndteres(
             val håndtert: Håndtert,
         ) : Iverksatt()
