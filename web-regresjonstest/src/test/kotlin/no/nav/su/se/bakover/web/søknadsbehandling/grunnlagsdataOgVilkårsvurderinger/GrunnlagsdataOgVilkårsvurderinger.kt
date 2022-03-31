@@ -12,6 +12,10 @@ fun tomGrunnlagsdataOgVilkårsvurderingerResponse(): String {
         "resultat":"MåInnhenteMerInformasjon",
         "formuegrenser":[
           {
+            "gyldigFra":"2022-05-01",
+            "beløp":53250
+          },
+          {
             "gyldigFra":"2021-05-01",
             "beløp":53200
           },

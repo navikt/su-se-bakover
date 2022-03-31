@@ -75,6 +75,7 @@ internal class GrunnbeløpTest {
     @Test
     fun `fra 2021-05-01`() {
         Grunnbeløp.`0,5G`.gyldigPåDatoOgSenere(LocalDate.of(2021, 5, 1)) shouldBe listOf(
+            LocalDate.of(2022, 5, 1) to 53250,
             LocalDate.of(2021, 5, 1) to 53200,
         )
     }
@@ -82,6 +83,7 @@ internal class GrunnbeløpTest {
     @Test
     fun `fra 2021-04-30`() {
         Grunnbeløp.`0,5G`.gyldigPåDatoOgSenere(LocalDate.of(2021, 4, 30)) shouldBe listOf(
+            LocalDate.of(2022, 5, 1) to 53250,
             LocalDate.of(2021, 5, 1) to 53200,
             LocalDate.of(2020, 5, 1) to 50676,
         )
@@ -90,6 +92,7 @@ internal class GrunnbeløpTest {
     @Test
     fun `fra 2021-01-01`() {
         Grunnbeløp.`0,5G`.gyldigPåDatoOgSenere(LocalDate.of(2021, 1, 1)) shouldBe listOf(
+            LocalDate.of(2022, 5, 1) to 53250,
             LocalDate.of(2021, 5, 1) to 53200,
             LocalDate.of(2020, 5, 1) to 50676,
         )
@@ -98,6 +101,7 @@ internal class GrunnbeløpTest {
     @Test
     fun `fra 2020-05-01`() {
         Grunnbeløp.`0,5G`.gyldigPåDatoOgSenere(LocalDate.of(2020, 5, 1)) shouldBe listOf(
+            LocalDate.of(2022, 5, 1) to 53250,
             LocalDate.of(2021, 5, 1) to 53200,
             LocalDate.of(2020, 5, 1) to 50676,
         )
@@ -106,6 +110,7 @@ internal class GrunnbeløpTest {
     @Test
     fun `fra 2020-04-30`() {
         Grunnbeløp.`0,5G`.gyldigPåDatoOgSenere(LocalDate.of(2020, 4, 30)) shouldBe listOf(
+            LocalDate.of(2022, 5, 1) to 53250,
             LocalDate.of(2021, 5, 1) to 53200,
             LocalDate.of(2020, 5, 1) to 50676,
             LocalDate.of(2019, 5, 1) to 49929,
@@ -119,6 +124,7 @@ internal class GrunnbeløpTest {
         Grunnbeløp.`1G`.heltallPåDato(LocalDate.of(2019, MAY, 1)) shouldBe 99858
         Grunnbeløp.`1G`.heltallPåDato(LocalDate.of(2020, MAY, 1)) shouldBe 101351
         Grunnbeløp.`1G`.heltallPåDato(LocalDate.of(2021, MAY, 1)) shouldBe 106399
+        Grunnbeløp.`1G`.heltallPåDato(LocalDate.of(2022, MAY, 1)) shouldBe 106499
     }
 
     @Test
