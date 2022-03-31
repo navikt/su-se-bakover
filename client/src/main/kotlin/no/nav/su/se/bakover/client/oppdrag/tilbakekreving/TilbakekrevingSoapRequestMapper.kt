@@ -13,8 +13,14 @@ internal enum class AksjonsKode(val nummer: String) {
     FATT_VEDTAK("8")
 }
 
-internal enum class TilbakekrevingsHjemmel {
-    ANNET
+/**
+ * Dersom man bruker hjemmel 'ANNET' sender tilbakekrevingskomponenten posisjon 118 som blank til NAVI/Predator og den vil bli behandlet som foreldet.
+ * Dersom man bruker hjemmel '22-15' vil tilbakekrevingskomponenten sende T på posisjon 118 istedet og vi vil få forventet oppførsel.
+ */
+internal enum class TilbakekrevingsHjemmel(val value: String) {
+    T("22-15");
+
+    override fun toString() = value
 }
 
 internal enum class Tilbakekrevingsresultat {
@@ -77,7 +83,7 @@ fun mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtak: Tilbakekrevingsvedt
 
             // 4 - 441 - Kode-hjemmel - X(20) - Krav - Lovhjemmel om tilbakekrevingsvedtaket
             // TODO jah: Dette må mappes fra domenet. Gjenbruk de SU Alder bruker i dag.
-            this.kodeHjemmel = TilbakekrevingsHjemmel.ANNET.toString()
+            this.kodeHjemmel = TilbakekrevingsHjemmel.T.toString()
 
             // 5 - 441 - Renter-beregnes - X(01) - Betinget krav - 'J' Dersom det skal beregnes renter på kravet
             // TODO jah: Verifiser med fag/juridisk/økonomi at vi ikke skal beregne med renter

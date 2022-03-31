@@ -50,7 +50,7 @@ internal class TilbakekrevingSoapRequestMapperKtTest {
             it.tilbakekrevingsvedtak.let { vedtakDto ->
                 vedtakDto.kodeAksjon shouldBe "8"
                 vedtakDto.vedtakId shouldBe BigInteger("436204")
-                vedtakDto.kodeHjemmel shouldBe "ANNET"
+                vedtakDto.kodeHjemmel shouldBe "22-15"
                 vedtakDto.renterBeregnes shouldBe "N"
                 vedtakDto.enhetAnsvarlig shouldBe "8020"
                 vedtakDto.kontrollfelt shouldBe "2022-02-07-18.39.46.586953"
@@ -132,7 +132,7 @@ internal class TilbakekrevingSoapRequestMapperKtTest {
             it.tilbakekrevingsvedtak.let { vedtakDto ->
                 vedtakDto.kodeAksjon shouldBe "8"
                 vedtakDto.vedtakId shouldBe BigInteger("436204")
-                vedtakDto.kodeHjemmel shouldBe "ANNET"
+                vedtakDto.kodeHjemmel shouldBe "22-15"
                 vedtakDto.renterBeregnes shouldBe "N"
                 vedtakDto.enhetAnsvarlig shouldBe "8020"
                 vedtakDto.kontrollfelt shouldBe "2022-02-07-18.39.46.586953"
