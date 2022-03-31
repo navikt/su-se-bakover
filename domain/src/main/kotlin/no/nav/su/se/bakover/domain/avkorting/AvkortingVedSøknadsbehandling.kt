@@ -9,8 +9,7 @@ import java.util.UUID
 sealed class AvkortingVedSøknadsbehandling {
 
     /**
-     * Tidlige tilstander som indikerer at vi har identifisert 0 eller 1 [Avkortingsvarsel.Utenlandsopphold.SkalAvkortes]
-     * som må tas hensyn til.
+     * Tilstand før vi har foretatt oss noe for å håndtere en eventuell utestående avkorting - hvis relevant.
      */
     sealed class Uhåndtert : AvkortingVedSøknadsbehandling() {
 
@@ -18,6 +17,9 @@ sealed class AvkortingVedSøknadsbehandling {
         abstract fun uhåndtert(): Uhåndtert
         abstract fun kanIkke(): KanIkkeHåndtere
 
+        /**
+         * Vi har identifisert et [Avkortingsvarsel.Utenlandsopphold.SkalAvkortes] som må tas hensyn til.
+         */
         data class UteståendeAvkorting(
             val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
         ) : Uhåndtert() {
@@ -34,6 +36,9 @@ sealed class AvkortingVedSøknadsbehandling {
             }
         }
 
+        /**
+         * Det er ikke behov for håndtering av noen utestående avkortinger
+         */
         object IngenUtestående : Uhåndtert() {
             override fun håndter(): Håndtert.IngenUtestående {
                 return Håndtert.IngenUtestående
@@ -48,6 +53,9 @@ sealed class AvkortingVedSøknadsbehandling {
             }
         }
 
+        /**
+         * Utestående avkortinger kan ikke håndteres, dette kan f.eks skyldes at søknadsbehandlingen avsluttes.
+         */
         data class KanIkkeHåndtere(
             val uhåndtert: Uhåndtert,
         ) : Uhåndtert() {
@@ -66,7 +74,7 @@ sealed class AvkortingVedSøknadsbehandling {
     }
 
     /**
-     * Intermediære tilstander hvor håndteringen av et [Avkortingsvarsel.Utenlandsopphold.SkalAvkortes] er ferdig.
+     * Midlertidig tilstander hvor håndteringen av et [Avkortingsvarsel.Utenlandsopphold.SkalAvkortes] er ferdig.
      */
     sealed class Håndtert : AvkortingVedSøknadsbehandling() {
 

@@ -9,16 +9,15 @@ import java.util.UUID
  */
 sealed class AvkortingVedRevurdering {
 
-    /**
-     * Tidlige tilstander som indikerer at vi har identifisert 0 eller 1 [Avkortingsvarsel.Utenlandsopphold.SkalAvkortes]
-     * som må tas hensyn til.
-     */
     sealed class Uhåndtert : AvkortingVedRevurdering() {
 
         abstract fun håndter(): DelvisHåndtert
         abstract fun uhåndtert(): Uhåndtert
         abstract fun kanIkke(): KanIkkeHåndtere
 
+        /**
+         * Vi har identifisert et [Avkortingsvarsel.Utenlandsopphold.SkalAvkortes] som må tas hensyn til.
+         */
         data class UteståendeAvkorting(
             val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
         ) : Uhåndtert() {
@@ -35,6 +34,9 @@ sealed class AvkortingVedRevurdering {
             }
         }
 
+        /**
+         * Det er ikke behov for håndtering av noen utestående avkortinger
+         */
         object IngenUtestående : Uhåndtert() {
             override fun håndter(): DelvisHåndtert.IngenUtestående {
                 return DelvisHåndtert.IngenUtestående
@@ -49,6 +51,9 @@ sealed class AvkortingVedRevurdering {
             }
         }
 
+        /**
+         * Utestående avkortinger kan ikke håndteres, dette kan f.eks skyldes at revurderingen avsluttes.
+         */
         data class KanIkkeHåndtere(
             val uhåndtert: Uhåndtert,
         ) : Uhåndtert() {
@@ -67,8 +72,8 @@ sealed class AvkortingVedRevurdering {
     }
 
     /**
-     * Intermediære tilstander hvor man er delvis ferdig med håndteringen av [Avkortingsvarsel.Utenlandsopphold.SkalAvkortes].
-     * "Delvis" her representerer at man har gjort håndtering av 0 eller 1 utestående varsel, men det kan fortsatt produseres
+     * Midlertidig tilstander hvor man er delvis ferdig med håndteringen av [Avkortingsvarsel.Utenlandsopphold.SkalAvkortes].
+     * "Delvis" her representerer at man har gjort håndtering utestående varsel, men det kan fortsatt produseres
      * nye varsel som følge av revurderingen som pågår.
      */
     sealed class DelvisHåndtert : AvkortingVedRevurdering() {
@@ -77,6 +82,9 @@ sealed class AvkortingVedRevurdering {
         abstract fun uhåndtert(): Uhåndtert
         abstract fun kanIkke(): KanIkkeHåndtere
 
+        /**
+         * Vi har annullert et utestående varsel.
+         */
         data class AnnullerUtestående(
             val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
         ) : DelvisHåndtert() {
@@ -136,7 +144,7 @@ sealed class AvkortingVedRevurdering {
     }
 
     /**
-     * Intermediære tilstander hvor håndteringen av både utestående og nye varsel er ferdig.
+     * Midlertidig tilstander hvor håndteringen av både utestående og nye varsel er ferdig.
      */
     sealed class Håndtert : AvkortingVedRevurdering() {
 
@@ -144,6 +152,9 @@ sealed class AvkortingVedRevurdering {
         abstract fun iverksett(behandlingId: UUID): Iverksatt
         abstract fun kanIkke(): KanIkkeHåndteres
 
+        /**
+         * Vi har både opprettet et nytt avkortingsvarsel, i tillegg til at vi har annullert det utestående varslet.
+         */
         data class OpprettNyttAvkortingsvarselOgAnnullerUtestående(
             val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
             val annullerUtestående: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes,
@@ -295,7 +306,7 @@ sealed class AvkortingVedRevurdering {
         object IngenNyEllerUtestående : Iverksatt()
 
         /**
-         * Revurdeing er ikke i stand til å håndtere avkorting. Kan f.eks skyldes at revurdering selv er i en
+         * Revurderinger ikke i stand til å håndtere avkorting. Kan f.eks skyldes at revurdering selv er i en
          * tilstand som er for "tidlig" til at avkortingen er tatt hensyn til og/eller at den er avsluttet.
          */
         data class KanIkkeHåndteres(
