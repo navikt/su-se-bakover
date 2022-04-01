@@ -142,11 +142,7 @@ class ReguleringServiceImpl(
                     }
             }
             .map { simulertRegulering -> simulertRegulering.tilIverksatt() }
-            .flatMap {
-                lagVedtakOgUtbetal(it).tap {
-                    reguleringRepo.lagre(it)
-                }
-            }
+            .flatMap { lagVedtakOgUtbetal(it) }
             .tapLeft {
                 reguleringRepo.lagre(regulering.copy(reguleringstype = Reguleringstype.MANUELL))
             }
@@ -240,6 +236,7 @@ class ReguleringServiceImpl(
                         vedtak = VedtakSomKanRevurderes.from(regulering, it.id, clock),
                         sessionContext = tx,
                     )
+                    reguleringRepo.lagre(regulering, tx)
                     utbetalingService.publiserUtbetaling(it).mapLeft {
                         throw KunneIkkeSendeTilUtbetalingException(it)
                     }
