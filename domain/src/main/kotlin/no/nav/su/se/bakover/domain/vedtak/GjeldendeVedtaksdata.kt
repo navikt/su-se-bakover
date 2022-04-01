@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.vedtak
 import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -30,8 +29,8 @@ data class GjeldendeVedtaksdata(
 
     private val vedtakPåTidslinje: List<VedtakSomKanRevurderes.VedtakPåTidslinje> = tidslinje.tidslinje
 
-    val harAvkortingsvarselEllerUteståendeAvkorting: Boolean =
-        vedtakPåTidslinje.any { it.originaltVedtak.harAvkortingsvarselEllerUteståendeAvkorting() }
+    val pågåendeAvkortingEllerBehovForFremtidigAvkorting: Boolean =
+        vedtakPåTidslinje.any { it.originaltVedtak.harPågåendeAvkorting() || it.originaltVedtak.harIdentifisertBehovForFremtidigAvkorting() }
 
     private val vilkårsvurderingerFraTidslinje: Vilkårsvurderinger = vedtakPåTidslinje.vilkårsvurderinger()
 
@@ -94,7 +93,8 @@ data class GjeldendeVedtaksdata(
     }
 
     fun harStans(): Boolean {
-        return vedtakPåTidslinje.map { it.originaltVedtak }.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse>().isNotEmpty()
+        return vedtakPåTidslinje.map { it.originaltVedtak }
+            .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse>().isNotEmpty()
     }
 
     fun helePeriodenErOpphør(): Boolean {
@@ -116,25 +116,7 @@ data class GjeldendeVedtaksdata(
         return periode.tilMånedsperioder()
             .mapNotNull { gjeldendeVedtakPåDato(it.fraOgMed) }
             .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
-            .any {
-                when (it.behandling.avkorting) {
-                    is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> {
-                        false
-                    }
-                    AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> {
-                        false
-                    }
-                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> {
-                        true
-                    }
-                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-                        true
-                    }
-                    is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> {
-                        false
-                    }
-                }
-            }
+            .any { it.harIdentifisertBehovForFremtidigAvkorting() }
     }
 }
 
