@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
@@ -38,6 +39,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.søknadsbehandlingSimulert
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -89,7 +91,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
         attesteringer = Attesteringshistorikk.empty(),
-        avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+        avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
     )
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z12345")
@@ -115,8 +117,14 @@ class SøknadsbehandlingServiceAttesteringTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            observer = eventObserver
-        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler, ""))
+            observer = eventObserver,
+        ).sendTilAttestering(
+            SøknadsbehandlingService.SendTilAttesteringRequest(
+                simulertBehandling.id,
+                saksbehandler,
+                "",
+            ),
+        )
 
         val expected = Søknadsbehandling.TilAttestering.Innvilget(
             id = simulertBehandling.id,
@@ -135,7 +143,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
         )
 
         actual shouldBe expected.right()
@@ -154,7 +162,11 @@ class SøknadsbehandlingServiceAttesteringTest {
             verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
-            verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(expected) })
+            verify(eventObserver).handle(
+                argThat {
+                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(expected)
+                },
+            )
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
     }
@@ -173,8 +185,14 @@ class SøknadsbehandlingServiceAttesteringTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            observer = eventObserver
-        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler, ""))
+            observer = eventObserver,
+        ).sendTilAttestering(
+            SøknadsbehandlingService.SendTilAttesteringRequest(
+                simulertBehandling.id,
+                saksbehandler,
+                "",
+            ),
+        )
 
         actual shouldBe SøknadsbehandlingService.KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
 
@@ -201,8 +219,14 @@ class SøknadsbehandlingServiceAttesteringTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            observer = eventObserver
-        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler, ""))
+            observer = eventObserver,
+        ).sendTilAttestering(
+            SøknadsbehandlingService.SendTilAttesteringRequest(
+                simulertBehandling.id,
+                saksbehandler,
+                "",
+            ),
+        )
 
         actual shouldBe SøknadsbehandlingService.KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId.left()
 
@@ -230,8 +254,14 @@ class SøknadsbehandlingServiceAttesteringTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            observer = eventObserver
-        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler, ""))
+            observer = eventObserver,
+        ).sendTilAttestering(
+            SøknadsbehandlingService.SendTilAttesteringRequest(
+                simulertBehandling.id,
+                saksbehandler,
+                "",
+            ),
+        )
 
         actual shouldBe SøknadsbehandlingService.KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
 
@@ -272,9 +302,9 @@ class SøknadsbehandlingServiceAttesteringTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            observer = eventObserver
+            observer = eventObserver,
         ).sendTilAttestering(
-            SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler, "")
+            SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler, ""),
         )
 
         val expected = Søknadsbehandling.TilAttestering.Innvilget(
@@ -294,7 +324,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
         )
 
         actual shouldBe expected.right()
@@ -313,8 +343,35 @@ class SøknadsbehandlingServiceAttesteringTest {
             verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
-            verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(expected) })
+            verify(eventObserver).handle(
+                argThat {
+                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(expected)
+                },
+            )
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
+    }
+
+    @Test
+    fun `får ikke sendt til attestering dersom det eksisterer revurderinger som avventer kravgrunnlag`() {
+        val søknadsbehandling = søknadsbehandlingSimulert().second
+        val mock = mock<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>()
+
+        SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock {
+                on { hent(any()) } doReturn søknadsbehandling
+            },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn listOf(mock)
+            },
+        ).let {
+            it.søknadsbehandlingService.sendTilAttestering(
+                SøknadsbehandlingService.SendTilAttesteringRequest(
+                    behandlingId = søknadsbehandling.id,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = "nei",
+                ),
+            ) shouldBe SøknadsbehandlingService.KunneIkkeSendeTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
+        }
     }
 }

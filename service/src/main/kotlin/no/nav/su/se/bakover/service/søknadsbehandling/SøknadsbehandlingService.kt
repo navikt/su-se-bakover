@@ -96,6 +96,7 @@ interface SøknadsbehandlingService {
         object FantIkkeBehandling : KunneIkkeSendeTilAttestering()
         object KunneIkkeFinneAktørId : KunneIkkeSendeTilAttestering()
         object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering()
+        object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : KunneIkkeSendeTilAttestering()
     }
 
     data class UnderkjennRequest(

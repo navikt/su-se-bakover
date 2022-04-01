@@ -160,6 +160,7 @@ object ServiceBuilder {
             kontrollsamtaleService = kontrollsamtaleService,
             sessionFactory = databaseRepos.sessionFactory,
             avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
+            tilbakekrevingService = tilbakekrevingService,
         ).apply {
             addObserver(statistikkService)
         }
