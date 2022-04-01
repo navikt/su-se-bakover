@@ -55,7 +55,6 @@ internal class KontrollsamtaleServiceImplTest {
         ).kontrollsamtaleService.kallInn(
             sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
-            transactionContext = TestSessionFactory.transactionContext,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.FantIkkeSak.left()
     }
 
@@ -68,7 +67,6 @@ internal class KontrollsamtaleServiceImplTest {
         ).kontrollsamtaleService.kallInn(
             sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
-            transactionContext = TestSessionFactory.transactionContext,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left()
     }
 
@@ -87,7 +85,6 @@ internal class KontrollsamtaleServiceImplTest {
         ).kontrollsamtaleService.kallInn(
             sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
-            transactionContext = TestSessionFactory.transactionContext,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
     }
 
@@ -109,7 +106,6 @@ internal class KontrollsamtaleServiceImplTest {
         ).kontrollsamtaleService.kallInn(
             sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
-            transactionContext = TestSessionFactory.transactionContext,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument.left()
     }
 
@@ -135,7 +131,6 @@ internal class KontrollsamtaleServiceImplTest {
         ).kontrollsamtaleService.kallInn(
             sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
-            transactionContext = TestSessionFactory.transactionContext,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeKalleInn.left()
     }
 
@@ -162,7 +157,6 @@ internal class KontrollsamtaleServiceImplTest {
         ).kontrollsamtaleService.kallInn(
             sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
-            transactionContext = TestSessionFactory.transactionContext,
         ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeKalleInn.left()
     }
 
@@ -188,7 +182,6 @@ internal class KontrollsamtaleServiceImplTest {
         services.kontrollsamtaleService.kallInn(
             sakId = sak.id,
             kontrollsamtale = kontrollsamtale,
-            transactionContext = TestSessionFactory.transactionContext,
         ) shouldBe Unit.right()
 
         val dokumentCaptor = ArgumentCaptor.forClass(Dokument.MedMetadata.Informasjon::class.java)

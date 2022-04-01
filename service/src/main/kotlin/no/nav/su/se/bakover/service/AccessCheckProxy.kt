@@ -749,7 +749,6 @@ open class AccessCheckProxy(
                 override fun kallInn(
                     sakId: UUID,
                     kontrollsamtale: Kontrollsamtale,
-                    transactionContext: TransactionContext,
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun hentPlanlagteKontrollsamtaler(

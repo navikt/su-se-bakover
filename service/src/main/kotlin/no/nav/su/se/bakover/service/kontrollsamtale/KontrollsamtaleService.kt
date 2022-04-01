@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -34,7 +33,6 @@ interface KontrollsamtaleService {
     fun kallInn(
         sakId: UUID,
         kontrollsamtale: Kontrollsamtale,
-        transactionContext: TransactionContext,
     ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit>
 
     fun nyDato(sakId: UUID, dato: LocalDate): Either<KunneIkkeSetteNyDatoForKontrollsamtale, Unit>
@@ -70,7 +68,6 @@ class KontrollsamtaleServiceImpl(
     override fun kallInn(
         sakId: UUID,
         kontrollsamtale: Kontrollsamtale,
-        transactionContext: TransactionContext,
     ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> {
         val sak = sakService.hentSak(sakId).getOrElse {
             log.error("Fant ikke sak for sakId $sakId")
@@ -93,15 +90,17 @@ class KontrollsamtaleServiceImpl(
         }
 
         return Either.catch {
-            brevService.lagreDokument(dokument, transactionContext)
-            kontrollsamtaleRepo.lagre(
-                kontrollsamtale = kontrollsamtale.settInnkalt(dokument.id).getOrElse {
-                    throw RuntimeException("Kontrollsamtale er i ugyldig tilstand for å bli satt til innkalt")
-                },
-                sessionContext = transactionContext,
-            )
-            Kontrollsamtale.opprettNyKontrollsamtale(gjeldendeStønadsperiode, sakId, clock).map {
-                kontrollsamtaleRepo.lagre(it, transactionContext)
+            sessionFactory.withTransactionContext { transactionContext ->
+                brevService.lagreDokument(dokument, transactionContext)
+                kontrollsamtaleRepo.lagre(
+                    kontrollsamtale = kontrollsamtale.settInnkalt(dokument.id).getOrElse {
+                        throw RuntimeException("Kontrollsamtale er i ugyldig tilstand for å bli satt til innkalt")
+                    },
+                    sessionContext = transactionContext,
+                )
+                Kontrollsamtale.opprettNyKontrollsamtale(gjeldendeStønadsperiode, sakId, clock).map {
+                    kontrollsamtaleRepo.lagre(it, transactionContext)
+                }
             }
             oppgaveService.opprettOppgaveMedSystembruker(
                 config = OppgaveConfig.Kontrollsamtale(
