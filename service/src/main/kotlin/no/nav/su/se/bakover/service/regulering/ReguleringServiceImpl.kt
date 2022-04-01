@@ -45,10 +45,10 @@ class ReguleringServiceImpl(
             .getOrHandle {
                 when (it) {
                     is Regulering.KunneIkkeBeregne.BeregningFeilet -> {
-                        throw RuntimeException("Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
+                        throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
                     }
                     is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> {
-                        throw RuntimeException("Vi klarte ikke å beregne. Feil status")
+                        throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Feil status")
                     }
                 }
             }
@@ -66,35 +66,36 @@ class ReguleringServiceImpl(
 
     override fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
         return sakRepo.hentSakIdSaksnummerOgFnrForAlleSaker().map { (sakid, saksnummer, _) ->
-            log.info("Starter på : $saksnummer")
+            log.info("Regulering for saksnummer $saksnummer: Starter")
 
             val sak = Either.catch {
                 sakRepo.hentSak(sakId = sakid) ?: return@map KunneIkkeOppretteRegulering.FantIkkeSak.left()
                     .also {
                         log.error(
-                            "Klarte ikke hente sak : $saksnummer",
+                            "Regulering for saksnummer $saksnummer: Klarte ikke hente sak",
                             RuntimeException("Inkluderer stacktrace"),
                         )
                     }
             }.getOrHandle {
-                log.error("Klarte ikke hente sak: $saksnummer", it)
+                log.error("Regulering for saksnummer $saksnummer: Klarte ikke hente sak", it)
                 return@map KunneIkkeOppretteRegulering.FantIkkeSak.left()
             }
 
             val regulering = sak.opprettEllerOppdaterRegulering(startDato, clock).getOrHandle { feil ->
                 // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
+                log.info("Regulering for saksnummer $saksnummer: Skippet. Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer")
                 return@map KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil).left()
             }
 
             if (!blirBeregningEndret(sak, regulering)) {
                 // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
                 return@map KunneIkkeOppretteRegulering.FørerIkkeTilEnEndring.left()
-                    .also { log.info("Lager ikke regulering for $saksnummer, da den ikke fører til noen endring i utbetaling") }
+                    .also { log.info("Regulering for saksnummer $saksnummer: Skippet. Lager ikke regulering for $saksnummer, da den ikke fører til noen endring i utbetaling") }
             }
 
             tilbakekrevingService.hentAvventerKravgrunnlag(sak.id)
                 .ifNotEmpty {
-                    log.info("Kan ikke sende oppdragslinjer mens vi venter på et kravgrunnlag, siden det kan annulere nåværende kravgrunnlag. Setter reguleringen til manuell.")
+                    log.info("Regulering for saksnummer $saksnummer: Kan ikke sende oppdragslinjer mens vi venter på et kravgrunnlag, siden det kan annulere nåværende kravgrunnlag. Setter reguleringen til manuell.")
                     return@map regulering.copy(
                         reguleringstype = Reguleringstype.MANUELL,
                     ).right().tap {
@@ -119,10 +120,10 @@ class ReguleringServiceImpl(
             .mapLeft { kunneikkeBeregne ->
                 when (kunneikkeBeregne) {
                     is Regulering.KunneIkkeBeregne.BeregningFeilet -> {
-                        log.error("Regulering feilet. Beregning feilet for saksnummer: ${regulering.saksnummer}", kunneikkeBeregne.feil)
+                        log.error("Regulering for saksnummer ${regulering.saksnummer}: Feilet. Beregning feilet.", kunneikkeBeregne.feil)
                     }
                     is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> {
-                        log.error("Regulering feilet. Beregning feilet for saksnummer: ${regulering.saksnummer}. Ikke lov å beregne i denne statusen")
+                        log.error("Regulering for saksnummer ${regulering.saksnummer}: Feilet. Beregning feilet. Ikke lov å beregne i denne statusen")
                     }
                 }
                 KunneIkkeRegulereAutomatisk.KunneIkkeBeregne
@@ -130,11 +131,11 @@ class ReguleringServiceImpl(
             .flatMap { beregnetRegulering ->
                 beregnetRegulering.simuler(utbetalingService::simulerUtbetaling)
                     .mapLeft {
-                        log.error("Regulering feilet. Simulering feilet for saksnummer: ${regulering.saksnummer}.")
+                        log.error("Regulering for saksnummer ${regulering.saksnummer}. Simulering feilet.")
                         KunneIkkeRegulereAutomatisk.KunneIkkeSimulere
                     }.flatMap {
                         if (it.simulering!!.harFeilutbetalinger()) {
-                            log.error("Regulering feilet. Simuleringen inneholdt feilutbetalinger for saksnummer: ${regulering.saksnummer}.")
+                            log.error("Regulering for saksnummer ${regulering.saksnummer}: Simuleringen inneholdt feilutbetalinger.")
                             KunneIkkeRegulereAutomatisk.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling.left()
                         } else {
                             it.right()
@@ -142,11 +143,7 @@ class ReguleringServiceImpl(
                     }
             }
             .map { simulertRegulering -> simulertRegulering.tilIverksatt() }
-            .flatMap {
-                lagVedtakOgUtbetal(it).tap {
-                    reguleringRepo.lagre(it)
-                }
-            }
+            .flatMap { lagVedtakOgUtbetal(it) }
             .tapLeft {
                 reguleringRepo.lagre(regulering.copy(reguleringstype = Reguleringstype.MANUELL))
             }
@@ -181,8 +178,8 @@ class ReguleringServiceImpl(
 
         val beregnetRegulering = regulering.beregn(clock = clock, begrunnelse = request.begrunnelse).getOrHandle {
             when (it) {
-                is Regulering.KunneIkkeBeregne.BeregningFeilet -> log.error("Regulering feilet. Kunne ikke beregne", it.feil)
-                is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> log.error("Regulering feilet. Kan ikke beregne i status ${it.status}")
+                is Regulering.KunneIkkeBeregne.BeregningFeilet -> log.error("Regulering for saksnummer ${regulering.saksnummer}: Feilet. Kunne ikke beregne", it.feil)
+                is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> log.error("Regulering for saksnummer ${regulering.saksnummer}: Feilet. Kan ikke beregne i status ${it.status}")
             }
             return BeregnOgSimulerFeilet.KunneIkkeBeregne.left()
         }
@@ -230,7 +227,7 @@ class ReguleringServiceImpl(
                 simulering = regulering.simulering,
             ),
         ).mapLeft {
-            log.error("Kunne ikke verifisere og simulere utbetaling for regulering med saksnummer ${regulering.saksnummer} med underliggende grunn: $it")
+            log.error("Regulering for saksnummer ${regulering.saksnummer}: Kunne ikke verifisere og simulere utbetaling for regulering med underliggende grunn: $it")
             KunneIkkeRegulereAutomatisk.KunneIkkeUtbetale
         }.flatMap {
             Either.catch {
@@ -240,6 +237,7 @@ class ReguleringServiceImpl(
                         vedtak = VedtakSomKanRevurderes.from(regulering, it.id, clock),
                         sessionContext = tx,
                     )
+                    reguleringRepo.lagre(regulering, tx)
                     utbetalingService.publiserUtbetaling(it).mapLeft {
                         throw KunneIkkeSendeTilUtbetalingException(it)
                     }
@@ -247,7 +245,7 @@ class ReguleringServiceImpl(
                 }
             }.mapLeft {
                 log.error(
-                    "En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering med saksnummer ${regulering.saksnummer}",
+                    "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering",
                     it,
                 )
                 KunneIkkeRegulereAutomatisk.KunneIkkeUtbetale

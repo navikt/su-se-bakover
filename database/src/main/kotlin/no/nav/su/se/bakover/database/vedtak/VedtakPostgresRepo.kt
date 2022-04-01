@@ -210,7 +210,7 @@ internal class VedtakPostgresRepo(
                 revurderingRepo.hent(knytning.revurderingId, session)!!
             is BehandlingVedtaksknytning.ForKlage -> null
             is BehandlingVedtaksknytning.ForRegulering ->
-                reguleringRepo.hent(knytning.reguleringId)
+                reguleringRepo.hent(knytning.reguleringId, session)
         }
         val klage: Klage? = (knytning as? BehandlingVedtaksknytning.ForKlage)?.let {
             klageRepo.hentKlage(knytning.klageId, session)
