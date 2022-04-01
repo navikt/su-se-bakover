@@ -261,6 +261,12 @@ abstract class BrevInnhold {
         override val brevTemplate = BrevTemplate.InnkallingTilKontrollsamtale
     }
 
+    data class PåminnelseNyStønadsperiode(
+        val personalia: Personalia,
+    ) : BrevInnhold() {
+        override val brevTemplate = BrevTemplate.PåminnelseNyStønadsperiode
+    }
+
     sealed class Klage : BrevInnhold() {
 
         data class Oppretthold(

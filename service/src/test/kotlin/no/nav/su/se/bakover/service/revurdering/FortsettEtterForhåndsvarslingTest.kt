@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
+import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.fixedClock
@@ -146,7 +148,7 @@ internal class FortsettEtterForhåndsvarslingTest {
                 on { hent(any()) } doReturn simulertMedForhåndsvarsel
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Informasjon(
+                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn Dokument.UtenMetadata.Informasjon(
                     opprettet = fixedTidspunkt,
                     tittel = "tittel1",
                     generertDokument = "brev".toByteArray(),
@@ -190,7 +192,7 @@ internal class FortsettEtterForhåndsvarslingTest {
             argThat { it shouldBe simulertMedForhåndsvarsel.oppgaveId },
         )
         verify(mocks.brevService).lagDokument(
-            argThat {
+            argThat<Visitable<LagBrevRequestVisitor>> {
                 it shouldBe expected
             },
         )

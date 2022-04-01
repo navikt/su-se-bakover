@@ -19,6 +19,7 @@ sealed class PdfTemplate(
     object Forhåndsvarsel : PdfTemplate("forhåndsvarsel")
     object ForhåndsvarselTilbakekreving : PdfTemplate("forhåndsvarselTilbakekreving")
     object InnkallingTilKontrollsamtale : PdfTemplate("innkallingKontrollsamtale")
+    object PåminnelseNyStønadsperiode : PdfTemplate("påminnelseNyStønadsperiode")
 
     sealed class Revurdering(templateName: String) : PdfTemplate(templateName) {
         object Inntekt : Revurdering("revurderingAvInntekt")

@@ -5,6 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.person
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
@@ -27,7 +28,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     @Test
     fun `svarer med feil hvis vi ikke finner person`() {
         val brevServiceMock = mock<BrevService>() {
-            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
+            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
         }
 
         SøknadsbehandlingServiceAndMocks(
@@ -46,7 +47,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         }
 
         val brevServiceMock = mock<BrevService>() {
-            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
         }
 
         SøknadsbehandlingServiceAndMocks(
@@ -66,7 +67,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         }
 
         val brevServiceMock = mock<BrevService>() {
-            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
+            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
         }
 
         SøknadsbehandlingServiceAndMocks(
@@ -87,7 +88,7 @@ internal class SøknadsbehandlingServiceBrevTest {
 
         val pdf = "".toByteArray()
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Vedtak(
+            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn Dokument.UtenMetadata.Vedtak(
                 opprettet = fixedTidspunkt,
                 tittel = "tittel1",
                 generertDokument = pdf,
@@ -108,7 +109,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     @Test
     fun `kaster exception hvis det ikke er mulig å opprette brev for aktuell behandling`() {
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any()) } doThrow LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(
+            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doThrow LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(
                 uavklart::class,
             )
         }

@@ -408,7 +408,7 @@ interface LagBrevRequest {
             personalia = lagPersonalia(),
         )
 
-        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<LagBrevRequest.KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
             return genererDokument(genererPdf).map {
                 Dokument.UtenMetadata.Informasjon(
                     id = UUID.randomUUID(),
@@ -477,6 +477,28 @@ interface LagBrevRequest {
                         generertDokumentJson = it.third,
                     )
                 }
+            }
+        }
+    }
+
+    data class PåminnelseNyStønadsperiode(
+        override val person: Person,
+        override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
+    ) : LagBrevRequest {
+        override val brevInnhold = BrevInnhold.PåminnelseNyStønadsperiode(
+            personalia = lagPersonalia(),
+        )
+
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
+            return genererDokument(genererPdf).map {
+                Dokument.UtenMetadata.Informasjon(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
             }
         }
     }

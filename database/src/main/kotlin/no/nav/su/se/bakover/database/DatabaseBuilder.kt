@@ -202,6 +202,7 @@ object DatabaseBuilder {
             avkortingsvarselRepo = avkortingsvarselRepo,
             reguleringRepo = reguleringRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
+            jobContextRepo = JobContextPostgresRepo(clock, sessionFactory)
         )
     }
 }

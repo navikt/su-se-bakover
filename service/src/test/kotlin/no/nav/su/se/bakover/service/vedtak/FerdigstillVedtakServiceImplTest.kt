@@ -14,6 +14,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
@@ -96,7 +98,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any()) } doReturn vedtak
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
+                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
             }
         ) {
             val feil = service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
@@ -116,7 +118,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any()) } doReturn vedtak
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
+                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
             }
         ) {
             val feil = service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
@@ -126,7 +128,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 *all(),
             ) {
                 verify(vedtakRepo).hentForUtbetaling(argThat { it shouldBe vedtak.utbetalingId })
-                verify(brevService).lagDokument(argThat { it shouldBe vedtak })
+                verify(brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe vedtak })
             }
         }
     }
@@ -143,7 +145,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any()) } doReturn vedtak
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Vedtak(
+                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn Dokument.UtenMetadata.Vedtak(
                     opprettet = fixedTidspunkt,
                     tittel = "tittel1",
                     generertDokument = "brev".toByteArray(),
@@ -157,7 +159,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 *all(),
             ) {
                 verify(vedtakRepo).hentForUtbetaling(argThat { it shouldBe vedtak.utbetalingId })
-                verify(brevService).lagDokument(argThat { it shouldBe vedtak })
+                verify(brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe vedtak })
                 verify(brevService).lagreDokument(
                     argThat {
                         it.generertDokument contentEquals "brev".toByteArray()

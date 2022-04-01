@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
@@ -87,7 +89,7 @@ internal class AvsluttRevurderingTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Informasjon(
+            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn Dokument.UtenMetadata.Informasjon(
                 opprettet = fixedTidspunkt,
                 tittel = "tittel1",
                 generertDokument = "brev".toByteArray(),
@@ -120,7 +122,7 @@ internal class AvsluttRevurderingTest {
         verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
         verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe simulert.oppgaveId })
         verify(brevServiceMock).lagDokument(
-            argThat {
+            argThat<Visitable<LagBrevRequestVisitor>> {
                 it shouldBe expectedAvsluttetRevurdering.orNull()!!
             },
         )
@@ -171,7 +173,7 @@ internal class AvsluttRevurderingTest {
             on { hent(any()) } doReturn simulert
         }
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
+            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgave(any()) } doReturn Unit.right()
@@ -192,7 +194,7 @@ internal class AvsluttRevurderingTest {
         verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe simulert.oppgaveId })
         verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
         verify(brevServiceMock).lagDokument(
-            argThat {
+            argThat<Visitable<LagBrevRequestVisitor>> {
                 it shouldBe AvsluttetRevurdering.tryCreate(
                     underliggendeRevurdering = simulert,
                     begrunnelse = "begrunnelse",

@@ -44,4 +44,5 @@ data class Services(
     val klageinstanshendelseService: KlageinstanshendelseService,
     val reguleringService: ReguleringService,
     val tilbakekrevingService: TilbakekrevingService,
+    val sendPåminnelseNyStønadsperiodeService: SendPåminnelseNyStønadsperiodeService,
 )

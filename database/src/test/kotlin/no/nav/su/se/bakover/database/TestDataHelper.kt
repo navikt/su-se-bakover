@@ -339,6 +339,10 @@ internal class TestDataHelper(
         sessionFactory,
         dbMetrics,
     )
+    internal val jobContextRepo = JobContextPostgresRepo(
+        clock = clock,
+        sessionFactory = sessionFactory,
+    )
 
     /**
      * Oppretter og persisterer en ny sak (dersom den ikke finnes fra før) med søknad med tomt søknadsinnhold.
@@ -789,7 +793,12 @@ internal class TestDataHelper(
     }
 
     fun persisterRevurderingBeregnetOpphørt(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { Pair(it.first, it.second) }
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let {
+            Pair(
+                it.first,
+                it.second,
+            )
+        },
     ): BeregnetRevurdering.Opphørt {
         val (sak, vedtak) = sakOgVedtak
         return persisterRevurderingOpprettet(
@@ -839,7 +848,12 @@ internal class TestDataHelper(
     }
 
     fun persisterRevurderingSimulertOpphørt(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { Pair(it.first, it.second) }
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let {
+            Pair(
+                it.first,
+                it.second,
+            )
+        },
     ): SimulertRevurdering.Opphørt {
         return persisterRevurderingBeregnetOpphørt(sakOgVedtak).let {
             it.toSimulert(

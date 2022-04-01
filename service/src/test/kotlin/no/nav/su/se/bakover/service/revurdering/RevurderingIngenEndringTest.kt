@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.attestant
@@ -207,7 +209,7 @@ internal class RevurderingIngenEndringTest {
                 on { hent(any()) } doReturn revurderingTilAttestering
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Vedtak(
+                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn Dokument.UtenMetadata.Vedtak(
                     opprettet = fixedTidspunkt,
                     tittel = "tittel1",
                     generertDokument = "brev".toByteArray(),
@@ -233,7 +235,7 @@ internal class RevurderingIngenEndringTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(revurderingTilAttestering.id)
-                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<VedtakSomKanRevurderes.IngenEndringIYtelse>() })
+                verify(it.brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe beOfType<VedtakSomKanRevurderes.IngenEndringIYtelse>() })
                 verify(it.vedtakRepo).lagre(argThat { it shouldBe vedtak.copy(id = it.id) })
                 verify(it.brevService).lagreDokument(
                     argThat {

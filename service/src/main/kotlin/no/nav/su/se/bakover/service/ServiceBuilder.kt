@@ -231,6 +231,14 @@ object ServiceBuilder {
             klageinstanshendelseService = klageinstanshendelseService,
             reguleringService = reguleringService,
             tilbakekrevingService = tilbakekrevingService,
+            sendPåminnelseNyStønadsperiodeService = SendPåminnelseNyStønadsperiodeServiceImpl(
+                clock = clock,
+                sakRepo = databaseRepos.sak,
+                sessionFactory = databaseRepos.sessionFactory,
+                brevService = brevService,
+                personService = personService,
+                jobContextRepo = databaseRepos.jobContextRepo,
+            )
         )
     }
 }
