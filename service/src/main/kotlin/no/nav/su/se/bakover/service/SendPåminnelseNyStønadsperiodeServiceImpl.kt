@@ -45,13 +45,13 @@ internal class SendPåminnelseNyStønadsperiodeServiceImpl(
             .ifEmpty {
                 log.info(
                     "Påminnelser om ny stønadsperiode er sendt ut for alle relevante saker (${
-                    context.sendt().count()
+                        context.sendt().count()
                     }) for måned: ${context.id().yearMonth}",
                 )
                 return
             }
             .also { log.info("Kontrollerer behov for påminnelse om ny stønadsperiode for ${it.count()} saker") }
-            .forEach { saksnummerSomProsesseres ->
+            .fold(context) { ctx, saksnummerSomProsesseres ->
                 val sak = sakRepo.hentSak(saksnummerSomProsesseres)!!
                 val person = personService.hentPerson(sak.fnr)
                     .getOrHandle { TODO() }
@@ -74,14 +74,21 @@ internal class SendPåminnelseNyStønadsperiodeServiceImpl(
                                 ),
                             ),
                         )
-                        jobContextRepo.lagre(
-                            jobContext = context.sendt(saksnummerSomProsesseres),
-                            context = tx,
-                        )
+                        ctx.sendt(saksnummerSomProsesseres).also {
+                            jobContextRepo.lagre(
+                                jobContext = it,
+                                context = tx,
+                            )
+                        }
                     }
                 } else {
-                    sessionFactory.withTransactionContext { tx ->
-                        jobContextRepo.lagre(context.prosessert(saksnummerSomProsesseres), tx)
+                    ctx.prosessert(saksnummerSomProsesseres).also {
+                        sessionFactory.withTransactionContext { tx ->
+                            jobContextRepo.lagre(
+                                jobContext = it,
+                                context = tx,
+                            )
+                        }
                     }
                 }
             }

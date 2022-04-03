@@ -11,3 +11,9 @@ object BehandlingJson {
         return JSONObject(søknadsbehandlingResponseJson).getString("sakId").toString()
     }
 }
+
+object SakJson {
+    fun hentSaksnummer(sakJson: String): String {
+        return JSONObject(sakJson).getLong("saksnummer").toString()
+    }
+}
