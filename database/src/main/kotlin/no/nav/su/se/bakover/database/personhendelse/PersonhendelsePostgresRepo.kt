@@ -175,6 +175,8 @@ internal class PersonhendelsePostgresRepo(
         PersonhendelseType.SIVILSTAND.value -> {
             objectMapper.readValue<HendelseJson.SivilstandJson>(string("hendelse")).toDomain()
         }
+        PersonhendelseType.BOSTEDSADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse
+        PersonhendelseType.KONTAKTADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse
         else -> throw RuntimeException("Kunne ikke deserialisere [Personhendelse]. Ukjent type: $type")
     }
 
@@ -182,12 +184,16 @@ internal class PersonhendelsePostgresRepo(
         is Personhendelse.Hendelse.Dødsfall -> PersonhendelseType.DØDSFALL.value
         is Personhendelse.Hendelse.UtflyttingFraNorge -> PersonhendelseType.UTFLYTTING_FRA_NORGE.value
         is Personhendelse.Hendelse.Sivilstand -> PersonhendelseType.SIVILSTAND.value
+        is Personhendelse.Hendelse.Bostedsadresse -> PersonhendelseType.BOSTEDSADRESSE.value
+        is Personhendelse.Hendelse.Kontaktadresse -> PersonhendelseType.KONTAKTADRESSE.value
     }
 
     private enum class PersonhendelseType(val value: String) {
         DØDSFALL("dødsfall"),
         UTFLYTTING_FRA_NORGE("utflytting_fra_norge"),
-        SIVILSTAND("sivilstand");
+        SIVILSTAND("sivilstand"),
+        BOSTEDSADRESSE("bostedsadresse"),
+        KONTAKTADRESSE("kontaktadresse");
     }
 
     private fun Personhendelse.Endringstype.toDatabasetype(): String = when (this) {
@@ -253,6 +259,10 @@ internal class PersonhendelsePostgresRepo(
             }
         }
 
+        object BostedsadresseJson : HendelseJson()
+
+        object KontaktadresseJson : HendelseJson()
+
         fun toDomain(): Personhendelse.Hendelse = when (this) {
             is DødsfallJson -> Personhendelse.Hendelse.Dødsfall(dødsdato)
             is UtflyttingFraNorgeJson -> Personhendelse.Hendelse.UtflyttingFraNorge(utflyttingsdato)
@@ -275,6 +285,8 @@ internal class PersonhendelsePostgresRepo(
                 relatertVedSivilstand = relatertVedSivilstand?.let { Fnr(it) },
                 bekreftelsesdato = bekreftelsesdato,
             )
+            is BostedsadresseJson -> Personhendelse.Hendelse.Bostedsadresse
+            is KontaktadresseJson -> Personhendelse.Hendelse.Kontaktadresse
         }
 
         companion object {
@@ -300,6 +312,8 @@ internal class PersonhendelsePostgresRepo(
                     relatertVedSivilstand = relatertVedSivilstand?.toString(),
                     bekreftelsesdato = bekreftelsesdato,
                 )
+                is Personhendelse.Hendelse.Bostedsadresse -> BostedsadresseJson
+                is Personhendelse.Hendelse.Kontaktadresse -> KontaktadresseJson
             }
         }
     }
