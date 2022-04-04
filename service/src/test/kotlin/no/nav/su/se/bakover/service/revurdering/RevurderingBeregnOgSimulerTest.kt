@@ -486,6 +486,9 @@ internal class RevurderingBeregnOgSimulerTest {
             clock = tikkendeKlokke,
         )
 
+        innvilget1.harPågåendeAvkorting() shouldBe false
+        innvilget1.harIdentifisertBehovForFremtidigAvkorting() shouldBe false
+
         val revurderingsperiode1 = Periode.create(1.mai(2021), 31.desember(2021))
         val (sakEtterRevurdering1, revurdering1) = vedtakRevurdering(
             revurderingsperiode = revurderingsperiode1,
@@ -497,6 +500,9 @@ internal class RevurderingBeregnOgSimulerTest {
             ),
             clock = tikkendeKlokke,
         )
+
+        revurdering1.harPågåendeAvkorting() shouldBe false
+        revurdering1.harIdentifisertBehovForFremtidigAvkorting() shouldBe true
 
         val stønadsperiode2 = Stønadsperiode.create(Periode.create(1.juli(2021), 31.desember(2021)), "baluba")
         val uteståendeAvkorting =
@@ -513,6 +519,9 @@ internal class RevurderingBeregnOgSimulerTest {
                 utbetalinger = sakEtterRevurdering1.utbetalinger + sak.utbetalinger,
             ) to ny
         }
+
+        innvilget2.harPågåendeAvkorting() shouldBe true
+        innvilget2.harIdentifisertBehovForFremtidigAvkorting() shouldBe false
 
         val revurderingsperiode2 = stønadsperiode2.periode
         val (sakEtterRevurdering2, revurdering2) = opprettetRevurdering(
