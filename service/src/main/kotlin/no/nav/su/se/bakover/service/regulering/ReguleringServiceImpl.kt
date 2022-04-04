@@ -20,6 +20,8 @@ import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -37,6 +39,11 @@ class ReguleringServiceImpl(
     private val clock: Clock,
     private val tilbakekrevingService: TilbakekrevingService,
 ) : ReguleringService {
+    private val observers: MutableList<EventObserver> = mutableListOf()
+
+    fun addObserver(observer: EventObserver) {
+        observers.add(observer)
+    }
 
     private fun blirBeregningEndret(sak: Sak, regulering: Regulering.OpprettetRegulering): Boolean {
         if (regulering.inneholderAvslag()) return true
@@ -120,7 +127,10 @@ class ReguleringServiceImpl(
             .mapLeft { kunneikkeBeregne ->
                 when (kunneikkeBeregne) {
                     is Regulering.KunneIkkeBeregne.BeregningFeilet -> {
-                        log.error("Regulering for saksnummer ${regulering.saksnummer}: Feilet. Beregning feilet.", kunneikkeBeregne.feil)
+                        log.error(
+                            "Regulering for saksnummer ${regulering.saksnummer}: Feilet. Beregning feilet.",
+                            kunneikkeBeregne.feil,
+                        )
                     }
                     is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> {
                         log.error("Regulering for saksnummer ${regulering.saksnummer}: Feilet. Beregning feilet. Ikke lov å beregne i denne statusen")
@@ -178,7 +188,10 @@ class ReguleringServiceImpl(
 
         val beregnetRegulering = regulering.beregn(clock = clock, begrunnelse = request.begrunnelse).getOrHandle {
             when (it) {
-                is Regulering.KunneIkkeBeregne.BeregningFeilet -> log.error("Regulering for saksnummer ${regulering.saksnummer}: Feilet. Kunne ikke beregne", it.feil)
+                is Regulering.KunneIkkeBeregne.BeregningFeilet -> log.error(
+                    "Regulering for saksnummer ${regulering.saksnummer}: Feilet. Kunne ikke beregne",
+                    it.feil,
+                )
                 is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> log.error("Regulering for saksnummer ${regulering.saksnummer}: Feilet. Kan ikke beregne i status ${it.status}")
             }
             return BeregnOgSimulerFeilet.KunneIkkeBeregne.left()
@@ -230,19 +243,19 @@ class ReguleringServiceImpl(
             log.error("Regulering for saksnummer ${regulering.saksnummer}: Kunne ikke verifisere og simulere utbetaling for regulering med underliggende grunn: $it")
             KunneIkkeRegulereAutomatisk.KunneIkkeUtbetale
         }.flatMap {
+            val vedtak = VedtakSomKanRevurderes.from(regulering, it.id, clock)
+
             Either.catch {
                 sessionFactory.withTransactionContext { tx ->
                     utbetalingService.lagreUtbetaling(it, tx)
-                    vedtakService.lagre(
-                        vedtak = VedtakSomKanRevurderes.from(regulering, it.id, clock),
-                        sessionContext = tx,
-                    )
+                    vedtakService.lagre(vedtak = vedtak, sessionContext = tx)
                     reguleringRepo.lagre(regulering, tx)
-                    utbetalingService.publiserUtbetaling(it).mapLeft {
-                        throw KunneIkkeSendeTilUtbetalingException(it)
+                    utbetalingService.publiserUtbetaling(it).getOrHandle { utbetalingsfeil ->
+                        throw KunneIkkeSendeTilUtbetalingException(utbetalingsfeil)
                     }
-                    regulering
                 }
+                observers.forEach { observer -> observer.handle(Event.Statistikk.Vedtaksstatistikk(vedtak)) }
+                regulering
             }.mapLeft {
                 log.error(
                     "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering",

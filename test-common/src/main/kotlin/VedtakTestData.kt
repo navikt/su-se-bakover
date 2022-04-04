@@ -156,6 +156,49 @@ fun vedtakRevurderingIverksattInnvilget(
     }
 }
 
+fun vedtakIverksattAutomatiskRegulering(
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    regulerFraOgMed: Periode = stønadsperiode.periode,
+    clock: Clock = fixedClock,
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+        grunnlagsdataEnsligUtenFradrag(periode = regulerFraOgMed),
+        vilkårsvurderingerRevurderingInnvilget(periode = regulerFraOgMed)
+    ),
+    utbetalingId: UUID30 = UUID30.randomUUID(),
+): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> {
+    assert(stønadsperiode.inneholder(regulerFraOgMed))
+
+    return vedtakSøknadsbehandlingIverksattInnvilget(
+        stønadsperiode = stønadsperiode,
+        grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
+        vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.tilVilkårsvurderingerSøknadsbehandling(),
+    ).let { (sak, _) ->
+        val regulering = iverksattAutomatiskRegulering(sakId = sak.id, reguleringsperiode = regulerFraOgMed)
+
+        val utbetaling = oversendtUtbetalingMedKvittering(
+            saksnummer = saksnummer,
+            sakId = sakId,
+            fnr = fnr,
+            id = utbetalingId,
+            eksisterendeUtbetalinger = sak.utbetalinger,
+            clock = clock,
+        )
+        val vedtak = VedtakSomKanRevurderes.from(
+            regulering = regulering,
+            utbetalingId = utbetalingId,
+            clock = clock,
+        )
+
+        Pair(
+            sak.copy(
+                vedtakListe = sak.vedtakListe + vedtak,
+                utbetalinger = sak.utbetalinger + utbetaling,
+            ),
+            vedtak,
+        )
+    }
+}
+
 /**
  * @param sakOgVedtakSomKanRevurderes dersom denne ikke sendes inn vil clock bli satt til +0 sekunder på søknadsbehandlingsvedtaket og +1 på stansvedtaket
  */

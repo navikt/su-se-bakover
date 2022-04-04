@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.vedtakIverksattAutomatiskRegulering
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -380,6 +382,72 @@ internal class StønadsstatistikkMapperTest {
                   "vedtaksdato": "2021-01-01",
                   "vedtakstype": "GJENOPPTAK",
                   "vedtaksresultat": "GJENOPPTATT",
+                  "behandlendeEnhetKode": "4815",
+                  "ytelseVirkningstidspunkt": "2021-01-01",
+                  "gjeldendeStonadVirkningstidspunkt": "2021-01-01",
+                  "gjeldendeStonadStopptidspunkt": "2021-02-28",
+                  "gjeldendeStonadUtbetalingsstart": "2021-01-01",
+                  "gjeldendeStonadUtbetalingsstopp": "2021-02-28",
+                  "månedsbeløp": [
+                    {
+                      "måned": "2021-01-01",
+                      "stonadsklassifisering": "BOR_ALENE",
+                      "bruttosats": 20946,
+                      "nettosats": 20946,
+                      "inntekter": [
+                        {
+                          "inntektstype": "ForventetInntekt",
+                          "beløp": 0
+                        }
+                      ],
+                      "fradragSum": 0
+                    },
+                    {
+                      "måned": "2021-02-01",
+                      "stonadsklassifisering": "BOR_ALENE",
+                      "bruttosats": 20946,
+                      "nettosats": 20946,
+                      "inntekter": [
+                        {
+                          "inntektstype": "ForventetInntekt",
+                          "beløp": 0
+                        }
+                      ],
+                      "fradragSum": 0
+                    }
+                  ],
+                  "versjon": 1609462923456,
+                  "flyktningsstatus": "FLYKTNING"
+                }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(expected, actual, true)
+    }
+
+    @Test
+    fun `stønadsstatistikk for regulering`() {
+        val (sak, regulering) = vedtakIverksattAutomatiskRegulering(stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 28.februar(2021))))
+
+        val actual = objectMapper.writeValueAsString(
+            StønadsstatistikkMapper(fixedClock).map(
+                vedtak = regulering,
+                aktørId = aktørId,
+                ytelseVirkningstidspunkt = sak.søknadsbehandlinger.first().periode.fraOgMed,
+                sak = sak,
+            ),
+        )
+
+        val expected = """
+                {
+                  "funksjonellTid": "2021-01-01T01:02:03.456789Z",
+                  "tekniskTid": "2021-01-01T01:02:03.456789Z",
+                  "stonadstype": "SU_UFØR",
+                  "sakId": "${sak.id}",
+                  "aktorId": 293829399,
+                  "sakstype": "REGULERING",
+                  "vedtaksdato": "2021-01-01",
+                  "vedtakstype": "REGULERING",
+                  "vedtaksresultat": "REGULERT",
                   "behandlendeEnhetKode": "4815",
                   "ytelseVirkningstidspunkt": "2021-01-01",
                   "gjeldendeStonadVirkningstidspunkt": "2021-01-01",
