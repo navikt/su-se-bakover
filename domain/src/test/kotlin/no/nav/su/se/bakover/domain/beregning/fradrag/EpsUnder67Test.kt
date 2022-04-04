@@ -2,9 +2,11 @@ package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.BRUKER
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.EPS
@@ -123,5 +125,21 @@ internal class EpsUnder67Test {
                 }
             }
         }
+    }
+
+    @Test
+    fun `sosialstønad for EPS går til fradrag uavhengig av om det eksisterer et fribeløp`() {
+        val periode = Periode.create(1.mai(2021), 31.desember(2021))
+
+        FradragStrategy.EpsUnder67År.beregn(
+            fradrag = listOf(
+                lagFradrag(ForventetInntekt, 0.0, periode),
+                lagFradrag(Fradragstype.Sosialstønad, 5000.0, periode, FradragTilhører.EPS),
+            ),
+            beregningsperiode = periode,
+        ).let {
+            it shouldHaveSize 8
+            it.values.sumOf { it.sumOf { it.månedsbeløp } }
+        } shouldBe 8 * 5000
     }
 }

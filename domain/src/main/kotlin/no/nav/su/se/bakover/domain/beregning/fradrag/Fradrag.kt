@@ -40,3 +40,11 @@ fun List<Fradrag>.utenSosialstønad(): List<Fradrag> =
 
 fun List<Fradrag>.utenAvkorting(): List<Fradrag> =
     filterNot { it.fradragstype === Fradragstype.AvkortingUtenlandsopphold }
+
+fun List<Fradrag>.sum(type: Fradragstype): Double {
+    return filter { it.fradragstype == type }.sumOf { it.månedsbeløp }
+}
+
+fun List<Fradrag>.sumEksklusiv(type: Fradragstype): Double {
+    return filterNot { it.fradragstype == type }.sumOf { it.månedsbeløp }
+}

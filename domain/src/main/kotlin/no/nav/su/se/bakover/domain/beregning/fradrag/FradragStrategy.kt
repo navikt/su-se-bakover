@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.beregning.fradrag
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Garantipensjonsnivå
 import no.nav.su.se.bakover.domain.beregning.Sats
+import java.lang.Double.max
 
 enum class FradragStrategyName {
     Enslig,
@@ -59,7 +60,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
                 `fjern EPS fradrag opp til beløpsgrense`(
                     periode = it.key,
                     beløpsgrense = periodisertSumGarantipensjonsnivå(it.key),
-                    fradrag = it.value
+                    fradrag = it.value,
                 )
             }
         }
@@ -82,7 +83,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
                 `fjern EPS fradrag opp til beløpsgrense`(
                     it.key,
                     periodisertSumSatsbeløp(it.key),
-                    it.value
+                    it.value,
                 )
             }
         }
@@ -102,7 +103,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
 
         private fun `slå sammen eps sine fradrag til en og samme type`(
             periode: Periode,
-            fradrag: List<Fradrag>
+            fradrag: List<Fradrag>,
         ): List<Fradrag> {
             val (epsFradrag, søkersFradrag) = fradrag.partition { it.tilhører == FradragTilhører.EPS }
             if (epsFradrag.isEmpty()) return søkersFradrag
@@ -112,8 +113,8 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
                     månedsbeløp = epsFradrag.sumOf { it.månedsbeløp },
                     periode = periode,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
-                )
+                    tilhører = FradragTilhører.EPS,
+                ),
             )
             return søkersFradrag.plus(sammenslått)
         }
@@ -124,7 +125,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
     }
 
     private fun `filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`(
-        fradrag: List<Fradrag>
+        fradrag: List<Fradrag>,
     ): List<Fradrag> {
         val arbeidsinntekter =
             fradrag.filter { it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.Arbeidsinntekt }
@@ -140,28 +141,35 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
     protected fun `fjern EPS fradrag opp til beløpsgrense`(
         periode: Periode,
         beløpsgrense: Double,
-        fradrag: List<Fradrag>
+        fradrag: List<Fradrag>,
     ): List<Fradrag> {
         val (epsFradrag, søkersFradrag) = fradrag.partition { it.tilhører == FradragTilhører.EPS }
-        val epsFradragSum = epsFradrag.sumOf { it.månedsbeløp }
 
-        val beregnetFradragEps = epsFradragSum - beløpsgrense
+        val sumSosialstønad = epsFradrag.sum(Fradragstype.Sosialstønad)
 
-        if (beregnetFradragEps <= 0) {
+        val sumUtenSosialstønad = epsFradrag.sumEksklusiv(Fradragstype.Sosialstønad)
+
+        // ekskluder sosialstønad fra summering mot beløpsgrense
+        val sumOverstigerBeløpsgrense = max(sumUtenSosialstønad - beløpsgrense, 0.0)
+
+        val ingenFradragEps = sumSosialstønad == 0.0 && sumOverstigerBeløpsgrense == 0.0
+
+        return if (ingenFradragEps) {
             return søkersFradrag
-        }
-
-        return søkersFradrag.plus(
-            FradragFactory.periodiser(
-                FradragFactory.ny(
-                    type = Fradragstype.BeregnetFradragEPS,
-                    månedsbeløp = beregnetFradragEps,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS,
+        } else {
+            søkersFradrag.plus(
+                FradragFactory.periodiser(
+                    FradragFactory.ny(
+                        type = Fradragstype.BeregnetFradragEPS,
+                        // sosialstønad legges til i tilegg til eventuell sum som overstiger beløpsgrense
+                        månedsbeløp = sumOverstigerBeløpsgrense + sumSosialstønad,
+                        periode = periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.EPS,
+                    ),
                 ),
-            ),
-        )
+            )
+        }
     }
 
     private fun List<Fradrag>.`har nøyaktig en forventet inntekt for bruker`() =

@@ -141,7 +141,7 @@ object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             tilbakekrevingService = tilbakekrevingService,
             clock = clock,
-        )
+        ).apply { addObserver(statistikkService) }
 
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
 

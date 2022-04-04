@@ -3,6 +3,8 @@ protocol PersonhendelseProto {
   import idl "doedsfall/Doedsfall.avdl";
   import idl "sivilstand/Sivilstand.avdl";
   import idl "utflytting/Utflytting.avdl";
+  import idl "kontaktadresse/Kontaktadresse.avdl";
+  import idl "bostedsadresse/Bostedsadresse.avdl";
 
   enum Endringstype {
     OPPRETTET,
@@ -25,5 +27,7 @@ protocol PersonhendelseProto {
     union { null, no.nav.person.pdl.leesah.doedsfall.Doedsfall } doedsfall = null;
     union { null, no.nav.person.pdl.leesah.sivilstand.Sivilstand } sivilstand = null;
     union { null, no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge } utflyttingFraNorge = null;
+    union { null, no.nav.person.pdl.leesah.kontaktadresse.Kontaktadresse } kontaktadresse = null;
+    union { null, no.nav.person.pdl.leesah.bostedsadresse.Bostedsadresse } bostedsadresse = null;
   }
 }

@@ -41,7 +41,7 @@ class StønadsstatistikkMapper(
                 is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> Statistikk.Stønad.Vedtaksresultat.INNVILGET
                 is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> Statistikk.Stønad.Vedtaksresultat.OPPHØRT
                 is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> Statistikk.Stønad.Vedtaksresultat.STANSET
-                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> TODO()
+                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> Statistikk.Stønad.Vedtaksresultat.REGULERT
             },
             behandlendeEnhetKode = "4815",
             ytelseVirkningstidspunkt = ytelseVirkningstidspunkt,
@@ -63,7 +63,7 @@ class StønadsstatistikkMapper(
 
                 is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> emptyList()
                 is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> mapBeregning(vedtak, sak, clock)
-                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> TODO()
+                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> mapBeregning(vedtak, vedtak.beregning)
             },
             versjon = nå.toEpochMilli(),
             opphorsgrunn = when (vedtak) {
@@ -122,7 +122,7 @@ private fun vedtakstype(vedtak: VedtakSomKanRevurderes.EndringIYtelse) = when (v
     is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> Statistikk.Stønad.Vedtakstype.SØKNAD
     is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> Statistikk.Stønad.Vedtakstype.REVURDERING
     is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> Statistikk.Stønad.Vedtakstype.STANS
-    is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> TODO()
+    is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> Statistikk.Stønad.Vedtakstype.REGULERING
 }
 
 private fun stønadsklassifisering(

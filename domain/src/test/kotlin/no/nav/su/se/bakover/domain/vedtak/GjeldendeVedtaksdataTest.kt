@@ -124,7 +124,7 @@ internal class GjeldendeVedtaksdataTest {
     }
 
     @Test
-    fun `gjeldende vedtaksdata inngholder utbetalinger som skal avkortes`() {
+    fun `gjeldende vedtaksdata inneholder utbetalinger som skal avkortes`() {
         val (sak, _) = vedtakRevurdering(
             clock = TikkendeKlokke(),
             revurderingsperiode = periode2021,
@@ -141,6 +141,7 @@ internal class GjeldendeVedtaksdataTest {
             clock = fixedClock,
         ).let {
             it.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold() shouldBe true
+            it.pågåendeAvkortingEllerBehovForFremtidigAvkorting shouldBe true
         }
     }
 }

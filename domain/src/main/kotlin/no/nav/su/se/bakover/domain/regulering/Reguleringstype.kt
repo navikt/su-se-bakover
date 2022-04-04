@@ -30,7 +30,7 @@ fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
         return Reguleringstype.MANUELL
     }
 
-    if (this.harAvkortingsvarselEllerUteståendeAvkorting) {
+    if (this.pågåendeAvkortingEllerBehovForFremtidigAvkorting) {
         return Reguleringstype.MANUELL
     }
 
