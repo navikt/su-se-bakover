@@ -221,18 +221,25 @@ data class Sak(
     /**
      * Identifiser alle perioder hvor ytelsen har vært eller vil være løpende.
      */
-    fun hentPerioderMedLøpendeYtelse(): List<Periode> {
-        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>()
+    fun hentPerioderMedLøpendeYtelse(
+        periode: Periode = Periode.create(
+            fraOgMed = LocalDate.MIN,
+            tilOgMed = LocalDate.MAX,
+        ),
+    ): List<Periode> {
+        return vedtakstidslinje(periode = periode)
+            .filterNot { it.erOpphør() }
             .map { it.periode }
-            .flatMap { innvilgetStønadsperiode ->
-                vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-                    .lagTidslinje(
-                        periode = innvilgetStønadsperiode,
-                    ).tidslinje
-                    .filterNot { it.originaltVedtak.erOpphør() }
-                    .map { it.periode }
-                    .reduser()
-            }.reduser()
+            .reduser()
+    }
+
+    fun vedtakstidslinje(
+        periode: Periode = Periode.create(
+            fraOgMed = LocalDate.MIN,
+            tilOgMed = LocalDate.MAX,
+        ),
+    ): List<VedtakSomKanRevurderes.VedtakPåTidslinje> {
+        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje(periode).tidslinje
     }
 
     /** Skal ikke kunne ha mer enn én åpen klage av gangen. */

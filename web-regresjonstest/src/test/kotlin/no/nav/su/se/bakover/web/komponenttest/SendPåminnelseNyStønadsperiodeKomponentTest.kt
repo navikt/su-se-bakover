@@ -93,6 +93,53 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
             appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer3.first).none {
                 it.tittel.contains(BrevTemplate.PåminnelseNyStønadsperiode.tittel())
             }
+
+            val sakIdOgSaksnummer4 = opprettInnvilgetSøknadsbehandling(
+                fnr = Fnr.generer().toString(),
+                fraOgMed = 1.august(2021).toString(),
+                tilOgMed = 31.juli(2022).toString(),
+            ).let {
+                hentSak(BehandlingJson.hentSakId(it)).let { sakJson ->
+                    UUID.fromString(hentSakId(sakJson)) to Saksnummer(hentSaksnummer(sakJson).toLong())
+                }
+            }
+
+            appComponents.services.sendPåminnelseNyStønadsperiodeService.sendPåminnelser()
+
+            appComponents.databaseRepos.jobContextRepo.hent<SendPåminnelseNyStønadsperiodeContext>(
+                SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(clock),
+            ) shouldBe SendPåminnelseNyStønadsperiodeContext(
+                clock = clock,
+                id = NameAndYearMonthId(
+                    jobName = "SendPåminnelseNyStønadsperiode",
+                    yearMonth = YearMonth.of(2022, Month.JULY),
+                ),
+                opprettet = Tidspunkt.now(clock),
+                endret = Tidspunkt.now(clock),
+                prosessert = setOf(
+                    sakIdOgSaksnummer1.second,
+                    sakIdOgSaksnummer2.second,
+                    sakIdOgSaksnummer3.second,
+                    sakIdOgSaksnummer4.second,
+                ),
+                sendt = setOf(
+                    sakIdOgSaksnummer2.second,
+                    sakIdOgSaksnummer4.second,
+                ),
+            )
+
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer1.first).none {
+                it.tittel.contains(BrevTemplate.PåminnelseNyStønadsperiode.tittel())
+            }
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer2.first).single {
+                it.tittel.contains(BrevTemplate.PåminnelseNyStønadsperiode.tittel())
+            }
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer3.first).none {
+                it.tittel.contains(BrevTemplate.PåminnelseNyStønadsperiode.tittel())
+            }
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer4.first).single {
+                it.tittel.contains(BrevTemplate.PåminnelseNyStønadsperiode.tittel())
+            }
         }
     }
 }

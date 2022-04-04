@@ -4,7 +4,13 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
+import no.nav.su.se.bakover.common.juni
+import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.JobContextRepo
 import no.nav.su.se.bakover.domain.NameAndYearMonthId
@@ -15,11 +21,16 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
+import no.nav.su.se.bakover.test.formueGrunnlagUtenEpsAvslått
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -191,6 +202,113 @@ internal class SendPåminnelseNyStønadsperiodeServiceImplTest {
                     Saksnummer(3000),
                     Saksnummer(3001),
                     Saksnummer(3003),
+                ),
+            ).right()
+        }
+    }
+
+    @Test
+    fun `utvalg av saker hvor ytelse naturlig avsluttes i inneværende måned`() {
+        val juliClock = Clock.fixed(11.juli(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+
+        // naturlig utløp i forrige måned
+        val (sak1, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 30.juni(2021)), "en kort en"),
+            saksnummer = Saksnummer(3001),
+        )
+        // naturlig utløp i inneværende måned
+        val (sak2, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.juli(2021)), "en kort en"),
+            saksnummer = Saksnummer(3002),
+        )
+        // naturlig utløp i neste måned
+        val (sak3, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.august(2021)), "en kort en"),
+            saksnummer = Saksnummer(3003),
+        )
+
+        // opphør fra fra neste måned
+        val (sak4, _) = vedtakRevurdering(
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)), ""),
+            revurderingsperiode = Periode.create(1.august(2021), 31.desember(2021)),
+            saksnummer = Saksnummer(3004),
+            grunnlagsdataOverrides = listOf(
+                formueGrunnlagUtenEpsAvslått(
+                    periode = Periode.create(1.august(2021), 31.desember(2021)),
+                    bosituasjon = bosituasjongrunnlagEnslig(
+                        periode = Periode.create(1.august(2021), 31.desember(2021)),
+                    ),
+                ),
+            ),
+        )
+
+        // revurdert med naturlig utløp inneværende måned
+        val (sak5, _) = vedtakRevurdering(
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.juli(2021)), "en kort en"),
+            revurderingsperiode = Periode.create(1.mai(2021), 31.juli(2021)),
+            saksnummer = Saksnummer(3005),
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt1000(
+                    periode = Periode.create(1.mai(2021), 31.juli(2021)),
+                ),
+            ),
+        )
+
+        SendPåminnelseNyStønadsperiodeServiceAndMocks(
+            clock = juliClock,
+            sakRepo = mock {
+                on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(
+                    SakIdSaksnummerFnr(sak1.id, sak1.saksnummer, sak1.fnr),
+                    SakIdSaksnummerFnr(sak2.id, sak2.saksnummer, sak2.fnr),
+                    SakIdSaksnummerFnr(sak3.id, sak3.saksnummer, sak3.fnr),
+                    SakIdSaksnummerFnr(sak4.id, sak4.saksnummer, sak4.fnr),
+                    SakIdSaksnummerFnr(sak5.id, sak5.saksnummer, sak5.fnr),
+                )
+                on { hentSak(any<Saksnummer>()) } doReturnConsecutively listOf(
+                    sak1,
+                    sak2,
+                    sak3,
+                    sak4,
+                    sak5,
+                )
+            },
+            sessionFactory = TestSessionFactory(),
+            brevService = mock {
+                on { lagDokument(any<LagBrevRequest>()) } doReturnConsecutively listOf(
+                    Dokument.UtenMetadata.Informasjon(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(juliClock),
+                        tittel = BrevTemplate.PåminnelseNyStønadsperiode.tittel(),
+                        generertDokument = "pdf".toByteArray(),
+                        generertDokumentJson = "{}",
+                    ).right(),
+                )
+            },
+            personService = mock {
+                on { hentPerson(any()) } doReturn person().right()
+            },
+            jobContextRepo = mock {
+                on { hent<SendPåminnelseNyStønadsperiodeContext>(any()) } doReturn null
+            },
+        ).let {
+            it.service.sendPåminnelser() shouldBe SendPåminnelseNyStønadsperiodeContext(
+                clock = juliClock,
+                id = NameAndYearMonthId(
+                    jobName = "SendPåminnelseNyStønadsperiode",
+                    yearMonth = YearMonth.of(2021, Month.JULY),
+                ),
+                opprettet = Tidspunkt.now(juliClock),
+                endret = Tidspunkt.now(juliClock),
+                prosessert = setOf(
+                    Saksnummer(3001),
+                    Saksnummer(3002),
+                    Saksnummer(3003),
+                    Saksnummer(3004),
+                    Saksnummer(3005),
+                ),
+                sendt = setOf(
+                    Saksnummer(3002),
+                    Saksnummer(3005),
                 ),
             ).right()
         }

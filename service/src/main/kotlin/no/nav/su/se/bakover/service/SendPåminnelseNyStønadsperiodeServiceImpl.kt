@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.right
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.JobContextRepo
 import no.nav.su.se.bakover.domain.Sak
@@ -50,15 +51,16 @@ internal class SendPåminnelseNyStønadsperiodeServiceImpl(
             }
             .fold(initialContext) { accContext, saksnummer ->
                 val sak = sakRepo.hentSak(saksnummer)!!
-
-                val utløperInneværendeMåned = sak.hentPerioderMedLøpendeYtelse()
-                    .lastOrNull()?.slutterSamtidig(accContext.id().tilPeriode()) ?: false
+                val utløperInneværendeMåned = utløperInneværendeMåned(
+                    sak = sak,
+                    inneværendeMåned = accContext.id().tilPeriode(),
+                )
 
                 if (utløperInneværendeMåned) {
                     sendPåminnelse(sak, accContext)
                         .fold(
                             {
-                                log.error("Feil: ${it::class} ved utsending av påminnelse for ${sak.saksnummer}, hopper over.")
+                                log.error("Feil: ${it::class} ved utsending av påminnelse for sak: ${sak.saksnummer}, hopper over.")
                                 accContext
                             },
                             { it },
@@ -70,6 +72,14 @@ internal class SendPåminnelseNyStønadsperiodeServiceImpl(
 
         log.info(endContext.oppsummering())
         return endContext.right()
+    }
+
+    private fun utløperInneværendeMåned(sak: Sak, inneværendeMåned: Periode): Boolean {
+        return sak.vedtakstidslinje()
+            .last()
+            .let {
+                !it.erOpphør() && it.periode slutterSamtidig inneværendeMåned
+            }
     }
 
     private fun sendPåminnelse(
