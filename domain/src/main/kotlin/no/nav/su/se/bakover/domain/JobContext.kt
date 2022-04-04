@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import java.time.Clock
+import java.time.LocalDate
 import java.time.YearMonth
 
 sealed class JobContext {
@@ -38,7 +40,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
     }
 
     fun prosessert(saksnummer: Saksnummer): SendPåminnelseNyStønadsperiodeContext {
-        return copy(prosessert = prosessert + saksnummer)
+        return copy(prosessert = prosessert + saksnummer, endret = Tidspunkt.now(clock))
     }
 
     fun prosessert(): Set<Saksnummer> {
@@ -50,18 +52,21 @@ data class SendPåminnelseNyStønadsperiodeContext(
     }
 
     fun sendt(saksnummer: Saksnummer): SendPåminnelseNyStønadsperiodeContext {
-        return prosessert(saksnummer).copy(sendt = sendt + saksnummer)
+        return prosessert(saksnummer).copy(sendt = sendt + saksnummer, endret = Tidspunkt.now(clock))
     }
 
     fun oppsummering(): String {
         return """
             ${"\n"}
-            Oppsummering av jobb: ${id.jobName},
+            ***********************************
+            Oppsummering av jobb: ${id.jobName}, tidspunkt:${Tidspunkt.now(clock)},
             Måned: ${id.yearMonth},
             Opprettet: $opprettet,
             Endret: $endret,
             Prosessert: $prosessert,
             Sendt: $sendt
+            ***********************************
+            ${"\n"}
         """.trimIndent()
     }
 
@@ -90,9 +95,16 @@ data class NameAndYearMonthId(
     override fun value(): String {
         return """$jobName$yearMonth"""
     }
+
+    fun tilPeriode(): Periode {
+        return Periode.create(
+            fraOgMed = LocalDate.of(yearMonth.year, yearMonth.month, 1),
+            tilOgMed = yearMonth.atEndOfMonth(),
+        )
+    }
 }
 
 interface JobContextRepo {
     fun <T : JobContext> hent(id: JobContextId): T?
-    fun lagre(jobContext: JobContext, context: TransactionContext)
+    fun lagre(jobContext: JobContext, transactionContext: TransactionContext)
 }

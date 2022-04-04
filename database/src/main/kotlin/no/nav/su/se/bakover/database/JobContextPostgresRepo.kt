@@ -36,13 +36,13 @@ internal class JobContextPostgresRepo(
         } as? T
     }
 
-    override fun lagre(jobContext: JobContext, context: TransactionContext) {
+    override fun lagre(jobContext: JobContext, transactionContext: TransactionContext) {
         when (jobContext) {
             is SendPåminnelseNyStønadsperiodeContext -> {
                 jobContext.toDb()
             }
         }.let {
-            context.withSession { session ->
+            transactionContext.withSession { session ->
                 """insert into job_context 
                     (
                         id, 
