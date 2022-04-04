@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formueGrunnlagUtenEpsAvslått
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.person
@@ -314,6 +315,39 @@ internal class SendPåminnelseNyStønadsperiodeServiceImplTest {
         }
     }
 
+    @Test
+    fun `gjør ingenting dersom alle saker er prosessert for aktuell måned`() {
+        SendPåminnelseNyStønadsperiodeServiceAndMocks(
+            clock = fixedClock,
+            sakRepo = mock {
+                on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn emptyList()
+            },
+            jobContextRepo = mock {
+                on { hent<SendPåminnelseNyStønadsperiodeContext>(any()) } doReturn null
+            },
+        ).let {
+            it.service.sendPåminnelser() shouldBe SendPåminnelseNyStønadsperiodeContext(
+                clock = fixedClock,
+                id = NameAndYearMonthId(
+                    jobName = "SendPåminnelseNyStønadsperiode",
+                    yearMonth = YearMonth.of(2021, Month.JANUARY),
+                ),
+                opprettet = Tidspunkt.now(fixedClock),
+                endret = Tidspunkt.now(fixedClock),
+                prosessert = emptySet(),
+                sendt = emptySet(),
+            ).right()
+
+            verify(it.sakRepo).hentSakIdSaksnummerOgFnrForAlleSaker()
+            verify(it.jobContextRepo).hent<SendPåminnelseNyStønadsperiodeContext>(
+                SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(
+                    fixedClock,
+                ),
+            )
+            it.verifyNoMoreInteractions()
+        }
+    }
+
     data class SendPåminnelseNyStønadsperiodeServiceAndMocks(
         val clock: Clock = mock(),
         val sakRepo: SakRepo = mock(),
@@ -330,5 +364,14 @@ internal class SendPåminnelseNyStønadsperiodeServiceImplTest {
             personService = personService,
             jobContextRepo = jobContextRepo,
         )
+
+        fun verifyNoMoreInteractions() {
+            org.mockito.kotlin.verifyNoMoreInteractions(
+                sakRepo,
+                brevService,
+                personService,
+                jobContextRepo,
+            )
+        }
     }
 }
