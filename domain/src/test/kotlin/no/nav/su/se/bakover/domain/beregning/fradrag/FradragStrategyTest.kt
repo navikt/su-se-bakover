@@ -213,5 +213,3 @@ internal fun lagPeriodisertFradrag(
     utenlandskInntekt = null,
     tilhører = tilhører,
 )
-
-internal fun Fradrag.toPeriodisertFradrag() = FradragFactory.periodiser(this)
