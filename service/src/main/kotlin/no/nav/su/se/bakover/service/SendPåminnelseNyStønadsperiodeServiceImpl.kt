@@ -76,10 +76,10 @@ internal class SendPåminnelseNyStønadsperiodeServiceImpl(
 
     private fun utløperInneværendeMåned(sak: Sak, inneværendeMåned: Periode): Boolean {
         return sak.vedtakstidslinje()
-            .last()
-            .let {
+            .lastOrNull()
+            ?.let {
                 !it.erOpphør() && it.periode slutterSamtidig inneværendeMåned
-            }
+            } ?: false
     }
 
     private fun sendPåminnelse(

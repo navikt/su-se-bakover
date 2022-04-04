@@ -12,8 +12,10 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.JobContextRepo
 import no.nav.su.se.bakover.domain.NameAndYearMonthId
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
@@ -30,6 +32,7 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formueGrunnlagUtenEpsAvslått
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -345,6 +348,43 @@ internal class SendPåminnelseNyStønadsperiodeServiceImplTest {
                 ),
             )
             it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `prosesserer saker selv om de ikke har noen vedtak enda`() {
+        val sak = Sak(
+            saksnummer = Saksnummer(3000),
+            opprettet = Tidspunkt.now(fixedClock),
+            fnr = Fnr.generer(),
+            utbetalinger = emptyList(),
+        )
+
+        SendPåminnelseNyStønadsperiodeServiceAndMocks(
+            clock = fixedClock,
+            sakRepo = mock {
+                on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(
+                    SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr),
+                )
+                on { hentSak(any<Saksnummer>()) } doReturn sak
+            },
+            jobContextRepo = mock {
+                on { hent<SendPåminnelseNyStønadsperiodeContext>(any()) } doReturn null
+            },
+        ).let {
+            it.service.sendPåminnelser() shouldBe SendPåminnelseNyStønadsperiodeContext(
+                clock = fixedClock,
+                id = NameAndYearMonthId(
+                    jobName = "SendPåminnelseNyStønadsperiode",
+                    yearMonth = YearMonth.of(2021, Month.JANUARY),
+                ),
+                opprettet = Tidspunkt.now(fixedClock),
+                endret = Tidspunkt.now(fixedClock),
+                prosessert = setOf(
+                    Saksnummer(3000),
+                ),
+                sendt = emptySet(),
+            ).right()
         }
     }
 
