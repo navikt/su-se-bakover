@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -910,7 +911,7 @@ open class AccessCheckProxy(
                 override fun hentAvventerKravgrunnlag() = kastKanKunKallesFraAnnenService()
             },
             sendPåminnelseNyStønadsperiodeService = object : SendPåminnelseNyStønadsperiodeService {
-                override fun sendPåminnelser() {
+                override fun sendPåminnelser(): Either<KunneIkkeSendePåminnelse, SendPåminnelseNyStønadsperiodeContext> {
                     kastKanKunKallesFraAnnenService()
                 }
             },

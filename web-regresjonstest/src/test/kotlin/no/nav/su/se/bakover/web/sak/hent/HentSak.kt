@@ -34,6 +34,10 @@ internal fun hentSakId(sakJson: String): String {
     return JSONObject(sakJson).get("id").toString()
 }
 
+internal fun hentSaksnummer(sakJson: String): String {
+    return JSONObject(sakJson).getLong("saksnummer").toString()
+}
+
 /**
  * Henter sakens fnr fra SakJson
  */

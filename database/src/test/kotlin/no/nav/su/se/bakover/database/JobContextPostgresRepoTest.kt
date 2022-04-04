@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.JobContext
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 
@@ -12,18 +12,18 @@ internal class JobContextPostgresRepoTest {
     fun `test`() {
         withMigratedDb { dataSource ->
             TestDataHelper(dataSource).let { helper ->
-                val context = JobContext.SendPåminnelseNyStønadsperiodeContext(fixedClock)
+                val context = SendPåminnelseNyStønadsperiodeContext(fixedClock)
                 val repo = helper.jobContextRepo
 
                 helper.sessionFactory.withTransactionContext { tx ->
                     repo.lagre(context, tx)
                 }
 
-                repo.hent<JobContext.SendPåminnelseNyStønadsperiodeContext>(
-                    JobContext.SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(fixedClock),
+                repo.hent<SendPåminnelseNyStønadsperiodeContext>(
+                    SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(fixedClock),
                 ) shouldBe context
 
-                repo.hent<JobContext.SendPåminnelseNyStønadsperiodeContext>(context.id()) shouldBe context
+                repo.hent<SendPåminnelseNyStønadsperiodeContext>(context.id()) shouldBe context
 
                 helper.sessionFactory.withTransactionContext { tx ->
                     repo.lagre(context, tx)
@@ -35,7 +35,7 @@ internal class JobContextPostgresRepoTest {
                     repo.lagre(sendtOgProsessert, tx)
                 }
 
-                repo.hent<JobContext.SendPåminnelseNyStønadsperiodeContext>(context.id()) shouldBe sendtOgProsessert
+                repo.hent<SendPåminnelseNyStønadsperiodeContext>(context.id()) shouldBe sendtOgProsessert
 
                 val prosessert = sendtOgProsessert.prosessert(Saksnummer(5432))
 
@@ -43,7 +43,7 @@ internal class JobContextPostgresRepoTest {
                     repo.lagre(prosessert, tx)
                 }
 
-                repo.hent<JobContext.SendPåminnelseNyStønadsperiodeContext>(context.id()) shouldBe prosessert
+                repo.hent<SendPåminnelseNyStønadsperiodeContext>(context.id()) shouldBe prosessert
             }
         }
     }

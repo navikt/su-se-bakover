@@ -8,19 +8,22 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.JobContext
 import no.nav.su.se.bakover.domain.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
+import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.sak.hent.hentSak
+import no.nav.su.se.bakover.web.sak.hent.hentSakId
+import no.nav.su.se.bakover.web.sak.hent.hentSaksnummer
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
-import no.nav.su.se.bakover.web.søknadsbehandling.SakJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.Month
 import java.time.YearMonth
 import java.time.ZoneOffset
+import java.util.UUID
 
 class SendPåminnelseNyStønadsperiodeKomponentTest {
     @Test
@@ -29,35 +32,41 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
         withKomptestApplication(
             clock = clock,
         ) { appComponents ->
-            val saksnummer1 = opprettInnvilgetSøknadsbehandling(
+            val sakIdOgSaksnummer1 = opprettInnvilgetSøknadsbehandling(
                 fnr = Fnr.generer().toString(),
                 fraOgMed = 1.januar(2021).toString(),
                 tilOgMed = 31.desember(2021).toString(),
             ).let {
-                hentSak(BehandlingJson.hentSakId(it))
+                hentSak(BehandlingJson.hentSakId(it)).let { sakJson ->
+                    UUID.fromString(hentSakId(sakJson)) to Saksnummer(hentSaksnummer(sakJson).toLong())
+                }
             }
 
-            val saksnummer2 = opprettInnvilgetSøknadsbehandling(
+            val sakIdOgSaksnummer2 = opprettInnvilgetSøknadsbehandling(
                 fnr = Fnr.generer().toString(),
                 fraOgMed = 1.august(2021).toString(),
                 tilOgMed = 31.juli(2022).toString(),
             ).let {
-                hentSak(BehandlingJson.hentSakId(it))
+                hentSak(BehandlingJson.hentSakId(it)).let { sakJson ->
+                    UUID.fromString(hentSakId(sakJson)) to Saksnummer(hentSaksnummer(sakJson).toLong())
+                }
             }
 
-            val saksnummer3 = opprettInnvilgetSøknadsbehandling(
+            val sakIdOgSaksnummer3 = opprettInnvilgetSøknadsbehandling(
                 fnr = Fnr.generer().toString(),
                 fraOgMed = 1.juli(2022).toString(),
                 tilOgMed = 30.juni(2023).toString(),
             ).let {
-                hentSak(BehandlingJson.hentSakId(it))
+                hentSak(BehandlingJson.hentSakId(it)).let { sakJson ->
+                    UUID.fromString(hentSakId(sakJson)) to Saksnummer(hentSaksnummer(sakJson).toLong())
+                }
             }
 
             appComponents.services.sendPåminnelseNyStønadsperiodeService.sendPåminnelser()
 
-            appComponents.databaseRepos.jobContextRepo.hent<JobContext.SendPåminnelseNyStønadsperiodeContext>(
-                JobContext.SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(clock),
-            ) shouldBe JobContext.SendPåminnelseNyStønadsperiodeContext(
+            appComponents.databaseRepos.jobContextRepo.hent<SendPåminnelseNyStønadsperiodeContext>(
+                SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(clock),
+            ) shouldBe SendPåminnelseNyStønadsperiodeContext(
                 clock = clock,
                 id = NameAndYearMonthId(
                     jobName = "SendPåminnelseNyStønadsperiode",
@@ -66,14 +75,24 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 opprettet = Tidspunkt.now(clock),
                 endret = Tidspunkt.now(clock),
                 prosessert = setOf(
-                    Saksnummer(SakJson.hentSaksnummer(saksnummer1).toLong()),
-                    Saksnummer(SakJson.hentSaksnummer(saksnummer2).toLong()),
-                    Saksnummer(SakJson.hentSaksnummer(saksnummer3).toLong()),
+                    sakIdOgSaksnummer1.second,
+                    sakIdOgSaksnummer2.second,
+                    sakIdOgSaksnummer3.second,
                 ),
                 sendt = setOf(
-                    Saksnummer(SakJson.hentSaksnummer(saksnummer2).toLong()),
+                    sakIdOgSaksnummer2.second,
                 ),
             )
+
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer1.first).none {
+                it.tittel.contains(BrevTemplate.PåminnelseNyStønadsperiode.tittel())
+            }
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer2.first).single {
+                it.tittel.contains(BrevTemplate.PåminnelseNyStønadsperiode.tittel())
+            }
+            appComponents.databaseRepos.dokumentRepo.hentForSak(sakIdOgSaksnummer3.first).none {
+                it.tittel.contains(BrevTemplate.PåminnelseNyStønadsperiode.tittel())
+            }
         }
     }
 }

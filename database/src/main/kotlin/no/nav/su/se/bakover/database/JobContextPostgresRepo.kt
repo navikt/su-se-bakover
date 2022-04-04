@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.JobContextId
 import no.nav.su.se.bakover.domain.JobContextRepo
 import no.nav.su.se.bakover.domain.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import java.time.Clock
 import java.time.YearMonth
 
@@ -37,7 +38,7 @@ internal class JobContextPostgresRepo(
 
     override fun lagre(jobContext: JobContext, context: TransactionContext) {
         when (jobContext) {
-            is JobContext.SendPåminnelseNyStønadsperiodeContext -> {
+            is SendPåminnelseNyStønadsperiodeContext -> {
                 jobContext.toDb()
             }
         }.let {
@@ -71,7 +72,7 @@ internal class JobContextPostgresRepo(
             objectMapper.readValue<JobContextDb.SendPåminnelseNyStønadsperiodeContextDb>(it)
         }
 
-        return JobContext.SendPåminnelseNyStønadsperiodeContext(
+        return SendPåminnelseNyStønadsperiodeContext(
             clock = clock,
             id = NameAndYearMonthId(
                 jobName = context.jobName,
@@ -84,7 +85,7 @@ internal class JobContextPostgresRepo(
         )
     }
 
-    private fun JobContext.SendPåminnelseNyStønadsperiodeContext.toDb(): JobContextDb.SendPåminnelseNyStønadsperiodeContextDb {
+    private fun SendPåminnelseNyStønadsperiodeContext.toDb(): JobContextDb.SendPåminnelseNyStønadsperiodeContextDb {
         return JobContextDb.SendPåminnelseNyStønadsperiodeContextDb(
             id = id().value(),
             jobName = id().jobName,

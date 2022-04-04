@@ -1,9 +1,13 @@
 package no.nav.su.se.bakover.service
 
+import arrow.core.Either
 import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.domain.JobContext
 import no.nav.su.se.bakover.domain.JobContextRepo
+import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -14,7 +18,12 @@ import java.time.Clock
 import java.time.LocalDate
 
 interface SendPåminnelseNyStønadsperiodeService {
-    fun sendPåminnelser()
+    fun sendPåminnelser(): Either<KunneIkkeSendePåminnelse, SendPåminnelseNyStønadsperiodeContext>
+}
+
+sealed interface KunneIkkeSendePåminnelse {
+    object FantIkkePerson : KunneIkkeSendePåminnelse
+    object KunneIkkeLageBrev : KunneIkkeSendePåminnelse
 }
 
 internal class SendPåminnelseNyStønadsperiodeServiceImpl(
@@ -27,43 +36,52 @@ internal class SendPåminnelseNyStønadsperiodeServiceImpl(
 ) : SendPåminnelseNyStønadsperiodeService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun sendPåminnelser() {
-        val start = System.currentTimeMillis()
-
-        val context = jobContextRepo.hent<JobContext.SendPåminnelseNyStønadsperiodeContext>(
-            JobContext.SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(clock),
+    override fun sendPåminnelser(): Either<KunneIkkeSendePåminnelse, SendPåminnelseNyStønadsperiodeContext> {
+        val initialContext = jobContextRepo.hent<SendPåminnelseNyStønadsperiodeContext>(
+            SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(clock),
         )?.also {
             log.info("Gjenbruker eksisterende context for jobb: ${it.id().jobName}, måned: ${it.id().yearMonth}")
-        } ?: JobContext.SendPåminnelseNyStønadsperiodeContext(clock).also {
+        } ?: SendPåminnelseNyStønadsperiodeContext(clock).also {
             log.info("Oppretter ny context for jobb: ${it.id().jobName}, måned: ${it.id().yearMonth}")
         }
 
-        sakRepo.hentSakIdSaksnummerOgFnrForAlleSaker()
+        val endContext = sakRepo.hentSakIdSaksnummerOgFnrForAlleSaker()
             .map { it.saksnummer }
             .toSet()
-            .minus(context.prosessert())
+            .minus(initialContext.prosessert())
             .ifEmpty {
                 log.info(
                     "Påminnelser om ny stønadsperiode er sendt ut for alle relevante saker (${
-                        context.sendt().count()
-                    }) for måned: ${context.id().yearMonth}",
+                    initialContext.sendt().count()
+                    }) for måned: ${initialContext.id().yearMonth}",
                 )
-                return
+                return initialContext.right()
             }
             .also { log.info("Kontrollerer behov for påminnelse om ny stønadsperiode for ${it.count()} saker") }
-            .fold(context) { ctx, saksnummerSomProsesseres ->
-                val sak = sakRepo.hentSak(saksnummerSomProsesseres)!!
+            .fold(initialContext) { acc, saksnummer ->
+                val sak = sakRepo.hentSak(saksnummer)!!
                 val person = personService.hentPerson(sak.fnr)
-                    .getOrHandle { TODO() }
+                    .getOrHandle { return KunneIkkeSendePåminnelse.FantIkkePerson.left() }
 
-                if (true) {
+                val utløperInneværendeMåned = acc.id().yearMonth
+                    .let {
+                        Periode.create(
+                            LocalDate.of(it.year, it.month, 1),
+                            it.atEndOfMonth(),
+                        )
+                    }
+                    .let { måned ->
+                        sak.hentPerioderMedLøpendeYtelse().lastOrNull()?.slutterSamtidig(måned) ?: false
+                    }
+
+                if (utløperInneværendeMåned) {
                     val dokument = brevService.lagDokument(
                         LagBrevRequest.PåminnelseNyStønadsperiode(
                             person = person,
                             dagensDato = LocalDate.now(clock),
                             saksnummer = sak.saksnummer,
                         ),
-                    ).getOrHandle { TODO() }
+                    ).getOrHandle { return KunneIkkeSendePåminnelse.KunneIkkeLageBrev.left() }
 
                     sessionFactory.withTransactionContext { tx ->
                         brevService.lagreDokument(
@@ -74,7 +92,7 @@ internal class SendPåminnelseNyStønadsperiodeServiceImpl(
                                 ),
                             ),
                         )
-                        ctx.sendt(saksnummerSomProsesseres).also {
+                        acc.sendt(saksnummer).also {
                             jobContextRepo.lagre(
                                 jobContext = it,
                                 context = tx,
@@ -82,8 +100,8 @@ internal class SendPåminnelseNyStønadsperiodeServiceImpl(
                         }
                     }
                 } else {
-                    ctx.prosessert(saksnummerSomProsesseres).also {
-                        sessionFactory.withTransactionContext { tx ->
+                    sessionFactory.withTransactionContext { tx ->
+                        acc.prosessert(saksnummer).also {
                             jobContextRepo.lagre(
                                 jobContext = it,
                                 context = tx,
@@ -93,7 +111,7 @@ internal class SendPåminnelseNyStønadsperiodeServiceImpl(
                 }
             }
 
-        val end = System.currentTimeMillis()
-        log.info("Fullført utsendelse av påminnelser om ny stønadsperode på: ${(end - start)}ms")
+        log.info(endContext.oppsummering())
+        return endContext.right()
     }
 }
