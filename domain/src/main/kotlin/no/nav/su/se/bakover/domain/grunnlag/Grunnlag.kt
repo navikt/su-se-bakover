@@ -173,6 +173,9 @@ sealed class Grunnlag {
 
             fun List<Fradragsgrunnlag>.harEpsInntekt() = this.any { it.fradrag.tilhørerEps() }
             fun List<Fradragsgrunnlag>.perioder(): List<Periode> = map { it.periode }.reduser()
+            fun List<Fradragsgrunnlag>.allePerioderMedEPS(): List<Periode> {
+                return filter { it.tilhørerEps() }.map { it.periode }.reduser()
+            }
 
             fun List<Fradragsgrunnlag>.slåSammenPeriodeOgFradrag(): List<Fradragsgrunnlag> {
                 return this.sortedBy { it.periode.fraOgMed }
@@ -247,6 +250,7 @@ sealed class Grunnlag {
         }
 
         companion object {
+            // TODO("flere_satser oppdatering av bosituasjon på denne måten fungerer ikke dersom det er flere")
             fun List<Bosituasjon>.oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): List<Bosituasjon> {
                 return this.map { it.oppdaterBosituasjonsperiode(oppdatertPeriode) }
             }
@@ -277,6 +281,21 @@ sealed class Grunnlag {
 
             fun List<Bosituasjon>.perioder(): List<Periode> {
                 return map { it.periode }.reduser()
+            }
+
+            fun List<Bosituasjon>.allPerioderMedEPS(): List<Periode> {
+                return filter { it.harEPS() }.map { it.periode }.reduser()
+            }
+            fun List<Bosituasjon>.harOverlappende(): Boolean {
+                return all { p1 -> minus(p1).any { p2 -> p1.periode overlapper p2.periode } }
+            }
+
+            /**
+             * Kan være tom under vilkårsvurdering/datainnsamlings-tilstanden.
+             * Kan være maks 1 i alle andre tilstander.
+             */
+            fun List<Bosituasjon>.harEPS(): Boolean {
+                return any { it.harEPS() }
             }
         }
 
@@ -444,48 +463,18 @@ sealed class Grunnlag {
     }
 }
 
-// Generell kommentar til extension-funksjonene: Disse er lagt til slik at vi enklere skal få kontroll over migreringen fra 1 bosituasjon til fler.
-
-fun List<Grunnlag.Bosituasjon>.harFlerEnnEnBosituasjonsperiode(): Boolean = size > 1
-
-/**
- * Kan være tom under vilkårsvurdering/datainnsamlings-tilstanden.
- * Kan være maks 1 i alle andre tilstander.
- * @throws IllegalStateException hvis size > 1
- * */
-fun List<Grunnlag.Bosituasjon>.harEPS(): Boolean {
-    return singleOrThrow().harEPS()
+fun Grunnlag.Bosituasjon.fullstendigOrThrow(): Grunnlag.Bosituasjon.Fullstendig {
+    return (this as? Grunnlag.Bosituasjon.Fullstendig)
+        ?: throw IllegalStateException("Forventet Grunnlag.Bosituasjon type Fullstendig, men var ${this::class.simpleName}")
 }
 
-/**
- * Kan være tom under vilkårsvurdering/datainnsamlings-tilstanden.
- * Kan være maks 1 i alle andre tilstander.
- * @throws IllegalStateException hvis size != 1
- * */
+fun List<Grunnlag.Bosituasjon>.singleFullstendigOrThrow(): Grunnlag.Bosituasjon.Fullstendig {
+    return singleOrThrow().fullstendigOrThrow()
+}
+
 fun List<Grunnlag.Bosituasjon>.singleOrThrow(): Grunnlag.Bosituasjon {
     if (size != 1) {
         throw IllegalStateException("Forventet 1 Grunnlag.Bosituasjon, men var: ${this.size}")
     }
     return this.first()
-}
-
-/**
- * Kan være tom under vilkårsvurdering/datainnsamlings-tilstanden.
- * Kan være maks 1 i alle andre tilstander.
- *  * @throws IllegalStateException hvis size != 1
- * */
-fun List<Grunnlag.Bosituasjon>.singleFullstendigOrThrow(): Grunnlag.Bosituasjon.Fullstendig {
-    return singleOrThrow().fullstendigOrThrow()
-}
-
-fun List<Grunnlag.Bosituasjon>.throwIfMultiple(): Grunnlag.Bosituasjon? {
-    if (this.size > 1) {
-        throw IllegalStateException("Det er ikke støtte for flere bosituasjoner")
-    }
-    return this.firstOrNull()
-}
-
-fun Grunnlag.Bosituasjon.fullstendigOrThrow(): Grunnlag.Bosituasjon.Fullstendig {
-    return (this as? Grunnlag.Bosituasjon.Fullstendig)
-        ?: throw IllegalStateException("Forventet Grunnlag.Bosituasjon type Fullstendig, men var ${this::class.simpleName}")
 }

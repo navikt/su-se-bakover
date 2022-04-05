@@ -22,11 +22,8 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
-import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
-import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
@@ -187,26 +184,10 @@ internal class RevurderingServiceImpl(
             bosituasjongrunnlag = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
             fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
         ).resultat.getOrHandle {
-            when {
-                !informasjonSomRevurderes.harValgtBosituasjon() && it.contains(Konsistensproblem.Bosituasjon.Flere) -> {
-                    return KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
-                }
-                !informasjonSomRevurderes.harValgtInntekt() && it.contains(Konsistensproblem.Bosituasjon.Flere) -> {
-                    // Ref: fjernBosituasjonOgFradragHvisIkkeEntydig(...), vi sletter alle fradragene/inntektene dersom vi har flere enn 1 bosituasjon.
-                    return KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
-                }
-                !informasjonSomRevurderes.harValgtFormue() && it.contains(Konsistensproblem.BosituasjonOgFormue.FlereBosituasjonerOgFormueForEPS) -> {
-                    return KunneIkkeOppretteRevurdering.EpsFormueMedFlereBosituasjonsperioderMåRevurderes.left()
-                }
-            }
+            // TODO("flere_satser ingenting igjen å sjekke her siden flere bosituasjoner er tillatt")
         }
 
-        // TODO jah: Spør Jacob om denne og bør inkl. fjerning av EPS formue.
-        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragHvisIkkeEntydig(
-            gjeldendeVedtaksdata,
-        )
-
-        when (val r = VurderOmVilkårGirOpphørVedRevurdering(vilkårsvurderinger).resultat) {
+        when (val r = VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat) {
             is OpphørVedRevurdering.Ja -> {
                 if (!informasjonSomRevurderes.harValgtFormue() && r.opphørsgrunner.contains(Opphørsgrunn.FORMUE)) {
                     return KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes.left()
@@ -254,8 +235,8 @@ internal class RevurderingServiceImpl(
                 revurderingsårsak = revurderingsårsak,
                 opprettet = Tidspunkt.now(clock),
                 forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles else null,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
+                grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
+                vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
 
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
@@ -316,21 +297,6 @@ internal class RevurderingServiceImpl(
                 }
             }
         }
-    }
-
-    private fun fjernBosituasjonOgFradragHvisIkkeEntydig(gjeldendeVedtaksdata: GjeldendeVedtaksdata): Pair<Grunnlagsdata, Vilkårsvurderinger.Revurdering> {
-        val gjeldendeBosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon
-
-        // Dette kan oppstå når vi revurderer en revurdering. Da må vi vise eksisterende, men skal ikke preutfylle.
-        val harFlerEnnEnBosituasjon = gjeldendeBosituasjon.harFlerEnnEnBosituasjonsperiode()
-
-        return gjeldendeVedtaksdata.grunnlagsdata.copy(
-            // Foreløpig støtter vi kun en aktiv bosituasjon, dersom det er fler, preutfyller vi ikke.
-            bosituasjon = if (harFlerEnnEnBosituasjon) emptyList() else listOf(
-                gjeldendeBosituasjon.singleFullstendigOrThrow(),
-            ),
-            fradragsgrunnlag = if (harFlerEnnEnBosituasjon) emptyList() else gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
-        ) to gjeldendeVedtaksdata.vilkårsvurderinger
     }
 
     override fun leggTilUførevilkår(
@@ -454,7 +420,9 @@ internal class RevurderingServiceImpl(
         val revurdering = hent(request.revurderingId)
             .getOrHandle { return KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering.left() }
 
-        val bosituasjon = revurdering.grunnlagsdata.bosituasjon.singleFullstendigOrThrow()
+        // TODO("flere_satser mulig å gjøre noe for å unngå casting?")
+        @Suppress("UNCHECKED_CAST")
+        val bosituasjon = revurdering.grunnlagsdata.bosituasjon as List<Grunnlag.Bosituasjon.Fullstendig>
 
         val vilkår = request.toDomain(bosituasjon, revurdering.periode, clock).getOrHandle {
             return it.left()
@@ -588,23 +556,8 @@ internal class RevurderingServiceImpl(
             bosituasjongrunnlag = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
             fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
         ).resultat.getOrHandle {
-            when {
-                !informasjonSomRevurderes.harValgtBosituasjon() && it.contains(Konsistensproblem.Bosituasjon.Flere) -> {
-                    return KunneIkkeOppdatereRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
-                }
-                !informasjonSomRevurderes.harValgtInntekt() && it.contains(Konsistensproblem.Bosituasjon.Flere) -> {
-                    // Ref: fjernBosituasjonOgFradragHvisIkkeEntydig(...), vi sletter alle fradragene/inntektene dersom vi har flere enn 1 bosituasjon.
-                    return KunneIkkeOppdatereRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
-                }
-                !informasjonSomRevurderes.harValgtFormue() && it.contains(Konsistensproblem.BosituasjonOgFormue.FlereBosituasjonerOgFormueForEPS) -> {
-                    return KunneIkkeOppdatereRevurdering.EpsFormueMedFlereBosituasjonsperioderMåRevurderes.left()
-                }
-            }
+            // TODO("flere_satser ingenting igjen å sjekke her siden flere bosituasjoner er tillatt")
         }
-
-        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragHvisIkkeEntydig(
-            gjeldendeVedtaksdata,
-        )
 
         when (val r = VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat) {
             is OpphørVedRevurdering.Ja -> {
@@ -637,8 +590,8 @@ internal class RevurderingServiceImpl(
             is OpprettetRevurdering -> revurdering.oppdater(
                 periode = gjeldendeVedtaksdata.periode,
                 revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
+                grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
+                vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
                 avkorting = avkorting,
@@ -646,8 +599,8 @@ internal class RevurderingServiceImpl(
             is BeregnetRevurdering -> revurdering.oppdater(
                 periode = gjeldendeVedtaksdata.periode,
                 revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
+                grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
+                vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
                 avkorting = avkorting,
@@ -655,8 +608,8 @@ internal class RevurderingServiceImpl(
             is SimulertRevurdering -> revurdering.oppdater(
                 periode = gjeldendeVedtaksdata.periode,
                 revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
+                grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
+                vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
                 avkorting = avkorting,
@@ -664,8 +617,8 @@ internal class RevurderingServiceImpl(
             is UnderkjentRevurdering -> revurdering.oppdater(
                 periode = gjeldendeVedtaksdata.periode,
                 revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
+                grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
+                vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
                 avkorting = avkorting,

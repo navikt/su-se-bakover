@@ -195,7 +195,6 @@ sealed class KunneIkkeOppretteRevurdering {
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppretteRevurdering()
     object FantIkkeAktørId : KunneIkkeOppretteRevurdering()
     object KunneIkkeOppretteOppgave : KunneIkkeOppretteRevurdering()
-    object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppretteRevurdering()
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
     object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppretteRevurdering()
     data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) :
@@ -217,7 +216,6 @@ sealed class KunneIkkeOppdatereRevurdering {
 
     object FantIkkeRevurdering : KunneIkkeOppdatereRevurdering()
     object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
-    object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppdatereRevurdering()
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
     object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppdatereRevurdering()
     data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) :

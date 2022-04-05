@@ -175,7 +175,7 @@ internal class FormuegrunnlagTest {
                 opprettet = Tidspunkt.EPOCH, epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                 begrunnelse = null,
-                bosituasjon = enslig,
+                bosituasjon = listOf(enslig),
                 behandlingsPeriode = Periode.create(1.januar(2021), 31.mars(2021)),
             ) shouldBe KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
         }
@@ -184,6 +184,7 @@ internal class FormuegrunnlagTest {
         fun `Ok formuegrunnlag `() {
             val id = UUID.randomUUID()
             val periode = Periode.create(1.januar(2021), 31.desember(2021))
+            val enslig = enslig.copy(periode = periode)
 
             val formueTryCreate = Formuegrunnlag.tryCreate(
                 id = id,
@@ -192,7 +193,7 @@ internal class FormuegrunnlagTest {
                 epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                 begrunnelse = null,
-                bosituasjon = enslig,
+                bosituasjon = listOf(enslig),
                 behandlingsPeriode = Periode.create(1.januar(2021), 31.desember(2021)),
             )
 

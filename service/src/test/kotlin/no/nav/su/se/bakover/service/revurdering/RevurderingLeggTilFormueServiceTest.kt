@@ -190,7 +190,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                 ),
             ),
         ).getOrHandle {
-            it shouldBe KunneIkkeLeggeTilFormuegrunnlag.MåHaEpsHvisManHarSattEpsFormue
+            it shouldBe KunneIkkeLeggeTilFormuegrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode
         }
 
         inOrder(

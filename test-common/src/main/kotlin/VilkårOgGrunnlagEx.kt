@@ -51,7 +51,7 @@ fun Formuegrunnlag.Companion.create(
     epsFormue,
     søkersFormue,
     begrunnelse,
-    bosituasjon,
+    listOf(bosituasjon),
     behandlingsPeriode,
 ).getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
 

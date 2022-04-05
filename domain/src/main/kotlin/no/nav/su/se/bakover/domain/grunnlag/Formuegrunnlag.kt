@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.reduser
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
@@ -113,6 +114,10 @@ data class Formuegrunnlag private constructor(
                     depositumskonto = depositumskonto,
                 ).right()
             }
+
+            fun List<Formuegrunnlag>.perioder(): List<Periode> {
+                return map { it.periode }.reduser()
+            }
         }
     }
 
@@ -129,7 +134,7 @@ data class Formuegrunnlag private constructor(
             søkersFormue: Verdier,
             begrunnelse: String?,
             // Denne tar ikke høyde for søknadsbehandling da denne ikke nødvendigvis er fullstendig
-            bosituasjon: Bosituasjon.Fullstendig,
+            bosituasjon: List<Bosituasjon.Fullstendig>,
             behandlingsPeriode: Periode,
         ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
             val formuegrunnlag = Formuegrunnlag(
@@ -140,17 +145,10 @@ data class Formuegrunnlag private constructor(
                 søkersFormue = søkersFormue,
                 begrunnelse = if (begrunnelse.isNullOrBlank()) null else begrunnelse,
             )
-            SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
-                bosituasjon = listOf(bosituasjon),
-                formue = listOf(formuegrunnlag),
-            ).resultat.mapLeft {
-                if (it.contains(Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS)) {
-                    return KunneIkkeLageFormueGrunnlag.MåHaEpsHvisManHarSattEpsFormue.left()
-                }
-                if (it.contains(Konsistensproblem.BosituasjonOgFormue.EPSFormueperiodeErUtenforBosituasjonPeriode)) {
-                    return KunneIkkeLageFormueGrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode.left()
-                }
-            }
+
+            konsistenssjekk(
+                bosituasjon = bosituasjon, formuegrunnlag = listOf(formuegrunnlag),
+            ).getOrHandle { return it.left() }
 
             if (!(behandlingsPeriode.inneholder(periode))) {
                 return KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
@@ -158,6 +156,7 @@ data class Formuegrunnlag private constructor(
             return formuegrunnlag.right()
         }
 
+        @JvmName("tryCreatePotensieltUfullstendigBosituasjon")
         fun tryCreate(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
@@ -166,7 +165,7 @@ data class Formuegrunnlag private constructor(
             søkersFormue: Verdier,
             begrunnelse: String?,
             // Tillater ufullstending for å kunne bruke med søknadsbehandling
-            bosituasjon: Bosituasjon,
+            bosituasjon: List<Bosituasjon>,
             behandlingsPeriode: Periode,
         ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
             val formuegrunnlag = Formuegrunnlag(
@@ -177,17 +176,10 @@ data class Formuegrunnlag private constructor(
                 søkersFormue = søkersFormue,
                 begrunnelse = if (begrunnelse.isNullOrBlank()) null else begrunnelse,
             )
-            SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
-                bosituasjon = listOf(bosituasjon),
-                formue = listOf(formuegrunnlag),
-            ).resultat.mapLeft {
-                if (it.contains(Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS)) {
-                    return KunneIkkeLageFormueGrunnlag.MåHaEpsHvisManHarSattEpsFormue.left()
-                }
-                if (it.contains(Konsistensproblem.BosituasjonOgFormue.EPSFormueperiodeErUtenforBosituasjonPeriode)) {
-                    return KunneIkkeLageFormueGrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode.left()
-                }
-            }
+
+            konsistenssjekk(
+                bosituasjon = bosituasjon, formuegrunnlag = listOf(formuegrunnlag),
+            ).getOrHandle { return it.left() }
 
             if (!(behandlingsPeriode.inneholder(periode))) {
                 return KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
@@ -195,6 +187,17 @@ data class Formuegrunnlag private constructor(
             return formuegrunnlag.right()
         }
 
+        private fun konsistenssjekk(
+            bosituasjon: List<Bosituasjon>,
+            formuegrunnlag: List<Formuegrunnlag>,
+        ): Either<KunneIkkeLageFormueGrunnlag, Unit> {
+            return SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
+                bosituasjon = bosituasjon,
+                formue = formuegrunnlag,
+            ).resultat.mapLeft { problem ->
+                problem.first().let { KunneIkkeLageFormueGrunnlag.Konsistenssjekk(it) }
+            }
+        }
         fun fromPersistence(
             id: UUID,
             opprettet: Tidspunkt,
@@ -227,9 +230,8 @@ data class Formuegrunnlag private constructor(
 }
 
 sealed class KunneIkkeLageFormueGrunnlag {
-    object EpsFormueperiodeErUtenforBosituasjonPeriode : KunneIkkeLageFormueGrunnlag()
-    object MåHaEpsHvisManHarSattEpsFormue : KunneIkkeLageFormueGrunnlag()
     object FormuePeriodeErUtenforBehandlingsperioden : KunneIkkeLageFormueGrunnlag()
+    data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFormue) : KunneIkkeLageFormueGrunnlag()
 }
 
 sealed class KunneIkkeLageFormueVerdier {
@@ -237,7 +239,7 @@ sealed class KunneIkkeLageFormueVerdier {
     object VerdierKanIkkeVæreNegativ : KunneIkkeLageFormueVerdier()
 }
 
-fun List<Formuegrunnlag>.harEPSFormue() = any { it.harEPSFormue() }
+fun List<Formuegrunnlag>.harEPSFormue() = allePerioderMedEPS().isNotEmpty()
 
 /**
  * @throws IllegalStateException dersom antall elementer i listen ikke tilsvarer 1
@@ -247,4 +249,8 @@ fun List<Formuegrunnlag>.firstOrThrowIfMultipleOrEmpty(): Formuegrunnlag {
         throw IllegalStateException("Antall elementer i listen tilsvarer ikke 1")
     }
     return this.first()
+}
+
+fun List<Formuegrunnlag>.allePerioderMedEPS(): List<Periode> {
+    return filter { it.harEPSFormue() }.map { it.periode }.reduser()
 }
