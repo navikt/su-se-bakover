@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -39,6 +40,7 @@ class ReguleringServiceImpl(
     private val clock: Clock,
     private val tilbakekrevingService: TilbakekrevingService,
 ) : ReguleringService {
+    private val log = LoggerFactory.getLogger(this::class.java)
     private val observers: MutableList<EventObserver> = mutableListOf()
 
     fun addObserver(observer: EventObserver) {
@@ -113,12 +115,21 @@ class ReguleringServiceImpl(
             reguleringRepo.lagre(regulering)
 
             if (regulering.reguleringstype == Reguleringstype.AUTOMATISK) {
-                regulerAutomatisk(regulering).mapLeft { feil ->
-                    KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil)
-                }
+                regulerAutomatisk(regulering)
+                    .tap { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
+                    .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }
             } else {
+                log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen må behandles manuelt.")
                 regulering.right()
             }
+        }.also {
+            val regulert = it.mapNotNull { regulering ->
+                regulering.fold(ifLeft = { null }, ifRight = { it })
+            }
+            val antallAutomatiske = regulert.filter { regulering -> regulering.reguleringstype == Reguleringstype.AUTOMATISK }.size
+            val antallManuelle = regulert.filter { regulering -> regulering.reguleringstype == Reguleringstype.MANUELL }.size
+
+            log.info("Totalt antall prosesserte reguleringer: ${regulert.size}, antall automatiske: $antallAutomatiske, antall manuelle: $antallManuelle")
         }
     }
 
