@@ -4,7 +4,9 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.post
-import no.nav.su.se.bakover.common.serialize
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.web.Resultat
@@ -21,9 +23,10 @@ internal fun Route.regulerAutomatisk(
     authorize(Brukerrolle.Drift) {
         post("$reguleringPath/automatisk") {
             call.withBody<Request> {
-                call.svar(
-                    Resultat.json(HttpStatusCode.OK, serialize(reguleringService.startRegulering(it.startDato))),
-                )
+                CoroutineScope(Dispatchers.IO).launch {
+                    reguleringService.startRegulering(it.startDato)
+                }
+                call.svar(Resultat.okJson(HttpStatusCode.OK))
             }
         }
     }
