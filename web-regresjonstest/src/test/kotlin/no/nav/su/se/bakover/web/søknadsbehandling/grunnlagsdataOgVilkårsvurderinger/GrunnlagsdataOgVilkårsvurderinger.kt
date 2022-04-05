@@ -13,7 +13,7 @@ fun tomGrunnlagsdataOgVilkårsvurderingerResponse(): String {
         "formuegrenser":[
           {
             "gyldigFra":"2022-05-01",
-            "beløp":53300
+            "beløp":53350
           },
           {
             "gyldigFra":"2021-05-01",
