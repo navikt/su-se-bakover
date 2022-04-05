@@ -20,7 +20,7 @@ class Grunnbeløp private constructor(
         LocalDate.of(2021, Month.MAY, 1) to 106399,
         if (ApplicationConfig.isNotProd()) {
             log.warn("Inkluderer fiktiv G-verdi for 2022. Skal ikke dukke opp i prod!")
-            LocalDate.of(2022, Month.MAY, 1) to 106499
+            LocalDate.of(2022, Month.MAY, 1) to 106599
         } else null,
     ).toMap()
 
