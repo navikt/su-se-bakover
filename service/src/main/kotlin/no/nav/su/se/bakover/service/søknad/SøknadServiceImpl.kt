@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
@@ -49,7 +50,7 @@ internal class SøknadServiceImpl(
 
     fun addObserver(observer: EventObserver) = observers.add(observer)
 
-    override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
+    override fun nySøknad(søknadInnhold: SøknadInnhold, identBruker: NavIdentBruker): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
         val innsendtFødselsnummer: Fnr = søknadInnhold.personopplysninger.fnr
 
         val person = personService.hentPerson(innsendtFødselsnummer).getOrHandle {
@@ -87,7 +88,7 @@ internal class SøknadServiceImpl(
                     opprettet = Tidspunkt.now(clock),
                     søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
                 )
-                søknadRepo.opprettSøknad(søknad)
+                søknadRepo.opprettSøknad(søknad, identBruker)
 
                 Pair(it.copy(søknader = (it.søknader + søknad)), søknad)
             },

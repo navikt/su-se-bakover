@@ -1409,6 +1409,7 @@ internal class LagBrevRequestVisitorTest {
         when (navIdentBruker) {
             is NavIdentBruker.Attestant -> attestantNavn.right()
             is NavIdentBruker.Saksbehandler -> saksbehandlerNavn.right()
+            is NavIdentBruker.Veileder -> LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
         }
 
     private fun expectedInnvilgetBeregning(id: UUID): Beregning {
