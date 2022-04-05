@@ -8,11 +8,11 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
+import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.test.fixedClock
@@ -27,28 +27,28 @@ internal class BeregningMapperTest {
 
     @Test
     fun `mapper fradrag til snapshot`() {
-        createBeregning().let {
+        createBeregning(strategy = BeregningStrategy.BorAlene).let {
             assertFradragMapping(it.toSnapshot().getFradrag(), it.getFradrag())
         }
     }
 
     @Test
     fun `mapper månedsberegning til snapshot`() {
-        createBeregning().let {
+        createBeregning(strategy = BeregningStrategy.BorAlene).let {
             assertMånedsberegningMapping(it.toSnapshot().getMånedsberegninger(), it.getMånedsberegninger())
         }
     }
 
     @Test
     fun `mapper beregning til snapshot`() {
-        createBeregning().let {
+        createBeregning(strategy = BeregningStrategy.BorAlene).let {
             assertBeregningMapping(it.toSnapshot(), it)
         }
     }
 
     @Test
     fun `mapper snapshot av beregning til json`() {
-        val beregningSnapshot = createBeregning(periode = mai(2021))
+        val beregningSnapshot = createBeregning(periode = mai(2021), strategy = BeregningStrategy.BorAlene)
         //language=json
         val expectedJson = """
             {
@@ -113,7 +113,7 @@ internal class BeregningMapperTest {
 
     @Test
     fun `serialisering av snapshot og rå beregning er ikke lik`() {
-        val beregning = createBeregning()
+        val beregning = createBeregning(strategy = BeregningStrategy.BorAlene)
 
         JSONAssert.assertNotEquals(
             objectMapper.writeValueAsString(beregning),
@@ -124,7 +124,7 @@ internal class BeregningMapperTest {
 
     @Test
     fun `snapshot er idempotent`() {
-        val original: Beregning = createBeregning()
+        val original: Beregning = createBeregning(strategy = BeregningStrategy.BorAlene)
         val snapshot: PersistertBeregning = original.toSnapshot()
         val idempotent: PersistertBeregning = snapshot.toSnapshot()
 
@@ -137,9 +137,9 @@ internal class BeregningMapperTest {
 
     @Test
     fun `should be equal to PersistertBeregning ignoring id, opprettet and begrunnelse`() {
-        val a: Beregning = createBeregning(opprettet = fixedTidspunkt, begrunnelse = "a").toSnapshot()
+        val a: Beregning = createBeregning(opprettet = fixedTidspunkt, begrunnelse = "a", strategy = BeregningStrategy.BorAlene).toSnapshot()
         val b: Beregning =
-            createBeregning(opprettet = fixedTidspunkt.plus(1, ChronoUnit.SECONDS), begrunnelse = "b").toSnapshot()
+            createBeregning(opprettet = fixedTidspunkt.plus(1, ChronoUnit.SECONDS), begrunnelse = "b", strategy = BeregningStrategy.BorAlene).toSnapshot()
         a shouldBe b
         a.getId() shouldNotBe b.getId()
         a.getOpprettet() shouldNotBe b.getOpprettet()
@@ -151,12 +151,12 @@ internal class BeregningMapperTest {
         periode: Periode = periode2021,
         opprettet: Tidspunkt = fixedTidspunkt,
         begrunnelse: String = "begrunnelse",
+        strategy: BeregningStrategy,
     ) =
         BeregningFactory(clock = fixedClock).ny(
             id = UUID.randomUUID(),
             opprettet = opprettet,
             periode = periode,
-            sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
@@ -166,8 +166,13 @@ internal class BeregningMapperTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
             begrunnelse = begrunnelse,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = strategy,
+                ),
+            ),
         )
 }
 
