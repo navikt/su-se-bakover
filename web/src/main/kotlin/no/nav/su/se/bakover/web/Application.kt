@@ -253,7 +253,7 @@ fun Application.susebakover(
                     dokumentRoutes(accessProtectedServices.brev)
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
                     kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtale)
-                    reguleringRoutes(services.reguleringService)
+                    reguleringRoutes(accessProtectedServices.reguleringService)
                 }
             }
         }
