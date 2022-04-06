@@ -378,7 +378,8 @@ interface LagBrevRequest {
             beregningsperioder = LagBrevinnholdForBeregning(revurdertBeregning).brevInnhold,
             fritekst = fritekst,
             sats = revurdertBeregning.getSats(),
-            satsGjeldendeFraDato = revurdertBeregning.getSats().datoForSisteEndringAvSats(revurdertBeregning.periode.tilOgMed).ddMMyyyy(),
+            satsGjeldendeFraDato = revurdertBeregning.getSats()
+                .datoForSisteEndringAvSats(revurdertBeregning.periode.tilOgMed).ddMMyyyy(),
             harEktefelle = harEktefelle,
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             tilbakekreving = tilbakekreving.tilbakekrevingavdrag,
@@ -485,9 +486,12 @@ interface LagBrevRequest {
         override val person: Person,
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
+        val utløpsdato: LocalDate,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.PåminnelseNyStønadsperiode(
             personalia = lagPersonalia(),
+            utløpsdato = utløpsdato.ddMMyyyy(),
+            halvtGrunnbeløp = Grunnbeløp.`0,5G`.heltallPåDato(utløpsdato),
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {

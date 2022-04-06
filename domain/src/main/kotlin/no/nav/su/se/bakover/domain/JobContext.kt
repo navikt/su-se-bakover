@@ -119,6 +119,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
                             person = person,
                             dagensDato = LocalDate.now(clock),
                             saksnummer = sak.saksnummer,
+                            utløpsdato = id().yearMonth.atEndOfMonth(),
                         ),
                     )
                 }.map { dokument ->

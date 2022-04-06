@@ -65,8 +65,8 @@ sealed class BrevTemplate(
     )
 
     object PåminnelseNyStønadsperiode : BrevTemplate(
-        pdfTemplate = PdfTemplate.InnkallingTilKontrollsamtale, // TODO endre
-        brevTittel = "Supplerende stønad ufør flyktning – påminnelse om ny stønadsperiode",
+        pdfTemplate = PdfTemplate.PåminnelseNyStønadsperiode,
+        brevTittel = "Påminnelse om ny stønadsperiode",
     )
 
     sealed class Revurdering(pdfTemplate: PdfTemplate, brevTittel: String) : BrevTemplate(pdfTemplate, brevTittel) {
