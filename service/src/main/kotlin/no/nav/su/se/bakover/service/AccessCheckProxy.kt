@@ -872,27 +872,27 @@ open class AccessCheckProxy(
             },
             reguleringService = object : ReguleringService {
                 override fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
-                    return startRegulering(startDato)
+                    return services.reguleringService.startRegulering(startDato)
                 }
 
                 override fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering> {
-                    return leggTilFradrag(request)
+                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering> {
-                    return iverksett(reguleringId)
+                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering> {
-                    return beregnOgSimuler(request)
+                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun hentStatus(): List<Regulering> {
-                    return hentStatus()
+                    return services.reguleringService.hentStatus()
                 }
 
                 override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
-                    return hentSakerMedÅpenBehandlingEllerStans()
+                    return services.reguleringService.hentSakerMedÅpenBehandlingEllerStans()
                 }
             },
             tilbakekrevingService = object : TilbakekrevingService {
