@@ -311,10 +311,10 @@ open class AccessCheckProxy(
                 }
             },
             søknad = object : SøknadService {
-                override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
+                override fun nySøknad(søknadInnhold: SøknadInnhold, identBruker: NavIdentBruker): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
                     assertHarTilgangTilPerson(søknadInnhold.personopplysninger.fnr)
 
-                    return services.søknad.nySøknad(søknadInnhold)
+                    return services.søknad.nySøknad(søknadInnhold, identBruker)
                 }
 
                 override fun lukkSøknad(

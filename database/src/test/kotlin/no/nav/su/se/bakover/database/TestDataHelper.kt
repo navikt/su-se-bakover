@@ -130,6 +130,7 @@ internal val behandlingsinformasjonMedAvslag =
 
 internal val oppgaveId = OppgaveId("oppgaveId")
 internal val journalpostId = JournalpostId("journalpostId")
+internal val innsender = NavIdentBruker.Veileder("navIdent")
 
 internal fun innvilgetBeregning(
     periode: Periode = periode2021,
@@ -374,13 +375,14 @@ internal class TestDataHelper(
         sakId: UUID,
         søknadId: UUID = UUID.randomUUID(),
         søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        identBruker: NavIdentBruker = innsender,
     ): Søknad.Ny {
         return Søknad.Ny(
             sakId = sakId,
             id = søknadId,
             søknadInnhold = søknadInnhold,
             opprettet = fixedTidspunkt,
-        ).also { søknadRepo.opprettSøknad(it) }
+        ).also { søknadRepo.opprettSøknad(it, identBruker) }
     }
 
     /**

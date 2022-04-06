@@ -32,9 +32,11 @@ sealed class NavIdentBruker {
         }
 
         companion object {
-            fun systembruker() = NavIdentBruker.Saksbehandler("srvsupstonad")
+            fun systembruker() = Saksbehandler("srvsupstonad")
         }
 
         override fun toString(): String = navIdent
     }
+
+    data class Veileder(override val navIdent: String) : NavIdentBruker()
 }

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknad.LukketJson.Companion.toLukketJson
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknadInternal
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import java.util.UUID
@@ -25,15 +26,29 @@ internal class SøknadPostgresRepo(
         }
     }
 
-    override fun opprettSøknad(søknad: Søknad.Ny) {
+    override fun opprettSøknad(søknad: Søknad.Ny, identBruker: NavIdentBruker) {
         dbMetrics.timeQuery("opprettSøknad") {
             sessionFactory.withSession { session ->
-                "insert into søknad (id, sakId, søknadInnhold, opprettet) values (:id, :sakId, to_json(:soknad::json), :opprettet)".insert(
+                """
+                    insert into søknad 
+                        (id, 
+                        sakId, 
+                        søknadInnhold, 
+                        opprettet, 
+                        ident) 
+                    values 
+                        (:id, 
+                        :sakId, 
+                        to_json(:soknad::json), 
+                        :opprettet, 
+                        :ident)
+                """.trimIndent().insert(
                     mapOf(
                         "id" to søknad.id,
                         "sakId" to søknad.sakId,
                         "soknad" to objectMapper.writeValueAsString(søknad.søknadInnhold),
                         "opprettet" to søknad.opprettet,
+                        "ident" to identBruker.navIdent,
                     ),
                     session,
                 )
