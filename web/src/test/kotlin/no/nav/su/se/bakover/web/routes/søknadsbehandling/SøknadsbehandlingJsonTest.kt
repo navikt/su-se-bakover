@@ -10,8 +10,9 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.expectedBosituasjonJson
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.expectedVurderingUføreJson
 import no.nav.su.se.bakover.web.routes.grunnlag.UtenlandsoppholdVilkårJsonTest.Companion.expectedUtenlandsoppholdVurdert
@@ -110,8 +111,8 @@ internal class SøknadsbehandlingJsonTest {
                 "resultat": "MåInnhenteMerInformasjon",
                 "formuegrenser": [
                   {
-                      "gyldigFra":"2022-05-01",
-                      "beløp":53550
+                      "gyldigFra": "2022-05-01",
+                      "beløp": 53550
                   },
                   {
                       "gyldigFra": "2021-05-01",
@@ -137,13 +138,13 @@ internal class SøknadsbehandlingJsonTest {
     fun `should serialize to json string`() {
         JSONAssert.assertEquals(
             behandlingJsonString,
-            serialize(søknadsbehandling.toJson()), true
+            serialize(søknadsbehandling.toJson(satsFactoryTest)), true
         )
     }
 
     @Test
     fun `should deserialize json string`() {
-        deserialize<BehandlingJson>(behandlingJsonString) shouldBe søknadsbehandling.toJson()
+        deserialize<BehandlingJson>(behandlingJsonString) shouldBe søknadsbehandling.toJson(satsFactoryTest)
     }
 
     @Test
@@ -160,7 +161,7 @@ internal class SøknadsbehandlingJsonTest {
             fritekstTilBrev = "",
             stønadsperiode = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
         )
@@ -218,8 +219,8 @@ internal class SøknadsbehandlingJsonTest {
         }
             """
 
-        val serialize = serialize(behandlingWithNulls.toJson())
+        val serialize = serialize(behandlingWithNulls.toJson(satsFactoryTest))
         JSONAssert.assertEquals(expectedNullsJson, serialize, true)
-        deserialize<BehandlingJson>(expectedNullsJson) shouldBe behandlingWithNulls.toJson()
+        deserialize<BehandlingJson>(expectedNullsJson) shouldBe behandlingWithNulls.toJson(satsFactoryTest)
     }
 }

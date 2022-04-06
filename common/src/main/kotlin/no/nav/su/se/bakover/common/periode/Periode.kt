@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.common.periode
 
 import arrow.core.Either
+import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
@@ -15,7 +16,7 @@ import java.time.Month
 import java.time.Period
 import java.time.YearMonth
 
-open class Periode private constructor(
+open class Periode protected constructor(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
 ) : Comparable<Periode> {
@@ -90,6 +91,9 @@ open class Periode private constructor(
         ) else null
     }
 
+    /**
+     * Slår sammen to perioder dersom minst en måned overlapper eller periodene er tilstøtende.
+     */
     infix fun slåSammen(other: Periode): Either<PerioderKanIkkeSlåsSammen, Periode> {
         return if (overlapper(other) || tilstøter(other)) {
             create(
@@ -192,6 +196,10 @@ open class Periode private constructor(
     }
 }
 
+/**
+ * Aksepterer at lista er usortert og usammenhengende.
+ * @throws IndexOutOfBoundsException dersom lista med periode er tom.
+ */
 fun List<Periode>.minAndMaxOf(): Periode {
     return Periode.create(
         fraOgMed = this.minOf { it.fraOgMed },
@@ -243,6 +251,111 @@ fun List<Periode>.inneholderAlle(other: List<Periode>): Boolean {
         }
         else -> {
             false
+        }
+    }
+}
+
+/**
+ * Listen med perioder trenger ikke være sortert eller sammenhengende og kan ha duplikater.
+ *
+ * @return En sortert liste med månedsperioder uten duplikater som kan være usammenhengende.
+ */
+fun List<Periode>.tilMånedsperioder(): List<Månedsperiode> {
+    if (this.isEmpty()) return emptyList()
+    return Nel.fromListUnsafe(this).tilMånedsperioder()
+}
+
+/**
+ * Listen med perioder trenger ikke være sortert eller sammenhengende og kan ha duplikater.
+ *
+ * @return En sortert liste med månedsperioder uten duplikater som kan være usammenhengende.
+ */
+fun NonEmptyList<Periode>.tilMånedsperioder(): NonEmptyList<Månedsperiode> {
+    return Nel.fromListUnsafe(this.flatMap { it.tilMånedsperioder() }.distinct().sorted())
+}
+
+/**
+ * Sjekker om periodene er sortert.
+ * Listen med perioder kan være usammenhengende og ha duplikator.
+ */
+fun List<Periode>.erSortert(): Boolean {
+    return this.sorted() == this
+}
+
+/**
+ * Sjekker om en liste med perioder har duplikater.
+ * Listen trenger ikke være sortert og kan være usammenhengende.
+ */
+fun List<Periode>.harDuplikater(): Boolean {
+    return this.tilMånedsperioder().let {
+        it.distinct().size != it.size
+    }
+}
+
+/**
+ * Sjekker om det ikke er hull i periodene.
+ * Listen med perioder trenger ikke å være sortert og kan inneholde duplikater
+ * En tom liste gir `true`
+ */
+fun List<Periode>.erSammenhengende(): Boolean {
+    return if (this.isEmpty()) true
+    else this.flatMap { it.tilMånedsperioder() }.distinct().size == NonEmptyList.fromListUnsafe(this).minAndMaxOf()
+        .getAntallMåneder()
+}
+
+/**
+ * Sjekker om en liste med perioder er sammenhengende, sortert og uten duplikater.
+ */
+fun List<Periode>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
+    return erSammenhengende() && erSortert() && !harDuplikater()
+}
+
+fun List<Periode>.erSortertOgUtenDuplikater(): Boolean {
+    return erSortert() && !harDuplikater()
+}
+
+fun <T> Map<Månedsperiode, T>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
+    return this.keys.toList().erSammenhengendeSortertOgUtenDuplikater()
+}
+
+/**
+ * Gjør om en liste med key-value par ([LocalDate] - [Any]) til en bounded, sammenhengende tidslinje hvor vært element er gyldig fra sin gitte måned til måneden før neste måned.
+ * Eksempelbruk er satser (f.eks. grunnbeløp, garantipensjon o.l.)
+ *
+ * Garanterer at tidslinjen er sammenhengende, sortert og ikke har duplikater.
+ *
+ * @throws IllegalArgumentException dersom listen inneholder duplikate datoer eller en dato ikke er den første i måneden.
+ */
+fun <T> List<Pair<LocalDate, T>>.periodisert(
+    endExclusive: Månedsperiode = januar(2030),
+): List<Triple<LocalDate, Månedsperiode, T>> {
+    if (this.isEmpty()) return emptyList()
+
+    assert(this.all { it.first.erFørsteDagIMåned() }) {
+        "Kan kun periodisere datoer som er første dag i måneden."
+    }
+    assert(this.size == this.map { it.first }.distinct().size)
+
+    val sortedMånedsperioder: List<Triple<LocalDate, Månedsperiode, T>> = this.sortedBy { it.first }
+        .map { Triple(it.first, Månedsperiode(YearMonth.of(it.first.year, it.first.month)), it.second) }
+
+    val infixElements = sortedMånedsperioder
+        .zipWithNext()
+        .flatMap { (current, next) ->
+            current.second.until(next.second).map {
+                Triple(current.first, it, current.third)
+            }
+        }
+    val lastElement = sortedMånedsperioder.maxByOrNull { it.first }!!.let { lastElement ->
+        lastElement.second.until(endExclusive).map {
+            Triple(lastElement.first, it, lastElement.third)
+        }
+    }
+    return (infixElements + lastElement).apply {
+        this.map { it.second }.let {
+            assert(it.erSammenhengendeSortertOgUtenDuplikater()) {
+                "Kunne ikke periodisere. Sammenhengende: ${it.erSammenhengende()}, duplikate: ${it.harDuplikater()}, sortert: ${it.erSortert()}"
+            }
         }
     }
 }

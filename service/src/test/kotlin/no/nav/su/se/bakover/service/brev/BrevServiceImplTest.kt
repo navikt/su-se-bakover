@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBeregning
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -534,6 +535,7 @@ internal class BrevServiceImplTest {
             microsoftGraphApiOppslag = identClient,
             utbetalingService = utbetalingService,
             clock = clock,
+            satsFactory = satsFactoryTest,
         )
 
         fun verifyNoMoreInteraction() {

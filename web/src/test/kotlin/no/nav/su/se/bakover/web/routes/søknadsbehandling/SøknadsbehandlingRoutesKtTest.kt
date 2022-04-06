@@ -67,9 +67,11 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
+import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -99,6 +101,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         embeddedDatasource = dataSource,
         dbMetrics = dbMetricsStub,
         clock = fixedClock,
+        satsFactory = satsFactoryTest,
     )
 
     private fun services(
@@ -112,6 +115,8 @@ internal class SøknadsbehandlingRoutesKtTest {
             søknadMetrics = mock(),
             clock = fixedClock,
             unleash = mock(),
+            satsFactory = satsFactoryTest,
+            beregningStrategyFactory = beregningStrategyFactoryTest(),
         )
 
     @Nested

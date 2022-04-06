@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -22,6 +23,7 @@ data class GjeldendeVedtaksdata(
     private val periode: Periode,
     private val vedtakListe: NonEmptyList<VedtakSomKanRevurderes>,
     private val clock: Clock,
+    private val formuegrenserFactory: FormuegrenserFactory,
 ) {
     val grunnlagsdata: Grunnlagsdata
     val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
@@ -53,11 +55,11 @@ data class GjeldendeVedtaksdata(
     private val formuevilkårOgGrunnlag: Vilkår.Formue =
         when (val vilkårsvurderinger = vilkårsvurderingerFraTidslinje) {
             is Vilkårsvurderinger.Revurdering -> when (val vilkår = vilkårsvurderinger.formue) {
-                Vilkår.Formue.IkkeVurdert -> vilkår
+                is Vilkår.Formue.IkkeVurdert -> vilkår
                 is Vilkår.Formue.Vurdert -> vilkår
             }
             is Vilkårsvurderinger.Søknadsbehandling -> when (val vilkår = vilkårsvurderinger.formue) {
-                Vilkår.Formue.IkkeVurdert -> vilkår
+                is Vilkår.Formue.IkkeVurdert -> vilkår
                 is Vilkår.Formue.Vurdert -> vilkår
             }
         }

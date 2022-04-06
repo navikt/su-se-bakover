@@ -9,6 +9,9 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadFactory
+import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
@@ -29,8 +32,8 @@ data class Beregningsperiode(
         return strategy.fradragStrategy()
     }
 
-    fun sats(): Sats {
-        return strategy.sats()
+    fun sats(): Satskategori {
+        return strategy.satskategori
     }
 
     fun månedsoversikt(): Map<Månedsperiode, BeregningStrategy> {
@@ -38,7 +41,10 @@ data class Beregningsperiode(
     }
 }
 
-class BeregningStrategyFactory(val clock: Clock) {
+class BeregningStrategyFactory(
+    val clock: Clock,
+    val satsFactory: SatsFactory
+) {
     fun beregn(revurdering: Revurdering): Beregning {
         return beregn(
             grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
@@ -60,7 +66,7 @@ class BeregningStrategyFactory(val clock: Clock) {
         )
     }
 
-    private fun beregn(
+    fun beregn(
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger,
         begrunnelse: String?,
     ): Beregning {
@@ -71,7 +77,7 @@ class BeregningStrategyFactory(val clock: Clock) {
         val delperioder = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.map {
             Beregningsperiode(
                 periode = it.periode,
-                strategy = (it as Grunnlag.Bosituasjon.Fullstendig).utledBeregningsstrategi(),
+                strategy = (it as Grunnlag.Bosituasjon.Fullstendig).utledBeregningsstrategi(satsFactory),
             )
         }
 
@@ -97,52 +103,69 @@ class BeregningStrategyFactory(val clock: Clock) {
             fradrag = beregningsgrunnlag.fradrag,
             begrunnelse = begrunnelse,
             beregningsperioder = delperioder,
+            satsFactory = satsFactory,
         )
     }
 }
 
 sealed class BeregningStrategy {
     abstract fun fradragStrategy(): FradragStrategy
-    abstract fun sats(): Sats
+    abstract fun fullSupplerendeStønadFactory(): FullSupplerendeStønadFactory
     abstract fun satsgrunn(): Satsgrunn
+    abstract val satskategori: Satskategori
 
-    object BorAlene : BeregningStrategy() {
+    data class BorAlene(val satsFactory: SatsFactory) : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.Enslig
-        override fun sats(): Sats = Sats.HØY
+        override fun fullSupplerendeStønadFactory() = satsFactory.fullSupplerendeStønadHøy()
         override fun satsgrunn(): Satsgrunn = Satsgrunn.ENSLIG
+        override val satskategori = Satskategori.HØY
     }
 
-    object BorMedVoksne : BeregningStrategy() {
+    data class BorMedVoksne(val satsFactory: SatsFactory) : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.Enslig
-        override fun sats(): Sats = Sats.ORDINÆR
+        override fun fullSupplerendeStønadFactory() = satsFactory.fullSupplerendeStønadOrdinær()
         override fun satsgrunn(): Satsgrunn = Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
+        override val satskategori = Satskategori.ORDINÆR
     }
 
-    object Eps67EllerEldre : BeregningStrategy() {
+    data class Eps67EllerEldre(val satsFactory: SatsFactory) : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.EpsOver67År
-        override fun sats(): Sats = Sats.ORDINÆR
+        override fun fullSupplerendeStønadFactory() = satsFactory.fullSupplerendeStønadOrdinær()
         override fun satsgrunn(): Satsgrunn = Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
+        override val satskategori = Satskategori.ORDINÆR
     }
 
-    object EpsUnder67ÅrOgUførFlyktning : BeregningStrategy() {
-        override fun fradragStrategy(): FradragStrategy = FradragStrategy.EpsUnder67ÅrOgUførFlyktning
-        override fun sats(): Sats = Sats.ORDINÆR
+    data class EpsUnder67ÅrOgUførFlyktning(val satsFactory: SatsFactory) : BeregningStrategy() {
+        override fun fradragStrategy(): FradragStrategy =
+            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactory.fullSupplerendeStønadOrdinær())
+
+        override fun fullSupplerendeStønadFactory() = satsFactory.fullSupplerendeStønadOrdinær()
         override fun satsgrunn(): Satsgrunn = Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
+        override val satskategori = Satskategori.ORDINÆR
     }
 
-    object EpsUnder67År : BeregningStrategy() {
+    data class EpsUnder67År(val satsFactory: SatsFactory) : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.EpsUnder67År
-        override fun sats(): Sats = Sats.HØY
+        override fun fullSupplerendeStønadFactory() = satsFactory.fullSupplerendeStønadHøy()
         override fun satsgrunn(): Satsgrunn = Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
+        override val satskategori = Satskategori.HØY
     }
 }
 
-fun Grunnlag.Bosituasjon.Fullstendig.utledBeregningsstrategi(): BeregningStrategy {
+fun Grunnlag.Bosituasjon.Fullstendig.utledBeregningsstrategi(satsFactory: SatsFactory): BeregningStrategy {
     return when (this) {
-        is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> BeregningStrategy.BorMedVoksne
-        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> BeregningStrategy.EpsUnder67År
-        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> BeregningStrategy.Eps67EllerEldre
-        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
-        is Grunnlag.Bosituasjon.Fullstendig.Enslig -> BeregningStrategy.BorAlene
+        is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> BeregningStrategy.BorMedVoksne(
+            satsFactory = satsFactory,
+        )
+        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> BeregningStrategy.EpsUnder67År(
+            satsFactory = satsFactory,
+        )
+        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> BeregningStrategy.Eps67EllerEldre(
+            satsFactory = satsFactory,
+        )
+        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(
+            satsFactory = satsFactory,
+        )
+        is Grunnlag.Bosituasjon.Fullstendig.Enslig -> BeregningStrategy.BorAlene(satsFactory = satsFactory)
     }
 }

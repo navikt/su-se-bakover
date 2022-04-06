@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import javax.sql.DataSource
@@ -41,6 +42,7 @@ object DatabaseBuilder {
         databaseConfig: ApplicationConfig.DatabaseConfig,
         dbMetrics: DbMetrics,
         clock: Clock,
+        satsFactory: SatsFactory,
     ): DatabaseRepos {
         val abstractDatasource = Postgres(databaseConfig = databaseConfig).build()
 
@@ -58,7 +60,7 @@ object DatabaseBuilder {
         }.migrate()
 
         val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)
-        return buildInternal(userDatastore, dbMetrics, clock)
+        return buildInternal(userDatastore, dbMetrics, clock, satsFactory)
     }
 
     @TestOnly
@@ -66,9 +68,10 @@ object DatabaseBuilder {
         embeddedDatasource: DataSource,
         dbMetrics: DbMetrics,
         clock: Clock,
+        satsFactory: SatsFactory,
     ): DatabaseRepos {
         // I testene ønsker vi ikke noe herjing med rolle; embedded-oppsettet sørger for at vi har riktige tilganger og er ferdigmigrert her.
-        return buildInternal(embeddedDatasource, dbMetrics, clock)
+        return buildInternal(embeddedDatasource, dbMetrics, clock, satsFactory)
     }
 
     @TestOnly
@@ -97,6 +100,7 @@ object DatabaseBuilder {
         dataSource: DataSource,
         dbMetrics: DbMetrics,
         clock: Clock,
+        satsFactory: SatsFactory,
     ): DatabaseRepos {
         val sessionCounter = SessionCounter()
         val sessionFactory = PostgresSessionFactory(dataSource, dbMetrics, sessionCounter)
@@ -118,6 +122,7 @@ object DatabaseBuilder {
             formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(
                 dbMetrics = dbMetrics,
                 formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo(dbMetrics),
+                satsFactory = satsFactory,
             ),
             utenlandsoppholdVilkårsvurderingPostgresRepo = UtenlandsoppholdVilkårsvurderingPostgresRepo(
                 dbMetrics = dbMetrics,
@@ -131,6 +136,7 @@ object DatabaseBuilder {
             dbMetrics = dbMetrics,
             avkortingsvarselRepo = avkortingsvarselRepo,
             clock = clock,
+            satsFactory = satsFactory,
         )
 
         val klageinstanshendelseRepo = KlageinstanshendelsePostgresRepo(sessionFactory, dbMetrics)
@@ -143,6 +149,7 @@ object DatabaseBuilder {
             sessionFactory = sessionFactory,
             grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
             dbMetrics = dbMetrics,
+            satsFactory = satsFactory,
         )
         val revurderingRepo = RevurderingPostgresRepo(
             sessionFactory = sessionFactory,
@@ -153,6 +160,7 @@ object DatabaseBuilder {
             avkortingsvarselRepo = avkortingsvarselRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
             reguleringPostgresRepo = reguleringRepo,
+            satsFactory = satsFactory,
         )
         val vedtakRepo = VedtakPostgresRepo(
             sessionFactory = sessionFactory,
@@ -161,6 +169,7 @@ object DatabaseBuilder {
             revurderingRepo = revurderingRepo,
             klageRepo = klageRepo,
             reguleringRepo = reguleringRepo,
+            satsFactory = satsFactory,
         )
         val hendelseRepo = PersonhendelsePostgresRepo(sessionFactory, dbMetrics, clock)
         val nøkkeltallRepo = NøkkeltallPostgresRepo(sessionFactory, dbMetrics, clock)

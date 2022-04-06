@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import java.util.UUID
@@ -17,11 +18,12 @@ import java.util.UUID
 internal class FormueVilkårsvurderingPostgresRepo(
     private val formuegrunnlagPostgresRepo: FormuegrunnlagPostgresRepo,
     private val dbMetrics: DbMetrics,
+    private val satsFactory: SatsFactory,
 ) {
     internal fun lagre(behandlingId: UUID, vilkår: Vilkår.Formue, tx: TransactionalSession) {
         slettForBehandlingId(behandlingId, tx)
         when (vilkår) {
-            Vilkår.Formue.IkkeVurdert -> {
+            is Vilkår.Formue.IkkeVurdert -> {
                 formuegrunnlagPostgresRepo.lagreFormuegrunnlag(behandlingId, emptyList(), tx)
             }
             is Vilkår.Formue.Vurdert -> {
@@ -114,6 +116,10 @@ internal class FormueVilkårsvurderingPostgresRepo(
     }
 
     private fun Row.toVurderingsperioder(session: Session): Vurderingsperiode.Formue {
+        val periode = Periode.create(
+            fraOgMed = localDate("fraOgMed"),
+            tilOgMed = localDate("tilOgMed"),
+        )
         return Vurderingsperiode.Formue.create(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
@@ -121,10 +127,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
             grunnlag = uuid("formue_grunnlag_id").let {
                 formuegrunnlagPostgresRepo.hentFormuegrunnlag(it, session)!!
             },
-            periode = Periode.create(
-                fraOgMed = localDate("fraOgMed"),
-                tilOgMed = localDate("tilOgMed"),
-            ),
+            periode = periode,
         )
     }
 }

@@ -6,6 +6,9 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import java.util.UUID
 
+/**
+ * Beregning gjelder for en periode som kan være lengre enn en måned, men er inndelt i månedsvise-beregninger.
+ */
 data class BeregningMedFradragBeregnetMånedsvis(
     private val id: UUID = UUID.randomUUID(),
     private val opprettet: Tidspunkt,

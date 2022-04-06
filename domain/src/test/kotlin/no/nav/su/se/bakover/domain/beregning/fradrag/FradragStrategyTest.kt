@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.periode.Månedsperiode
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.test.fullSupplerendeStønadOrdinærTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -89,7 +90,7 @@ internal class FradragStrategyTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
+            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(fullSupplerendeStønadOrdinærTest).beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -104,7 +105,7 @@ internal class FradragStrategyTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
+            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(fullSupplerendeStønadOrdinærTest).beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -165,25 +166,25 @@ internal class FradragStrategyTest {
 
         @Test
         fun `EPS over 67 år bruker garantipensjonsnivå`() {
-            FradragStrategy.fromName(FradragStrategyName.EpsOver67År)
+            FradragStrategy.EpsOver67År
                 .getEpsFribeløp(periode) shouldBe 14674.9166666.plusOrMinus(0.5)
         }
 
         @Test
         fun `EPS under 67 år ufør flyktning bruker ordinær SU-sats`() {
-            FradragStrategy.fromName(FradragStrategyName.EpsUnder67ÅrOgUførFlyktning)
+            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(fullSupplerendeStønadOrdinærTest)
                 .getEpsFribeløp(periode) shouldBe 18973.0.plusOrMinus(0.5)
         }
 
         @Test
         fun `Enslig gir ikke fribeløp EPS`() {
-            FradragStrategy.fromName(FradragStrategyName.Enslig)
+            FradragStrategy.Enslig
                 .getEpsFribeløp(periode) shouldBe 0.0
         }
 
         @Test
         fun `EPS under 67 ikke ufør flyktning gir ikke fribeløp EPS`() {
-            FradragStrategy.fromName(FradragStrategyName.EpsUnder67År)
+            FradragStrategy.EpsUnder67År
                 .getEpsFribeløp(periode) shouldBe 0.0
         }
     }

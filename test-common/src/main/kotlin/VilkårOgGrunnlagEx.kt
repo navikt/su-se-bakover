@@ -33,7 +33,10 @@ fun Vilkår.Uførhet.Vurdert.Companion.create(
 fun Vilkår.Formue.Vurdert.Companion.createFromGrunnlag(
     grunnlag: Nel<Formuegrunnlag>,
 ): Vilkår.Formue.Vurdert =
-    tryCreateFromGrunnlag(grunnlag).getOrHandle { throw IllegalArgumentException(it.toString()) }
+    tryCreateFromGrunnlag(
+        grunnlag = grunnlag,
+        formuegrenserFactory = formuegrenserFactoryTest,
+    ).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
 fun Formuegrunnlag.Companion.create(
     id: UUID = UUID.randomUUID(),
@@ -68,11 +71,11 @@ fun Formuegrunnlag.Verdier.Companion.empty() = create(
 
 /**
  * checking that all the objects are deeply equal, except id, which should be not equal
- * if the id's are equal, this will fail. use another shouldBe
+ * if the ids are equal, this will fail. use another shouldBe
  */
 fun Vilkår.Formue.shouldBeEqualToExceptId(expected: Vilkår.Formue) {
     when (this) {
-        Vilkår.Formue.IkkeVurdert -> {
+        is Vilkår.Formue.IkkeVurdert -> {
             this shouldBe expected
         }
         is Vilkår.Formue.Vurdert -> {

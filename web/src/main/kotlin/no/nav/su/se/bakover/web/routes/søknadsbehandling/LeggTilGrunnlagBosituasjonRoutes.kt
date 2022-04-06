@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
@@ -35,6 +36,7 @@ import java.util.UUID
 
 internal fun Route.leggTilGrunnlagBosituasjonRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
+    satsFactory: SatsFactory,
 ) {
     data class EpsBody(
         val epsFnr: String?,
@@ -80,7 +82,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                     {
                                         Resultat.json(
                                             HttpStatusCode.Created,
-                                            serialize(it.toJson())
+                                            serialize(it.toJson(satsFactory))
                                         )
                                     },
                                 )
@@ -140,7 +142,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                 }.map {
                                     Resultat.json(
                                         HttpStatusCode.Created,
-                                        serialize(it.toJson())
+                                        serialize(it.toJson(satsFactory))
                                     )
                                 }
                             }.getOrHandle {

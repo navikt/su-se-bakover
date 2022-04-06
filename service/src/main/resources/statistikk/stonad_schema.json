@@ -69,7 +69,7 @@
     "ytelseVirkningstidspunkt": {
       "type": "string",
       "format": "date",
-      "description": "Dato for når stønadsmottakers ytelse tredde i kraft første gang."
+      "description": "Dato for når stønadsmottakers ytelse trådte i kraft første gang."
     },
     "gjeldendeStonadVirkningstidspunkt": {
       "type": "string",

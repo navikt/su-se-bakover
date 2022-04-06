@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoM�
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -32,6 +33,8 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
+import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import java.time.LocalDate
@@ -91,16 +94,24 @@ data class Sak(
         )
     }
 
+    // TODO jah: Flytt inn i common testdata som extension function?
     @TestOnly
     fun hentGjeldendeVilkårOgGrunnlag(
         periode: Periode,
         clock: Clock,
+        formuegrenserFactory: FormuegrenserFactory,
     ): GrunnlagsdataOgVilkårsvurderinger.Revurdering {
         return hentGjeldendeVedtaksdata(
             periode = periode,
             clock = clock,
+            formuegrenserFactory = formuegrenserFactory,
         ).fold(
-            { GrunnlagsdataOgVilkårsvurderinger.Revurdering.IkkeVurdert },
+            {
+                GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+                    Grunnlagsdata.IkkeVurdert,
+                    Vilkårsvurderinger.Revurdering.IkkeVurdert(),
+                )
+            },
             {
                 GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                     grunnlagsdata = it.grunnlagsdata,
@@ -113,6 +124,7 @@ data class Sak(
     fun kopierGjeldendeVedtaksdata(
         fraOgMed: LocalDate,
         clock: Clock,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
         return vedtakListe
             .filterIsInstance<VedtakSomKanRevurderes>()
@@ -136,6 +148,7 @@ data class Sak(
                         hentGjeldendeVedtaksdata(
                             periode = it,
                             clock = clock,
+                            formuegrenserFactory = formuegrenserFactory,
                         )
                     }
             }
@@ -144,6 +157,7 @@ data class Sak(
     fun hentGjeldendeVedtaksdata(
         periode: Periode,
         clock: Clock,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes, GjeldendeVedtaksdata> {
         return vedtakListe
             .filterIsInstance<VedtakSomKanRevurderes>()
@@ -153,6 +167,7 @@ data class Sak(
                     periode = periode,
                     vedtakListe = NonEmptyList.fromListUnsafe(vedtakSomKanRevurderes),
                     clock = clock,
+                    formuegrenserFactory = formuegrenserFactory,
                 ).right()
             }
     }
@@ -175,7 +190,11 @@ data class Sak(
      * Per nå så er det kun Vedtak i form av [VedtakSomKanRevurderes.EndringIYtelse] som bidrar til dette, bortsett fra [VedtakSomKanRevurderes.IngenEndringIYtelse] som har
      * andre beregnings-beløp som ikke skal ha en påverkan på saken.
      * */
-    fun hentGjeldendeMånedsberegningForMåned(månedsperiode: Periode, clock: Clock): Månedsberegning? {
+    fun hentGjeldendeMånedsberegningForMåned(
+        månedsperiode: Periode,
+        clock: Clock,
+        formuegrenserFactory: FormuegrenserFactory,
+    ): Månedsberegning? {
         assert(månedsperiode.getAntallMåneder() == 1)
         return GjeldendeVedtaksdata(
             periode = månedsperiode,
@@ -187,6 +206,7 @@ data class Sak(
                     },
             ),
             clock = clock,
+            formuegrenserFactory = formuegrenserFactory,
         ).gjeldendeVedtakPåDato(månedsperiode.fraOgMed)?.let {
             when (it) {
                 is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> it.beregning
@@ -287,6 +307,7 @@ data class Sak(
         søknadsbehandlingId: UUID,
         stønadsperiode: Stønadsperiode,
         clock: Clock,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert> {
         val søknadsbehandling = søknadsbehandlinger.singleOrNull {
             it.id == søknadsbehandlingId
@@ -304,6 +325,7 @@ data class Sak(
         hentGjeldendeVedtaksdata(
             periode = stønadsperiode.periode,
             clock = clock,
+            formuegrenserFactory = formuegrenserFactory,
         ).map {
             if (it.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold()) {
                 val alleUtbetalingerErOpphørt =
@@ -319,6 +341,7 @@ data class Sak(
         return søknadsbehandling.oppdaterStønadsperiode(
             oppdatertStønadsperiode = stønadsperiode,
             clock = clock,
+            formuegrenserFactory = formuegrenserFactory,
         ).mapLeft {
             when (it) {
                 is Søknadsbehandling.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
@@ -351,9 +374,10 @@ data class Sak(
      * @return Dersom Either.Left: Disse skal det ikke lages noen regulering for. Denne funksjonen har logget.
      */
     fun opprettEllerOppdaterRegulering(
-        // TODO jah: Bytt til three ten sin MonthYear (Da slipper vi en unødvendig left)
+        // TODO jah: Bytt til YearMonth (Da slipper vi en unødvendig left)
         startDato: LocalDate,
         clock: Clock,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeOppretteEllerOppdatereRegulering, Regulering.OpprettetRegulering> {
 
         val (reguleringsId, opprettet, _startDato) = reguleringer.filterIsInstance<Regulering.OpprettetRegulering>()
@@ -382,11 +406,12 @@ data class Sak(
             if (it.count() != 1) return KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig.left()
         }.single()
 
-        val gjeldendeVedtaksdata = this.hentGjeldendeVedtaksdata(periode = periode, clock = clock)
-            .getOrHandle { feil ->
-                log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
-                return KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
-            }
+        val gjeldendeVedtaksdata =
+            this.hentGjeldendeVedtaksdata(periode = periode, clock = clock, formuegrenserFactory = formuegrenserFactory)
+                .getOrHandle { feil ->
+                    log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
+                    return KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
+                }
 
         return Regulering.opprettRegulering(
             id = reguleringsId,

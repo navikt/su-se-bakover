@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
@@ -63,6 +64,7 @@ internal class VedtakPostgresRepo(
     private val revurderingRepo: RevurderingPostgresRepo,
     private val reguleringRepo: ReguleringPostgresRepo,
     private val klageRepo: KlagePostgresRepo,
+    private val satsFactory: SatsFactory,
 ) : VedtakRepo {
 
     override fun hentVedtakForId(vedtakId: UUID): Vedtak? {
@@ -220,7 +222,8 @@ internal class VedtakPostgresRepo(
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }!!
         val attestant = stringOrNull("attestant")?.let { NavIdentBruker.Attestant(it) }!!
         val utbetalingId = uuid30OrNull("utbetalingId")
-        val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning()
+        val beregning: BeregningMedFradragBeregnetMånedsvis? =
+            stringOrNull("beregning")?.deserialiserBeregning(satsFactory)
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val avslagsgrunner = stringOrNull("avslagsgrunner")?.let { objectMapper.readValue<List<Avslagsgrunn>>(it) }
 

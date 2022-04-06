@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
@@ -18,12 +19,13 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
         fun create(
             grunnlagsdata: Grunnlagsdata,
             vilkårsvurderinger: Vilkårsvurderinger,
+            satsFactory: SatsFactory,
         ): GrunnlagsdataOgVilkårsvurderingerJson {
             return GrunnlagsdataOgVilkårsvurderingerJson(
                 uføre = vilkårsvurderinger.uføreJson(),
                 fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag.toJson() },
                 bosituasjon = grunnlagsdata.bosituasjon.toJson(),
-                formue = vilkårsvurderinger.formueJson(),
+                formue = vilkårsvurderinger.formueJson(satsFactory),
                 utenlandsopphold = vilkårsvurderinger.utenlandsoppholdJson(),
             )
         }
@@ -47,13 +49,13 @@ internal fun Vilkårsvurderinger.uføreJson(): UføreVilkårJson? {
     }
 }
 
-internal fun Vilkårsvurderinger.formueJson(): FormuevilkårJson? {
+internal fun Vilkårsvurderinger.formueJson(satsFactory: SatsFactory): FormuevilkårJson {
     return when (this) {
         is Vilkårsvurderinger.Revurdering -> {
-            formue.toJson()
+            formue.toJson(satsFactory)
         }
         is Vilkårsvurderinger.Søknadsbehandling -> {
-            formue.toJson()
+            formue.toJson(satsFactory)
         }
     }
 }
@@ -69,4 +71,10 @@ internal fun Vilkårsvurderinger.utenlandsoppholdJson(): UtenlandsoppholdVilkår
     }
 }
 
-internal fun GrunnlagsdataOgVilkårsvurderinger.toJson(): GrunnlagsdataOgVilkårsvurderingerJson = GrunnlagsdataOgVilkårsvurderingerJson.create(this.grunnlagsdata, this.vilkårsvurderinger)
+internal fun GrunnlagsdataOgVilkårsvurderinger.toJson(satsFactory: SatsFactory): GrunnlagsdataOgVilkårsvurderingerJson {
+    return GrunnlagsdataOgVilkårsvurderingerJson.create(
+        grunnlagsdata = this.grunnlagsdata,
+        vilkårsvurderinger = this.vilkårsvurderinger,
+        satsFactory = satsFactory,
+    )
+}

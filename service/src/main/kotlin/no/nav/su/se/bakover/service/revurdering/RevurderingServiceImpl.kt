@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -58,6 +59,7 @@ import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
@@ -92,6 +94,8 @@ internal class RevurderingServiceImpl(
     private val vedtakService: VedtakService,
     private val kontrollsamtaleService: KontrollsamtaleService,
     private val sessionFactory: SessionFactory,
+    private val formuegrenserFactory: FormuegrenserFactory,
+    private val beregningStrategyFactory: BeregningStrategyFactory,
     sakService: SakService,
     private val avkortingsvarselRepo: AvkortingsvarselRepo,
     private val toggleService: ToggleService,
@@ -397,7 +401,9 @@ internal class RevurderingServiceImpl(
             }
     }
 
-    override fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse> {
+    override fun leggTilFormuegrunnlag(
+        request: LeggTilFormuegrunnlagRequest
+    ): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse> {
         val revurdering = hent(request.revurderingId)
             .getOrHandle { return KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering.left() }
 
@@ -405,7 +411,7 @@ internal class RevurderingServiceImpl(
         @Suppress("UNCHECKED_CAST")
         val bosituasjon = revurdering.grunnlagsdata.bosituasjon as List<Grunnlag.Bosituasjon.Fullstendig>
 
-        val vilkår = request.toDomain(bosituasjon, revurdering.periode, clock).getOrHandle {
+        val vilkår = request.toDomain(bosituasjon, revurdering.periode, clock, formuegrenserFactory).getOrHandle {
             return it.left()
         }
         return revurdering.oppdaterFormueOgMarkerSomVurdert(vilkår)
@@ -635,6 +641,7 @@ internal class RevurderingServiceImpl(
                     eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                     clock = clock,
                     gjeldendeVedtaksdata = gjeldendeVedtaksdata,
+                    beregningStrategyFactory = beregningStrategyFactory,
                 ).getOrHandle {
                     return when (it) {
                         is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> {

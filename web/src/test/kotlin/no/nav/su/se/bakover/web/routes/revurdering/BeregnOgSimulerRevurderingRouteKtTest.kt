@@ -19,8 +19,10 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -92,8 +94,10 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 clock = fixedClock,
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
-                    clock = fixedClock
-                ).getOrFail()
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
+                ).getOrFail(),
+                beregningStrategyFactory = beregningStrategyFactoryTest(),
             ).getOrFail()
         }
 

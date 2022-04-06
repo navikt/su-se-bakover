@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.Vilkårsvurdert.Companion.opprett
+import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -109,7 +110,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         return Unit.right()
     }
 
-    open fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
+    open fun leggTilFradragsgrunnlag(
+        fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+        formuegrenserFactory: FormuegrenserFactory,
+    ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
         KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(this::class).left()
 
     /**
@@ -118,6 +122,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     fun oppdaterBosituasjon(
         bosituasjon: Grunnlag.Bosituasjon,
         clock: Clock,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
         val oppdatertGrunnlagsdata = Grunnlagsdata.tryCreateTillatUfullstendigBosituasjon(
             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragForEPSHvisEnslig(bosituasjon),
@@ -140,10 +145,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 oppdatertBehandlingsinformasjon,
                 oppdatertGrunnlagsdata,
                 clock,
+                formuegrenserFactory,
             ).right()
-            is Beregnet -> tilVilkårsvurdert(oppdatertBehandlingsinformasjon, oppdatertGrunnlagsdata, clock).right()
-            is Simulert -> tilVilkårsvurdert(oppdatertBehandlingsinformasjon, oppdatertGrunnlagsdata, clock).right()
-            is Underkjent -> tilVilkårsvurdert(oppdatertBehandlingsinformasjon, oppdatertGrunnlagsdata, clock).right()
+            is Beregnet -> tilVilkårsvurdert(oppdatertBehandlingsinformasjon, oppdatertGrunnlagsdata, clock, formuegrenserFactory).right()
+            is Simulert -> tilVilkårsvurdert(oppdatertBehandlingsinformasjon, oppdatertGrunnlagsdata, clock, formuegrenserFactory).right()
+            is Underkjent -> tilVilkårsvurdert(oppdatertBehandlingsinformasjon, oppdatertGrunnlagsdata, clock, formuegrenserFactory).right()
 
             is TilAttestering,
             is LukketSøknadsbehandling,
@@ -160,6 +166,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     open fun leggTilUtenlandsopphold(
         utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
         clock: Clock,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
         return KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(
             fra = this::class,
@@ -170,6 +177,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     open fun oppdaterStønadsperiode(
         oppdatertStønadsperiode: Stønadsperiode,
         clock: Clock,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
         return KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
     }
@@ -188,6 +196,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     open fun beregn(
         begrunnelse: String?,
         clock: Clock,
+        beregningStrategyFactory: BeregningStrategyFactory,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeBeregne, Beregnet> {
         return KunneIkkeBeregne.UgyldigTilstand(this::class).left()
     }
@@ -225,6 +235,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     open fun leggTilUførevilkår(
         uførhet: Vilkår.Uførhet.Vurdert,
         clock: Clock,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
         return KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(this::class, Vilkårsvurdert::class).left()
     }
@@ -249,12 +260,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         søknadsbehandling: Vilkårsvurdert,
         begrunnelse: String?,
         clock: Clock,
+        beregningStrategyFactory: BeregningStrategyFactory,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeBeregne, Beregnet> {
         return when (val avkort = søknadsbehandling.avkorting) {
             is AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående -> {
                 beregnUtenAvkorting(
                     begrunnelse = begrunnelse,
-                    clock = clock,
+                    beregningStrategyFactory = beregningStrategyFactory,
+                    formuegrenserFactory = formuegrenserFactory,
                 ).getOrHandle { return it.left() }
             }
             is AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere -> {
@@ -265,6 +279,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     avkorting = avkort,
                     begrunnelse = begrunnelse,
                     clock = clock,
+                    beregningStrategyFactory = beregningStrategyFactory,
+                    formuegrenserFactory = formuegrenserFactory,
                 ).getOrHandle { return it.left() }
             }
         }.let { (behandling, beregning) ->
@@ -315,17 +331,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
      */
     private fun beregnUtenAvkorting(
         begrunnelse: String?,
-        clock: Clock,
+        beregningStrategyFactory: BeregningStrategyFactory,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeBeregne, Pair<Vilkårsvurdert, Beregning>> {
         return leggTilFradragsgrunnlag(
-            grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
+            fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
+            formuegrenserFactory = formuegrenserFactory,
         ).getOrHandle {
             return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left()
         }.let {
             it to gjørBeregning(
                 søknadsbehandling = it,
                 begrunnelse = begrunnelse,
-                clock = clock,
+                beregningStrategyFactory = beregningStrategyFactory,
             )
         }.right()
     }
@@ -333,9 +351,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     private fun gjørBeregning(
         søknadsbehandling: Søknadsbehandling,
         begrunnelse: String?,
-        clock: Clock,
+        beregningStrategyFactory: BeregningStrategyFactory,
     ): Beregning {
-        return BeregningStrategyFactory(clock).beregn(søknadsbehandling, begrunnelse)
+        return beregningStrategyFactory.beregn(søknadsbehandling, begrunnelse)
     }
 
     /**
@@ -345,8 +363,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting,
         begrunnelse: String?,
         clock: Clock,
+        beregningStrategyFactory: BeregningStrategyFactory,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeBeregne, Pair<Vilkårsvurdert, Beregning>> {
-        return beregnUtenAvkorting(begrunnelse, clock)
+        return beregnUtenAvkorting(begrunnelse, beregningStrategyFactory, formuegrenserFactory)
             .map { (utenAvkorting, beregningUtenAvkorting) ->
                 val fradragForAvkorting = Avkortingsplan(
                     feilutbetaltBeløp = avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum(),
@@ -361,13 +381,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 }
 
                 val medAvkorting = utenAvkorting.leggTilFradragsgrunnlag(
-                    utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
+                    fradragsgrunnlag = utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
+                    formuegrenserFactory = formuegrenserFactory,
                 ).getOrHandle { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
 
                 medAvkorting to gjørBeregning(
                     søknadsbehandling = medAvkorting,
                     begrunnelse = begrunnelse,
-                    clock = clock,
+                    beregningStrategyFactory = beregningStrategyFactory,
                 )
             }
     }
@@ -379,6 +400,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             behandlingsinformasjon: Behandlingsinformasjon,
             grunnlagsdata: Grunnlagsdata = this.grunnlagsdata,
             clock: Clock,
+            formuegrenserFactory: FormuegrenserFactory,
         ): Vilkårsvurdert =
             opprett(
                 id,
@@ -396,6 +418,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 attesteringer,
                 clock,
                 avkorting,
+                formuegrenserFactory,
             )
 
         companion object {
@@ -409,18 +432,21 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 behandlingsinformasjon: Behandlingsinformasjon,
                 fnr: Fnr,
                 fritekstTilBrev: String,
+                // TODO jah: Hvorfor er denne nullable når vi krever at den ikke er det noen få linjer ned.
                 stønadsperiode: Stønadsperiode?,
                 grunnlagsdata: Grunnlagsdata,
                 vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 attesteringer: Attesteringshistorikk,
                 clock: Clock,
                 avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Vilkårsvurdert {
                 val oppdaterteVilkårsvurderinger = vilkårsvurderinger.oppdater(
                     stønadsperiode = stønadsperiode!!,
                     behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdata,
                     clock = clock,
+                    formuegrenserFactory = formuegrenserFactory,
                 )
                 return when (oppdaterteVilkårsvurderinger.resultat) {
                     is Vilkårsvurderingsresultat.Avslag -> {
@@ -506,7 +532,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 visitor.visit(this)
             }
 
-            override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Innvilget> {
+            override fun leggTilFradragsgrunnlag(
+                fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+                formuegrenserFactory: FormuegrenserFactory
+            ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Innvilget> {
                 validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
                     return it.left()
                 }
@@ -537,38 +566,46 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilUtenlandsopphold(
                 utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
                 return valider(utenlandsopphold)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock, formuegrenserFactory) }
             }
 
             private fun vilkårsvurder(
                 vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Vilkårsvurdert {
                 return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
                     behandlingsinformasjon,
                     grunnlagsdata,
                     clock,
+                    formuegrenserFactory,
                 )
             }
 
             override fun leggTilUførevilkår(
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock, formuegrenserFactory) }
             }
 
             override fun beregn(
                 begrunnelse: String?,
                 clock: Clock,
+                beregningStrategyFactory: BeregningStrategyFactory,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeBeregne, Beregnet> {
                 return beregnInternal(
-                    søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock),
+                    søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock, formuegrenserFactory),
                     begrunnelse = begrunnelse,
                     clock = clock,
+                    beregningStrategyFactory = beregningStrategyFactory,
+                    formuegrenserFactory = formuegrenserFactory,
                 )
             }
 
@@ -576,6 +613,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun oppdaterStønadsperiode(
                 oppdatertStønadsperiode: Stønadsperiode,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
                 return copy(
                     stønadsperiode = oppdatertStønadsperiode,
@@ -587,8 +625,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 ).vilkårsvurder(
                     vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
                         stønadsperiode = oppdatertStønadsperiode,
+                        formuegrenserFactory = formuegrenserFactory,
                     ),
                     clock = clock,
+                    formuegrenserFactory = formuegrenserFactory,
                 ).right()
             }
         }
@@ -649,33 +689,38 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilUtenlandsopphold(
                 utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
                 return valider(utenlandsopphold)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock, formuegrenserFactory) }
             }
 
             private fun vilkårsvurder(
                 vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Vilkårsvurdert {
                 return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
                     behandlingsinformasjon,
                     grunnlagsdata,
                     clock,
+                    formuegrenserFactory,
                 )
             }
 
             override fun leggTilUførevilkår(
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock, formuegrenserFactory) }
             }
 
             override fun oppdaterStønadsperiode(
                 oppdatertStønadsperiode: Stønadsperiode,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
                 return copy(
                     stønadsperiode = oppdatertStønadsperiode,
@@ -687,8 +732,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 ).vilkårsvurder(
                     vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
                         stønadsperiode = oppdatertStønadsperiode,
+                        formuegrenserFactory = formuegrenserFactory,
                     ),
                     clock = clock,
+                    formuegrenserFactory = formuegrenserFactory,
                 ).right()
             }
         }
@@ -721,33 +768,38 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilUtenlandsopphold(
                 utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
                 return valider(utenlandsopphold)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock, formuegrenserFactory) }
             }
 
             private fun vilkårsvurder(
                 vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Vilkårsvurdert {
                 return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
                     behandlingsinformasjon,
                     grunnlagsdata,
                     clock,
+                    formuegrenserFactory,
                 )
             }
 
             override fun leggTilUførevilkår(
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock, formuegrenserFactory) }
             }
 
             override fun oppdaterStønadsperiode(
                 oppdatertStønadsperiode: Stønadsperiode,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
                 return copy(
                     stønadsperiode = oppdatertStønadsperiode,
@@ -759,8 +811,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 ).vilkårsvurder(
                     vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
                         stønadsperiode = oppdatertStønadsperiode,
+                        formuegrenserFactory = formuegrenserFactory,
                     ),
                     clock = clock,
+                    formuegrenserFactory = formuegrenserFactory,
                 ).right()
             }
 
@@ -780,6 +834,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             behandlingsinformasjon: Behandlingsinformasjon,
             grunnlagsdata: Grunnlagsdata = this.grunnlagsdata,
             clock: Clock,
+            formuegrenserFactory: FormuegrenserFactory,
         ): Vilkårsvurdert =
             opprett(
                 id,
@@ -797,11 +852,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 attesteringer,
                 clock,
                 avkorting.uhåndtert(),
+                formuegrenserFactory,
             )
 
         abstract override fun beregn(
             begrunnelse: String?,
             clock: Clock,
+            beregningStrategyFactory: BeregningStrategyFactory,
+            formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeBeregne, Beregnet>
 
         fun tilSimulert(simulering: Simulering): Simulert =
@@ -848,7 +906,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 visitor.visit(this)
             }
 
-            override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
+            override fun leggTilFradragsgrunnlag(
+                fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+                formuegrenserFactory: FormuegrenserFactory,
+            ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
                 validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
                     return it.left()
                 }
@@ -879,44 +940,53 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilUtenlandsopphold(
                 utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
                 return valider(utenlandsopphold)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock, formuegrenserFactory) }
             }
 
             private fun vilkårsvurder(
                 vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Vilkårsvurdert {
                 return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
                     behandlingsinformasjon,
                     grunnlagsdata,
                     clock,
+                    formuegrenserFactory,
                 )
             }
 
             override fun beregn(
                 begrunnelse: String?,
                 clock: Clock,
+                beregningStrategyFactory: BeregningStrategyFactory,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeBeregne, Beregnet> {
                 return beregnInternal(
-                    søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock),
+                    søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock, formuegrenserFactory),
                     begrunnelse = begrunnelse,
                     clock = clock,
+                    beregningStrategyFactory = beregningStrategyFactory,
+                    formuegrenserFactory = formuegrenserFactory,
                 )
             }
 
             override fun leggTilUførevilkår(
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock, formuegrenserFactory) }
             }
 
             override fun oppdaterStønadsperiode(
                 oppdatertStønadsperiode: Stønadsperiode,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
                 return copy(
                     stønadsperiode = oppdatertStønadsperiode,
@@ -928,8 +998,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 ).vilkårsvurder(
                     vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
                         stønadsperiode = oppdatertStønadsperiode,
+                        formuegrenserFactory = formuegrenserFactory,
                     ),
                     clock = clock,
+                    formuegrenserFactory = formuegrenserFactory,
                 ).right()
             }
         }
@@ -960,7 +1032,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     is AvslagGrunnetBeregning.Nei -> emptyList()
                 }
 
-            override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
+            override fun leggTilFradragsgrunnlag(
+                fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+                formuegrenserFactory: FormuegrenserFactory,
+            ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
                 validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
                     return it.left()
                 }
@@ -1025,44 +1100,53 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilUtenlandsopphold(
                 utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
                 return valider(utenlandsopphold)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock, formuegrenserFactory) }
             }
 
             private fun vilkårsvurder(
                 vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Vilkårsvurdert {
                 return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
                     behandlingsinformasjon,
                     grunnlagsdata,
                     clock,
+                    formuegrenserFactory,
                 )
             }
 
             override fun beregn(
                 begrunnelse: String?,
                 clock: Clock,
+                beregningStrategyFactory: BeregningStrategyFactory,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeBeregne, Beregnet> {
                 return beregnInternal(
-                    søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock),
+                    søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock, formuegrenserFactory),
                     begrunnelse = begrunnelse,
                     clock = clock,
+                    beregningStrategyFactory = beregningStrategyFactory,
+                    formuegrenserFactory = formuegrenserFactory,
                 )
             }
 
             override fun leggTilUførevilkår(
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock, formuegrenserFactory) }
             }
 
             override fun oppdaterStønadsperiode(
                 oppdatertStønadsperiode: Stønadsperiode,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
                 return copy(
                     stønadsperiode = oppdatertStønadsperiode,
@@ -1074,8 +1158,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 ).vilkårsvurder(
                     vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
                         stønadsperiode = oppdatertStønadsperiode,
+                        formuegrenserFactory = formuegrenserFactory,
                     ),
                     clock = clock,
+                    formuegrenserFactory = formuegrenserFactory,
                 ).right()
             }
         }
@@ -1106,7 +1192,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             visitor.visit(this)
         }
 
-        override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
+        override fun leggTilFradragsgrunnlag(
+            fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+            formuegrenserFactory: FormuegrenserFactory,
+        ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
             validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
                 return it.left()
             }
@@ -1136,6 +1225,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             behandlingsinformasjon: Behandlingsinformasjon,
             grunnlagsdata: Grunnlagsdata = this.grunnlagsdata,
             clock: Clock,
+            formuegrenserFactory: FormuegrenserFactory,
         ): Vilkårsvurdert =
             opprett(
                 id,
@@ -1153,16 +1243,21 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 attesteringer,
                 clock,
                 avkorting.uhåndtert(),
+                formuegrenserFactory,
             )
 
         override fun beregn(
             begrunnelse: String?,
             clock: Clock,
+            beregningStrategyFactory: BeregningStrategyFactory,
+            formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeBeregne, Beregnet> {
             return beregnInternal(
-                søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock),
+                søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock, formuegrenserFactory),
                 begrunnelse = begrunnelse,
                 clock = clock,
+                beregningStrategyFactory = beregningStrategyFactory,
+                formuegrenserFactory = formuegrenserFactory,
             )
         }
 
@@ -1220,33 +1315,38 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override fun leggTilUtenlandsopphold(
             utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
             clock: Clock,
+            formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
             return valider(utenlandsopphold)
-                .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+                .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock, formuegrenserFactory) }
         }
 
         private fun vilkårsvurder(
             vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             clock: Clock,
+            formuegrenserFactory: FormuegrenserFactory,
         ): Vilkårsvurdert {
             return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
                 behandlingsinformasjon,
                 grunnlagsdata,
                 clock,
+                formuegrenserFactory,
             )
         }
 
         override fun leggTilUførevilkår(
             uførhet: Vilkår.Uførhet.Vurdert,
             clock: Clock,
+            formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
             return valider(uførhet)
-                .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+                .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock, formuegrenserFactory) }
         }
 
         override fun oppdaterStønadsperiode(
             oppdatertStønadsperiode: Stønadsperiode,
             clock: Clock,
+            formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
             return copy(
                 stønadsperiode = oppdatertStønadsperiode,
@@ -1258,8 +1358,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ).vilkårsvurder(
                 vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = oppdatertStønadsperiode,
+                    formuegrenserFactory = formuegrenserFactory,
                 ),
                 clock = clock,
+                formuegrenserFactory = formuegrenserFactory,
             ).right()
         }
     }
@@ -1538,6 +1640,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             behandlingsinformasjon: Behandlingsinformasjon,
             grunnlagsdata: Grunnlagsdata = this.grunnlagsdata,
             clock: Clock,
+            formuegrenserFactory: FormuegrenserFactory,
         ): Vilkårsvurdert =
             opprett(
                 id,
@@ -1555,6 +1658,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 attesteringer,
                 clock,
                 avkorting.uhåndtert(),
+                formuegrenserFactory,
             )
 
         data class Innvilget(
@@ -1581,7 +1685,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 return this.copy(oppgaveId = nyOppgaveId)
             }
 
-            override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
+            override fun leggTilFradragsgrunnlag(
+                fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+                formuegrenserFactory: FormuegrenserFactory,
+            ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
                 validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
                     return it.left()
                 }
@@ -1619,11 +1726,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun beregn(
                 begrunnelse: String?,
                 clock: Clock,
+                beregningStrategyFactory: BeregningStrategyFactory,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeBeregne, Beregnet> {
                 return beregnInternal(
-                    søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock),
+                    søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock, formuegrenserFactory),
                     begrunnelse = begrunnelse,
                     clock = clock,
+                    beregningStrategyFactory = beregningStrategyFactory,
+                    formuegrenserFactory = formuegrenserFactory,
                 )
             }
 
@@ -1678,33 +1789,38 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilUtenlandsopphold(
                 utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
                 return valider(utenlandsopphold)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock, formuegrenserFactory) }
             }
 
             private fun vilkårsvurder(
                 vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Vilkårsvurdert {
                 return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
                     behandlingsinformasjon,
                     grunnlagsdata,
                     clock,
+                    formuegrenserFactory,
                 )
             }
 
             override fun leggTilUførevilkår(
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock, formuegrenserFactory) }
             }
 
             override fun oppdaterStønadsperiode(
                 oppdatertStønadsperiode: Stønadsperiode,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
                 return copy(
                     stønadsperiode = oppdatertStønadsperiode,
@@ -1716,8 +1832,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 ).vilkårsvurder(
                     vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
                         stønadsperiode = oppdatertStønadsperiode,
+                        formuegrenserFactory = formuegrenserFactory,
                     ),
                     clock = clock,
+                    formuegrenserFactory = formuegrenserFactory,
                 ).right()
             }
         }
@@ -1750,7 +1868,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         is AvslagGrunnetBeregning.Nei -> emptyList()
                     }
 
-                override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
+                override fun leggTilFradragsgrunnlag(
+                    fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+                    formuegrenserFactory: FormuegrenserFactory,
+                ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
                     validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
                         return it.left()
                     }
@@ -1789,11 +1910,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun beregn(
                     begrunnelse: String?,
                     clock: Clock,
+                    beregningStrategyFactory: BeregningStrategyFactory,
+                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeBeregne, Beregnet> {
                     return beregnInternal(
-                        søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock),
+                        søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock, formuegrenserFactory),
                         begrunnelse = begrunnelse,
                         clock = clock,
+                        beregningStrategyFactory = beregningStrategyFactory,
+                        formuegrenserFactory = formuegrenserFactory,
                     )
                 }
 
@@ -1827,33 +1952,38 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun leggTilUtenlandsopphold(
                     utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                     clock: Clock,
+                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
                     return valider(utenlandsopphold)
-                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock, formuegrenserFactory) }
                 }
 
                 private fun vilkårsvurder(
                     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                     clock: Clock,
+                    formuegrenserFactory: FormuegrenserFactory,
                 ): Vilkårsvurdert {
                     return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
                         behandlingsinformasjon,
                         grunnlagsdata,
                         clock,
+                        formuegrenserFactory,
                     )
                 }
 
                 override fun leggTilUførevilkår(
                     uførhet: Vilkår.Uførhet.Vurdert,
                     clock: Clock,
+                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                     return valider(uførhet)
-                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock, formuegrenserFactory) }
                 }
 
                 override fun oppdaterStønadsperiode(
                     oppdatertStønadsperiode: Stønadsperiode,
                     clock: Clock,
+                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
                     return copy(
                         stønadsperiode = oppdatertStønadsperiode,
@@ -1865,8 +1995,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     ).vilkårsvurder(
                         vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
                             stønadsperiode = oppdatertStønadsperiode,
+                            formuegrenserFactory = formuegrenserFactory,
                         ),
                         clock = clock,
+                        formuegrenserFactory = formuegrenserFactory,
                     ).right()
                 }
             }
@@ -1928,33 +2060,38 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun leggTilUtenlandsopphold(
                     utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                     clock: Clock,
+                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
                     return valider(utenlandsopphold)
-                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock, formuegrenserFactory) }
                 }
 
                 private fun vilkårsvurder(
                     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                     clock: Clock,
+                    formuegrenserFactory: FormuegrenserFactory,
                 ): Vilkårsvurdert {
                     return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
                         behandlingsinformasjon,
                         grunnlagsdata,
                         clock,
+                        formuegrenserFactory,
                     )
                 }
 
                 override fun leggTilUførevilkår(
                     uførhet: Vilkår.Uførhet.Vurdert,
                     clock: Clock,
+                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                     return valider(uførhet)
-                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock, formuegrenserFactory) }
                 }
 
                 override fun oppdaterStønadsperiode(
                     oppdatertStønadsperiode: Stønadsperiode,
                     clock: Clock,
+                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
                     return copy(
                         stønadsperiode = oppdatertStønadsperiode,
@@ -1966,8 +2103,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     ).vilkårsvurder(
                         vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
                             stønadsperiode = oppdatertStønadsperiode,
+                            formuegrenserFactory = formuegrenserFactory,
                         ),
                         clock = clock,
+                        formuegrenserFactory = formuegrenserFactory,
                     ).right()
                 }
             }

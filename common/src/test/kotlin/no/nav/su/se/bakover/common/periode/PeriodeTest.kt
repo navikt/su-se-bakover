@@ -768,4 +768,20 @@ internal class PeriodeTest {
             år(2022)
         ).harOverlappende() shouldBe true
     }
+
+    @Test
+    fun `er sammenhengende`() {
+        listOf(
+            januar(2021),
+            februar(2021),
+        ).erSammenhengende() shouldBe true
+    }
+
+    @Test
+    fun `er ikke sammenhengende`() {
+        listOf(
+            januar(2021),
+            mars(2021),
+        ).erSammenhengende() shouldBe false
+    }
 }

@@ -5,6 +5,8 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
@@ -38,18 +40,22 @@ object ServiceBuilder {
         søknadMetrics: SøknadMetrics,
         clock: Clock,
         unleash: Unleash,
+        satsFactory: SatsFactory,
+        beregningStrategyFactory: BeregningStrategyFactory,
     ): Services {
         val personService = PersonServiceImpl(clients.personOppslag)
         val statistikkService = StatistikkServiceImpl(
-            clients.kafkaPublisher,
-            personService,
-            databaseRepos.sak,
-            databaseRepos.vedtakRepo,
-            clock,
+            publisher = clients.kafkaPublisher,
+            personService = personService,
+            sakRepo = databaseRepos.sak,
+            vedtakRepo = databaseRepos.vedtakRepo,
+            clock = clock,
+            satsFactory = satsFactory,
         )
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak,
             clock = clock,
+            satsFactory = satsFactory,
         ).apply { observers.add(statistikkService) }
         val utbetalingService = UtbetalingServiceImpl(
             utbetalingRepo = databaseRepos.utbetaling,
@@ -69,6 +75,7 @@ object ServiceBuilder {
             microsoftGraphApiOppslag = clients.identClient,
             utbetalingService = utbetalingService,
             clock = clock,
+            satsFactory = satsFactory,
         )
         val oppgaveService = OppgaveServiceImpl(
             oppgaveClient = clients.oppgaveClient,
@@ -97,6 +104,7 @@ object ServiceBuilder {
             vedtakRepo = databaseRepos.vedtakRepo,
             sakService = sakService,
             clock = clock,
+            satsFactory = satsFactory,
         )
 
         val kontrollsamtaleService = KontrollsamtaleServiceImpl(
@@ -131,6 +139,8 @@ object ServiceBuilder {
             avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
             toggleService = toggleService,
             tilbakekrevingService = tilbakekrevingService,
+            formuegrenserFactory = satsFactory.formuegrenserFactory,
+            beregningStrategyFactory = beregningStrategyFactory,
         ).apply { addObserver(statistikkService) }
 
         val reguleringService = ReguleringServiceImpl(
@@ -141,6 +151,8 @@ object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             tilbakekrevingService = tilbakekrevingService,
             clock = clock,
+            beregningStrategyFactory = beregningStrategyFactory,
+            satsFactory = satsFactory,
         ).apply { addObserver(statistikkService) }
 
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
@@ -161,6 +173,8 @@ object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
             tilbakekrevingService = tilbakekrevingService,
+            formuegrenserFactory = satsFactory.formuegrenserFactory,
+            beregningStrategyFactory = beregningStrategyFactory,
         ).apply {
             addObserver(statistikkService)
         }

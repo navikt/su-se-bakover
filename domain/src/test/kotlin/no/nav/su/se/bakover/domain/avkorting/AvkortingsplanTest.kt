@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.MånedBeløp
 import no.nav.su.se.bakover.domain.Månedsbeløp
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -32,6 +31,7 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import org.junit.jupiter.api.Test
@@ -51,12 +51,19 @@ internal class AvkortingsplanTest {
     @Test
     fun `avkorter så mye som mulig, så fort som mulig`() {
         val (_, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget()
+        val fullSupplerendeStønadHøy = satsFactoryTest.fullSupplerendeStønadHøy()
         Avkortingsplan(
             feilutbetaltBeløp = Månedsbeløp(
                 listOf(
-                    MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
-                    MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
-                    MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
+                    MånedBeløp(
+                        januar(2021),
+                        Beløp(fullSupplerendeStønadHøy.forMånedsperiode(januar(2021)).satsForMånedAvrundet),
+                    ),
+                    MånedBeløp(
+                        februar(2021),
+                        Beløp(fullSupplerendeStønadHøy.forMånedsperiode(februar(2021)).satsForMånedAvrundet),
+                    ),
+                    MånedBeløp(mars(2021), Beløp(fullSupplerendeStønadHøy.forMånedsperiode(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
             beregning = søknadsbehandling.beregning,
@@ -65,19 +72,19 @@ internal class AvkortingsplanTest {
             it shouldHaveSize 3
             it[0].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed),
+                    beløp = fullSupplerendeStønadHøy.forMånedsperiode(januar(2021)).satsForMånedAvrundet,
                     periode = januar(2021),
                 ),
             )
             it[1].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed),
+                    beløp = fullSupplerendeStønadHøy.forMånedsperiode(februar(2021)).satsForMånedAvrundet,
                     periode = februar(2021),
                 ),
             )
             it[2].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed),
+                    beløp = fullSupplerendeStønadHøy.forMånedsperiode(mars(2021)).satsForMånedAvrundet,
                     periode = mars(2021),
                 ),
             )
@@ -86,6 +93,7 @@ internal class AvkortingsplanTest {
 
     @Test
     fun `avkorting går ikke på bekostning av vanlige fradrag`() {
+        val fullSupplerendeStønadHøy = satsFactoryTest.fullSupplerendeStønadHøy()
         val (_, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget(
             grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = listOf(
@@ -94,7 +102,7 @@ internal class AvkortingsplanTest {
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.januar(2021)).toDouble(),
+                            månedsbeløp = fullSupplerendeStønadHøy.forMånedsperiode(januar(2021)).satsForMånedAsDouble,
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -105,7 +113,7 @@ internal class AvkortingsplanTest {
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.mai(2021)).toDouble(),
+                            månedsbeløp = fullSupplerendeStønadHøy.forMånedsperiode(mai(2021)).satsForMånedAsDouble,
                             periode = Periode.create(1.mai(2021), 30.september(2021)),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -119,9 +127,9 @@ internal class AvkortingsplanTest {
         Avkortingsplan(
             feilutbetaltBeløp = Månedsbeløp(
                 listOf(
-                    MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
-                    MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
-                    MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
+                    MånedBeløp(januar(2021), Beløp(satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(januar(2021)).satsForMånedAvrundet)),
+                    MånedBeløp(februar(2021), Beløp(fullSupplerendeStønadHøy.forMånedsperiode(februar(2021)).satsForMånedAvrundet)),
+                    MånedBeløp(mars(2021), Beløp(fullSupplerendeStønadHøy.forMånedsperiode(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
             beregning = søknadsbehandling.beregning,
@@ -150,6 +158,7 @@ internal class AvkortingsplanTest {
 
     @Test
     fun `svarer med feil dersom beløp til avkorting ikke lar seg akorte fullstendig for aktuell beregning`() {
+        val fullSupplerendeStønadHøy = satsFactoryTest.fullSupplerendeStønadHøy()
         val (_, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget(
             grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = listOf(
@@ -158,7 +167,7 @@ internal class AvkortingsplanTest {
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.januar(2021)).toDouble(),
+                            månedsbeløp = fullSupplerendeStønadHøy.forMånedsperiode(januar(2021)).satsForMånedAsDouble,
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -169,7 +178,7 @@ internal class AvkortingsplanTest {
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.mai(2021)).toDouble(),
+                            månedsbeløp = fullSupplerendeStønadHøy.forMånedsperiode(mai(2021)).satsForMånedAsDouble,
                             periode = Periode.create(1.mai(2021), 31.desember(2021)),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -183,9 +192,15 @@ internal class AvkortingsplanTest {
         Avkortingsplan(
             feilutbetaltBeløp = Månedsbeløp(
                 listOf(
-                    MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
-                    MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
-                    MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
+                    MånedBeløp(
+                        januar(2021),
+                        Beløp(fullSupplerendeStønadHøy.forMånedsperiode(januar(2021)).satsForMånedAvrundet),
+                    ),
+                    MånedBeløp(
+                        februar(2021),
+                        Beløp(fullSupplerendeStønadHøy.forMånedsperiode(februar(2021)).satsForMånedAvrundet),
+                    ),
+                    MånedBeløp(mars(2021), Beløp(fullSupplerendeStønadHøy.forMånedsperiode(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
             beregning = søknadsbehandling.beregning,
@@ -213,13 +228,20 @@ internal class AvkortingsplanTest {
                 bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
             ),
         )
+        val fullSupplerendeStønadHøy = satsFactoryTest.fullSupplerendeStønadHøy()
 
         Avkortingsplan(
             feilutbetaltBeløp = Månedsbeløp(
                 listOf(
-                    MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
-                    MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
-                    MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
+                    MånedBeløp(
+                        januar(2021),
+                        Beløp(fullSupplerendeStønadHøy.forMånedsperiode(januar(2021)).satsForMånedAvrundet),
+                    ),
+                    MånedBeløp(
+                        februar(2021),
+                        Beløp(fullSupplerendeStønadHøy.forMånedsperiode(februar(2021)).satsForMånedAvrundet),
+                    ),
+                    MånedBeløp(mars(2021), Beløp(fullSupplerendeStønadHøy.forMånedsperiode(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
             beregning = søknadsbehandling.beregning,

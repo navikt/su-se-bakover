@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import org.junit.jupiter.api.Test
@@ -91,7 +92,6 @@ internal class VedtakTest {
             NonEmptyList.fromListUnsafe(
                 listOf(
                     lagFormueVurderingsperiode(
-                        id = UUID.randomUUID(),
                         vurderingsperiode = vurderingsperiode,
                         behandlingsperiode = vurderingsperiode,
                         bosituasjon = bosituasjon,
@@ -102,17 +102,16 @@ internal class VedtakTest {
     }
 
     private fun lagFormueVurderingsperiode(
-        id: UUID,
+        vurderingsperiodeId: UUID = UUID.randomUUID(),
+        formuegrunnlagId: UUID = UUID.randomUUID(),
         vurderingsperiode: Periode,
         behandlingsperiode: Periode,
         bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
     ): Vurderingsperiode.Formue {
-        return Vurderingsperiode.Formue.create(
-            id = id,
-            opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+        return Vurderingsperiode.Formue.tryCreateFromGrunnlag(
+            id = vurderingsperiodeId,
             grunnlag = Formuegrunnlag.create(
-                id = id,
+                id = formuegrunnlagId,
                 opprettet = fixedTidspunkt,
                 periode = vurderingsperiode,
                 epsFormue = null,
@@ -121,8 +120,10 @@ internal class VedtakTest {
                 bosituasjon = bosituasjon,
                 behandlingsPeriode = behandlingsperiode,
             ),
-            periode = vurderingsperiode,
-        )
+            formuegrenserFactory = formuegrenserFactoryTest,
+        ).also {
+            assert(it.resultat == Resultat.Innvilget)
+        }
     }
 
     @Test

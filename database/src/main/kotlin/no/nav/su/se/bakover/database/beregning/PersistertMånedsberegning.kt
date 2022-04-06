@@ -5,29 +5,36 @@ import no.nav.su.se.bakover.common.periode.MånedsperiodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.beregning.BeregningForMåned
 import no.nav.su.se.bakover.domain.beregning.Merknader
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.satser.Satskategori
 
 internal data class PersistertMånedsberegning(
     val sumYtelse: Int,
     val sumFradrag: Double,
     val benyttetGrunnbeløp: Int,
-    val sats: Sats,
+    val sats: Satskategori,
     val satsbeløp: Double,
     val fradrag: List<PersistertFradrag>,
     val periode: MånedsperiodeJson,
     val fribeløpForEps: Double,
     val merknader: List<PersistertMerknad.Beregning> = emptyList(),
 ) {
-    fun toMånedsberegning(): BeregningForMåned {
+    fun toMånedsberegning(satsFactory: SatsFactory): BeregningForMåned {
+        val måned = periode.toMånedsperiode()
         return BeregningForMåned(
-            måned = periode.toMånedsperiode(),
-            sats = sats,
+            måned = måned,
+            fullSupplerendeStønadForMåned = satsFactory.fullSupplerendeStønad(sats).forMånedsperiode(måned).also {
+                assert(benyttetGrunnbeløp == it.grunnbeløp.grunnbeløpPerÅr) {
+                    "Hentet benyttetGrunnbeløp: $benyttetGrunnbeløp fra databasen, mens den utleda verdien for grunnbeløp var: ${it.grunnbeløp.grunnbeløpPerÅr}"
+                }
+                assert(satsbeløp == it.satsForMånedAsDouble)
+                assert(sats == it.satskategori)
+            },
             fradrag = fradrag.map { it.toFradragForMåned() },
             fribeløpForEps = fribeløpForEps,
             merknader = Merknader.Beregningsmerknad(merknader.map { it.toDomain() }.toMutableList()),
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
-            satsbeløp = satsbeløp,
         )
     }
 }

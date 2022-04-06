@@ -3,19 +3,23 @@ package no.nav.su.se.bakover.domain.beregning.beregning
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fullSupplerendeStønadHøyTest
+import no.nav.su.se.bakover.test.fullSupplerendeStønadOrdinærTest
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.satsFactoryTest
 import org.junit.jupiter.api.Test
 
 internal class BeregningStrategyTest {
@@ -48,9 +52,10 @@ internal class BeregningStrategyTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = beregningsgrunnlag.beregningsperiode,
-                    strategy = BeregningStrategy.BorAlene,
-                )
-            )
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                ),
+            ),
+            satsFactory = satsFactoryTest,
         ).let {
             it.periode.fraOgMed shouldBe periode.fraOgMed
             it.periode.tilOgMed shouldBe periode.tilOgMed
@@ -62,31 +67,50 @@ internal class BeregningStrategyTest {
 
     @Test
     fun `bor alene inneholder korrekte verdier`() {
-        BeregningStrategy.BorAlene.sats() shouldBe Sats.HØY
-        BeregningStrategy.BorAlene.fradragStrategy() shouldBe FradragStrategy.Enslig
+        BeregningStrategy.BorAlene(satsFactoryTest).fradragStrategy() shouldBe FradragStrategy.Enslig
+        BeregningStrategy.BorAlene(satsFactoryTest).fullSupplerendeStønadFactory() shouldBe fullSupplerendeStønadHøyTest
+        BeregningStrategy.BorAlene(satsFactoryTest).satsgrunn() shouldBe Satsgrunn.ENSLIG
+        BeregningStrategy.BorAlene(satsFactoryTest).satskategori shouldBe Satskategori.HØY
     }
 
     @Test
     fun `bor med voksne inneholder korrekte verdier`() {
-        BeregningStrategy.BorMedVoksne.sats() shouldBe Sats.ORDINÆR
-        BeregningStrategy.BorMedVoksne.fradragStrategy() shouldBe FradragStrategy.Enslig
+        BeregningStrategy.BorMedVoksne(satsFactoryTest).fradragStrategy() shouldBe FradragStrategy.Enslig
+        BeregningStrategy.BorMedVoksne(satsFactoryTest)
+            .fullSupplerendeStønadFactory() shouldBe fullSupplerendeStønadOrdinærTest
+        BeregningStrategy.BorMedVoksne(satsFactoryTest)
+            .satsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
+        BeregningStrategy.BorMedVoksne(satsFactoryTest).satskategori shouldBe Satskategori.ORDINÆR
     }
 
     @Test
     fun `eps over 67 år inneholder korrekte verdier`() {
-        BeregningStrategy.Eps67EllerEldre.sats() shouldBe Sats.ORDINÆR
-        BeregningStrategy.Eps67EllerEldre.fradragStrategy() shouldBe FradragStrategy.EpsOver67År
+        BeregningStrategy.Eps67EllerEldre(satsFactoryTest).fradragStrategy() shouldBe FradragStrategy.EpsOver67År
+        BeregningStrategy.Eps67EllerEldre(satsFactoryTest)
+            .fullSupplerendeStønadFactory() shouldBe fullSupplerendeStønadOrdinærTest
+        BeregningStrategy.Eps67EllerEldre(satsFactoryTest)
+            .satsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
+        BeregningStrategy.Eps67EllerEldre(satsFactoryTest).satskategori shouldBe Satskategori.ORDINÆR
     }
 
     @Test
     fun `eps under 67 år og ufør flyktning inneholder korrekte verdier`() {
-        BeregningStrategy.EpsUnder67ÅrOgUførFlyktning.sats() shouldBe Sats.ORDINÆR
-        BeregningStrategy.EpsUnder67ÅrOgUførFlyktning.fradragStrategy() shouldBe FradragStrategy.EpsUnder67ÅrOgUførFlyktning
+        BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest)
+            .fradragStrategy() shouldBe FradragStrategy.EpsUnder67ÅrOgUførFlyktning(fullSupplerendeStønadOrdinærTest)
+        BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest)
+            .fullSupplerendeStønadFactory() shouldBe fullSupplerendeStønadOrdinærTest
+        BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest)
+            .satsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
+        BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest).satskategori shouldBe Satskategori.ORDINÆR
     }
 
     @Test
     fun `eps under 67 år inneholder korrekte verdier`() {
-        BeregningStrategy.EpsUnder67År.sats() shouldBe Sats.HØY
-        BeregningStrategy.EpsUnder67År.fradragStrategy() shouldBe FradragStrategy.EpsUnder67År
+        BeregningStrategy.EpsUnder67År(satsFactoryTest).fradragStrategy() shouldBe FradragStrategy.EpsUnder67År
+        BeregningStrategy.EpsUnder67År(satsFactoryTest)
+            .fullSupplerendeStønadFactory() shouldBe fullSupplerendeStønadHøyTest
+        BeregningStrategy.EpsUnder67År(satsFactoryTest)
+            .satsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
+        BeregningStrategy.EpsUnder67År(satsFactoryTest).satskategori shouldBe Satskategori.HØY
     }
 }

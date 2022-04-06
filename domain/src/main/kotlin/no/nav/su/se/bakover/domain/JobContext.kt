@@ -110,16 +110,19 @@ data class SendPåminnelseNyStønadsperiodeContext(
         lagDokument: (request: LagBrevRequest.PåminnelseNyStønadsperiode) -> Either<KunneIkkeSendePåminnelse.KunneIkkeLageBrev, Dokument.UtenMetadata>,
         lagreDokument: (dokument: Dokument.MedMetadata, tx: TransactionContext) -> Unit,
         lagreContext: (context: SendPåminnelseNyStønadsperiodeContext, tx: TransactionContext) -> Unit,
+        halvtGrunnbeløp: Int,
     ): Either<KunneIkkeSendePåminnelse, SendPåminnelseNyStønadsperiodeContext> {
         return if (skalSendePåminnelse(sak)) {
             hentPerson(sak.fnr)
                 .flatMap { person ->
+                    val dagensDato = LocalDate.now(clock)
                     lagDokument(
                         LagBrevRequest.PåminnelseNyStønadsperiode(
                             person = person,
-                            dagensDato = LocalDate.now(clock),
+                            dagensDato = dagensDato,
                             saksnummer = sak.saksnummer,
                             utløpsdato = id().yearMonth.atEndOfMonth(),
+                            halvtGrunnbeløp = halvtGrunnbeløp,
                         ),
                     )
                 }.map { dokument ->

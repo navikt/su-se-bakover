@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -65,6 +66,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
@@ -72,9 +74,11 @@ import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -89,12 +93,14 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.tilVilkårsvurdert(
             Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).let { søknadsbehandling ->
             LagBrevRequestVisitor(
                 hentPerson = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left() },
                 hentNavn = { hentNavn(it) },
                 hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                 clock = fixedClock,
+                satsFactory = satsFactoryTest,
             ).apply { søknadsbehandling.accept(this) }.let {
                 it.brevRequest shouldBe LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left()
             }
@@ -106,6 +112,8 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.beregn(
             begrunnelse = null,
             clock = fixedClock,
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail()
             .tilSimulert(simulering)
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -116,6 +124,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() },
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
+                    satsFactory = satsFactoryTest,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
                 }
@@ -131,6 +140,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = Clock.systemUTC(),
+                    satsFactory = satsFactoryTest,
                 ).apply { it.accept(this) }
             }
         }
@@ -139,6 +149,7 @@ internal class LagBrevRequestVisitorTest {
             vilkårsvurdertInnvilget.tilVilkårsvurdert(
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             )
                 .let {
                     LagBrevRequestVisitor(
@@ -146,6 +157,7 @@ internal class LagBrevRequestVisitorTest {
                         hentNavn = { hentNavn(it) },
                         hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                         clock = Clock.systemUTC(),
+                        satsFactory = satsFactoryTest,
                     ).apply { it.accept(this) }
                 }
         }
@@ -156,12 +168,14 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.leggTilUførevilkår(
             uførhet = avslåttUførevilkårUtenGrunnlag(),
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail().let { søknadsbehandling ->
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
                 hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                 clock = fixedClock,
+                satsFactory = satsFactoryTest,
             ).apply { søknadsbehandling.accept(this) }.let {
                 it.brevRequest shouldBe AvslagBrevRequest(
                     person = person,
@@ -171,6 +185,7 @@ internal class LagBrevRequestVisitorTest {
                         harEktefelle = false,
                         beregning = null,
                         formuegrunnlag = null,
+                        halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
                     ),
                     saksbehandlerNavn = "-",
                     attestantNavn = "-",
@@ -194,7 +209,7 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for vilkårsvurdert avslag pga formue`() {
         val vilkårsvurdertAvslagPgaFormue = vilkårsvurdertInnvilget.tilVilkårsvurdert(
-            vilkårsvurdertInnvilget.behandlingsinformasjon.copy(
+            behandlingsinformasjon = vilkårsvurdertInnvilget.behandlingsinformasjon.copy(
                 formue = Behandlingsinformasjon.Formue(
                     status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
                     verdier = Behandlingsinformasjon.Formue.Verdier(
@@ -210,8 +225,9 @@ internal class LagBrevRequestVisitorTest {
                     epsVerdier = null, begrunnelse = null,
                 ),
             ),
-            vilkårsvurdertInnvilget.grunnlagsdata,
-            fixedClock,
+            grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
+            clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         )
         vilkårsvurdertAvslagPgaFormue.let { søknadsbehandling ->
             LagBrevRequestVisitor(
@@ -219,6 +235,7 @@ internal class LagBrevRequestVisitorTest {
                 hentNavn = { hentNavn(it) },
                 hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                 clock = fixedClock,
+                satsFactory = satsFactoryTest,
             ).apply { søknadsbehandling.accept(this) }.let {
                 it.brevRequest shouldBe AvslagBrevRequest(
                     person = person,
@@ -246,6 +263,7 @@ internal class LagBrevRequestVisitorTest {
                             behandlingsPeriode = søknadsbehandling.periode,
                             bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon.first() as Grunnlag.Bosituasjon.Fullstendig,
                         ),
+                        halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
                     ),
                     saksbehandlerNavn = "-",
                     attestantNavn = "-",
@@ -271,6 +289,8 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.beregn(
             begrunnelse = null,
             clock = fixedClock,
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail()
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -278,6 +298,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
+                    satsFactory = satsFactoryTest,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
@@ -310,15 +331,19 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ),
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail().beregn(
             begrunnelse = null,
             clock = fixedClock,
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail().let { søknadsbehandling ->
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
                 hentNavn = { hentNavn(it) },
                 hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                 clock = fixedClock,
+                satsFactory = satsFactoryTest,
             ).apply { søknadsbehandling.accept(this) }.let {
                 it.brevRequest shouldBe AvslagBrevRequest(
                     person = person,
@@ -328,6 +353,7 @@ internal class LagBrevRequestVisitorTest {
                         harEktefelle = false,
                         beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
                         formuegrunnlag = null,
+                        halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
                     ),
                     saksbehandlerNavn = "-",
                     attestantNavn = "-",
@@ -346,6 +372,8 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.beregn(
             begrunnelse = null,
             clock = fixedClock,
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail()
             .tilSimulert(simulering).let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -353,6 +381,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
+                    satsFactory = satsFactoryTest,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
@@ -381,7 +410,9 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for avslag til attestering uten beregning`() {
         (
             vilkårsvurdertInnvilget.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), clock = fixedClock,
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
+                clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -391,6 +422,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
+                    satsFactory = satsFactoryTest,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe AvslagBrevRequest(
                         person = person,
@@ -400,6 +432,7 @@ internal class LagBrevRequestVisitorTest {
                             harEktefelle = false,
                             beregning = null,
                             formuegrunnlag = null,
+                            halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = "-",
@@ -429,9 +462,12 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -441,6 +477,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
+                    satsFactory = satsFactoryTest,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe AvslagBrevRequest(
                         person = person,
@@ -450,6 +487,7 @@ internal class LagBrevRequestVisitorTest {
                             harEktefelle = false,
                             beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
                             formuegrunnlag = null,
+                            halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = "-",
@@ -468,6 +506,8 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.beregn(
             begrunnelse = null,
             clock = fixedClock,
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail()
             .tilSimulert(simulering)
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -477,6 +517,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
+                    satsFactory = satsFactoryTest,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
@@ -498,7 +539,9 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for underkjent avslag uten beregning`() {
         (
             vilkårsvurdertInnvilget.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), clock = fixedClock,
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
+                clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -516,6 +559,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
+                    satsFactory = satsFactoryTest,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe AvslagBrevRequest(
                         person = person,
@@ -525,6 +569,7 @@ internal class LagBrevRequestVisitorTest {
                             harEktefelle = false,
                             beregning = null,
                             formuegrunnlag = null,
+                            halvtGrunnbeløpPerÅr = 50675.5
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
@@ -554,9 +599,12 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -575,6 +623,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
+                    satsFactory = satsFactoryTest,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe AvslagBrevRequest(
                         person = person,
@@ -584,6 +633,7 @@ internal class LagBrevRequestVisitorTest {
                             harEktefelle = false,
                             beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
                             formuegrunnlag = null,
+                            halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
@@ -602,6 +652,8 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.beregn(
             begrunnelse = null,
             clock = fixedClock,
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail()
             .tilSimulert(simulering)
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -619,6 +671,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
+                    satsFactory = satsFactoryTest,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
@@ -640,7 +693,9 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for iverksatt avslag uten beregning`() {
         (
             vilkårsvurdertInnvilget.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), clock = fixedClock,
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
+                clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -653,6 +708,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
+                    satsFactory = satsFactoryTest,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe AvslagBrevRequest(
                         person = person,
@@ -662,6 +718,7 @@ internal class LagBrevRequestVisitorTest {
                             harEktefelle = false,
                             beregning = null,
                             formuegrunnlag = null,
+                            halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
@@ -691,10 +748,13 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail()
                 .beregn(
                     begrunnelse = null,
                     clock = fixedClock,
+                    beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -707,6 +767,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
+                    satsFactory = satsFactoryTest,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe AvslagBrevRequest(
                         person = person,
@@ -716,6 +777,7 @@ internal class LagBrevRequestVisitorTest {
                             harEktefelle = false,
                             beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
                             formuegrunnlag = null,
+                            halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
@@ -734,6 +796,8 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.beregn(
             begrunnelse = null,
             clock = fixedClock,
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail()
             .tilSimulert(simulering)
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -744,6 +808,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
+                    satsFactory = satsFactoryTest,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
@@ -768,6 +833,8 @@ internal class LagBrevRequestVisitorTest {
             .beregn(
                 begrunnelse = null,
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail()
             .tilSimulert(simulering)
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -780,6 +847,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { søknadsbehandling.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
@@ -787,6 +855,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { innvilgetVedtak.accept(this) }
 
         brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
@@ -820,9 +889,12 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -835,6 +907,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { søknadsbehandling.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
@@ -842,6 +915,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { avslåttVedtak.accept(this) }
 
         brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
@@ -853,6 +927,7 @@ internal class LagBrevRequestVisitorTest {
                 harEktefelle = false,
                 beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
                 formuegrunnlag = null,
+                halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
             ),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
@@ -868,7 +943,9 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for vedtak om avslått stønad uten beregning`() {
         val søknadsbehandling = (
             vilkårsvurdertInnvilget.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), clock = fixedClock,
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
+                clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -884,6 +961,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { søknadsbehandling.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
@@ -891,6 +969,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { avslåttVedtak.accept(this) }
 
         brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
@@ -902,6 +981,7 @@ internal class LagBrevRequestVisitorTest {
                 harEktefelle = false,
                 beregning = null,
                 formuegrunnlag = null,
+                halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
             ),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
@@ -934,6 +1014,7 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -949,6 +1030,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { søknadsbehandling.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
@@ -956,6 +1038,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { avslåttVedtak.accept(this) }
 
         brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
@@ -985,6 +1068,7 @@ internal class LagBrevRequestVisitorTest {
                     bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon.first() as Grunnlag.Bosituasjon.Fullstendig,
                     behandlingsPeriode = søknadsbehandling.periode,
                 ),
+                halvtGrunnbeløpPerÅr = 50675.5,
             ),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
@@ -1003,6 +1087,8 @@ internal class LagBrevRequestVisitorTest {
             vilkårsvurdertInnvilget.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail()
                 .tilSimulert(simulering)
                 .tilAttestering(saksbehandler, "Fritekst!")
@@ -1036,7 +1122,7 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
@@ -1049,6 +1135,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { revurdering.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
@@ -1056,6 +1143,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { avslåttVedtak.accept(this) }
 
         brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
@@ -1088,6 +1176,8 @@ internal class LagBrevRequestVisitorTest {
                 .beregn(
                     begrunnelse = null,
                     clock = fixedClock,
+                    beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail()
                 .tilSimulert(simulering)
                 .tilAttestering(saksbehandler, "Fritekst!")
@@ -1148,6 +1238,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { revurdering.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
@@ -1155,6 +1246,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { opphørsvedtak.accept(this) }
 
         brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
@@ -1195,6 +1287,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { revurdering.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
@@ -1202,6 +1295,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { opphørsvedtak.accept(this) }
 
         brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
@@ -1253,7 +1347,9 @@ internal class LagBrevRequestVisitorTest {
             gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                 fraOgMed = revurdering.periode.fraOgMed,
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail(),
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
         ).getOrFail().let {
             (it as BeregnetRevurdering.Opphørt).toSimulert(
                 { sakId, _, opphørsdato ->
@@ -1288,6 +1384,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { attestert.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
@@ -1295,6 +1392,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { opphørsvedtak.accept(this) }
 
         brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
@@ -1322,6 +1420,8 @@ internal class LagBrevRequestVisitorTest {
             vilkårsvurdertInnvilget.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail()
                 .tilSimulert(simulering)
                 .tilAttestering(saksbehandler, "Fritekst!")
@@ -1355,7 +1455,7 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
         )
@@ -1367,6 +1467,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 120.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { revurdering.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
@@ -1374,6 +1475,7 @@ internal class LagBrevRequestVisitorTest {
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 120.right() },
             clock = fixedClock,
+            satsFactory = satsFactoryTest,
         ).apply { vedtakIngenEndring.accept(this) }
 
         brevRevurdering.brevRequest.map {
@@ -1443,9 +1545,10 @@ internal class LagBrevRequestVisitorTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = år(2021),
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
+            satsFactory = satsFactoryTest,
         )
     }
 
@@ -1472,9 +1575,10 @@ internal class LagBrevRequestVisitorTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = år(2021),
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
+            satsFactory = satsFactoryTest,
         )
     }
 

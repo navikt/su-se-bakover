@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
@@ -52,6 +53,7 @@ internal fun Route.søknadRoutes(
     lukkSøknadService: LukkSøknadService,
     avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService,
     clock: Clock,
+    satsFactory: SatsFactory,
 ) {
     authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
         post(søknadPath) {
@@ -145,7 +147,7 @@ internal fun Route.søknadRoutes(
                         {
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, null)
                             call.sikkerlogg("Lukket søknad for søknad: $søknadId")
-                            call.svar(Resultat.json(OK, serialize(it.toJson(clock))))
+                            call.svar(Resultat.json(OK, serialize(it.toJson(clock, satsFactory))))
                         },
                     )
                 }
@@ -182,7 +184,7 @@ internal fun Route.søknadRoutes(
                             },
                         )
                     }.map {
-                        call.svar(Resultat.json(OK, serialize(it.toJson(clock))))
+                        call.svar(Resultat.json(OK, serialize(it.toJson(clock, satsFactory))))
                     }
                 }
             }

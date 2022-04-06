@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -38,6 +37,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.søknadsbehandlingSimulert
+import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -87,7 +87,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
+        vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
         attesteringer = Attesteringshistorikk.empty(),
         avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
     )
@@ -139,7 +139,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             fritekstTilBrev = "",
             stønadsperiode = simulertBehandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
         )
@@ -320,7 +320,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             fritekstTilBrev = "",
             stønadsperiode = simulertBehandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
         )

@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import java.time.Clock
 import java.util.UUID
 
@@ -22,42 +23,43 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
     class TilVilkårsvurdert(
         private val behandlingsinformasjon: Behandlingsinformasjon,
         private val clock: Clock,
+        private val formuegrenserFactory: FormuegrenserFactory,
     ) : Statusovergang<Nothing, Søknadsbehandling.Vilkårsvurdert>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock, formuegrenserFactory = formuegrenserFactory).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock, formuegrenserFactory = formuegrenserFactory).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock, formuegrenserFactory = formuegrenserFactory).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock, formuegrenserFactory = formuegrenserFactory).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock, formuegrenserFactory = formuegrenserFactory).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock, formuegrenserFactory = formuegrenserFactory).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock, formuegrenserFactory = formuegrenserFactory).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock, formuegrenserFactory = formuegrenserFactory).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock, formuegrenserFactory = formuegrenserFactory).right()
         }
     }
 

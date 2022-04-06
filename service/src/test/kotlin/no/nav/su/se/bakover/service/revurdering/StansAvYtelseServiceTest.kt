@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oversendtStansUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.revurderingId
@@ -125,6 +126,7 @@ internal class StansAvYtelseServiceTest {
                 periode = periode,
                 vedtakListe = nonEmptyListOf(vedtak),
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).right()
         }
 
@@ -185,7 +187,12 @@ internal class StansAvYtelseServiceTest {
 
         val serviceAndMocks = RevurderingServiceMocks(
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(periode = periode, vedtakListe = nonEmptyListOf(vedtak), clock = fixedClock).right()
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(
+                    periode = periode,
+                    vedtakListe = nonEmptyListOf(vedtak),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
+                ).right()
             },
             utbetalingService = mock {
                 on { simulerStans(any()) } doReturn simulertUtbetaling().right()
@@ -361,6 +368,7 @@ internal class StansAvYtelseServiceTest {
                 periode = år(2021),
                 vedtakListe = nonEmptyListOf(enRevurdering.tilRevurdering),
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).right()
         }
 
@@ -429,6 +437,7 @@ internal class StansAvYtelseServiceTest {
                 periode = mars(2021),
                 vedtakListe = nonEmptyListOf(eksisterende.tilRevurdering),
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).right()
         }
 

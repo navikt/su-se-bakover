@@ -55,6 +55,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImpl(
                     lagreContext = { ctx, tx ->
                         jobContextRepo.lagre(ctx, tx)
                     },
+                    halvtGrunnbeløp = 0,
                 ).fold(
                     {
                         log.error("Feil: ${it::class} ved utsending av påminnelse for sak: ${sak.saksnummer}, hopper over.")

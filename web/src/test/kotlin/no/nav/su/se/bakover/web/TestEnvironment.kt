@@ -16,10 +16,14 @@ import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.migratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
+import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.mockito.kotlin.mock
@@ -115,10 +119,14 @@ internal val dbMetricsStub: DbMetrics = object : DbMetrics {
 }
 
 internal fun mockedDb() = TestDatabaseBuilder.build()
-internal fun embeddedPostgres(clock: Clock = fixedClock) = DatabaseBuilder.build(
+internal fun embeddedPostgres(
+    clock: Clock = fixedClock,
+    satsFactory: SatsFactory = satsFactoryTest,
+) = DatabaseBuilder.build(
     embeddedDatasource = migratedDb(),
     dbMetrics = dbMetricsStub,
     clock = clock,
+    satsFactory = satsFactory
 )
 
 internal fun Application.testSusebakover(
@@ -126,6 +134,8 @@ internal fun Application.testSusebakover(
     databaseRepos: DatabaseRepos = mockedDb(),
     clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),
     unleash: Unleash = FakeUnleash().apply { enableAll() },
+    satsFactory: SatsFactory = satsFactoryTest,
+    beregningStrategyFactory: BeregningStrategyFactory = beregningStrategyFactoryTest(),
     services: Services = ServiceBuilder.build(
         // build actual clients
         databaseRepos = databaseRepos,
@@ -134,6 +144,8 @@ internal fun Application.testSusebakover(
         søknadMetrics = mock(),
         clock = clock,
         unleash = unleash,
+        satsFactory = satsFactory,
+        beregningStrategyFactory = beregningStrategyFactory,
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
 ) {

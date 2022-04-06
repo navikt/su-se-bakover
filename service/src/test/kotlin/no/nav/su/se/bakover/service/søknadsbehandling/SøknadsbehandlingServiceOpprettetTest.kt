@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
@@ -28,6 +27,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.toSøknadsbehandling
+import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -223,7 +223,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 fritekstTilBrev = "",
                 stønadsperiode = null,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
+                vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke()
             ),
@@ -269,7 +269,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         fritekstTilBrev = "",
                         stønadsperiode = null,
                         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
+                        vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
                         attesteringer = Attesteringshistorikk.empty(),
                         avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke()
                     ),

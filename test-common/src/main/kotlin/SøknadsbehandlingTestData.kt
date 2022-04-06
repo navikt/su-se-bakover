@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -39,7 +40,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     grunnlagsdata: Grunnlagsdata = Grunnlagsdata.IkkeVurdert,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårUavklart,
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
     clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
@@ -96,6 +97,7 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
             ).tilVilkårsvurdert(
                 behandlingsinformasjon = behandlingsinformasjon,
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ) as Søknadsbehandling.Vilkårsvurdert.Innvilget
         Pair(
             sak.copy(
@@ -124,6 +126,7 @@ fun søknadsbehandlingVilkårsvurdertAvslag(
             ).tilVilkårsvurdert(
                 behandlingsinformasjon = behandlingsinformasjon,
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
         Pair(
             sak.copy(
@@ -143,6 +146,7 @@ fun søknadsbehandlingBeregnetInnvilget(
         stønadsperiode.periode,
     ),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
+    clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.Beregnet.Innvilget> {
     return søknadsbehandlingVilkårsvurdertInnvilget(
         saksnummer = saksnummer,
@@ -154,7 +158,12 @@ fun søknadsbehandlingBeregnetInnvilget(
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.beregn(
             begrunnelse = null,
-            clock = fixedClock,
+            clock = clock,
+            formuegrenserFactory = formuegrenserFactoryTest,
+            beregningStrategyFactory = BeregningStrategyFactory(
+                clock = clock,
+                satsFactory = satsFactoryTest,
+            ),
         ).getOrFail() as Søknadsbehandling.Beregnet.Innvilget
         Pair(
             sak.copy(
@@ -187,6 +196,7 @@ fun søknadsbehandlingBeregnetAvslag(
             ),
         ),
     ),
+    clock: Clock = fixedClock
 ): Pair<Sak, Søknadsbehandling.Beregnet.Avslag> {
     return søknadsbehandlingVilkårsvurdertInnvilget(
         saksnummer = saksnummer,
@@ -197,7 +207,12 @@ fun søknadsbehandlingBeregnetAvslag(
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.beregn(
             begrunnelse = null,
-            clock = fixedClock,
+            clock = clock,
+            formuegrenserFactory = formuegrenserFactoryTest,
+            beregningStrategyFactory = BeregningStrategyFactory(
+                clock = clock,
+                satsFactory = satsFactoryTest,
+            ),
         ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
         Pair(
             sak.copy(

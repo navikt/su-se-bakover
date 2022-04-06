@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.web.Resultat
@@ -15,7 +16,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.Stønadsperi
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import java.time.format.DateTimeFormatter
 
-internal fun Søknadsbehandling.toJson(): BehandlingJson {
+internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson {
 
     val behandlingsinformasjonJson = behandlingsinformasjon.toJson()
     return when (this) {
@@ -31,7 +32,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
             beregning = null,
             simulering = null,
             stønadsperiode = stønadsperiode?.toJson(),
-            grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+            grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
             fritekstTilBrev = fritekstTilBrev,
             erLukket = false,
             simuleringForAvkortingsvarsel = avkorting.toJson(),
@@ -49,7 +50,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
@@ -68,7 +69,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = simulering.toJson(),
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
@@ -87,7 +88,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = simulering.toJson(),
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
@@ -106,7 +107,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
@@ -125,7 +126,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = null,
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
@@ -160,7 +161,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = simulering.toJson(),
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
@@ -179,7 +180,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = null,
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
@@ -198,7 +199,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
@@ -217,7 +218,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
@@ -236,7 +237,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = null,
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
@@ -255,18 +256,18 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = simulering.toJson(),
                 stønadsperiode = stønadsperiode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger, satsFactory),
                 fritekstTilBrev = fritekstTilBrev,
                 erLukket = false,
                 simuleringForAvkortingsvarsel = avkorting.toJson(),
             )
         }
         is LukketSøknadsbehandling -> {
-            lukketSøknadsbehandling.toJson().copy(erLukket = true)
+            lukketSøknadsbehandling.toJson(satsFactory).copy(erLukket = true)
         }
     }
 }
 
-internal fun HttpStatusCode.jsonBody(søknadsbehandling: Søknadsbehandling): Resultat {
-    return Resultat.json(this, serialize(søknadsbehandling.toJson()))
+internal fun HttpStatusCode.jsonBody(søknadsbehandling: Søknadsbehandling, satsFactory: SatsFactory): Resultat {
+    return Resultat.json(this, serialize(søknadsbehandling.toJson(satsFactory)))
 }

@@ -8,7 +8,9 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.stønadsklassifisering
 import java.time.Clock
@@ -17,6 +19,7 @@ import kotlin.math.roundToInt
 
 class StønadsstatistikkMapper(
     private val clock: Clock,
+    private val satsFactory: SatsFactory,
 ) {
     fun map(
         vedtak: VedtakSomKanRevurderes.EndringIYtelse,
@@ -62,7 +65,12 @@ class StønadsstatistikkMapper(
                 is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> emptyList()
 
                 is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> emptyList()
-                is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> mapBeregning(vedtak, sak, clock)
+                is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> mapBeregning(
+                    vedtak = vedtak,
+                    sak = sak,
+                    clock = clock,
+                    formuegrenserFactory = satsFactory.formuegrenserFactory,
+                )
                 is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> mapBeregning(vedtak, vedtak.beregning)
             },
             versjon = nå.toEpochMilli(),
@@ -92,9 +100,10 @@ private fun mapBeregning(
     vedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse,
     sak: Sak,
     clock: Clock,
+    formuegrenserFactory: FormuegrenserFactory,
 ): List<Statistikk.Stønad.Månedsbeløp> =
     vedtak.periode.tilMånedsperioder().map {
-        sak.hentGjeldendeMånedsberegningForMåned(it, clock)!!
+        sak.hentGjeldendeMånedsberegningForMåned(it, clock, formuegrenserFactory)!!
     }.map {
         tilMånedsbeløp(it, vedtak)
     }

@@ -23,7 +23,7 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
     abstract val grunnlag: List<Utenlandsoppholdgrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): UtenlandsoppholdVilkår
-    abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UtenlandsoppholdVilkår
+    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UtenlandsoppholdVilkår
     abstract override fun slåSammenLikePerioder(): UtenlandsoppholdVilkår
 
     object IkkeVurdert : UtenlandsoppholdVilkår() {
@@ -133,7 +133,7 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
     val begrunnelse: String?,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeUtenlandsopphold> {
 
-    override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeUtenlandsopphold {
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeUtenlandsopphold {
         return create(
             id = id,
             opprettet = opprettet,

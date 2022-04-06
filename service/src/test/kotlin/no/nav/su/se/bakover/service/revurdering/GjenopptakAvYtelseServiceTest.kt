@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oversendtGjenopptakUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.revurderingId
@@ -192,6 +193,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 periode = periode,
                 vedtakListe = NonEmptyList.fromListUnsafe(sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()),
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).right()
         }
 
@@ -253,7 +255,12 @@ internal class GjenopptakAvYtelseServiceTest {
                 on { hentForSakId(any()) } doReturn sak.vedtakListe
             },
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(periode = periode, vedtakListe = nonEmptyListOf(vedtak), clock = fixedClock).right()
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(
+                    periode = periode,
+                    vedtakListe = nonEmptyListOf(vedtak),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
+                ).right()
             },
             utbetalingService = mock {
                 on { simulerGjenopptak(any()) } doReturn simulertGjenopptakUtbetaling().right()
@@ -407,6 +414,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 periode = periode,
                 vedtakListe = nonEmptyListOf(revurdering.tilRevurdering),
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).right()
         }
 
@@ -521,6 +529,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 periode = periode,
                 vedtakListe = NonEmptyList.fromListUnsafe(@Suppress("UNCHECKED_CAST") (sak.vedtakListe as List<VedtakSomKanRevurderes>)),
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).right()
         }
 

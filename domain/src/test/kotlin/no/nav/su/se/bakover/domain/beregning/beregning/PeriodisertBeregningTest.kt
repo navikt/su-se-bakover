@@ -4,11 +4,12 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.test.fullSupplerendeStønadHøyTest
+import no.nav.su.se.bakover.test.fullSupplerendeStønadOrdinærTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -17,7 +18,7 @@ internal class PeriodisertBeregningTest {
     fun `summerer måned uten fradrag`() {
         val månedsberegning = MånedsberegningFactory.ny(
             måned = januar(2020),
-            sats = Sats.HØY,
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(januar(2020)),
             fradrag = emptyList()
         )
         månedsberegning.getSumYtelse() shouldBe 20637
@@ -28,7 +29,7 @@ internal class PeriodisertBeregningTest {
     fun `summerer måned med fradrag`() {
         val månedsberegning = MånedsberegningFactory.ny(
             måned = januar(2020),
-            sats = Sats.HØY,
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(januar(2020)),
             fradrag = listOf(
                 FradragForMåned(
                     fradragstype = Fradragstype.Kontantstøtte,
@@ -47,7 +48,7 @@ internal class PeriodisertBeregningTest {
         assertThrows<IllegalArgumentException> {
             MånedsberegningFactory.ny(
                 måned = januar(2020),
-                sats = Sats.HØY,
+                fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(januar(2020)),
                 fradrag = listOf(
                     FradragForMåned(
                         fradragstype = Fradragstype.Kontantstøtte,
@@ -65,7 +66,7 @@ internal class PeriodisertBeregningTest {
         val periode = januar(2020)
         val månedsberegning = MånedsberegningFactory.ny(
             måned = periode,
-            sats = Sats.ORDINÆR,
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(januar(2020)),
             fradrag = listOf(
                 FradragForMåned(
                     fradragstype = Fradragstype.Kontantstøtte,
@@ -83,7 +84,7 @@ internal class PeriodisertBeregningTest {
         val periode = januar(2020)
         val månedsberegning = MånedsberegningFactory.ny(
             måned = periode,
-            sats = Sats.ORDINÆR,
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadOrdinærTest.forMånedsperiode(januar(2020)),
             fradrag = listOf(
                 FradragForMåned(
                     fradragstype = Fradragstype.Kontantstøtte,
@@ -101,14 +102,14 @@ internal class PeriodisertBeregningTest {
     fun `henter aktuelt grunnbeløp for periode`() {
         val m1 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            sats = Sats.ORDINÆR,
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadOrdinærTest.forMånedsperiode(januar(2020)),
             fradrag = emptyList()
         )
         m1.getBenyttetGrunnbeløp() shouldBe 99858
 
         val m2 = MånedsberegningFactory.ny(
             måned = desember(2020),
-            sats = Sats.ORDINÆR,
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadOrdinærTest.forMånedsperiode(desember(2020)),
             fradrag = emptyList()
         )
         m2.getBenyttetGrunnbeløp() shouldBe 101351
@@ -125,7 +126,7 @@ internal class PeriodisertBeregningTest {
         )
         val m1 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            sats = Sats.ORDINÆR,
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadOrdinærTest.forMånedsperiode(januar(2020)),
             fradrag = listOf(f1)
         )
         m1.getFradrag() shouldBe listOf(f1)
@@ -142,7 +143,7 @@ internal class PeriodisertBeregningTest {
         )
         val m1 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            sats = Sats.ORDINÆR,
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadOrdinærTest.forMånedsperiode(januar(2020)),
             fradrag = listOf(f1)
         )
         m1.erFradragForEpsBenyttetIBeregning() shouldBe true
@@ -156,7 +157,7 @@ internal class PeriodisertBeregningTest {
         )
         val m2 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            sats = Sats.ORDINÆR,
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadOrdinærTest.forMånedsperiode(januar(2020)),
             fradrag = listOf(f2)
         )
 

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
@@ -25,6 +26,7 @@ import java.util.UUID
 internal class SakServiceImpl(
     private val sakRepo: SakRepo,
     private val clock: Clock,
+    private val satsFactory: SatsFactory,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)
     val observers: MutableList<EventObserver> = mutableListOf()
@@ -48,7 +50,7 @@ internal class SakServiceImpl(
         return hentSak(sakId)
             .mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak }
             .flatMap { sak ->
-                sak.hentGjeldendeVedtaksdata(periode, clock)
+                sak.hentGjeldendeVedtaksdata(periode, clock, satsFactory.formuegrenserFactory)
                     .mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak }
             }
     }

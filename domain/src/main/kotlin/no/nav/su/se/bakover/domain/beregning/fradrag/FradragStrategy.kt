@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import no.nav.su.se.bakover.common.periode.Månedsperiode
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.Garantipensjonsnivå
-import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadFactory
+import no.nav.su.se.bakover.domain.satser.Garantipensjonsnivå
 import java.lang.Double.max
 
 enum class FradragStrategyName {
@@ -14,6 +14,7 @@ enum class FradragStrategyName {
 }
 
 sealed class FradragStrategy(private val name: FradragStrategyName) {
+
     fun getName() = name
 
     fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Månedsperiode, List<FradragForMåned>> {
@@ -33,7 +34,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
 
     protected abstract fun beregnFradrag(fradrag: Map<Månedsperiode, List<FradragForMåned>>): Map<Månedsperiode, List<FradragForMåned>>
 
-    abstract fun getEpsFribeløp(periode: Periode): Double
+    abstract fun getEpsFribeløp(måned: Månedsperiode): Double
 
     object Enslig : FradragStrategy(FradragStrategyName.Enslig) {
         override fun beregnFradrag(fradrag: Map<Månedsperiode, List<FradragForMåned>>): Map<Månedsperiode, List<FradragForMåned>> {
@@ -41,7 +42,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
         }
 
-        override fun getEpsFribeløp(periode: Periode): Double = 0.0
+        override fun getEpsFribeløp(måned: Månedsperiode): Double = 0.0
     }
 
     object EpsOver67År : FradragStrategy(FradragStrategyName.EpsOver67År) {
@@ -51,10 +52,10 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
                 .`fjern EPS fradrag opp til garantipensjonsnivå`()
         }
 
-        override fun getEpsFribeløp(periode: Periode): Double = periodisertSumGarantipensjonsnivå(periode)
+        override fun getEpsFribeløp(måned: Månedsperiode): Double = periodisertSumGarantipensjonsnivå(måned)
 
-        private fun periodisertSumGarantipensjonsnivå(periode: Periode) =
-            Garantipensjonsnivå.Ordinær.periodiser(periode).values.sumOf { it }
+        private fun periodisertSumGarantipensjonsnivå(måned: Månedsperiode) =
+            Garantipensjonsnivå.Ordinær.periodiser(måned).values.sumOf { it }
 
         private fun Map<Månedsperiode, List<FradragForMåned>>.`fjern EPS fradrag opp til garantipensjonsnivå`(): Map<Månedsperiode, List<FradragForMåned>> {
             return mapValues {
@@ -67,24 +68,22 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         }
     }
 
-    object EpsUnder67ÅrOgUførFlyktning : FradragStrategy(FradragStrategyName.EpsUnder67ÅrOgUførFlyktning) {
+    data class EpsUnder67ÅrOgUførFlyktning(val fullSupplerendeStønadFactoryOrdinær: FullSupplerendeStønadFactory.Ordinær) :
+        FradragStrategy(FradragStrategyName.EpsUnder67ÅrOgUførFlyktning) {
         override fun beregnFradrag(fradrag: Map<Månedsperiode, List<FradragForMåned>>): Map<Månedsperiode, List<FradragForMåned>> {
             return fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
                 .`fjern EPS fradrag opp til satsbeløp`()
         }
 
-        override fun getEpsFribeløp(periode: Periode): Double = periodisertSumSatsbeløp(periode)
-
-        private fun periodisertSumSatsbeløp(periode: Periode) =
-            Sats.ORDINÆR.periodiser(periode).values.sumOf { it }
+        override fun getEpsFribeløp(måned: Månedsperiode): Double = fullSupplerendeStønadFactoryOrdinær.forMånedsperiode(måned).satsForMånedAsDouble
 
         private fun Map<Månedsperiode, List<FradragForMåned>>.`fjern EPS fradrag opp til satsbeløp`(): Map<Månedsperiode, List<FradragForMåned>> {
             return mapValues {
                 `fjern EPS fradrag opp til beløpsgrense`(
-                    it.key,
-                    periodisertSumSatsbeløp(it.key),
-                    it.value,
+                    måned = it.key,
+                    beløpsgrense = getEpsFribeløp(it.key),
+                    fradrag = it.value,
                 )
             }
         }
@@ -96,14 +95,14 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
                 .`slå sammen eps sine fradrag til en og samme type`()
 
-        override fun getEpsFribeløp(periode: Periode): Double = 0.0
+        override fun getEpsFribeløp(måned: Månedsperiode): Double = 0.0
 
         private fun Map<Månedsperiode, List<FradragForMåned>>.`slå sammen eps sine fradrag til en og samme type`(): Map<Månedsperiode, List<FradragForMåned>> {
             return mapValues { `slå sammen eps sine fradrag til en og samme type`(it.key, it.value) }
         }
 
         private fun `slå sammen eps sine fradrag til en og samme type`(
-            periode: Månedsperiode,
+            måned: Månedsperiode,
             fradrag: List<FradragForMåned>,
         ): List<FradragForMåned> {
             val (epsFradrag, søkersFradrag) = fradrag.partition { it.tilhører == FradragTilhører.EPS }
@@ -112,7 +111,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.BeregnetFradragEPS,
                     månedsbeløp = epsFradrag.sumOf { it.månedsbeløp },
-                    periode = periode,
+                    periode = måned,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),
@@ -175,14 +174,4 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
 
     private fun List<FradragForMåned>.`har nøyaktig en forventet inntekt for bruker`() =
         singleOrNull { it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.ForventetInntekt } != null
-
-    companion object {
-        fun fromName(name: FradragStrategyName) =
-            when (name) {
-                FradragStrategyName.Enslig -> Enslig
-                FradragStrategyName.EpsOver67År -> EpsOver67År
-                FradragStrategyName.EpsUnder67ÅrOgUførFlyktning -> EpsUnder67ÅrOgUførFlyktning
-                FradragStrategyName.EpsUnder67År -> EpsUnder67År
-            }
-    }
 }

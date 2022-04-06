@@ -16,8 +16,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.service.statistikk.mappers.BehandlingStatistikkMapper
 import no.nav.su.se.bakover.service.statistikk.mappers.ManglendeStatistikkMappingException
+import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
@@ -619,6 +621,8 @@ internal class BehandlingStatistikkMapperTest {
     private val beregnetSøknadsbehandling = vilkårsvurdertInnvilgetSøknadsbehandling.beregn(
         begrunnelse = null,
         clock = fixedClock,
+        beregningStrategyFactory = beregningStrategyFactoryTest(),
+        formuegrenserFactory = formuegrenserFactoryTest,
     ).getOrFail()
     private val simulertSøknadsbehandling = beregnetSøknadsbehandling.tilSimulert(mock())
     private val tilAttesteringSøknadsbehandling =

@@ -40,8 +40,10 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
+import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.mockito.kotlin.mock
@@ -152,6 +154,7 @@ internal object SharedRegressionTestData {
             embeddedDatasource = dataSource,
             dbMetrics = dbMetricsStub,
             clock = clock,
+            satsFactory = satsFactoryTest,
         )
     }
 
@@ -209,6 +212,8 @@ internal object SharedRegressionTestData {
             søknadMetrics = mock(),
             clock = clock,
             unleash = unleash,
+            satsFactory = satsFactoryTest,
+            beregningStrategyFactory = beregningStrategyFactoryTest(clock),
         ),
         accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
     ) {

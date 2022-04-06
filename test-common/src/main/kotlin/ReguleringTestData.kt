@@ -9,11 +9,13 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.time.LocalDate
@@ -71,7 +73,7 @@ fun iverksattAutomatiskRegulering(
     reguleringstype = reguleringstype,
     saksbehandler = saksbehandler,
 )
-    .beregn(clock, null).getOrFail()
+    .beregn(BeregningStrategyFactory(clock, satsFactoryTest), null).getOrFail()
     .simuler { simulertUtbetaling().right() }.getOrFail()
     .tilIverksatt()
 
@@ -86,6 +88,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     ),
     clock: Clock = TikkendeKlokke(),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
+    formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTest,
 ): Pair<Sak, Regulering.OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -97,7 +100,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         avkorting = avkorting,
     )
     val sak = sakOgVedtak.first
-    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock).getOrFail()
+    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock, formuegrenserFactory).getOrFail()
 
     return Pair(
         sak.copy(
@@ -115,7 +118,11 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, fixedClock).getOrFail()
+    val regulering = sak.opprettEllerOppdaterRegulering(
+        startDato = regulerFraOgMed,
+        clock = fixedClock,
+        formuegrenserFactory = formuegrenserFactoryTest,
+    ).getOrFail()
 
     return Pair(
         sak.copy(

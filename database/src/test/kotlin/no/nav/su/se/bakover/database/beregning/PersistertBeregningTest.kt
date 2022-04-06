@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.satsFactoryTest
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.temporal.ChronoUnit
@@ -25,7 +26,7 @@ internal class PersistertBeregningTest {
 
     @Test
     fun `serialiserer og derserialiserer beregning`() {
-        val actualBeregning = createBeregning(periode = mai(2021), strategy = BeregningStrategy.BorAlene)
+        val actualBeregning = createBeregning(periode = mai(2021), strategy = BeregningStrategy.BorAlene(satsFactoryTest))
         //language=json
         val expectedJson = """
             {
@@ -109,12 +110,12 @@ internal class PersistertBeregningTest {
         """.trimIndent()
         val actualJson: String = actualBeregning.serialiser()
         JSONAssert.assertEquals(expectedJson, actualJson, true)
-        actualJson.deserialiserBeregning() shouldBe actualBeregning
+        actualJson.deserialiserBeregning(satsFactoryTest) shouldBe actualBeregning
     }
 
     @Test
     fun `serialisering av domenemodellen og den persisterte modellen er ikke lik`() {
-        val beregning = createBeregning(strategy = BeregningStrategy.BorAlene)
+        val beregning = createBeregning(strategy = BeregningStrategy.BorAlene(satsFactoryTest))
 
         JSONAssert.assertNotEquals(
             objectMapper.writeValueAsString(beregning),
@@ -126,12 +127,17 @@ internal class PersistertBeregningTest {
     @Test
     fun `should be equal to PersistertBeregning ignoring id, opprettet and begrunnelse`() {
         val a: Beregning =
-            createBeregning(opprettet = fixedTidspunkt, begrunnelse = "a", strategy = BeregningStrategy.BorAlene)
+            createBeregning(
+                opprettet = fixedTidspunkt, begrunnelse = "a",
+                strategy = BeregningStrategy.BorAlene(
+                    satsFactoryTest,
+                ),
+            )
         val b: Beregning =
             createBeregning(
                 opprettet = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
                 begrunnelse = "b",
-                strategy = BeregningStrategy.BorAlene,
+                strategy = BeregningStrategy.BorAlene(satsFactoryTest),
             )
         a shouldBe b
         a.getId() shouldNotBe b.getId()
@@ -172,5 +178,6 @@ internal class PersistertBeregningTest {
                     strategy = strategy,
                 ),
             ),
+            satsFactory = satsFactoryTest,
         )
 }

@@ -171,14 +171,20 @@ sealed interface Regulering : Reguleringsfelter {
                 saksbehandler = saksbehandler,
             )
 
-        fun beregn(clock: Clock, begrunnelse: String? = null): Either<KunneIkkeBeregne, OpprettetRegulering> {
+        fun beregn(
+            beregningStrategyFactory: BeregningStrategyFactory,
+            begrunnelse: String? =
+                null
+        ): Either<KunneIkkeBeregne, OpprettetRegulering> {
             return this.gjørBeregning(
                 begrunnelse = begrunnelse,
-                clock = clock,
+                beregningStrategyFactory = beregningStrategyFactory,
             ).map { this.copy(beregning = it) }
         }
 
-        fun simuler(callback: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>): Either<KunneIkkeSimulere, OpprettetRegulering> {
+        fun simuler(
+            callback: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
+        ): Either<KunneIkkeSimulere, OpprettetRegulering> {
             if (beregning == null) {
                 return KunneIkkeSimulere.FantIngenBeregning.left()
             }
@@ -206,10 +212,10 @@ sealed interface Regulering : Reguleringsfelter {
 
         private fun gjørBeregning(
             begrunnelse: String?,
-            clock: Clock,
+            beregningStrategyFactory: BeregningStrategyFactory,
         ): Either<KunneIkkeBeregne.BeregningFeilet, Beregning> {
             return Either.catch {
-                BeregningStrategyFactory(clock).beregn(this, begrunnelse)
+                beregningStrategyFactory.beregn(this, begrunnelse)
             }.mapLeft { KunneIkkeBeregne.BeregningFeilet(feil = it) }
         }
     }

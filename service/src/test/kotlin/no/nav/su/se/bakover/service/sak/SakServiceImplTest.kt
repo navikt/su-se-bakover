@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
@@ -42,7 +43,7 @@ internal class SakServiceImplTest {
 
         val observer: EventObserver = mock()
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock)
+        val sakService = SakServiceImpl(sakRepo, fixedClock, satsFactoryTest)
         sakService.observers.add(observer)
         sakService.opprettSak(mock { on { id } doReturn sakId })
 
@@ -59,7 +60,7 @@ internal class SakServiceImplTest {
 
         val observer: EventObserver = mock()
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock)
+        val sakService = SakServiceImpl(sakRepo, fixedClock, satsFactoryTest)
         sakService.observers.add(observer)
         assertThrows<RuntimeException> {
             sakService.opprettSak(mock())
@@ -84,7 +85,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock)
+        val sakService = SakServiceImpl(sakRepo, fixedClock, satsFactoryTest)
         val sakMedÅpenSøknad = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakMedÅpenSøknad shouldBe listOf(
@@ -133,7 +134,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock)
+        val sakService = SakServiceImpl(sakRepo, fixedClock, satsFactoryTest)
         val sakerMedÅpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneBehandlinger shouldBe listOf(
@@ -207,7 +208,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock)
+        val sakService = SakServiceImpl(sakRepo, fixedClock, satsFactoryTest)
         val sakerMedÅpneRevurderinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneRevurderinger shouldBe listOf(

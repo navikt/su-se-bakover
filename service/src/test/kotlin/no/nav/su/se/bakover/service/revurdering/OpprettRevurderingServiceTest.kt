@@ -59,6 +59,8 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
@@ -110,6 +112,7 @@ internal class OpprettRevurderingServiceTest {
             periode = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -195,6 +198,7 @@ internal class OpprettRevurderingServiceTest {
             periode = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -294,6 +298,7 @@ internal class OpprettRevurderingServiceTest {
             periode = periode,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -494,12 +499,14 @@ internal class OpprettRevurderingServiceTest {
             periode = Periode.create(fraOgMedDatoFebruar, vedtakListe.maxOf { it.periode.tilOgMed }),
             vedtakListe = vedtakListe,
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         )
 
         val gjeldendeVedtaksdataApril = GjeldendeVedtaksdata(
             periode = Periode.create(fraOgMedDatoApril, vedtakListe.maxOf { it.periode.tilOgMed }),
             vedtakListe = vedtakListe,
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -566,6 +573,7 @@ internal class OpprettRevurderingServiceTest {
                 revurderingVedtak,
             ),
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -661,6 +669,7 @@ internal class OpprettRevurderingServiceTest {
             periode = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -698,6 +707,7 @@ internal class OpprettRevurderingServiceTest {
             periode = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -810,7 +820,8 @@ internal class OpprettRevurderingServiceTest {
                     bosituasjon = bosituasjon,
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                    uførevilkår,
+                    uføre = uførevilkår,
+                    formue = formuevilkårIkkeVurdert(),
                 ),
                 stønadsperiode = Stønadsperiode.create(periodePlussEtÅr),
             ),
@@ -826,6 +837,7 @@ internal class OpprettRevurderingServiceTest {
                 andreVedtak,
             ),
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -875,6 +887,7 @@ internal class OpprettRevurderingServiceTest {
                 on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = nyRevurderingsperiode.fraOgMed,
                     clock = clock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail().right()
             },
             personService = mock {

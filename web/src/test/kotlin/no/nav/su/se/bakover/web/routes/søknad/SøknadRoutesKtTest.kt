@@ -48,8 +48,10 @@ import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
+import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -99,6 +101,7 @@ internal class SøknadRoutesKtTest {
         embeddedDatasource = dataSource,
         dbMetrics = dbMetricsStub,
         clock = fixedClock,
+        satsFactory = satsFactoryTest,
     )
 
     private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
@@ -198,6 +201,7 @@ internal class SøknadRoutesKtTest {
                 embeddedDatasource = dataSource,
                 dbMetrics = dbMetricsStub,
                 clock = fixedClock,
+                satsFactory = satsFactoryTest,
             )
 
             val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
@@ -214,6 +218,8 @@ internal class SøknadRoutesKtTest {
                 søknadMetrics = mock(),
                 clock = fixedClock,
                 unleash = mock(),
+                satsFactory = satsFactoryTest,
+                beregningStrategyFactory = beregningStrategyFactoryTest(),
             )
 
             withTestApplication(
@@ -451,7 +457,7 @@ internal class SøknadRoutesKtTest {
                     },
                 )
 
-                response.content shouldBe serialize(sak.toJson(fixedClock))
+                response.content shouldBe serialize(sak.toJson(fixedClock, satsFactoryTest))
             }
         }
     }

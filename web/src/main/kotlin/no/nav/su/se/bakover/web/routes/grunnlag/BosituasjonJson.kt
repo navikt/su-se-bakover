@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.domain.beregning.Sats.Companion.utledSats
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 
 internal data class BosituasjonJson(
@@ -30,7 +29,7 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 delerBolig = true,
                 ektemakeEllerSamboerUførFlyktning = null,
                 begrunnelse = this.begrunnelse,
-                sats = this.utledSats().toString(),
+                sats = this.satskategori.toString(),
                 periode = this.periode.toJson(),
             )
         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning ->
@@ -40,7 +39,7 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 delerBolig = null,
                 ektemakeEllerSamboerUførFlyktning = false,
                 begrunnelse = this.begrunnelse,
-                sats = this.utledSats().toString(),
+                sats = this.satskategori.toString(),
                 periode = this.periode.toJson(),
             )
         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre ->
@@ -50,7 +49,7 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 delerBolig = null,
                 ektemakeEllerSamboerUførFlyktning = null,
                 begrunnelse = this.begrunnelse,
-                sats = this.utledSats().toString(),
+                sats = this.satskategori.toString(),
                 periode = this.periode.toJson(),
             )
         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning ->
@@ -60,7 +59,7 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 delerBolig = null,
                 ektemakeEllerSamboerUførFlyktning = true,
                 begrunnelse = this.begrunnelse,
-                sats = this.utledSats().toString(),
+                sats = this.satskategori.toString(),
                 periode = this.periode.toJson(),
             )
         is Grunnlag.Bosituasjon.Fullstendig.Enslig ->
@@ -70,7 +69,7 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 delerBolig = false,
                 ektemakeEllerSamboerUførFlyktning = null,
                 begrunnelse = this.begrunnelse,
-                sats = this.utledSats().toString(),
+                sats = this.satskategori.toString(),
                 periode = this.periode.toJson(),
             )
         is Grunnlag.Bosituasjon.Ufullstendig.HarEps ->

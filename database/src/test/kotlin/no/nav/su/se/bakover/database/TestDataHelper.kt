@@ -53,6 +53,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -107,6 +108,8 @@ import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.gjeldendeVedtaksdata
@@ -114,6 +117,7 @@ import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt0
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -275,6 +279,7 @@ internal class TestDataHelper(
     internal val formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(
         dbMetrics = dbMetrics,
         formuegrunnlagPostgresRepo = formuegrunnlagPostgresRepo,
+        satsFactory = satsFactoryTest,
     )
     internal val grunnlagsdataOgVilkårsvurderingerPostgresRepo = GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         dbMetrics = dbMetrics,
@@ -290,6 +295,7 @@ internal class TestDataHelper(
         grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
         avkortingsvarselRepo = avkortingsvarselRepo,
         clock = clock,
+        satsFactory = satsFactoryTest,
     )
     internal val klageinstanshendelsePostgresRepo = KlageinstanshendelsePostgresRepo(sessionFactory, dbMetrics)
     internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory, dbMetrics, klageinstanshendelsePostgresRepo)
@@ -298,6 +304,7 @@ internal class TestDataHelper(
         sessionFactory = sessionFactory,
         grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
         dbMetrics = dbMetrics,
+        satsFactory = satsFactoryTest,
     )
     internal val revurderingRepo = RevurderingPostgresRepo(
         sessionFactory = sessionFactory,
@@ -308,6 +315,7 @@ internal class TestDataHelper(
         avkortingsvarselRepo = avkortingsvarselRepo,
         tilbakekrevingRepo = tilbakekrevingRepo,
         reguleringPostgresRepo = reguleringRepo,
+        satsFactory = satsFactoryTest,
     )
     internal val vedtakRepo = VedtakPostgresRepo(
         sessionFactory = sessionFactory,
@@ -316,6 +324,7 @@ internal class TestDataHelper(
         revurderingRepo = revurderingRepo,
         klageRepo = klagePostgresRepo,
         reguleringRepo = reguleringRepo,
+        satsFactory = satsFactoryTest,
     )
     internal val personRepo = PersonPostgresRepo(
         sessionFactory = sessionFactory,
@@ -726,6 +735,7 @@ internal class TestDataHelper(
             sak.opprettEllerOppdaterRegulering(
                 startDato = 1.mai(2021),
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail().also {
                 reguleringRepo.lagre(it)
             }
@@ -733,7 +743,10 @@ internal class TestDataHelper(
 
     fun persisterReguleringIverksatt() =
         persisterReguleringOpprettet().let {
-            it.beregn(clock = fixedClock, begrunnelse = "Begrunnelse").getOrFail()
+            it.beregn(
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                begrunnelse = "Begrunnelse",
+            ).getOrFail()
                 .simuler { simulertUtbetaling().right() }
                 .getOrFail().tilIverksatt()
                 .also { iverksattAttestering ->
@@ -784,8 +797,8 @@ internal class TestDataHelper(
         ).beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
-
             gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(stønadsperiode2021),
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
         ).getOrHandle {
             throw IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -813,6 +826,7 @@ internal class TestDataHelper(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
             gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(stønadsperiode2021),
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
         ).getOrHandle {
             throw IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -835,6 +849,7 @@ internal class TestDataHelper(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
             gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(stønadsperiode2021),
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
         ).getOrHandle {
             throw IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -1171,6 +1186,7 @@ internal class TestDataHelper(
                 søknadsbehandlingId = nySøknadsbehandling.id,
                 stønadsperiode = stønadsperiode,
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail().let {
                 søknadsbehandlingRepo.lagre(it)
                 assert(it.fnr == sak.fnr && it.sakId == sakId)
@@ -1199,6 +1215,7 @@ internal class TestDataHelper(
         ).tilVilkårsvurdert(
             behandlingsinformasjon = behandlingsinformasjon,
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).let {
             søknadsbehandlingRepo.lagre(it)
             Pair(sakRepo.hentSak(sakId)!!, it as Søknadsbehandling.Vilkårsvurdert.Innvilget)
@@ -1213,6 +1230,7 @@ internal class TestDataHelper(
         ),
         vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = Vilkårsvurderinger.Søknadsbehandling(
             uføre = innvilgetUførevilkår(periode = stønadsperiode2021.periode),
+            formue = formuevilkårIkkeVurdert(),
         ),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
     ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Avslag> {
@@ -1226,6 +1244,7 @@ internal class TestDataHelper(
         ).tilVilkårsvurdert(
             behandlingsinformasjon = behandlingsinformasjonMedAvslag,
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         )
             .let {
                 søknadsbehandlingRepo.lagre(it)
@@ -1253,6 +1272,8 @@ internal class TestDataHelper(
         ).second.beregn(
             begrunnelse = null,
             clock = fixedClock,
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail().let {
             søknadsbehandlingRepo.lagre(it)
             Pair(sakRepo.hentSak(sakId)!!, it as Søknadsbehandling.Beregnet.Innvilget)
@@ -1283,9 +1304,11 @@ internal class TestDataHelper(
         ).second.beregn(
             begrunnelse = null,
             clock = fixedClock,
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail().let {
-            søknadsbehandlingRepo.lagre(it)
-            Pair(sakRepo.hentSak(sakId)!!, it as Søknadsbehandling.Beregnet.Avslag)
+            søknadsbehandlingRepo.lagre(it as Søknadsbehandling.Beregnet.Avslag)
+            Pair(sakRepo.hentSak(sakId)!!, it)
         }
     }
 

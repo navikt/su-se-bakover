@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueGrunnlag
+import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import java.time.Clock
 import java.util.UUID
@@ -20,6 +21,7 @@ data class LeggTilFormuegrunnlagRequest(
         bosituasjon: List<no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Fullstendig>,
         behandlingsperiode: Periode,
         clock: Clock,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeLeggeTilFormuegrunnlag, Vilkår.Formue.Vurdert> {
         return Vilkår.Formue.Vurdert.tryCreateFromGrunnlag(
             grunnlag = formuegrunnlag.map { element ->
@@ -42,6 +44,7 @@ data class LeggTilFormuegrunnlagRequest(
                     }.left()
                 }
             },
+            formuegrenserFactory = formuegrenserFactory,
         ).mapLeft {
             when (it) {
                 Vilkår.Formue.Vurdert.UgyldigFormuevilkår.OverlappendeVurderingsperioder -> return KunneIkkeLeggeTilFormuegrunnlag.IkkeLovMedOverlappendePerioder.left()

@@ -7,7 +7,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.toBrevformat
-import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
@@ -94,7 +93,7 @@ interface LagBrevRequest {
             personalia = lagPersonalia(),
             avslagsgrunner = avslag.avslagsgrunner,
             harEktefelle = avslag.harEktefelle,
-            halvGrunnbeløp = avslag.halvGrunnbeløp.toInt(),
+            halvGrunnbeløp = avslag.halvtGrunnbeløpPerÅr.toInt(),
             beregningsperioder = avslag.beregning?.let { LagBrevinnholdForBeregning(it).brevInnhold }
                 ?: emptyList(),
             saksbehandlerNavn = saksbehandlerNavn,
@@ -102,7 +101,7 @@ interface LagBrevRequest {
             fritekst = fritekst,
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             formueVerdier = avslag.formuegrunnlag?.tilFormueForBrev(),
-            satsoversikt = satsoversikt
+            satsoversikt = satsoversikt,
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
@@ -148,6 +147,9 @@ interface LagBrevRequest {
         override val avkortingsBeløp: Int?,
         private val satsoversikt: Satsoversikt
     ) : LagBrevRequest, Opphør {
+        // TODO(satsfactory_formuegrense) jah: Satsene kan endre seg måned til måned for en behandlingsperiode. Men vi har valgt første måned i perioden siden vi lanserte SU Ufør.
+        private val månedssats = beregning.getMånedsberegninger().first().fullSupplerendeStønadForMåned
+
         override val brevInnhold = BrevInnhold.Opphørsvedtak(
             personalia = lagPersonalia(),
             opphørsgrunner = opphørsgrunner,
@@ -161,10 +163,11 @@ interface LagBrevRequest {
             attestantNavn = attestantNavn,
             fritekst = fritekst,
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
-            halvGrunnbeløp = Grunnbeløp.`0,5G`.påDato(beregning.periode.fraOgMed).toInt(),
+            // TODO(satsfactory_formuegrense) jah: Dette er knyttet til formuegrensa og burde sannsynligvis være koblet dithen.
+            halvGrunnbeløp = månedssats.grunnbeløp.halvtGrunnbeløpPerÅrAvrundet(),
             opphørsdato = opphørsdato.ddMMyyyy(),
             avkortingsBeløp = avkortingsBeløp,
-            satsoversikt = satsoversikt
+            satsoversikt = satsoversikt,
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
@@ -474,11 +477,12 @@ interface LagBrevRequest {
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
         val utløpsdato: LocalDate,
+        val halvtGrunnbeløp: Int,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.PåminnelseNyStønadsperiode(
             personalia = lagPersonalia(),
             utløpsdato = utløpsdato.ddMMyyyy(),
-            halvtGrunnbeløp = Grunnbeløp.`0,5G`.heltallPåDato(utløpsdato),
+            halvtGrunnbeløp = halvtGrunnbeløp,
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {

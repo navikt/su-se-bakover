@@ -27,9 +27,11 @@ import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -123,6 +125,8 @@ internal object RevurderingTestUtils {
             avkortingsvarselRepo = avkortingsvarselRepo,
             toggleService = toggleService,
             tilbakekrevingService = tilbakekrevingService,
+            formuegrenserFactory = formuegrenserFactoryTest,
+            beregningStrategyFactory = beregningStrategyFactoryTest(),
         )
 
     /**

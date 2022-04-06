@@ -11,6 +11,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -117,7 +118,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.Created
                 JSONAssert.assertEquals(
                     response.content,
-                    serialize(vilkårsvurdert.toJson()), true
+                    serialize(vilkårsvurdert.toJson(satsFactoryTest)), true,
                 )
             }
         }

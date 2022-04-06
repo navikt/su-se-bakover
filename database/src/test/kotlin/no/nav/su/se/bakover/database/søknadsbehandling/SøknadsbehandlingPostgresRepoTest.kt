@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -31,7 +32,9 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.behandlingsinformasjonAlleVilkårInnvilget
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
@@ -160,6 +163,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 .beregn(
                     begrunnelse = null,
                     clock = fixedClock,
+                    beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail()
                 .also {
                     repo.lagre(it)
@@ -189,7 +194,11 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     }
                 }
             // Tilbake til vilkårsvurdert
-            simulert.tilVilkårsvurdert(behandlingsinformasjonAlleVilkårInnvilget, clock = fixedClock)
+            simulert.tilVilkårsvurdert(
+                behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+                clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
+            )
                 .also { vilkårsvurdert ->
                     repo.lagre(vilkårsvurdert)
                     repo.hent(vilkårsvurdert.id) shouldBe vilkårsvurdert
@@ -420,6 +429,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 avkortingsvarselRepo = avkortingsvarselRepoMock,
                 grunnlagsdataOgVilkårsvurderingerPostgresRepo = mock(),
                 clock = mock(),
+                satsFactory = satsFactoryTest,
             )
 
             repo.lagre(
@@ -475,6 +485,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 avkortingsvarselRepo = avkortingsvarselRepoMock,
                 grunnlagsdataOgVilkårsvurderingerPostgresRepo = mock(),
                 clock = mock(),
+                satsFactory = satsFactoryTest,
             )
 
             repo.lagre(

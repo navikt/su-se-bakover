@@ -25,11 +25,11 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.plus
+import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 
@@ -112,7 +112,7 @@ internal class VedtakPostgresRepoTest {
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
                 forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet

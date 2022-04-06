@@ -240,12 +240,13 @@ fun formueGrunnlagUtenEps0Innvilget(
 }
 
 fun formueGrunnlagUtenEpsAvslått(
+    id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
 ): Formuegrunnlag {
     return Formuegrunnlag.create(
-        id = UUID.randomUUID(),
+        id = id,
         opprettet = opprettet,
         periode = periode,
         epsFormue = null,
@@ -265,6 +266,18 @@ fun formueGrunnlagUtenEpsAvslått(
     )
 }
 
+fun vilkårsvurderingSøknadsbehandlingIkkeVurdert(): Vilkårsvurderinger.Søknadsbehandling {
+    return Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert()
+}
+
+fun vilkårsvurderingRevurderingIkkeVurdert(): Vilkårsvurderinger.Revurdering {
+    return Vilkårsvurderinger.Revurdering.IkkeVurdert()
+}
+
+fun formuevilkårIkkeVurdert(): Vilkår.Formue {
+    return Vilkår.Formue.IkkeVurdert
+}
+
 fun formuevilkårUtenEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
@@ -272,13 +285,14 @@ fun formuevilkårUtenEps0Innvilget(
 ): Vilkår.Formue {
     return Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
         vurderingsperioder = nonEmptyListOf(
-            Vurderingsperiode.Formue.create(
-                id = UUID.randomUUID(),
-                opprettet = opprettet,
-                periode = periode,
-                resultat = Resultat.Innvilget,
+            Vurderingsperiode.Formue.tryCreateFromGrunnlag(
                 grunnlag = formueGrunnlagUtenEps0Innvilget(opprettet, periode, bosituasjon),
-            ),
+                formuegrenserFactory = formuegrenserFactoryTest,
+            ).also {
+                assert(it.resultat == Resultat.Innvilget)
+                assert(it.periode == periode)
+                assert(it.opprettet == opprettet)
+            },
         ),
     )
 }
@@ -290,13 +304,18 @@ fun formuevilkårAvslåttPgrBrukersformue(
 ): Vilkår.Formue {
     return Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
         vurderingsperioder = nonEmptyListOf(
-            Vurderingsperiode.Formue.create(
-                id = UUID.randomUUID(),
-                opprettet = opprettet,
-                periode = periode,
-                resultat = Resultat.Avslag,
-                grunnlag = formueGrunnlagUtenEpsAvslått(opprettet, periode, bosituasjon),
-            ),
+            Vurderingsperiode.Formue.tryCreateFromGrunnlag(
+                grunnlag = formueGrunnlagUtenEpsAvslått(
+                    opprettet = opprettet,
+                    periode = periode,
+                    bosituasjon = bosituasjon,
+                ),
+                formuegrenserFactory = formuegrenserFactoryTest,
+            ).also {
+                assert(it.resultat == Resultat.Avslag)
+                assert(it.periode == periode)
+                assert(it.opprettet == opprettet)
+            },
         ),
     )
 }
@@ -327,6 +346,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
     return Vilkårsvurderinger.Søknadsbehandling(
         uføre = uføre,
         utenlandsopphold = utenlandsopphold,
+        formue = formuevilkårIkkeVurdert(),
     ).oppdater(
         stønadsperiode = Stønadsperiode.create(periode = periode, begrunnelse = ""),
         behandlingsinformasjon = behandlingsinformasjon,
@@ -335,6 +355,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
             bosituasjon = listOf(bosituasjon),
         ).getOrFail(),
         clock = fixedClock,
+        formuegrenserFactory = formuegrenserFactoryTest,
     )
 }
 
@@ -394,6 +415,7 @@ fun vilkårsvurderingerAvslåttAlle(
             periode = periode,
         ),
         utenlandsopphold = utenlandsoppholdAvslag(periode = periode),
+        formue = formuevilkårIkkeVurdert(),
     ).oppdater(
         stønadsperiode = Stønadsperiode.create(
             periode = periode,
@@ -405,6 +427,7 @@ fun vilkårsvurderingerAvslåttAlle(
             bosituasjon = listOf(bosituasjon),
         ).getOrFail(),
         clock = fixedClock,
+        formuegrenserFactory = formuegrenserFactoryTest,
     )
 }
 

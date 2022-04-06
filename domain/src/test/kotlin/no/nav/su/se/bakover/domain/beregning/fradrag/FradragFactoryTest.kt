@@ -34,7 +34,7 @@ internal class FradragFactoryTest {
             fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
             periode = Periode.create(1.januar(2020), 30.april(2020)),
-            tilhører = FradragTilhører.BRUKER
+            tilhører = FradragTilhører.BRUKER,
         )
         FradragFactory.periodiser(f1) shouldBe listOf(
             FradragForMåned(

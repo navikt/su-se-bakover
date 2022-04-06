@@ -8,18 +8,22 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.opprettetRevurdering
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -39,7 +43,9 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
                 (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner(fixedClock) shouldBe listOf(Opphørsgrunn.UFØRHET)
@@ -57,7 +63,9 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
                 it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
             }
@@ -73,12 +81,14 @@ internal class RevurderingTest {
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt(
                         periode = Periode.create(1.januar(2021), 30.april(2021)),
-                        arbeidsinntekt = Sats.HØY.månedsbeløp(1.januar(2020)) - 440.0,
+                        arbeidsinntekt = satsFactoryTest.fullSupplerendeStønadHøy()
+                            .forMånedsperiode(januar(2020)).satsForMånedAsDouble - 440.0,
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     fradragsgrunnlagArbeidsinntekt(
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                        arbeidsinntekt = Sats.HØY.månedsbeløp(1.mai(2021)) - 440.0,
+                        arbeidsinntekt = satsFactoryTest.fullSupplerendeStønadHøy()
+                            .forMånedsperiode(mai(2021)).satsForMånedAsDouble - 440.0,
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
@@ -106,7 +116,9 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
                 it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
                 it.beregning.harAlleMånederMerknadForAvslag() shouldBe true
@@ -131,7 +143,9 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
                 it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
             }
@@ -148,7 +162,9 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
                 it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
             }
@@ -176,7 +192,9 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
                 it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
             }
@@ -197,7 +215,9 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
                 it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
             }
@@ -225,7 +245,9 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
                 (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner(fixedClock) shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
@@ -250,7 +272,9 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
                 (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner(fixedClock) shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
@@ -283,7 +307,9 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
                 (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner(fixedClock) shouldBe listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)

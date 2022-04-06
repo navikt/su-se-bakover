@@ -36,7 +36,10 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.service.AccessCheckProxy
@@ -94,10 +97,16 @@ fun Application.susebakover(
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     unleash: Unleash = UnleashBuilder.build(applicationConfig),
+    satsFactory: SatsFactory = SatsFactoryForSupplerendeStønad(),
+    beregningStrategyFactory: BeregningStrategyFactory = BeregningStrategyFactory(
+        clock = clock,
+        satsFactory = satsFactory,
+    ),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(
         databaseConfig = applicationConfig.database,
         dbMetrics = DbMicrometerMetrics(),
         clock = clock,
+        satsFactory = satsFactory,
     ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients =
@@ -119,6 +128,8 @@ fun Application.susebakover(
         søknadMetrics = søknadMetrics,
         clock = clock,
         unleash = unleash,
+        satsFactory = satsFactory,
+        beregningStrategyFactory = beregningStrategyFactory,
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
 ) {
@@ -238,22 +249,23 @@ fun Application.susebakover(
                     accessCheckProxy,
                 ) { accessProtectedServices ->
                     personRoutes(accessProtectedServices.person, clock)
-                    sakRoutes(accessProtectedServices.sak, clock)
+                    sakRoutes(accessProtectedServices.sak, clock, satsFactory)
                     søknadRoutes(
                         søknadService = accessProtectedServices.søknad,
                         lukkSøknadService = accessProtectedServices.lukkSøknad,
                         avslåSøknadManglendeDokumentasjonService = accessProtectedServices.avslåSøknadManglendeDokumentasjonService,
                         clock = clock,
+                        satsFactory,
                     )
-                    overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling, clock)
+                    overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling, clock, satsFactory)
                     avstemmingRoutes(accessProtectedServices.avstemming, clock)
                     driftRoutes(accessProtectedServices.søknad)
-                    revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock)
+                    revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock, satsFactory)
                     klageRoutes(accessProtectedServices.klageService, clock)
                     dokumentRoutes(accessProtectedServices.brev)
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
                     kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtale)
-                    reguleringRoutes(accessProtectedServices.reguleringService)
+                    reguleringRoutes(accessProtectedServices.reguleringService, satsFactory)
                 }
             }
         }

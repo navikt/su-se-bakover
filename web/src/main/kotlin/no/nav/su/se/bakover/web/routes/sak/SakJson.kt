@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.domain.KanStansesEllerGjenopptas
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.klage.KlageJson
 import no.nav.su.se.bakover.web.routes.klage.toJson
 import no.nav.su.se.bakover.web.routes.regulering.ReguleringJson
@@ -34,12 +35,12 @@ internal data class SakJson(
     val reguleringer: List<ReguleringJson>,
 ) {
     companion object {
-        internal fun Sak.toJson(clock: Clock) = SakJson(
+        internal fun Sak.toJson(clock: Clock, satsFactory: SatsFactory) = SakJson(
             id = id.toString(),
             saksnummer = saksnummer.nummer,
             fnr = fnr.toString(),
             søknader = søknader.map { it.toJson() },
-            behandlinger = søknadsbehandlinger.map { it.toJson() },
+            behandlinger = søknadsbehandlinger.map { it.toJson(satsFactory) },
             utbetalinger = utbetalingstidslinje().tidslinje.map {
                 UtbetalingJson(
                     fraOgMed = it.periode.fraOgMed,
@@ -54,11 +55,11 @@ internal data class SakJson(
                 )
             },
             utbetalingerKanStansesEllerGjenopptas = kanUtbetalingerStansesEllerGjenopptas(clock),
-            revurderinger = revurderinger.map { it.toJson() },
+            revurderinger = revurderinger.map { it.toJson(satsFactory) },
             vedtak = vedtakListe.map { it.toJson() },
             klager = klager.map { it.toJson() },
             reguleringer = reguleringer.map {
-                it.toJson()
+                it.toJson(satsFactory)
             },
         )
     }

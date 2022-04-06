@@ -13,13 +13,14 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -50,6 +51,7 @@ internal class GjeldendeVedtaksdataTest {
                 revurderingsVedtak,
             ),
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         )
         data.gjeldendeVedtakPåDato(1.januar(2021)) shouldBe førstegangsvedtak
         data.gjeldendeVedtakPåDato(30.april(2021)) shouldBe førstegangsvedtak
@@ -89,6 +91,7 @@ internal class GjeldendeVedtaksdataTest {
                     nyStønadsperiode as VedtakSomKanRevurderes,
                 ),
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             )
             data.gjeldendeVedtakPåDato(1.mars(2021)) shouldBe førstegangsvedtak
             data.gjeldendeVedtakPåDato(1.april(2021)) shouldBe null
@@ -116,10 +119,11 @@ internal class GjeldendeVedtaksdataTest {
             periode = Periode.create(1.mai(2021), 31.desember(2021)),
             vedtakListe = nonEmptyListOf(førstegangsvedtak as VedtakSomKanRevurderes),
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         )
         data.gjeldendeVedtakPåDato(1.mai(2021)) shouldBe null
         data.grunnlagsdata shouldBe Grunnlagsdata.IkkeVurdert
-        data.vilkårsvurderinger shouldBe Vilkårsvurderinger.Revurdering.IkkeVurdert
+        data.vilkårsvurderinger shouldBe vilkårsvurderingRevurderingIkkeVurdert()
         assertThrows<IllegalStateException> {
             data.garantertSammenhengendePeriode()
         }
@@ -141,6 +145,7 @@ internal class GjeldendeVedtaksdataTest {
             periode = år(2021),
             vedtakListe = nonEmptyListOf(førstegangsvedtak as VedtakSomKanRevurderes),
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         )
         data.tidslinjeForVedtakErSammenhengende() shouldBe true
     }
@@ -161,6 +166,7 @@ internal class GjeldendeVedtaksdataTest {
             periode = år(2021),
             vedtakListe = NonEmptyList.fromListUnsafe(sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()),
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).let {
             it.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold() shouldBe true
             it.pågåendeAvkortingEllerBehovForFremtidigAvkorting shouldBe true

@@ -299,6 +299,7 @@ fun vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         periode = revurderingsperiode,
         clock = clock,
+        formuegrenserFactory = formuegrenserFactoryTest,
     ).let {
         it.copy(
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(

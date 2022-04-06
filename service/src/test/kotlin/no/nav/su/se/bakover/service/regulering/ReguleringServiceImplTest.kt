@@ -37,9 +37,11 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.beregning
+import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
@@ -49,6 +51,7 @@ import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simulertFeilutbetaling
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.stansetSøknadsbehandlingMedÅpenRegulering
@@ -494,6 +497,8 @@ internal class ReguleringServiceImplTest {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
             clock = fixedClock,
+            beregningStrategyFactory = beregningStrategyFactoryTest(),
+            satsFactory = satsFactoryTest,
         )
     }
 
@@ -511,8 +516,9 @@ internal class ReguleringServiceImplTest {
             ),
 
             sak.kopierGjeldendeVedtaksdata(
-                reguleringsdato,
-                fixedClock,
+                fraOgMed = reguleringsdato,
+                clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail(),
             sak.utbetalingstidslinje().gjeldendeForDato(reguleringsdato),
         )

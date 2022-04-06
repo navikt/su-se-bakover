@@ -14,11 +14,12 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt0
+import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -56,7 +57,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                             31.mai(2021),
                         ),
                     ),
-                    formue = Vilkår.Formue.IkkeVurdert,
+                    formue = formuevilkårIkkeVurdert(),
                     utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                 ),
             )
@@ -94,7 +95,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                         31.mai(2021),
                     ),
                 ),
-                formue = Vilkår.Formue.IkkeVurdert,
+                formue = formuevilkårIkkeVurdert(),
                 utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             ),
         )
@@ -111,7 +112,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                         31.mai(2021),
                     ),
                 ),
-                formue = Vilkår.Formue.IkkeVurdert,
+                formue = formuevilkårIkkeVurdert(),
                 utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             ),
         )
@@ -141,7 +142,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
         )
     }
 
@@ -149,7 +150,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     fun `ikke vurdert grunnlagsdata og ikke vurdert vilkårsvurderinger kaster ikke exception`() {
         GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
         )
     }
 

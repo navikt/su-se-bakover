@@ -17,8 +17,10 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import org.mockito.kotlin.mock
 import java.time.Clock
 
@@ -57,6 +59,8 @@ internal data class RevurderingServiceMocks(
         avkortingsvarselRepo = avkortingsvarselRepo,
         toggleService = toggleService,
         tilbakekrevingService = tilbakekrevingService,
+        formuegrenserFactory = formuegrenserFactoryTest,
+        beregningStrategyFactory = beregningStrategyFactoryTest(),
     ).apply { addObserver(observer) }
 
     fun all() = listOf(

@@ -5,16 +5,18 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Månedsperiode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadForMåned
+import no.nav.su.se.bakover.domain.satser.Satskategori
 
 interface Månedsberegning : PeriodisertInformasjon {
     fun getSumYtelse(): Int
     fun getSumFradrag(): Double
     fun getBenyttetGrunnbeløp(): Int
-    fun getSats(): Sats
+    fun getSats(): Satskategori
     fun getSatsbeløp(): Double
-    fun getFradrag(): List<Fradrag>
+    fun getFradrag(): List<FradragForMåned>
     fun getFribeløpForEps(): Double
     fun getMerknader(): List<Merknad.Beregning>
 
@@ -22,6 +24,7 @@ interface Månedsberegning : PeriodisertInformasjon {
         getFradrag().any { it.fradragstype == Fradragstype.BeregnetFradragEPS }
 
     val måned: Månedsperiode
+    val fullSupplerendeStønadForMåned: FullSupplerendeStønadForMåned
 
     /**
      * Sammenligner alle metodene.
@@ -38,6 +41,9 @@ interface Månedsberegning : PeriodisertInformasjon {
         if (getSatsbeløp() != other.getSatsbeløp()) return false
         if (getFradrag() != other.getFradrag()) return false
         if (getFribeløpForEps() != other.getFribeløpForEps()) return false
+        // TODO jah + jacob: Disse er ikke i master, siden da feiler ekvivalente månedsberegningstestene
+        // if (måned != other.måned) return false
+        // if (periode != other.periode) return false
         return true
     }
 

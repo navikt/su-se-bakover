@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
@@ -43,7 +44,7 @@ internal data class ReguleringJson(
     }
 }
 
-internal fun Regulering.toJson() = ReguleringJson(
+internal fun Regulering.toJson(satsFactory: SatsFactory) = ReguleringJson(
     id = id,
     fnr = fnr.toString(),
     opprettet = opprettet,
@@ -63,7 +64,11 @@ internal fun Regulering.toJson() = ReguleringJson(
     },
     erFerdigstilt = this.erFerdigstilt,
     periode = periode.toJson(),
-    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
+    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
+        satsFactory = satsFactory,
+    ),
     saksbehandler = saksbehandler.navIdent,
     avsluttet = when (this) {
         is Regulering.AvsluttetRegulering -> ReguleringJson.Avsluttet(this.avsluttetTidspunkt)

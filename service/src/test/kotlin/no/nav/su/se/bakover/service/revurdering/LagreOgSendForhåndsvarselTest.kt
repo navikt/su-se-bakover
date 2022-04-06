@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -49,6 +48,7 @@ import no.nav.su.se.bakover.test.saksbehandlerNavn
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -273,7 +273,7 @@ internal class LagreOgSendForhåndsvarselTest {
             revurderingsårsak = RevurderingTestUtils.revurderingsårsak,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
         )
@@ -291,7 +291,7 @@ internal class LagreOgSendForhåndsvarselTest {
             forhåndsvarsel = null,
             beregning = TestBeregning,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,

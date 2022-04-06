@@ -11,6 +11,7 @@ import io.ktor.routing.post
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
@@ -40,6 +41,7 @@ private data class UtenlandsoppholdBody(
 
 internal fun Route.leggTilUtenlandsopphold(
     søknadsbehandlingService: SøknadsbehandlingService,
+    satsFactory: SatsFactory,
 ) {
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/utenlandsopphold") {
@@ -52,7 +54,7 @@ internal fun Route.leggTilUtenlandsopphold(
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.Created,
-                                    serialize(it.toJson())
+                                    serialize(it.toJson(satsFactory))
                                 )
                             )
                         }

@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 
 fun NySøknadsbehandling.toSøknadsbehandling(saksnummer: Saksnummer): Søknadsbehandling.Vilkårsvurdert.Uavklart {
     return Søknadsbehandling.Vilkårsvurdert.Uavklart(
@@ -21,7 +20,7 @@ fun NySøknadsbehandling.toSøknadsbehandling(saksnummer: Saksnummer): Søknadsb
         fritekstTilBrev = "",
         stønadsperiode = null,
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
+        vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
         attesteringer = Attesteringshistorikk.empty(),
         avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke()
     )

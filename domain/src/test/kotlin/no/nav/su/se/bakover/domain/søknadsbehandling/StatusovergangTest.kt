@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.left
 import arrow.core.right
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -10,17 +11,22 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attesteringUnderkjent
+import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingSimulert
@@ -65,15 +71,23 @@ internal class StatusovergangTest {
         vilkårsvurdertInnvilget.beregn(
             begrunnelse = null,
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
+            beregningStrategyFactory = BeregningStrategyFactory(
+                clock = fixedClock,
+                satsFactory = satsFactoryTest,
+            ),
         ).getOrFail() as Søknadsbehandling.Beregnet.Innvilget
 
     private val beregnetAvslag: Søknadsbehandling.Beregnet.Avslag =
         vilkårsvurdertInnvilget.leggTilUførevilkår(
             uførhet = innvilgetUførevilkår(forventetInntekt = 11000000),
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail().beregn(
             begrunnelse = null,
             clock = fixedClock,
+            formuegrenserFactory = formuegrenserFactoryTest,
+            beregningStrategyFactory = beregningStrategyFactoryTest(),
         ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
 
     private val simulert: Søknadsbehandling.Simulert =
@@ -115,8 +129,9 @@ internal class StatusovergangTest {
                     vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger,
                 ),
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -129,8 +144,9 @@ internal class StatusovergangTest {
                     vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger,
                 ),
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAvslåttFlyktning(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
@@ -140,8 +156,9 @@ internal class StatusovergangTest {
             statusovergang(
                 opprettet,
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe opprettet
         }
@@ -151,8 +168,9 @@ internal class StatusovergangTest {
             statusovergang(
                 vilkårsvurdertInnvilget,
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -162,8 +180,9 @@ internal class StatusovergangTest {
             statusovergang(
                 vilkårsvurdertInnvilget,
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAvslåttFlyktning(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
@@ -176,11 +195,13 @@ internal class StatusovergangTest {
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
                         utenlandsopphold = utenlandsoppholdInnvilget(),
+                        formue = formuevilkårIkkeVurdert(),
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -190,8 +211,9 @@ internal class StatusovergangTest {
             statusovergang(
                 vilkårsvurdertAvslag,
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAvslåttFlyktning(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
@@ -201,8 +223,9 @@ internal class StatusovergangTest {
             statusovergang(
                 beregnetInnvilget,
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -212,8 +235,9 @@ internal class StatusovergangTest {
             statusovergang(
                 beregnetInnvilget,
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAvslåttFlyktning(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
@@ -223,8 +247,9 @@ internal class StatusovergangTest {
             statusovergang(
                 beregnetAvslag,
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -234,8 +259,9 @@ internal class StatusovergangTest {
             statusovergang(
                 beregnetAvslag,
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAvslåttFlyktning(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
@@ -245,8 +271,9 @@ internal class StatusovergangTest {
             statusovergang(
                 simulert,
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -256,8 +283,9 @@ internal class StatusovergangTest {
             statusovergang(
                 simulert,
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAvslåttFlyktning(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
@@ -267,8 +295,9 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -278,8 +307,9 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAvslåttFlyktning(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
@@ -292,11 +322,13 @@ internal class StatusovergangTest {
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
                         utenlandsopphold = utenlandsoppholdInnvilget(),
+                        formue = formuevilkårIkkeVurdert(),
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -306,8 +338,9 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagVilkår,
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAvslåttFlyktning(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
@@ -320,11 +353,13 @@ internal class StatusovergangTest {
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
                         utenlandsopphold = utenlandsoppholdInnvilget(),
+                        formue = formuevilkårIkkeVurdert()
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -336,11 +371,13 @@ internal class StatusovergangTest {
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
+                        formue = formuevilkårIkkeVurdert(),
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon().withAvslåttFlyktning(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
@@ -360,8 +397,9 @@ internal class StatusovergangTest {
                     statusovergang(
                         it,
                         Statusovergang.TilVilkårsvurdert(
-                            Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                            fixedClock,
+                            behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                            clock = fixedClock,
+                            formuegrenserFactory = formuegrenserFactoryTest,
                         ),
                     )
                 }
@@ -369,8 +407,9 @@ internal class StatusovergangTest {
                     statusovergang(
                         it,
                         Statusovergang.TilVilkårsvurdert(
-                            Behandlingsinformasjon().withAvslåttFlyktning(),
-                            fixedClock,
+                            behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
+                            clock = fixedClock,
+                            formuegrenserFactory = formuegrenserFactoryTest,
                         ),
                     )
                 }
@@ -385,6 +424,11 @@ internal class StatusovergangTest {
             vilkårsvurdertInnvilget.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
+                beregningStrategyFactory = BeregningStrategyFactory(
+                    clock = fixedClock,
+                    satsFactory = satsFactoryTest,
+                ),
             ).getOrFail() shouldBe beregnetInnvilget
         }
 
@@ -393,15 +437,43 @@ internal class StatusovergangTest {
             beregnetInnvilget.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
+                beregningStrategyFactory = BeregningStrategyFactory(
+                    clock = fixedClock,
+                    satsFactory = satsFactoryTest,
+                ),
             ).getOrFail() shouldBe beregnetInnvilget
         }
 
         @Test
         fun `kan beregne på nytt for beregnet avslag`() {
-            beregnetAvslag.beregn(
+            // TODO jah: wtf? fixme
+            val nyBeregning: Søknadsbehandling.Beregnet.Avslag = beregnetAvslag.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-            ).getOrFail() shouldBe beregnetAvslag
+                formuegrenserFactory = formuegrenserFactoryTest,
+                beregningStrategyFactory = beregningStrategyFactoryTest(),
+            ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
+            nyBeregning.shouldBeEqualToIgnoringFields(
+                beregnetAvslag,
+                Søknadsbehandling.Beregnet.Avslag::avkorting,
+                Søknadsbehandling.Beregnet.Avslag::attesteringer,
+                Søknadsbehandling.Beregnet.Avslag::vilkårsvurderinger,
+                Søknadsbehandling.Beregnet.Avslag::grunnlagsdata,
+                Søknadsbehandling.Beregnet.Avslag::stønadsperiode,
+                Søknadsbehandling.Beregnet.Avslag::fritekstTilBrev,
+                Søknadsbehandling.Beregnet.Avslag::beregning,
+                Søknadsbehandling.Beregnet.Avslag::fnr,
+                Søknadsbehandling.Beregnet.Avslag::behandlingsinformasjon,
+                Søknadsbehandling.Beregnet.Avslag::oppgaveId,
+                Søknadsbehandling.Beregnet.Avslag::søknad,
+                Søknadsbehandling.Beregnet.Avslag::saksnummer,
+                Søknadsbehandling.Beregnet.Avslag::sakId,
+                Søknadsbehandling.Beregnet.Avslag::opprettet,
+                Søknadsbehandling.Beregnet.Avslag::id,
+                Søknadsbehandling.Beregnet.Avslag::status,
+                Søknadsbehandling.Beregnet.Avslag::periode,
+            )
         }
 
         @Test
@@ -409,6 +481,11 @@ internal class StatusovergangTest {
             simulert.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
+                beregningStrategyFactory = BeregningStrategyFactory(
+                    clock = fixedClock,
+                    satsFactory = satsFactoryTest,
+                ),
             ).getOrFail() shouldBe beregnetInnvilget
         }
 
@@ -417,6 +494,11 @@ internal class StatusovergangTest {
             underkjentAvslagBeregning.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
+                beregningStrategyFactory = BeregningStrategyFactory(
+                    clock = fixedClock,
+                    satsFactory = satsFactoryTest,
+                ),
             ).getOrFail() shouldBe beregnetAvslag
                 .medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
                 .copy(attesteringer = Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
@@ -427,6 +509,11 @@ internal class StatusovergangTest {
             underkjentInnvilget.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
+                beregningStrategyFactory = BeregningStrategyFactory(
+                    clock = fixedClock,
+                    satsFactory = satsFactoryTest,
+                ),
             ).getOrFail() shouldBe beregnetInnvilget
                 .medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
                 .copy(attesteringer = Attesteringshistorikk.create(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
@@ -449,6 +536,11 @@ internal class StatusovergangTest {
                 it.beregn(
                     begrunnelse = null,
                     clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
+                    beregningStrategyFactory = BeregningStrategyFactory(
+                        clock = fixedClock,
+                        satsFactory = satsFactoryTest,
+                    ),
                 ) shouldBe Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand(it::class).left()
             }
         }
@@ -901,7 +993,11 @@ internal class StatusovergangTest {
                 underkjentAvslagBeregning,
                 underkjentInnvilget,
             ).forEach {
-                it.oppdaterStønadsperiode(stønadsperiode, fixedClock).isRight() shouldBe true
+                it.oppdaterStønadsperiode(
+                    oppdatertStønadsperiode = stønadsperiode,
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
+                ).isRight() shouldBe true
             }
         }
 
@@ -916,7 +1012,11 @@ internal class StatusovergangTest {
                 iverksattInnvilget,
                 lukketSøknadsbehandling,
             ).forEach {
-                it.oppdaterStønadsperiode(stønadsperiode, fixedClock).isLeft() shouldBe true
+                it.oppdaterStønadsperiode(
+                    oppdatertStønadsperiode = stønadsperiode,
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
+                ).isLeft() shouldBe true
             }
         }
     }
