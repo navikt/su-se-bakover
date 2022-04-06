@@ -55,11 +55,10 @@ sealed interface Regulering : Reguleringsfelter {
             clock: Clock,
             opprettet: Tidspunkt = Tidspunkt.now(clock),
         ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, OpprettetRegulering> {
-
             val reguleringstype = SjekkOmGrunnlagErKonsistent(gjeldendeVedtaksdata).resultat.fold(
                 { konsistensproblemer ->
                     val message =
-                        "Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert"
+                        "Kunne ikke opprette regulering for saksnummer $saksnummer. Grunnlag er ikke konsistente. Vi kan derfor ikke beregne denne. Vi klarer derfor ikke å bestemme om denne allerede er regulert"
                     if (konsistensproblemer.erGyldigTilstand()) {
                         log.info(message)
                     } else {
