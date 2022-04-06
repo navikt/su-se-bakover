@@ -184,7 +184,7 @@ fun startJobberOgConsumers(
 
         SendPåminnelseNyStønadsperiodeJob(
             leaderPodLookup = clients.leaderPodLookup,
-            intervall = Duration.of(1, ChronoUnit.DAYS),
+            intervall = Duration.of(4, ChronoUnit.HOURS),
             initialDelay = initialDelay.next(),
             toggleService = services.toggles,
             sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
