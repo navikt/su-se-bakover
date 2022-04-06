@@ -186,6 +186,7 @@ fun startJobberOgConsumers(
             leaderPodLookup = clients.leaderPodLookup,
             intervall = Duration.of(1, ChronoUnit.DAYS),
             initialDelay = initialDelay.next(),
+            toggleService = services.toggles,
             sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
         ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
@@ -270,6 +271,7 @@ fun startJobberOgConsumers(
             leaderPodLookup = clients.leaderPodLookup,
             intervall = Duration.of(1, ChronoUnit.MINUTES),
             initialDelay = initialDelay.next(),
+            toggleService = services.toggles,
             sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
         ).schedule()
     }

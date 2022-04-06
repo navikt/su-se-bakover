@@ -9,5 +9,6 @@ interface ToggleService {
          * Toggle for å aktivere mulighet for feilutbetaling/tilbakekrevingsløp.
          */
         val toggleForFeilutbetaling = "supstonad.ufore.feilutbetaling"
+        val toggleSendAutomatiskPåminnelseOmNyStønadsperiode = "supstonad.ufore.automatisk.paaminnelse.ny.stonadsperiode"
     }
 }

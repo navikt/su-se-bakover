@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
+import no.nav.su.se.bakover.service.toggles.ToggleService
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
 import java.time.Duration
@@ -12,6 +13,7 @@ class SendPåminnelseNyStønadsperiodeJob(
     private val leaderPodLookup: LeaderPodLookup,
     private val intervall: Duration,
     private val initialDelay: Duration,
+    private val toggleService: ToggleService,
     private val sendPåminnelseService: SendPåminnelserOmNyStønadsperiodeService,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -28,7 +30,7 @@ class SendPåminnelseNyStønadsperiodeJob(
             initialDelay = initialDelay.toMillis(),
         ) {
             Either.catch {
-                if (leaderPodLookup.erLeaderPod(hostname = hostName)) {
+                if (leaderPodLookup.erLeaderPod(hostname = hostName) && toggleService.isEnabled(ToggleService.toggleSendAutomatiskPåminnelseOmNyStønadsperiode)) {
                     sendPåminnelseService.sendPåminnelser()
                 }
             }.mapLeft {
