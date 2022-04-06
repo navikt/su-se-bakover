@@ -80,7 +80,7 @@ internal class StatistikkServiceImplTest {
     fun `publiserer SakOpprettet-event på kafka`() {
         val kafkaPublisherMock: KafkaPublisher = mock()
         val personServiceMock: PersonService = mock {
-            on { hentAktørId(any()) } doReturn AktørId("55").right()
+            on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("55").right()
         }
         val sak = nySakMedNySøknad().first
 
@@ -104,7 +104,7 @@ internal class StatistikkServiceImplTest {
             argThat { it shouldBe sakTopicName },
             argThat { it shouldBe objectMapper.writeValueAsString(expected) },
         )
-        verify(personServiceMock).hentAktørId(
+        verify(personServiceMock).hentAktørIdMedSystembruker(
             argThat { it shouldBe sak.fnr },
         )
     }

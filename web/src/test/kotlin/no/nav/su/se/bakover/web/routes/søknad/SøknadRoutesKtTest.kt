@@ -187,7 +187,7 @@ internal class SøknadRoutesKtTest {
 
         val personOppslag: PersonOppslag = mock {
             on { person(any()) } doReturn PersonOppslagStub.person(fnr)
-            on { aktørId(any()) } doReturn PersonOppslagStub.aktørId(fnr)
+            on { aktørIdMedSystembruker(any()) } doReturn PersonOppslagStub.aktørId(fnr)
             on { sjekkTilgangTilPerson(any()) } doReturn PersonOppslagStub.sjekkTilgangTilPerson(fnr)
         }
         val oppgaveClient: OppgaveClient = mock {
@@ -238,7 +238,7 @@ internal class SøknadRoutesKtTest {
                     verify(dokArkiv).opprettJournalpost(any())
                     // Kalles én gang i AccessCheckProxy og én gang eksplisitt i søknadService
                     verify(personOppslag).person(argThat { it shouldBe fnr })
-                    verify(personOppslag).aktørId(argThat { it shouldBe fnr })
+                    verify(personOppslag).aktørIdMedSystembruker(argThat { it shouldBe fnr })
                     verify(oppgaveClient).opprettOppgave(any())
                 }
             }

@@ -5,7 +5,6 @@ import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -165,8 +164,12 @@ class ReguleringServiceImpl(
             }
             .map { simulertRegulering -> simulertRegulering.tilIverksatt() }
             .flatMap { lagVedtakOgUtbetal(it) }
-            .tapLeft {
-                reguleringRepo.lagre(regulering.copy(reguleringstype = Reguleringstype.MANUELL))
+            .tapLeft { reguleringRepo.lagre(regulering.copy(reguleringstype = Reguleringstype.MANUELL)) }
+            .map {
+                val (iverksattRegulering, vedtak) = it
+                observers.forEach { observer -> observer.handle(Event.Statistikk.Vedtaksstatistikk(vedtak)) }
+
+                iverksattRegulering
             }
     }
 
@@ -239,7 +242,7 @@ class ReguleringServiceImpl(
         return KunneIkkeIverksetteRegulering.FantIkkeRegulering.left()
     }
 
-    private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeRegulereAutomatisk.KunneIkkeUtbetale, Regulering.IverksattRegulering> {
+    private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeRegulereAutomatisk.KunneIkkeUtbetale, Pair<Regulering.IverksattRegulering, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering>> {
         return utbetalingService.verifiserOgSimulerUtbetaling(
             request = UtbetalRequest.NyUtbetaling(
                 request = SimulerUtbetalingRequest.NyUtbetaling(
@@ -259,14 +262,14 @@ class ReguleringServiceImpl(
             Either.catch {
                 sessionFactory.withTransactionContext { tx ->
                     utbetalingService.lagreUtbetaling(it, tx)
-                    vedtakService.lagre(vedtak = vedtak, sessionContext = tx)
+                    vedtakService.lagre(vedtak, tx)
                     reguleringRepo.lagre(regulering, tx)
                     utbetalingService.publiserUtbetaling(it).getOrHandle { utbetalingsfeil ->
                         throw KunneIkkeSendeTilUtbetalingException(utbetalingsfeil)
                     }
                 }
-                observers.forEach { observer -> observer.handle(Event.Statistikk.Vedtaksstatistikk(vedtak)) }
-                regulering
+
+                Pair(regulering, vedtak)
             }.mapLeft {
                 log.error(
                     "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering",
