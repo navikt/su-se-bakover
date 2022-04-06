@@ -167,7 +167,15 @@ class ReguleringServiceImpl(
             .tapLeft { reguleringRepo.lagre(regulering.copy(reguleringstype = Reguleringstype.MANUELL)) }
             .map {
                 val (iverksattRegulering, vedtak) = it
-                observers.forEach { observer -> observer.handle(Event.Statistikk.Vedtaksstatistikk(vedtak)) }
+
+                Either.catch {
+                    observers.forEach { observer -> observer.handle(Event.Statistikk.Vedtaksstatistikk(vedtak)) }
+                }.tapLeft {
+                    log.error(
+                        "Regulering for saksnummer ${iverksattRegulering.saksnummer}: Utsending av stønadsstatistikk feilet under automatisk regulering.",
+                        it,
+                    )
+                }
 
                 iverksattRegulering
             }
