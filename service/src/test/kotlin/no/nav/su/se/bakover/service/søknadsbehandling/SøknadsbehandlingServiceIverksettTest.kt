@@ -21,6 +21,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.kontrollsamtale.OpprettPlanlagtKontrollsamtaleResultat
@@ -223,7 +225,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     on { hent(any()) } doReturn avslagTilAttestering
                 },
                 brevService = mock {
-                    on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
+                    on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
                 },
             )
             val response = serviceAndMocks.søknadsbehandlingService.iverksett(
@@ -252,7 +254,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     }.whenever(mock).lukkOppgaveMedBruker(any())
                 },
                 brevService = mock {
-                    on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak().right()
+                    on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn dokumentUtenMetadataVedtak().right()
                 },
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -267,7 +269,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ) shouldBe expectedAvslag.right()
 
             verify(serviceAndMocks.søknadsbehandlingRepo).hent(avslagTilAttestering.id)
-            verify(serviceAndMocks.brevService).lagDokument(argThat { it shouldBe beOfType<Avslagsvedtak.AvslagBeregning>() })
+            verify(serviceAndMocks.brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe beOfType<Avslagsvedtak.AvslagBeregning>() })
             verify(serviceAndMocks.søknadsbehandlingRepo).lagre(eq(expectedAvslag), anyOrNull())
             verify(serviceAndMocks.vedtakRepo).lagre(argThat { it is Avslagsvedtak.AvslagBeregning }, anyOrNull())
             verify(serviceAndMocks.brevService).lagreDokument(
@@ -313,7 +315,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 brevService = mock {
-                    on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak().right()
+                    on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn dokumentUtenMetadataVedtak().right()
                 },
             )
 
@@ -352,7 +354,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doThrow(RuntimeException()).whenever(it).lagre(any(), anyOrNull())
                 },
                 brevService = mock {
-                    on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak().right()
+                    on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn dokumentUtenMetadataVedtak().right()
                 },
             )
 
@@ -391,7 +393,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 brevService = mock {
-                    on { lagDokument(any()) } doReturn dokumentUtenMetadataVedtak().right()
+                    on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn dokumentUtenMetadataVedtak().right()
                     doThrow(RuntimeException()).whenever(it).lagreDokument(any(), anyOrNull())
                 },
             )

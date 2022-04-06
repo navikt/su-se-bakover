@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -62,7 +63,7 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn simulertRevurdering
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Vedtak(
+                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn Dokument.UtenMetadata.Vedtak(
                     opprettet = fixedTidspunkt,
                     tittel = "tittel1",
                     generertDokument = brevPdf,
@@ -79,7 +80,7 @@ internal class LagBrevutkastForRevurderingTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(argThat { it shouldBe simulertRevurdering })
+                verify(it.brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe simulertRevurdering })
                 it.verifyNoMoreInteractions()
             }
         }
@@ -92,7 +93,7 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn RevurderingTestUtils.simulertRevurderingInnvilget
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
+                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
@@ -104,7 +105,7 @@ internal class LagBrevutkastForRevurderingTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(argThat { it shouldBe RevurderingTestUtils.simulertRevurderingInnvilget })
+                verify(it.brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe RevurderingTestUtils.simulertRevurderingInnvilget })
                 it.verifyNoMoreInteractions()
             }
         }
@@ -117,7 +118,7 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn RevurderingTestUtils.simulertRevurderingInnvilget
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
@@ -129,7 +130,7 @@ internal class LagBrevutkastForRevurderingTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(argThat { it shouldBe RevurderingTestUtils.simulertRevurderingInnvilget })
+                verify(it.brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe RevurderingTestUtils.simulertRevurderingInnvilget })
                 it.verifyNoMoreInteractions()
             }
         }
@@ -142,7 +143,7 @@ internal class LagBrevutkastForRevurderingTest {
                 on { hent(revurderingId) } doReturn RevurderingTestUtils.simulertRevurderingInnvilget
             },
             brevService = mock {
-                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
+                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
             },
         ).let {
             it.revurderingService.lagBrevutkastForRevurdering(
@@ -154,7 +155,7 @@ internal class LagBrevutkastForRevurderingTest {
                 *it.all(),
             ) {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
-                verify(it.brevService).lagDokument(argThat { it shouldBe RevurderingTestUtils.simulertRevurderingInnvilget })
+                verify(it.brevService).lagDokument(argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe RevurderingTestUtils.simulertRevurderingInnvilget })
                 it.verifyNoMoreInteractions()
             }
         }
@@ -184,7 +185,7 @@ internal class LagBrevutkastForRevurderingTest {
                     on { hent(any()) } doReturn opprettetRevurdering
                 },
                 brevService = mock {
-                    on { lagDokument(any()) } doThrow LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(
+                    on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doThrow LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(
                         opprettetRevurdering::class,
                     )
                 },
@@ -210,7 +211,7 @@ internal class LagBrevutkastForRevurderingTest {
                     on { hent(any()) } doReturn beregnget
                 },
                 brevService = mock {
-                    on { lagDokument(any()) } doThrow LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(
+                    on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doThrow LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(
                         beregnget::class,
                     )
                 },

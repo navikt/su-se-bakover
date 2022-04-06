@@ -378,7 +378,8 @@ interface LagBrevRequest {
             beregningsperioder = LagBrevinnholdForBeregning(revurdertBeregning).brevInnhold,
             fritekst = fritekst,
             sats = revurdertBeregning.getSats(),
-            satsGjeldendeFraDato = revurdertBeregning.getSats().datoForSisteEndringAvSats(revurdertBeregning.periode.tilOgMed).ddMMyyyy(),
+            satsGjeldendeFraDato = revurdertBeregning.getSats()
+                .datoForSisteEndringAvSats(revurdertBeregning.periode.tilOgMed).ddMMyyyy(),
             harEktefelle = harEktefelle,
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             tilbakekreving = tilbakekreving.tilbakekrevingavdrag,
@@ -408,7 +409,7 @@ interface LagBrevRequest {
             personalia = lagPersonalia(),
         )
 
-        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<LagBrevRequest.KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
             return genererDokument(genererPdf).map {
                 Dokument.UtenMetadata.Informasjon(
                     id = UUID.randomUUID(),
@@ -477,6 +478,31 @@ interface LagBrevRequest {
                         generertDokumentJson = it.third,
                     )
                 }
+            }
+        }
+    }
+
+    data class PåminnelseNyStønadsperiode(
+        override val person: Person,
+        override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
+        val utløpsdato: LocalDate,
+    ) : LagBrevRequest {
+        override val brevInnhold = BrevInnhold.PåminnelseNyStønadsperiode(
+            personalia = lagPersonalia(),
+            utløpsdato = utløpsdato.ddMMyyyy(),
+            halvtGrunnbeløp = Grunnbeløp.`0,5G`.heltallPåDato(utløpsdato),
+        )
+
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
+            return genererDokument(genererPdf).map {
+                Dokument.UtenMetadata.Informasjon(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
             }
         }
     }

@@ -30,6 +30,7 @@ object JournalpostFactory {
         BrevTemplate.Revurdering.AvsluttRevurdering,
         BrevTemplate.InnkallingTilKontrollsamtale,
         BrevTemplate.Klage.Oppretthold,
+        BrevTemplate.PåminnelseNyStønadsperiode,
         -> Journalpost.Info.from(person, saksnummer, brevInnhold, pdf)
     }
 

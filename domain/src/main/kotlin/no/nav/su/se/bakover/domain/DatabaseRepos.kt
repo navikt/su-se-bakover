@@ -38,4 +38,5 @@ data class DatabaseRepos(
     val avkortingsvarselRepo: AvkortingsvarselRepo,
     val reguleringRepo: ReguleringRepo,
     val tilbakekrevingRepo: TilbakekrevingRepo,
+    val jobContextRepo: JobContextRepo,
 )

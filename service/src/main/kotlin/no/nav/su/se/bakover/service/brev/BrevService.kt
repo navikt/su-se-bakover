@@ -10,6 +10,7 @@ import java.util.UUID
 
 interface BrevService {
     fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray>
+    fun lagDokument(request: LagBrevRequest): Either<KunneIkkeLageDokument, Dokument.UtenMetadata>
     fun lagreDokument(dokument: Dokument.MedMetadata)
     fun lagreDokument(dokument: Dokument.MedMetadata, transactionContext: TransactionContext)
     fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument>

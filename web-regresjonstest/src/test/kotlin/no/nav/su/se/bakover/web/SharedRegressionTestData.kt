@@ -57,7 +57,7 @@ internal object SharedRegressionTestData {
 
     private const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 
-    private val applicationConfig = ApplicationConfig(
+    internal val applicationConfig = ApplicationConfig(
         runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Test,
         naisCluster = null,
         leaderPodLookupPath = "leaderPodLookupPath",
@@ -97,10 +97,10 @@ internal object SharedRegressionTestData {
             ),
             tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
                 mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq(
-                    mottak = "tilbakekrevingMqTestSendQueue"
+                    mottak = "tilbakekrevingMqTestSendQueue",
                 ),
                 soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap(
-                    url = "tilbakekrevingUrl"
+                    url = "tilbakekrevingUrl",
                 ),
             ),
         ),
@@ -144,7 +144,7 @@ internal object SharedRegressionTestData {
         }
     }
 
-    private fun databaseRepos(
+    internal fun databaseRepos(
         dataSource: DataSource = migratedDb(),
         clock: Clock = fixedClock,
     ): DatabaseRepos {
@@ -228,7 +228,10 @@ internal object SharedRegressionTestData {
     ): TestApplicationCall {
         return handleRequest(method, uri) {
             addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-            addHeader(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken())
+            addHeader(
+                HttpHeaders.Authorization,
+                jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken(),
+            )
             setup()
         }
     }
