@@ -340,7 +340,6 @@ internal class TestDataHelper(
         dbMetrics,
     )
     internal val jobContextRepo = JobContextPostgresRepo(
-        clock = clock,
         sessionFactory = sessionFactory,
     )
 

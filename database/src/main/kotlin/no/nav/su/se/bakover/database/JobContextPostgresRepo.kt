@@ -7,6 +7,9 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.database.JobContextPostgresRepo.JobContextDb.SendPåminnelseNyStønadsperiodeContextDb.Companion.toDb
+import no.nav.su.se.bakover.database.JobContextPostgresRepo.JobContextDb.SendPåminnelseNyStønadsperiodeContextDb.Companion.toDomain
+import no.nav.su.se.bakover.database.JobContextPostgresRepo.JobContextDb.SendPåminnelseNyStønadsperiodeContextDb.Companion.toJson
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.domain.JobContext
 import no.nav.su.se.bakover.domain.JobContextId
@@ -14,11 +17,9 @@ import no.nav.su.se.bakover.domain.JobContextRepo
 import no.nav.su.se.bakover.domain.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
-import java.time.Clock
 import java.time.YearMonth
 
 internal class JobContextPostgresRepo(
-    private val clock: Clock,
     private val sessionFactory: PostgresSessionFactory,
 ) : JobContextRepo {
 
@@ -59,7 +60,7 @@ internal class JobContextPostgresRepo(
                 """.trimIndent().insert(
                     mapOf(
                         "id" to it.id,
-                        "context" to objectMapper.writeValueAsString(it),
+                        "context" to it.toJson(),
                     ),
                     session,
                 )
@@ -68,33 +69,7 @@ internal class JobContextPostgresRepo(
     }
 
     private fun Row.toJobContext(): JobContext {
-        val context = string("context").let {
-            objectMapper.readValue<JobContextDb.SendPåminnelseNyStønadsperiodeContextDb>(it)
-        }
-
-        return SendPåminnelseNyStønadsperiodeContext(
-            clock = clock,
-            id = NameAndYearMonthId(
-                jobName = context.jobName,
-                yearMonth = context.yearMonth,
-            ),
-            opprettet = context.opprettet,
-            endret = context.endret,
-            prosessert = context.prosessert.map { Saksnummer(it) }.toSet(),
-            sendt = context.sendt.map { Saksnummer(it) }.toSet(),
-        )
-    }
-
-    private fun SendPåminnelseNyStønadsperiodeContext.toDb(): JobContextDb.SendPåminnelseNyStønadsperiodeContextDb {
-        return JobContextDb.SendPåminnelseNyStønadsperiodeContextDb(
-            id = id().value(),
-            jobName = id().jobName,
-            yearMonth = id().yearMonth,
-            opprettet = opprettet(),
-            endret = endret(),
-            prosessert = prosessert().map { it.nummer },
-            sendt = sendt().map { it.nummer },
-        )
+        return string("context").toDomain()
     }
 
     @JsonTypeInfo(
@@ -118,6 +93,39 @@ internal class JobContextPostgresRepo(
             val endret: Tidspunkt,
             val prosessert: List<Long>,
             val sendt: List<Long>,
-        ) : JobContextDb()
+        ) : JobContextDb() {
+            companion object {
+                fun SendPåminnelseNyStønadsperiodeContext.toDb(): SendPåminnelseNyStønadsperiodeContextDb {
+                    return SendPåminnelseNyStønadsperiodeContextDb(
+                        id = id().value(),
+                        jobName = id().jobName,
+                        yearMonth = id().yearMonth,
+                        opprettet = opprettet(),
+                        endret = endret(),
+                        prosessert = prosessert().map { it.nummer },
+                        sendt = sendt().map { it.nummer },
+                    )
+                }
+
+                fun SendPåminnelseNyStønadsperiodeContextDb.toJson(): String {
+                    return objectMapper.writeValueAsString(this)
+                }
+
+                fun String.toDomain(): SendPåminnelseNyStønadsperiodeContext {
+                    return objectMapper.readValue<SendPåminnelseNyStønadsperiodeContextDb>(this).let {
+                        SendPåminnelseNyStønadsperiodeContext(
+                            id = NameAndYearMonthId(
+                                jobName = it.jobName,
+                                yearMonth = it.yearMonth,
+                            ),
+                            opprettet = it.opprettet,
+                            endret = it.endret,
+                            prosessert = it.prosessert.map { Saksnummer(it) }.toSet(),
+                            sendt = it.sendt.map { Saksnummer(it) }.toSet(),
+                        )
+                    }
+                }
+            }
+        }
     }
 }

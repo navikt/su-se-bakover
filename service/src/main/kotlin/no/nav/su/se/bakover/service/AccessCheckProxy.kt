@@ -910,8 +910,8 @@ open class AccessCheckProxy(
 
                 override fun hentAvventerKravgrunnlag() = kastKanKunKallesFraAnnenService()
             },
-            sendPåminnelseNyStønadsperiodeService = object : SendPåminnelseNyStønadsperiodeService {
-                override fun sendPåminnelser(): Either<KunneIkkeSendePåminnelse, SendPåminnelseNyStønadsperiodeContext> {
+            sendPåminnelserOmNyStønadsperiodeService = object : SendPåminnelserOmNyStønadsperiodeService {
+                override fun sendPåminnelser(): SendPåminnelseNyStønadsperiodeContext {
                     kastKanKunKallesFraAnnenService()
                 }
             },

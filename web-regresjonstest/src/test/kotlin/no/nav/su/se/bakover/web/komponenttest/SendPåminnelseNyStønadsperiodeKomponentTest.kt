@@ -62,7 +62,7 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 }
             }
 
-            appComponents.services.sendPåminnelseNyStønadsperiodeService.sendPåminnelser()
+            appComponents.services.sendPåminnelserOmNyStønadsperiodeService.sendPåminnelser()
 
             appComponents.databaseRepos.jobContextRepo.hent<SendPåminnelseNyStønadsperiodeContext>(
                 SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(clock),
@@ -104,7 +104,7 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
                 }
             }
 
-            appComponents.services.sendPåminnelseNyStønadsperiodeService.sendPåminnelser()
+            appComponents.services.sendPåminnelserOmNyStønadsperiodeService.sendPåminnelser()
 
             appComponents.databaseRepos.jobContextRepo.hent<SendPåminnelseNyStønadsperiodeContext>(
                 SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(clock),

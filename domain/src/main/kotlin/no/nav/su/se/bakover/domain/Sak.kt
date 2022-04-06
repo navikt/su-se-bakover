@@ -341,6 +341,14 @@ data class Sak(
         }
     }
 
+    fun ytelseUtløperVedUtløpAv(periode: Periode): Boolean {
+        return vedtakstidslinje()
+            .lastOrNull()
+            ?.let {
+                !it.erOpphør() && it.periode slutterSamtidig periode
+            } ?: false
+    }
+
     sealed interface KunneIkkeOppretteEllerOppdatereRegulering {
         object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KunneIkkeOppretteEllerOppdatereRegulering
         object HelePeriodenErOpphør : KunneIkkeOppretteEllerOppdatereRegulering

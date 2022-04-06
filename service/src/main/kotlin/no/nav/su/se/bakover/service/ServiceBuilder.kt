@@ -231,7 +231,7 @@ object ServiceBuilder {
             klageinstanshendelseService = klageinstanshendelseService,
             reguleringService = reguleringService,
             tilbakekrevingService = tilbakekrevingService,
-            sendPåminnelseNyStønadsperiodeService = SendPåminnelseNyStønadsperiodeServiceImpl(
+            sendPåminnelserOmNyStønadsperiodeService = SendPåminnelserOmNyStønadsperiodeServiceImpl(
                 clock = clock,
                 sakRepo = databaseRepos.sak,
                 sessionFactory = databaseRepos.sessionFactory,

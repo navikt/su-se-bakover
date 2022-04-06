@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 internal class JobContextPostgresRepoTest {
 
     @Test
-    fun `test`() {
+    fun `diverse inserts og updates`() {
         withMigratedDb { dataSource ->
             TestDataHelper(dataSource).let { helper ->
                 val context = SendPåminnelseNyStønadsperiodeContext(fixedClock)
@@ -29,21 +29,20 @@ internal class JobContextPostgresRepoTest {
                     repo.lagre(context, tx)
                 }
 
-                val sendtOgProsessert = context.sendt(Saksnummer(2345))
-
                 helper.sessionFactory.withTransactionContext { tx ->
-                    repo.lagre(sendtOgProsessert, tx)
+                    repo.lagre(
+                        context.copy(
+                            prosessert = setOf(Saksnummer(2345)),
+                            sendt = setOf(Saksnummer(2345)),
+                        ),
+                        tx,
+                    )
                 }
 
-                repo.hent<SendPåminnelseNyStønadsperiodeContext>(context.id()) shouldBe sendtOgProsessert
-
-                val prosessert = sendtOgProsessert.prosessert(Saksnummer(5432))
-
-                helper.sessionFactory.withTransactionContext { tx ->
-                    repo.lagre(prosessert, tx)
+                repo.hent<SendPåminnelseNyStønadsperiodeContext>(context.id())!!.let {
+                    it.prosessert() shouldBe setOf(Saksnummer(2345))
+                    it.sendt() shouldBe setOf(Saksnummer(2345))
                 }
-
-                repo.hent<SendPåminnelseNyStønadsperiodeContext>(context.id()) shouldBe prosessert
             }
         }
     }

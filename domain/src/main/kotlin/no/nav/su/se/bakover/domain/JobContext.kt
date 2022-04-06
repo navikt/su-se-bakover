@@ -1,8 +1,15 @@
 package no.nav.su.se.bakover.domain
 
+import arrow.core.Either
+import arrow.core.flatMap
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
@@ -11,21 +18,38 @@ sealed class JobContext {
 
     abstract fun id(): JobContextId
 
-    companion object {
-        enum class Typer {
-            SendPåminnelseNyStønadsperiode
-        }
+    enum class Typer {
+        SendPåminnelseNyStønadsperiode
     }
 }
 
+/**
+ * Holder oversikt over tilstanden for en instans av denne jobben, definert av [id].
+ * Dersom jobben kjøres flere ganger for samme [id], vil context gjenbrukes og oppdateres med nye verdier.
+ *
+ * @param id identifikator utledet av navneet på jobben, år og måned
+ * @param prosessert liste over alle saksnummer som har blitt prosessert av denne jobb-instansen
+ * @param sendt liste over alle saksnummer hvor det er sendt ut påminnelse om ny stønadsperiode av denne jobb-instansen.
+ *  Saker som er [sendt] er også [prosessert], men ikke nødvendigvis omvendt.
+ */
 data class SendPåminnelseNyStønadsperiodeContext(
-    private val clock: Clock,
-    private val id: NameAndYearMonthId = genererIdForTidspunkt(clock),
-    private val opprettet: Tidspunkt = Tidspunkt.now(clock),
-    private val endret: Tidspunkt = opprettet,
-    private val prosessert: Set<Saksnummer> = emptySet(),
-    private val sendt: Set<Saksnummer> = emptySet(),
+    private val id: NameAndYearMonthId,
+    private val opprettet: Tidspunkt,
+    private val endret: Tidspunkt,
+    private val prosessert: Set<Saksnummer>,
+    private val sendt: Set<Saksnummer>,
 ) : JobContext() {
+
+    constructor(
+        clock: Clock,
+        id: NameAndYearMonthId = genererIdForTidspunkt(clock),
+        opprettet: Tidspunkt = Tidspunkt.now(clock),
+        endret: Tidspunkt = opprettet,
+        prosessert: Set<Saksnummer> = emptySet(),
+        sendt: Set<Saksnummer> = emptySet(),
+    ) : this(
+        id, opprettet, endret, prosessert, sendt,
+    )
 
     override fun id(): NameAndYearMonthId {
         return id
@@ -39,7 +63,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
         return endret
     }
 
-    fun prosessert(saksnummer: Saksnummer): SendPåminnelseNyStønadsperiodeContext {
+    private fun prosessert(saksnummer: Saksnummer, clock: Clock): SendPåminnelseNyStønadsperiodeContext {
         return copy(prosessert = prosessert + saksnummer, endret = Tidspunkt.now(clock))
     }
 
@@ -51,15 +75,15 @@ data class SendPåminnelseNyStønadsperiodeContext(
         return sendt
     }
 
-    fun sendt(saksnummer: Saksnummer): SendPåminnelseNyStønadsperiodeContext {
-        return prosessert(saksnummer).copy(sendt = sendt + saksnummer, endret = Tidspunkt.now(clock))
+    private fun sendt(saksnummer: Saksnummer, clock: Clock): SendPåminnelseNyStønadsperiodeContext {
+        return prosessert(saksnummer, clock).copy(sendt = sendt + saksnummer, endret = Tidspunkt.now(clock))
     }
 
     fun oppsummering(): String {
         return """
             ${"\n"}
             ***********************************
-            Oppsummering av jobb: ${id.jobName}, tidspunkt:${Tidspunkt.now(clock)},
+            Oppsummering av jobb: ${id.jobName}, tidspunkt:${Tidspunkt.now()},
             Måned: ${id.yearMonth},
             Opprettet: $opprettet,
             Endret: $endret,
@@ -70,6 +94,58 @@ data class SendPåminnelseNyStønadsperiodeContext(
         """.trimIndent()
     }
 
+    fun uprosesserte(alle: () -> List<SakIdSaksnummerFnr>): Set<Saksnummer> {
+        return alle().map { it.saksnummer }.toSet().minus(prosessert())
+    }
+
+    private fun skalSendePåminnelse(sak: Sak): Boolean {
+        return sak.ytelseUtløperVedUtløpAv(id().tilPeriode())
+    }
+
+    fun håndter(
+        sak: Sak,
+        clock: Clock,
+        hentPerson: (fnr: Fnr) -> Either<KunneIkkeSendePåminnelse.FantIkkePerson, Person>,
+        sessionFactory: SessionFactory,
+        lagDokument: (request: LagBrevRequest.PåminnelseNyStønadsperiode) -> Either<KunneIkkeSendePåminnelse.KunneIkkeLageBrev, Dokument.UtenMetadata>,
+        lagreDokument: (dokument: Dokument.MedMetadata, tx: TransactionContext) -> Unit,
+        lagreContext: (context: SendPåminnelseNyStønadsperiodeContext, tx: TransactionContext) -> Unit,
+    ): Either<KunneIkkeSendePåminnelse, SendPåminnelseNyStønadsperiodeContext> {
+        return if (skalSendePåminnelse(sak)) {
+            hentPerson(sak.fnr)
+                .flatMap { person ->
+                    lagDokument(
+                        LagBrevRequest.PåminnelseNyStønadsperiode(
+                            person = person,
+                            dagensDato = LocalDate.now(clock),
+                            saksnummer = sak.saksnummer,
+                        ),
+                    )
+                }.map { dokument ->
+                    sessionFactory.withTransactionContext { tx ->
+                        lagreDokument(
+                            dokument.leggTilMetadata(
+                                metadata = Dokument.Metadata(
+                                    sakId = sak.id,
+                                    bestillBrev = true,
+                                ),
+                            ),
+                            tx,
+                        )
+                        sendt(sak.saksnummer, clock).also {
+                            lagreContext(it, tx)
+                        }
+                    }
+                }
+        } else {
+            sessionFactory.withTransactionContext { tx ->
+                prosessert(sak.saksnummer, clock).also {
+                    lagreContext(it, tx)
+                }
+            }.right()
+        }
+    }
+
     companion object {
         fun genererIdForTidspunkt(clock: Clock): NameAndYearMonthId {
             return NameAndYearMonthId(
@@ -78,9 +154,14 @@ data class SendPåminnelseNyStønadsperiodeContext(
             )
         }
 
-        fun type(): JobContext.Companion.Typer {
-            return JobContext.Companion.Typer.SendPåminnelseNyStønadsperiode
+        fun type(): Typer {
+            return Typer.SendPåminnelseNyStønadsperiode
         }
+    }
+
+    sealed interface KunneIkkeSendePåminnelse {
+        object FantIkkePerson : KunneIkkeSendePåminnelse
+        object KunneIkkeLageBrev : KunneIkkeSendePåminnelse
     }
 }
 

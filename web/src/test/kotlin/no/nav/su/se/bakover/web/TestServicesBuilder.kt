@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web
 
-import no.nav.su.se.bakover.service.SendPåminnelseNyStønadsperiodeService
+import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -48,7 +48,7 @@ object TestServicesBuilder {
         klageinstanshendelseService: KlageinstanshendelseService = mock(),
         regulerServices: ReguleringService = mock(),
         tilbakekrevingService: TilbakekrevingService = mock(),
-        sendPåminnelseNyStønadsperiodeService: SendPåminnelseNyStønadsperiodeService = mock(),
+        sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService = mock(),
     ): Services = Services(
         avstemming = avstemming,
         utbetaling = utbetaling,
@@ -71,6 +71,6 @@ object TestServicesBuilder {
         klageinstanshendelseService = klageinstanshendelseService,
         reguleringService = regulerServices,
         tilbakekrevingService = tilbakekrevingService,
-        sendPåminnelseNyStønadsperiodeService = sendPåminnelseNyStønadsperiodeService,
+        sendPåminnelserOmNyStønadsperiodeService = sendPåminnelserOmNyStønadsperiodeService,
     )
 }

@@ -4,7 +4,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.test.TikkendeKlokke
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDate
@@ -39,27 +38,6 @@ internal class SendPåminnelseNyStønadsperiodeContextTest {
         ).also {
             it.jobName shouldBe "SendPåminnelseNyStønadsperiode"
             it.yearMonth shouldBe YearMonth.of(2021, Month.FEBRUARY)
-        }
-    }
-
-    @Test
-    fun `oppdaterer felter`() {
-        val tikkendeKlokke = TikkendeKlokke()
-
-        val initialContext = SendPåminnelseNyStønadsperiodeContext(tikkendeKlokke)
-
-        initialContext.prosessert() shouldBe emptySet()
-
-        initialContext.prosessert(Saksnummer(3000)).also {
-            it.prosessert() shouldBe setOf(Saksnummer(3000))
-            it.endret() shouldNotBe initialContext.endret()
-        }
-
-        initialContext.sendt() shouldBe emptySet()
-        initialContext.sendt(Saksnummer(3000)).also {
-            it.prosessert() shouldBe setOf(Saksnummer(3000))
-            it.sendt() shouldBe setOf(Saksnummer(3000))
-            it.endret() shouldNotBe initialContext.endret()
         }
     }
 

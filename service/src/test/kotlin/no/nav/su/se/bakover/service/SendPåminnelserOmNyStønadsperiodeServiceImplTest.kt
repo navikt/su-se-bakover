@@ -48,7 +48,7 @@ import java.time.YearMonth
 import java.time.ZoneOffset
 import java.util.UUID
 
-internal class SendPåminnelseNyStønadsperiodeServiceImplTest {
+internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
     @Test
     fun `hopper over saker som feiler og lagrer saker som er ok`() {
         val desemberClock =
@@ -108,7 +108,7 @@ internal class SendPåminnelseNyStønadsperiodeServiceImplTest {
                 ),
             )
 
-            serviceAndMocks.service.sendPåminnelser() shouldBe expectedContext.right()
+            serviceAndMocks.service.sendPåminnelser() shouldBe expectedContext
 
             verify(serviceAndMocks.brevService).lagreDokument(
                 dokument = argThat {
@@ -207,7 +207,7 @@ internal class SendPåminnelseNyStønadsperiodeServiceImplTest {
                     Saksnummer(3001),
                     Saksnummer(3003),
                 ),
-            ).right()
+            )
         }
     }
 
@@ -314,7 +314,7 @@ internal class SendPåminnelseNyStønadsperiodeServiceImplTest {
                     Saksnummer(3002),
                     Saksnummer(3005),
                 ),
-            ).right()
+            )
         }
     }
 
@@ -339,7 +339,7 @@ internal class SendPåminnelseNyStønadsperiodeServiceImplTest {
                 endret = Tidspunkt.now(fixedClock),
                 prosessert = emptySet(),
                 sendt = emptySet(),
-            ).right()
+            )
 
             verify(it.sakRepo).hentSakIdSaksnummerOgFnrForAlleSaker()
             verify(it.jobContextRepo).hent<SendPåminnelseNyStønadsperiodeContext>(
@@ -384,7 +384,7 @@ internal class SendPåminnelseNyStønadsperiodeServiceImplTest {
                     Saksnummer(3000),
                 ),
                 sendt = emptySet(),
-            ).right()
+            )
         }
     }
 
@@ -396,7 +396,7 @@ internal class SendPåminnelseNyStønadsperiodeServiceImplTest {
         val personService: PersonService = mock(),
         val jobContextRepo: JobContextRepo = mock(),
     ) {
-        val service = SendPåminnelseNyStønadsperiodeServiceImpl(
+        val service = SendPåminnelserOmNyStønadsperiodeServiceImpl(
             clock = clock,
             sakRepo = sakRepo,
             sessionFactory = sessionFactory,

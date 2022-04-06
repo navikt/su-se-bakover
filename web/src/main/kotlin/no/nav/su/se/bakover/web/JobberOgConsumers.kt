@@ -186,7 +186,7 @@ fun startJobberOgConsumers(
             leaderPodLookup = clients.leaderPodLookup,
             intervall = Duration.of(1, ChronoUnit.DAYS),
             initialDelay = initialDelay.next(),
-            sendPåminnelseService = services.sendPåminnelseNyStønadsperiodeService,
+            sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
         ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         // Prøver å time starten på de lokale jobbene slik at heller ikke de går i beina på hverandre.
@@ -270,7 +270,7 @@ fun startJobberOgConsumers(
             leaderPodLookup = clients.leaderPodLookup,
             intervall = Duration.of(1, ChronoUnit.MINUTES),
             initialDelay = initialDelay.next(),
-            sendPåminnelseService = services.sendPåminnelseNyStønadsperiodeService,
+            sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
         ).schedule()
     }
 }
