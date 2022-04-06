@@ -179,7 +179,22 @@ data class Formuegrunnlag private constructor(
 
             konsistenssjekk(
                 bosituasjon = bosituasjon, formuegrunnlag = listOf(formuegrunnlag),
-            ).getOrHandle { return it.left() }
+            ).getOrHandle {
+                when (it) {
+                    is KunneIkkeLageFormueGrunnlag.Konsistenssjekk -> {
+                        // TODO("flere_satser fritar denne fra å ha fullstendig bosituasjon - det er midlertidig gyldig på søknadsbehandling)
+                        when (it.feil) {
+                            is Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon -> {
+                                it.feil.feil.singleOrNull { it is Konsistensproblem.Bosituasjon.Ufullstendig }?.let {
+                                    Unit.right()
+                                } ?: it.left()
+                            }
+                            else -> it.left()
+                        }
+                    }
+                    else -> it.left()
+                }
+            }
 
             if (!(behandlingsPeriode.inneholder(periode))) {
                 return KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
@@ -198,6 +213,7 @@ data class Formuegrunnlag private constructor(
                 problem.first().let { KunneIkkeLageFormueGrunnlag.Konsistenssjekk(it) }
             }
         }
+
         fun fromPersistence(
             id: UUID,
             opprettet: Tidspunkt,

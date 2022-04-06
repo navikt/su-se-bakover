@@ -168,10 +168,27 @@ internal class FormuegrunnlagTest {
         }
 
         @Test
-        fun `feiler når vi oppretter formuegrunnlag med periode som er utenfor behandlignsperioden`() {
+        fun `feiler når vi oppretter formuegrunnlag med periode som er utenfor bosituasjon`() {
             Formuegrunnlag.tryCreate(
                 id = UUID.randomUUID(),
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                opprettet = Tidspunkt.EPOCH, epsFormue = null,
+                søkersFormue = Formuegrunnlag.Verdier.empty(),
+                begrunnelse = null,
+                bosituasjon = listOf(enslig),
+                behandlingsPeriode = Periode.create(1.januar(2021), 31.mars(2021)),
+            ) shouldBe KunneIkkeLageFormueGrunnlag.Konsistenssjekk(
+                Konsistensproblem.BosituasjonOgFormue.PerioderForFormueErUtenforPerioderMedBostiuasjon
+            ).left()
+        }
+
+        @Test
+        fun `feiler når vi oppretter formuegrunnlag med periode som er utenfor behandlignsperioden`() {
+            val periode = Periode.create(1.januar(2021), 31.desember(2021))
+            val enslig = enslig.copy(periode = periode)
+            Formuegrunnlag.tryCreate(
+                id = UUID.randomUUID(),
+                periode = periode,
                 opprettet = Tidspunkt.EPOCH, epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                 begrunnelse = null,
