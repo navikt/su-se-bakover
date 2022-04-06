@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.service.toggles.ToggleService
+import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
 import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
@@ -180,6 +181,14 @@ fun startJobberOgConsumers(
                 intervall = Duration.of(15, ChronoUnit.MINUTES),
             ).schedule()
         }
+
+        SendPåminnelseNyStønadsperiodeJob(
+            leaderPodLookup = clients.leaderPodLookup,
+            intervall = Duration.of(1, ChronoUnit.DAYS),
+            initialDelay = initialDelay.next(),
+            toggleService = services.toggles,
+            sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
+        ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         // Prøver å time starten på de lokale jobbene slik at heller ikke de går i beina på hverandre.
         val initialDelay = object {
@@ -256,6 +265,14 @@ fun startJobberOgConsumers(
             leaderPodLookup = clients.leaderPodLookup,
             initialDelay = initialDelay.next(),
             intervall = Duration.ofSeconds(10),
+        ).schedule()
+
+        SendPåminnelseNyStønadsperiodeJob(
+            leaderPodLookup = clients.leaderPodLookup,
+            intervall = Duration.of(1, ChronoUnit.MINUTES),
+            initialDelay = initialDelay.next(),
+            toggleService = services.toggles,
+            sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
         ).schedule()
     }
 }

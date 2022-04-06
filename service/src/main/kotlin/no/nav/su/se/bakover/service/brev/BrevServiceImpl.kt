@@ -54,6 +54,16 @@ internal class BrevServiceImpl(
         return lagPdf(request.brevInnhold)
     }
 
+    override fun lagDokument(request: LagBrevRequest): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
+        return request.tilDokument {
+            lagBrev(it).mapLeft {
+                LagBrevRequest.KunneIkkeGenererePdf
+            }
+        }.mapLeft {
+            KunneIkkeLageDokument.KunneIkkeGenererePDF
+        }
+    }
+
     private fun journalfør(journalpost: Journalpost): Either<KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost, JournalpostId> {
         return dokArkiv.opprettJournalpost(journalpost)
             .mapLeft {
@@ -200,23 +210,17 @@ internal class BrevServiceImpl(
                 LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeLageDokument.KunneIkkeHentePerson
             }
         }.flatMap { lagBrevRequest ->
-            lagBrevRequest.tilDokument {
-                lagBrev(it).mapLeft {
-                    LagBrevRequest.KunneIkkeGenererePdf
-                }
-            }.mapLeft {
-                KunneIkkeLageDokument.KunneIkkeGenererePDF
-            }
+            lagDokument(lagBrevRequest)
         }
     }
 
     override fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<LagBrevRequestVisitor.KunneIkkeLageBrevRequest, LagBrevRequest> {
-        return lagBrevRequestVisitor().apply {
+        return LagBrevRequestVisitor().apply {
             visitable.accept(this)
         }.brevRequest
     }
 
-    private fun lagBrevRequestVisitor() =
+    private fun LagBrevRequestVisitor() =
         LagBrevRequestVisitor(
             hentPerson = { fnr ->
                 /** [no.nav.su.se.bakover.service.AccessCheckProxy] bør allerede ha sjekket om vi har tilgang til personen */

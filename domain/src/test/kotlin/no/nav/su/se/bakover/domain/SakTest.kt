@@ -4,6 +4,7 @@ import arrow.core.left
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
@@ -16,13 +17,18 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.periodeJanuar2021
 import no.nav.su.se.bakover.test.periodeMars2021
 import no.nav.su.se.bakover.test.plus
@@ -311,7 +317,7 @@ internal class SakTest {
             )
 
             sak.copy(
-                utbetalinger = sak.utbetalinger + sak2.utbetalinger
+                utbetalinger = sak.utbetalinger + sak2.utbetalinger,
             ).let {
                 it.kanUtbetalingerStansesEllerGjenopptas(fixedClock) shouldBe KanStansesEllerGjenopptas.INGEN
             }
@@ -333,7 +339,7 @@ internal class SakTest {
             )
 
             sak.copy(
-                utbetalinger = sak.utbetalinger + sak2.utbetalinger
+                utbetalinger = sak.utbetalinger + sak2.utbetalinger,
             ).let {
                 it.kanUtbetalingerStansesEllerGjenopptas(juni2021) shouldBe KanStansesEllerGjenopptas.STANS
             }
@@ -509,6 +515,42 @@ internal class SakTest {
                         stønadsperiode = stønadsperiode,
                     )
                 }
+            }
+        }
+
+        @Test
+        fun `utløp av ytelse`() {
+            val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)), "")
+            val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
+
+            vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = stønadsperiode,
+            ).let { (sak, _) ->
+                sak.ytelseUtløperVedUtløpAv(januar(2021)) shouldBe false
+                sak.ytelseUtløperVedUtløpAv(desember(2021)) shouldBe true
+                sak.ytelseUtløperVedUtløpAv(periode2021) shouldBe true
+                sak.ytelseUtløperVedUtløpAv(Periode.create(1.januar(2021), 31.desember(2025))) shouldBe false
+            }
+
+            // opphørt ytelse oppfattes ikke som utløpende
+            vedtakRevurdering(
+                stønadsperiode = stønadsperiode,
+                revurderingsperiode = revurderingsperiode,
+                vilkårOverrides = listOf(
+                    avslåttUførevilkårUtenGrunnlag(
+                        periode = revurderingsperiode,
+                    ),
+                ),
+            ).let { (sak, vedtak) ->
+                vedtak shouldBe beOfType<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
+
+                stønadsperiode.periode.tilMånedsperioder().none {
+                    sak.ytelseUtløperVedUtløpAv(it)
+                } shouldBe true
+
+                revurderingsperiode.tilMånedsperioder().none {
+                    sak.ytelseUtløperVedUtløpAv(it)
+                } shouldBe true
             }
         }
     }

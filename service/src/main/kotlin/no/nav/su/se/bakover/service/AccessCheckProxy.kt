@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -83,6 +84,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
@@ -340,6 +342,10 @@ open class AccessCheckProxy(
             },
             brev = object : BrevService {
                 override fun lagBrev(request: LagBrevRequest) = kastKanKunKallesFraAnnenService()
+
+                override fun lagDokument(request: LagBrevRequest): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
+                    kastKanKunKallesFraAnnenService()
+                }
 
                 override fun journalførOgDistribuerUtgåendeDokumenter() = kastKanKunKallesFraAnnenService()
 
@@ -903,6 +909,11 @@ open class AccessCheckProxy(
                 override fun hentAvventerKravgrunnlag(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
 
                 override fun hentAvventerKravgrunnlag() = kastKanKunKallesFraAnnenService()
+            },
+            sendPåminnelserOmNyStønadsperiodeService = object : SendPåminnelserOmNyStønadsperiodeService {
+                override fun sendPåminnelser(): SendPåminnelseNyStønadsperiodeContext {
+                    kastKanKunKallesFraAnnenService()
+                }
             },
         )
     }

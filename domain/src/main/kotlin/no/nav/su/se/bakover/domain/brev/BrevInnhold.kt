@@ -101,37 +101,6 @@ abstract class BrevInnhold {
         val harAvkorting: Boolean = beregningsperioder.harAvkorting()
     }
 
-    data class OpphørMedTilbakekrevingAvPenger(
-        val personalia: Personalia,
-        val opphørsgrunner: List<Opphørsgrunn>,
-        val avslagsparagrafer: List<Int>,
-        val sats: String,
-        val satsBeløp: Int,
-        val satsGjeldendeFraDato: String,
-        val harEktefelle: Boolean,
-        val beregningsperioder: List<Beregningsperiode>,
-        val saksbehandlerNavn: String,
-        val attestantNavn: String,
-        val fritekst: String,
-        val forventetInntektStørreEnn0: Boolean,
-        val halvGrunnbeløp: Int?,
-        val opphørsdato: String,
-        val avkortingsBeløp: Int?,
-        val tilbakekreving: List<BrevTilbakekrevingInfo>,
-        val periodeStart: String,
-        val periodeSlutt: String,
-    ) : BrevInnhold() {
-        override val brevTemplate: BrevTemplate = BrevTemplate.Opphør.OpphørMedTilbakekreving
-
-        @Suppress("unused")
-        @JsonInclude
-        val harFradrag: Boolean = beregningsperioder.harFradrag()
-
-        @Suppress("unused")
-        @JsonInclude
-        val harAvkorting: Boolean = beregningsperioder.harAvkorting()
-    }
-
     data class Personalia(
         val dato: String,
         val fødselsnummer: Fnr,
@@ -259,6 +228,14 @@ abstract class BrevInnhold {
         val personalia: Personalia,
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.InnkallingTilKontrollsamtale
+    }
+
+    data class PåminnelseNyStønadsperiode(
+        val personalia: Personalia,
+        val utløpsdato: String,
+        val halvtGrunnbeløp: Int
+    ) : BrevInnhold() {
+        override val brevTemplate = BrevTemplate.PåminnelseNyStønadsperiode
     }
 
     sealed class Klage : BrevInnhold() {

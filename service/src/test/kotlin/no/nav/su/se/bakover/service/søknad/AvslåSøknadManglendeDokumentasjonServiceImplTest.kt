@@ -17,6 +17,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
@@ -62,7 +64,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         )
 
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any()) } doReturn dokument.right()
+            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn dokument.right()
         }
 
         val sakServiceMock = mock<SakService> {
@@ -139,7 +141,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             }
             verify(serviceAndMocks.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
             verify(serviceAndMocks.brevService).lagDokument(
-                argThat { it shouldBe actualVedtak.firstValue },
+                argThat<Visitable<LagBrevRequestVisitor>> { it shouldBe actualVedtak.firstValue },
             )
             verify(serviceAndMocks.brevService).lagreDokument(
                 argThat {
@@ -178,7 +180,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         )
 
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any()) } doReturn dokument.right()
+            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn dokument.right()
         }
 
         val sakServiceMock = mock<SakService> {
@@ -254,7 +256,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             }
             verify(serviceAndMocks.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
             verify(serviceAndMocks.brevService).lagDokument(
-                argThat {
+                argThat<Visitable<LagBrevRequestVisitor>> {
                     it.shouldBeEqualToIgnoringFields(
                         expectedAvslagVilkår,
                         VedtakSomKanRevurderes::id,
@@ -350,7 +352,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         )
 
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any()) } doReturn dokument.right()
+            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn dokument.right()
         }
 
         AvslåSøknadServiceAndMocks(
@@ -378,7 +380,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 any(),
                 argThat { TestSessionFactory.transactionContext },
             )
-            verify(it.brevService).lagDokument(any())
+            verify(it.brevService).lagDokument(any<Visitable<LagBrevRequestVisitor>>())
             verify(it.brevService).lagreDokument(
                 any(),
                 argThat { TestSessionFactory.transactionContext },
@@ -401,7 +403,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         }
 
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
+            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
         }
 
         AvslåSøknadServiceAndMocks(
@@ -420,7 +422,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
 
             verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(søknadId)
             verify(serviceAndMocks.søknadsbehandlingService).opprett(SøknadsbehandlingService.OpprettRequest(søknadId = søknadId))
-            verify(serviceAndMocks.brevService).lagDokument(any())
+            verify(serviceAndMocks.brevService).lagDokument(any<Visitable<LagBrevRequestVisitor>>())
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }
