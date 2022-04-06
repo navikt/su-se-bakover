@@ -81,6 +81,7 @@ import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.fail
 import java.time.Clock
 import java.util.UUID
 
@@ -1409,6 +1410,7 @@ internal class LagBrevRequestVisitorTest {
         when (navIdentBruker) {
             is NavIdentBruker.Attestant -> attestantNavn.right()
             is NavIdentBruker.Saksbehandler -> saksbehandlerNavn.right()
+            is NavIdentBruker.Veileder -> fail("skal ikke hente navn for en veileder")
         }
 
     private fun expectedInnvilgetBeregning(id: UUID): Beregning {

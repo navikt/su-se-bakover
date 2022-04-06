@@ -61,7 +61,11 @@ internal fun Route.søknadRoutes(
                     call.svar(Feilresponser.ugyldigBody)
                 },
                 ifRight = {
-                    søknadService.nySøknad(it.toSøknadInnhold()).fold(
+                    val identBruker = when (it.forNav) {
+                        is SøknadInnholdJson.ForNavJson.DigitalSøknad -> NavIdentBruker.Veileder(call.suUserContext.navIdent)
+                        is SøknadInnholdJson.ForNavJson.Papirsøknad -> NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
+                    }
+                    søknadService.nySøknad(it.toSøknadInnhold(), identBruker).fold(
                         { kunneIkkeOppretteSøknad ->
                             call.svar(
                                 when (kunneIkkeOppretteSøknad) {

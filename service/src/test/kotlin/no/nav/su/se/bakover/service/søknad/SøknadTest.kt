@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Personopplysninger
@@ -67,6 +68,7 @@ class SøknadTest {
     private val pdf = "pdf-data".toByteArray()
     private val journalpostId = JournalpostId("1")
     private val oppgaveId = OppgaveId("2")
+    private val innsender = NavIdentBruker.Veileder("navIdent")
 
     @Test
     fun `Fant ikke person`() {
@@ -92,7 +94,7 @@ class SøknadTest {
             clock = fixedClock,
         ).apply { addObserver(observerMock) }
 
-        søknadService.nySøknad(søknadInnhold) shouldBe KunneIkkeOppretteSøknad.FantIkkePerson.left()
+        søknadService.nySøknad(søknadInnhold, innsender) shouldBe KunneIkkeOppretteSøknad.FantIkkePerson.left()
         verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
         verifyNoMoreInteractions(
             personServiceMock,
@@ -132,7 +134,7 @@ class SøknadTest {
             clock = fixedClock,
         )
 
-        val actual = søknadService.nySøknad(søknadInnhold)
+        val actual = søknadService.nySøknad(søknadInnhold, innsender)
 
         inOrder(
             personServiceMock,
@@ -235,7 +237,7 @@ class SøknadTest {
             clock = fixedClock,
         ).apply { addObserver(observerMock) }
 
-        val nySøknad = søknadService.nySøknad(søknadInnhold)
+        val nySøknad = søknadService.nySøknad(søknadInnhold, innsender)
 
         inOrder(
             personServiceMock,
@@ -255,7 +257,8 @@ class SøknadTest {
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
                     )
-                }
+                },
+                argThat { it shouldBe innsender }
             )
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
@@ -317,7 +320,7 @@ class SøknadTest {
             clock = fixedClock,
         )
 
-        val actual = søknadService.nySøknad(søknadInnhold)
+        val actual = søknadService.nySøknad(søknadInnhold, innsender)
 
         inOrder(
             personServiceMock,
@@ -336,7 +339,8 @@ class SøknadTest {
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
                     )
-                }
+                },
+                argThat { it shouldBe innsender }
             )
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
@@ -408,7 +412,7 @@ class SøknadTest {
             },
         ) {
             val søknadInnhold = SøknadInnholdTestdataBuilder.build(personopplysninger = Personopplysninger(sak.fnr))
-            val actual = service.nySøknad(søknadInnhold)
+            val actual = service.nySøknad(søknadInnhold, innsender)
             inOrder(*allMocks()) {
                 verify(personService).hentPerson(argThat { it shouldBe sak.fnr })
                 verify(sakService).hentSak(argThat<Fnr> { it shouldBe sak.fnr })
@@ -421,6 +425,7 @@ class SøknadTest {
                             søknadInnhold = søknadInnhold,
                         )
                     },
+                    argThat { it shouldBe innsender }
                 )
                 verify(søknadMetrics).incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
                 verify(pdfGenerator).genererPdf(
@@ -523,7 +528,7 @@ class SøknadTest {
             clock = fixedClock,
         )
 
-        val actual = søknadService.nySøknad(søknadInnhold)
+        val actual = søknadService.nySøknad(søknadInnhold, innsender)
         inOrder(
             personServiceMock,
             sakServiceMock,
@@ -542,7 +547,8 @@ class SøknadTest {
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
                     )
-                }
+                },
+                argThat { it shouldBe innsender }
             )
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
