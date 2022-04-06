@@ -54,11 +54,9 @@ internal class StatistikkServiceImpl(
         when (event) {
             is Event.Statistikk.SakOpprettet -> {
                 val sak = event.sak
-                personService.hentAktørId(sak.fnr).fold(
+                personService.hentAktørIdMedSystembruker(sak.fnr).fold(
                     { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
-                    { aktørId ->
-                        publiser(SakStatistikkMapper(clock).map(sak, aktørId))
-                    }
+                    { aktørId -> publiser(SakStatistikkMapper(clock).map(sak, aktørId)) }
                 )
             }
             is Event.Statistikk.SøknadStatistikk.SøknadMottatt ->
@@ -73,7 +71,7 @@ internal class StatistikkServiceImpl(
             }
             is Event.Statistikk.Vedtaksstatistikk -> {
                 sakRepo.hentSak(event.vedtak.behandling.sakId)!!.let { sak ->
-                    personService.hentAktørId(sak.fnr).fold(
+                    personService.hentAktørIdMedSystembruker(sak.fnr).fold(
                         ifLeft = { log.error("Finner ikke aktørId for person med sakId: ${sak.id}") },
                         ifRight = { aktørId ->
                             val ytelseVirkningstidspunkt = vedtakRepo.hentForSakId(event.vedtak.behandling.sakId)
