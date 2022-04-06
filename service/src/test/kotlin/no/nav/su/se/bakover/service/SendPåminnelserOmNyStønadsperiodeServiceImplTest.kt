@@ -86,7 +86,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 )
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn person().right()
+                on { hentPersonMedSystembruker(any()) } doReturn person().right()
             },
             jobContextRepo = mock {
                 on { hent<SendPåminnelseNyStønadsperiodeContext>(any()) } doReturn null
@@ -164,7 +164,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 )
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn person().right()
+                on { hentPersonMedSystembruker(any()) } doReturn person().right()
             },
             jobContextRepo = mock {
                 on { hent<SendPåminnelseNyStønadsperiodeContext>(any()) } doReturn
@@ -289,7 +289,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 )
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn person().right()
+                on { hentPersonMedSystembruker(any()) } doReturn person().right()
             },
             jobContextRepo = mock {
                 on { hent<SendPåminnelseNyStønadsperiodeContext>(any()) } doReturn null

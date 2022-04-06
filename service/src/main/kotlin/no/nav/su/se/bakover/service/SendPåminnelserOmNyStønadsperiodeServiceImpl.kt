@@ -41,7 +41,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImpl(
                     sak = sak,
                     clock = clock,
                     hentPerson = { fnr ->
-                        personService.hentPerson(fnr)
+                        personService.hentPersonMedSystembruker(fnr)
                             .mapLeft { SendPåminnelseNyStønadsperiodeContext.KunneIkkeSendePåminnelse.FantIkkePerson }
                     },
                     sessionFactory = sessionFactory,
