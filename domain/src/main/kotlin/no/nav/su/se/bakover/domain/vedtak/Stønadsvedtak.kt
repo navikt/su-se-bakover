@@ -392,6 +392,9 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                         originaltVedtak = originaltVedtak,
                     )
                 }
+                is CopyArgs.Tidslinje.Maskert -> {
+                    copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+                }
             }
 
         fun erOpphør(): Boolean {

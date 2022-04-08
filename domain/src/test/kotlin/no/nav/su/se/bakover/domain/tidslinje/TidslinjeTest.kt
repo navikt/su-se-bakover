@@ -20,12 +20,13 @@ import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
-import java.time.temporal.ChronoUnit.DAYS
 
 private data class Tidslinjeobjekt(
     override val opprettet: Tidspunkt,
@@ -34,10 +35,15 @@ private data class Tidslinjeobjekt(
     override fun copy(args: CopyArgs.Tidslinje): Tidslinjeobjekt = when (args) {
         CopyArgs.Tidslinje.Full -> this.copy()
         is CopyArgs.Tidslinje.NyPeriode -> this.copy(periode = args.periode)
+        is CopyArgs.Tidslinje.Maskert -> {
+            copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+        }
     }
 }
 
 internal class TidslinjeTest {
+
+    private val tikkendeKlokke = TikkendeKlokke(fixedClock)
 
     /**
      *  |---| a
@@ -47,7 +53,7 @@ internal class TidslinjeTest {
     @Test
     fun `ny overlapper gammel fullstendig`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
@@ -55,7 +61,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
@@ -95,7 +101,7 @@ internal class TidslinjeTest {
     @Test
     fun `kombinerer gammel og ny som ikke overlapper `() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 30.april(2021),
@@ -103,7 +109,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.mai(2021),
                 tilOgMed = 31.desember(2021),
@@ -143,7 +149,7 @@ internal class TidslinjeTest {
     @Test
     fun `kombinerer gammel og ny som ikke overlapper 2`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.mai(2021),
                 tilOgMed = 31.desember(2021),
@@ -151,7 +157,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 30.april(2021),
@@ -191,7 +197,7 @@ internal class TidslinjeTest {
     @Test
     fun `kombinerer gammel og ny som overlapper delvis framover i tid`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.juli(2021),
@@ -199,7 +205,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.april(2021),
                 tilOgMed = 31.desember(2021),
@@ -239,7 +245,7 @@ internal class TidslinjeTest {
     @Test
     fun `kombinerer gammel og ny som overlapper delvis bakover tid`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.mars(2021),
                 tilOgMed = 31.desember(2021),
@@ -247,7 +253,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 30.april(2021),
@@ -287,7 +293,7 @@ internal class TidslinjeTest {
     @Test
     fun `kombinerer gammel og ny som overlapper delvis bakover tid 2`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
@@ -295,7 +301,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.mai(2021),
@@ -336,7 +342,7 @@ internal class TidslinjeTest {
     @Test
     fun `kombinerer gammel og ny som overlapper delvis bakover og framover i tid`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.februar(2021),
                 tilOgMed = 30.november(2021),
@@ -344,7 +350,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 28.februar(2021),
@@ -352,7 +358,7 @@ internal class TidslinjeTest {
         )
 
         val c = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(2, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.oktober(2021),
                 tilOgMed = 31.desember(2021),
@@ -401,7 +407,7 @@ internal class TidslinjeTest {
     @Test
     fun `takler at kombinasjonen b, c, d fungerer uavhengig av rekkefølgen`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 30.april(2021),
@@ -409,7 +415,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.mai(2021),
                 tilOgMed = 31.januar(2022),
@@ -417,7 +423,7 @@ internal class TidslinjeTest {
         )
 
         val c = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(2, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.mai(2021),
                 tilOgMed = 31.desember(2021),
@@ -425,7 +431,7 @@ internal class TidslinjeTest {
         )
 
         val d = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(3, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.juni(2021),
                 tilOgMed = 31.desember(2021),
@@ -489,7 +495,7 @@ internal class TidslinjeTest {
     @Test
     fun `gammel overlapper ny fullstendig`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
@@ -497,7 +503,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.april(2021),
                 tilOgMed = 31.mai(2021),
@@ -544,7 +550,7 @@ internal class TidslinjeTest {
     @Test
     fun `ny erstatter siste del av gammel`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
@@ -552,7 +558,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.april(2021),
                 tilOgMed = 31.desember(2021),
@@ -594,7 +600,7 @@ internal class TidslinjeTest {
     @Test
     fun `potpurri 1`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
@@ -602,7 +608,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.juni(2021),
                 tilOgMed = 30.juni(2021),
@@ -610,7 +616,7 @@ internal class TidslinjeTest {
         )
 
         val c = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(2, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.juli(2021),
                 tilOgMed = 31.desember(2021),
@@ -618,7 +624,7 @@ internal class TidslinjeTest {
         )
 
         val d = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(3, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.mars(2021),
                 tilOgMed = 30.juni(2021),
@@ -667,7 +673,7 @@ internal class TidslinjeTest {
     @Test
     fun `potpurri 2`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
@@ -675,7 +681,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.mars(2021),
                 tilOgMed = 30.april(2021),
@@ -683,7 +689,7 @@ internal class TidslinjeTest {
         )
 
         val c = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(2, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.mai(2021),
                 tilOgMed = 31.juli(2021),
@@ -691,7 +697,7 @@ internal class TidslinjeTest {
         )
 
         val d = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(3, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.august(2021),
                 tilOgMed = 31.desember(2021),
@@ -746,7 +752,7 @@ internal class TidslinjeTest {
     @Test
     fun `kombinerer gammel og ny hvor ny verken overlapper eller tilstøter`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
@@ -754,7 +760,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.mars(2021),
@@ -762,7 +768,7 @@ internal class TidslinjeTest {
         )
 
         val c = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(2, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.juli(2021),
                 tilOgMed = 31.desember(2021),
@@ -809,7 +815,7 @@ internal class TidslinjeTest {
     @Test
     fun `kombinerer gammel og ny som er fullstendig adskilt i tid`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.mars(2021),
@@ -817,7 +823,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.juli(2021),
                 tilOgMed = 31.desember(2021),
@@ -859,7 +865,7 @@ internal class TidslinjeTest {
     @Test
     fun `overskriver gamle med nyere`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.februar(2021),
                 tilOgMed = 31.desember(2021),
@@ -867,7 +873,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.mars(2021),
                 tilOgMed = 31.desember(2021),
@@ -875,7 +881,7 @@ internal class TidslinjeTest {
         )
 
         val c = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(2, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.juli(2021),
                 tilOgMed = 31.desember(2021),
@@ -883,7 +889,7 @@ internal class TidslinjeTest {
         )
 
         val d = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(3, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
@@ -918,7 +924,7 @@ internal class TidslinjeTest {
     @Test
     fun `potpurri 3`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.februar(2021),
                 tilOgMed = 31.mai(2021),
@@ -926,7 +932,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 30.juni(2021),
@@ -934,7 +940,7 @@ internal class TidslinjeTest {
         )
 
         val c = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(2, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.juni(2021),
                 tilOgMed = 31.desember(2021),
@@ -942,7 +948,7 @@ internal class TidslinjeTest {
         )
 
         val d = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(3, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.april(2021),
                 tilOgMed = 30.juni(2021),
@@ -990,7 +996,7 @@ internal class TidslinjeTest {
     @Test
     fun `potpurri 4`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.oktober(2021),
@@ -998,7 +1004,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.mars(2021),
                 tilOgMed = 31.desember(2021),
@@ -1006,7 +1012,7 @@ internal class TidslinjeTest {
         )
 
         val c = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(2, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.juni(2021),
                 tilOgMed = 31.juli(2021),
@@ -1055,7 +1061,7 @@ internal class TidslinjeTest {
     @Test
     fun `kan lage tidslinje for forskjellige typer objekter`() {
         val a = Grunnlag.Uføregrunnlag(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
@@ -1065,7 +1071,7 @@ internal class TidslinjeTest {
         )
 
         val b = Grunnlag.Uføregrunnlag(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
@@ -1119,7 +1125,7 @@ internal class TidslinjeTest {
     @Test
     fun `justerer tidslinjen i forhold til perioden som etterspørres`() {
         val a = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
@@ -1127,7 +1133,7 @@ internal class TidslinjeTest {
         )
 
         val b = Tidslinjeobjekt(
-            opprettet = fixedTidspunkt.plus(1, DAYS),
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(
                 fraOgMed = 1.april(2021),
                 tilOgMed = 31.mai(2021),
@@ -1230,7 +1236,7 @@ internal class TidslinjeTest {
             Tidslinje.Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
-                        opprettet = fixedTidspunkt,
+                        opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = Periode.create(
                             fraOgMed = 1.januar(2021),
                             tilOgMed = 31.desember(2021),
@@ -1243,14 +1249,14 @@ internal class TidslinjeTest {
             Tidslinje.Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
-                        opprettet = fixedTidspunkt,
+                        opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = Periode.create(
                             fraOgMed = 1.januar(2021),
                             tilOgMed = 31.desember(2021),
                         ),
                     ),
                     Tidslinjeobjekt(
-                        opprettet = fixedTidspunkt.plus(1, DAYS),
+                        opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = Periode.create(
                             fraOgMed = 1.januar(2021),
                             tilOgMed = 31.desember(2021),
@@ -1264,21 +1270,21 @@ internal class TidslinjeTest {
             Tidslinje.Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
-                        opprettet = fixedTidspunkt,
+                        opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = Periode.create(
                             fraOgMed = 1.januar(2021),
                             tilOgMed = 30.april(2021),
                         ),
                     ),
                     Tidslinjeobjekt(
-                        opprettet = fixedTidspunkt.plus(1, DAYS),
+                        opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = Periode.create(
                             fraOgMed = 1.mai(2021),
                             tilOgMed = 31.desember(2021),
                         ),
                     ),
                     Tidslinjeobjekt(
-                        opprettet = fixedTidspunkt.plus(1, DAYS),
+                        opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = Periode.create(
                             fraOgMed = 1.mai(2021),
                             tilOgMed = 31.juli(2021),
@@ -1295,14 +1301,14 @@ internal class TidslinjeTest {
             Tidslinje.Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
-                        opprettet = fixedTidspunkt,
+                        opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = Periode.create(
                             fraOgMed = 1.januar(2021),
                             tilOgMed = 31.desember(2021),
                         ),
                     ),
                     Tidslinjeobjekt(
-                        opprettet = fixedTidspunkt.plus(1, DAYS),
+                        opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = Periode.create(
                             fraOgMed = 1.mai(2021),
                             tilOgMed = 31.desember(2021),
@@ -1316,21 +1322,21 @@ internal class TidslinjeTest {
             Tidslinje.Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
-                        opprettet = fixedTidspunkt,
+                        opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = Periode.create(
                             fraOgMed = 1.januar(2021),
                             tilOgMed = 30.april(2021),
                         ),
                     ),
                     Tidslinjeobjekt(
-                        opprettet = fixedTidspunkt.plus(1, DAYS),
+                        opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = Periode.create(
                             fraOgMed = 1.mai(2021),
                             tilOgMed = 31.desember(2021),
                         ),
                     ),
                     Tidslinjeobjekt(
-                        opprettet = fixedTidspunkt.plus(1, DAYS),
+                        opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = Periode.create(
                             fraOgMed = 1.august(2021),
                             tilOgMed = 31.desember(2021),
@@ -1347,14 +1353,14 @@ internal class TidslinjeTest {
             Tidslinje.Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
-                        opprettet = fixedTidspunkt,
+                        opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = Periode.create(
                             fraOgMed = 1.januar(2021),
                             tilOgMed = 31.desember(2021),
                         ),
                     ),
                     Tidslinjeobjekt(
-                        opprettet = fixedTidspunkt.plus(1, DAYS),
+                        opprettet = Tidspunkt.now(tikkendeKlokke),
                         periode = Periode.create(
                             fraOgMed = 1.juni(2021),
                             tilOgMed = 31.oktober(2021),
@@ -1363,5 +1369,159 @@ internal class TidslinjeTest {
                 ),
             )
         }.message shouldBe "Tidslinje har elementer med overlappende perioder!"
+    }
+
+    @Nested
+    inner class Maskering {
+        @Test
+        fun `maskerer en enkelt verdi`() {
+            val a = Tidslinjeobjekt(
+                opprettet = Tidspunkt.now(tikkendeKlokke),
+                periode = Periode.create(
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.mars(2021),
+                ),
+            )
+
+            Tidslinje(
+                periode = Periode.create(
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.mars(2021),
+                ),
+                objekter = a.masker(),
+                clock = fixedClock,
+            ).tidslinje shouldBe emptyList()
+        }
+
+        @Test
+        fun `maskerer en enkelt verdi for en gitt periode og justerer tidslinjen i henhold`() {
+            val a = Tidslinjeobjekt(
+                opprettet = Tidspunkt.now(tikkendeKlokke),
+                periode = Periode.create(
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.mars(2021),
+                ),
+            )
+
+            Tidslinje(
+                periode = Periode.create(
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.mars(2021),
+                ),
+                objekter = a.masker(Periode.create(1.februar(2021), 28.februar(2021))),
+                clock = fixedClock,
+            ).tidslinje shouldBe listOf(
+                Tidslinjeobjekt(
+                    opprettet = a.opprettet,
+                    periode = Periode.create(
+                        fraOgMed = 1.januar(2021),
+                        tilOgMed = 31.januar(2021),
+                    ),
+                ),
+                Tidslinjeobjekt(
+                    opprettet = a.opprettet,
+                    periode = Periode.create(
+                        fraOgMed = 1.mars(2021),
+                        tilOgMed = 31.mars(2021),
+                    ),
+                ),
+            )
+        }
+
+        @Test
+        fun `maskerer en av flere verdier`() {
+            val a = Tidslinjeobjekt(
+                opprettet = Tidspunkt.now(tikkendeKlokke),
+                periode = Periode.create(
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.mars(2021),
+                ),
+            )
+
+            val b = Tidslinjeobjekt(
+                opprettet = Tidspunkt.now(tikkendeKlokke),
+                periode = Periode.create(
+                    fraOgMed = 1.februar(2021),
+                    tilOgMed = 28.februar(2021),
+                ),
+            )
+
+            Tidslinje(
+                periode = Periode.create(
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.mars(2021),
+                ),
+                objekter = a.masker() + b,
+                clock = tikkendeKlokke,
+            ).tidslinje shouldBe listOf(
+                Tidslinjeobjekt(
+                    opprettet = b.opprettet,
+                    periode = Periode.create(
+                        fraOgMed = 1.februar(2021),
+                        tilOgMed = 28.februar(2021),
+                    ),
+                ),
+            )
+        }
+
+        @Test
+        @Disabled
+        fun `maskerer verdier potpurri`() {
+            val a = Tidslinjeobjekt(
+                opprettet = Tidspunkt.now(tikkendeKlokke),
+                periode = Periode.create(
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.desember(2021),
+                ),
+            )
+
+            val b = Tidslinjeobjekt(
+                opprettet = Tidspunkt.now(tikkendeKlokke),
+                periode = Periode.create(
+                    fraOgMed = 1.februar(2021),
+                    tilOgMed = 28.februar(2021),
+                ),
+            )
+
+            val c = Tidslinjeobjekt(
+                opprettet = Tidspunkt.now(tikkendeKlokke),
+                periode = Periode.create(
+                    fraOgMed = 1.november(2021),
+                    tilOgMed = 31.desember(2021),
+                ),
+            )
+
+            val d = Tidslinjeobjekt(
+                opprettet = Tidspunkt.now(tikkendeKlokke),
+                periode = Periode.create(
+                    fraOgMed = 1.mai(2021),
+                    tilOgMed = 31.desember(2021),
+                ),
+            )
+
+            Tidslinje(
+                periode = Periode.create(
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.desember(2021),
+                ),
+                objekter = listOf(a) + b.masker() + c.masker() + listOf(d),
+                clock = tikkendeKlokke,
+            ).tidslinje shouldBe listOf(
+                Tidslinjeobjekt(
+                    opprettet = a.opprettet,
+                    periode = Periode.create(
+                        fraOgMed = 1.januar(2021),
+                        tilOgMed = 30.april(2021),
+                    ),
+                ),
+                Tidslinjeobjekt(
+                    opprettet = d.opprettet,
+                    periode = Periode.create(
+                        fraOgMed = 1.mai(2021),
+                        tilOgMed = 31.desember(2021),
+                    ),
+                ),
+            )
+        }
     }
 }

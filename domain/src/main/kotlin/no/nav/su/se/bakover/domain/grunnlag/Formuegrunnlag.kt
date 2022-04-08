@@ -223,6 +223,9 @@ data class Formuegrunnlag private constructor(
         is CopyArgs.Tidslinje.NyPeriode -> {
             this.copy(id = UUID.randomUUID(), periode = args.periode)
         }
+        is CopyArgs.Tidslinje.Maskert -> {
+            copy(args).copy(opprettet = opprettet.plusUnits(1))
+        }
     }
 }
 
