@@ -127,6 +127,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon -> throw IllegalStateException("Bosituasjonsperioden har blitt satt feil sammenlignet med fradrag")
                 KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag -> throw IllegalStateException("Dette er metoden for å oppdatere bosituasjon. Vi har en implementasjonsfeil ved at fradrag blir lagt til uten bosituasjon")
                 is KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag -> throw IllegalStateException("Eneste endringen vi potensialt har gjort, er å fjerne fradrag for EPS")
+                is KunneIkkeLageGrunnlagsdata.Konsistenssjekk -> throw IllegalStateException("Inkonsistens mellom bosituasjon og fradrag: ${it.feil::class}")
             }
         }
         val oppdatertBehandlingsinformasjon = this.behandlingsinformasjon.copy(
@@ -332,11 +333,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         begrunnelse: String?,
         clock: Clock,
     ): Beregning {
-        return BeregningStrategyFactory(clock).beregn(
-            grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
-            beregningsPeriode = søknadsbehandling.periode,
-            begrunnelse = begrunnelse,
-        )
+        return BeregningStrategyFactory(clock).beregn(søknadsbehandling, begrunnelse)
     }
 
     /**

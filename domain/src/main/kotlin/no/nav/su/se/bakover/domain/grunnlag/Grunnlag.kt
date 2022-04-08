@@ -8,6 +8,7 @@ import arrow.core.right
 import arrow.core.sequenceEither
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.periode.reduser
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -286,8 +287,9 @@ sealed class Grunnlag {
             fun List<Bosituasjon>.allPerioderMedEPS(): List<Periode> {
                 return filter { it.harEPS() }.map { it.periode }.reduser()
             }
+
             fun List<Bosituasjon>.harOverlappende(): Boolean {
-                return all { p1 -> minus(p1).any { p2 -> p1.periode overlapper p2.periode } }
+                return map { it.periode }.harOverlappende()
             }
 
             /**

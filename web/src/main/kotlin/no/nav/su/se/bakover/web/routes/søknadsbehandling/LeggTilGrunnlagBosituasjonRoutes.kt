@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.harIkkeEktefelle
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
@@ -183,6 +184,12 @@ internal fun KunneIkkeLageGrunnlagsdata.tilResultat(): Resultat {
             "må_ha_bosituasjon_før_fradrag",
         )
         is KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag -> this.feil.tilResultat()
+        is KunneIkkeLageGrunnlagsdata.Konsistenssjekk -> this.feil.tilResultat().let {
+            HttpStatusCode.BadRequest.errorJson(
+                it.message,
+                it.code!!,
+            )
+        }
     }
 }
 

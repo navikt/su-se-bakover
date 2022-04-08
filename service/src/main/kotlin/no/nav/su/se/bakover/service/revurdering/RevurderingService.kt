@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import arrow.core.sequenceEither
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
@@ -12,6 +13,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -127,7 +129,7 @@ interface RevurderingService {
     ): Either<KunneIkkeLeggeTilFradragsgrunnlag, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilBosituasjongrunnlag(
-        request: LeggTilBosituasjongrunnlagRequest,
+        request: LeggTilBosituasjonerRequest,
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilFormuegrunnlag(
@@ -268,7 +270,7 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
 
     object TilbakekrevingsbehandlingErIkkeFullstendig : KunneIkkeSendeRevurderingTilAttestering()
     data class SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
-        val revurderingId: UUID
+        val revurderingId: UUID,
     ) : KunneIkkeSendeRevurderingTilAttestering()
 }
 
@@ -361,6 +363,7 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
 
     data class KunneIkkeEndreBosituasjongrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
         KunneIkkeLeggeTilBosituasjongrunnlag()
+    data class Konsistenssjekk(val feil: Konsistensproblem.Bosituasjon) : KunneIkkeLeggeTilBosituasjongrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFormuegrunnlag {
@@ -485,15 +488,31 @@ sealed class KunneIkkeLageBrevutkastForAvsluttingAvRevurdering {
     object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
 }
 
-data class LeggTilBosituasjongrunnlagRequest(
+data class LeggTilBosituasjonerRequest(
     val revurderingId: UUID,
+    val bosituasjoner: List<LeggTilBosituasjonRequest>,
+) {
+    fun toDomain(
+        clock: Clock,
+        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
+    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, List<Grunnlag.Bosituasjon.Fullstendig>> {
+        return bosituasjoner.map {
+            it.toDomain(
+                clock = clock,
+                hentPerson = hentPerson,
+            )
+        }.sequenceEither()
+    }
+}
+
+data class LeggTilBosituasjonRequest(
+    val periode: Periode,
     val epsFnr: String?,
     val delerBolig: Boolean?,
     val ektemakeEllerSamboerUførFlyktning: Boolean?,
     val begrunnelse: String?,
 ) {
     fun toDomain(
-        periode: Periode,
         clock: Clock,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, Grunnlag.Bosituasjon.Fullstendig> {

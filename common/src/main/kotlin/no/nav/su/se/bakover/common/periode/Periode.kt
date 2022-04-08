@@ -209,6 +209,10 @@ fun List<Periode>.inneholderAlle(other: List<Periode>): Boolean {
     return (other.flatMap { it.tilMånedsperioder() }.minusListe(flatMap { it.tilMånedsperioder() })).isEmpty()
 }
 
+fun List<Periode>.harOverlappende(): Boolean {
+    return if (isEmpty()) false else this.all { p1 -> this.minus(p1).any { p2 -> p1 overlapper p2 } }
+}
+
 fun januar(year: Int) = 1.januar(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
 fun februar(year: Int) = 1.februar(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
 fun mars(year: Int) = 1.mars(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }

@@ -44,7 +44,7 @@ class LeggTilBosituasjonTest {
             revurdering.vilkårsvurderinger.formue.harEPSFormue() shouldBe true
 
             revurdering.oppdaterBosituasjonOgMarkerSomVurdert(
-                bosituasjongrunnlagEnslig(periode = periode2021),
+                listOf(bosituasjongrunnlagEnslig(periode = periode2021)),
             ).getOrFail().let { oppdatert ->
                 oppdatert.grunnlagsdata.bosituasjon.harEPS() shouldBe false
                 oppdatert.grunnlagsdata.fradragsgrunnlag.filter { it.tilhørerEps() } shouldHaveSize 0
@@ -79,12 +79,14 @@ class LeggTilBosituasjonTest {
             revurdering.vilkårsvurderinger.formue.harEPSFormue() shouldBe true
 
             revurdering.oppdaterBosituasjonOgMarkerSomVurdert(
-                bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    periode = periode2021,
-                    fnr = epsFnr,
-                    begrunnelse = null,
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = periode2021,
+                        fnr = epsFnr,
+                        begrunnelse = null,
+                    )
                 ),
             ).getOrFail().let { oppdatert ->
                 oppdatert.grunnlagsdata.bosituasjon.harEPS() shouldBe true

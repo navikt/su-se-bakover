@@ -6,6 +6,9 @@ import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 
@@ -35,7 +38,31 @@ data class Beregningsperiode(
 }
 
 class BeregningStrategyFactory(val clock: Clock) {
-    fun beregn(
+    fun beregn(revurdering: Revurdering): Beregning {
+        return beregn(
+            grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
+            beregningsPeriode = revurdering.periode,
+            begrunnelse = null
+        )
+    }
+
+    fun beregn(søknadsbehandling: Søknadsbehandling, begrunnelse: String?): Beregning {
+        return beregn(
+            grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
+            beregningsPeriode = søknadsbehandling.periode,
+            begrunnelse = begrunnelse
+        )
+    }
+
+    fun beregn(regulering: Regulering, begrunnelse: String?): Beregning {
+        return beregn(
+            grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
+            beregningsPeriode = regulering.periode,
+            begrunnelse = begrunnelse
+        )
+    }
+
+    private fun beregn(
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger,
         beregningsPeriode: Periode,
         begrunnelse: String?,

@@ -386,29 +386,29 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjongrunnlagRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse> {
+    override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjonerRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse> {
         val revurdering = hent(request.revurderingId)
             .getOrHandle { return KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling.left() }
 
-        val bosituasjongrunnlag =
-            request.toDomain(
-                periode = revurdering.periode,
-                clock = clock,
-            ) {
-                personService.hentPerson(it)
-            }.getOrHandle {
-                return it.left()
-            }
+        val bosituasjongrunnlag = request.toDomain(
+            clock = clock,
+        ) {
+            personService.hentPerson(it)
+        }.getOrHandle {
+            return it.left()
+        }
 
         return revurdering.oppdaterBosituasjonOgMarkerSomVurdert(bosituasjongrunnlag).mapLeft {
             when (it) {
-                is Revurdering.KunneIkkeLeggeTilBosituasjon.Valideringsfeil -> KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeEndreBosituasjongrunnlag(
-                    it.feil,
-                )
-                is Revurdering.KunneIkkeLeggeTilBosituasjon.UgyldigTilstand -> KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(
-                    fra = it.fra,
-                    til = it.til,
-                )
+                is Revurdering.KunneIkkeLeggeTilBosituasjon.Valideringsfeil -> {
+                    KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeEndreBosituasjongrunnlag(it.feil)
+                }
+                is Revurdering.KunneIkkeLeggeTilBosituasjon.UgyldigTilstand -> {
+                    KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(it.fra, it.til)
+                }
+                is Revurdering.KunneIkkeLeggeTilBosituasjon.Konsistenssjekk -> {
+                    KunneIkkeLeggeTilBosituasjongrunnlag.Konsistenssjekk(it.feil)
+                }
             }
         }.map {
             revurderingRepo.lagre(it)
@@ -729,7 +729,7 @@ internal class RevurderingServiceImpl(
                                     ),
                                 )
                             },
-                            tilbakekrevingTillatt = feilutbetalingTillatt()
+                            tilbakekrevingTillatt = feilutbetalingTillatt(),
                         ).mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }
                             .map { simulert ->
                                 revurderingRepo.lagre(simulert)

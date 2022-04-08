@@ -60,16 +60,14 @@ data class SjekkOmGrunnlagErKonsistent(
 
         private fun bosituasjon(bosituasjon: List<Grunnlag.Bosituasjon>): Either<Set<Konsistensproblem.Bosituasjon>, Unit> {
             mutableSetOf<Konsistensproblem.Bosituasjon>().apply {
-                when {
-                    bosituasjon.isEmpty() -> {
-                        add(Konsistensproblem.Bosituasjon.Mangler)
-                    }
-                    bosituasjon.any { it is Grunnlag.Bosituasjon.Ufullstendig } -> {
-                        add(Konsistensproblem.Bosituasjon.Ufullstendig)
-                    }
-                    bosituasjon.harOverlappende() -> {
-                        add(Konsistensproblem.Bosituasjon.Overlapp)
-                    }
+                if (bosituasjon.isEmpty()) {
+                    add(Konsistensproblem.Bosituasjon.Mangler)
+                }
+                if (bosituasjon.any { it is Grunnlag.Bosituasjon.Ufullstendig }) {
+                    add(Konsistensproblem.Bosituasjon.Ufullstendig)
+                }
+                if (bosituasjon.harOverlappende()) {
+                    add(Konsistensproblem.Bosituasjon.Overlapp)
                 }
                 return if (this.isEmpty()) Unit.right() else this.left()
             }

@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
-import no.nav.su.se.bakover.web.routes.revurdering.tilResultat
 import kotlin.reflect.KClass
 
 internal object Feilresponser {
@@ -256,6 +255,16 @@ internal object Feilresponser {
     val kunneIkkeLeggeTilBosituasjonsgrunnlag = BadRequest.errorJson(
         "Kunne ikke legge til bosituasjonsgrunnlag",
         "kunne_ikke_legge_til_bosituasjonsgrunnlag",
+    )
+
+    val bosituasjonMangler = BadRequest.errorJson(
+        "Bosituajson mangler",
+        "bosituasjon_mangler"
+    )
+
+    val bosituasjonErUfullstendig = BadRequest.errorJson(
+        "Bosituasjon er ufullstendig",
+        "bosituasjon_ufullstendig"
     )
 
     val kunneIkkeLeggeTilFradragsgrunnlag = BadRequest.errorJson(

@@ -771,4 +771,24 @@ internal class PeriodeTest {
             ),
         ) shouldBe false
     }
+
+    @Test
+    fun `overlappende`() {
+        listOf(
+            januar(2021),
+            januar(2021),
+        ).harOverlappende() shouldBe true
+
+        listOf(
+            januar(2021),
+            februar(2021),
+        ).harOverlappende() shouldBe false
+
+        listOf<Periode>().harOverlappende() shouldBe false
+
+        listOf(
+            mai(2021),
+            Periode.create(1.januar(2021), 31.desember(2021)),
+        ).harOverlappende() shouldBe true
+    }
 }
