@@ -9,7 +9,7 @@ import java.util.LinkedList
 
 data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
     private val periode: Periode,
-    private val objekter: List<T>,
+    private val objekter: List<KanPlasseresPåTidslinje<T>>,
     private val clock: Clock = Clock.systemUTC(),
 ) {
 
@@ -23,6 +23,7 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
 
     val tidslinje: List<T> = lagTidslinje()
         .sortedWith(stigendeFraOgMed)
+        .filterNot { it is MaskerFraTidslinje<*> }
 
     init {
         valider(this.tidslinje)
@@ -38,6 +39,8 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
 
     private fun lagTidslinje(): List<T> {
         if (objekter.isEmpty()) return emptyList()
+
+        // val umaskerte = objekter.filterNot { it is MaskerFraTidslinje<*> }
 
         val overlappMedPeriode = objekter
             .filter { it.periode overlapper periode }
@@ -201,7 +204,7 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
         }
     }
 
-    private fun List<T>.justerFraOgMedForElementerDelvisUtenforPeriode(): List<T> {
+    private fun List<KanPlasseresPåTidslinje<T>>.justerFraOgMedForElementerDelvisUtenforPeriode(): List<T> {
         return map {
             if (it.periode starterTidligere periode) {
                 it.copy(
@@ -218,7 +221,7 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
         }
     }
 
-    private fun List<T>.justerTilOgMedForElementerDelvisUtenforPeriode(): List<T> {
+    private fun List<KanPlasseresPåTidslinje<T>>.justerTilOgMedForElementerDelvisUtenforPeriode(): List<T> {
         return map {
             if (it.periode slutterEtter periode) {
                 it.copy(
@@ -235,10 +238,10 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
         }
     }
 
-    private fun List<T>.overlappMedAndreEksisterer(): Boolean {
+    private fun List<KanPlasseresPåTidslinje<T>>.overlappMedAndreEksisterer(): Boolean {
         return filter { t1 ->
             any { t2 -> t1 != t2 && t1.periode overlapper t2.periode }
-        }.count() > 0
+        }.isNotEmpty()
     }
 
     private fun List<T>.filtrerVekkAlleSomOverskivesFullstendigAvNyere(): List<T> {

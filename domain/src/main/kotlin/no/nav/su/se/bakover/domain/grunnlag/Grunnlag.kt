@@ -61,6 +61,9 @@ sealed class Grunnlag {
             is CopyArgs.Tidslinje.NyPeriode -> {
                 this.copy(id = UUID.randomUUID(), periode = args.periode)
             }
+            is CopyArgs.Tidslinje.Maskert -> {
+                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+            }
         }
 
         /**

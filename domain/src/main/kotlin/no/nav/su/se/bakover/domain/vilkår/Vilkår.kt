@@ -792,6 +792,9 @@ sealed class Vurderingsperiode {
                     grunnlag = grunnlag?.copy(args),
                 )
             }
+            is CopyArgs.Tidslinje.Maskert -> {
+                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+            }
         }
 
         /**
@@ -878,6 +881,9 @@ sealed class Vurderingsperiode {
                     periode = args.periode,
                     grunnlag = grunnlag.copy(args),
                 )
+            }
+            is CopyArgs.Tidslinje.Maskert -> {
+                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
             }
         }
 
