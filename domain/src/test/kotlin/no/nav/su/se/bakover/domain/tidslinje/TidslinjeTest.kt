@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -1388,7 +1387,7 @@ internal class TidslinjeTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.mars(2021),
                 ),
-                objekter = a.masker(),
+                objekter = a.maskerFraTidslinje(),
                 clock = fixedClock,
             ).tidslinje shouldBe emptyList()
         }
@@ -1408,7 +1407,7 @@ internal class TidslinjeTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.mars(2021),
                 ),
-                objekter = a.masker(Periode.create(1.februar(2021), 28.februar(2021))),
+                objekter = a.maskerFraTidslinje(Periode.create(1.februar(2021), 28.februar(2021))),
                 clock = fixedClock,
             ).tidslinje shouldBe listOf(
                 Tidslinjeobjekt(
@@ -1451,7 +1450,7 @@ internal class TidslinjeTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.mars(2021),
                 ),
-                objekter = a.masker() + b,
+                objekter = a.maskerFraTidslinje() + b,
                 clock = tikkendeKlokke,
             ).tidslinje shouldBe listOf(
                 Tidslinjeobjekt(
@@ -1465,7 +1464,6 @@ internal class TidslinjeTest {
         }
 
         @Test
-        @Disabled
         fun `maskerer verdier potpurri`() {
             val a = Tidslinjeobjekt(
                 opprettet = Tidspunkt.now(tikkendeKlokke),
@@ -1504,7 +1502,7 @@ internal class TidslinjeTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                 ),
-                objekter = listOf(a) + b.masker() + c.masker() + listOf(d),
+                objekter = listOf(a) + b.maskerFraTidslinje() + c.maskerFraTidslinje() + listOf(d),
                 clock = tikkendeKlokke,
             ).tidslinje shouldBe listOf(
                 Tidslinjeobjekt(

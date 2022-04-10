@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.tidslinje
 
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
+import no.nav.su.se.bakover.common.periode.inneholderAlle
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Copyable
 import no.nav.su.se.bakover.domain.OriginaltTidsstempel
@@ -23,11 +24,24 @@ data class MaskerFraTidslinje<T : KanPlasseresPåTidslinje<T>>(
 }
 
 @Suppress("UNCHECKED_CAST")
-fun <T : KanPlasseresPåTidslinje<T>> KanPlasseresPåTidslinje<T>.masker(): List<KanPlasseresPåTidslinje<T>> {
-    return listOf(this, MaskerFraTidslinje(this) as T)
+fun <T : KanPlasseresPåTidslinje<T>> KanPlasseresPåTidslinje<T>.masker(periode: Periode = this.periode): MaskerFraTidslinje<T> {
+    return MaskerFraTidslinje(this.copy(CopyArgs.Tidslinje.NyPeriode(periode)))
 }
 
 @Suppress("UNCHECKED_CAST")
-fun <T : KanPlasseresPåTidslinje<T>> KanPlasseresPåTidslinje<T>.masker(periode: Periode): List<KanPlasseresPåTidslinje<T>> {
-    return listOf(this, MaskerFraTidslinje(this.copy(CopyArgs.Tidslinje.NyPeriode(periode))))
+fun <T : KanPlasseresPåTidslinje<T>> KanPlasseresPåTidslinje<T>.maskerFraTidslinje(): List<KanPlasseresPåTidslinje<T>> {
+    return maskerFraTidslinje(this.periode)
+}
+
+
+@Suppress("UNCHECKED_CAST")
+fun <T : KanPlasseresPåTidslinje<T>> KanPlasseresPåTidslinje<T>.maskerFraTidslinje(vararg perioder: Periode): List<KanPlasseresPåTidslinje<T>> {
+    return perioder.map {
+        masker(it)
+    }.let { maskert ->
+        Tidslinje(
+            periode = periode,
+            objekter = maskert + this,
+        ).tidslinje.filterNot { it is MaskerFraTidslinje<*> }
+    }
 }
