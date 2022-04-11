@@ -1,7 +1,7 @@
 plugins {
     kotlin("jvm")
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
-    id("org.jmailen.kotlinter") version "3.9.0"
+    id("org.jmailen.kotlinter") version "3.10.0"
 }
 
 version = "0.0.1"
