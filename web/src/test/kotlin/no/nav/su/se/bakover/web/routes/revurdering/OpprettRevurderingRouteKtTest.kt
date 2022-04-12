@@ -4,10 +4,10 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -50,7 +50,7 @@ internal class OpprettRevurderingRouteKtTest {
 
     @Test
     fun `uautoriserte kan ikke opprette revurdering`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover()
             },
@@ -62,7 +62,7 @@ internal class OpprettRevurderingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
+                status shouldBe HttpStatusCode.Forbidden
                 JSONAssert.assertEquals(
                     """
                     {
@@ -101,7 +101,7 @@ internal class OpprettRevurderingRouteKtTest {
             on { opprettRevurdering(any()) } doReturn opprettetRevurdering.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             },
@@ -122,7 +122,7 @@ internal class OpprettRevurderingRouteKtTest {
                     """.trimMargin(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
                 val actualResponse = objectMapper.readValue<OpprettetRevurderingJson>(response.content!!)
                 actualResponse.id shouldBe opprettetRevurdering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.OPPRETTET
@@ -227,7 +227,7 @@ internal class OpprettRevurderingRouteKtTest {
             on { opprettRevurdering(any()) } doReturn error.left()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             },
@@ -239,7 +239,7 @@ internal class OpprettRevurderingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe expectedStatusCode
+                status shouldBe expectedStatusCode
                 JSONAssert.assertEquals(
                     expectedJsonResponse,
                     response.content,

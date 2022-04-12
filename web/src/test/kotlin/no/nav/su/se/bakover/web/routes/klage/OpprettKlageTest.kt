@@ -4,11 +4,11 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.contentType
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.contentType
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.KlageService
@@ -37,7 +37,7 @@ internal class OpprettKlageTest {
 
     @Test
     fun `ingen tilgang gir unauthorized`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover()
             },
@@ -47,8 +47,8 @@ internal class OpprettKlageTest {
                 uri,
                 emptyList(),
             ).apply {
-                response.status() shouldBe HttpStatusCode.Unauthorized
-                response.content shouldBe null
+                status shouldBe HttpStatusCode.Unauthorized
+                body<String>()Be null
             }
         }
     }
@@ -60,7 +60,7 @@ internal class OpprettKlageTest {
             listOf(Brukerrolle.Attestant),
             listOf(Brukerrolle.Drift),
         ).forEach {
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover()
                 },
@@ -70,8 +70,8 @@ internal class OpprettKlageTest {
                     uri,
                     it,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
-                    response.content shouldBe "{\"message\":\"Bruker mangler en av de tillatte rollene: Saksbehandler.\"}"
+                    status shouldBe HttpStatusCode.Forbidden
+                    body<String>()Be "{\"message\":\"Bruker mangler en av de tillatte rollene: Saksbehandler.\"}"
                 }
             }
         }
@@ -126,7 +126,7 @@ internal class OpprettKlageTest {
         val klageServiceMock = if (feilkode != null) mock<KlageService> {
             on { opprett(any()) } doReturn feilkode.left()
         } else mock()
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = TestServicesBuilder.services()
@@ -138,9 +138,9 @@ internal class OpprettKlageTest {
                 setBody(validBody)
             }
         }.apply {
-            response.status() shouldBe status
+            status shouldBe status
             response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-            response.content shouldBe body
+            body<String>()Be body
         }
     }
 
@@ -150,7 +150,7 @@ internal class OpprettKlageTest {
         val klageServiceMock = mock<KlageService> {
             on { opprett(any()) } doReturn opprettetKlage.right()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = TestServicesBuilder.services()
@@ -162,7 +162,7 @@ internal class OpprettKlageTest {
                 setBody(validBody)
             }
         }.apply {
-            response.status() shouldBe HttpStatusCode.Created
+            status shouldBe HttpStatusCode.Created
             response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             JSONAssert.assertEquals(
                 //language=JSON

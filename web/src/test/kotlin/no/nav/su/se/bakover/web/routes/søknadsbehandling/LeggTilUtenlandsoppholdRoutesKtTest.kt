@@ -4,10 +4,10 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
@@ -26,7 +26,7 @@ import java.util.UUID
 internal class LeggTilUtenlandsoppholdRoutesKtTest {
     @Test
     fun `svarer med feilmelding ved ugyldig body`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover()
             },
@@ -44,15 +44,15 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "Ugyldig body"
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain "Ugyldig body"
             }
         }
     }
 
     @Test
     fun `svarer med feilmelding fra service`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = TestServicesBuilder.services().copy(
@@ -78,8 +78,8 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-                response.content shouldContain "Fant ikke behandling"
+                status shouldBe HttpStatusCode.NotFound
+                body<String>()Contain "Fant ikke behandling"
             }
         }
     }
@@ -87,7 +87,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
     @Test
     fun `svarer med søknadsbehandling ved suksess`() {
         val vilkårsvurdert = søknadsbehandlingVilkårsvurdertInnvilget().second
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = TestServicesBuilder.services().copy(
@@ -114,7 +114,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
                 JSONAssert.assertEquals(response.content, serialize(vilkårsvurdert.toJson()), true)
             }
         }
@@ -122,7 +122,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
 
     @Test
     fun `feilmelding for ugyldig periode`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = TestServicesBuilder.services())
             },
@@ -143,8 +143,8 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                     """.trimIndent()
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "ugyldig_periode_start_slutt"
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain "ugyldig_periode_start_slutt"
             }
         }
     }

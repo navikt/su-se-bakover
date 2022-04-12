@@ -4,10 +4,10 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
@@ -61,7 +61,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
     @Test
     fun `andre roller enn saksbehandler skal ikke ha tilgang til bosituasjon`() {
         Brukerrolle.values().filterNot { it == Brukerrolle.Saksbehandler }.forEach { rolle ->
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover()
                 },
@@ -73,7 +73,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
                 ) {
                     setBody("""{ "epsFnr": null}""".trimIndent())
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
@@ -85,7 +85,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
             on { fullførBosituasjongrunnlag(any()) } doReturn søknadsbehandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -97,7 +97,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
             ) {
                 setBody("""{ "bosituasjon": "DELER_BOLIG_MED_VOKSNE", "begrunnelse": null}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
                 verify(søknadsbehandlingServiceMock).fullførBosituasjongrunnlag(
                     argThat {
                         it shouldBe FullførBosituasjonRequest(
@@ -118,7 +118,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
             on { fullførBosituasjongrunnlag(any()) } doReturn søknadsbehandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -130,7 +130,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
             ) {
                 setBody("""{ "bosituasjon": "BOR_ALENE", "begrunnelse": null}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
                 verify(søknadsbehandlingServiceMock).fullførBosituasjongrunnlag(
                     argThat {
                         it shouldBe FullførBosituasjonRequest(
@@ -151,7 +151,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
             on { fullførBosituasjongrunnlag(any()) } doReturn søknadsbehandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -163,7 +163,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
             ) {
                 setBody("""{ "bosituasjon": "EPS_UFØR_FLYKTNING", "begrunnelse": null}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
                 verify(søknadsbehandlingServiceMock).fullførBosituasjongrunnlag(
                     argThat {
                         it shouldBe FullførBosituasjonRequest(
@@ -184,7 +184,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
             on { fullførBosituasjongrunnlag(any()) } doReturn søknadsbehandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -196,7 +196,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
             ) {
                 setBody("""{ "bosituasjon": "EPS_IKKE_UFØR_FLYKTNING", "begrunnelse": null}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
                 verify(søknadsbehandlingServiceMock).fullførBosituasjongrunnlag(
                     argThat {
                         it shouldBe FullførBosituasjonRequest(
@@ -217,7 +217,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
             on { fullførBosituasjongrunnlag(any()) } doReturn søknadsbehandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -229,7 +229,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
             ) {
                 setBody("""{ "bosituasjon": "EPS_67_ELLER_OVER", "begrunnelse": null}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
                 verify(søknadsbehandlingServiceMock).fullførBosituasjongrunnlag(
                     argThat {
                         it shouldBe FullførBosituasjonRequest(
@@ -250,7 +250,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
             on { fullførBosituasjongrunnlag(any()) } doReturn søknadsbehandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -262,7 +262,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
             ) {
                 setBody("""{ "bosituasjon": "EPS_67_ELLER_OVER", "begrunnelse": "Begrunnelse"}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
                 verify(søknadsbehandlingServiceMock).fullførBosituasjongrunnlag(
                     argThat {
                         it shouldBe FullførBosituasjonRequest(
@@ -283,7 +283,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
             on { fullførBosituasjongrunnlag(any()) } doReturn SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -295,8 +295,8 @@ class GrunnlagBosituasjonFullførRoutesTest {
             ) {
                 setBody("""{ "bosituasjon": "DELER_BOLIG_MED_VOKSNE", "begrunnelse": null}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-                response.content shouldContain ("fant_ikke_behandling")
+                status shouldBe HttpStatusCode.NotFound
+                body<String>()Contain ("fant_ikke_behandling")
             }
         }
     }
@@ -307,7 +307,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
             on { fullførBosituasjongrunnlag(any()) } doReturn SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon.left()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -319,8 +319,8 @@ class GrunnlagBosituasjonFullførRoutesTest {
             ) {
                 setBody("""{ "bosituasjon": "EPS_UFØR_FLYKTNING", "begrunnelse": null}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain ("kunne_ikke_legge_til_bosituasjonsgrunnlag")
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain ("kunne_ikke_legge_til_bosituasjonsgrunnlag")
                 // For å treffe denne må man prøve å fullføre en ufullstendig bosituasjon som burde ha fnr, men som ikke har det
             }
         }

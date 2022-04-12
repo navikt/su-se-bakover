@@ -4,9 +4,9 @@ import arrow.core.Either
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.endOfDay
@@ -71,7 +71,7 @@ internal class AvstemmingRoutesKtTest {
 
     @Test
     fun `kall uten parametre gir OK`() {
-        withTestApplication(
+        testApplication(
             ({ testSusebakover(services = services()) }),
         ) {
             defaultRequest(
@@ -79,14 +79,14 @@ internal class AvstemmingRoutesKtTest {
                 "/avstemming/grensesnitt",
                 listOf(Brukerrolle.Drift),
             ).apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
             }
         }
     }
 
     @Test
     fun `kall med enten fraOgMed _eller_ tilOgMed feiler`() {
-        withTestApplication(
+        testApplication(
             ({ testSusebakover(services = services()) }),
         ) {
             defaultRequest(
@@ -94,7 +94,7 @@ internal class AvstemmingRoutesKtTest {
                 "/avstemming/grensesnitt?fraOgMed=2020-11-01",
                 listOf(Brukerrolle.Drift),
             ).apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
+                status shouldBe HttpStatusCode.BadRequest
             }
 
             defaultRequest(
@@ -102,14 +102,14 @@ internal class AvstemmingRoutesKtTest {
                 "/avstemming/grensesnitt?tilOgMed=2020-11-01",
                 listOf(Brukerrolle.Drift),
             ).apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
+                status shouldBe HttpStatusCode.BadRequest
             }
         }
     }
 
     @Test
     fun `kall med fraOgMed eller tilOgMed på feil format feiler`() {
-        withTestApplication(
+        testApplication(
             ({ testSusebakover(services = services()) }),
         ) {
             listOf(
@@ -121,7 +121,7 @@ internal class AvstemmingRoutesKtTest {
                     it,
                     listOf(Brukerrolle.Drift),
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.BadRequest
+                    status shouldBe HttpStatusCode.BadRequest
                 }
             }
         }
@@ -129,7 +129,7 @@ internal class AvstemmingRoutesKtTest {
 
     @Test
     fun `kall med fraOgMed eller tilOgMed må ha fraOgMed før tilOgMed`() {
-        withTestApplication(
+        testApplication(
             ({ testSusebakover(services = services()) }),
         ) {
             listOf(
@@ -141,7 +141,7 @@ internal class AvstemmingRoutesKtTest {
                     it,
                     listOf(Brukerrolle.Drift),
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.BadRequest
+                    status shouldBe HttpStatusCode.BadRequest
                 }
             }
         }
@@ -149,7 +149,7 @@ internal class AvstemmingRoutesKtTest {
 
     @Test
     fun `kall med tilOgMed etter dagens dato feiler`() {
-        withTestApplication(
+        testApplication(
             ({ testSusebakover(services = services()) }),
         ) {
             listOf(
@@ -162,7 +162,7 @@ internal class AvstemmingRoutesKtTest {
                     it,
                     listOf(Brukerrolle.Drift),
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.BadRequest
+                    status shouldBe HttpStatusCode.BadRequest
                 }
             }
         }
@@ -170,7 +170,7 @@ internal class AvstemmingRoutesKtTest {
 
     @Test
     fun `kall til konsistensavstemming uten fraOgMed går ikke`() {
-        withTestApplication(
+        testApplication(
             ({ testSusebakover(services = services()) }),
         ) {
             listOf(
@@ -181,8 +181,8 @@ internal class AvstemmingRoutesKtTest {
                     it,
                     listOf(Brukerrolle.Drift),
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.BadRequest
-                    response.content shouldContain "'fraOgMed' mangler"
+                    status shouldBe HttpStatusCode.BadRequest
+                    body<String>()Contain "'fraOgMed' mangler"
                 }
             }
         }
@@ -190,7 +190,7 @@ internal class AvstemmingRoutesKtTest {
 
     @Test
     fun `kall til konsistensavstemming går fint`() {
-        withTestApplication(
+        testApplication(
             ({ testSusebakover(services = services()) }),
         ) {
             listOf(
@@ -201,7 +201,7 @@ internal class AvstemmingRoutesKtTest {
                     it,
                     listOf(Brukerrolle.Drift),
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.OK
+                    status shouldBe HttpStatusCode.OK
                 }
             }
         }
@@ -209,7 +209,7 @@ internal class AvstemmingRoutesKtTest {
 
     @Test
     fun `kun driftspersonell kan kalle endepunktet for avstemming`() {
-        withTestApplication(
+        testApplication(
             ({ testSusebakover(services = services()) }),
         ) {
             Brukerrolle.values()
@@ -220,7 +220,7 @@ internal class AvstemmingRoutesKtTest {
                         "/avstemming/konsistens?fraOgMed=2021-01-01",
                         listOf(Brukerrolle.Veileder),
                     ).apply {
-                        response.status() shouldBe HttpStatusCode.Forbidden
+                        status shouldBe HttpStatusCode.Forbidden
                     }
                 }
         }

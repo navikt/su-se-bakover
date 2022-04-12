@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -65,7 +65,7 @@ class NyBehandlingRoutesTest {
             on { opprett(any()) } doReturn søknadsbehandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = services.copy(søknadsbehandling = saksbehandlingServiceMock))
             },
@@ -77,7 +77,7 @@ class NyBehandlingRoutesTest {
             ) {
                 setBody("""{ "soknadId": "$søknadId", "stønadsperiode": {"fraOgMed" : "${stønadsperiode.periode.fraOgMed}", "tilOgMed": "${stønadsperiode.periode.tilOgMed}"}}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
                 val actualResponse = objectMapper.readValue<BehandlingJson>(response.content!!)
                 verify(saksbehandlingServiceMock).opprett(argThat { it shouldBe SøknadsbehandlingService.OpprettRequest(søknadId) })
                 verifyNoMoreInteractions(saksbehandlingServiceMock)

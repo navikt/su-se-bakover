@@ -4,11 +4,11 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.contentType
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.contentType
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -41,7 +41,7 @@ internal class UnderkjennKlageTest {
 
     @Test
     fun `ingen tilgang gir unauthorized`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover()
             },
@@ -51,8 +51,8 @@ internal class UnderkjennKlageTest {
                 uri,
                 emptyList(),
             ).apply {
-                response.status() shouldBe HttpStatusCode.Unauthorized
-                response.content shouldBe null
+                status shouldBe HttpStatusCode.Unauthorized
+                body<String>()Be null
             }
         }
     }
@@ -64,7 +64,7 @@ internal class UnderkjennKlageTest {
             listOf(Brukerrolle.Saksbehandler),
             listOf(Brukerrolle.Drift),
         ).forEach {
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover()
                 },
@@ -74,8 +74,8 @@ internal class UnderkjennKlageTest {
                     uri,
                     it,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
-                    response.content shouldBe "{\"message\":\"Bruker mangler en av de tillatte rollene: Attestant.\"}"
+                    status shouldBe HttpStatusCode.Forbidden
+                    body<String>()Be "{\"message\":\"Bruker mangler en av de tillatte rollene: Attestant.\"}"
                 }
             }
         }
@@ -83,7 +83,7 @@ internal class UnderkjennKlageTest {
 
     @Test
     fun `ugyldig underkjennelsesgrunn`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover()
             },
@@ -95,8 +95,8 @@ internal class UnderkjennKlageTest {
             ) {
                 setBody("""{"grunn": "UGYLDIG_GRUNN", "kommentar": "Ingen kommentar."}""")
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldBe "{\"message\":\"Ugyldig underkjennelsesgrunn\",\"code\":\"ugyldig_grunn_for_underkjenning\"}"
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Be "{\"message\":\"Ugyldig underkjennelsesgrunn\",\"code\":\"ugyldig_grunn_for_underkjenning\"}"
             }
         }
     }
@@ -127,7 +127,7 @@ internal class UnderkjennKlageTest {
         val klageServiceMock = mock<KlageService> {
             on { underkjenn(any()) } doReturn feilkode.left()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = TestServicesBuilder.services()
@@ -139,9 +139,9 @@ internal class UnderkjennKlageTest {
                 setBody(validBody)
             }
         }.apply {
-            response.status() shouldBe status
+            status shouldBe status
             response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-            response.content shouldBe body
+            body<String>()Be body
         }
     }
 
@@ -151,7 +151,7 @@ internal class UnderkjennKlageTest {
         val klageServiceMock = mock<KlageService> {
             on { underkjenn(any()) } doReturn underkjentKlage.right()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = TestServicesBuilder.services()
@@ -163,7 +163,7 @@ internal class UnderkjennKlageTest {
                 setBody(validBody)
             }
         }.apply {
-            response.status() shouldBe HttpStatusCode.OK
+            status shouldBe HttpStatusCode.OK
             response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             JSONAssert.assertEquals(
                 //language=JSON

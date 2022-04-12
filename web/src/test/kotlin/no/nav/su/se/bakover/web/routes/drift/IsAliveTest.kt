@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.routes.drift
 
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -18,7 +18,7 @@ internal class IsAliveTest {
     @Test
     fun `Kun Drift har tilgang til isAlive-endepunktet`() {
         Brukerrolle.values().filterNot { it == Brukerrolle.Drift }.forEach {
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover(services = services)
                 },
@@ -29,7 +29,7 @@ internal class IsAliveTest {
                     roller = listOf(it),
                 ) {
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
@@ -37,7 +37,7 @@ internal class IsAliveTest {
 
     @Test
     fun `isAlive-endepunktet gir status ok`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover()
             },
@@ -48,7 +48,7 @@ internal class IsAliveTest {
                 listOf(Brukerrolle.Drift),
             ) {
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
                 JSONAssert.assertEquals(
                     """{ "Status" : "OK"}""".trimIndent(),
                     response.content!!,

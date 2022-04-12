@@ -4,10 +4,10 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.contentType
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.contentType
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -33,7 +33,7 @@ internal class BekreftVilkårsvurderingerForKlageTest {
 
     @Test
     fun `ingen tilgang gir unauthorized`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover()
             },
@@ -43,8 +43,8 @@ internal class BekreftVilkårsvurderingerForKlageTest {
                 uri,
                 emptyList(),
             ).apply {
-                response.status() shouldBe HttpStatusCode.Unauthorized
-                response.content shouldBe null
+                status shouldBe HttpStatusCode.Unauthorized
+                body<String>()Be null
             }
         }
     }
@@ -56,7 +56,7 @@ internal class BekreftVilkårsvurderingerForKlageTest {
             listOf(Brukerrolle.Attestant),
             listOf(Brukerrolle.Drift),
         ).forEach {
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover()
                 },
@@ -66,8 +66,8 @@ internal class BekreftVilkårsvurderingerForKlageTest {
                     uri,
                     it,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
-                    response.content shouldBe "{\"message\":\"Bruker mangler en av de tillatte rollene: Saksbehandler.\"}"
+                    status shouldBe HttpStatusCode.Forbidden
+                    body<String>()Be "{\"message\":\"Bruker mangler en av de tillatte rollene: Saksbehandler.\"}"
                 }
             }
         }
@@ -99,7 +99,7 @@ internal class BekreftVilkårsvurderingerForKlageTest {
         val klageServiceMock = mock<KlageService> {
             on { bekreftVilkårsvurderinger(any(), any()) } doReturn feilkode.left()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = TestServicesBuilder.services()
@@ -108,9 +108,9 @@ internal class BekreftVilkårsvurderingerForKlageTest {
             },
         ) {
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)).apply {
-                response.status() shouldBe status
+                status shouldBe status
                 response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-                response.content shouldBe body
+                body<String>()Be body
             }
         }
     }
@@ -121,7 +121,7 @@ internal class BekreftVilkårsvurderingerForKlageTest {
         val klageServiceMock = mock<KlageService> {
             on { bekreftVilkårsvurderinger(any(), any()) } doReturn bekreftetVilkårsvurdertKlage.right()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = TestServicesBuilder.services()
@@ -130,7 +130,7 @@ internal class BekreftVilkårsvurderingerForKlageTest {
             },
         ) {
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)).apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
                 response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
                 JSONAssert.assertEquals(
                     //language=JSON

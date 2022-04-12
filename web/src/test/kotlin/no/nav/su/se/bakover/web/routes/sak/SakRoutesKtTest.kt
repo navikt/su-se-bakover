@@ -4,14 +4,14 @@ import arrow.core.right
 import io.kotest.assertions.json.shouldMatchJson
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.http.HttpMethod.Companion.Get
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.finn.unleash.FakeUnleash
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.withMigratedDb
@@ -64,7 +64,7 @@ internal class SakRoutesKtTest {
         withMigratedDb { dataSource ->
             val repos = repos(dataSource)
 
-            withTestApplication(
+            testApplication(
                 (
                     {
                         testSusebakover(databaseRepos = repos)
@@ -81,8 +81,8 @@ internal class SakRoutesKtTest {
                     "$sakPath/${opprettetSakId.id}",
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
-                    response.status() shouldBe OK
-                    response.content shouldContain """"fnr":"$sakFnr01""""
+                    status shouldBe OK
+                    body<String>()Contain """"fnr":"$sakFnr01""""
                 }
             }
         }
@@ -92,7 +92,7 @@ internal class SakRoutesKtTest {
     fun `henter sak for fødselsnummer`() {
         withMigratedDb { dataSource ->
             val repos = repos(dataSource)
-            withTestApplication(
+            testApplication(
                 (
                     {
                         testSusebakover(databaseRepos = repos)
@@ -104,8 +104,8 @@ internal class SakRoutesKtTest {
                 defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
                     setBody("""{"fnr":"$sakFnr01"}""")
                 }.apply {
-                    response.status() shouldBe OK
-                    response.content shouldContain """"fnr":"$sakFnr01""""
+                    status shouldBe OK
+                    body<String>()Contain """"fnr":"$sakFnr01""""
                 }
             }
         }
@@ -118,7 +118,7 @@ internal class SakRoutesKtTest {
             withMigratedDb { dataSource ->
                 val repos = repos(dataSource)
 
-                withTestApplication(
+                testApplication(
                     { testSusebakover(databaseRepos = repos) },
                 ) {
                     defaultRequest(
@@ -126,8 +126,8 @@ internal class SakRoutesKtTest {
                         "$sakPath/info/$sakFnr01",
                         listOf(Brukerrolle.Veileder),
                     ).apply {
-                        response.status() shouldBe OK
-                        response.content shouldMatchJson """
+                        status shouldBe OK
+                        body<String>()MatchJson """
                             {
                                 "harÅpenSøknad": false,
                                 "iverksattInnvilgetStønadsperiode": null
@@ -143,7 +143,7 @@ internal class SakRoutesKtTest {
             withMigratedDb { dataSource ->
                 val repos = repos(dataSource)
 
-                withTestApplication(
+                testApplication(
                     { testSusebakover(databaseRepos = repos) },
                 ) {
                     SakFactory(clock = fixedClock).nySakMedNySøknad(Fnr(sakFnr01), søknadInnhold).also {
@@ -155,8 +155,8 @@ internal class SakRoutesKtTest {
                         "$sakPath/info/$sakFnr01",
                         listOf(Brukerrolle.Veileder),
                     ).apply {
-                        response.status() shouldBe OK
-                        response.content shouldMatchJson """
+                        status shouldBe OK
+                        body<String>()MatchJson """
                             {
                                 "harÅpenSøknad": true,
                                 "iverksattInnvilgetStønadsperiode": null
@@ -182,7 +182,7 @@ internal class SakRoutesKtTest {
                 val sakSpy = spy(services.sak)
                 doReturn(sak.right()).`when`(sakSpy).hentSak(any<Fnr>())
 
-                withTestApplication(
+                testApplication(
                     {
                         testSusebakover(
                             databaseRepos = repos,
@@ -197,8 +197,8 @@ internal class SakRoutesKtTest {
                         "$sakPath/info/$sakFnr01",
                         listOf(Brukerrolle.Veileder),
                     ).apply {
-                        response.status() shouldBe OK
-                        response.content shouldMatchJson """
+                        status shouldBe OK
+                        body<String>()MatchJson """
                             {
                                 "harÅpenSøknad": false,
                                 "iverksattInnvilgetStønadsperiode": {
@@ -215,7 +215,7 @@ internal class SakRoutesKtTest {
 
     @Test
     fun `error handling`() {
-        withTestApplication(
+        testApplication(
             (
                 {
                     testSusebakover()
@@ -225,25 +225,25 @@ internal class SakRoutesKtTest {
             defaultRequest(
                 HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler),
             ).apply {
-                response.status() shouldBe BadRequest
+                status shouldBe BadRequest
             }
 
             defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"${Fnr.generer()}"}""")
             }.apply {
-                response.status() shouldBe Forbidden
+                status shouldBe Forbidden
             }
 
             defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
                 setBody("""{"saksnummer":"696969"}""")
             }.apply {
-                response.status() shouldBe NotFound
+                status shouldBe NotFound
             }
 
             defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
                 setBody("""{"saksnummer":"asdf"}""")
             }.apply {
-                response.status() shouldBe BadRequest
+                status shouldBe BadRequest
             }
 
             defaultRequest(
@@ -251,7 +251,7 @@ internal class SakRoutesKtTest {
                 "$sakPath/${UUID.randomUUID()}",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
-                response.status() shouldBe NotFound
+                status shouldBe NotFound
             }
 
             defaultRequest(
@@ -259,7 +259,7 @@ internal class SakRoutesKtTest {
                 "$sakPath/adad",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
-                response.status() shouldBe BadRequest
+                status shouldBe BadRequest
             }
         }
     }

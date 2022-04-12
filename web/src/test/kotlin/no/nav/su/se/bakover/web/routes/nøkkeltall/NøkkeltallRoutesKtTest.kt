@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.web.routes.nøkkeltall
 
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.handleRequest
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
@@ -19,14 +19,14 @@ import org.skyscreamer.jsonassert.JSONAssert
 internal class NøkkeltallRoutesKtTest {
     @Test
     fun `må være innlogget for å få nøkkeltall`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover()
             },
         ) {
             handleRequest(HttpMethod.Get, nøkkeltallPath)
         }.apply {
-            response.status() shouldBe HttpStatusCode.Unauthorized
+            status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -49,7 +49,7 @@ internal class NøkkeltallRoutesKtTest {
             )
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = TestServicesBuilder.services().copy(nøkkeltallService = nøkkelServiceMock))
             },
@@ -74,7 +74,7 @@ internal class NøkkeltallRoutesKtTest {
             """.trimIndent()
             val actual = response.content
 
-            response.status() shouldBe HttpStatusCode.OK
+            status shouldBe HttpStatusCode.OK
             JSONAssert.assertEquals(expected, actual, true)
         }
     }

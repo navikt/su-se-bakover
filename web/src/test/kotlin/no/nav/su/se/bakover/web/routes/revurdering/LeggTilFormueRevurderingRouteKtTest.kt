@@ -4,10 +4,10 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
@@ -46,7 +46,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
     @Test
     fun `ikke tillatte roller`() {
         Brukerrolle.values().filterNot { it == Brukerrolle.Saksbehandler }.forEach { rolle ->
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover()
                 },
@@ -58,7 +58,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
                 ) {
                     setBody(validBody)
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                     JSONAssert.assertEquals(
                         """
                             {
@@ -175,7 +175,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
             on { leggTilFormuegrunnlag(any()) } doReturn error.left()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
             },
@@ -187,7 +187,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe expectStatusCode
+                status shouldBe expectStatusCode
                 JSONAssert.assertEquals(
                     expectErrorJson,
                     response.content,
@@ -206,7 +206,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
             ).right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
             },
@@ -218,10 +218,10 @@ internal class LeggTilFormueRevurderingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
                 response.headers.values("Content-Type") shouldBe listOf("application/json; charset=UTF-8")
                 response.headers.values("X-Correlation-ID") shouldBe listOf("her skulle vi sikkert hatt en korrelasjonsid")
-                response.content shouldContain opprettetRevurdering.id.toString()
+                body<String>()Contain opprettetRevurdering.id.toString()
             }
         }
     }

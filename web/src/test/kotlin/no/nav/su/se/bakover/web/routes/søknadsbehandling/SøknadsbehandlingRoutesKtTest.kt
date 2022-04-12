@@ -8,13 +8,13 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.TestApplicationEngine
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpHeaders
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.TestApplicationEngine
+import io.ktor.server.server.testing.handleRequest
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
@@ -118,7 +118,7 @@ internal class SøknadsbehandlingRoutesKtTest {
     inner class `Henting av behandling` {
         @Test
         fun `Forbidden når bruker er veileder eller driftspersonell`() {
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover()
                 },
@@ -131,7 +131,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}",
                         listOf(Brukerrolle.Veileder),
                     ).apply {
-                        response.status() shouldBe HttpStatusCode.Forbidden
+                        status shouldBe HttpStatusCode.Forbidden
                     }
                 }
             }
@@ -139,7 +139,7 @@ internal class SøknadsbehandlingRoutesKtTest {
 
         @Test
         fun `OK når bruker er saksbehandler eller attestant`() {
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover(
                         services = TestServicesBuilder.services(
@@ -158,7 +158,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}",
                         listOf(Brukerrolle.Saksbehandler),
                     ).apply {
-                        response.status() shouldBe HttpStatusCode.OK
+                        status shouldBe HttpStatusCode.OK
                     }
                 }
             }
@@ -170,7 +170,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         withMigratedDb { dataSource ->
             val repos = repos(dataSource)
             val services = services(repos)
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover(
                         services = services,
@@ -194,7 +194,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 ) {
                     setBody("""{ "fritekst": "Fritekst!" }""")
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.OK
+                    status shouldBe HttpStatusCode.OK
                     val behandlingJson = deserialize<BehandlingJson>(response.content!!)
                     behandlingJson.status shouldBe "TIL_ATTESTERING_INNVILGET"
                 }
@@ -231,7 +231,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 },
             )
             val services = services(repos, clients)
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover(
                         clients = clients,
@@ -259,8 +259,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                 ) {
                     setBody("""{ "fritekst": "Fritekst!" }""")
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.InternalServerError
-                    response.content shouldContain "Kunne ikke opprette oppgave"
+                    status shouldBe HttpStatusCode.InternalServerError
+                    body<String>()Contain "Kunne ikke opprette oppgave"
                 }
             }
         }
@@ -271,7 +271,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         withMigratedDb { dataSource ->
             val repos = repos(dataSource)
             val services = services(repos)
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover(
                         services = services,
@@ -287,8 +287,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
                     assertSoftly {
-                        response.status() shouldBe HttpStatusCode.BadRequest
-                        response.content shouldContain "ikke en gyldig UUID"
+                        status shouldBe HttpStatusCode.BadRequest
+                        body<String>()Contain "ikke en gyldig UUID"
                     }
                 }
                 defaultRequest(
@@ -297,8 +297,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
                     assertSoftly {
-                        response.status() shouldBe HttpStatusCode.NotFound
-                        response.content shouldContain "Fant ikke behandling"
+                        status shouldBe HttpStatusCode.NotFound
+                        body<String>()Contain "Fant ikke behandling"
                     }
                 }
 
@@ -323,7 +323,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$sakPath/${innvilgetVilkårsvurdertSøknadsbehandling.sak.id}/behandlinger/${innvilgetVilkårsvurdertSøknadsbehandling.søknadsbehandling.id}/simuler",
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.OK
+                    status shouldBe HttpStatusCode.OK
                 }
             }
         }
@@ -334,7 +334,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         withMigratedDb { dataSource ->
             val repos = repos(dataSource)
             val services = services(repos)
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover(
                         services = services,
@@ -362,7 +362,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         """.trimIndent(),
                     )
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.Created
+                    status shouldBe HttpStatusCode.Created
                     val behandlingJson = deserialize<BehandlingJson>(response.content!!)
                     val epsFradrag = FradragJson(
                         periode = PeriodeJson("2021-05-01", "2021-12-31"),
@@ -418,7 +418,7 @@ internal class SøknadsbehandlingRoutesKtTest {
 
         @Test
         fun `Forbidden når bruker ikke er attestant`() {
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover(
                         services = TestServicesBuilder.services(
@@ -435,7 +435,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     listOf(Brukerrolle.Saksbehandler),
                     navIdentSaksbehandler,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
 
                 defaultRequest(
@@ -443,14 +443,14 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
 
         @Test
         fun `BadRequest når behandlingId er ugyldig uuid eller NotFound når den ikke finnes`() {
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover(
                         services = TestServicesBuilder.services(
@@ -466,7 +466,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
                     navIdentSaksbehandler,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.NotFound
+                    status shouldBe HttpStatusCode.NotFound
                 }
 
                 requestSomAttestant(
@@ -474,14 +474,14 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$sakPath/rubbish/behandlinger/rubbish/iverksett",
                     navIdentSaksbehandler,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.BadRequest
+                    status shouldBe HttpStatusCode.BadRequest
                 }
             }
         }
 
         @Test
         fun `NotFound når behandling ikke eksisterer`() {
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover(
                         services = TestServicesBuilder.services(
@@ -497,7 +497,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
                     navIdentSaksbehandler,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.NotFound
+                    status shouldBe HttpStatusCode.NotFound
                 }
             }
         }
@@ -521,7 +521,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                             ).asBearerToken(),
                         )
                     }.apply {
-                        response.status() shouldBe HttpStatusCode.Forbidden
+                        status shouldBe HttpStatusCode.Forbidden
                     }
                 }
             }
@@ -539,7 +539,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         navIdentAttestant,
                     )
                         .apply {
-                            response.status() shouldBe HttpStatusCode.OK
+                            status shouldBe HttpStatusCode.OK
                             deserialize<BehandlingJson>(response.content!!).let { behandlingJson ->
                                 behandlingJson.attesteringer.last().attestant shouldBe navIdentAttestant
                                 behandlingJson.status shouldBe "IVERKSATT_INNVILGET"
@@ -588,7 +588,7 @@ internal class SøknadsbehandlingRoutesKtTest {
 
         @Test
         fun `Forbidden når bruker ikke er attestant`() {
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover()
                 },
@@ -599,7 +599,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     listOf(Brukerrolle.Saksbehandler),
                     navIdentSaksbehandler,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
 
                 defaultRequest(
@@ -607,7 +607,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$sakPath/${UUID.randomUUID()}/behandlinger/rubbish/underkjenn",
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
 
                 defaultRequest(
@@ -615,14 +615,14 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
 
         @Test
         fun `BadRequest når sakId eller behandlingId er ugyldig`() {
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover()
                 },
@@ -632,7 +632,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/underkjenn",
                     navIdentSaksbehandler,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.BadRequest
+                    status shouldBe HttpStatusCode.BadRequest
                 }
 
                 requestSomAttestant(
@@ -640,14 +640,14 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$sakPath/${UUID.randomUUID()}/behandlinger/rubbish/underkjenn",
                     navIdentSaksbehandler,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.BadRequest
+                    status shouldBe HttpStatusCode.BadRequest
                 }
             }
         }
 
         @Test
         fun `NotFound når behandling ikke finnes`() {
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover(
                         services = TestServicesBuilder.services(
@@ -665,8 +665,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                 ) {
                     setBody("""{"kommentar":"b", "grunn": "BEREGNINGEN_ER_FEIL"}""")
                 }.apply {
-                    response.content shouldContain "Fant ikke behandling"
-                    response.status() shouldBe HttpStatusCode.NotFound
+                    body<String>()Contain "Fant ikke behandling"
+                    status shouldBe HttpStatusCode.NotFound
                 }
             }
         }
@@ -691,8 +691,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                             """.trimIndent(),
                         )
                     }.apply {
-                        response.status() shouldBe HttpStatusCode.BadRequest
-                        response.content shouldContain "Må angi en begrunnelse"
+                        status shouldBe HttpStatusCode.BadRequest
+                        body<String>()Contain "Må angi en begrunnelse"
                     }
                 }
             }
@@ -725,7 +725,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                             """.trimIndent(),
                         )
                     }.apply {
-                        response.status() shouldBe HttpStatusCode.Forbidden
+                        status shouldBe HttpStatusCode.Forbidden
                     }
                 }
             }
@@ -744,7 +744,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     ) {
                         setBody("""{"kommentar":"kommentar", "grunn": "BEREGNINGEN_ER_FEIL" }""")
                     }.apply {
-                        response.status() shouldBe HttpStatusCode.OK
+                        status shouldBe HttpStatusCode.OK
                         deserialize<BehandlingJson>(response.content!!).let {
                             it.status shouldBe "UNDERKJENT_INNVILGET"
                         }
@@ -758,7 +758,7 @@ internal class SøknadsbehandlingRoutesKtTest {
             withMigratedDb { dataSource ->
                 val repos = repos(dataSource)
                 val services = services(repos)
-                withTestApplication(
+                testApplication(
                     {
                         testSusebakover(
                             services = services,
@@ -809,7 +809,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         HttpMethod.Patch,
                         "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/iverksett",
                     ).apply {
-                        response.status() shouldBe HttpStatusCode.InternalServerError
+                        status shouldBe HttpStatusCode.InternalServerError
                     }
                 }
             }
@@ -994,7 +994,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         s: InnvilgetVilkårsvurdertSøknadsbehandling.() -> Unit,
         test: TestApplicationEngine.(objects: InnvilgetVilkårsvurdertSøknadsbehandling) -> R,
     ) =
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig),

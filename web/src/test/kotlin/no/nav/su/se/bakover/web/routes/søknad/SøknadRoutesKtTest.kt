@@ -9,14 +9,14 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldMatch
 import io.ktor.http.ContentType.Application.Json
-import io.ktor.http.HttpHeaders.ContentType
-import io.ktor.http.HttpMethod.Companion.Get
-import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpHeaders.ContentType
+import io.ktor.server.http.HttpMethod.Companion.Get
+import io.ktor.server.http.HttpMethod.Companion.Post
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
@@ -116,7 +116,7 @@ internal class SøknadRoutesKtTest {
         val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
         withMigratedDb { dataSource ->
             val repos = databaseRepos(dataSource)
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover(databaseRepos = repos)
                 },
@@ -129,7 +129,7 @@ internal class SøknadRoutesKtTest {
                     addHeader(ContentType, Json.toString())
                     setBody(soknadJson)
                 }.apply {
-                    response.status() shouldBe Created
+                    status shouldBe Created
                 }.response
 
                 shouldNotThrow<Throwable> { objectMapper.readValue<OpprettetSøknadJson>(createResponse.content!!) }
@@ -145,7 +145,7 @@ internal class SøknadRoutesKtTest {
     fun `knytter søknad til sak ved innsending`() {
         var sakId: String
         var saksnummer: Long
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(databaseRepos = embeddedPostgres())
             },
@@ -157,14 +157,14 @@ internal class SøknadRoutesKtTest {
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson)
             }.apply {
-                response.status() shouldBe Created
+                status shouldBe Created
                 val response = objectMapper.readValue<OpprettetSøknadJson>(response.content!!)
                 sakId = response.søknad.sakId
                 saksnummer = response.saksnummer
             }
 
             defaultRequest(Get, "$sakPath/$sakId", listOf(Brukerrolle.Saksbehandler)).apply {
-                response.status() shouldBe OK
+                status shouldBe OK
                 val sakJson = objectMapper.readValue<SakJson>(response.content!!)
                 sakJson.søknader.first().søknadInnhold.personopplysninger.fnr shouldMatch fnr.toString()
                 sakJson.saksnummer shouldBe saksnummer
@@ -216,7 +216,7 @@ internal class SøknadRoutesKtTest {
                 unleash = mock(),
             )
 
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover(
                         databaseRepos = repos,
@@ -233,7 +233,7 @@ internal class SøknadRoutesKtTest {
                     addHeader(ContentType, Json.toString())
                     setBody(soknadJson)
                 }.apply {
-                    response.status() shouldBe Created
+                    status shouldBe Created
                     verify(pdfGenerator).genererPdf(any<SøknadPdfInnhold>())
                     verify(dokArkiv).opprettJournalpost(any())
                     // Kalles én gang i AccessCheckProxy og én gang eksplisitt i søknadService
@@ -250,7 +250,7 @@ internal class SøknadRoutesKtTest {
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
             on { lukkSøknad(any()) } doReturn sak.right()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock))
             },
@@ -270,7 +270,7 @@ internal class SøknadRoutesKtTest {
                     ),
                 )
             }.apply {
-                response.status() shouldBe OK
+                status shouldBe OK
                 verify(lukkSøknadServiceMock).lukkSøknad(
                     argThat { it shouldBe trekkSøknadRequest },
                 )
@@ -283,7 +283,7 @@ internal class SøknadRoutesKtTest {
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
             on { lukkSøknad(any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock),
@@ -305,7 +305,7 @@ internal class SøknadRoutesKtTest {
                     ),
                 )
             }.apply {
-                response.status() shouldBe BadRequest
+                status shouldBe BadRequest
                 verify(lukkSøknadServiceMock).lukkSøknad(
                     argThat { it shouldBe trekkSøknadRequest },
                 )
@@ -318,7 +318,7 @@ internal class SøknadRoutesKtTest {
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
             on { lukkSøknad(any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock),
@@ -343,7 +343,7 @@ internal class SøknadRoutesKtTest {
                     ),
                 )
             }.apply {
-                response.status() shouldBe BadRequest
+                status shouldBe BadRequest
                 verifyNoMoreInteractions(lukkSøknadServiceMock)
             }
         }
@@ -354,7 +354,7 @@ internal class SøknadRoutesKtTest {
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
             on { lukkSøknad(any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock),
@@ -376,7 +376,7 @@ internal class SøknadRoutesKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe BadRequest
+                status shouldBe BadRequest
                 verifyNoMoreInteractions(lukkSøknadServiceMock)
             }
         }
@@ -388,7 +388,7 @@ internal class SøknadRoutesKtTest {
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
             on { lagBrevutkast(any()) } doReturn pdf.right()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock))
             },
@@ -407,7 +407,7 @@ internal class SøknadRoutesKtTest {
                     ),
                 )
             }.apply {
-                response.status() shouldBe OK
+                status shouldBe OK
                 verify(lukkSøknadServiceMock).lagBrevutkast(
                     argThat { it shouldBe trekkSøknadRequest },
                 )
@@ -421,7 +421,7 @@ internal class SøknadRoutesKtTest {
         val service = mock<AvslåSøknadManglendeDokumentasjonService> {
             on { avslå(any()) } doReturn sak.right()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = mockServices.copy(avslåSøknadManglendeDokumentasjonService = service))
             },
@@ -439,7 +439,7 @@ internal class SøknadRoutesKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe OK
+                status shouldBe OK
 
                 verify(service).avslå(
                     argThat {
@@ -451,7 +451,7 @@ internal class SøknadRoutesKtTest {
                     },
                 )
 
-                response.content shouldBe serialize(sak.toJson(fixedClock))
+                body<String>()Be serialize(sak.toJson(fixedClock))
             }
         }
     }

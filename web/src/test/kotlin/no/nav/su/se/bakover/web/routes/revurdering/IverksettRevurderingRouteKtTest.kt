@@ -4,9 +4,9 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -50,7 +50,7 @@ internal class IverksettRevurderingRouteKtTest {
 
     @Test
     fun `uautoriserte kan ikke iverksette revurdering`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover()
             },
@@ -60,7 +60,7 @@ internal class IverksettRevurderingRouteKtTest {
                 "$requestPath/$revurderingId/iverksett",
                 listOf(Brukerrolle.Veileder),
             ).apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
+                status shouldBe HttpStatusCode.Forbidden
                 JSONAssert.assertEquals(
                     """
                     {
@@ -110,7 +110,7 @@ internal class IverksettRevurderingRouteKtTest {
             on { iverksett(any(), any()) } doReturn iverksattRevurdering.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             },
@@ -120,7 +120,7 @@ internal class IverksettRevurderingRouteKtTest {
                 "$requestPath/${iverksattRevurdering.id}/iverksett",
                 listOf(Brukerrolle.Attestant),
             ).apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
                 val actualResponse = objectMapper.readValue<IverksattRevurderingJson>(response.content!!)
                 actualResponse.id shouldBe iverksattRevurdering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.IVERKSATT_INNVILGET
@@ -210,7 +210,7 @@ internal class IverksettRevurderingRouteKtTest {
             on { iverksett(any(), any()) } doReturn error.left()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             },
@@ -220,7 +220,7 @@ internal class IverksettRevurderingRouteKtTest {
                 "$requestPath/$revurderingId/iverksett",
                 listOf(Brukerrolle.Attestant),
             ).apply {
-                response.status() shouldBe expectedStatusCode
+                status shouldBe expectedStatusCode
                 JSONAssert.assertEquals(
                     expectedJsonResponse,
                     response.content,

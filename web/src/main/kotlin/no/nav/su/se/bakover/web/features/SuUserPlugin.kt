@@ -1,17 +1,16 @@
 package no.nav.su.se.bakover.web.features
 
-import io.ktor.application.ApplicationCall
-import io.ktor.application.ApplicationCallPipeline
-import io.ktor.application.ApplicationFeature
-import io.ktor.application.call
-import io.ktor.application.feature
-import io.ktor.auth.Authentication
-import io.ktor.auth.authentication
-import io.ktor.routing.Route
-import io.ktor.routing.RouteSelector
-import io.ktor.routing.RouteSelectorEvaluation
-import io.ktor.routing.RoutingResolveContext
-import io.ktor.routing.application
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.ApplicationCallPipeline
+import io.ktor.server.application.BaseApplicationPlugin
+import io.ktor.server.application.call
+import io.ktor.server.application.plugin
+import io.ktor.server.auth.authentication
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.RouteSelector
+import io.ktor.server.routing.RouteSelectorEvaluation
+import io.ktor.server.routing.RoutingResolveContext
+import io.ktor.server.routing.application
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelinePhase
 import no.nav.su.se.bakover.common.ApplicationConfig
@@ -25,29 +24,31 @@ import no.nav.su.se.bakover.web.getNavnFromJwt
  * Dette er basert løst på denne bloggposten: https://www.ximedes.com/2020-09-17/role-based-authorization-in-ktor/
  */
 
-class SuUserFeature(private val configuration: Configuration) {
+class SuUserPlugin(private val configuration: Configuration) {
 
     class Configuration {
         lateinit var applicationConfig: ApplicationConfig
     }
 
     fun interceptPipeline(pipeline: ApplicationCallPipeline) {
-        pipeline.insertPhaseAfter(ApplicationCallPipeline.Features, Authentication.ChallengePhase)
-        pipeline.insertPhaseAfter(Authentication.ChallengePhase, SuUserContextPhase)
+        // TODO jah: De har fjernet Authentication.ChallengePhase
+        val ChallengePhase = PipelinePhase("Challenge")
+        pipeline.insertPhaseAfter(ApplicationCallPipeline.Plugins, ChallengePhase)
+        pipeline.insertPhaseAfter(ChallengePhase, SuUserContextPhase)
 
         pipeline.intercept(SuUserContextPhase) {
             SuUserContext.init(call, configuration.applicationConfig)
         }
     }
 
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, SuUserFeature> {
-        override val key = AttributeKey<SuUserFeature>("SuUserFeature")
+    companion object Feature : BaseApplicationPlugin<ApplicationCallPipeline, Configuration, SuUserPlugin> {
+        override val key = AttributeKey<SuUserPlugin>("SuUserFeature")
         val SuUserContextPhase = PipelinePhase("Foo")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): SuUserFeature {
+        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): SuUserPlugin {
             val config = Configuration().apply(configure)
 
-            return SuUserFeature(config)
+            return SuUserPlugin(config)
         }
     }
 }
@@ -91,7 +92,7 @@ class SuUserRouteSelector :
 
 fun Route.withUser(build: Route.() -> Unit): Route {
     val routeWithUser = createChild(SuUserRouteSelector())
-    application.feature(SuUserFeature).interceptPipeline(routeWithUser)
+    application.plugin(SuUserPlugin).interceptPipeline(routeWithUser)
     routeWithUser.build()
     return routeWithUser
 }

@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -54,7 +54,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -66,7 +66,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
             }
         }
     }
@@ -102,7 +102,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -114,8 +114,8 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             ) {
                 setBody(bodyFradragUtenPeriode)
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain ("ugyldig_body")
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain ("ugyldig_body")
             }
         }
     }
@@ -152,7 +152,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -164,8 +164,8 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             ) {
                 setBody(bodyMedUgyldigFradrag)
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain ("ugyldig_fradragstype")
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain ("ugyldig_fradragstype")
             }
         }
     }
@@ -202,7 +202,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -214,8 +214,8 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             ) {
                 setBody(bodyMedUgyldigFradrag)
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain ("ugyldig_fradragstype")
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain ("ugyldig_fradragstype")
             }
         }
     }
@@ -252,7 +252,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -264,8 +264,8 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             ) {
                 setBody(bodyMedUgyldigFradrag)
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain ("ugyldig_fradragstype")
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain ("ugyldig_fradragstype")
             }
         }
     }
@@ -302,7 +302,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -314,8 +314,8 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             ) {
                 setBody(bodyMedUgyldigFradrag)
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain ("ugyldig_fradragstype")
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain ("ugyldig_fradragstype")
             }
         }
     }

@@ -4,16 +4,16 @@ import arrow.core.Either
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpHeaders.XCorrelationId
-import io.ktor.http.HttpMethod.Companion.Get
-import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.testing.contentType
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpHeaders
+import io.ktor.server.http.HttpHeaders.XCorrelationId
+import io.ktor.server.http.HttpMethod.Companion.Get
+import io.ktor.server.http.HttpMethod.Companion.Post
+import io.ktor.server.server.testing.contentType
+import io.ktor.server.server.testing.handleRequest
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
@@ -37,21 +37,21 @@ class RoutesTest {
 
     @Test
     fun `should add provided X-Correlation-ID header to response`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover()
             },
         ) {
             defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder))
         }.apply {
-            response.status() shouldBe OK
+            status shouldBe OK
             response.headers[XCorrelationId] shouldBe DEFAULT_CALL_ID
         }
     }
 
     @Test
     fun `should generate X-Correlation-ID header if not present`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover()
             },
@@ -63,7 +63,7 @@ class RoutesTest {
                 )
             }
         }.apply {
-            response.status() shouldBe OK
+            status shouldBe OK
             response.headers[XCorrelationId] shouldNotBe null
             response.headers[XCorrelationId] shouldNotBe DEFAULT_CALL_ID
         }
@@ -71,7 +71,7 @@ class RoutesTest {
 
     @Test
     fun `should transform exceptions to appropriate error responses`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     clients = TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig).copy(
@@ -98,14 +98,14 @@ class RoutesTest {
                 setBody("""{"fnr":"${Fnr.generer()}"}""")
             }
         }.apply {
-            response.status() shouldBe InternalServerError
+            status shouldBe InternalServerError
             JSONAssert.assertEquals("""{"message":"Ukjent feil"}""", response.content, true)
         }
     }
 
     @Test
     fun `should use content-type application-json by default`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover()
             },

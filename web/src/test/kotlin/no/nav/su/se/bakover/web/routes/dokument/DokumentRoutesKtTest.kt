@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.web.routes.dokument
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod.Companion.Get
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -24,7 +24,7 @@ internal class DokumentRoutesKtTest {
 
     @Test
     fun `sjekker tilganger`() {
-        withTestApplication(
+        testApplication(
             ({ testSusebakover(services = TestServicesBuilder.services()) }),
         ) {
             Brukerrolle.values()
@@ -43,7 +43,7 @@ internal class DokumentRoutesKtTest {
 
     @Test
     fun `validerer request`() {
-        withTestApplication(
+        testApplication(
             ({ testSusebakover(services = TestServicesBuilder.services()) }),
         ) {
             defaultRequest(
@@ -100,7 +100,7 @@ internal class DokumentRoutesKtTest {
             },
         )
 
-        withTestApplication(
+        testApplication(
             ({ testSusebakover(services = services) }),
         ) {
             defaultRequest(
@@ -132,7 +132,7 @@ internal class DokumentRoutesKtTest {
             },
         )
 
-        withTestApplication(
+        testApplication(
             ({ testSusebakover(services = services) }),
         ) {
             defaultRequest(

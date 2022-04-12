@@ -2,12 +2,12 @@ package no.nav.su.se.bakover.web.søknad.ny
 
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ContentType.Application.Json
-import io.ktor.http.HttpHeaders.ContentType
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.TestApplicationEngine
-import io.ktor.server.testing.contentType
-import io.ktor.server.testing.setBody
+import io.ktor.server.http.HttpHeaders.ContentType
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.TestApplicationEngine
+import io.ktor.server.server.testing.contentType
+import io.ktor.server.server.testing.setBody
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.web.SharedRegressionTestData
@@ -113,7 +113,7 @@ private fun TestApplicationEngine.nySøknad(
         addHeader(ContentType, Json.toString())
         setBody(requestJson)
     }.apply {
-        response.status() shouldBe HttpStatusCode.Created
+        status shouldBe HttpStatusCode.Created
         response.contentType() shouldBe io.ktor.http.ContentType.parse("application/json; charset=UTF-8")
     }.response.content!!
 }

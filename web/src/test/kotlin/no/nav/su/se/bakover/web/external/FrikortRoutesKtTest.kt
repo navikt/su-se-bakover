@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.web.external
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpHeaders
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.handleRequest
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
@@ -30,12 +30,12 @@ internal class FrikortRoutesKtTest {
 
     @Test
     fun `secure endpoint krever autentisering`() {
-        withTestApplication({
+        testApplication({
             testSusebakover()
         }) {
             handleRequest(HttpMethod.Get, frikortPath)
         }.apply {
-            response.status() shouldBe HttpStatusCode.Unauthorized
+            status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -45,7 +45,7 @@ internal class FrikortRoutesKtTest {
             on { hentAktiveFnr(any()) } doReturn emptyList()
         }
 
-        withTestApplication({
+        testApplication({
             testSusebakover(services = testServices.copy(vedtakService = vedtakServiceMock))
         }) {
             handleRequest(HttpMethod.Get, frikortPath) {
@@ -56,13 +56,13 @@ internal class FrikortRoutesKtTest {
                 )
             }
         }.apply {
-            response.status() shouldBe HttpStatusCode.OK
+            status shouldBe HttpStatusCode.OK
         }
     }
 
     @Test
     fun `sjekk feilmelding ved ugyldig dato`() {
-        withTestApplication({
+        testApplication({
             testSusebakover()
         }) {
             handleRequest(HttpMethod.Get, "$frikortPath/202121") {
@@ -73,8 +73,8 @@ internal class FrikortRoutesKtTest {
                 )
             }
         }.apply {
-            response.status() shouldBe HttpStatusCode.BadRequest
-            response.content shouldContain ("Ugyldig dato - dato må være på format YYYY-MM")
+            status shouldBe HttpStatusCode.BadRequest
+            body<String>()Contain ("Ugyldig dato - dato må være på format YYYY-MM")
         }
     }
 
@@ -86,7 +86,7 @@ internal class FrikortRoutesKtTest {
             on { hentAktiveFnr(any()) } doReturn listOf(Fnr("42920322544"))
         }
 
-        withTestApplication({
+        testApplication({
             testSusebakover(services = testServices.copy(vedtakService = vedtakServiceMock), clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC))
         }) {
             handleRequest(HttpMethod.Get, frikortPath) {
@@ -109,7 +109,7 @@ internal class FrikortRoutesKtTest {
             on { hentAktiveFnr(any()) } doReturn listOf(Fnr("42920322544"))
         }
 
-        withTestApplication({
+        testApplication({
             testSusebakover(services = testServices.copy(vedtakService = vedtakServiceMock), clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC))
         }) {
             handleRequest(HttpMethod.Get, "$frikortPath/2021-02") {
@@ -132,7 +132,7 @@ internal class FrikortRoutesKtTest {
             on { hentAktiveFnr(any()) } doReturn emptyList()
         }
 
-        withTestApplication({
+        testApplication({
             testSusebakover(services = testServices.copy(vedtakService = vedtakServiceMock), clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC))
         }) {
             handleRequest(HttpMethod.Get, "$frikortPath/2021-02") {

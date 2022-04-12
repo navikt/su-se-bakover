@@ -3,15 +3,15 @@ package no.nav.su.se.bakover.web.routes.person
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.http.HttpMethod.Companion.Post
+import io.ktor.server.server.testing.handleRequest
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
@@ -41,7 +41,7 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover()
             },
@@ -50,13 +50,13 @@ internal class PersonRoutesKtTest {
                 setBody("""{"fnr":"$testIdent"}""")
             }
         }.apply {
-            response.status() shouldBe HttpStatusCode.Unauthorized
+            status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
     @Test
     fun `bad request ved ugyldig fnr`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover()
             },
@@ -65,7 +65,7 @@ internal class PersonRoutesKtTest {
                 setBody("""{"fnr":"qwertyuiopå"}""")
             }
         }.apply {
-            response.status() shouldBe HttpStatusCode.BadRequest
+            status shouldBe HttpStatusCode.BadRequest
             JSONAssert.assertEquals(
                 """
                   {
@@ -130,7 +130,7 @@ internal class PersonRoutesKtTest {
                 }
             """.trimIndent()
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(accessCheckProxy = accessCheckProxyMock, clock = fixedClock)
             },
@@ -139,7 +139,7 @@ internal class PersonRoutesKtTest {
                 setBody("""{"fnr":"$testIdent"}""")
             }
         }.apply {
-            response.status() shouldBe OK
+            status shouldBe OK
             JSONAssert.assertEquals(expectedResponseJson, response.content!!, true)
         }
     }
@@ -157,7 +157,7 @@ internal class PersonRoutesKtTest {
             },
         )
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(clients = clients)
             },
@@ -166,7 +166,7 @@ internal class PersonRoutesKtTest {
                 setBody("""{"fnr":"$testIdent"}""")
             }
         }.apply {
-            response.status() shouldBe HttpStatusCode.InternalServerError
+            status shouldBe HttpStatusCode.InternalServerError
             response.content
             JSONAssert.assertEquals(
                 """
@@ -194,7 +194,7 @@ internal class PersonRoutesKtTest {
             },
         )
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(clients = clients)
             },
@@ -209,7 +209,7 @@ internal class PersonRoutesKtTest {
                 )
             }
         }.apply {
-            response.status() shouldBe NotFound
+            status shouldBe NotFound
             JSONAssert.assertEquals(
                 """
                   {
@@ -236,7 +236,7 @@ internal class PersonRoutesKtTest {
             },
         )
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     clients = clients,
@@ -253,7 +253,7 @@ internal class PersonRoutesKtTest {
                 )
             }
         }.apply {
-            response.status() shouldBe Forbidden
+            status shouldBe Forbidden
             response.content
             JSONAssert.assertEquals(
                 """

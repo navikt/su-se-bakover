@@ -4,11 +4,11 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.contentType
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.contentType
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
@@ -29,7 +29,7 @@ internal class BrevutkastForRevurderingRouteTest {
 
     @Test
     fun `uautoriserte kan ikke lage brevutkast`() {
-        withTestApplication({
+        testApplication({
             testSusebakover()
         }) {
             defaultRequest(
@@ -39,7 +39,7 @@ internal class BrevutkastForRevurderingRouteTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
+                status shouldBe HttpStatusCode.Forbidden
                 JSONAssert.assertEquals(
                     """
                     {
@@ -64,7 +64,7 @@ internal class BrevutkastForRevurderingRouteTest {
             on { hentRevurdering(any()) } doReturn revurderingMock
         }
 
-        withTestApplication({
+        testApplication({
             testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
         }) {
             defaultRequest(
@@ -74,7 +74,7 @@ internal class BrevutkastForRevurderingRouteTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
                 response.byteContent shouldBe pdfAsBytes
                 response.contentType() shouldBe ContentType.Application.Pdf
             }
@@ -151,7 +151,7 @@ internal class BrevutkastForRevurderingRouteTest {
             on { hentRevurdering(any()) } doReturn mock()
         }
 
-        withTestApplication({
+        testApplication({
             testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
         }) {
             defaultRequest(
@@ -161,7 +161,7 @@ internal class BrevutkastForRevurderingRouteTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe expectedStatusCode
+                status shouldBe expectedStatusCode
                 JSONAssert.assertEquals(
                     expectedJsonResponse,
                     response.content,

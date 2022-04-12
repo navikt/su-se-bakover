@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.web
 
-import io.ktor.application.Application
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.server.testing.TestApplicationCall
-import io.ktor.server.testing.TestApplicationEngine
-import io.ktor.server.testing.TestApplicationRequest
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.application.Application
+import io.ktor.server.http.HttpHeaders
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.TestApplicationCall
+import io.ktor.server.server.testing.TestApplicationEngine
+import io.ktor.server.server.testing.TestApplicationRequest
+import io.ktor.server.server.testing.handleRequest
+import io.ktor.server.server.testing.withTestApplication
 import no.finn.unleash.FakeUnleash
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
@@ -165,7 +165,7 @@ internal object SharedRegressionTestData {
     ): R {
         val dataSource = DatabaseBuilder.newLocalDataSource()
         DatabaseBuilder.migrateDatabase(dataSource)
-        return withTestApplication(
+        return testApplication(
             moduleFunction = {
                 testSusebakover(
                     databaseRepos = databaseRepos(
@@ -180,7 +180,7 @@ internal object SharedRegressionTestData {
 
     internal fun withTestApplicationAndEmbeddedDb(test: TestApplicationEngine.() -> Unit) {
         withMigratedDb { dataSource ->
-            withTestApplication(
+            testApplication(
                 moduleFunction = {
                     testSusebakover(
                         databaseRepos = databaseRepos(

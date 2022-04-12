@@ -4,10 +4,10 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
@@ -62,7 +62,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
     @Test
     fun `andre roller enn saksbehandler skal ikke ha tilgang til bosituasjon`() {
         Brukerrolle.values().filterNot { it == Brukerrolle.Saksbehandler }.forEach { rolle ->
-            withTestApplication(
+            testApplication(
                 {
                     testSusebakover()
                 },
@@ -74,7 +74,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
                 ) {
                     setBody("""{ "epsFnr": null}""".trimIndent())
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
@@ -86,7 +86,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
             on { leggTilBosituasjonEpsgrunnlag(any()) } doReturn søknadsbehandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -98,7 +98,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
             ) {
                 setBody("""{ "epsFnr": null}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
                 verify(søknadsbehandlingServiceMock).leggTilBosituasjonEpsgrunnlag(
                     argThat {
                         it shouldBe LeggTilBosituasjonEpsRequest(
@@ -118,7 +118,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
             on { leggTilBosituasjonEpsgrunnlag(any()) } doReturn søknadsbehandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -130,7 +130,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
             ) {
                 setBody("""{ "epsFnr": "$fnr"}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
                 verify(søknadsbehandlingServiceMock).leggTilBosituasjonEpsgrunnlag(
                     argThat {
                         it shouldBe LeggTilBosituasjonEpsRequest(
@@ -150,7 +150,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
             on { leggTilBosituasjonEpsgrunnlag(any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -162,8 +162,8 @@ class GrunnlagBosituasjonEpsRoutesTest {
             ) {
                 setBody("""{ "epsFnr": "$fnr"}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-                response.content shouldContain ("fant_ikke_behandling")
+                status shouldBe HttpStatusCode.NotFound
+                body<String>()Contain ("fant_ikke_behandling")
             }
         }
     }
@@ -174,7 +174,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
             on { leggTilBosituasjonEpsgrunnlag(any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             },
@@ -186,8 +186,8 @@ class GrunnlagBosituasjonEpsRoutesTest {
             ) {
                 setBody("""{ "epsFnr": "$fnr"}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-                response.content shouldContain ("fant_ikke_person")
+                status shouldBe HttpStatusCode.NotFound
+                body<String>()Contain ("fant_ikke_person")
             }
         }
     }

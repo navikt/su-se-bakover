@@ -4,10 +4,10 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -49,7 +49,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
 
     @Test
     fun `uautoriserte kan ikke sende revurdering til attestering`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover()
             },
@@ -59,7 +59,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 "$requestPath/$revurderingId/tilAttestering",
                 listOf(Brukerrolle.Veileder),
             ).apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
+                status shouldBe HttpStatusCode.Forbidden
                 JSONAssert.assertEquals(
                     """
                     {
@@ -108,7 +108,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             },
@@ -120,7 +120,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             ) {
                 setBody("""{ "fritekstTilBrev": "Friteksten" }""")
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
                 val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
                 actualResponse.id shouldBe revurderingTilAttestering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INNVILGET
@@ -156,7 +156,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             },
@@ -168,7 +168,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             ) {
                 setBody("""{ "fritekstTilBrev": "", "skalFøreTilBrevutsending": "false" }""")
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
                 val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
                 actualResponse.id shouldBe revurderingTilAttestering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING
@@ -206,7 +206,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             },
@@ -218,7 +218,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             ) {
                 setBody("""{ "fritekstTilBrev": "Friteksten", "skalFøreTilBrevutsending": "true" }""")
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
                 val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
                 actualResponse.id shouldBe revurderingTilAttestering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING
@@ -310,7 +310,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             on { sendTilAttestering(any()) } doReturn error.left()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             },
@@ -322,7 +322,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             ) {
                 setBody("""{ "fritekstTilBrev": "Dette er friteksten" }""")
             }.apply {
-                response.status() shouldBe expectedStatusCode
+                status shouldBe expectedStatusCode
                 JSONAssert.assertEquals(
                     expectedJsonResponse,
                     response.content,

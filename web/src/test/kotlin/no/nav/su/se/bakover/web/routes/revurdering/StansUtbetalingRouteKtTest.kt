@@ -4,10 +4,10 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -41,7 +41,7 @@ internal class StansUtbetalingRouteKtTest {
         val revurderingServiceMock = mock<RevurderingService> {
             on { stansAvYtelse(any()) } doReturn enRevurdering.right()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = mockServices.copy(
@@ -66,7 +66,7 @@ internal class StansUtbetalingRouteKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
             }
         }
     }
@@ -79,7 +79,7 @@ internal class StansUtbetalingRouteKtTest {
                 enRevurdering::class,
             ).left()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = mockServices.copy(
@@ -93,8 +93,8 @@ internal class StansUtbetalingRouteKtTest {
                 "saker/${enRevurdering.sakId}/revurderinger/stans/${enRevurdering.id}/iverksett",
                 listOf(Brukerrolle.Attestant),
             ).apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "kunne_ikke_iverksette_stans_ugyldig_tilstand"
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain "kunne_ikke_iverksette_stans_ugyldig_tilstand"
             }
         }
     }
@@ -107,7 +107,7 @@ internal class StansUtbetalingRouteKtTest {
                 UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil),
             ).left()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = mockServices.copy(
@@ -121,8 +121,8 @@ internal class StansUtbetalingRouteKtTest {
                 "saker/${enRevurdering.sakId}/revurderinger/stans/${enRevurdering.id}/iverksett",
                 listOf(Brukerrolle.Attestant),
             ).apply {
-                response.status() shouldBe HttpStatusCode.InternalServerError
-                response.content shouldContain "kunne_ikke_utbetale"
+                status shouldBe HttpStatusCode.InternalServerError
+                body<String>()Contain "kunne_ikke_utbetale"
             }
         }
     }
@@ -139,7 +139,7 @@ internal class StansUtbetalingRouteKtTest {
                 ).right()
             }.whenever(mock).stansAvYtelse(any())
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = mockServices.copy(
@@ -164,9 +164,9 @@ internal class StansUtbetalingRouteKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
-                response.content shouldContain "2021-01-01"
-                response.content shouldContain "kebabeluba"
+                status shouldBe HttpStatusCode.OK
+                body<String>()Contain "2021-01-01"
+                body<String>()Contain "kebabeluba"
             }
         }
     }
@@ -177,7 +177,7 @@ internal class StansUtbetalingRouteKtTest {
         val revurderingServiceMock = mock<RevurderingService> {
             on { stansAvYtelse(any()) } doReturn enRevurdering.right()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = mockServices.copy(
@@ -202,8 +202,8 @@ internal class StansUtbetalingRouteKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain """"code":"revurderingsårsak_ugyldig_begrunnelse""""
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain """"code":"revurderingsårsak_ugyldig_begrunnelse""""
             }
         }
     }
@@ -217,7 +217,7 @@ internal class StansUtbetalingRouteKtTest {
                 ),
             ).left()
         }
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = mockServices.copy(
@@ -242,8 +242,8 @@ internal class StansUtbetalingRouteKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.InternalServerError
-                response.content shouldContain """"code":"simulering_feilet_oppdraget_finnes_ikke""""
+                status shouldBe HttpStatusCode.InternalServerError
+                body<String>()Contain """"code":"simulering_feilet_oppdraget_finnes_ikke""""
             }
         }
     }

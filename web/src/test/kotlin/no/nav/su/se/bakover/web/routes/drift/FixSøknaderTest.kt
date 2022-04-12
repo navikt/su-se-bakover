@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.web.routes.drift
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Søknad
@@ -32,7 +32,7 @@ internal class FixSøknaderTest {
     @Test
     fun `Kun Drift har tilgang til fix-søknader-endepunktet`() {
         Brukerrolle.values().filterNot { it == Brukerrolle.Drift }.forEach {
-            withTestApplication({
+            testApplication({
                 testSusebakover(services = services)
             }) {
                 defaultRequest(
@@ -41,7 +41,7 @@ internal class FixSøknaderTest {
                     listOf(it)
                 ) {
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
@@ -55,7 +55,7 @@ internal class FixSøknaderTest {
                 oppgaveResultat = emptyList()
             )
         }
-        withTestApplication({
+        testApplication({
             testSusebakover(services = services.copy(søknad = søknadServiceMock))
         }) {
             defaultRequest(
@@ -64,7 +64,7 @@ internal class FixSøknaderTest {
                 listOf(Brukerrolle.Drift)
             ) {
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
                 JSONAssert.assertEquals(
                     """
                         {
@@ -118,7 +118,7 @@ internal class FixSøknaderTest {
                 )
             )
         }
-        withTestApplication({
+        testApplication({
             testSusebakover(services = services.copy(søknad = søknadServiceMock))
         }) {
             defaultRequest(
@@ -127,7 +127,7 @@ internal class FixSøknaderTest {
                 listOf(Brukerrolle.Drift)
             ) {
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
                 //language=JSON
                 JSONAssert.assertEquals(
                     """

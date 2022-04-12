@@ -4,10 +4,11 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
@@ -43,9 +44,10 @@ class OppdaterStønadsperiodeTest {
             on { oppdaterStønadsperiode(any()) } doReturn SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
         }
 
-        withTestApplication(
-            { testSusebakover(services = services.copy(søknadsbehandling = serviceMock)) },
-        ) {
+        testApplication {
+            application {
+                testSusebakover(services = services.copy(søknadsbehandling = serviceMock))
+            }
             defaultRequest(
                 HttpMethod.Post,
                 url,
@@ -53,15 +55,15 @@ class OppdaterStønadsperiodeTest {
             ) {
                 setBody("""{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen"}""")
             }.apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-                response.content shouldContain "Fant ikke behandling"
+                status shouldBe HttpStatusCode.NotFound
+                body<String>()Contain "Fant ikke behandling"
             }
         }
     }
 
     @Test
     fun `svarer med 400 dersom perioden starter tidligere enn 2021`() {
-        withTestApplication(
+        testApplication(
             { testSusebakover(services = services) },
         ) {
             defaultRequest(
@@ -71,15 +73,15 @@ class OppdaterStønadsperiodeTest {
             ) {
                 setBody("""{"periode": {"fraOgMed": "2019-01-01", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen"}""")
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "En stønadsperiode kan ikke starte før 2021"
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain "En stønadsperiode kan ikke starte før 2021"
             }
         }
     }
 
     @Test
     fun `svarer med 400 dersom perioden er lenger enn 12 måneder`() {
-        withTestApplication(
+        testApplication(
             { testSusebakover(services = services) },
         ) {
             defaultRequest(
@@ -89,15 +91,15 @@ class OppdaterStønadsperiodeTest {
             ) {
                 setBody("""{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2022-12-31"}, "begrunnelse": "begrunnelsen"}""")
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "En stønadsperiode kan være maks 12 måneder"
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain "En stønadsperiode kan være maks 12 måneder"
             }
         }
     }
 
     @Test
     fun `svarer med 400 dersom fraOgMed ikke er første dag i måneden`() {
-        withTestApplication(
+        testApplication(
             { testSusebakover(services = services) },
         ) {
             defaultRequest(
@@ -107,15 +109,15 @@ class OppdaterStønadsperiodeTest {
             ) {
                 setBody("""{"periode": {"fraOgMed": "2021-01-15", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen"}""")
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "Perioder kan kun starte på første dag i måneden"
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain "Perioder kan kun starte på første dag i måneden"
             }
         }
     }
 
     @Test
     fun `svarer med 400 dersom tilOgMed ikke er siste dag i måneden`() {
-        withTestApplication(
+        testApplication(
             { testSusebakover(services = services) },
         ) {
             defaultRequest(
@@ -125,15 +127,15 @@ class OppdaterStønadsperiodeTest {
             ) {
                 setBody("""{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-15"}, "begrunnelse": "begrunnelsen"}""")
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "Perioder kan kun avsluttes siste dag i måneden"
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain "Perioder kan kun avsluttes siste dag i måneden"
             }
         }
     }
 
     @Test
     fun `svarer med 400 dersom tilOgMed er før fraOgMed`() {
-        withTestApplication(
+        testApplication(
             { testSusebakover(services = services) },
         ) {
             defaultRequest(
@@ -143,8 +145,8 @@ class OppdaterStønadsperiodeTest {
             ) {
                 setBody("""{"periode": {"fraOgMed": "2021-12-01", "tilOgMed": "2021-01-31"}, "begrunnelse": "begrunnelsen"}""")
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "Startmåned må være tidligere eller lik sluttmåned"
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain "Startmåned må være tidligere eller lik sluttmåned"
             }
         }
     }
@@ -172,7 +174,7 @@ class OppdaterStønadsperiodeTest {
             on { oppdaterStønadsperiode(any()) } doReturn søknadsbehandling.right()
         }
 
-        withTestApplication(
+        testApplication(
             { testSusebakover(services = services.copy(søknadsbehandling = serviceMock)) },
         ) {
             defaultRequest(
@@ -182,7 +184,7 @@ class OppdaterStønadsperiodeTest {
             ) {
                 setBody("""{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen"}""")
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
             }
         }
     }

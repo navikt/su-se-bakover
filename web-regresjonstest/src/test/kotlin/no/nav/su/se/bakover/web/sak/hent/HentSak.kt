@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.web.sak.hent
 
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.http.HttpHeaders
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.TestApplicationEngine
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 import org.json.JSONObject
@@ -23,7 +23,7 @@ internal fun TestApplicationEngine.hentSak(sakId: String): String {
     ) {
         addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
     }.apply {
-        response.status() shouldBe HttpStatusCode.OK
+        status shouldBe HttpStatusCode.OK
     }.response.content!!
 }
 

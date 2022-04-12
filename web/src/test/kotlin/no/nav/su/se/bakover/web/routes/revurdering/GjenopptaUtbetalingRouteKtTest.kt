@@ -4,10 +4,10 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -37,7 +37,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
     @Test
     fun `svarer med 201 ved påbegynt gjenopptak av utbetaling`() {
         val enRevurdering = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse().second
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = TestServicesBuilder.services(
@@ -64,7 +64,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
             }
         }
     }
@@ -72,7 +72,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
     @Test
     fun `svarer med 400 ved forsøk å iverksetting av ugyldig revurdering`() {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = TestServicesBuilder.services(
@@ -95,8 +95,8 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 "saker/${enRevurdering.sakId}/revurderinger/gjenoppta/${enRevurdering.id}/iverksett",
                 listOf(Brukerrolle.Attestant),
             ).apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "kunne_ikke_iverksette_gjenopptak_ugyldig_tilstand"
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain "kunne_ikke_iverksette_gjenopptak_ugyldig_tilstand"
             }
         }
     }
@@ -104,7 +104,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
     @Test
     fun `svarer med 500 hvis utbetaling feiler`() {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = TestServicesBuilder.services(
@@ -127,8 +127,8 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 "saker/${enRevurdering.sakId}/revurderinger/gjenoppta/${enRevurdering.id}/iverksett",
                 listOf(Brukerrolle.Attestant),
             ).apply {
-                response.status() shouldBe HttpStatusCode.InternalServerError
-                response.content shouldContain "kontrollsimulering_ulik_saksbehandlers_simulering"
+                status shouldBe HttpStatusCode.InternalServerError
+                body<String>()Contain "kontrollsimulering_ulik_saksbehandlers_simulering"
             }
         }
     }
@@ -139,7 +139,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
         val simulertRevurdering = eksisterende.second
         val sisteVedtak = eksisterende.first.vedtakListe.last() as VedtakSomKanRevurderes
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = TestServicesBuilder.services(
@@ -175,9 +175,9 @@ internal class GjenopptaUtbetalingRouteKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
-                response.content shouldContain "2021-08-01"
-                response.content shouldContain "kebabeluba"
+                status shouldBe HttpStatusCode.OK
+                body<String>()Contain "2021-08-01"
+                body<String>()Contain "kebabeluba"
             }
         }
     }
@@ -186,7 +186,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
     fun `svarer med 400 ved ugyldig input`() {
         val enRevurdering = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
             .second
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = TestServicesBuilder.services(
@@ -213,15 +213,15 @@ internal class GjenopptaUtbetalingRouteKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain """"code":"revurderingsårsak_ugyldig_årsak""""
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain """"code":"revurderingsårsak_ugyldig_årsak""""
             }
         }
     }
 
     @Test
     fun `svarer med 500 ved forsøk på gjenopptak av opphørt periode`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(
                     services = TestServicesBuilder.services(
@@ -252,8 +252,8 @@ internal class GjenopptaUtbetalingRouteKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.InternalServerError
-                response.content shouldContain """"code":"kan_ikke_gjenoppta_opphørte_utbetalinger""""
+                status shouldBe HttpStatusCode.InternalServerError
+                body<String>()Contain """"code":"kan_ikke_gjenoppta_opphørte_utbetalinger""""
             }
         }
     }

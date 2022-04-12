@@ -1,11 +1,9 @@
 package no.nav.su.se.bakover.web
 
-import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -19,75 +17,87 @@ internal class AuthenticationTest {
 
     @Test
     fun `secure endpoint krever autentisering`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
-            handleRequest(Get, secureEndpoint)
-        }.apply {
-            assertEquals(Unauthorized, response.status())
+        testApplication {
+            application {
+                testSusebakover()
+            }
+            defaultRequest(Get, secureEndpoint).apply {
+                assertEquals(Unauthorized, this.status)
+            }
         }
     }
 
     @Test
     fun `secure endpoint ok med gyldig token`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
-            defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder))
-        }.apply {
-            assertEquals(OK, response.status())
+        testApplication{
+            application {
+                testSusebakover()
+            }
+            defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder)).apply {
+                assertEquals(OK, status)
+            }
         }
     }
 
     @Test
     fun `forespørsel uten påkrevet audience skal svare med 401`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        testApplication {
+            application {
+                testSusebakover()
+            }
             handleRequest(Get, secureEndpoint) {
                 addHeader(Authorization, jwtStub.createJwtToken(audience = "wrong_audience").asBearerToken())
             }
         }.apply {
-            assertEquals(Unauthorized, response.status())
+            assertEquals(Unauthorized, status)
         }
     }
 
     @Test
     fun `forespørsel uten medlemskap i påkrevet gruppe skal svare med 401`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        testApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             handleRequest(Get, secureEndpoint) {
                 addHeader(Authorization, jwtStub.createJwtToken(roller = emptyList()).asBearerToken())
             }
         }.apply {
-            assertEquals(Unauthorized, response.status())
+            assertEquals(Unauthorized, status)
         }
     }
 
     @Test
     fun `forespørsel med utgått token skal svare med 401`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        testApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             handleRequest(Get, secureEndpoint) {
-                addHeader(Authorization, jwtStub.createJwtToken(expiresAt = Date.from(Instant.now().minusSeconds(1))).asBearerToken())
+                addHeader(
+                    Authorization,
+                    jwtStub.createJwtToken(expiresAt = Date.from(Instant.now().minusSeconds(1))).asBearerToken(),
+                )
             }
         }.apply {
-            assertEquals(Unauthorized, response.status())
+            assertEquals(Unauthorized, status)
         }
     }
 
     @Test
     fun `forespørsel med feil issuer skal svare med 401`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        testApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             handleRequest(Get, secureEndpoint) {
                 addHeader(Authorization, jwtStub.createJwtToken(issuer = "wrong_issuer").asBearerToken())
             }
         }.apply {
-            assertEquals(Unauthorized, response.status())
+            assertEquals(Unauthorized, status)
         }
     }
 }

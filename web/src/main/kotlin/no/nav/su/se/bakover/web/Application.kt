@@ -1,28 +1,27 @@
 package no.nav.su.se.bakover.web
 
 import ch.qos.logback.classic.util.ContextInitializer
-import io.ktor.application.Application
-import io.ktor.application.ApplicationCall
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.auth.authenticate
-import io.ktor.features.CallId
-import io.ktor.features.CallLogging
-import io.ktor.features.ContentNegotiation
-import io.ktor.features.StatusPages
-import io.ktor.features.XForwardedHeaderSupport
-import io.ktor.features.callIdMdc
-import io.ktor.features.generate
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode
-import io.ktor.jackson.JacksonConverter
-import io.ktor.locations.Locations
-import io.ktor.request.httpMethod
-import io.ktor.request.path
-import io.ktor.response.respond
-import io.ktor.routing.Route
-import io.ktor.routing.routing
+import io.ktor.serialization.jackson.JacksonConverter
+import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.install
+import io.ktor.server.auth.authenticate
+import io.ktor.server.locations.Locations
+import io.ktor.server.plugins.callid.CallId
+import io.ktor.server.plugins.callid.callIdMdc
+import io.ktor.server.plugins.callid.generate
+import io.ktor.server.plugins.callloging.CallLogging
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.httpMethod
+import io.ktor.server.request.path
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.routing
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
@@ -50,8 +49,8 @@ import no.nav.su.se.bakover.web.features.FantBrukerMenManglerNAVIdent
 import no.nav.su.se.bakover.web.features.IkkeInitialisert
 import no.nav.su.se.bakover.web.features.KallMotMicrosoftGraphApiFeilet
 import no.nav.su.se.bakover.web.features.ManglerAuthHeader
-import no.nav.su.se.bakover.web.features.SuUserFeature
 import no.nav.su.se.bakover.web.features.SuUserFeaturefeil
+import no.nav.su.se.bakover.web.features.SuUserPlugin
 import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
@@ -87,7 +86,7 @@ fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
-@OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
+@OptIn(io.ktor.server.locations.KtorExperimentalLocationsAPI::class)
 fun Application.susebakover(
     clock: Clock = Clock.systemUTC(),
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
@@ -123,30 +122,30 @@ fun Application.susebakover(
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
 ) {
     install(StatusPages) {
-        exception<Tilgangssjekkfeil> {
-            when (it.feil) {
+        exception<Tilgangssjekkfeil> { call, cause ->
+            when (cause.feil) {
                 is KunneIkkeHentePerson.IkkeTilgangTilPerson -> {
                     call.sikkerlogg("slo opp person hen ikke har tilgang til")
-                    log.warn("[Tilgangssjekk] Ikke tilgang til person.", it)
+                    log.warn("[Tilgangssjekk] Ikke tilgang til person.", cause)
                     call.svar(Feilresponser.ikkeTilgangTilPerson)
                 }
                 is KunneIkkeHentePerson.FantIkkePerson -> {
-                    log.warn("[Tilgangssjekk] Fant ikke person", it)
+                    log.warn("[Tilgangssjekk] Fant ikke person", cause)
                     call.svar(Feilresponser.fantIkkePerson)
                 }
                 is KunneIkkeHentePerson.Ukjent -> {
-                    log.warn("[Tilgangssjekk] Feil ved oppslag på person", it)
+                    log.warn("[Tilgangssjekk] Feil ved oppslag på person", cause)
                     call.svar(Feilresponser.feilVedOppslagPåPerson)
                 }
             }
         }
 
-        exception<SuUserFeaturefeil> {
-            log.error("Got SuUserFeaturefeil with message=${it.message}", it)
+        exception<SuUserFeaturefeil> { call, cause ->
+            log.error("Got SuUserFeaturefeil with message=${cause.message}", cause)
             call.respond(
                 HttpStatusCode.InternalServerError,
                 ErrorJson(
-                    when (it) {
+                    when (cause) {
                         is KallMotMicrosoftGraphApiFeilet ->
                             "Kunne ikke hente informasjon om innlogget bruker"
                         is ManglerAuthHeader, IkkeInitialisert, FantBrukerMenManglerNAVIdent ->
@@ -155,23 +154,23 @@ fun Application.susebakover(
                 ),
             )
         }
-        exception<AuthorizationException> {
-            call.respond(HttpStatusCode.Forbidden, ErrorJson(it.message))
+        exception<AuthorizationException> { call, cause ->
+            call.respond(HttpStatusCode.Forbidden, ErrorJson(cause.message))
         }
-        exception<UgyldigFnrException> {
-            log.warn("Got UgyldigFnrException with message=${it.message}", it)
-            call.respond(HttpStatusCode.BadRequest, ErrorJson(it.message ?: "Ugyldig fødselsnummer"))
+        exception<UgyldigFnrException> { call, cause ->
+            log.warn("Got UgyldigFnrException with message=${cause.message}", cause)
+            call.respond(HttpStatusCode.BadRequest, ErrorJson(cause.message ?: "Ugyldig fødselsnummer"))
         }
-        exception<StatusovergangVisitor.UgyldigStatusovergangException> {
-            log.info("Got ${StatusovergangVisitor.UgyldigStatusovergangException::class.simpleName} with message=${it.msg}")
-            call.respond(HttpStatusCode.BadRequest, ErrorJson(it.msg))
+        exception<StatusovergangVisitor.UgyldigStatusovergangException> { call, cause ->
+            log.info("Got ${StatusovergangVisitor.UgyldigStatusovergangException::class.simpleName} with message=${cause.msg}")
+            call.respond(HttpStatusCode.BadRequest, ErrorJson(cause.msg))
         }
-        exception<DateTimeParseException> {
-            log.info("Got ${DateTimeParseException::class.simpleName} with message ${it.message}")
+        exception<DateTimeParseException> { call, cause ->
+            log.info("Got ${DateTimeParseException::class.simpleName} with message ${cause.message}")
             call.respond(HttpStatusCode.BadRequest, ErrorJson("Ugyldig dato - datoer må være på isoformat"))
         }
-        exception<Throwable> {
-            log.error("Got Throwable with message=${it.message}", it)
+        exception<Throwable> { call, cause ->
+            log.error("Got Throwable with message=${cause.message}", cause)
             call.respond(HttpStatusCode.InternalServerError, ErrorJson("Ukjent feil"))
         }
     }
@@ -199,7 +198,7 @@ fun Application.susebakover(
 
     install(CallId) {
         header(XCorrelationId)
-        generate(17)
+        this.generate(length = 17)
         verify { it.isNotEmpty() }
     }
     install(CallLogging) {
@@ -217,9 +216,9 @@ fun Application.susebakover(
         disableDefaultColors()
     }
 
-    install(XForwardedHeaderSupport)
+    install(XForwardedHeaders)
 
-    install(SuUserFeature) {
+    install(SuUserPlugin) {
         this.applicationConfig = applicationConfig
     }
 

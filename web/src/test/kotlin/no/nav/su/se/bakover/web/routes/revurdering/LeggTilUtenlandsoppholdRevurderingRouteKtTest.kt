@@ -4,10 +4,10 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.setBody
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -65,7 +65,7 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
             ).right()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             },
@@ -77,7 +77,7 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
             ) {
                 setBody(validBody())
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
                 // skal vi sjekke JSON ?
             }
         }
@@ -89,7 +89,7 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
             on { leggTilUtenlandsopphold(any()) } doReturn KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             },
@@ -101,8 +101,8 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
             ) {
                 setBody(validBody())
             }.apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-                response.content shouldContain "fant_ikke_revurdering"
+                status shouldBe HttpStatusCode.NotFound
+                body<String>()Contain "fant_ikke_revurdering"
             }
         }
     }
@@ -116,7 +116,7 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
             ).left()
         }
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             },
@@ -128,8 +128,8 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
             ) {
                 setBody(validBody())
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "ugyldig_tilstand"
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain "ugyldig_tilstand"
             }
         }
     }
@@ -138,7 +138,7 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
     fun `feilmelding hvis vi har ugyldig body`() {
         val revurderingServiceMock = mock<RevurderingService>()
 
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             },
@@ -150,7 +150,7 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
             ) {
                 setBody(invalidBody())
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
+                status shouldBe HttpStatusCode.BadRequest
             }
             verifyNoMoreInteractions(revurderingServiceMock)
         }
@@ -158,7 +158,7 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
 
     @Test
     fun `feilmelding for ugyldig periode`() {
-        withTestApplication(
+        testApplication(
             {
                 testSusebakover(services = TestServicesBuilder.services())
             },
@@ -185,8 +185,8 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
                     """.trimIndent()
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "ugyldig_periode_start_slutt"
+                status shouldBe HttpStatusCode.BadRequest
+                body<String>()Contain "ugyldig_periode_start_slutt"
             }
         }
     }

@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.features
 
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpMethod
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.http.HttpMethod
+import io.ktor.server.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.defaultRequest
@@ -10,11 +10,11 @@ import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class SuUserFeatureTest {
+internal class SuUserPluginTest {
 
     @Test
     fun `should run in the application pipeline`() {
-        withTestApplication({
+        testApplication({
             testSusebakover()
         }) {
             defaultRequest(
