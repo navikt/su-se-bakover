@@ -23,7 +23,6 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
 
     val tidslinje: List<T> = lagTidslinje()
         .sortedWith(stigendeFraOgMed)
-        .filterNot { it is MaskerFraTidslinje<*> }
 
     init {
         valider(this.tidslinje)
@@ -39,8 +38,6 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
 
     private fun lagTidslinje(): List<T> {
         if (objekter.isEmpty()) return emptyList()
-
-        // val umaskerte = objekter.filterNot { it is MaskerFraTidslinje<*> }
 
         val overlappMedPeriode = objekter
             .filter { it.periode overlapper periode }

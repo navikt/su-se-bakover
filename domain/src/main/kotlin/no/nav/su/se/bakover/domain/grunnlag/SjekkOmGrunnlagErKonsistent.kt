@@ -6,7 +6,7 @@ import arrow.core.right
 import arrow.core.separateEither
 import no.nav.su.se.bakover.common.periode.inneholderAlle
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag.Verdier.Companion.perioder
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.allPerioderMedEPS
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harOverlappende
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.allePerioderMedEPS
@@ -104,7 +104,7 @@ data class SjekkOmGrunnlagErKonsistent(
         }
 
         private fun perioderForBosituasonEPSOgFradragEPSSamsvarer(): Boolean {
-            return bosituasjon.allPerioderMedEPS().inneholderAlle(fradrag.allePerioderMedEPS())
+            return bosituasjon.perioderMedEPS().inneholderAlle(fradrag.allePerioderMedEPS())
         }
 
         private fun bosituasjonsperiodeInneholderAlleFradragsperioder(): Boolean {
@@ -142,7 +142,7 @@ data class SjekkOmGrunnlagErKonsistent(
         }
 
         private fun perioderForBosituasonEPSOgFormueEPSSamsvarer(): Boolean {
-            return bosituasjon.allPerioderMedEPS().inneholderAlle(formue.allePerioderMedEPS())
+            return bosituasjon.perioderMedEPS().inneholderAlle(formue.allePerioderMedEPS())
         }
 
         private fun bosituasjonsperiodeInneholderAlleFormueperioder(): Boolean {

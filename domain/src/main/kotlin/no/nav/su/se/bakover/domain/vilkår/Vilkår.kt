@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.periode.minusListe
 import no.nav.su.se.bakover.common.periode.overlappende
+import no.nav.su.se.bakover.common.periode.reduser
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Grunnbeløp.Companion.`0,5G`
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag.Companio
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.maskerFraTidslinje
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger.Søknadsbehandling.Companion.equals
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge.Companion.equals
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning.Companion.equals
@@ -608,7 +610,11 @@ sealed class Vilkår {
             return grunnlag.any { it.harEPSFormue() }
         }
 
-        abstract fun fjernEPSFormue(): Formue
+        /**
+         * @param perioder vi ønsker å fjerne formue for EPS for. Eventuell formue for EPS som ligger utenfor
+         * periodene bevares.
+         */
+        abstract fun fjernEPSFormue(perioder: List<Periode>): Formue
 
         /**
          * Definert i paragraf 8 til 0.5 G som vanligvis endrer seg 1. mai, årlig.
@@ -634,7 +640,7 @@ sealed class Vilkår {
                 return this
             }
 
-            override fun fjernEPSFormue(): Formue {
+            override fun fjernEPSFormue(perioder: List<Periode>): Formue {
                 return this
             }
         }
@@ -662,8 +668,8 @@ sealed class Vilkår {
                 )
             }
 
-            override fun fjernEPSFormue(): Formue {
-                return copy(vurderingsperioder = vurderingsperioder.map { it.fjernEPSFormue() })
+            override fun fjernEPSFormue(perioder: List<Periode>): Vurdert {
+                return copy(vurderingsperioder = vurderingsperioder.flatMap { it.fjernEPSFormue(perioder) })
             }
 
             override val erInnvilget: Boolean =
@@ -893,8 +899,43 @@ sealed class Vurderingsperiode {
                 grunnlag.erLik(other.grunnlag)
         }
 
-        fun fjernEPSFormue(): Formue {
+        private fun fjernEPSFormue(): Formue {
             return copy(grunnlag = grunnlag.fjernEPSFormue())
+        }
+
+        fun harEPSFormue(): Boolean {
+            return grunnlag.harEPSFormue()
+        }
+
+        /**
+         * Fjerner formue for EPS for periodene angitt av [perioder]. Identifiserer først alle periodene hvor det ikke
+         * skal skje noen endringer og bevarer verdiene for disse (kan være både med/uten EPS). Deretter fjernes
+         * EPS for alle periodene, og alle periodene identifisert i første steg maskeres ut. Syr deretter sammen periodene
+         * med/uten endring til en komplett oversikt for [periode].
+         */
+        fun fjernEPSFormue(perioder: List<Periode>): Nel<Formue> {
+            val uendret = maskerPerioderSomSkalEndres(
+                perioder = perioder.ifEmpty { listOf(periode) },
+            )
+            val endret = fjernEPSOgMaskerPerioderSomIkkeSkalEndres(
+                perioder = uendret.map { it.periode }.reduser(),
+            )
+            return Nel.fromListUnsafe(
+                Tidslinje(
+                    periode = periode,
+                    objekter = uendret + endret,
+                ).tidslinje,
+            )
+        }
+
+
+        private fun maskerPerioderSomSkalEndres(perioder: List<Periode>): List<KanPlasseresPåTidslinje<Formue>> {
+            return maskerFraTidslinje(*perioder.toTypedArray())
+        }
+
+
+        private fun fjernEPSOgMaskerPerioderSomIkkeSkalEndres(perioder: List<Periode>): List<KanPlasseresPåTidslinje<Formue>> {
+            return fjernEPSFormue().maskerFraTidslinje(*perioder.toTypedArray())
         }
 
         companion object {

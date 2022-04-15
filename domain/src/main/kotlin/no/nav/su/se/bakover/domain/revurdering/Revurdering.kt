@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
@@ -231,30 +231,18 @@ sealed class Revurdering :
         return SjekkOmGrunnlagErKonsistent.Bosituasjon(bosituasjon).resultat
             .mapLeft { KunneIkkeLeggeTilBosituasjon.Konsistenssjekk(it.first()) }
             .flatMap {
-                if (bosituasjon.harEPS()) {
-                    Grunnlagsdata.tryCreate(
-                        fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag,
-                        bosituasjon = bosituasjon,
-                    ).mapLeft {
-                        KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it)
-                    }.map {
-                        oppdaterGrunnlag(it)
-                    }
-                } else {
-                    Grunnlagsdata.tryCreate(
-                        // TODO("flere_satser må håndtere fjerning av fradrag/formue for eps når det eksisterer flere bosituasjoner")
-                        fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragEPS(),
-                        bosituasjon = bosituasjon,
-                    ).mapLeft {
-                        KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it)
-                    }.map { grunnlagsdata ->
-                        oppdaterGrunnlag(grunnlagsdata).let {
-                            it.oppdaterFormueInternal(
-                                // TODO("flere_satser må håndtere fjerning av fradrag/formue for eps når det eksisterer flere bosituasjoner")
-                                formue = it.vilkårsvurderinger.formue.fjernEPSFormue(),
-                            ).getOrHandle {
-                                throw IllegalStateException("""${this::oppdaterFormueInternal} returnerte uvente feil som ikke skal kunne oppstå.""")
-                            }
+                Grunnlagsdata.tryCreate(
+                    // TODO("flere_satser må håndtere fjerning av fradrag/formue for eps når det eksisterer flere bosituasjoner")
+                    fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragEPS(),
+                    bosituasjon = bosituasjon,
+                ).mapLeft {
+                    KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it)
+                }.map { grunnlagsdata ->
+                    oppdaterGrunnlag(grunnlagsdata).let {
+                        it.oppdaterFormueInternal(
+                            formue = it.vilkårsvurderinger.formue.fjernEPSFormue(bosituasjon.perioderUtenEPS()),
+                        ).getOrHandle {
+                            throw IllegalStateException("""${this::oppdaterFormueInternal} returnerte uvente feil som ikke skal kunne oppstå.""")
                         }
                     }
                 }

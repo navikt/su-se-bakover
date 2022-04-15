@@ -1,21 +1,29 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.nonEmptyListOf
+import io.kotest.assertions.arrow.core.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vilkår.Vilkår.Formue.Vurdert.Companion.slåSammenVurderingsperioder
+import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
+import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import org.junit.jupiter.api.Test
-import java.util.UUID
+import java.util.*
 
 internal class FormueVilkårTest {
 
@@ -124,6 +132,77 @@ internal class FormueVilkårTest {
         )
 
         f1.tilstøterOgErLik(f2) shouldBe true
+    }
+
+    @Test
+    fun `fjerner formue for EPS for ønsket periode, og bevarer for resterende perioder`() {
+        innvilgetFormueVilkår(
+            periode = Periode.create(1.januar(2021), 31.mai(2021)),
+            bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
+                periode = Periode.create(1.januar(2021), 31.mai(2021)),
+            ),
+        ).let { opprinneligVilkår ->
+            opprinneligVilkår.fjernEPSFormue(
+                listOf(
+                    Periode.create(1.februar(2021), 31.mars(2021)),
+                    Periode.create(1.mai(2021), 31.mai(2021)),
+                ),
+            ).let { nyttVilkår ->
+                nyttVilkår.vurderingsperioder shouldHaveSize 4
+
+                nyttVilkår.vurderingsperioder[0].let {
+                    it.periode shouldBe januar(2021)
+                    it.harEPSFormue() shouldBe true
+                }
+                nyttVilkår.vurderingsperioder[1].let {
+                    it.periode shouldBe Periode.create(1.februar(2021), 31.mars(2021))
+                    it.harEPSFormue() shouldBe false
+                }
+                nyttVilkår.vurderingsperioder[2].let {
+                    it.periode shouldBe april(2021)
+                    it.harEPSFormue() shouldBe true
+                }
+                nyttVilkår.vurderingsperioder[3].let {
+                    it.periode shouldBe mai(2021)
+                    it.harEPSFormue() shouldBe false
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `fjerner formue for EPS for ønsket periode fullstendig`() {
+        innvilgetFormueVilkår(
+            periode = Periode.create(1.januar(2021), 31.mars(2021)),
+            bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
+                periode = Periode.create(1.januar(2021), 31.mars(2021)),
+            ),
+        ).let { opprinneligVilkår ->
+            opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.januar(2021), 31.mars(2021)))).let { nyttVilkår ->
+                nyttVilkår.vurderingsperioder shouldHaveSize 1
+
+                nyttVilkår.vurderingsperioder[0].let {
+                    it.periode shouldBe Periode.create(1.januar(2021), 31.mars(2021))
+                    it.harEPSFormue() shouldBe false
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `ingen formue for EPS er upåvirket av fjerning for EPS`() {
+        innvilgetFormueVilkår(
+            periode = Periode.create(1.januar(2021), 31.mars(2021)),
+            bosituasjon = bosituasjongrunnlagEnslig(
+                periode = Periode.create(1.januar(2021), 31.mars(2021)),
+            ),
+        ).let { opprinneligVilkår ->
+            opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.januar(2021), 31.mars(2021)))).let { nyttVilkår ->
+                nyttVilkår.vurderingsperioder shouldHaveSize 1
+
+                nyttVilkår.vurderingsperioder[0].erLik(opprinneligVilkår.vurderingsperioder[0])
+            }
+        }
     }
 
     private fun lagFormueVurderingsperiode(
