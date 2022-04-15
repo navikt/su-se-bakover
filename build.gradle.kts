@@ -1,7 +1,7 @@
 plugins {
     kotlin("jvm")
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
-    id("org.jmailen.kotlinter") version "3.9.0"
+    id("org.jmailen.kotlinter") version "3.10.0"
 }
 
 version = "0.0.1"
@@ -16,7 +16,7 @@ subprojects {
         maven("https://packages.confluent.io/maven/")
     }
     val junitJupiterVersion = "5.8.2"
-    val kotestVersion = "5.2.2"
+    val kotestVersion = "5.2.3"
     val jacksonVersion = "2.13.2"
     val kotlinVersion: String by this
     dependencies {
@@ -32,7 +32,7 @@ subprojects {
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
         implementation("ch.qos.logback:logback-classic:1.2.11")
-        implementation("net.logstash.logback:logstash-logback-encoder:7.0.1")
+        implementation("net.logstash.logback:logstash-logback-encoder:7.1")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:3.1.0")
         implementation("com.networknt:json-schema-validator:1.0.68")
