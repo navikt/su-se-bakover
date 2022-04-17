@@ -1495,5 +1495,18 @@ internal class TidslinjeTest {
                 ),
             )
         }
+
+        @Test
+        fun `maskering for perioder som ikke overlapper elementer`(){
+            val a = Tidslinjeobjekt(
+                opprettet = Tidspunkt.now(tikkendeKlokke),
+                periode = Periode.create(
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.desember(2021),
+                ),
+            )
+
+            a.masker(listOf(Periode.create(1.desember(2022), 31.mars(2023)))) shouldBe listOf(a)
+        }
     }
 }

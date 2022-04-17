@@ -5,6 +5,9 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.domain.KopierbarForSnitt
+import no.nav.su.se.bakover.domain.KopierbarForTidslinje
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.tidslinje.KanPeriodiseresInternt
 
 interface Fradrag : PeriodisertInformasjon, KopierbarForSnitt<Fradrag?> {
     val fradragstype: Fradragstype

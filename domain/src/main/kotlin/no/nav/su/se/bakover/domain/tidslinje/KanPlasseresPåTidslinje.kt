@@ -36,20 +36,21 @@ data class MaskerFraTidslinje<T : KanPeriodiseresInternt<T>>(
     }
 }
 
-fun <T : KanPeriodiseresInternt<T>> KanPeriodiseresInternt<T>.masker(): List<KanPeriodiseresInternt<T>> {
+fun <T : KanPeriodiseresInternt<T>> KanPeriodiseresInternt<T>.masker(): List<T> {
     return masker(listOf(periode))
 }
 
 /**
  * Maskerer/fjerner elementet for periodene definert av [perioder] og re-periodiserer for eventuelle gjenværende perioder.
  */
-fun <T : KanPeriodiseresInternt<T>> KanPeriodiseresInternt<T>.masker(perioder: List<Periode>): List<KanPeriodiseresInternt<T>> {
-    return perioder.map {
-        MaskerFraTidslinje(copy(CopyArgs.Tidslinje.NyPeriode(it)))
-    }.let { maskert ->
-        Tidslinje(
-            periode = periode,
-            objekter = maskert + this,
-        ).tidslinje.filterNot { it is MaskerFraTidslinje<*> }
-    }
+fun <T : KanPeriodiseresInternt<T>> KanPeriodiseresInternt<T>.masker(perioder: List<Periode>): List<T> {
+    return perioder.filter { periode overlapper it }
+        .map {
+            MaskerFraTidslinje(copy(CopyArgs.Tidslinje.NyPeriode(it)))
+        }.let { maskert ->
+            Tidslinje(
+                periode = periode,
+                objekter = maskert + this,
+            ).tidslinje.filterNot { it is MaskerFraTidslinje<*> }
+        }
 }

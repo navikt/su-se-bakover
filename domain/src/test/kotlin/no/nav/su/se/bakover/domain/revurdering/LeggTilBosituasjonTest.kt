@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
@@ -22,11 +23,11 @@ import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
-import java.util.UUID
+import java.util.*
 
 class LeggTilBosituasjonTest {
     @Test
-    fun `fjerner eventuelle fradrag og formue for EPS dersom bosituasjon endres til enslig`() {
+    fun `fjerner eventuelle fradrag for EPS i perioder hvor bosituajson endres til å være enslig`() {
         val bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
             periode = periode2021,
         )
@@ -36,7 +37,7 @@ class LeggTilBosituasjonTest {
                 fradragsgrunnlagArbeidsinntekt(
                     periode = periode2021,
                     tilhører = FradragTilhører.EPS,
-                    arbeidsinntekt = 10.000,
+                    arbeidsinntekt = 10_000.0,
                 ),
             ),
             vilkårOverrides = listOf(
@@ -73,7 +74,14 @@ class LeggTilBosituasjonTest {
                     1.oktober(2021),
                     31.desember(2021),
                 )
-                oppdatert.grunnlagsdata.fradragsgrunnlag.filter { it.tilhørerEps() } shouldHaveSize 1
+                oppdatert.grunnlagsdata.fradragsgrunnlag.single { it.tilhørerEps() }.let {
+                    it.periode shouldBe Periode.create(
+                        1.januar(2021),
+                        30.september(2021),
+                    )
+                    it.fradragstype shouldBe Fradragstype.Arbeidsinntekt
+                    it.månedsbeløp shouldBe 10_000.0
+                }
                 oppdatert.vilkårsvurderinger.formue.harEPSFormue() shouldBe true
             }
         }
@@ -90,7 +98,7 @@ class LeggTilBosituasjonTest {
                 fradragsgrunnlagArbeidsinntekt(
                     periode = periode2021,
                     tilhører = FradragTilhører.EPS,
-                    arbeidsinntekt = 10.000,
+                    arbeidsinntekt = 10_000.0,
                 ),
             ),
             vilkårOverrides = listOf(

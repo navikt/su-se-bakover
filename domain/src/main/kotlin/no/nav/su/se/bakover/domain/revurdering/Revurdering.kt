@@ -232,8 +232,7 @@ sealed class Revurdering :
             .mapLeft { KunneIkkeLeggeTilBosituasjon.Konsistenssjekk(it.first()) }
             .flatMap {
                 Grunnlagsdata.tryCreate(
-                    // TODO("flere_satser må håndtere fjerning av fradrag/formue for eps når det eksisterer flere bosituasjoner")
-                    fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragEPS(),
+                    fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragEPS(bosituasjon.perioderUtenEPS()),
                     bosituasjon = bosituasjon,
                 ).mapLeft {
                     KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it)

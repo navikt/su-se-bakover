@@ -17,7 +17,9 @@ import no.nav.su.se.bakover.domain.KopierbarForSnitt
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.tidslinje.KanPeriodiseresInternt
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import no.nav.su.se.bakover.domain.tidslinje.masker
 import org.jetbrains.annotations.TestOnly
 import java.util.*
 
@@ -103,9 +105,9 @@ sealed class Grunnlag {
 
     data class Fradragsgrunnlag private constructor(
         override val id: UUID = UUID.randomUUID(),
-        val opprettet: Tidspunkt,
+        override val opprettet: Tidspunkt,
         val fradrag: Fradrag,
-    ) : Grunnlag(), Fradrag by fradrag {
+    ) : Grunnlag(), Fradrag by fradrag, KanPeriodiseresInternt<Fradragsgrunnlag> {
         override val periode: Periode = fradrag.periode
 
         fun oppdaterFradragsperiode(
@@ -149,6 +151,17 @@ sealed class Grunnlag {
             }.right()
         }
 
+        fun fjernFradragEPS(perioder: List<Periode>): List<Fradragsgrunnlag> {
+            return when (tilhørerEps()) {
+                true -> {
+                    masker(perioder = perioder)
+                }
+                false -> {
+                    listOf(this)
+                }
+            }
+        }
+
         companion object {
             @TestOnly
             fun create(
@@ -169,6 +182,7 @@ sealed class Grunnlag {
                 return Fradragsgrunnlag(id = id, opprettet = opprettet, fradrag = fradrag).right()
             }
 
+            //TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
             fun List<Fradragsgrunnlag>.oppdaterFradragsperiode(
                 oppdatertPeriode: Periode,
             ): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
@@ -226,6 +240,26 @@ sealed class Grunnlag {
         sealed class UgyldigFradragsgrunnlag {
             object UgyldigFradragstypeForGrunnlag : UgyldigFradragsgrunnlag()
         }
+
+        override fun copy(args: CopyArgs.Tidslinje): Fradragsgrunnlag = when (args) {
+            CopyArgs.Tidslinje.Full -> {
+                copy(id = UUID.randomUUID())
+            }
+            is CopyArgs.Tidslinje.NyPeriode -> {
+                /**
+                 * TODO
+                 * Sammenhengen mellom Fradrag/Fradragsgrunnlag for å få til å kalle hele veien ned med [CopyArgs].
+                 * Pt lar det seg ikke gjøre pga av dobbelt impl av samme interface med ulik returtype.
+                 * All den tid [Fradragsgrunnlag] likevel ikke er ment å periodiseres i sammenheng med andre enn seg selv
+                 * (se forskjell på [KanPeriodiseresInternt]/[KanPlasseresPåTidslinje]) bør dette likevel være trygt så lenge
+                 * den som kaller kvitter seg med perioder som ikke overlapper først.
+                 */
+                copy(id = UUID.randomUUID(), fradrag = fradrag.copy(CopyArgs.Snitt(args.periode))!!)
+            }
+            is CopyArgs.Tidslinje.Maskert -> {
+                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+            }
+        }
     }
 
     /**
@@ -254,7 +288,7 @@ sealed class Grunnlag {
         }
 
         companion object {
-            // TODO("flere_satser oppdatering av bosituasjon på denne måten fungerer ikke dersom det er flere")
+            //TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
             fun List<Bosituasjon>.oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): List<Bosituasjon> {
                 return this.map { it.oppdaterBosituasjonsperiode(oppdatertPeriode) }
             }

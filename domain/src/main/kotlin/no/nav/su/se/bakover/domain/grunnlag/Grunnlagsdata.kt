@@ -29,6 +29,8 @@ data class Grunnlagsdata private constructor(
      * Men dersom vi har minst en bosituasjon, betyr det at den lovlig kan iverksettes.
      */
     val erUtfylt: Boolean = bosituasjon.isNotEmpty()
+
+    //TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
     fun oppdaterGrunnlagsperioder(
         oppdatertPeriode: Periode,
     ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
@@ -89,9 +91,9 @@ sealed class KunneIkkeLageGrunnlagsdata {
 fun List<Uføregrunnlag>.harForventetInntektStørreEnn0() = this.sumOf { it.forventetInntekt } > 0
 
 fun List<Fradragsgrunnlag>.fjernFradragForEPSHvisEnslig(bosituasjon: Bosituasjon): List<Fradragsgrunnlag> {
-    return if (bosituasjon.harEPS()) this else fjernFradragEPS()
+    return if (bosituasjon.harEPS()) this else fjernFradragEPS(listOf(bosituasjon.periode))
 }
 
-fun List<Fradragsgrunnlag>.fjernFradragEPS(): List<Fradragsgrunnlag> {
-    return filterNot { it.tilhørerEps() }
+fun List<Fradragsgrunnlag>.fjernFradragEPS(perioderUtenEPS: List<Periode>): List<Fradragsgrunnlag> {
+    return flatMap { it.fjernFradragEPS(perioderUtenEPS) }
 }

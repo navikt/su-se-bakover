@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
@@ -201,6 +202,34 @@ internal class FormueVilkårTest {
                 nyttVilkår.vurderingsperioder shouldHaveSize 1
 
                 nyttVilkår.vurderingsperioder[0].erLik(opprinneligVilkår.vurderingsperioder[0])
+            }
+        }
+    }
+
+    @Test
+    fun `ingen perioder uten EPS fjerner ingenting`(){
+        innvilgetFormueVilkår(
+            periode = Periode.create(1.januar(2021), 31.mars(2021)),
+            bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
+                periode = Periode.create(1.januar(2021), 31.mars(2021)),
+            ),
+        ).let { opprinneligVilkår ->
+            opprinneligVilkår.fjernEPSFormue(emptyList()).let {
+                it.erLik(opprinneligVilkår)
+            }
+        }
+    }
+
+    @Test
+    fun `fjerning av formue for EPS for perioder som ikke overlapper formue`(){
+        innvilgetFormueVilkår(
+            periode = Periode.create(1.januar(2021), 31.mars(2021)),
+            bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
+                periode = Periode.create(1.januar(2021), 31.mars(2021)),
+            ),
+        ).let { opprinneligVilkår ->
+            opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.februar(2022), 31.juli(2022)))).let {
+                it.erLik(opprinneligVilkår)
             }
         }
     }

@@ -247,6 +247,7 @@ sealed class Vilkårsvurderinger {
             }.fold(this) { acc, vilkår -> acc.leggTil(vilkår) }
         }
 
+        //TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
         fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Søknadsbehandling = copy(
             uføre = uføre.oppdaterStønadsperiode(stønadsperiode),
             formue = formue.oppdaterStønadsperiode(stønadsperiode),
@@ -915,28 +916,9 @@ sealed class Vurderingsperiode {
          * med/uten endring til en komplett oversikt for [periode].
          */
         fun fjernEPSFormue(perioder: List<Periode>): Nel<Formue> {
-            val uendret = maskerPerioderSomSkalEndres(
-                perioder = perioder.ifEmpty { listOf(periode) },
-            )
-            val endret = fjernEPSOgMaskerPerioderSomIkkeSkalEndres(
-                perioder = uendret.map { it.periode }.reduser(),
-            )
-            return Nel.fromListUnsafe(
-                Tidslinje(
-                    periode = periode,
-                    objekter = uendret + endret,
-                ).tidslinje,
-            )
-        }
-
-
-        private fun maskerPerioderSomSkalEndres(perioder: List<Periode>): List<KanPeriodiseresInternt<Formue>> {
-            return masker(perioder)
-        }
-
-
-        private fun fjernEPSOgMaskerPerioderSomIkkeSkalEndres(perioder: List<Periode>): List<KanPeriodiseresInternt<Formue>> {
-            return fjernEPSFormue().masker(perioder)
+            val uendret = masker(perioder = perioder)
+            val endret = fjernEPSFormue().masker(perioder = uendret.map { it.periode }.reduser())
+            return Nel.fromListUnsafe(Tidslinje(periode, uendret + endret).tidslinje)
         }
 
         companion object {
@@ -980,8 +962,8 @@ sealed class Vurderingsperiode {
                     id = UUID.randomUUID(),
                     opprettet = grunnlag.opprettet,
                     resultat = if (grunnlag.periode.tilMånedsperioder().all {
-                        grunnlag.sumFormue() <= `0,5G`.påDato(it.fraOgMed)
-                    }
+                            grunnlag.sumFormue() <= `0,5G`.påDato(it.fraOgMed)
+                        }
                     ) Resultat.Innvilget else Resultat.Avslag,
                     grunnlag = grunnlag,
                     periode = grunnlag.periode,
