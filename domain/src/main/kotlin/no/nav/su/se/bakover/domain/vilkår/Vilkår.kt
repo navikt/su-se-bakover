@@ -23,9 +23,10 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.tidslinje.KanPeriodiseresInternt
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import no.nav.su.se.bakover.domain.tidslinje.maskerFraTidslinje
+import no.nav.su.se.bakover.domain.tidslinje.masker
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger.Søknadsbehandling.Companion.equals
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge.Companion.equals
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning.Companion.equals
@@ -929,13 +930,13 @@ sealed class Vurderingsperiode {
         }
 
 
-        private fun maskerPerioderSomSkalEndres(perioder: List<Periode>): List<KanPlasseresPåTidslinje<Formue>> {
-            return maskerFraTidslinje(*perioder.toTypedArray())
+        private fun maskerPerioderSomSkalEndres(perioder: List<Periode>): List<KanPeriodiseresInternt<Formue>> {
+            return masker(perioder)
         }
 
 
-        private fun fjernEPSOgMaskerPerioderSomIkkeSkalEndres(perioder: List<Periode>): List<KanPlasseresPåTidslinje<Formue>> {
-            return fjernEPSFormue().maskerFraTidslinje(*perioder.toTypedArray())
+        private fun fjernEPSOgMaskerPerioderSomIkkeSkalEndres(perioder: List<Periode>): List<KanPeriodiseresInternt<Formue>> {
+            return fjernEPSFormue().masker(perioder)
         }
 
         companion object {

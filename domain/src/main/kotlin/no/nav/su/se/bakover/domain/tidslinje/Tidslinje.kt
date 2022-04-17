@@ -3,15 +3,62 @@ package no.nav.su.se.bakover.domain.tidslinje
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
-import java.time.Clock
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.Validator.valider
 import java.time.LocalDate
 import java.util.LinkedList
 
-data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
+/**
+ * Konstruerer en tidslinje av periodiserte opplysninger innenfor angitt [periode].
+ * Periodiseringen vil ta hensyn til to hovedparametere; [KanPeriodiseresInternt.periode] og [KanPeriodiseresInternt.opprettet].
+ * Dersom [KanPeriodiseresInternt.periode] er overlappende for to elementer, vil elementet med nyeste [KanPeriodiseresInternt.opprettet]
+ * få presedens og følgelig overskrive det første elementet for perioden som overlapper. Perioder uten overlapp for elementer forblir uberørt.
+ *
+ * @param periode "utsnittet" tidslinjen skal konstrueres for.
+ *
+ * @see KanPeriodiseresInternt
+ * @see KanPlasseresPåTidslinje
+ * @see MaskerFraTidslinje
+ */
+class Tidslinje<T : KanPeriodiseresInternt<T>> private constructor(
     private val periode: Periode,
-    private val objekter: List<KanPlasseresPåTidslinje<T>>,
-    private val clock: Clock = Clock.systemUTC(),
+    private val objekter: List<KanPeriodiseresInternt<T>>,
 ) {
+    companion object {
+        @JvmName("intern")
+        operator fun <T : KanPeriodiseresInternt<T>> invoke(
+            periode: Periode,
+            objekter: List<KanPeriodiseresInternt<T>>,
+        ): Tidslinje<T> {
+            return Tidslinje(periode, objekter)
+        }
+        @JvmName("tidslinje")
+        operator fun <T : KanPlasseresPåTidslinje<T>> invoke(
+            periode: Periode,
+            objekter: List<KanPlasseresPåTidslinje<T>>,
+        ): Tidslinje<T> {
+            return Tidslinje(periode, objekter)
+        }
+
+        object Validator {
+            fun <T : KanPeriodiseresInternt<T>> valider(elementer: List<T>) {
+                require(
+                    elementer.all { t1 ->
+                        elementer.minus(t1).none { t2 -> t1.periode.fraOgMed == t2.periode.fraOgMed }
+                    },
+                ) { "Tidslinje har flere elementer med samme fraOgMed dato!" }
+                require(
+                    elementer.all { t1 ->
+                        elementer.minus(t1).none { t2 -> t1.periode.tilOgMed == t2.periode.tilOgMed }
+                    },
+                ) { "Tidslinje har flere elementer med samme tilOgMed dato!" }
+                require(
+                    elementer.all { t1 ->
+                        elementer.minus(t1).none { t2 -> t1.periode overlapper t2.periode }
+                    },
+                ) { "Tidslinje har elementer med overlappende perioder!" }
+            }
+        }
+    }
 
     private val stigendeFraOgMed = Comparator<T> { o1, o2 ->
         o1.periode.fraOgMed.compareTo(o2.periode.fraOgMed)
@@ -26,14 +73,6 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
 
     init {
         valider(this.tidslinje)
-    }
-
-    companion object Validator {
-        fun <T : KanPlasseresPåTidslinje<T>> valider(elementer: List<T>) {
-            require(elementer.all { t1 -> elementer.minus(t1).none { t2 -> t1.periode.fraOgMed == t2.periode.fraOgMed } }) { "Tidslinje har flere elementer med samme fraOgMed dato!" }
-            require(elementer.all { t1 -> elementer.minus(t1).none { t2 -> t1.periode.tilOgMed == t2.periode.tilOgMed } }) { "Tidslinje har flere elementer med samme tilOgMed dato!" }
-            require(elementer.all { t1 -> elementer.minus(t1).none { t2 -> t1.periode overlapper t2.periode } }) { "Tidslinje har elementer med overlappende perioder!" }
-        }
     }
 
     private fun lagTidslinje(): List<T> {
@@ -159,7 +198,7 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                                 when {
                                     first.opprettet.instant > second.opprettet.instant ||
                                         first.opprettet.instant == second.opprettet.instant -> {
-                                        throw RuntimeException("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge.")
+                                        throw IllegalStateException("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge.")
                                     }
                                     first.opprettet.instant < second.opprettet.instant -> {
                                         result.add(
@@ -201,7 +240,7 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
         }
     }
 
-    private fun List<KanPlasseresPåTidslinje<T>>.justerFraOgMedForElementerDelvisUtenforPeriode(): List<T> {
+    private fun List<KanPeriodiseresInternt<T>>.justerFraOgMedForElementerDelvisUtenforPeriode(): List<T> {
         return map {
             if (it.periode starterTidligere periode) {
                 it.copy(
@@ -218,7 +257,7 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
         }
     }
 
-    private fun List<KanPlasseresPåTidslinje<T>>.justerTilOgMedForElementerDelvisUtenforPeriode(): List<T> {
+    private fun List<KanPeriodiseresInternt<T>>.justerTilOgMedForElementerDelvisUtenforPeriode(): List<T> {
         return map {
             if (it.periode slutterEtter periode) {
                 it.copy(
@@ -235,7 +274,7 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
         }
     }
 
-    private fun List<KanPlasseresPåTidslinje<T>>.overlappMedAndreEksisterer(): Boolean {
+    private fun List<KanPeriodiseresInternt<T>>.overlappMedAndreEksisterer(): Boolean {
         return filter { t1 ->
             any { t2 -> t1 != t2 && t1.periode overlapper t2.periode }
         }.isNotEmpty()

@@ -6,15 +6,29 @@ import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.KopierbarForTidslinje
 import no.nav.su.se.bakover.domain.OriginaltTidsstempel
 
-interface KanPlasseresPåTidslinje<Type> :
+/**
+ * Egenskaper som kreves for at et element skal kunne periodiseres av [Tidslinje].
+ * Som et minimum må elementet være stand til å kunne plasseres på en [Tidslinje] med bare seg selv og utføre re-periodisering
+ * vha. [Tidslinje.periode] og [MaskerFraTidslinje]
+ */
+interface KanPeriodiseresInternt<Type> :
     OriginaltTidsstempel,
     PeriodisertInformasjon,
     KopierbarForTidslinje<Type>
 
-data class MaskerFraTidslinje<T : KanPlasseresPåTidslinje<T>>(
-    private val objekt: KanPlasseresPåTidslinje<T>,
-    private val maskeringsPeriode: Periode = objekt.periode,
-) : KanPlasseresPåTidslinje<T> by objekt {
+/**
+ * Et syntetisk supersett av [KanPeriodiseresInternt] hvis intensjon er å markere at elementer av typen [Type] er ment å
+ * plasseres på en tidslinje sammen med andre elementer enn seg selv. I praksis betyr dette at det må/bør være meningen
+ * at elementer av [Type] med nyere [opprettet] skal overskrive eldre elementer med overlappende [periode].
+ */
+interface KanPlasseresPåTidslinje<Type> : KanPeriodiseresInternt<Type>
+
+/**
+ * Wrapper for elementer som skal maskeres fra en tidslinje.
+ */
+data class MaskerFraTidslinje<T : KanPeriodiseresInternt<T>>(
+    private val objekt: KanPeriodiseresInternt<T>,
+) : KanPeriodiseresInternt<T> by objekt {
 
     @Suppress("UNCHECKED_CAST")
     override fun copy(args: CopyArgs.Tidslinje): T {
@@ -22,21 +36,16 @@ data class MaskerFraTidslinje<T : KanPlasseresPåTidslinje<T>>(
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-fun <T : KanPlasseresPåTidslinje<T>> KanPlasseresPåTidslinje<T>.masker(periode: Periode = this.periode): MaskerFraTidslinje<T> {
-    return MaskerFraTidslinje(this.copy(CopyArgs.Tidslinje.NyPeriode(periode)))
+fun <T : KanPeriodiseresInternt<T>> KanPeriodiseresInternt<T>.masker(): List<KanPeriodiseresInternt<T>> {
+    return masker(listOf(periode))
 }
 
-@Suppress("UNCHECKED_CAST")
-fun <T : KanPlasseresPåTidslinje<T>> KanPlasseresPåTidslinje<T>.maskerFraTidslinje(): List<KanPlasseresPåTidslinje<T>> {
-    return maskerFraTidslinje(this.periode)
-}
-
-
-@Suppress("UNCHECKED_CAST")
-fun <T : KanPlasseresPåTidslinje<T>> KanPlasseresPåTidslinje<T>.maskerFraTidslinje(vararg perioder: Periode): List<KanPlasseresPåTidslinje<T>> {
+/**
+ * Maskerer/fjerner elementet for periodene definert av [perioder] og re-periodiserer for eventuelle gjenværende perioder.
+ */
+fun <T : KanPeriodiseresInternt<T>> KanPeriodiseresInternt<T>.masker(perioder: List<Periode>): List<KanPeriodiseresInternt<T>> {
     return perioder.map {
-        masker(it)
+        MaskerFraTidslinje(copy(CopyArgs.Tidslinje.NyPeriode(it)))
     }.let { maskert ->
         Tidslinje(
             periode = periode,

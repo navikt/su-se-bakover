@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.Validator
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Nested
@@ -73,7 +74,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock,
         ).let {
             val expected = Tidslinjeobjekt(
                 opprettet = b.opprettet,
@@ -121,7 +121,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(b, a),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
@@ -169,7 +168,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
@@ -217,7 +215,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
@@ -265,7 +262,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
@@ -313,7 +309,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(b, a),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
@@ -370,7 +365,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(b, c, a),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
@@ -443,7 +437,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2022),
             ),
             objekter = listOf(a, b, c, d),
-            clock = fixedClock,
         ).let {
             val expecteda = Tidslinjeobjekt(
                 opprettet = a.opprettet,
@@ -515,7 +508,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
@@ -570,7 +562,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
@@ -636,7 +627,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, d, c, b),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
@@ -709,7 +699,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(b, a, c, d),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
@@ -780,7 +769,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b, c),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
@@ -835,7 +823,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(b, a),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
@@ -901,7 +888,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(c, a, b, d),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = d.opprettet,
@@ -960,7 +946,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b, c, d),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
@@ -1024,7 +1009,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b, c),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
@@ -1085,7 +1069,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock,
         ).tidslinje.let {
             it shouldHaveSize 1
             it[0].let { resultat ->
@@ -1103,13 +1086,12 @@ internal class TidslinjeTest {
 
     @Test
     fun `returnerer tom liste hvis ingen elementer sendes inn`() {
-        Tidslinje<Tidslinjeobjekt>(
+        Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
             ),
-            objekter = emptyList(),
-            clock = fixedClock,
+            objekter = emptyList<Tidslinjeobjekt>(),
         ).let {
             it.tidslinje shouldBe emptyList()
             it.gjeldendeForDato(13.april(2020)) shouldBe null
@@ -1150,7 +1132,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.mars(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock,
         ).let {
             val expected = Tidslinjeobjekt(
                 opprettet = a.opprettet,
@@ -1175,7 +1156,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.mai(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
@@ -1197,7 +1177,6 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
@@ -1225,14 +1204,13 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2022),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock,
         ).tidslinje shouldBe emptyList()
     }
 
     @Test
     fun `validator kaster exception dersom tidslinja ikke har distinkte fra og med datoer`() {
         assertDoesNotThrow {
-            Tidslinje.Validator.valider(
+            Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
                         opprettet = Tidspunkt.now(tikkendeKlokke),
@@ -1245,7 +1223,7 @@ internal class TidslinjeTest {
             )
         }
         assertThrows<IllegalArgumentException> {
-            Tidslinje.Validator.valider(
+           Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
                         opprettet = Tidspunkt.now(tikkendeKlokke),
@@ -1266,7 +1244,7 @@ internal class TidslinjeTest {
         }.message shouldBe "Tidslinje har flere elementer med samme fraOgMed dato!"
 
         assertThrows<IllegalArgumentException> {
-            Tidslinje.Validator.valider(
+           Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
                         opprettet = Tidspunkt.now(tikkendeKlokke),
@@ -1297,7 +1275,7 @@ internal class TidslinjeTest {
     @Test
     fun `validator kaster exception dersom tidslinja ikke har distinkte til og med datoer`() {
         assertThrows<IllegalArgumentException> {
-            Tidslinje.Validator.valider(
+           Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
                         opprettet = Tidspunkt.now(tikkendeKlokke),
@@ -1318,7 +1296,7 @@ internal class TidslinjeTest {
         }.message shouldBe "Tidslinje har flere elementer med samme tilOgMed dato!"
 
         assertThrows<IllegalArgumentException> {
-            Tidslinje.Validator.valider(
+           Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
                         opprettet = Tidspunkt.now(tikkendeKlokke),
@@ -1349,7 +1327,7 @@ internal class TidslinjeTest {
     @Test
     fun `validator kaster exception dersom tidslinja har elementer med overlappende perioder`() {
         assertThrows<IllegalArgumentException> {
-            Tidslinje.Validator.valider(
+           Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
                         opprettet = Tidspunkt.now(tikkendeKlokke),
@@ -1387,8 +1365,7 @@ internal class TidslinjeTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.mars(2021),
                 ),
-                objekter = a.maskerFraTidslinje(),
-                clock = fixedClock,
+                objekter = a.masker(),
             ).tidslinje shouldBe emptyList()
         }
 
@@ -1407,8 +1384,7 @@ internal class TidslinjeTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.mars(2021),
                 ),
-                objekter = a.maskerFraTidslinje(Periode.create(1.februar(2021), 28.februar(2021))),
-                clock = fixedClock,
+                objekter = a.masker(listOf(Periode.create(1.februar(2021), 28.februar(2021)))),
             ).tidslinje shouldBe listOf(
                 Tidslinjeobjekt(
                     opprettet = a.opprettet,
@@ -1450,8 +1426,7 @@ internal class TidslinjeTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.mars(2021),
                 ),
-                objekter = a.maskerFraTidslinje() + b,
-                clock = tikkendeKlokke,
+                objekter = a.masker() + b,
             ).tidslinje shouldBe listOf(
                 Tidslinjeobjekt(
                     opprettet = b.opprettet,
@@ -1502,8 +1477,7 @@ internal class TidslinjeTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                 ),
-                objekter = listOf(a) + b.maskerFraTidslinje() + c.maskerFraTidslinje() + listOf(d),
-                clock = tikkendeKlokke,
+                objekter = listOf(a) + b.masker() + c.masker() + listOf(d),
             ).tidslinje shouldBe listOf(
                 Tidslinjeobjekt(
                     opprettet = a.opprettet,
