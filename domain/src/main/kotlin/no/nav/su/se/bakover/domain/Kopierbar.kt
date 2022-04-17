@@ -2,8 +2,12 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.periode.Periode
 
-interface Copyable<Args, Type> {
-    fun copy(args: Args): Type
+interface KopierbarForTidslinje<Type> {
+    fun copy(args: CopyArgs.Tidslinje): Type
+}
+
+interface KopierbarForSnitt<Type> {
+    fun copy(args: CopyArgs.Snitt): Type?
 }
 
 sealed class CopyArgs {
@@ -15,7 +19,7 @@ sealed class CopyArgs {
          * Spesielt argument for å kunne maskere elementer fra en [no.nav.su.se.bakover.domain.tidslinje.Tidslinje].
          * @throws IllegalArgumentException dersom [args] er av typen [Maskert] da dette vil føre til rekursiv loop.
          *
-         * @see implementasjoner av [Copyable.copy]
+         * @see implementasjoner av [KopierbarForTidslinje.copy]
          */
         data class Maskert(val args: Tidslinje) : Tidslinje() {
             init {

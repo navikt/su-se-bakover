@@ -12,14 +12,14 @@ import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.periode.reduser
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.Copyable
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.KopierbarForSnitt
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import org.jetbrains.annotations.TestOnly
-import java.util.UUID
+import java.util.*
 
 sealed class Grunnlag {
     abstract val id: UUID
@@ -308,7 +308,7 @@ sealed class Grunnlag {
             }
         }
 
-        sealed class Fullstendig : Bosituasjon(), Copyable<CopyArgs.Snitt, Fullstendig?> {
+        sealed class Fullstendig : Bosituasjon(), KopierbarForSnitt<Fullstendig?> {
             abstract val begrunnelse: String?
 
             sealed class EktefellePartnerSamboer : Fullstendig() {

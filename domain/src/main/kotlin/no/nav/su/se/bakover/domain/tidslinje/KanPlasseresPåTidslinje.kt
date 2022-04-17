@@ -2,15 +2,14 @@ package no.nav.su.se.bakover.domain.tidslinje
 
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
-import no.nav.su.se.bakover.common.periode.inneholderAlle
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.Copyable
+import no.nav.su.se.bakover.domain.KopierbarForTidslinje
 import no.nav.su.se.bakover.domain.OriginaltTidsstempel
 
 interface KanPlasseresPåTidslinje<Type> :
     OriginaltTidsstempel,
     PeriodisertInformasjon,
-    Copyable<CopyArgs.Tidslinje, Type>
+    KopierbarForTidslinje<Type>
 
 data class MaskerFraTidslinje<T : KanPlasseresPåTidslinje<T>>(
     private val objekt: KanPlasseresPåTidslinje<T>,

@@ -4,10 +4,9 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
-import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.Copyable
+import no.nav.su.se.bakover.domain.KopierbarForSnitt
 
-interface Fradrag : PeriodisertInformasjon, Copyable<CopyArgs.Snitt, Fradrag?> {
+interface Fradrag : PeriodisertInformasjon, KopierbarForSnitt<Fradrag?> {
     val fradragstype: Fradragstype
     val månedsbeløp: Double
     val utenlandskInntekt: UtenlandskInntekt? // TODO can we pls do something about this one?
