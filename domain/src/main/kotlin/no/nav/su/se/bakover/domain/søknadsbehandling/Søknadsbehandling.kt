@@ -570,7 +570,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 )
             }
 
-            //TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
+            // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
             override fun oppdaterStønadsperiode(
                 oppdatertStønadsperiode: Stønadsperiode,
                 clock: Clock,

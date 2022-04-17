@@ -207,7 +207,7 @@ internal class FormueVilkårTest {
     }
 
     @Test
-    fun `ingen perioder uten EPS fjerner ingenting`(){
+    fun `ingen perioder uten EPS fjerner ingenting`() {
         innvilgetFormueVilkår(
             periode = Periode.create(1.januar(2021), 31.mars(2021)),
             bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
@@ -221,7 +221,7 @@ internal class FormueVilkårTest {
     }
 
     @Test
-    fun `fjerning av formue for EPS for perioder som ikke overlapper formue`(){
+    fun `fjerning av formue for EPS for perioder som ikke overlapper formue`() {
         innvilgetFormueVilkår(
             periode = Periode.create(1.januar(2021), 31.mars(2021)),
             bosituasjon = bosituasjongrunnlagEpsUførFlyktning(

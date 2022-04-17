@@ -182,7 +182,7 @@ sealed class Grunnlag {
                 return Fradragsgrunnlag(id = id, opprettet = opprettet, fradrag = fradrag).right()
             }
 
-            //TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
+            // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
             fun List<Fradragsgrunnlag>.oppdaterFradragsperiode(
                 oppdatertPeriode: Periode,
             ): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
@@ -288,7 +288,7 @@ sealed class Grunnlag {
         }
 
         companion object {
-            //TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
+            // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
             fun List<Bosituasjon>.oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): List<Bosituasjon> {
                 return this.map { it.oppdaterBosituasjonsperiode(oppdatertPeriode) }
             }
@@ -453,7 +453,7 @@ sealed class Grunnlag {
 
         sealed class Ufullstendig : Bosituasjon() {
             /** Dette er en midlertid tilstand hvor det er valgt Ikke Eps, men ikke tatt stilling til bosituasjon Enslig eller med voksne
-            Data klassen kan godt få et bedre navn... */
+             Data klassen kan godt få et bedre navn... */
             data class HarIkkeEps(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
@@ -469,7 +469,7 @@ sealed class Grunnlag {
             }
 
             /** Dette er en midlertid tilstand hvor det er valgt Eps, men ikke tatt stilling til om eps er ufør flyktning eller ikke
-            Data klassen kan godt få et bedre navn... */
+             Data klassen kan godt få et bedre navn... */
             data class HarEps(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,

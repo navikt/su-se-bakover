@@ -30,7 +30,7 @@ data class Grunnlagsdata private constructor(
      */
     val erUtfylt: Boolean = bosituasjon.isNotEmpty()
 
-    //TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
+    // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
     fun oppdaterGrunnlagsperioder(
         oppdatertPeriode: Periode,
     ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {

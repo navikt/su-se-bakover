@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.left
-import io.kotest.matchers.collections.shouldBeOneOf
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.august
@@ -26,7 +24,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.periode2021
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.junit.jupiter.api.Test
 import java.util.*
 
@@ -393,7 +390,7 @@ internal class FradragsgrunnlagTest {
     }
 
     @Test
-    fun `fjerning av fradrag for EPS uten spesifisert periode`(){
+    fun `fjerning av fradrag for EPS uten spesifisert periode`() {
         val fBruker = lagFradragsgrunnlag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 5_000.0,
@@ -409,12 +406,12 @@ internal class FradragsgrunnlagTest {
             tilhører = FradragTilhører.EPS,
         )
         listOf(fBruker, fEps).fjernFradragEPS(emptyList()).let {
-          it shouldBe listOf(fBruker, fEps.copy(id = it[1].id))
+            it shouldBe listOf(fBruker, fEps.copy(id = it[1].id))
         }
     }
 
     @Test
-    fun `fjerning av fradrag for EPS perioder som ikke overlapper med fradraget`(){
+    fun `fjerning av fradrag for EPS perioder som ikke overlapper med fradraget`() {
         val fBruker = lagFradragsgrunnlag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 5_000.0,

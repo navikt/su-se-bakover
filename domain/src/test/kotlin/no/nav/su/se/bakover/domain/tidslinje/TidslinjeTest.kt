@@ -1223,7 +1223,7 @@ internal class TidslinjeTest {
             )
         }
         assertThrows<IllegalArgumentException> {
-           Validator.valider(
+            Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
                         opprettet = Tidspunkt.now(tikkendeKlokke),
@@ -1244,7 +1244,7 @@ internal class TidslinjeTest {
         }.message shouldBe "Tidslinje har flere elementer med samme fraOgMed dato!"
 
         assertThrows<IllegalArgumentException> {
-           Validator.valider(
+            Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
                         opprettet = Tidspunkt.now(tikkendeKlokke),
@@ -1275,7 +1275,7 @@ internal class TidslinjeTest {
     @Test
     fun `validator kaster exception dersom tidslinja ikke har distinkte til og med datoer`() {
         assertThrows<IllegalArgumentException> {
-           Validator.valider(
+            Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
                         opprettet = Tidspunkt.now(tikkendeKlokke),
@@ -1296,7 +1296,7 @@ internal class TidslinjeTest {
         }.message shouldBe "Tidslinje har flere elementer med samme tilOgMed dato!"
 
         assertThrows<IllegalArgumentException> {
-           Validator.valider(
+            Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
                         opprettet = Tidspunkt.now(tikkendeKlokke),
@@ -1327,7 +1327,7 @@ internal class TidslinjeTest {
     @Test
     fun `validator kaster exception dersom tidslinja har elementer med overlappende perioder`() {
         assertThrows<IllegalArgumentException> {
-           Validator.valider(
+            Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
                         opprettet = Tidspunkt.now(tikkendeKlokke),
@@ -1497,7 +1497,7 @@ internal class TidslinjeTest {
         }
 
         @Test
-        fun `maskering for perioder som ikke overlapper elementer`(){
+        fun `maskering for perioder som ikke overlapper elementer`() {
             val a = Tidslinjeobjekt(
                 opprettet = Tidspunkt.now(tikkendeKlokke),
                 periode = Periode.create(

@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.tidslinje.KanPeriodiseresInternt
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.tidslinje.masker
@@ -247,7 +246,7 @@ sealed class Vilkårsvurderinger {
             }.fold(this) { acc, vilkår -> acc.leggTil(vilkår) }
         }
 
-        //TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
+        // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
         fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Søknadsbehandling = copy(
             uføre = uføre.oppdaterStønadsperiode(stønadsperiode),
             formue = formue.oppdaterStønadsperiode(stønadsperiode),
@@ -962,8 +961,8 @@ sealed class Vurderingsperiode {
                     id = UUID.randomUUID(),
                     opprettet = grunnlag.opprettet,
                     resultat = if (grunnlag.periode.tilMånedsperioder().all {
-                            grunnlag.sumFormue() <= `0,5G`.påDato(it.fraOgMed)
-                        }
+                        grunnlag.sumFormue() <= `0,5G`.påDato(it.fraOgMed)
+                    }
                     ) Resultat.Innvilget else Resultat.Avslag,
                     grunnlag = grunnlag,
                     periode = grunnlag.periode,
