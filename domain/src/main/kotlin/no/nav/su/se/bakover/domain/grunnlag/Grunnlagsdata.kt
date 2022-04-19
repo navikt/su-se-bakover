@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.oppda
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.oppdaterFradragsperiode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 // TODO: Del inn i tom og utleda grunnlagsdata. F.eks. ved å bruke NonEmptyList
@@ -96,4 +97,11 @@ fun List<Fradragsgrunnlag>.fjernFradragForEPSHvisEnslig(bosituasjon: Bosituasjon
 
 fun List<Fradragsgrunnlag>.fjernFradragEPS(perioderUtenEPS: List<Periode>): List<Fradragsgrunnlag> {
     return flatMap { it.fjernFradragEPS(perioderUtenEPS) }
+}
+
+fun List<Bosituasjon.Fullstendig>.lagTidslinje(periode: Periode): List<Bosituasjon.Fullstendig> {
+    return Tidslinje(
+        periode = periode,
+        objekter = this,
+    ).tidslinje
 }

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
+import no.nav.su.se.bakover.domain.grunnlag.lagTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -360,11 +361,10 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                     copy(
                         periode = periode,
                         grunnlagsdata = Grunnlagsdata.create(
-                            bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
-                                (it.fullstendigOrThrow()).copy(
-                                    CopyArgs.Snitt(periode),
-                                )
-                            },
+                            bosituasjon = grunnlagsdata.bosituasjon.map {
+                                it.fullstendigOrThrow()
+                            }.lagTidslinje(periode),
+                            // TODO("dette ser ut som en bug, bør vel kvitte oss med forventet inntekt her og")
                             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.mapNotNull {
                                 it.copy(args = CopyArgs.Snitt(periode))
                             },
@@ -377,11 +377,9 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                     copy(
                         periode = args.periode,
                         grunnlagsdata = Grunnlagsdata.create(
-                            bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
-                                (it.fullstendigOrThrow()).copy(
-                                    CopyArgs.Snitt(args.periode),
-                                )
-                            },
+                            bosituasjon = grunnlagsdata.bosituasjon.map {
+                                it.fullstendigOrThrow()
+                            }.lagTidslinje(args.periode),
                             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot {
                                 it.fradragstype == Fradragstype.ForventetInntekt
                             }.mapNotNull {

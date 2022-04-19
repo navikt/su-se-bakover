@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.periode.reduser
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.KopierbarForSnitt
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -21,7 +20,7 @@ import no.nav.su.se.bakover.domain.tidslinje.KanPeriodiseresInternt
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.masker
 import org.jetbrains.annotations.TestOnly
-import java.util.*
+import java.util.UUID
 
 sealed class Grunnlag {
     abstract val id: UUID
@@ -342,7 +341,7 @@ sealed class Grunnlag {
             }
         }
 
-        sealed class Fullstendig : Bosituasjon(), KopierbarForSnitt<Fullstendig?> {
+        sealed class Fullstendig : Bosituasjon(), KanPlasseresPåTidslinje<Fullstendig> {
             abstract val begrunnelse: String?
 
             sealed class EktefellePartnerSamboer : Fullstendig() {
@@ -366,8 +365,16 @@ sealed class Grunnlag {
                             return this.fnr == other.fnr
                         }
 
-                        override fun copy(args: CopyArgs.Snitt): UførFlyktning? {
-                            return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
+                        override fun copy(args: CopyArgs.Tidslinje): UførFlyktning = when (args) {
+                            CopyArgs.Tidslinje.Full -> {
+                                copy(id = UUID.randomUUID())
+                            }
+                            is CopyArgs.Tidslinje.NyPeriode -> {
+                                copy(id = UUID.randomUUID(), periode = args.periode)
+                            }
+                            is CopyArgs.Tidslinje.Maskert -> {
+                                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+                            }
                         }
                     }
 
@@ -385,8 +392,16 @@ sealed class Grunnlag {
                             return this.fnr == other.fnr
                         }
 
-                        override fun copy(args: CopyArgs.Snitt): IkkeUførFlyktning? {
-                            return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
+                        override fun copy(args: CopyArgs.Tidslinje): IkkeUførFlyktning = when (args) {
+                            CopyArgs.Tidslinje.Full -> {
+                                copy(id = UUID.randomUUID())
+                            }
+                            is CopyArgs.Tidslinje.NyPeriode -> {
+                                copy(id = UUID.randomUUID(), periode = args.periode)
+                            }
+                            is CopyArgs.Tidslinje.Maskert -> {
+                                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+                            }
                         }
                     }
                 }
@@ -405,8 +420,16 @@ sealed class Grunnlag {
                         return this.fnr == other.fnr
                     }
 
-                    override fun copy(args: CopyArgs.Snitt): SektiSyvEllerEldre? {
-                        return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
+                    override fun copy(args: CopyArgs.Tidslinje): SektiSyvEllerEldre = when (args) {
+                        CopyArgs.Tidslinje.Full -> {
+                            copy(id = UUID.randomUUID())
+                        }
+                        is CopyArgs.Tidslinje.NyPeriode -> {
+                            copy(id = UUID.randomUUID(), periode = args.periode)
+                        }
+                        is CopyArgs.Tidslinje.Maskert -> {
+                            copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+                        }
                     }
                 }
             }
@@ -426,8 +449,16 @@ sealed class Grunnlag {
                     return other is Enslig
                 }
 
-                override fun copy(args: CopyArgs.Snitt): Enslig? {
-                    return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
+                override fun copy(args: CopyArgs.Tidslinje): Enslig = when (args) {
+                    CopyArgs.Tidslinje.Full -> {
+                        copy(id = UUID.randomUUID())
+                    }
+                    is CopyArgs.Tidslinje.NyPeriode -> {
+                        copy(id = UUID.randomUUID(), periode = args.periode)
+                    }
+                    is CopyArgs.Tidslinje.Maskert -> {
+                        copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+                    }
                 }
             }
 
@@ -445,8 +476,16 @@ sealed class Grunnlag {
                     return other is DelerBoligMedVoksneBarnEllerAnnenVoksen
                 }
 
-                override fun copy(args: CopyArgs.Snitt): DelerBoligMedVoksneBarnEllerAnnenVoksen? {
-                    return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
+                override fun copy(args: CopyArgs.Tidslinje): DelerBoligMedVoksneBarnEllerAnnenVoksen = when (args) {
+                    CopyArgs.Tidslinje.Full -> {
+                        copy(id = UUID.randomUUID())
+                    }
+                    is CopyArgs.Tidslinje.NyPeriode -> {
+                        copy(id = UUID.randomUUID(), periode = args.periode)
+                    }
+                    is CopyArgs.Tidslinje.Maskert -> {
+                        copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+                    }
                 }
             }
         }
@@ -484,24 +523,6 @@ sealed class Grunnlag {
                     return other is HarEps
                 }
             }
-        }
-
-        fun harEndretEllerFjernetEktefelle(gjeldendeBosituasjon: Bosituasjon): Boolean {
-            val gjeldendeEpsFnr: Fnr? =
-                (gjeldendeBosituasjon as? Fullstendig.EktefellePartnerSamboer)?.fnr
-                    ?: (gjeldendeBosituasjon as? Ufullstendig.HarEps)?.fnr
-            val nyEpsFnr: Fnr? = (this as? Fullstendig.EktefellePartnerSamboer)?.fnr
-                ?: (this as? Ufullstendig.HarEps)?.fnr
-
-            // begge er null eller samme fnr -> ingen endring
-            if (gjeldendeEpsFnr == nyEpsFnr) {
-                return false
-            }
-            // gjeldende er null -> ingen endring
-            if (gjeldendeEpsFnr == null) {
-                return false
-            }
-            return true
         }
     }
 }

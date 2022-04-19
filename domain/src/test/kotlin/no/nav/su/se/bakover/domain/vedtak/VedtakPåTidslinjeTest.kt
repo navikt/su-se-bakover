@@ -41,6 +41,7 @@ internal class VedtakPåTidslinjeTest {
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - full kopi`() {
+        // TODO("endre denne testen til å bruke en faktisk")
         val originaltVedtak = mock<VedtakSomKanRevurderes.EndringIYtelse>()
 
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
@@ -189,6 +190,7 @@ internal class VedtakPåTidslinjeTest {
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - ny periode`() {
+        // TODO("endre denne testen til å bruke en faktisk")
         val originaltVedtak = mock<VedtakSomKanRevurderes.EndringIYtelse>()
 
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
