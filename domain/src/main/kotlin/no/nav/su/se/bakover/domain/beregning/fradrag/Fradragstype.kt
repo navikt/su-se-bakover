@@ -5,18 +5,30 @@ import arrow.core.left
 import arrow.core.right
 
 enum class Fradragstype {
-    NAVytelserTilLivsopphold,
+    Alderspensjon,
+    Annet,
+    Arbeidsavklaringspenger,
     Arbeidsinntekt,
+    AvkortingUtenlandsopphold,
+    // AFP
+    AvtalefestetPensjon,
+    AvtalefestetPensjonPrivat,
+    BidragEtterEkteskapsloven,
+    Dagpenger,
+    ForventetInntekt,
+    Gjenlevendepensjon,
+    Introduksjonsstønad,
+    Kapitalinntekt,
+    Kontantstøtte,
+    Kvalifiseringsstønad,
+    NAVytelserTilLivsopphold,
+    OffenligPensjon,
     OffentligPensjon,
     PrivatPensjon,
     Sosialstønad,
-    Kontantstøtte,
-    Introduksjonsstønad,
-    Kvalifiseringsstønad,
-    BidragEtterEkteskapsloven,
-    Kapitalinntekt,
-    ForventetInntekt,
-    AvkortingUtenlandsopphold,
+    SupplerendeStønad,
+    Sykepenger,
+    Uføretrygd,
 
     /**
      *  Resulting type of the operation that calculates EPS fradrag to be included in brukers beregning.
