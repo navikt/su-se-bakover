@@ -12,6 +12,7 @@ import io.ktor.routing.post
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -55,11 +56,12 @@ internal fun Route.leggTilGrunnlagFradrag(
                             periode = fradrag.periode.toPeriode().getOrHandle { feilResultat ->
                                 return feilResultat.left()
                             },
-                            type = fradrag.type.let {
-                                Fradragstype.tryParse(it).getOrHandle {
+                            type = Fradragstype(
+                                type = F.tryParse(fradrag.type).getOrHandle {
                                     return Behandlingsfeilresponser.ugyldigFradragstype.left()
-                                }
-                            },
+                                },
+                                spesifisertType = fradrag.spesifisertType,
+                            ),
                             månedsbeløp = fradrag.beløp,
                             utenlandskInntekt = fradrag.utenlandskInntekt?.toUtenlandskInntekt()
                                 ?.getOrHandle { feilResultat ->
@@ -123,6 +125,7 @@ internal fun KunneIkkeLeggeTilFradragsgrunnlag.tilResultat(): Resultat {
 private data class FradragsgrunnlagJson(
     val periode: PeriodeJson,
     val type: String,
+    val spesifisertType: String?,
     val beløp: Double,
     val utenlandskInntekt: UtenlandskInntektJson?,
     val tilhører: String,

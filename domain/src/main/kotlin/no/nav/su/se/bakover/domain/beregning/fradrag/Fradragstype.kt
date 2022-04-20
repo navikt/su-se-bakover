@@ -4,12 +4,24 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 
-enum class Fradragstype {
+data class Fradragstype(
+    val type: F,
+    val spesifisertType: String? = null,
+) {
+    init {
+        if (type == F.Annet && spesifisertType == null) throw IllegalArgumentException("Typen må spesifiseres")
+        if (type != F.Annet && spesifisertType != null) throw IllegalArgumentException("Typen skal kun spesifieres dersom den er 'Annet'")
+    }
+}
+
+// TODO: navn
+enum class F {
     Alderspensjon,
     Annet,
     Arbeidsavklaringspenger,
     Arbeidsinntekt,
     AvkortingUtenlandsopphold,
+
     // AFP
     AvtalefestetPensjon,
     AvtalefestetPensjonPrivat,
@@ -22,7 +34,6 @@ enum class Fradragstype {
     Kontantstøtte,
     Kvalifiseringsstønad,
     NAVytelserTilLivsopphold,
-    OffenligPensjon,
     OffentligPensjon,
     PrivatPensjon,
     Sosialstønad,
@@ -39,7 +50,7 @@ enum class Fradragstype {
     UnderMinstenivå;
 
     companion object {
-        fun tryParse(value: String): Either<UgyldigFradragstype, Fradragstype> {
+        fun tryParse(value: String): Either<UgyldigFradragstype, F> {
             return values().firstOrNull { it.name == value }?.right() ?: UgyldigFradragstype.left()
         }
     }

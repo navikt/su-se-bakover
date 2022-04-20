@@ -5,6 +5,7 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -28,7 +29,7 @@ fun fradragsgrunnlagArbeidsinntekt(
 ): Grunnlag.Fradragsgrunnlag {
     return lagFradragsgrunnlag(
         id = id,
-        type = Fradragstype.Arbeidsinntekt,
+        type = Fradragstype(F.Arbeidsinntekt),
         månedsbeløp = arbeidsinntekt,
         periode = periode,
         utenlandskInntekt = null,

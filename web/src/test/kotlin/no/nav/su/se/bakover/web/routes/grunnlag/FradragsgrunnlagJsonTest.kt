@@ -24,7 +24,10 @@ class FradragsgrunnlagJsonTest {
                 "fraOgMed" : "2021-01-01",
                 "tilOgMed" : "2021-12-31"
               },
-              "type" : "Arbeidsinntekt",
+              "type" : {
+                "type": "Arbeidsinntekt",
+                "spesifisertType": null
+               },
               "beløp": 1000.0,
               "utenlandskInntekt": null,
               "tilhører": "BRUKER"

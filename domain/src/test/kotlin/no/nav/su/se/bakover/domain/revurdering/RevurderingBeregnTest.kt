@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -366,13 +367,13 @@ internal class RevurderingBeregnTest {
                 beregnet.beregning.getSumYtelse() shouldBeGreaterThan 0
                 beregnet.beregning.getMånedsberegninger()[0].getSumYtelse() shouldBe 0
                 beregnet.beregning.getMånedsberegninger()[0].getFradrag()
-                    .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
+                    .filter { it.fradragstype.type == F.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp } shouldBe 21989
                 beregnet.beregning.getMånedsberegninger()[1].getSumYtelse() shouldBe 0
                 beregnet.beregning.getMånedsberegninger()[2].getSumYtelse() shouldBe
                     (3 * Sats.HØY.månedsbeløpSomHeltall(mai(2021).fraOgMed)) - expectedTotalAvkorting
                 beregnet.beregning.getFradrag()
-                    .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
+                    .filter { it.fradragstype.type == F.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp } shouldBe expectedTotalAvkorting
 
                 beregnet.grunnlagsdata.fradragsgrunnlag shouldBe listOf(
@@ -380,7 +381,7 @@ internal class RevurderingBeregnTest {
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[0].id,
                         opprettet = Tidspunkt.now(fixedClock),
                         fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                            type = Fradragstype(F.AvkortingUtenlandsopphold),
                             månedsbeløp = 21989.0,
                             periode = mai(2021),
                             utenlandskInntekt = null,
@@ -391,7 +392,7 @@ internal class RevurderingBeregnTest {
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[1].id,
                         opprettet = Tidspunkt.now(fixedClock),
                         fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                            type = Fradragstype(F.AvkortingUtenlandsopphold),
                             månedsbeløp = 21989.0,
                             periode = juni(2021),
                             utenlandskInntekt = null,
@@ -402,7 +403,7 @@ internal class RevurderingBeregnTest {
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[2].id,
                         opprettet = Tidspunkt.now(fixedClock),
                         fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                            type = Fradragstype(F.AvkortingUtenlandsopphold),
                             månedsbeløp = 16022.0,
                             periode = juli(2021),
                             utenlandskInntekt = null,
@@ -444,7 +445,7 @@ internal class RevurderingBeregnTest {
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
                     fradrag = FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
+                        type = Fradragstype(F.Arbeidsinntekt),
                         månedsbeløp = arbeidsinntekt.toDouble(),
                         periode = revurderingsperiode,
                         utenlandskInntekt = null,
@@ -465,17 +466,17 @@ internal class RevurderingBeregnTest {
                 beregnet.beregning.getSumYtelse() shouldBeGreaterThan 0
                 beregnet.beregning.getMånedsberegninger()[0].getSumYtelse() shouldBe 0
                 beregnet.beregning.getMånedsberegninger()[0].getFradrag()
-                    .filter { it.fradragstype == Fradragstype.Arbeidsinntekt }
+                    .filter { it.fradragstype.type == F.Arbeidsinntekt }
                     .sumOf { it.månedsbeløp } shouldBe 3750
                 beregnet.beregning.getMånedsberegninger()[0].getFradrag()
-                    .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
+                    .filter { it.fradragstype == Fradragstype(F.AvkortingUtenlandsopphold) }
                     .sumOf { it.månedsbeløp } shouldBe 18239
                 beregnet.beregning.getMånedsberegninger()[1].getSumYtelse() shouldBe 0
                 beregnet.beregning.getMånedsberegninger()[2].getSumYtelse() shouldBe 0
                 beregnet.beregning.getMånedsberegninger()[3].getSumYtelse() shouldBe
                     (4 * Sats.HØY.månedsbeløpSomHeltall(mai(2021).fraOgMed)) - (4 * arbeidsinntekt) - expectedTotalAvkorting
                 beregnet.beregning.getFradrag()
-                    .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
+                    .filter { it.fradragstype == Fradragstype(F.AvkortingUtenlandsopphold) }
                     .sumOf { it.månedsbeløp } shouldBe expectedTotalAvkorting
 
                 beregnet.grunnlagsdata.fradragsgrunnlag shouldBe listOf(
@@ -483,7 +484,7 @@ internal class RevurderingBeregnTest {
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[0].id,
                         opprettet = Tidspunkt.now(fixedClock),
                         fradrag = FradragFactory.ny(
-                            type = Fradragstype.Arbeidsinntekt,
+                            type = Fradragstype(F.Arbeidsinntekt),
                             månedsbeløp = 3750.0,
                             periode = Periode.create(1.mai(2021), 31.desember(2021)),
                             utenlandskInntekt = null,
@@ -494,7 +495,7 @@ internal class RevurderingBeregnTest {
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[1].id,
                         opprettet = Tidspunkt.now(fixedClock),
                         fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                            type = Fradragstype(F.AvkortingUtenlandsopphold),
                             månedsbeløp = 18239.0,
                             periode = mai(2021),
                             utenlandskInntekt = null,
@@ -505,7 +506,7 @@ internal class RevurderingBeregnTest {
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[2].id,
                         opprettet = Tidspunkt.now(fixedClock),
                         fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                            type = Fradragstype(F.AvkortingUtenlandsopphold),
                             månedsbeløp = 18239.0,
                             periode = juni(2021),
                             utenlandskInntekt = null,
@@ -516,7 +517,7 @@ internal class RevurderingBeregnTest {
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[3].id,
                         opprettet = Tidspunkt.now(fixedClock),
                         fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                            type = Fradragstype(F.AvkortingUtenlandsopphold),
                             månedsbeløp = 18239.0,
                             periode = juli(2021),
                             utenlandskInntekt = null,
@@ -527,7 +528,7 @@ internal class RevurderingBeregnTest {
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[4].id,
                         opprettet = Tidspunkt.now(fixedClock),
                         fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                            type = Fradragstype(F.AvkortingUtenlandsopphold),
                             månedsbeløp = 5283.0,
                             periode = august(2021),
                             utenlandskInntekt = null,

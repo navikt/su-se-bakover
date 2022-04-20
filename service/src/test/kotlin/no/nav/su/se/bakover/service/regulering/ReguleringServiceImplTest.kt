@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -76,7 +77,7 @@ internal class ReguleringServiceImplTest {
                         Grunnlag.Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
                             fradrag = FradragFactory.ny(
-                                type = Fradragstype.OffentligPensjon,
+                                type = Fradragstype(F.OffentligPensjon),
                                 månedsbeløp = 8000.0,
                                 periode = periode2021,
                                 utenlandskInntekt = null,
@@ -201,7 +202,7 @@ internal class ReguleringServiceImplTest {
                         Grunnlag.Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
                             fradrag = FradragFactory.ny(
-                                type = Fradragstype.OffentligPensjon,
+                                type = Fradragstype(F.OffentligPensjon),
                                 månedsbeløp = 8000.0,
                                 periode = periode2021,
                                 utenlandskInntekt = null,
@@ -243,7 +244,7 @@ internal class ReguleringServiceImplTest {
                         Grunnlag.Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
                             fradrag = FradragFactory.ny(
-                                type = Fradragstype.OffentligPensjon,
+                                type = Fradragstype(F.OffentligPensjon),
                                 månedsbeløp = 8000.0,
                                 periode = periode2021,
                                 utenlandskInntekt = null,

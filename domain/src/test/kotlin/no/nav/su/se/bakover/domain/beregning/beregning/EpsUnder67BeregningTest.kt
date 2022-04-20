@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -54,13 +55,13 @@ internal class EpsUnder67BeregningTest {
             ),
             fradragFraSaksbehandler = listOf(
                 lagFradragsgrunnlag(
-                    type = Fradragstype.OffentligPensjon,
+                    type = Fradragstype(F.OffentligPensjon),
                     månedsbeløp = folketrygdPrMnd,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 lagFradragsgrunnlag(
-                    type = Fradragstype.OffentligPensjon,
+                    type = Fradragstype(F.OffentligPensjon),
                     månedsbeløp = folketrygdEpsPrMnd,
                     periode = periode,
                     tilhører = FradragTilhører.EPS

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -50,7 +51,7 @@ internal class SøknadsbehandlingBeregnTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                            type = Fradragstype(F.AvkortingUtenlandsopphold),
                             månedsbeløp = 15000.0,
                             periode = vilkårsvurdert.periode,
                             utenlandskInntekt = null,
@@ -82,7 +83,7 @@ internal class SøknadsbehandlingBeregnTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = Fradragstype.Arbeidsinntekt,
+                            type = Fradragstype(F.Arbeidsinntekt),
                             månedsbeløp = 15000.0,
                             periode = vilkårsvurdert.periode,
                             utenlandskInntekt = null,
@@ -137,12 +138,12 @@ internal class SøknadsbehandlingBeregnTest {
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 4
                 etterBeregning.beregning.getFradrag()
-                    .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldHaveSize 3
+                    .filter { it.fradragstype.type == F.AvkortingUtenlandsopphold } shouldHaveSize 3
                 etterBeregning.beregning.getSumFradrag() shouldBe expectedAvkortingBeløp.plusOrMinus(0.5)
                 etterBeregning.beregning.getSumYtelse() shouldBe førBeregning.periode.tilMånedsperioder()
                     .sumOf { Sats.HØY.månedsbeløpSomHeltall(it.fraOgMed) } - expectedAvkortingBeløp
                 etterBeregning.grunnlagsdata.fradragsgrunnlag
-                    .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
+                    .filter { it.fradragstype.type == F.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp } shouldBe expectedAvkortingBeløp.plusOrMinus(0.5)
             }
         }
@@ -162,7 +163,7 @@ internal class SøknadsbehandlingBeregnTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                            type = Fradragstype(F.AvkortingUtenlandsopphold),
                             månedsbeløp = 5000.0,
                             periode = vilkårsvurdert.periode,
                             utenlandskInntekt = null,
@@ -194,12 +195,12 @@ internal class SøknadsbehandlingBeregnTest {
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 4
                 etterBeregning.beregning.getFradrag()
-                    .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldHaveSize 3
+                    .filter { it.fradragstype.type == F.AvkortingUtenlandsopphold } shouldHaveSize 3
                 etterBeregning.beregning.getSumFradrag() shouldBe expectedAvkortingBeløp.plusOrMinus(0.5)
                 etterBeregning.beregning.getSumYtelse() shouldBe vilkårsvurdert.periode.tilMånedsperioder()
                     .sumOf { Sats.HØY.månedsbeløpSomHeltall(it.fraOgMed) } - expectedAvkortingBeløp
                 etterBeregning.grunnlagsdata.fradragsgrunnlag
-                    .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
+                    .filter { it.fradragstype.type == F.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp } shouldBe expectedAvkortingBeløp.plusOrMinus(0.5)
             }
         }

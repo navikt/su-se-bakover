@@ -5,6 +5,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -39,7 +40,7 @@ data class Beregningsgrunnlag private constructor(
             val fradrag: List<Fradrag> = fradragFraSaksbehandler.map { it.fradrag }.plus(
                 uføregrunnlag.map {
                     FradragFactory.ny(
-                        type = Fradragstype.ForventetInntekt,
+                        type = Fradragstype(F.ForventetInntekt),
                         månedsbeløp = it.forventetInntekt / 12.0,
                         periode = it.periode,
                         utenlandskInntekt = null,
@@ -50,7 +51,7 @@ data class Beregningsgrunnlag private constructor(
                     //  Vurder å bytt fra List<Grunnlag.Uføregrunnlag> til NonEmptyList<Grunnlag.Uføregrunnlag>
                     listOf(
                         FradragFactory.ny(
-                            type = Fradragstype.ForventetInntekt,
+                            type = Fradragstype(F.ForventetInntekt),
                             månedsbeløp = 0.0,
                             periode = beregningsperiode,
                             utenlandskInntekt = null,
@@ -63,7 +64,7 @@ data class Beregningsgrunnlag private constructor(
                 return UgyldigBeregningsgrunnlag.IkkeLovMedFradragUtenforPerioden.left()
             }
 
-            fradrag.filter { it.fradragstype == Fradragstype.ForventetInntekt && it.tilhører == FradragTilhører.BRUKER }.let { forventedeInntekter ->
+            fradrag.filter { it.fradragstype.type == F.ForventetInntekt && it.tilhører == FradragTilhører.BRUKER }.let { forventedeInntekter ->
                 if (forventedeInntekter.count() < 1) {
                     // TODO jah: Denne kan ikke slå til så lenge vi har ifEmpty-blokka
                     return UgyldigBeregningsgrunnlag.BrukerMåHaMinst1ForventetInntekt.left()

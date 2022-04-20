@@ -47,14 +47,20 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                     {
                         "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
                         "beløp":9879,
-                        "type":"Arbeidsinntekt",
+                        "type":{
+                            "type": "Arbeidsinntekt",
+                            "spesifisertType": null
+                          },
                         "utenlandskInntekt":null,
                         "tilhører":"EPS"
                     },
                     {
                         "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
                         "beløp":10000,
-                        "type":"Kontantstøtte",
+                        "type":{
+                            "type": "Kontantstøtte",
+                            "spesifisertType": null
+                          },
                         "utenlandskInntekt":null,
                         "tilhører":"BRUKER"
                     }
@@ -183,14 +189,20 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                             [
                                 {
                                     "beløp":9879,
-                                    "type":"Arbeidsinntekt",
+                                    "type":{
+                                        "type": "Arbeidsinntekt",
+                                        "spesifisertType": null
+                                      },
                                     "utenlandskInntekt":null,
                                     "tilhører":"EPS"
                                 },
                                 {
                                     "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
                                     "beløp":10000,
-                                    "type":"Kontantstøtte",
+                                    "type":{
+                                        "type": "Kontantstøtte",
+                                        "spesifisertType": null
+                                      },
                                     "utenlandskInntekt":null,
                                     "tilhører":"BRUKER"
                                 }

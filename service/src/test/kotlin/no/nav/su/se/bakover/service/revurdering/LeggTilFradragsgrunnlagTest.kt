@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -54,7 +55,7 @@ internal class LeggTilFradragsgrunnlagTest {
             behandlingId = eksisterendeRevurdering.id,
             fradragsgrunnlag = listOf(
                 lagFradragsgrunnlag(
-                    type = Fradragstype.Arbeidsinntekt,
+                    type = Fradragstype(F.Arbeidsinntekt),
                     månedsbeløp = 0.0,
                     periode = revurderingsperiode,
                     utenlandskInntekt = null,
@@ -93,7 +94,7 @@ internal class LeggTilFradragsgrunnlagTest {
             behandlingId = revurderingId,
             fradragsgrunnlag = listOf(
                 lagFradragsgrunnlag(
-                    type = Fradragstype.Arbeidsinntekt,
+                    type = Fradragstype(F.Arbeidsinntekt),
                     månedsbeløp = 0.0,
                     periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
                     utenlandskInntekt = null,
@@ -131,7 +132,7 @@ internal class LeggTilFradragsgrunnlagTest {
             behandlingId = eksisterendeRevurdering.id,
             fradragsgrunnlag = listOf(
                 lagFradragsgrunnlag(
-                    type = Fradragstype.Arbeidsinntekt,
+                    type = Fradragstype(F.Arbeidsinntekt),
                     månedsbeløp = 0.0,
                     periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
                     utenlandskInntekt = null,
@@ -189,14 +190,14 @@ internal class LeggTilFradragsgrunnlagTest {
             behandlingId = revurderingId,
             fradragsgrunnlag = listOf(
                 lagFradragsgrunnlag(
-                    type = Fradragstype.Arbeidsinntekt,
+                    type = Fradragstype(F.Arbeidsinntekt),
                     månedsbeløp = 0.0,
                     periode = revurderingsperiode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 lagFradragsgrunnlag(
-                    type = Fradragstype.Kontantstøtte,
+                    type = Fradragstype(F.Kontantstøtte),
                     månedsbeløp = 0.0,
                     periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.juli(2021)),
                     utenlandskInntekt = null,

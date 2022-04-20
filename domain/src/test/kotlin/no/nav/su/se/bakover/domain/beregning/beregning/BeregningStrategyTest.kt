@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -39,7 +40,7 @@ internal class BeregningStrategyTest {
             ),
             fradragFraSaksbehandler = listOf(
                 lagFradragsgrunnlag(
-                    type = Fradragstype.Kontantstøtte,
+                    type = Fradragstype(F.Kontantstøtte),
                     månedsbeløp = 1500.0,
                     periode = periode,
                     utenlandskInntekt = null,

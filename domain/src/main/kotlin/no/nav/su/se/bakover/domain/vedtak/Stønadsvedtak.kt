@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
@@ -52,7 +53,7 @@ sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
      * aktivt avkorter ytelsen.
      */
     fun harPågåendeAvkorting(): Boolean {
-        return behandling.grunnlagsdata.fradragsgrunnlag.any { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
+        return behandling.grunnlagsdata.fradragsgrunnlag.any { it.fradragstype.type == F.AvkortingUtenlandsopphold }
     }
 
     /**
@@ -387,7 +388,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                                 it.fullstendigOrThrow()
                             }.lagTidslinje(args.periode),
                             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot {
-                                it.fradragstype == Fradragstype.ForventetInntekt
+                                it.fradragstype.type == F.ForventetInntekt
                             }.mapNotNull {
                                 it.copy(args = CopyArgs.Snitt(args.periode))
                             },

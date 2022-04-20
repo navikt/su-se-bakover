@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.MånedBeløp
 import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -22,7 +23,10 @@ internal class Avkortingsplan(
     private val clock: Clock,
 ) {
     init {
-        check(beregning.getFradrag().none { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }) { "Beregning inneholder allerede fradrag av type: ${Fradragstype.AvkortingUtenlandsopphold}. Gamle fradrag må fjenres før ny beregning kan gjennomføres." }
+        check(
+            beregning.getFradrag()
+                .none { it.fradragstype.type == F.AvkortingUtenlandsopphold },
+        ) { "Beregning inneholder allerede fradrag av type: ${F.AvkortingUtenlandsopphold}. Gamle fradrag må fjenres før ny beregning kan gjennomføres." }
     }
 
     private val tilbakebetalinger: Månedsbeløp = lagTilbakebetalingsplan(beregning)
@@ -73,7 +77,9 @@ internal class Avkortingsplan(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
                     fradrag = FradragFactory.ny(
-                        type = Fradragstype.AvkortingUtenlandsopphold,
+                        type = Fradragstype(
+                            F.AvkortingUtenlandsopphold,
+                        ),
                         månedsbeløp = it.beløp.sum().toDouble(),
                         periode = it.periode,
                         utenlandskInntekt = null,

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.regulering
 
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 
@@ -10,7 +10,7 @@ enum class Reguleringstype {
 }
 
 fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
-    if (this.grunnlagsdata.fradragsgrunnlag.any { (it.fradrag.fradragstype == Fradragstype.NAVytelserTilLivsopphold) || (it.fradrag.fradragstype == Fradragstype.OffentligPensjon) }) {
+    if (this.grunnlagsdata.fradragsgrunnlag.any { (it.fradrag.fradragstype.type == F.NAVytelserTilLivsopphold) || (it.fradrag.fradragstype.type == F.OffentligPensjon) }) {
         return Reguleringstype.MANUELL
     }
 

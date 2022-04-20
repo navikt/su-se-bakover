@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -37,7 +38,7 @@ internal class FradragsgrunnlagTest {
     fun `ugyldig for enkelte fradragstyper`() {
         Grunnlag.Fradragsgrunnlag.tryCreate(
             fradrag = FradragFactory.ny(
-                type = Fradragstype.UnderMinstenivå,
+                type = Fradragstype(F.UnderMinstenivå),
                 månedsbeløp = 150.0,
                 periode = behandlingsperiode,
                 utenlandskInntekt = null,
@@ -48,7 +49,7 @@ internal class FradragsgrunnlagTest {
 
         Grunnlag.Fradragsgrunnlag.tryCreate(
             fradrag = FradragFactory.ny(
-                type = Fradragstype.BeregnetFradragEPS,
+                type = Fradragstype(F.BeregnetFradragEPS),
                 månedsbeløp = 150.0,
                 periode = behandlingsperiode,
                 utenlandskInntekt = null,
@@ -59,7 +60,7 @@ internal class FradragsgrunnlagTest {
 
         Grunnlag.Fradragsgrunnlag.tryCreate(
             fradrag = FradragFactory.ny(
-                type = Fradragstype.ForventetInntekt,
+                type = Fradragstype(F.ForventetInntekt),
                 månedsbeløp = 150.0,
                 periode = behandlingsperiode,
                 utenlandskInntekt = null,
@@ -71,16 +72,19 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `kan lage gyldige fradragsgrunnlag`() {
-        Fradragstype.values().filterNot {
+        F.values().filterNot {
             listOf(
-                Fradragstype.BeregnetFradragEPS,
-                Fradragstype.ForventetInntekt,
-                Fradragstype.UnderMinstenivå,
+                Fradragstype(F.BeregnetFradragEPS).type,
+                Fradragstype(F.ForventetInntekt).type,
+                Fradragstype(F.UnderMinstenivå).type,
             ).contains(it)
         }.forEach {
             Grunnlag.Fradragsgrunnlag.tryCreate(
                 fradrag = FradragFactory.ny(
-                    type = it,
+                    type = Fradragstype(
+                        type = it,
+                        spesifisertType = if (it == F.Annet) "fradragstype som saksbehandler har oppgitt" else null,
+                    ),
                     månedsbeløp = 150.0,
                     periode = behandlingsperiode,
                     utenlandskInntekt = null,
@@ -98,7 +102,7 @@ internal class FradragsgrunnlagTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fradrag = FradragFactory.ny(
-                type = Fradragstype.Kontantstøtte,
+                type = Fradragstype(F.Kontantstøtte),
                 månedsbeløp = 200.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
@@ -118,7 +122,7 @@ internal class FradragsgrunnlagTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fradrag = FradragFactory.ny(
-                type = Fradragstype.Kontantstøtte,
+                type = Fradragstype(F.Kontantstøtte),
                 månedsbeløp = 200.0,
                 periode = Periode.create(1.februar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
@@ -138,7 +142,7 @@ internal class FradragsgrunnlagTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fradrag = FradragFactory.ny(
-                type = Fradragstype.Kontantstøtte,
+                type = Fradragstype(F.Kontantstøtte),
                 månedsbeløp = 200.0,
                 periode = Periode.create(1.januar(2021), 31.august(2021)),
                 utenlandskInntekt = null,
@@ -158,7 +162,7 @@ internal class FradragsgrunnlagTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fradrag = FradragFactory.ny(
-                type = Fradragstype.Kontantstøtte,
+                type = Fradragstype(F.Kontantstøtte),
                 månedsbeløp = 200.0,
                 periode = Periode.create(1.februar(2022), 31.august(2022)),
                 utenlandskInntekt = null,
@@ -191,7 +195,7 @@ internal class FradragsgrunnlagTest {
     fun `2 fradragsgrunnlag som tilstøter, men fradragstype er ulik`() {
         val f1 = lagFradragsgrunnlag(periode = månedsperiodeJanuar2021)
         val f2 = lagFradragsgrunnlag(
-            periode = månedsperiodeFebruar2021, type = Fradragstype.Sosialstønad,
+            periode = månedsperiodeFebruar2021, type = Fradragstype(F.Sosialstønad),
         )
         f1.tilstøterOgErLik(f2) shouldBe false
     }
@@ -235,7 +239,7 @@ internal class FradragsgrunnlagTest {
         val f1 = lagFradragsgrunnlag(periode = månedsperiodeJanuar2021)
         val f2 = lagFradragsgrunnlag(
             periode = månedsperiodeMars2021,
-            type = Fradragstype.Sosialstønad,
+            type = Fradragstype(F.Sosialstønad),
             månedsbeløp = 300.0,
             tilhører = FradragTilhører.EPS,
         )
@@ -249,21 +253,21 @@ internal class FradragsgrunnlagTest {
         val f2 = lagFradragsgrunnlag(periode = månedsperiodeFebruar2021)
         val f3 = lagFradragsgrunnlag(
             periode = månedsperiodeMars2021,
-            type = Fradragstype.Sosialstønad,
+            type = Fradragstype(F.Sosialstønad),
             månedsbeløp = 300.0,
         )
 
         val actual = listOf(f1, f2, f3).slåSammenPeriodeOgFradrag()
         actual.size shouldBe 2
         actual.first().fradrag shouldBe FradragFactory.ny(
-            type = Fradragstype.Kontantstøtte,
+            type = Fradragstype(F.Kontantstøtte),
             månedsbeløp = 200.0,
             periode = Periode.create(1.januar(2021), 28.februar(2021)),
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )
         actual.last().fradrag shouldBe FradragFactory.ny(
-            type = Fradragstype.Sosialstønad,
+            type = Fradragstype(F.Sosialstønad),
             månedsbeløp = 300.0,
             periode = månedsperiodeMars2021,
             utenlandskInntekt = null,
@@ -276,7 +280,7 @@ internal class FradragsgrunnlagTest {
         val f1 = Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(), opprettet = fixedTidspunkt,
             fradrag = FradragFactory.ny(
-                type = Fradragstype.Sosialstønad,
+                type = Fradragstype(F.Sosialstønad),
                 månedsbeløp = 100.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
@@ -287,7 +291,7 @@ internal class FradragsgrunnlagTest {
         val f2 = Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(), opprettet = fixedTidspunkt,
             fradrag = FradragFactory.ny(
-                type = Fradragstype.PrivatPensjon,
+                type = Fradragstype(F.PrivatPensjon),
                 månedsbeløp = 100.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
@@ -309,7 +313,7 @@ internal class FradragsgrunnlagTest {
         val f1 = Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(), opprettet = fixedTidspunkt,
             fradrag = FradragFactory.ny(
-                type = Fradragstype.Sosialstønad,
+                type = Fradragstype(F.Sosialstønad),
                 månedsbeløp = 100.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
@@ -320,7 +324,7 @@ internal class FradragsgrunnlagTest {
         val f2 = Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(), opprettet = fixedTidspunkt,
             fradrag = FradragFactory.ny(
-                type = Fradragstype.PrivatPensjon,
+                type = Fradragstype(F.PrivatPensjon),
                 månedsbeløp = 100.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
@@ -341,14 +345,14 @@ internal class FradragsgrunnlagTest {
     @Test
     fun `fjerner fradrag for EPS for utvalgte perioder og bevarer for resterende`() {
         val fBruker = lagFradragsgrunnlag(
-            type = Fradragstype.Arbeidsinntekt,
+            type = Fradragstype(F.Arbeidsinntekt),
             månedsbeløp = 5_000.0,
             periode = periode2021,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )
         val fEps = lagFradragsgrunnlag(
-            type = Fradragstype.Arbeidsinntekt,
+            type = Fradragstype(F.Arbeidsinntekt),
             månedsbeløp = 10_000.0,
             periode = periode2021,
             utenlandskInntekt = null,
@@ -363,7 +367,7 @@ internal class FradragsgrunnlagTest {
             it[0] shouldBe fBruker
             it[1].erLik(
                 lagFradragsgrunnlag(
-                    type = Fradragstype.Arbeidsinntekt,
+                    type = Fradragstype(F.Arbeidsinntekt),
                     månedsbeløp = 10_000.0,
                     periode = januar(2021),
                     utenlandskInntekt = null,
@@ -372,7 +376,7 @@ internal class FradragsgrunnlagTest {
             ) shouldBe true
             it[2].erLik(
                 lagFradragsgrunnlag(
-                    type = Fradragstype.Arbeidsinntekt,
+                    type = Fradragstype(F.Arbeidsinntekt),
                     månedsbeløp = 10_000.0,
                     periode = Periode.create(1.mars(2021), 31.mai(2021)),
                     utenlandskInntekt = null,
@@ -381,7 +385,7 @@ internal class FradragsgrunnlagTest {
             ) shouldBe true
             it[3].erLik(
                 lagFradragsgrunnlag(
-                    type = Fradragstype.Arbeidsinntekt,
+                    type = Fradragstype(F.Arbeidsinntekt),
                     månedsbeløp = 10_000.0,
                     periode = Periode.create(1.juli(2021), 31.desember(2021)),
                     utenlandskInntekt = null,
@@ -394,14 +398,14 @@ internal class FradragsgrunnlagTest {
     @Test
     fun `fjerning av fradrag for EPS uten spesifisert periode`() {
         val fBruker = lagFradragsgrunnlag(
-            type = Fradragstype.Arbeidsinntekt,
+            type = Fradragstype(F.Arbeidsinntekt),
             månedsbeløp = 5_000.0,
             periode = periode2021,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )
         val fEps = lagFradragsgrunnlag(
-            type = Fradragstype.Arbeidsinntekt,
+            type = Fradragstype(F.Arbeidsinntekt),
             månedsbeløp = 10_000.0,
             periode = periode2021,
             utenlandskInntekt = null,
@@ -415,14 +419,14 @@ internal class FradragsgrunnlagTest {
     @Test
     fun `fjerning av fradrag for EPS perioder som ikke overlapper med fradraget`() {
         val fBruker = lagFradragsgrunnlag(
-            type = Fradragstype.Arbeidsinntekt,
+            type = Fradragstype(F.Arbeidsinntekt),
             månedsbeløp = 5_000.0,
             periode = periode2021,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )
         val fEps = lagFradragsgrunnlag(
-            type = Fradragstype.Arbeidsinntekt,
+            type = Fradragstype(F.Arbeidsinntekt),
             månedsbeløp = 10_000.0,
             periode = periode2021,
             utenlandskInntekt = null,
@@ -435,7 +439,7 @@ internal class FradragsgrunnlagTest {
 
     private fun lagFradragsgrunnlag(
         opprettet: Tidspunkt = fixedTidspunkt,
-        type: Fradragstype = Fradragstype.Kontantstøtte,
+        type: Fradragstype = Fradragstype(F.Kontantstøtte),
         månedsbeløp: Double = 200.0,
         periode: Periode,
         utenlandskInntekt: UtenlandskInntekt? = null,

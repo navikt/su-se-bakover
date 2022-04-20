@@ -26,8 +26,8 @@ enum class FradragTilhører {
     EPS;
 
     companion object {
-        fun tryParse(value: String): Either<UgyldigFradragTilhører, Fradragstype> {
-            return Fradragstype.values().firstOrNull { it.name == value }?.right() ?: UgyldigFradragTilhører.left()
+        fun tryParse(value: String): Either<UgyldigFradragTilhører, FradragTilhører> {
+            return values().firstOrNull { it.name == value }?.right() ?: UgyldigFradragTilhører.left()
         }
     }
 
@@ -35,10 +35,10 @@ enum class FradragTilhører {
 }
 
 fun List<Fradrag>.utenSosialstønad(): List<Fradrag> =
-    filterNot { it.fradragstype === Fradragstype.Sosialstønad }
+    filterNot { it.fradragstype.type === F.Sosialstønad }
 
 fun List<Fradrag>.utenAvkorting(): List<Fradrag> =
-    filterNot { it.fradragstype === Fradragstype.AvkortingUtenlandsopphold }
+    filterNot { it.fradragstype.type === F.AvkortingUtenlandsopphold }
 
 fun List<Fradrag>.sum(type: Fradragstype): Double {
     return filter { it.fradragstype == type }.sumOf { it.månedsbeløp }

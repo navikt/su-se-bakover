@@ -110,7 +110,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
             if (epsFradrag.isEmpty()) return søkersFradrag
             val sammenslått = FradragFactory.periodiser(
                 FradragFactory.ny(
-                    type = Fradragstype.BeregnetFradragEPS,
+                    type = Fradragstype(F.BeregnetFradragEPS),
                     månedsbeløp = epsFradrag.sumOf { it.månedsbeløp },
                     periode = periode,
                     utenlandskInntekt = null,
@@ -129,9 +129,9 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         fradrag: List<Fradrag>,
     ): List<Fradrag> {
         val arbeidsinntekter =
-            fradrag.filter { it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.Arbeidsinntekt }
+            fradrag.filter { it.tilhører == FradragTilhører.BRUKER && it.fradragstype.type == F.Arbeidsinntekt }
         val forventetInntekt =
-            fradrag.filter { it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.ForventetInntekt }
+            fradrag.filter { it.tilhører == FradragTilhører.BRUKER && it.fradragstype.type == F.ForventetInntekt }
 
         return if (arbeidsinntekter.sumOf { it.månedsbeløp } > forventetInntekt.sumOf { it.månedsbeløp })
             fradrag.minus(forventetInntekt.toSet())
@@ -146,9 +146,9 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
     ): List<Fradrag> {
         val (epsFradrag, søkersFradrag) = fradrag.partition { it.tilhører == FradragTilhører.EPS }
 
-        val sumSosialstønad = epsFradrag.sum(Fradragstype.Sosialstønad)
+        val sumSosialstønad = epsFradrag.sum(Fradragstype(F.Sosialstønad))
 
-        val sumUtenSosialstønad = epsFradrag.sumEksklusiv(Fradragstype.Sosialstønad)
+        val sumUtenSosialstønad = epsFradrag.sumEksklusiv(Fradragstype(F.Sosialstønad))
 
         // ekskluder sosialstønad fra summering mot beløpsgrense
         val sumOverstigerBeløpsgrense = max(sumUtenSosialstønad - beløpsgrense, 0.0)
@@ -161,7 +161,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
             søkersFradrag.plus(
                 FradragFactory.periodiser(
                     FradragFactory.ny(
-                        type = Fradragstype.BeregnetFradragEPS,
+                        type = Fradragstype(F.BeregnetFradragEPS),
                         // sosialstønad legges til i tilegg til eventuell sum som overstiger beløpsgrense
                         månedsbeløp = sumOverstigerBeløpsgrense + sumSosialstønad,
                         periode = periode,
@@ -174,7 +174,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
     }
 
     private fun List<Fradrag>.`har nøyaktig en forventet inntekt for bruker`() =
-        singleOrNull { it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.ForventetInntekt } != null
+        singleOrNull { it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype(F.ForventetInntekt) } != null
 
     companion object {
         fun fromName(name: FradragStrategyName) =

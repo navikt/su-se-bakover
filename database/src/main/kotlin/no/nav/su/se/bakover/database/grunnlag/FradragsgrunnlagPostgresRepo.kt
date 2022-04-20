@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -66,7 +67,10 @@ internal class FradragsgrunnlagPostgresRepo(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             fradrag = PersistertFradrag(
-                fradragstype = Fradragstype.valueOf(string("fradragstype")),
+                fradragstype = Fradragstype(
+                    type = F.valueOf(string("fradragstype")),
+                    spesifisertType = stringOrNull("spesifiserttype"),
+                ),
                 månedsbeløp = double("månedsbeløp"),
                 utenlandskInntekt = stringOrNull("utenlandskInntekt")?.let { deserialize(it) },
                 periode = Periode.create(fraOgMed = localDate("fraOgMed"), tilOgMed = localDate("tilOgMed")),
@@ -87,7 +91,8 @@ internal class FradragsgrunnlagPostgresRepo(
                 fradragstype,
                 månedsbeløp,
                 utenlandskInntekt,
-                tilhører
+                tilhører,
+                spesifisertType
             ) values
             (
                 :id,
@@ -98,7 +103,8 @@ internal class FradragsgrunnlagPostgresRepo(
                 :fradragstype,
                 :manedsbelop,
                 to_json(:utenlandskInntekt::json),
-                :tilhorer
+                :tilhorer,
+                :spesifisertType
             )
         """.trimIndent()
             .insert(
@@ -108,10 +114,11 @@ internal class FradragsgrunnlagPostgresRepo(
                     "behandlingId" to behandlingId,
                     "fraOgMed" to fradragsgrunnlag.fradrag.periode.fraOgMed,
                     "tilOgMed" to fradragsgrunnlag.fradrag.periode.tilOgMed,
-                    "fradragstype" to fradragsgrunnlag.fradrag.fradragstype,
+                    "fradragstype" to fradragsgrunnlag.fradrag.fradragstype.type.toString(),
                     "manedsbelop" to fradragsgrunnlag.fradrag.månedsbeløp,
                     "utenlandskInntekt" to objectMapper.writeValueAsString(fradragsgrunnlag.fradrag.utenlandskInntekt),
                     "tilhorer" to fradragsgrunnlag.fradrag.tilhører,
+                    "spesifisertType" to fradragsgrunnlag.fradrag.fradragstype.spesifisertType,
                 ),
                 tx,
             )

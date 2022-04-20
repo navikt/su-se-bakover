@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
@@ -66,7 +67,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Formue)),
                     grunnlagsdataOverrides = listOf(
                         lagFradragsgrunnlag(
-                            type = Fradragstype.Arbeidsinntekt,
+                            type = Fradragstype(F.Arbeidsinntekt),
                             månedsbeløp = 10000.0,
                             periode = periode2021,
                             utenlandskInntekt = null,
@@ -440,5 +441,4 @@ internal class RevurderingLeggTilFormueServiceTest {
     private val periode2021 = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
     private val periodeJanMars = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021))
     private val periodeMarsDesember = Periode.create(fraOgMed = 1.mars(2021), tilOgMed = 31.desember(2021))
-    private val periodeHele2020 = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.mars(2020))
 }

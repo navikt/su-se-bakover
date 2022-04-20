@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 
@@ -68,7 +68,7 @@ fun beregning(
      */
     fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
 ): Beregning {
-    if (fradragsgrunnlag.any { it.fradrag.fradragstype == Fradragstype.ForventetInntekt }) {
+    if (fradragsgrunnlag.any { it.fradrag.fradragstype.type == F.ForventetInntekt }) {
         throw IllegalArgumentException("Foreventet inntekt etter uføre populeres via uføregrunnlag")
     }
     Beregningsgrunnlag.create(

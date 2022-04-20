@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -64,7 +65,10 @@ internal class BeregningMapperTest {
                   "satsbeløp": 21989.126666666667,
                   "fradrag": [
                     {
-                      "fradragstype": "ForventetInntekt",
+                      "fradragstype": {
+                        "type": "ForventetInntekt",
+                        "spesifisertType": null
+                      },
                       "månedsbeløp": 55000.0,
                       "utenlandskInntekt": null,
                       "periode": {
@@ -88,7 +92,10 @@ internal class BeregningMapperTest {
               ],
               "fradrag": [
                 {
-                  "fradragstype": "ForventetInntekt",
+                  "fradragstype": {
+                    "type": "ForventetInntekt",
+                    "spesifisertType": null
+                  },
                   "månedsbeløp": 55000.0,
                   "utenlandskInntekt": null,
                   "periode": {
@@ -160,7 +167,7 @@ internal class BeregningMapperTest {
             opprettet = opprettet,
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
+                    type = Fradragstype(F.ForventetInntekt),
                     månedsbeløp = 55000.0,
                     utenlandskInntekt = null,
                     periode = periode,

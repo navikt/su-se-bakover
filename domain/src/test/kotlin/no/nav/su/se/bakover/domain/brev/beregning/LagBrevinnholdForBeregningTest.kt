@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -26,7 +27,7 @@ internal class LagBrevinnholdForBeregningTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
+                    type = Fradragstype(F.ForventetInntekt),
                     månedsbeløp = 1000.0,
                     periode = periode,
                     utenlandskInntekt = null,
@@ -50,7 +51,7 @@ internal class LagBrevinnholdForBeregningTest {
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
-                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                            type = Fradragstype(F.ForventetInntekt).toReadableTypeName(
                                 utenlandsk = false,
                             ),
                             beløp = 1000,
@@ -68,21 +69,21 @@ internal class LagBrevinnholdForBeregningTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
+                    type = Fradragstype(F.ForventetInntekt),
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
+                    type = Fradragstype(F.Arbeidsinntekt),
                     månedsbeløp = 9999.0,
                     periode = Periode.create(fraOgMed = 1.juni(2020), tilOgMed = 31.august(2020)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = Fradragstype.Sosialstønad,
+                    type = Fradragstype(F.Sosialstønad),
                     månedsbeløp = 2000.0,
                     periode = Periode.create(fraOgMed = 1.juni(2020), tilOgMed = 31.august(2020)),
                     utenlandskInntekt = null,
@@ -106,7 +107,7 @@ internal class LagBrevinnholdForBeregningTest {
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
-                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                            type = Fradragstype(F.ForventetInntekt).toReadableTypeName(
                                 utenlandsk = false,
                             ),
                             beløp = 1000,
@@ -124,14 +125,14 @@ internal class LagBrevinnholdForBeregningTest {
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
-                            type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
+                            type = Fradragstype(F.Arbeidsinntekt).toReadableTypeName(
                                 utenlandsk = false,
                             ),
                             beløp = 9999,
                             utenlandskInntekt = null,
                         ),
                         Månedsfradrag(
-                            type = Fradragstype.Sosialstønad.toReadableTypeName(
+                            type = Fradragstype(F.Sosialstønad).toReadableTypeName(
                                 utenlandsk = false,
                             ),
                             beløp = 2000,
@@ -149,7 +150,7 @@ internal class LagBrevinnholdForBeregningTest {
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
-                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                            type = Fradragstype(F.ForventetInntekt).toReadableTypeName(
                                 utenlandsk = false,
                             ),
                             beløp = 1000,
@@ -167,21 +168,21 @@ internal class LagBrevinnholdForBeregningTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
+                    type = Fradragstype(F.ForventetInntekt),
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
+                    type = Fradragstype(F.Arbeidsinntekt),
                     månedsbeløp = 20000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),
                 FradragFactory.ny(
-                    type = Fradragstype.Kapitalinntekt,
+                    type = Fradragstype(F.Kapitalinntekt),
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.desember(2020), tilOgMed = 31.desember(2020)),
                     utenlandskInntekt = null,
@@ -205,7 +206,7 @@ internal class LagBrevinnholdForBeregningTest {
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
-                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                            type = Fradragstype(F.ForventetInntekt).toReadableTypeName(
                                 utenlandsk = false,
                             ),
                             beløp = 1000,
@@ -215,7 +216,7 @@ internal class LagBrevinnholdForBeregningTest {
                     eps = Fradrag.Eps(
                         listOf(
                             Månedsfradrag(
-                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
+                                type = Fradragstype(F.Arbeidsinntekt).toReadableTypeName(
                                     utenlandsk = false,
                                 ),
                                 beløp = 20000,
@@ -234,7 +235,7 @@ internal class LagBrevinnholdForBeregningTest {
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
-                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                            type = Fradragstype(F.ForventetInntekt).toReadableTypeName(
                                 utenlandsk = false,
                             ),
                             beløp = 1000,
@@ -244,14 +245,14 @@ internal class LagBrevinnholdForBeregningTest {
                     eps = Fradrag.Eps(
                         listOf(
                             Månedsfradrag(
-                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
+                                type = Fradragstype(F.Arbeidsinntekt).toReadableTypeName(
                                     utenlandsk = false,
                                 ),
                                 beløp = 20000,
                                 utenlandskInntekt = null,
                             ),
                             Månedsfradrag(
-                                type = Fradragstype.Kapitalinntekt.toReadableTypeName(
+                                type = Fradragstype(F.Kapitalinntekt).toReadableTypeName(
                                     utenlandsk = false,
                                 ),
                                 beløp = 1000,
@@ -270,7 +271,7 @@ internal class LagBrevinnholdForBeregningTest {
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
-                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                            type = Fradragstype(F.ForventetInntekt).toReadableTypeName(
                                 utenlandsk = false,
                             ),
                             beløp = 1000,
@@ -280,7 +281,7 @@ internal class LagBrevinnholdForBeregningTest {
                     eps = Fradrag.Eps(
                         listOf(
                             Månedsfradrag(
-                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
+                                type = Fradragstype(F.Arbeidsinntekt).toReadableTypeName(
                                     utenlandsk = false,
                                 ),
                                 beløp = 20000,
@@ -304,17 +305,17 @@ internal class LagBrevinnholdForBeregningTest {
             fradrag = Fradrag(
                 bruker = listOf(
                     Månedsfradrag(
-                        type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
+                        type = Fradragstype(F.Arbeidsinntekt).toReadableTypeName(utenlandsk = false),
                         beløp = 10,
                         utenlandskInntekt = null,
                     ),
                     Månedsfradrag(
-                        type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
+                        type = Fradragstype(F.OffentligPensjon).toReadableTypeName(utenlandsk = false),
                         beløp = 35,
                         utenlandskInntekt = null,
                     ),
                     Månedsfradrag(
-                        type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = true),
+                        type = Fradragstype(F.OffentligPensjon).toReadableTypeName(utenlandsk = true),
                         beløp = 70,
                         utenlandskInntekt = UtenlandskInntekt.create(
                             beløpIUtenlandskValuta = 140,
@@ -326,12 +327,12 @@ internal class LagBrevinnholdForBeregningTest {
                 eps = Fradrag.Eps(
                     listOf(
                         Månedsfradrag(
-                            type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
+                            type = Fradragstype(F.Arbeidsinntekt).toReadableTypeName(utenlandsk = false),
                             beløp = 20,
                             utenlandskInntekt = null,
                         ),
                         Månedsfradrag(
-                            type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
+                            type = Fradragstype(F.OffentligPensjon).toReadableTypeName(utenlandsk = false),
                             beløp = 70,
                             utenlandskInntekt = null,
                         ),
@@ -400,14 +401,14 @@ internal class LagBrevinnholdForBeregningTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
+                    type = Fradragstype(F.ForventetInntekt),
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = Fradragstype.Introduksjonsstønad,
+                    type = Fradragstype(F.Introduksjonsstønad),
                     månedsbeløp = 3000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
@@ -419,7 +420,7 @@ internal class LagBrevinnholdForBeregningTest {
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     strategy = BeregningStrategy.Eps67EllerEldre,
                 )
-            )
+            ),
         )
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
@@ -431,7 +432,7 @@ internal class LagBrevinnholdForBeregningTest {
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
-                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                            type = Fradragstype(F.ForventetInntekt).toReadableTypeName(
                                 utenlandsk = false,
                             ),
                             beløp = 1000,
@@ -452,28 +453,28 @@ internal class LagBrevinnholdForBeregningTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
+                    type = Fradragstype(F.ForventetInntekt),
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = Fradragstype.Kontantstøtte,
+                    type = Fradragstype(F.Kontantstøtte),
                     månedsbeløp = 6000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),
                 FradragFactory.ny(
-                    type = Fradragstype.Introduksjonsstønad,
+                    type = Fradragstype(F.Introduksjonsstønad),
                     månedsbeløp = 6000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),
                 FradragFactory.ny(
-                    type = Fradragstype.BidragEtterEkteskapsloven,
+                    type = Fradragstype(F.BidragEtterEkteskapsloven),
                     månedsbeløp = 6000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
@@ -497,7 +498,7 @@ internal class LagBrevinnholdForBeregningTest {
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
-                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                            type = Fradragstype(F.ForventetInntekt).toReadableTypeName(
                                 utenlandsk = false,
                             ),
                             beløp = 1000,
@@ -507,21 +508,21 @@ internal class LagBrevinnholdForBeregningTest {
                     eps = Fradrag.Eps(
                         listOf(
                             Månedsfradrag(
-                                type = Fradragstype.BidragEtterEkteskapsloven.toReadableTypeName(
+                                type = Fradragstype(F.BidragEtterEkteskapsloven).toReadableTypeName(
                                     utenlandsk = false,
                                 ),
                                 beløp = 6000,
                                 utenlandskInntekt = null,
                             ),
                             Månedsfradrag(
-                                type = Fradragstype.Introduksjonsstønad.toReadableTypeName(
+                                type = Fradragstype(F.Introduksjonsstønad).toReadableTypeName(
                                     utenlandsk = false,
                                 ),
                                 beløp = 6000,
                                 utenlandskInntekt = null,
                             ),
                             Månedsfradrag(
-                                type = Fradragstype.Kontantstøtte.toReadableTypeName(
+                                type = Fradragstype(F.Kontantstøtte).toReadableTypeName(
                                     utenlandsk = false,
                                 ),
                                 beløp = 6000,

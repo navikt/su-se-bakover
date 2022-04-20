@@ -7,6 +7,7 @@ import arrow.core.right
 import arrow.core.sequence
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -17,9 +18,20 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.UtenlandskInntektJson.Companion.toJson
 
+internal data class FradragstypeJson(
+    val type: String,
+    val spesifisertType: String? = null,
+) {
+    init {
+        if (type == F.Annet.toString() && spesifisertType == null) throw IllegalArgumentException("Typen må spesifiseres")
+        if (type != F.Annet.toString() && spesifisertType != null) throw IllegalArgumentException("Typen skal kun spesifieres dersom den er 'Annet'")
+    }
+}
+
 internal data class FradragJson(
     val periode: PeriodeJson?,
-    val type: String,
+    // TODO: navn?
+    val type: FradragstypeJson,
     val beløp: Double,
     val utenlandskInntekt: UtenlandskInntektJson?,
     val tilhører: String,
@@ -32,7 +44,10 @@ internal data class FradragJson(
             return it.left()
         } ?: beregningsperiode
         return FradragFactory.ny(
-            type = Fradragstype.valueOf(type),
+            type = Fradragstype(
+                type = F.valueOf(type.type),
+                spesifisertType = type.spesifisertType,
+            ),
             månedsbeløp = beløp,
             periode = periode,
             utenlandskInntekt = utenlandskInntekt,
@@ -62,7 +77,10 @@ internal data class FradragJson(
 
         fun Fradrag.toJson() =
             FradragJson(
-                type = fradragstype.toString(),
+                type = FradragstypeJson(
+                    type = fradragstype.type.toString(),
+                    spesifisertType = fradragstype.spesifisertType,
+                ),
                 beløp = månedsbeløp,
                 utenlandskInntekt = utenlandskInntekt?.toJson(),
                 periode = periode.toJson(),

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -710,7 +711,7 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
             grunnlagsdata = it.grunnlagsdata.copy(
                 fradragsgrunnlag = listOf(
                     lagFradragsgrunnlag(
-                        type = Fradragstype.Arbeidsinntekt,
+                        type = Fradragstype(F.Arbeidsinntekt),
                         månedsbeløp = 6000.0,
                         periode = stønadsperiode.periode,
                         tilhører = FradragTilhører.BRUKER,

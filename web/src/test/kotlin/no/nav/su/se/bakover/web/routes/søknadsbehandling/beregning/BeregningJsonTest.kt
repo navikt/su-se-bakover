@@ -27,7 +27,10 @@ internal class BeregningJsonTest {
                         "fraOgMed":"2020-08-01",
                         "tilOgMed":"2020-08-31"
                       },
-                      "type": "Arbeidsinntekt",
+                      "type": {
+                        "type": "Arbeidsinntekt",
+                        "spesifisertType": null
+                      },
                       "beløp": 1000.0,
                       "tilhører": "BRUKER",
                       "utenlandskInntekt": null
@@ -36,7 +39,10 @@ internal class BeregningJsonTest {
                         "fraOgMed":"2020-08-01",
                         "tilOgMed":"2020-08-31"
                       },
-                      "type": "Arbeidsinntekt",
+                      "type": {
+                        "type": "Arbeidsinntekt",
+                        "spesifisertType": null
+                      },
                       "beløp": 20000.0,
                       "tilhører": "EPS",
                       "utenlandskInntekt": null
@@ -47,7 +53,10 @@ internal class BeregningJsonTest {
                         "fraOgMed":"2020-08-01",
                         "tilOgMed":"2020-08-31"
                       },
-                      "type": "Arbeidsinntekt",
+                      "type": {
+                        "type": "Arbeidsinntekt",
+                        "spesifisertType": null
+                      },
                       "beløp": 20000.0,
                       "tilhører": "EPS",
                       "utenlandskInntekt": null
@@ -55,7 +64,10 @@ internal class BeregningJsonTest {
                     "merknader": []
                 }],
                 "fradrag": [{
-                  "type": "Arbeidsinntekt",
+                  "type": {
+                    "type": "Arbeidsinntekt",
+                    "spesifisertType": null
+                  },
                   "beløp": 1000.0,
                   "utenlandskInntekt": null,
                   "periode" : {
@@ -64,7 +76,10 @@ internal class BeregningJsonTest {
                   },
                   "tilhører": "BRUKER"
                 }, {
-                  "type": "Arbeidsinntekt",
+                  "type": {
+                    "type": "Arbeidsinntekt",
+                    "spesifisertType": null
+                  },
                   "beløp": 20000.0,
                   "utenlandskInntekt": null,
                   "periode" : {

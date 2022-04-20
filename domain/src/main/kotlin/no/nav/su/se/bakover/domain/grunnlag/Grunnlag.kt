@@ -13,9 +13,9 @@ import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.periode.reduser
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
 import no.nav.su.se.bakover.domain.tidslinje.masker
@@ -227,10 +227,10 @@ sealed class Grunnlag {
              */
             private fun harUgyldigFradragsType(fradrag: Fradrag): Boolean =
                 setOf(
-                    Fradragstype.ForventetInntekt,
-                    Fradragstype.BeregnetFradragEPS,
-                    Fradragstype.UnderMinstenivå,
-                ).contains(fradrag.fradragstype)
+                    F.ForventetInntekt,
+                    F.BeregnetFradragEPS,
+                    F.UnderMinstenivå,
+                ).contains(fradrag.fradragstype.type)
 
             private fun List<Fradragsgrunnlag>.sisteFradragsgrunnlagErLikOgTilstøtende(other: Fradragsgrunnlag) =
                 this.last().let { it.tilstøter(other) && it.erLik(other) }

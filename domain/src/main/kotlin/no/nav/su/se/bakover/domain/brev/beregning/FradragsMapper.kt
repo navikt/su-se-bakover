@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -55,32 +56,31 @@ internal fun List<Fradrag>.toMånedsfradragPerType(): List<Månedsfradrag> =
         .sortedBy { it.type }
 
 fun Fradragstype.toReadableTypeName(utenlandsk: Boolean) =
-    when (this) {
-        Fradragstype.NAVytelserTilLivsopphold -> "NAV-ytelser til livsopphold"
-        Fradragstype.Arbeidsinntekt -> "Arbeidsinntekt"
-        Fradragstype.OffentligPensjon -> "Offentlig pensjon"
-        Fradragstype.PrivatPensjon -> "Privat pensjon"
-        Fradragstype.Sosialstønad -> "Sosialstønad"
-        Fradragstype.Kontantstøtte -> "Kontantstøtte"
-        Fradragstype.Introduksjonsstønad -> "Introduksjonsstønad"
-        Fradragstype.Kvalifiseringsstønad -> "Kvalifiseringsstønad"
-        Fradragstype.BidragEtterEkteskapsloven -> "Bidrag etter ekteskapsloven"
-        Fradragstype.Kapitalinntekt -> "Kapitalinntekt"
-        Fradragstype.ForventetInntekt -> "Forventet inntekt etter uførhet"
-        Fradragstype.BeregnetFradragEPS -> "Utregnet fradrag for ektefelle/samboers inntekter"
-        Fradragstype.UnderMinstenivå -> "Beløp under minstegrense for utbetaling"
-        Fradragstype.AvkortingUtenlandsopphold -> "Avkorting på grunn av tidligere utenlandsopphold"
-        Fradragstype.Alderspensjon -> "Alderspensjon"
-        Fradragstype.Annet -> "Annet"
-        Fradragstype.Arbeidsavklaringspenger -> "Arbeidsavklaringspenger"
-        Fradragstype.AvtalefestetPensjon -> "Avtalefestet pensjon (AFP)"
-        Fradragstype.AvtalefestetPensjonPrivat -> "Avtalefestet pensjon privat (AFP)"
-        Fradragstype.Dagpenger -> "Dagpenger"
-        Fradragstype.Gjenlevendepensjon -> "Gjenlevendepensjon"
-        Fradragstype.OffenligPensjon -> "Offentlig pensjon"
-        Fradragstype.SupplerendeStønad -> "Supplerende stønad"
-        Fradragstype.Sykepenger -> "Sykepenger"
-        Fradragstype.Uføretrygd -> "uføretrygd"
+    when (this.type) {
+        F.Alderspensjon -> "Alderspensjon"
+        F.Annet -> "Annet"
+        F.Arbeidsavklaringspenger -> "Arbeidsavklaringspenger"
+        F.Arbeidsinntekt -> "Arbeidsinntekt"
+        F.AvkortingUtenlandsopphold -> "Avkorting på grunn av tidligere utenlandsopphold"
+        F.AvtalefestetPensjon -> "Avtalefestet pensjon (AFP)"
+        F.AvtalefestetPensjonPrivat -> "Avtalefestet pensjon privat (AFP)"
+        F.BeregnetFradragEPS -> "Utregnet fradrag for ektefelle/samboers inntekter"
+        F.BidragEtterEkteskapsloven -> "Bidrag etter ekteskapsloven"
+        F.Dagpenger -> "Dagpenger"
+        F.ForventetInntekt -> "Forventet inntekt etter uførhet"
+        F.Gjenlevendepensjon -> "Gjenlevendepensjon"
+        F.Introduksjonsstønad -> "Introduksjonsstønad"
+        F.Kapitalinntekt -> "Kapitalinntekt"
+        F.Kontantstøtte -> "Kontantstøtte"
+        F.Kvalifiseringsstønad -> "Kvalifiseringsstønad"
+        F.NAVytelserTilLivsopphold -> "NAV-ytelser til livsopphold"
+        F.OffentligPensjon -> "Offentlig pensjon"
+        F.PrivatPensjon -> "Privat pensjon"
+        F.Sosialstønad -> "Sosialstønad"
+        F.SupplerendeStønad -> "Supplerende stønad"
+        F.Sykepenger -> "Sykepenger"
+        F.Uføretrygd -> "uføretrygd"
+        F.UnderMinstenivå -> "Beløp under minstegrense for utbetaling"
     }.let { fradragsnavn ->
         if (utenlandsk) {
             "$fradragsnavn — fra utlandet"

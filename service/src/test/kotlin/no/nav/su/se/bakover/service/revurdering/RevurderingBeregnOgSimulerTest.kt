@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -555,9 +555,9 @@ internal class RevurderingBeregnOgSimulerTest {
             serviceAndMocks.revurderingService.beregnOgSimuler(revurdering2.id, saksbehandler).getOrFail().revurdering
 
         (actual as SimulertRevurdering.Innvilget).let { simulert ->
-            simulert.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
+            simulert.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype.type == F.AvkortingUtenlandsopphold }
                 .sumOf { it.månedsbeløp } shouldBe expectedAvkorting
-            simulert.beregning.getFradrag().filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
+            simulert.beregning.getFradrag().filter { it.fradragstype.type == F.AvkortingUtenlandsopphold }
                 .sumOf { it.månedsbeløp } shouldBe expectedAvkorting
         }
     }

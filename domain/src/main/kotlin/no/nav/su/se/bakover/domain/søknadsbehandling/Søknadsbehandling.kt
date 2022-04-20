@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.perioder
@@ -316,7 +317,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         clock: Clock,
     ): Either<KunneIkkeBeregne, Pair<Vilkårsvurdert, Beregning>> {
         return leggTilFradragsgrunnlag(
-            grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
+            grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype.type == F.AvkortingUtenlandsopphold },
         ).getOrHandle {
             return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left()
         }.let {
