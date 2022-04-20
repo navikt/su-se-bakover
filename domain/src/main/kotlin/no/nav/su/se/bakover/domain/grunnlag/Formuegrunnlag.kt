@@ -146,13 +146,18 @@ data class Formuegrunnlag private constructor(
                 begrunnelse = if (begrunnelse.isNullOrBlank()) null else begrunnelse,
             )
 
-            konsistenssjekk(
-                bosituasjon = bosituasjon, formuegrunnlag = listOf(formuegrunnlag),
-            ).getOrHandle { return it.left() }
-
             if (!(behandlingsPeriode.inneholder(periode))) {
                 return KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
             }
+
+            konsistenssjekk(
+                /**
+                 * Mismatch å sjekke 1 fradragsgrunnlag mot mange bosituasjoner, men gir mening innenfor samme periode.
+                 */
+                bosituasjon = bosituasjon.lagTidslinje(periode),
+                formuegrunnlag = listOf(formuegrunnlag),
+            ).getOrHandle { return it.left() }
+
             return formuegrunnlag.right()
         }
 
@@ -177,8 +182,13 @@ data class Formuegrunnlag private constructor(
                 begrunnelse = if (begrunnelse.isNullOrBlank()) null else begrunnelse,
             )
 
+            if (!(behandlingsPeriode.inneholder(periode))) {
+                return KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
+            }
+
             konsistenssjekk(
-                bosituasjon = bosituasjon, formuegrunnlag = listOf(formuegrunnlag),
+                bosituasjon = bosituasjon,
+                formuegrunnlag = listOf(formuegrunnlag),
             ).getOrHandle {
                 when (it) {
                     is KunneIkkeLageFormueGrunnlag.Konsistenssjekk -> {
@@ -196,9 +206,6 @@ data class Formuegrunnlag private constructor(
                 }
             }
 
-            if (!(behandlingsPeriode.inneholder(periode))) {
-                return KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
-            }
             return formuegrunnlag.right()
         }
 

@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.vilkår.Vilkår.Formue.Vurdert.Companion.slåSammenVurderingsperioder
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
 import no.nav.su.se.bakover.test.create
@@ -41,7 +40,7 @@ internal class FormueVilkårTest {
             ),
         )
 
-        val actual = nonEmptyListOf(f1, f2, f3).slåSammenVurderingsperioder()
+        val actual = nonEmptyListOf(f1, f2, f3).slåSammenLikePerioder()
         actual.size shouldBe 2
         actual.first() shouldBe lagFormueVurderingsperiode(
             id = actual.first().id,

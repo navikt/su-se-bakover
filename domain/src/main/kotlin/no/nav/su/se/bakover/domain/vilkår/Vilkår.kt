@@ -400,6 +400,7 @@ sealed class Vilkår {
     abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkår
     abstract fun erLik(other: Vilkår): Boolean
     abstract fun lagTidslinje(periode: Periode): Vilkår
+    abstract fun slåSammenLikePerioder(): Vilkår
 
     sealed class Uførhet : Vilkår() {
         override val vilkår = Inngangsvilkår.Uførhet
@@ -425,6 +426,10 @@ sealed class Vilkår {
 
             override fun erLik(other: Vilkår): Boolean {
                 return other is IkkeVurdert
+            }
+
+            override fun slåSammenLikePerioder(): Vilkår {
+                return this
             }
         }
 
@@ -453,8 +458,8 @@ sealed class Vilkår {
                 return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
             }
 
-            fun slåSammenVurderingsperioder(): Either<UgyldigUførevilkår, Vurdert> {
-                return fromVurderingsperioder(vurderingsperioder = vurderingsperioder.slåSammenVurderingsperiode())
+            override fun slåSammenLikePerioder(): Vurdert {
+                return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
             }
 
             companion object {
@@ -469,24 +474,6 @@ sealed class Vilkår {
                     return Vurdert(vurderingsperioder).right()
                 }
 
-                fun Nel<Vurderingsperiode.Uføre>.slåSammenVurderingsperiode(): Nel<Vurderingsperiode.Uføre> {
-                    val slåttSammen = this.sortedBy { it.periode.fraOgMed }
-                        .fold(mutableListOf<MutableList<Vurderingsperiode.Uføre>>()) { acc, uføre ->
-                            if (acc.isEmpty()) {
-                                acc.add(mutableListOf(uføre))
-                            } else if (acc.last().sisteUføreperiodeErLikOgTilstøtende(uføre)) {
-                                acc.last().add(uføre)
-                            } else {
-                                acc.add(mutableListOf(uføre))
-                            }
-                            acc
-                        }.map {
-                            val periode = it.map { it.periode }.minAndMaxOf()
-                            it.first().copy(CopyArgs.Tidslinje.NyPeriode(periode = periode))
-                        }
-                    return NonEmptyList.fromListUnsafe(slåttSammen)
-                }
-
                 fun fromVurderingsperioder(
                     vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
                 ): Either<UgyldigUførevilkår, Vurdert> {
@@ -495,9 +482,6 @@ sealed class Vilkår {
                     }
                     return Vurdert(vurderingsperioder).right()
                 }
-
-                private fun List<Vurderingsperiode.Uføre>.sisteUføreperiodeErLikOgTilstøtende(other: Vurderingsperiode.Uføre) =
-                    this.last().tilstøterOgErLik(other)
             }
 
             sealed class UgyldigUførevilkår {
@@ -554,9 +538,7 @@ sealed class Vilkår {
                     }.map {
                         it.second
                     }.let {
-                        copy(
-                            vurderingsperioder = NonEmptyList.fromListUnsafe(it).slåSammenVurderingsperiode(),
-                        )
+                        copy(vurderingsperioder = it.slåSammenLikePerioder())
                     }
                 } else {
                     val tidligere = stønadsperiode.periode.starterTidligere(
@@ -571,7 +553,7 @@ sealed class Vilkår {
                                     vurderingsperioder.minByOrNull { it.periode.fraOgMed }!!
                                         .oppdaterStønadsperiode(stønadsperiode),
                                 ),
-                            ).slåSammenVurderingsperiode(),
+                            ).slåSammenLikePerioder(),
                         )
                     } else {
                         copy(
@@ -580,7 +562,7 @@ sealed class Vilkår {
                                     vurderingsperioder.maxByOrNull { it.periode.tilOgMed }!!
                                         .oppdaterStønadsperiode(stønadsperiode),
                                 ),
-                            ).slåSammenVurderingsperiode(),
+                            ).slåSammenLikePerioder(),
                         )
                     }
                 }
@@ -604,8 +586,8 @@ sealed class Vilkår {
         abstract val grunnlag: List<Formuegrunnlag>
 
         abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue
-
         abstract override fun lagTidslinje(periode: Periode): Formue
+        abstract override fun slåSammenLikePerioder(): Formue
 
         fun harEPSFormue(): Boolean {
             return grunnlag.any { it.harEPSFormue() }
@@ -631,6 +613,10 @@ sealed class Vilkår {
             override fun hentTidligesteDatoForAvslag(): LocalDate? = null
             override fun erLik(other: Vilkår): Boolean {
                 return other is IkkeVurdert
+            }
+
+            override fun slåSammenLikePerioder(): IkkeVurdert {
+                return this
             }
 
             override val grunnlag = emptyList<Formuegrunnlag>()
@@ -691,12 +677,12 @@ sealed class Vilkår {
                 return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
             }
 
-            override val grunnlag: List<Formuegrunnlag> = vurderingsperioder.map {
-                it.grunnlag
+            override fun slåSammenLikePerioder(): Vurdert {
+                return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
             }
 
-            fun slåSammenVurderingsperioder(): Either<UgyldigFormuevilkår, Vurdert> {
-                return fromVurderingsperioder(vurderingsperioder = vurderingsperioder.slåSammenVurderingsperioder())
+            override val grunnlag: List<Formuegrunnlag> = vurderingsperioder.map {
+                it.grunnlag
             }
 
             companion object {
@@ -723,27 +709,6 @@ sealed class Vilkår {
                     }
                     return Vurdert(vurderingsperioder).right()
                 }
-
-                fun Nel<Vurderingsperiode.Formue>.slåSammenVurderingsperioder(): Nel<Vurderingsperiode.Formue> {
-                    val slåttSammen = this.sortedBy { it.periode.fraOgMed }
-                        .fold(mutableListOf<MutableList<Vurderingsperiode.Formue>>()) { acc, formue ->
-                            if (acc.isEmpty()) {
-                                acc.add(mutableListOf(formue))
-                            } else if (acc.last().sisteFormueperiodeErLikOgTilstøtende(formue)) {
-                                acc.last().add(formue)
-                            } else {
-                                acc.add(mutableListOf(formue))
-                            }
-                            acc
-                        }.map {
-                            val periode = it.map { it.periode }.minAndMaxOf()
-                            it.first().copy(CopyArgs.Tidslinje.NyPeriode(periode = periode))
-                        }
-                    return NonEmptyList.fromListUnsafe(slåttSammen)
-                }
-
-                private fun List<Vurderingsperiode.Formue>.sisteFormueperiodeErLikOgTilstøtende(other: Vurderingsperiode.Formue) =
-                    this.last().tilstøterOgErLik(other)
             }
 
             sealed class UgyldigFormuevilkår {
@@ -751,6 +716,34 @@ sealed class Vilkår {
             }
         }
     }
+}
+
+fun <T> List<T>.slåSammenLikePerioder(): Nel<T> where T : Vurderingsperiode, T : KanPlasseresPåTidslinje<T> {
+    return Nel.fromListUnsafe(
+        Tidslinje(
+            periode = map { it.periode }.minAndMaxOf(),
+            objekter = this,
+        ).tidslinje.fold(mutableListOf()) { acc, t ->
+            if (acc.isEmpty()) {
+                acc.add(t)
+            } else if (acc.last().tilstøterOgErLik(t)) {
+                val last = acc.removeLast()
+                acc.add(
+                    last.copy(
+                        CopyArgs.Tidslinje.NyPeriode(
+                            Periode.create(
+                                last.periode.fraOgMed,
+                                (t as Vurderingsperiode).periode.tilOgMed,
+                            ),
+                        ),
+                    ),
+                )
+            } else {
+                acc.add(t)
+            }
+            acc
+        },
+    )
 }
 
 sealed class Vurderingsperiode {

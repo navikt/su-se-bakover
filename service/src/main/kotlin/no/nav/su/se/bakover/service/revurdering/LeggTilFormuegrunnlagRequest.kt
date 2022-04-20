@@ -42,7 +42,7 @@ data class LeggTilFormuegrunnlagRequest(
                                 Konsistensproblem.BosituasjonOgFormue.PerioderForBosituasjonEPSOgFormueEPSSamsvarerIkke -> {
                                     KunneIkkeLeggeTilFormuegrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode
                                 }
-                                Konsistensproblem.BosituasjonOgFormue.PerioderForFormueErUtenforPerioderMedBostiuasjon -> {
+                                Konsistensproblem.BosituasjonOgFormue.PerioderForBosituasjonOgFormueSamsvarerIkke -> {
                                     KunneIkkeLeggeTilFormuegrunnlag.FormuePeriodeErUtenforBehandlingsperioden
                                 }
                                 is Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon -> {

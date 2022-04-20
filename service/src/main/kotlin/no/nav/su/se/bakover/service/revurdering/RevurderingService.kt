@@ -364,6 +364,7 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
     data class KunneIkkeEndreBosituasjongrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
         KunneIkkeLeggeTilBosituasjongrunnlag()
     data class Konsistenssjekk(val feil: Konsistensproblem.Bosituasjon) : KunneIkkeLeggeTilBosituasjongrunnlag()
+    object PerioderMangler : KunneIkkeLeggeTilBosituasjongrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFormuegrunnlag {
@@ -376,6 +377,8 @@ sealed class KunneIkkeLeggeTilFormuegrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilFormuegrunnlag()
+
+    data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFormue) : KunneIkkeLeggeTilFormuegrunnlag()
 }
 
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {

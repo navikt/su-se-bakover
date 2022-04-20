@@ -770,6 +770,16 @@ internal class PeriodeTest {
                 Periode.create(1.januar(2021), 31.desember(2021)),
             ),
         ) shouldBe false
+
+        listOf(
+            Periode.create(1.mai(2021), 31.januar(2022)),
+            Periode.create(1.februar(2022), 30.april(2022)),
+        ).inneholderAlle(
+            listOf(
+                Periode.create(1.mai(2021), 31.desember(2021)),
+                Periode.create(1.mars(2022), 30.april(2022)),
+            ),
+        ) shouldBe true
     }
 
     @Test

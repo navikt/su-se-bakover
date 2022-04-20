@@ -28,7 +28,7 @@ fun Konsistensproblem.tilResultat() = when (this) {
         message = "Ikke lov med overlapp i perioder for bosituasjon. Hvar bosituasjon må ha en distinkt periode.",
         code = "bosituasjonsperioder_overlapper"
     )
-    Konsistensproblem.BosituasjonOgFormue.PerioderForFormueErUtenforPerioderMedBostiuasjon -> ErrorJson(
+    Konsistensproblem.BosituasjonOgFormue.PerioderForBosituasjonOgFormueSamsvarerIkke -> ErrorJson(
         message = "Perioder for alle bosituasjoner overlapper ikke med perioder for alle fradrag",
         code = "ikke_overlapp_bosituasjon_formue"
     )

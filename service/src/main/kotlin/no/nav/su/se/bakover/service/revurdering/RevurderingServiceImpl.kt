@@ -409,6 +409,9 @@ internal class RevurderingServiceImpl(
                 is Revurdering.KunneIkkeLeggeTilBosituasjon.Konsistenssjekk -> {
                     KunneIkkeLeggeTilBosituasjongrunnlag.Konsistenssjekk(it.feil)
                 }
+                Revurdering.KunneIkkeLeggeTilBosituasjon.PerioderMangler -> {
+                    KunneIkkeLeggeTilBosituasjongrunnlag.PerioderMangler
+                }
             }
         }.map {
             revurderingRepo.lagre(it)
@@ -427,12 +430,20 @@ internal class RevurderingServiceImpl(
         val vilkår = request.toDomain(bosituasjon, revurdering.periode, clock).getOrHandle {
             return it.left()
         }
-        return revurdering.oppdaterFormueOgMarkerSomVurdert(vilkår).mapLeft {
-            KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(fra = it.fra, til = it.til)
-        }.map {
-            revurderingRepo.lagre(it)
-            identifiserFeilOgLagResponse(it)
-        }
+        return revurdering.oppdaterFormueOgMarkerSomVurdert(vilkår)
+            .mapLeft {
+                when (it) {
+                    is Revurdering.KunneIkkeLeggeTilFormue.Konsistenssjekk -> {
+                        KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk(it.feil)
+                    }
+                    is Revurdering.KunneIkkeLeggeTilFormue.UgyldigTilstand -> {
+                        KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(it.fra, it.til)
+                    }
+                }
+            }.map {
+                revurderingRepo.lagre(it)
+                identifiserFeilOgLagResponse(it)
+            }
     }
 
     private fun identifiserFeilOgLagResponse(revurdering: Revurdering): RevurderingOgFeilmeldingerResponse {

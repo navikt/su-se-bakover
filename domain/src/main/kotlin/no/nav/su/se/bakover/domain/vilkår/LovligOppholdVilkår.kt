@@ -22,6 +22,7 @@ sealed class LovligOppholdVilkår : Vilkår() {
 
     abstract override fun lagTidslinje(periode: Periode): LovligOppholdVilkår
     abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): LovligOppholdVilkår
+    abstract override fun slåSammenLikePerioder(): LovligOppholdVilkår
 
     object IkkeVurdert : LovligOppholdVilkår() {
         override val resultat: Resultat = Resultat.Uavklart
@@ -33,6 +34,10 @@ sealed class LovligOppholdVilkår : Vilkår() {
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
+        override fun slåSammenLikePerioder(): LovligOppholdVilkår {
+            return this
+        }
+
         override fun hentTidligesteDatoForAvslag(): LocalDate? = null
         override fun erLik(other: Vilkår): Boolean {
             return other is IkkeVurdert
@@ -95,6 +100,10 @@ sealed class LovligOppholdVilkår : Vilkår() {
                     it.oppdaterStønadsperiode(stønadsperiode)
                 },
             )
+        }
+
+        override fun slåSammenLikePerioder(): LovligOppholdVilkår {
+            return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
     }
 }

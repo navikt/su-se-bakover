@@ -176,9 +176,9 @@ internal class FormuegrunnlagTest {
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                 begrunnelse = null,
                 bosituasjon = listOf(enslig),
-                behandlingsPeriode = Periode.create(1.januar(2021), 31.mars(2021)),
+                behandlingsPeriode = Periode.create(1.januar(2021), 31.desember(2021)),
             ) shouldBe KunneIkkeLageFormueGrunnlag.Konsistenssjekk(
-                Konsistensproblem.BosituasjonOgFormue.PerioderForFormueErUtenforPerioderMedBostiuasjon
+                Konsistensproblem.BosituasjonOgFormue.PerioderForBosituasjonOgFormueSamsvarerIkke
             ).left()
         }
 

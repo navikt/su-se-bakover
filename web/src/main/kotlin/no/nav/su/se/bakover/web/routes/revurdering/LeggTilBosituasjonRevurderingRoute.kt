@@ -118,4 +118,10 @@ private fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
             it.code!!,
         )
     }
+    KunneIkkeLeggeTilBosituasjongrunnlag.PerioderMangler -> {
+        HttpStatusCode.BadRequest.errorJson(
+            message = "Bosituasjon mangler for hele eller deler av behandlingsperioden",
+            code = "bosituasjon_mangler_for_perioder",
+        )
+    }
 }

@@ -198,15 +198,29 @@ fun List<Periode>.reduser(): List<Periode> {
 }
 
 fun List<Periode>.minusListe(other: List<Periode>): List<Periode> {
-    return (flatMap { it.tilMånedsperioder() } - other.flatMap { it.tilMånedsperioder() }.toSet()).reduser()
+    return (flatMap { it.tilMånedsperioder() }.toSet() - other.flatMap { it.tilMånedsperioder() }.toSet())
+        .toList()
+        .reduser()
 }
 
 fun Periode.inneholderAlle(other: List<Periode>): Boolean {
-    return (other.flatMap { it.tilMånedsperioder() }.minusListe(tilMånedsperioder())).isEmpty()
+    return tilMånedsperioder().inneholderAlle(other)
 }
 
 fun List<Periode>.inneholderAlle(other: List<Periode>): Boolean {
-    return (other.flatMap { it.tilMånedsperioder() }.minusListe(flatMap { it.tilMånedsperioder() })).isEmpty()
+    val denne = flatMap { it.tilMånedsperioder() }.toSet()
+    val andre = other.flatMap { it.tilMånedsperioder() }.toSet()
+    return when {
+        other.isEmpty() -> {
+            true
+        }
+        denne.count() >= andre.count() -> {
+            (andre - denne).isEmpty()
+        }
+        else -> {
+            false
+        }
+    }
 }
 
 fun List<Periode>.harOverlappende(): Boolean {

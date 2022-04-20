@@ -134,8 +134,8 @@ data class SjekkOmGrunnlagErKonsistent(
                 if (!perioderForBosituasonEPSOgFormueEPSSamsvarer()) {
                     add(Konsistensproblem.BosituasjonOgFormue.PerioderForBosituasjonEPSOgFormueEPSSamsvarerIkke)
                 }
-                if (!bosituasjonsperiodeInneholderAlleFormueperioder()) {
-                    add(Konsistensproblem.BosituasjonOgFormue.PerioderForFormueErUtenforPerioderMedBostiuasjon)
+                if (!bosituasjonOgFormueForDeSammePeriodene()) {
+                    add(Konsistensproblem.BosituasjonOgFormue.PerioderForBosituasjonOgFormueSamsvarerIkke)
                 }
                 return if (this.isEmpty()) Unit.right() else this.left()
             }
@@ -145,8 +145,8 @@ data class SjekkOmGrunnlagErKonsistent(
             return bosituasjon.perioderMedEPS().inneholderAlle(formue.allePerioderMedEPS())
         }
 
-        private fun bosituasjonsperiodeInneholderAlleFormueperioder(): Boolean {
-            return bosituasjon.perioder().inneholderAlle(formue.perioder())
+        private fun bosituasjonOgFormueForDeSammePeriodene(): Boolean {
+            return bosituasjon.perioder() == formue.perioder()
         }
     }
 }
@@ -203,7 +203,7 @@ sealed class Konsistensproblem {
 
     sealed class BosituasjonOgFormue : Konsistensproblem() {
         /** Ugyldig case. Periode med formue er ikke innenfor periode med bosituasjon */
-        object PerioderForFormueErUtenforPerioderMedBostiuasjon : BosituasjonOgFormue() {
+        object PerioderForBosituasjonOgFormueSamsvarerIkke : BosituasjonOgFormue() {
             override fun erGyldigTilstand(): Boolean = false
         }
 

@@ -207,7 +207,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
                             LeggTilFormuegrunnlagRequest.Grunnlag(
-                                periode = periodeHele2020,
+                                periode = periode2021,
                                 epsFormue = Formuegrunnlag.Verdier.empty(),
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                                 begrunnelse = null,
