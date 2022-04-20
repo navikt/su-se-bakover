@@ -143,7 +143,7 @@ sealed interface Regulering : Reguleringsfelter {
                 ),
             )
 
-        fun beregn(clock: Clock, begrunnelse: String?): Either<KunneIkkeBeregne, OpprettetRegulering> {
+        fun beregn(clock: Clock, begrunnelse: String? = null): Either<KunneIkkeBeregne, OpprettetRegulering> {
             return this.gjørBeregning(
                 begrunnelse = begrunnelse,
                 clock = clock,

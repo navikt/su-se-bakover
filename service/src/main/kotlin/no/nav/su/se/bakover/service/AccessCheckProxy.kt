@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
@@ -104,6 +105,7 @@ import no.nav.su.se.bakover.service.regulering.BeregnRequest
 import no.nav.su.se.bakover.service.regulering.KunneIkkeIverksetteRegulering
 import no.nav.su.se.bakover.service.regulering.KunneIkkeLeggeTilFradrag
 import no.nav.su.se.bakover.service.regulering.KunneIkkeOppretteRegulering
+import no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
@@ -893,6 +895,20 @@ open class AccessCheckProxy(
 
                 override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
                     return services.reguleringService.hentSakerMedÅpenBehandlingEllerStans()
+                }
+
+                override fun regulerManuelt(
+                    reguleringId: UUID,
+                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+                    fradrag: List<Grunnlag.Fradragsgrunnlag>,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeRegulereManuelt, Unit> {
+                    return services.reguleringService.regulerManuelt(
+                        reguleringId,
+                        uføregrunnlag,
+                        fradrag,
+                        saksbehandler,
+                    )
                 }
             },
             tilbakekrevingService = object : TilbakekrevingService {

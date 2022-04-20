@@ -6,8 +6,12 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -18,6 +22,7 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
@@ -130,6 +135,41 @@ class ReguleringServiceImpl(
 
             log.info("Totalt antall prosesserte reguleringer: ${regulert.size}, antall automatiske: $antallAutomatiske, antall manuelle: $antallManuelle")
         }
+    }
+
+    override fun regulerManuelt(
+        reguleringId: UUID,
+        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        fradrag: List<Grunnlag.Fradragsgrunnlag>,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeRegulereManuelt, Unit> {
+        val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.foo.left()
+        if (regulering.erFerdigstilt) return KunneIkkeRegulereManuelt.foo.left()
+
+        val oppdatertRegulering = (regulering as Regulering.OpprettetRegulering).copy(
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+                grunnlagsdata = Grunnlagsdata.tryCreate(
+                    bosituasjon = regulering.grunnlagsdata.bosituasjon,
+                    fradragsgrunnlag = fradrag,
+                ).getOrHandle { throw IllegalStateException("") },
+                vilkårsvurderinger = regulering.vilkårsvurderinger.copy(
+                    uføre = (regulering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert),
+                    formue = regulering.vilkårsvurderinger.formue,
+                    utenlandsopphold = regulering.vilkårsvurderinger.utenlandsopphold,
+                ),
+            ),
+            saksbehandler = saksbehandler,
+            reguleringstype = Reguleringstype.MANUELL,
+        )
+
+        oppdatertRegulering.beregn(clock)
+            .mapLeft { KunneIkkeRegulereManuelt.BeregningFeilet }
+            .flatMap {
+                it.simuler(utbetalingService::simulerUtbetaling).mapLeft { KunneIkkeRegulereManuelt.SimuleringFeilet }
+            }.tapLeft { return it.left() }
+            .map { lagVedtakOgUtbetal(it.tilIverksatt()) }
+
+        return Unit.right()
     }
 
     private fun regulerAutomatisk(regulering: Regulering.OpprettetRegulering): Either<KunneIkkeRegulereAutomatisk, Regulering.IverksattRegulering> {

@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.service.regulering
 
 import arrow.core.Either
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import java.time.LocalDate
@@ -18,6 +20,14 @@ sealed class KunneIkkeRegulereAutomatisk {
     object KunneIkkeSimulere : KunneIkkeRegulereAutomatisk()
     object KunneIkkeUtbetale : KunneIkkeRegulereAutomatisk()
     object KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling : KunneIkkeRegulereAutomatisk()
+}
+
+sealed class KunneIkkeRegulereManuelt {
+    object foo : KunneIkkeRegulereManuelt()
+    object FantIkkeRegulering : KunneIkkeRegulereManuelt()
+    object SimuleringFeilet : KunneIkkeRegulereManuelt()
+    object BeregningFeilet : KunneIkkeRegulereManuelt()
+    object AlleredeFerdigstilt : KunneIkkeRegulereManuelt()
 }
 
 sealed class BeregnOgSimulerFeilet {
@@ -50,4 +60,10 @@ interface ReguleringService {
     fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering>
     fun hentStatus(): List<Regulering>
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
+    fun regulerManuelt(
+        reguleringId: UUID,
+        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        fradrag: List<Grunnlag.Fradragsgrunnlag>,
+        saksbehandler: NavIdentBruker.Saksbehandler
+    ): Either<KunneIkkeRegulereManuelt, Unit>
 }
