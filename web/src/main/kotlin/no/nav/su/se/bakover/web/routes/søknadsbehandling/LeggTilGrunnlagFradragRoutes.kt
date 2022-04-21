@@ -57,10 +57,10 @@ internal fun Route.leggTilGrunnlagFradrag(
                                 return feilResultat.left()
                             },
                             type = FradragskategoriWrapper(
-                                kategori = Fradragskategori.tryParse(fradrag.type).getOrHandle {
+                                kategori = Fradragskategori.tryParse(fradrag.kategori).getOrHandle {
                                     return Behandlingsfeilresponser.ugyldigFradragstype.left()
                                 },
-                                spesifisertKategori = fradrag.spesifisertType,
+                                spesifisertKategori = fradrag.spesifisertKategori,
                             ),
                             månedsbeløp = fradrag.beløp,
                             utenlandskInntekt = fradrag.utenlandskInntekt?.toUtenlandskInntekt()
@@ -124,8 +124,8 @@ internal fun KunneIkkeLeggeTilFradragsgrunnlag.tilResultat(): Resultat {
 
 private data class FradragsgrunnlagJson(
     val periode: PeriodeJson,
-    val type: String,
-    val spesifisertType: String?,
+    val kategori: String,
+    val spesifisertKategori: String?,
     val beløp: Double,
     val utenlandskInntekt: UtenlandskInntektJson?,
     val tilhører: String,

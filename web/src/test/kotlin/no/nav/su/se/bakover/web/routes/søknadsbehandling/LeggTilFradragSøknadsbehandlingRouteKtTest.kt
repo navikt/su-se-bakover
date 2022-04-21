@@ -33,14 +33,16 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
                     {
                         "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
                         "beløp":9879,
-                        "type":"Arbeidsinntekt",
+                        "kategori":"Arbeidsinntekt",
+                        "spesifisertKategori": null,
                         "utenlandskInntekt":null,
                         "tilhører":"EPS"
                     },
                     {
                         "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
                         "beløp":10000,
-                        "type":"Kontantstøtte",
+                        "kategori":"Kontantstøtte",
+                        "spesifisertKategori": null,
                         "utenlandskInntekt":null,
                         "tilhører":"BRUKER"
                     }
@@ -81,14 +83,16 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
                 [
                     {
                         "beløp":9879,
-                        "type":"Arbeidsinntekt",
+                        "kategori":"Arbeidsinntekt",
+                        "spesifisertKategori": null,
                         "utenlandskInntekt":null,
                         "tilhører":"EPS"
                     },
                     {
                         "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
                         "beløp":10000,
-                        "type":"Kontantstøtte",
+                        "kategori":"Kontantstøtte",
+                        "spesifisertKategori": null,
                         "utenlandskInntekt":null,
                         "tilhører":"BRUKER"
                     }
@@ -131,14 +135,16 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
                     {
                         "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
                         "beløp":9879,
-                        "type":"UgyldigFradragstype",
+                        "kategori":"UgyldigFradragstype",
+                        "spesifisertKategori": null,
                         "utenlandskInntekt":null,
                         "tilhører":"EPS"
                     },
                     {
                         "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
                         "beløp":10000,
-                        "type":"Kontantstøtte",
+                        "kategori":"Kontantstøtte",
+                        "spesifisertKategori": null,
                         "utenlandskInntekt":null,
                         "tilhører":"BRUKER"
                     }
@@ -181,14 +187,16 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
                     {
                         "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
                         "beløp":9879,
-                        "type":"ForventetInntekt",
+                        "kategori":"ForventetInntekt",
+                        "spesifisertKategori": null,
                         "utenlandskInntekt":null,
                         "tilhører":"EPS"
                     },
                     {
                         "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
                         "beløp":10000,
-                        "type":"Kontantstøtte",
+                        "kategori":"Kontantstøtte",
+                        "spesifisertKategori": null,
                         "utenlandskInntekt":null,
                         "tilhører":"BRUKER"
                     }
@@ -231,14 +239,16 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
                     {
                         "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
                         "beløp":9879,
-                        "type":"BeregnetFradragEPS",
+                        "kategori":"BeregnetFradragEPS",
+                        "spesifisertKategori": null,
                         "utenlandskInntekt":null,
                         "tilhører":"EPS"
                     },
                     {
                         "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
                         "beløp":10000,
-                        "type":"Kontantstøtte",
+                        "kategori":"Kontantstøtte",
+                        "spesifisertKategori": null,
                         "utenlandskInntekt":null,
                         "tilhører":"BRUKER"
                     }
@@ -281,14 +291,16 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
                     {
                         "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
                         "beløp":9879,
-                        "type":"UnderMinstenivå",
+                        "kategori":"UnderMinstenivå",
+                        "spesifisertKategori": null,
                         "utenlandskInntekt":null,
                         "tilhører":"EPS"
                     },
                     {
                         "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
                         "beløp":10000,
-                        "type":"Kontantstøtte",
+                        "kategori":"Kontantstøtte",
+                        "spesifisertKategori": null,
                         "utenlandskInntekt":null,
                         "tilhører":"BRUKER"
                     }
