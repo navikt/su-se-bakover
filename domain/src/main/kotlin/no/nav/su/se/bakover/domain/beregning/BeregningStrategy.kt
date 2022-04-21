@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import arrow.core.getOrHandle
+import no.nav.su.se.bakover.common.periode.Månedsperiode
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
@@ -32,7 +33,7 @@ data class Beregningsperiode(
         return strategy.sats()
     }
 
-    fun månedsoversikt(): Map<Periode, BeregningStrategy> {
+    fun månedsoversikt(): Map<Månedsperiode, BeregningStrategy> {
         return periode.tilMånedsperioder().associateWith { strategy }
     }
 }

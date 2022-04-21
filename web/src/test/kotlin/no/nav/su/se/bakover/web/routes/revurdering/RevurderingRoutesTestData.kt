@@ -37,7 +37,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.stønadsperiode
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.TestBeregning
 import org.mockito.kotlin.mock
 import java.util.UUID
 

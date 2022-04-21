@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.test.månedsperiodeDesember2020
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
 import org.junit.jupiter.api.Test
 
 internal class GarantipensjonsnivåTest {
@@ -52,16 +54,16 @@ internal class GarantipensjonsnivåTest {
 
     @Test
     fun `periodiserer garantipensjonsnivå`() {
-        val januar = Periode.create(1.januar(2020), 31.januar(2020))
-        Garantipensjonsnivå.Ordinær.periodiser(januar) shouldBe mapOf(januar to 14674.916666666666667)
-        val desember = Periode.create(1.desember(2020), 31.desember(2020))
-        Garantipensjonsnivå.Ordinær.periodiser(desember) shouldBe mapOf(desember to 14810.333333333333333)
+        val januar = månedsperiodeJanuar2020
+        Garantipensjonsnivå.Ordinær.periodiser(januar) shouldBe mapOf(januar to 14674.916666666666)
+        val desember = månedsperiodeDesember2020
+        Garantipensjonsnivå.Ordinær.periodiser(desember) shouldBe mapOf(desember to 14810.333333333334)
 
         val heleÅret = Periode.create(1.januar(2020), 31.desember(2020))
         Garantipensjonsnivå.Ordinær.periodiser(heleÅret).let {
             it.size shouldBe 12
-            it[januar] shouldBe 14674.916666666666667
-            it[desember] shouldBe 14810.333333333333333
+            it[januar] shouldBe 14674.916666666666
+            it[desember] shouldBe 14810.333333333334
         }
     }
 }

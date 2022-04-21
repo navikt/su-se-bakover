@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2021
 import org.junit.jupiter.api.Test
 
 internal class FradragJsonTest {
@@ -69,7 +71,7 @@ internal class FradragJsonTest {
             tilhører = FradragTilhører.BRUKER.toString(),
         )
 
-        val expectedPeriode = Periode.create(1.januar(2020), 31.januar(2020))
+        val expectedPeriode = månedsperiodeJanuar2020
         val expected = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 10.0,
@@ -94,7 +96,7 @@ internal class FradragJsonTest {
         val expected = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 10.0,
-            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            periode = månedsperiodeJanuar2021,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )

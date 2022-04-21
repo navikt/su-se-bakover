@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.månedsperiodeDesember2021
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
@@ -76,9 +77,9 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                         grunnlag = Utenlandsoppholdgrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
-                            periode = Periode.create(1.desember(2021), 31.desember(2021)),
+                            periode = månedsperiodeDesember2021,
                         ),
-                        periode = Periode.create(1.desember(2021), 31.desember(2021)),
+                        periode = månedsperiodeDesember2021,
                         begrunnelse = "fåkke lov",
                     ),
                 ),
@@ -108,9 +109,9 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                         grunnlag = Utenlandsoppholdgrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
-                            periode = Periode.create(1.desember(2021), 31.desember(2021)),
+                            periode = månedsperiodeDesember2021,
                         ),
-                        periode = Periode.create(1.desember(2021), 31.desember(2021)),
+                        periode = månedsperiodeDesember2021,
                         begrunnelse = "fåkke lov",
                     ),
                 ),

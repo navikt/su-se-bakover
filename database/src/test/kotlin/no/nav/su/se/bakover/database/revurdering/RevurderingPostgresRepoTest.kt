@@ -4,8 +4,6 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.juni
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.persistertVariant
@@ -42,6 +40,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.månedsperiodeJuni2020
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
@@ -235,8 +234,8 @@ internal class RevurderingPostgresRepoTest {
             repo.hent(innvilgetBeregning.id) shouldBe innvilgetBeregning.persistertVariant()
 
             val oppdatertRevurdering = innvilgetBeregning.oppdater(
-                Periode.create(1.juni(2020), 30.juni(2020)),
-                Revurderingsårsak(
+                periode = månedsperiodeJuni2020,
+                revurderingsårsak = Revurderingsårsak(
                     årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     begrunnelse = Revurderingsårsak.Begrunnelse.create("begrunnelse"),
                 ),

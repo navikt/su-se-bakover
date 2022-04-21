@@ -1,10 +1,9 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
@@ -28,7 +27,7 @@ internal class MånedsberegningJsonTest {
             """
 
         internal val månedsberegning = MånedsberegningFactory.ny(
-            periode = Periode.create(1.januar(2020), 31.januar(2020)),
+            måned = månedsperiodeJanuar2020,
             sats = Sats.HØY,
             fradrag = emptyList(),
         )

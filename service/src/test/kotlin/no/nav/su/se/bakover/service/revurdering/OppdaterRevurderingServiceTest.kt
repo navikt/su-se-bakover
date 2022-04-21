@@ -486,7 +486,7 @@ internal class OppdaterRevurderingServiceTest {
     @Test
     fun `støtter ikke tilfeller hvor gjeldende vedtaksdata ikke er sammenhengende i tid`() {
         val førsteVedtak = vedtakSøknadsbehandlingIverksattInnvilget().second
-        val periodePlussEtÅr = førsteVedtak.periode.copy(
+        val periodePlussEtÅr = Periode.create(
             periodeNesteMånedOgTreMånederFram.fraOgMed.plusYears(1),
             periodeNesteMånedOgTreMånederFram.tilOgMed.plusYears(1),
         )

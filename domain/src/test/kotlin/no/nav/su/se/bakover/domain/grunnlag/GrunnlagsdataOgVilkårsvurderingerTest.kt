@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt0
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -157,14 +158,14 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
         val tomGrunnlagsdata = Grunnlagsdata.create(emptyList(), emptyList())
 
         tomGrunnlagsdata.oppdaterGrunnlagsperioder(
-            oppdatertPeriode = Periode.create(1.januar(2021), 31.januar(2021)),
+            oppdatertPeriode = månedsperiodeJanuar2021,
         ) shouldBe Grunnlagsdata.create(emptyList(), emptyList()).right()
     }
 
     @Test
     fun `oppdaterer periodene på grunnlagene`() {
         val forrigePeriode = Periode.create(1.januar(2021), 31.desember(2021))
-        val oppdatertPeriode = Periode.create(1.januar(2021), 31.januar(2021))
+        val oppdatertPeriode = månedsperiodeJanuar2021
         val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,

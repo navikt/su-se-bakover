@@ -4,15 +4,16 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag.Companion.slåSammenPeriodeOgUføregrad
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.månedsperiodeFebruar2021
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2021
+import no.nav.su.se.bakover.test.månedsperiodeMars2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -118,13 +119,13 @@ internal class UføregrunnlagTest {
         val u1 = Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            periode = månedsperiodeJanuar2021,
             uføregrad = Uføregrad.parse(50),
             forventetInntekt = 50,
         )
 
         val u2 = u1.copy(
-            periode = Periode.create(1.februar(2021), 28.februar(2021)),
+            periode = månedsperiodeFebruar2021,
         )
 
         u1.tilstøterOgErLik(u2) shouldBe true
@@ -135,13 +136,13 @@ internal class UføregrunnlagTest {
         val u1 = Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            periode = månedsperiodeJanuar2021,
             uføregrad = Uføregrad.parse(50),
             forventetInntekt = 50,
         )
 
         val u2 = u1.copy(
-            periode = Periode.create(1.mars(2021), 31.mars(2021)),
+            periode = månedsperiodeMars2021,
         )
 
         u1.tilstøterOgErLik(u2) shouldBe false
@@ -152,14 +153,14 @@ internal class UføregrunnlagTest {
         val u1 = Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            periode = månedsperiodeJanuar2021,
             uføregrad = Uføregrad.parse(50),
             forventetInntekt = 50,
         )
 
         val u2 = u1.copy(
-            periode = Periode.create(1.februar(2021), 28.februar(2021)),
-            uføregrad = Uføregrad.parse(20)
+            periode = månedsperiodeFebruar2021,
+            uføregrad = Uføregrad.parse(20),
         )
 
         u1.tilstøterOgErLik(u2) shouldBe false
@@ -170,14 +171,14 @@ internal class UføregrunnlagTest {
         val u1 = Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            periode = månedsperiodeJanuar2021,
             uføregrad = Uføregrad.parse(50),
             forventetInntekt = 50,
         )
 
         val u2 = u1.copy(
-            periode = Periode.create(1.februar(2021), 28.februar(2021)),
-            forventetInntekt = 200
+            periode = månedsperiodeFebruar2021,
+            forventetInntekt = 200,
         )
 
         u1.tilstøterOgErLik(u2) shouldBe false
@@ -188,14 +189,14 @@ internal class UføregrunnlagTest {
         val u1 = Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            periode = månedsperiodeJanuar2021,
             uføregrad = Uføregrad.parse(50),
             forventetInntekt = 50,
         )
 
         val u2 = u1.copy(
-            periode = Periode.create(1.mars(2021), 31.mars(2021)),
-            forventetInntekt = 200
+            periode = månedsperiodeMars2021,
+            forventetInntekt = 200,
         )
 
         u1.tilstøterOgErLik(u2) shouldBe false

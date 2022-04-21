@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2021
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.test.simulertDetaljFeilutbetaling
@@ -37,7 +38,7 @@ internal class KontrollerSimuleringTest {
     @Test
     fun `kontroll av simulering går bra dersom simulering ikke inneholder noen utbetalinger`() {
         val eksisterendeUtetaling = eksisterendeUtbetaling(
-            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            periode = månedsperiodeJanuar2021,
             type = Utbetaling.UtbetalingsType.NY,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
@@ -61,7 +62,7 @@ internal class KontrollerSimuleringTest {
             ),
             type = Utbetaling.UtbetalingsType.OPPHØR,
             simulering = simulering(
-                Periode.create(1.januar(2021), 31.januar(2021)),
+                månedsperiodeJanuar2021,
                 simulertePerioder = emptyList(),
             ),
         )
@@ -88,7 +89,7 @@ internal class KontrollerSimuleringTest {
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
-            simulering = simulering(Periode.create(1.januar(2021), 31.januar(2021))),
+            simulering = simulering(månedsperiodeJanuar2021),
         )
 
         KontrollerSimulering(
@@ -113,7 +114,7 @@ internal class KontrollerSimuleringTest {
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
-            simulering = simulering(Periode.create(1.januar(2021), 31.januar(2021))),
+            simulering = simulering(månedsperiodeJanuar2021),
         )
 
         KontrollerSimulering(
@@ -125,7 +126,7 @@ internal class KontrollerSimuleringTest {
 
     @Test
     fun `kontroll av etterbetaling går bra dersom beløp stemmer overens med tidslinje`() {
-        val periode = Periode.create(1.januar(2021), 31.januar(2021))
+        val periode = månedsperiodeJanuar2021
 
         val eksisterendeUtetaling = eksisterendeUtbetaling(
             periode = periode,
@@ -190,7 +191,7 @@ internal class KontrollerSimuleringTest {
 
     @Test
     fun `svarer med feil dersom simulering inneholder feilutbetaling`() {
-        val periode = Periode.create(1.januar(2021), 31.januar(2021))
+        val periode = månedsperiodeJanuar2021
 
         val eksisterendeUtetaling = eksisterendeUtbetaling(
             periode = periode,

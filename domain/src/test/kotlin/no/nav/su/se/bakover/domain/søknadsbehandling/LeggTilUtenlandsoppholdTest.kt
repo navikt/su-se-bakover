@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
@@ -33,7 +34,7 @@ class LeggTilUtenlandsoppholdTest {
 
         uavklart.leggTilUtenlandsopphold(
             utenlandsopphold = utenlandsoppholdInnvilget(
-                periode = Periode.create(1.januar(2020), 31.januar(2020)),
+                periode = månedsperiodeJanuar2020,
             ),
             clock = fixedClock,
         ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()

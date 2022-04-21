@@ -7,25 +7,27 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.test.månedsperiodeDesember2021
+import no.nav.su.se.bakover.test.månedsperiodeJuli2021
 import org.junit.jupiter.api.Test
 
 internal class CopyArgsTest {
     @Test
     fun `bevarer original periode dersom maks inneholder original`() {
         CopyArgs.Snitt(Periode.create(1.januar(2021), 31.desember(2021)))
-            .snittFor(Periode.create(1.juli(2021), 31.juli(2021))) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
+            .snittFor(månedsperiodeJuli2021) shouldBe månedsperiodeJuli2021
     }
 
     @Test
     fun `justerer original periode dersom original inneholder maks`() {
-        CopyArgs.Snitt(Periode.create(1.juli(2021), 31.juli(2021)))
-            .snittFor(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
+        CopyArgs.Snitt(månedsperiodeJuli2021)
+            .snittFor(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe månedsperiodeJuli2021
     }
 
     @Test
     fun `returnerer ingenting hvis det ikke er overlapp mellom maks og original`() {
-        CopyArgs.Snitt(Periode.create(1.juli(2021), 31.juli(2021)))
-            .snittFor(Periode.create(1.desember(2021), 31.desember(2021))) shouldBe null
+        CopyArgs.Snitt(månedsperiodeJuli2021)
+            .snittFor(månedsperiodeDesember2021) shouldBe null
     }
 
     @Test

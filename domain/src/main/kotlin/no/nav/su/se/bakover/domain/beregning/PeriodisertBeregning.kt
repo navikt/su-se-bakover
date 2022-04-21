@@ -1,23 +1,28 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.common.limitedUpwardsTo
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.Månedsperiode
 import no.nav.su.se.bakover.common.positiveOrZero
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import kotlin.math.roundToInt
 
+/**
+ * Gjelder for kun 1 måned. TODO jah: Slett interfacet Månedsberegning og erstatt med dette.
+ */
 internal data class PeriodisertBeregning(
-    override val periode: Periode,
+    override val måned: Månedsperiode,
     private val sats: Sats,
     private val fradrag: List<Fradrag>,
     private val fribeløpForEps: Double = 0.0,
 ) : Månedsberegning {
+
     private val merknader: Merknader.Beregningsmerknad = Merknader.Beregningsmerknad()
+
+    override val periode: Månedsperiode = måned
 
     init {
         require(fradrag.all { it.periode == periode }) { "Fradrag må være gjeldende for aktuell måned" }
-        require(periode.getAntallMåneder() == 1) { "Månedsberegning kan kun utføres for en enkelt måned" }
     }
 
     override fun getSumYtelse(): Int = (getSatsbeløp() - getSumFradrag())

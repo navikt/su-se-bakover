@@ -21,9 +21,10 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.toMånedsperiode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
-import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.IngenMerknaderForAvslag
@@ -33,15 +34,16 @@ import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvsla
 import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknad
 import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknadForAvslag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodisertFradrag
 import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
+import no.nav.su.se.bakover.test.månedsperiodeJuni2020
 import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -170,7 +172,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 6000.0,
-                    periode = Periode.create(1.juni(2020), 30.juni(2020)),
+                    periode = månedsperiodeJuni2020,
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
@@ -200,7 +202,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Kontantstøtte,
                     månedsbeløp = 6000.0,
-                    periode = Periode.create(1.januar(2020), 31.januar(2020)),
+                    periode = månedsperiodeJanuar2020,
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
@@ -265,20 +267,20 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
         janAprUnderMinstenivå shouldHaveSize 4
         janAprUnderMinstenivå.forEach {
-            it shouldBe PeriodisertFradrag(
+            it shouldBe FradragForMåned(
                 type = Fradragstype.UnderMinstenivå,
                 månedsbeløp = 211.0,
-                periode = it.periode,
+                måned = it.periode.toMånedsperiode(),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             )
         }
         janAprAndre shouldHaveSize 4
         janAprAndre.forEach {
-            it shouldBe PeriodisertFradrag(
+            it shouldBe FradragForMåned(
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 20426.42,
-                periode = it.periode,
+                måned = it.periode.toMånedsperiode(),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             )
@@ -292,10 +294,10 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         maiDesUnderMinstenivå shouldHaveSize 0
         maiDesAndre shouldHaveSize 8
         maiDesAndre.forEach {
-            it shouldBe PeriodisertFradrag(
+            it shouldBe FradragForMåned(
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 20426.42,
-                periode = it.periode,
+                måned = it.periode.toMånedsperiode(),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             )
@@ -346,7 +348,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = totaltFradrag,
-                    periode = Periode.create(1.januar(2020), 31.januar(2020)),
+                    periode = månedsperiodeJanuar2020,
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
@@ -361,7 +363,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         beregning.getSumYtelse() shouldBe 41274
         beregning.getSumFradrag() shouldBe 20637.32
         val grouped = beregning.getMånedsberegninger().groupBy { it.periode }
-        val januar = grouped[Periode.create(1.januar(2020), 31.januar(2020))]!!.first()
+        val januar = grouped[månedsperiodeJanuar2020]!!.first()
         januar.getSumFradrag() shouldBe 20637.32
         januar.getSumYtelse() shouldBe 0
         val februar = grouped[Periode.create(1.februar(2020), 29.februar(2020))]!!.first()
@@ -386,7 +388,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = totaltFradrag,
-                    periode = Periode.create(1.januar(2020), 31.januar(2020)),
+                    periode = månedsperiodeJanuar2020,
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
@@ -669,17 +671,18 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             )
             it.getMånedsberegninger()[1].getSumYtelse() shouldBe 46
 
-            val avkortingMars = it.getMånedsberegninger()[3] to listOf(
+            val avkortingApril = it.getMånedsberegninger()[3] to listOf(
                 Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats,
             )
             it.getMånedsberegninger()[3].getSumYtelse() shouldBe 0
 
+            it.finnMånederMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
+
             it.finnMånederMedMerknad().getOrFail() shouldBe listOf(
                 avkortingJanuar,
                 avkortingFebruar,
-                avkortingMars,
+                avkortingApril,
             )
-            it.finnMånederMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
         }
     }
 
@@ -779,12 +782,10 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         opprettet: Tidspunkt = fixedTidspunkt,
         begrunnelse: String = "begrunnelse",
     ): Beregning {
-        val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
-        return BeregningMedFradragBeregnetMånedsvis(
+        val periode = år(2020)
+        return BeregningFactory(fixedClock).ny(
             id = UUID.randomUUID(),
             opprettet = opprettet,
-            periode = periode,
-            sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
@@ -794,7 +795,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
             begrunnelse = begrunnelse,
             beregningsperioder = listOf(
                 Beregningsperiode(

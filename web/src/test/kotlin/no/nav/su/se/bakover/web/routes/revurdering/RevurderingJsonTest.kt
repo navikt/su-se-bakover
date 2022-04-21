@@ -51,7 +51,7 @@ import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.vurderingsperiodeUføre
 import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.TestBeregning
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import no.nav.su.se.bakover.web.routes.vedtak.toJson
 import org.junit.jupiter.api.Test
