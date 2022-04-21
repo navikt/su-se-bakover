@@ -118,7 +118,7 @@ internal class PeriodisertBeregningTest {
     @Test
     fun `henter fradrag for aktuell måned`() {
         val f1 = FradragFactory.ny(
-            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
             månedsbeløp = 1234.56,
             periode = månedsperiodeJanuar2020,
             utenlandskInntekt = null,
@@ -135,7 +135,7 @@ internal class PeriodisertBeregningTest {
     @Test
     fun `er fradrag for eps benyttet i beregning`() {
         val f1 = FradragFactory.ny(
-            type = FradragskategoriWrapper(Fradragskategori.BeregnetFradragEPS),
+            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.BeregnetFradragEPS),
             månedsbeløp = 1234.56,
             periode = månedsperiodeJanuar2020,
             utenlandskInntekt = null,
@@ -149,7 +149,7 @@ internal class PeriodisertBeregningTest {
         m1.erFradragForEpsBenyttetIBeregning() shouldBe true
 
         val f2 = FradragFactory.ny(
-            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
             månedsbeløp = 1234.56,
             periode = månedsperiodeJanuar2020,
             utenlandskInntekt = null,

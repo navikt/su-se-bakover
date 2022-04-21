@@ -59,7 +59,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 0.0,
                     periode = periode,
                     utenlandskInntekt = null,
@@ -315,7 +315,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 0.0,
                     periode = periode,
                     utenlandskInntekt = null,
@@ -437,7 +437,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             BeregningFactory(clock = fixedClock).ny(
                 fradrag = listOf(
                     FradragFactory.ny(
-                        type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                        fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         månedsbeløp = 12000.0,
                         periode = Periode.create(fraOgMed = 1.februar(2020), tilOgMed = 31.januar(2022)),
                         utenlandskInntekt = null,
@@ -457,7 +457,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             BeregningFactory(clock = fixedClock).ny(
                 fradrag = listOf(
                     FradragFactory.ny(
-                        type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                        fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         månedsbeløp = 12000.0,
                         periode = Periode.create(fraOgMed = 1.januar(2019), tilOgMed = 31.januar(2022)),
                         utenlandskInntekt = null,
@@ -491,12 +491,12 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 0.0,
                     periode = periode, utenlandskInntekt = null, tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = Sats.HØY.månedsbeløp(periode.fraOgMed) - 100,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER,
@@ -523,12 +523,12 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 0.0,
                     periode = periode, utenlandskInntekt = null, tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = Sats.HØY.månedsbeløp(periode.fraOgMed) - 100,
                     periode = periode,
                     tilhører = FradragTilhører.EPS,
@@ -554,21 +554,21 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 0.0,
                     periode = periode2021,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 250000.0,
                     periode = juni(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Kapitalinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Kapitalinntekt),
                     månedsbeløp = 21750.0,
                     periode = desember(2021),
                     utenlandskInntekt = null,
@@ -607,49 +607,49 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 0.0,
                     periode = periode2021,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold),
                     månedsbeløp = 20750.0,
                     periode = januar(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold),
                     månedsbeløp = 20000.0,
                     periode = februar(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 900.0,
                     periode = februar(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 20000.0,
                     periode = april(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold),
                     månedsbeløp = 900.0,
                     periode = april(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 200.0,
                     periode = april(2021),
                     utenlandskInntekt = null,
@@ -693,56 +693,56 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 0.0,
                     periode = periode2021,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 20750.0,
                     periode = januar(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 20750.0,
                     periode = februar(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 150.0,
                     periode = februar(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 5000.0,
                     periode = mars(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 20000.0,
                     periode = april(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 900.0,
                     periode = april(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold),
                     månedsbeløp = 200.0,
                     periode = april(2021),
                     utenlandskInntekt = null,
@@ -790,7 +790,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             opprettet = opprettet,
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 12000.0,
                     periode = periode,
                     utenlandskInntekt = null,

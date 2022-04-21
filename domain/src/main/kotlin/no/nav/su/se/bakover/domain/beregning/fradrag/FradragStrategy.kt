@@ -110,7 +110,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
             if (epsFradrag.isEmpty()) return søkersFradrag
             val sammenslått = FradragFactory.periodiser(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.BeregnetFradragEPS),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.BeregnetFradragEPS),
                     månedsbeløp = epsFradrag.sumOf { it.månedsbeløp },
                     periode = periode,
                     utenlandskInntekt = null,
@@ -161,7 +161,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
             søkersFradrag.plus(
                 FradragFactory.periodiser(
                     FradragFactory.ny(
-                        type = FradragskategoriWrapper(Fradragskategori.BeregnetFradragEPS),
+                        fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.BeregnetFradragEPS),
                         // sosialstønad legges til i tilegg til eventuell sum som overstiger beløpsgrense
                         månedsbeløp = sumOverstigerBeløpsgrense + sumSosialstønad,
                         periode = periode,

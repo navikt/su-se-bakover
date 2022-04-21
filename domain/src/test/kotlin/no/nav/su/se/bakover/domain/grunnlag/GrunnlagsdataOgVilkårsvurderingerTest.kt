@@ -171,7 +171,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fradrag = FradragFactory.ny(
-                type = FradragskategoriWrapper(Fradragskategori.Kontantstøtte),
+                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Kontantstøtte),
                 månedsbeløp = 0.0,
                 periode = forrigePeriode,
                 utenlandskInntekt = null,

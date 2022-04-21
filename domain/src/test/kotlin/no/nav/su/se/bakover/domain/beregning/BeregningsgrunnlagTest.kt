@@ -49,14 +49,14 @@ internal class BeregningsgrunnlagTest {
             ),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
-                type = FradragskategoriWrapper(Fradragskategori.Kapitalinntekt),
+                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Kapitalinntekt),
                 månedsbeløp = 2000.0,
                 periode = beregningsperiode,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
             FradragFactory.ny(
-                type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                 månedsbeløp = 10_000.0,
                 periode = beregningsperiode,
                 utenlandskInntekt = null,
@@ -89,14 +89,14 @@ internal class BeregningsgrunnlagTest {
             ),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
-                type = FradragskategoriWrapper(Fradragskategori.Kapitalinntekt),
+                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Kapitalinntekt),
                 månedsbeløp = 2000.0,
                 periode = beregningsperiode,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
             FradragFactory.ny(
-                type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                 månedsbeløp = 10_000.0,
                 periode = beregningsperiode,
                 utenlandskInntekt = null,
@@ -121,7 +121,7 @@ internal class BeregningsgrunnlagTest {
             fradragFraSaksbehandler = emptyList(),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
-                type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                 månedsbeløp = 0.0,
                 periode = beregningsperiode,
                 utenlandskInntekt = null,
@@ -240,14 +240,14 @@ internal class BeregningsgrunnlagTest {
             fradragFraSaksbehandler = emptyList(),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
-                type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                 månedsbeløp = 1_000.0,
                 periode = Periode.create(1.januar(2021), 30.april(2021)),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
             FradragFactory.ny(
-                type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                 månedsbeløp = 2_000.0,
                 periode = Periode.create(1.mai(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
@@ -330,21 +330,21 @@ internal class BeregningsgrunnlagTest {
             fradragFraSaksbehandler = emptyList(),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
-                type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                 månedsbeløp = 1_000.0,
                 periode = månedsperiodeJanuar2021,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
             FradragFactory.ny(
-                type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                 månedsbeløp = 2_000.0,
                 periode = Periode.create(1.februar(2021), 31.juli(2021)),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
             FradragFactory.ny(
-                type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                 månedsbeløp = 4_000.0,
                 periode = Periode.create(1.august(2021), 31.desember(2021)),
                 utenlandskInntekt = null,

@@ -43,7 +43,7 @@ internal data class FradragJson(
             return it.left()
         } ?: beregningsperiode
         return FradragFactory.ny(
-            type = FradragskategoriWrapper(
+            fradragskategoriWrapper = FradragskategoriWrapper(
                 kategori = Fradragskategori.valueOf(fradragskategoriWrapper.kategori),
                 spesifisertKategori = fradragskategoriWrapper.spesifisertKategori,
             ),

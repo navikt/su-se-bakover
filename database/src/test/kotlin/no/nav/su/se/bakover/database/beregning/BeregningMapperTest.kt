@@ -196,7 +196,7 @@ internal class BeregningMapperTest {
             opprettet = opprettet,
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 55000.0,
                     utenlandskInntekt = null,
                     periode = periode,

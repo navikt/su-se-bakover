@@ -685,7 +685,7 @@ fun lagFradragsgrunnlag(
     id = id,
     opprettet = opprettet,
     fradrag = FradragFactory.ny(
-        type = type,
+        fradragskategoriWrapper = type,
         månedsbeløp = månedsbeløp,
         periode = periode,
         utenlandskInntekt = utenlandskInntekt,

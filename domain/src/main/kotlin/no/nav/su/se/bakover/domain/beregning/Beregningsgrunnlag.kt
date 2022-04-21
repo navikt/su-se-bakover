@@ -40,7 +40,7 @@ data class Beregningsgrunnlag private constructor(
             val fradrag: List<Fradrag> = fradragFraSaksbehandler.map { it.fradrag }.plus(
                 uføregrunnlag.map {
                     FradragFactory.ny(
-                        type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                        fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         månedsbeløp = it.forventetInntekt / 12.0,
                         periode = it.periode,
                         utenlandskInntekt = null,
@@ -51,7 +51,7 @@ data class Beregningsgrunnlag private constructor(
                     //  Vurder å bytt fra List<Grunnlag.Uføregrunnlag> til NonEmptyList<Grunnlag.Uføregrunnlag>
                     listOf(
                         FradragFactory.ny(
-                            type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                             månedsbeløp = 0.0,
                             periode = beregningsperiode,
                             utenlandskInntekt = null,

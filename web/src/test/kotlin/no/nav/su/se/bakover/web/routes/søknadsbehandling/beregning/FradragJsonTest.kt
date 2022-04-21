@@ -80,7 +80,7 @@ internal class FradragJsonTest {
 
         val expectedPeriode = månedsperiodeJanuar2020
         val expected = FradragFactory.ny(
-            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
             månedsbeløp = 10.0,
             periode = expectedPeriode,
             utenlandskInntekt = null,
@@ -101,7 +101,7 @@ internal class FradragJsonTest {
         )
 
         val expected = FradragFactory.ny(
-            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
             månedsbeløp = 10.0,
             periode = månedsperiodeJanuar2021,
             utenlandskInntekt = null,

@@ -305,7 +305,7 @@ internal class LagBrevRequestVisitorTest {
                 Grunnlag.Fradragsgrunnlag.create(
                     opprettet = fixedTidspunkt,
                     fradrag = FradragFactory.ny(
-                        type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                        fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                         månedsbeløp = 50000.0,
                         periode = Periode.create(1.januar(2021), 31.desember(2021)),
                         utenlandskInntekt = null,
@@ -422,7 +422,7 @@ internal class LagBrevRequestVisitorTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                             månedsbeløp = 50000.0,
                             periode = Periode.create(1.januar(2021), 31.desember(2021)),
                             utenlandskInntekt = null,
@@ -545,7 +545,7 @@ internal class LagBrevRequestVisitorTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                             månedsbeløp = 50000.0,
                             periode = Periode.create(1.januar(2021), 31.desember(2021)),
                             utenlandskInntekt = null,
@@ -680,7 +680,7 @@ internal class LagBrevRequestVisitorTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                             månedsbeløp = 50000.0,
                             periode = Periode.create(1.januar(2021), 31.desember(2021)),
                             utenlandskInntekt = null,
@@ -808,7 +808,7 @@ internal class LagBrevRequestVisitorTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                             månedsbeløp = 50000.0,
                             periode = Periode.create(1.januar(2021), 31.desember(2021)),
                             utenlandskInntekt = null,
@@ -1421,7 +1421,7 @@ internal class LagBrevRequestVisitorTest {
             opprettet = fixedTidspunkt,
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 0.0,
                     periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     utenlandskInntekt = null,
@@ -1443,14 +1443,14 @@ internal class LagBrevRequestVisitorTest {
             opprettet = fixedTidspunkt,
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 50000.0,
                     periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 0.0,
                     periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     utenlandskInntekt = null,

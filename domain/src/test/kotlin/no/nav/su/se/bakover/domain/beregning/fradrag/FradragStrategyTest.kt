@@ -196,7 +196,7 @@ internal fun lagFradrag(
     periode: Periode,
     tilhører: FradragTilhører = FradragTilhører.BRUKER,
 ) = FradragFactory.ny(
-    type = type,
+    fradragskategoriWrapper = type,
     månedsbeløp = beløp,
     periode = periode,
     utenlandskInntekt = null,

@@ -48,7 +48,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 2000.0,
                     periode = månedsperiodeFebruar2021,
                     utenlandskInntekt = null,
@@ -110,7 +110,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 1000.0,
                     periode = månedsperiodeJanuar2021,
                     utenlandskInntekt = null,
@@ -124,14 +124,14 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 500.0,
                     periode = månedsperiodeFebruar2021,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 500.0,
                     periode = månedsperiodeFebruar2021,
                     utenlandskInntekt = null,
@@ -153,14 +153,14 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 1000.0,
                     periode = månedsperiodeJanuar2021,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 1000.0,
                     periode = månedsperiodeJanuar2021,
                     utenlandskInntekt = null,
@@ -174,14 +174,14 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 1000.0,
                     periode = månedsperiodeFebruar2021,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 1000.0,
                     periode = månedsperiodeFebruar2021,
                     utenlandskInntekt = null,
@@ -202,28 +202,28 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 1000.0,
                     periode = månedsperiodeJanuar2021,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 1000.0,
                     periode = månedsperiodeJanuar2021,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 1000.0,
                     periode = månedsperiodeJanuar2021,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 2000.0,
                     periode = månedsperiodeJanuar2021,
                     utenlandskInntekt = null,
@@ -237,28 +237,28 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 1000.0,
                     periode = månedsperiodeFebruar2021,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 2000.0,
                     periode = månedsperiodeFebruar2021,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 1000.0,
                     periode = månedsperiodeFebruar2021,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 1000.0,
                     periode = månedsperiodeFebruar2021,
                     utenlandskInntekt = null,

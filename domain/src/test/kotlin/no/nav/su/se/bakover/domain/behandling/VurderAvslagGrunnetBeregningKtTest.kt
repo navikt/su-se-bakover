@@ -280,7 +280,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         fradragskategoriWrapper: FradragskategoriWrapper? = null,
         tilhører: FradragTilhører? = null,
     ) = FradragFactory.ny(
-        type = fradragskategoriWrapper ?: FradragskategoriWrapper(Fradragskategori.Kapitalinntekt),
+        fradragskategoriWrapper = fradragskategoriWrapper ?: FradragskategoriWrapper(Fradragskategori.Kapitalinntekt),
         månedsbeløp = beløp,
         periode = periode,
         utenlandskInntekt = null,

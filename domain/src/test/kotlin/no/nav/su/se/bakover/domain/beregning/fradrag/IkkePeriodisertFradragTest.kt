@@ -20,7 +20,7 @@ internal class IkkePeriodisertFradragTest {
     fun `kan ikke opprette fradrag med negative beløp`() {
         assertThrows<IllegalArgumentException> {
             FradragFactory.ny(
-                type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                 månedsbeløp = -5.0,
                 periode = månedsperiodeJanuar2020,
                 tilhører = FradragTilhører.BRUKER,
@@ -31,7 +31,7 @@ internal class IkkePeriodisertFradragTest {
     @Test
     fun `summerer beløp for måned og total`() {
         val f1 = FradragFactory.ny(
-            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
             månedsbeløp = 12000.0,
             periode = månedsperiodeJanuar2020,
             tilhører = FradragTilhører.BRUKER,
@@ -39,7 +39,7 @@ internal class IkkePeriodisertFradragTest {
         f1.månedsbeløp shouldBe 12000.0
 
         val f2 = FradragFactory.ny(
-            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
             månedsbeløp = 12000.0,
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
             tilhører = FradragTilhører.BRUKER,

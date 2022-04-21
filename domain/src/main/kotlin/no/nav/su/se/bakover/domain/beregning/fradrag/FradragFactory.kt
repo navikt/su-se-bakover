@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 
 object FradragFactory {
     fun ny(
-        type: FradragskategoriWrapper,
+        fradragskategoriWrapper: FradragskategoriWrapper,
         månedsbeløp: Double,
         periode: Periode,
         utenlandskInntekt: UtenlandskInntekt? = null,
@@ -12,7 +12,7 @@ object FradragFactory {
     ): Fradrag {
         return IkkePeriodisertFradrag(
             periode = periode,
-            type = type,
+            type = fradragskategoriWrapper,
             månedsbeløp = månedsbeløp,
             utenlandskInntekt = utenlandskInntekt,
             tilhører = tilhører

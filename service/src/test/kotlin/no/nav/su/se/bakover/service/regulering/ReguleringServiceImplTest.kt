@@ -77,7 +77,7 @@ internal class ReguleringServiceImplTest {
                         Grunnlag.Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
                             fradrag = FradragFactory.ny(
-                                type = FradragskategoriWrapper(Fradragskategori.OffentligPensjon),
+                                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.OffentligPensjon),
                                 månedsbeløp = 8000.0,
                                 periode = periode2021,
                                 utenlandskInntekt = null,
@@ -202,7 +202,7 @@ internal class ReguleringServiceImplTest {
                         Grunnlag.Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
                             fradrag = FradragFactory.ny(
-                                type = FradragskategoriWrapper(Fradragskategori.OffentligPensjon),
+                                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.OffentligPensjon),
                                 månedsbeløp = 8000.0,
                                 periode = periode2021,
                                 utenlandskInntekt = null,
@@ -244,7 +244,7 @@ internal class ReguleringServiceImplTest {
                         Grunnlag.Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
                             fradrag = FradragFactory.ny(
-                                type = FradragskategoriWrapper(Fradragskategori.OffentligPensjon),
+                                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.OffentligPensjon),
                                 månedsbeløp = 8000.0,
                                 periode = periode2021,
                                 utenlandskInntekt = null,

@@ -77,7 +77,7 @@ internal class Avkortingsplan(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
                     fradrag = FradragFactory.ny(
-                        type = FradragskategoriWrapper(
+                        fradragskategoriWrapper = FradragskategoriWrapper(
                             Fradragskategori.AvkortingUtenlandsopphold,
                         ),
                         månedsbeløp = it.beløp.sum().toDouble(),

@@ -56,7 +56,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                             periode = fradrag.periode.toPeriode().getOrHandle { feilResultat ->
                                 return feilResultat.left()
                             },
-                            type = FradragskategoriWrapper(
+                            fradragskategoriWrapper = FradragskategoriWrapper(
                                 kategori = Fradragskategori.tryParse(fradrag.kategori).getOrHandle {
                                     return Behandlingsfeilresponser.ugyldigFradragstype.left()
                                 },

@@ -27,7 +27,7 @@ internal class LagBrevinnholdForBeregningTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 1000.0,
                     periode = periode,
                     utenlandskInntekt = null,
@@ -69,21 +69,21 @@ internal class LagBrevinnholdForBeregningTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 9999.0,
                     periode = Periode.create(fraOgMed = 1.juni(2020), tilOgMed = 31.august(2020)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                     månedsbeløp = 2000.0,
                     periode = Periode.create(fraOgMed = 1.juni(2020), tilOgMed = 31.august(2020)),
                     utenlandskInntekt = null,
@@ -168,21 +168,21 @@ internal class LagBrevinnholdForBeregningTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 20000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Kapitalinntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Kapitalinntekt),
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.desember(2020), tilOgMed = 31.desember(2020)),
                     utenlandskInntekt = null,
@@ -401,14 +401,14 @@ internal class LagBrevinnholdForBeregningTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Introduksjonsstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Introduksjonsstønad),
                     månedsbeløp = 3000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
@@ -453,28 +453,28 @@ internal class LagBrevinnholdForBeregningTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Kontantstøtte),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Kontantstøtte),
                     månedsbeløp = 6000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.Introduksjonsstønad),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Introduksjonsstønad),
                     månedsbeløp = 6000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),
                 FradragFactory.ny(
-                    type = FradragskategoriWrapper(Fradragskategori.BidragEtterEkteskapsloven),
+                    fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.BidragEtterEkteskapsloven),
                     månedsbeløp = 6000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,

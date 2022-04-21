@@ -94,7 +94,7 @@ internal class AvkortingsplanTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                             månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.januar(2021)).toDouble(),
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             utenlandskInntekt = null,
@@ -105,7 +105,7 @@ internal class AvkortingsplanTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                             månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.mai(2021)).toDouble(),
                             periode = Periode.create(1.mai(2021), 30.september(2021)),
                             utenlandskInntekt = null,
@@ -158,7 +158,7 @@ internal class AvkortingsplanTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                             månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.januar(2021)).toDouble(),
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             utenlandskInntekt = null,
@@ -169,7 +169,7 @@ internal class AvkortingsplanTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
+                            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                             månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.mai(2021)).toDouble(),
                             periode = Periode.create(1.mai(2021), 31.desember(2021)),
                             utenlandskInntekt = null,
@@ -203,7 +203,7 @@ internal class AvkortingsplanTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = FradragskategoriWrapper(Fradragskategori.Kapitalinntekt),
+                            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Kapitalinntekt),
                             månedsbeløp = 10000.0,
                             periode = periode2021,
                             utenlandskInntekt = null,
@@ -274,7 +274,7 @@ internal class AvkortingsplanTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             fradrag = FradragFactory.ny(
-                type = FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold),
+                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold),
                 månedsbeløp = beløp.toDouble(),
                 periode = periode,
                 utenlandskInntekt = null,

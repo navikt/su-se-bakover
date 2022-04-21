@@ -51,7 +51,7 @@ internal class SøknadsbehandlingBeregnTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold),
+                            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold),
                             månedsbeløp = 15000.0,
                             periode = vilkårsvurdert.periode,
                             utenlandskInntekt = null,
@@ -83,7 +83,7 @@ internal class SøknadsbehandlingBeregnTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
+                            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                             månedsbeløp = 15000.0,
                             periode = vilkårsvurdert.periode,
                             utenlandskInntekt = null,
@@ -163,7 +163,7 @@ internal class SøknadsbehandlingBeregnTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold),
+                            fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold),
                             månedsbeløp = 5000.0,
                             periode = vilkårsvurdert.periode,
                             utenlandskInntekt = null,
