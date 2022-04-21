@@ -115,7 +115,7 @@ data class Formuegrunnlag private constructor(
                 ).right()
             }
 
-            fun List<Formuegrunnlag>.perioder(): List<Periode> {
+            fun List<Formuegrunnlag>.minsteAntallSammenhengendePerioder(): List<Periode> {
                 return map { it.periode }.reduser()
             }
         }
@@ -264,9 +264,6 @@ sealed class KunneIkkeLageFormueVerdier {
     object DepositumErStørreEnnInnskudd : KunneIkkeLageFormueVerdier()
     object VerdierKanIkkeVæreNegativ : KunneIkkeLageFormueVerdier()
 }
-
-fun List<Formuegrunnlag>.harEPSFormue() = allePerioderMedEPS().isNotEmpty()
-
 /**
  * @throws IllegalStateException dersom antall elementer i listen ikke tilsvarer 1
  */
@@ -277,6 +274,6 @@ fun List<Formuegrunnlag>.firstOrThrowIfMultipleOrEmpty(): Formuegrunnlag {
     return this.first()
 }
 
-fun List<Formuegrunnlag>.allePerioderMedEPS(): List<Periode> {
+fun List<Formuegrunnlag>.perioderMedEPS(): List<Periode> {
     return filter { it.harEPSFormue() }.map { it.periode }.reduser()
 }

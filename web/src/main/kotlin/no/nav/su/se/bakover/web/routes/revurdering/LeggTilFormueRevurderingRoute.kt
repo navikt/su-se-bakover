@@ -141,11 +141,6 @@ private fun KunneIkkeLeggeTilFormuegrunnlag.tilResultat() = when (this) {
         "ikke_lov_med_formue_for_eps_hvis_man_ikke_har_eps",
     )
     is KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk -> {
-        this.feil.tilResultat().let {
-            HttpStatusCode.BadRequest.errorJson(
-                message = it.message,
-                code = it.code!!,
-            )
-        }
+        this.feil.tilResultat()
     }
 }

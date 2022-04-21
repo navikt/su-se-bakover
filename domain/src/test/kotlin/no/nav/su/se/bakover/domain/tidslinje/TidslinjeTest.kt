@@ -1222,7 +1222,7 @@ internal class TidslinjeTest {
                 ),
             )
         }
-        assertThrows<IllegalArgumentException> {
+        assertThrows<IllegalStateException> {
             Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
@@ -1243,7 +1243,7 @@ internal class TidslinjeTest {
             )
         }.message shouldBe "Tidslinje har flere elementer med samme fraOgMed dato!"
 
-        assertThrows<IllegalArgumentException> {
+        assertThrows<IllegalStateException> {
             Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
@@ -1274,7 +1274,7 @@ internal class TidslinjeTest {
 
     @Test
     fun `validator kaster exception dersom tidslinja ikke har distinkte til og med datoer`() {
-        assertThrows<IllegalArgumentException> {
+        assertThrows<IllegalStateException> {
             Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
@@ -1295,7 +1295,7 @@ internal class TidslinjeTest {
             )
         }.message shouldBe "Tidslinje har flere elementer med samme tilOgMed dato!"
 
-        assertThrows<IllegalArgumentException> {
+        assertThrows<IllegalStateException> {
             Validator.valider(
                 listOf(
                     Tidslinjeobjekt(
@@ -1326,7 +1326,7 @@ internal class TidslinjeTest {
 
     @Test
     fun `validator kaster exception dersom tidslinja har elementer med overlappende perioder`() {
-        assertThrows<IllegalArgumentException> {
+        assertThrows<IllegalStateException> {
             Validator.valider(
                 listOf(
                     Tidslinjeobjekt(

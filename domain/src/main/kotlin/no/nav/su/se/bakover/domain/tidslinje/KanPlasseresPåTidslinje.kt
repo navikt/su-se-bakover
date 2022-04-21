@@ -11,24 +11,24 @@ import no.nav.su.se.bakover.domain.OriginaltTidsstempel
  * Som et minimum må elementet være stand til å kunne plasseres på en [Tidslinje] med bare seg selv og utføre re-periodisering
  * vha. [Tidslinje.periode] og [MaskerFraTidslinje]
  */
-interface KanPeriodiseresInternt<Type> :
+interface KanPlasseresPåTidslinjeMedSegSelv<Type> :
     OriginaltTidsstempel,
     PeriodisertInformasjon,
     KopierbarForTidslinje<Type>
 
 /**
- * Et syntetisk supersett av [KanPeriodiseresInternt] hvis intensjon er å markere at elementer av typen [Type] er ment å
+ * Et syntetisk supersett av [KanPlasseresPåTidslinjeMedSegSelv] hvis intensjon er å markere at elementer av typen [Type] er ment å
  * plasseres på en tidslinje sammen med andre elementer enn seg selv. I praksis betyr dette at det må/bør være meningen
  * at elementer av [Type] med nyere [opprettet] skal overskrive eldre elementer med overlappende [periode].
  */
-interface KanPlasseresPåTidslinje<Type> : KanPeriodiseresInternt<Type>
+interface KanPlasseresPåTidslinje<Type> : KanPlasseresPåTidslinjeMedSegSelv<Type>
 
 /**
  * Wrapper for elementer som skal maskeres fra en tidslinje.
  */
-data class MaskerFraTidslinje<T : KanPeriodiseresInternt<T>>(
-    private val objekt: KanPeriodiseresInternt<T>,
-) : KanPeriodiseresInternt<T> by objekt {
+data class MaskerFraTidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>>(
+    private val objekt: KanPlasseresPåTidslinjeMedSegSelv<T>,
+) : KanPlasseresPåTidslinjeMedSegSelv<T> by objekt {
 
     @Suppress("UNCHECKED_CAST")
     override fun copy(args: CopyArgs.Tidslinje): T {
@@ -36,14 +36,14 @@ data class MaskerFraTidslinje<T : KanPeriodiseresInternt<T>>(
     }
 }
 
-fun <T : KanPeriodiseresInternt<T>> KanPeriodiseresInternt<T>.masker(): List<T> {
+fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> KanPlasseresPåTidslinjeMedSegSelv<T>.masker(): List<T> {
     return masker(listOf(periode))
 }
 
 /**
  * Maskerer/fjerner elementet for periodene definert av [perioder] og re-periodiserer for eventuelle gjenværende perioder.
  */
-fun <T : KanPeriodiseresInternt<T>> KanPeriodiseresInternt<T>.masker(perioder: List<Periode>): List<T> {
+fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> KanPlasseresPåTidslinjeMedSegSelv<T>.masker(perioder: List<Periode>): List<T> {
     return perioder.filter { periode overlapper it }
         .map {
             MaskerFraTidslinje(copy(CopyArgs.Tidslinje.NyPeriode(it)))

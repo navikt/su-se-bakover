@@ -24,7 +24,6 @@ internal class LagBrevinnholdForBeregningTest {
     fun `Lagbrevinnhold for beregning med samme fradrag hele perioden`() {
         val periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021))
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
@@ -67,7 +66,6 @@ internal class LagBrevinnholdForBeregningTest {
     @Test
     fun `Lagbrevinnhold for beregning med ulike perioder`() {
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
@@ -167,7 +165,6 @@ internal class LagBrevinnholdForBeregningTest {
     @Test
     fun `lager brevinnhold for beregninger med fradrag for EPS`() {
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
@@ -401,7 +398,6 @@ internal class LagBrevinnholdForBeregningTest {
     @Test
     fun `Fradrag for eps er tom liste hvis beløp er lavere enn fribeløp`() {
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
@@ -454,7 +450,6 @@ internal class LagBrevinnholdForBeregningTest {
     @Test
     fun `Tar med alle fradrag for eps hvis sum av fradragene er høyere enn fribeløp`() {
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,

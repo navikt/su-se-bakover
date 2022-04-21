@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
+import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.web.ErrorJson
+import no.nav.su.se.bakover.web.errorJson
 
-fun Konsistensproblem.tilResultat() = when (this) {
+internal fun Konsistensproblem.tilResultat() = when (this) {
     Konsistensproblem.Bosituasjon.Ufullstendig -> ErrorJson(
         message = "Bosituasjon er ufullstendig",
         code = "bosituasjone_er_ufullstendig",
@@ -46,6 +48,11 @@ fun Konsistensproblem.tilResultat() = when (this) {
     )
     Konsistensproblem.BosituasjonOgFormue.FormueForEPSManglerForBosituasjonsperiode -> ErrorJson(
         message = "Formue for EPS mangler for en eller flere av periodene.",
-        code = "ingen_formue_eps_for_bosituasjonsperiode"
+        code = "ingen_formue_eps_for_bosituasjonsperiode",
+    )
+}.let {
+    HttpStatusCode.BadRequest.errorJson(
+        message = it.message,
+        code = it.code!!,
     )
 }

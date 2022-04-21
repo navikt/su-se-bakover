@@ -41,32 +41,31 @@ data class BeregningMedFradragBeregnetMånedsvis(
     override fun getFradragStrategyName(): FradragStrategyName = fradragStrategy.getName()
 
     private fun beregn(): Map<Periode, Månedsberegning> {
-        val periodeStrategyMap =
+        val månedsperiodeTilStrategi =
             beregningsperioder.fold(emptyMap<Periode, BeregningStrategy>()) { acc, beregningsperiode ->
                 acc + beregningsperiode.månedsoversikt()
             }
 
-        return periodeStrategyMap.keys.associateWith { periode ->
-            val månedStrategy = periodeStrategyMap[periode]!!
+        return månedsperiodeTilStrategi.mapValues { (måned, strategi) ->
             beregnMåned(
-                periode = periode,
+                periode = måned,
                 fradrag = fradrag,
-                strategy = månedStrategy,
+                strategy = strategi,
             ).let { månedsberegning ->
                 when {
-                    månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(månedStrategy) -> {
+                    månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategi) -> {
                         månedsberegning.leggTilMerknad(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
                         månedsberegning
                     }
-                    månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats(månedStrategy) -> {
+                    månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats(strategi) -> {
                         månedsberegning.leggTilMerknad(Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
                         månedsberegning
                     }
                     månedsberegning.beløpStørreEnn0MenMindreEnnToProsentAvHøySats() -> {
                         beregnMåned(
-                            periode = periode,
+                            periode = måned,
                             fradrag = fradrag + månedsberegning.lagFradragForBeløpUnderMinstegrense(),
-                            strategy = månedStrategy,
+                            strategy = strategi,
                         ).let {
                             it.leggTilMerknad(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
                             it

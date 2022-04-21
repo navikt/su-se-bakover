@@ -77,7 +77,6 @@ fun beregning(
         fradragFraSaksbehandler = fradragsgrunnlag,
     ).let {
         return BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
             fradrag = it.fradrag,
             begrunnelse = null,
             beregningsperioder = listOf(Beregningsperiode(periode, bosituasjon.utledBeregningsstrategi())),

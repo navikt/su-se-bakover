@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigBody
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.tilResultat
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -98,46 +99,54 @@ internal fun Route.LeggTilBosituasjonRevurderingRoute(
 }
 
 private fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
-    KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling -> Revurderingsfeilresponser.fantIkkeRevurdering
-    KunneIkkeLeggeTilBosituasjongrunnlag.EpsAlderErNull -> HttpStatusCode.InternalServerError.errorJson(
-        "eps alder er null",
-        "eps_alder_er_null",
-    )
-    KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS -> HttpStatusCode.InternalServerError.errorJson(
-        "kunne ikke slå opp EPS",
-        "kunne_ikke_slå_opp_eps",
-    )
-    KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData -> ugyldigBody
-    is KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
-        this.fra,
-        this.til,
-    )
-    is KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeEndreBosituasjongrunnlag -> Feilresponser.kunneIkkeLeggeTilBosituasjonsgrunnlag
-    is KunneIkkeLeggeTilBosituasjongrunnlag.Konsistenssjekk -> this.feil.tilResultat().let {
-        HttpStatusCode.BadRequest.errorJson(
-            it.message,
-            it.code!!,
+    KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling -> {
+        Revurderingsfeilresponser.fantIkkeRevurdering
+    }
+    KunneIkkeLeggeTilBosituasjongrunnlag.EpsAlderErNull -> {
+        HttpStatusCode.InternalServerError.errorJson(
+            "eps alder er null",
+            "eps_alder_er_null",
         )
     }
-    KunneIkkeLeggeTilBosituasjongrunnlag.PerioderMangler -> {
-        HttpStatusCode.BadRequest.errorJson(
-            message = "Bosituasjon mangler for hele eller deler av behandlingsperioden",
-            code = "bosituasjon_mangler_for_perioder",
+    KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS -> {
+        HttpStatusCode.InternalServerError.errorJson(
+            "kunne ikke slå opp EPS",
+            "kunne_ikke_slå_opp_eps",
         )
     }
-    is KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeOppdatereFormue -> {
+    KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData -> {
+        ugyldigBody
+    }
+    is KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilBosituasjon -> {
         when (val inner = this.feil) {
-            is Revurdering.KunneIkkeLeggeTilFormue.Konsistenssjekk -> {
-                inner.feil.tilResultat().let {
-                    HttpStatusCode.BadRequest.errorJson(
-                        message = it.message,
-                        code = it.code!!,
-                    )
+            is Revurdering.KunneIkkeLeggeTilBosituasjon.Konsistenssjekk -> {
+                inner.feil.tilResultat()
+            }
+            is Revurdering.KunneIkkeLeggeTilBosituasjon.KunneIkkeOppdatereFormue -> {
+                when (val innerInner = inner.feil) {
+                    is Revurdering.KunneIkkeLeggeTilFormue.Konsistenssjekk -> {
+                        innerInner.feil.tilResultat()
+                    }
+                    is Revurdering.KunneIkkeLeggeTilFormue.UgyldigTilstand -> {
+                        Feilresponser.ugyldigTilstand(innerInner.fra, innerInner.til)
+                    }
                 }
             }
-            is Revurdering.KunneIkkeLeggeTilFormue.UgyldigTilstand -> {
+            Revurdering.KunneIkkeLeggeTilBosituasjon.PerioderMangler -> {
+                HttpStatusCode.BadRequest.errorJson(
+                    message = "Bosituasjon mangler for hele eller deler av behandlingsperioden",
+                    code = "bosituasjon_mangler_for_perioder",
+                )
+            }
+            is Revurdering.KunneIkkeLeggeTilBosituasjon.UgyldigTilstand -> {
                 Feilresponser.ugyldigTilstand(inner.fra, inner.til)
             }
+            is Revurdering.KunneIkkeLeggeTilBosituasjon.Valideringsfeil -> {
+                inner.feil.tilResultat()
+            }
         }
+    }
+    is KunneIkkeLeggeTilBosituasjongrunnlag.Konsistenssjekk -> {
+        this.feil.tilResultat()
     }
 }

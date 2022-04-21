@@ -42,7 +42,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingsstrategiNyTest.BeregningMedTomMånedsbereninger.periode
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
@@ -367,7 +366,6 @@ internal class UtbetalingsstrategiNyTest {
             utbetalinger = emptyList(),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             beregning = BeregningFactory(clock = fixedClock).ny(
-                periode = Periode.create(1.januar(2020), 30.april(2020)),
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.ForventetInntekt,
@@ -540,7 +538,6 @@ internal class UtbetalingsstrategiNyTest {
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 clock = fixedClock,
                 beregning = BeregningFactory(clock = fixedClock).ny(
-                    periode = periode,
                     fradrag = listOf(
                         FradragFactory.ny(
                             type = Fradragstype.ForventetInntekt,
@@ -692,7 +689,6 @@ internal class UtbetalingsstrategiNyTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             clock = fixedClock,
             beregning = BeregningFactory(clock = fixedClock).ny(
-                periode = periode,
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.ForventetInntekt,
@@ -788,7 +784,6 @@ internal class UtbetalingsstrategiNyTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             clock = fixedClock,
             beregning = BeregningFactory(clock = fixedClock).ny(
-                periode = periode,
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.ForventetInntekt,
@@ -1017,7 +1012,6 @@ internal class UtbetalingsstrategiNyTest {
     }
 
     private fun createBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate) = BeregningFactory(clock = fixedClock).ny(
-        periode = Periode.create(fraOgMed, tilOgMed),
         fradrag = listOf(
             FradragFactory.ny(
                 type = Fradragstype.ForventetInntekt,

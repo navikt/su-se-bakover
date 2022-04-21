@@ -9,7 +9,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
-import no.nav.su.se.bakover.common.periode.minusListe
+import no.nav.su.se.bakover.common.periode.minus
 import no.nav.su.se.bakover.common.periode.overlappende
 import no.nav.su.se.bakover.common.periode.reduser
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -495,7 +495,7 @@ sealed class Vilkår {
                     val vurderingerMedOverlapp = lagTidslinje(stønadsperiode.periode).vurderingsperioder
                     val manglendePerioder =
                         listOf(stønadsperiode.periode)
-                            .minusListe(vurderingerMedOverlapp.map { it.periode })
+                            .minus(vurderingerMedOverlapp.map { it.periode })
                             .sortedBy { it.fraOgMed }.toSet()
                     val paired: List<Pair<Periode, Vurderingsperiode.Uføre?>> = vurderingerMedOverlapp.map {
                         it.periode to it

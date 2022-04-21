@@ -91,7 +91,6 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
         )
 
         BeregningFactory(fixedClock).ny(
-            periode = beregningsgrunnlag.beregningsperiode,
             fradrag = beregningsgrunnlag.fradrag,
             begrunnelse = null,
             beregningsperioder = listOf(

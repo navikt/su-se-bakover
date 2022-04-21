@@ -156,7 +156,6 @@ internal class BeregningMapperTest {
         BeregningFactory(clock = fixedClock).ny(
             id = UUID.randomUUID(),
             opprettet = opprettet,
-            periode = periode,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,

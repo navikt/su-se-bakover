@@ -364,7 +364,13 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                             bosituasjon = grunnlagsdata.bosituasjon.map {
                                 it.fullstendigOrThrow()
                             }.lagTidslinje(periode),
-                            // TODO("dette ser ut som en bug, bør vel kvitte oss med forventet inntekt her og")
+                            /**
+                             * TODO("dette ser ut som en bug, bør vel kvitte oss med forventet inntekt her og")
+                             * Se hva vi gjør for NyPeriode litt lenger ned i denne funksjonen.
+                             * Dersom dette grunnlaget brukes til en ny revurdering ønsker vi vel at forventet inntekt
+                             * utledes på nytt fra grunnlaget i uførevilkåret? Kan vi potensielt ende opp med at vi
+                             * får dobbelt opp med fradrag for forventet inntekt?
+                             */
                             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.mapNotNull {
                                 it.copy(args = CopyArgs.Snitt(periode))
                             },

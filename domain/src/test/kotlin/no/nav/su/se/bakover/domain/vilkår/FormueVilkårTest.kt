@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import org.junit.jupiter.api.Test
-import java.util.*
+import java.util.UUID
 
 internal class FormueVilkårTest {
 
@@ -190,7 +190,7 @@ internal class FormueVilkårTest {
     }
 
     @Test
-    fun `ingen formue for EPS er upåvirket av fjerning for EPS`() {
+    fun `fjerning av formue for EPS har ingen effekt hvis det ikke eksisterer EPS`() {
         innvilgetFormueVilkår(
             periode = Periode.create(1.januar(2021), 31.mars(2021)),
             bosituasjon = bosituasjongrunnlagEnslig(
@@ -198,15 +198,13 @@ internal class FormueVilkårTest {
             ),
         ).let { opprinneligVilkår ->
             opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.januar(2021), 31.mars(2021)))).let { nyttVilkår ->
-                nyttVilkår.vurderingsperioder shouldHaveSize 1
-
-                nyttVilkår.vurderingsperioder[0].erLik(opprinneligVilkår.vurderingsperioder[0])
+                nyttVilkår.erLik(opprinneligVilkår)
             }
         }
     }
 
     @Test
-    fun `ingen perioder uten EPS fjerner ingenting`() {
+    fun `fjerning av EPS uten å spesifisere perioder for fjerning har ingen effekt`() {
         innvilgetFormueVilkår(
             periode = Periode.create(1.januar(2021), 31.mars(2021)),
             bosituasjon = bosituasjongrunnlagEpsUførFlyktning(

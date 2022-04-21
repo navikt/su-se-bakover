@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.tidslinje.KanPeriodiseresInternt
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
 import no.nav.su.se.bakover.domain.tidslinje.masker
 import org.jetbrains.annotations.TestOnly
 import java.util.UUID
@@ -106,7 +106,7 @@ sealed class Grunnlag {
         override val id: UUID = UUID.randomUUID(),
         override val opprettet: Tidspunkt,
         val fradrag: Fradrag,
-    ) : Grunnlag(), Fradrag by fradrag, KanPeriodiseresInternt<Fradragsgrunnlag> {
+    ) : Grunnlag(), Fradrag by fradrag, KanPlasseresPåTidslinjeMedSegSelv<Fradragsgrunnlag> {
         override val periode: Periode = fradrag.periode
 
         fun oppdaterFradragsperiode(
@@ -250,7 +250,7 @@ sealed class Grunnlag {
                  * Sammenhengen mellom Fradrag/Fradragsgrunnlag for å få til å kalle hele veien ned med [CopyArgs].
                  * Pt lar det seg ikke gjøre pga av dobbelt impl av samme interface med ulik returtype.
                  * All den tid [Fradragsgrunnlag] likevel ikke er ment å periodiseres i sammenheng med andre enn seg selv
-                 * (se forskjell på [KanPeriodiseresInternt]/[KanPlasseresPåTidslinje]) bør dette likevel være trygt så lenge
+                 * (se forskjell på [KanPlasseresPåTidslinjeMedSegSelv]/[KanPlasseresPåTidslinje]) bør dette likevel være trygt så lenge
                  * den som kaller kvitter seg med perioder som ikke overlapper først.
                  */
                 copy(id = UUID.randomUUID(), fradrag = fradrag.copy(CopyArgs.Snitt(args.periode))!!)
@@ -316,7 +316,7 @@ sealed class Grunnlag {
             private fun List<Bosituasjon>.sisteBosituasjonsgrunnlagErLikOgTilstøtende(other: Bosituasjon) =
                 this.last().let { it.tilstøter(other) && it.erLik(other) }
 
-            fun List<Bosituasjon>.perioder(): List<Periode> {
+            fun List<Bosituasjon>.minsteAntallSammenhengendePerioder(): List<Periode> {
                 return map { it.periode }.reduser()
             }
 
@@ -332,10 +332,6 @@ sealed class Grunnlag {
                 return map { it.periode }.harOverlappende()
             }
 
-            /**
-             * Kan være tom under vilkårsvurdering/datainnsamlings-tilstanden.
-             * Kan være maks 1 i alle andre tilstander.
-             */
             fun List<Bosituasjon>.harEPS(): Boolean {
                 return any { it.harEPS() }
             }

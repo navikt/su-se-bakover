@@ -356,16 +356,8 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
     object UgyldigData : KunneIkkeLeggeTilBosituasjongrunnlag()
     object KunneIkkeSlåOppEPS : KunneIkkeLeggeTilBosituasjongrunnlag()
     object EpsAlderErNull : KunneIkkeLeggeTilBosituasjongrunnlag()
-    data class UgyldigTilstand(
-        val fra: KClass<out Revurdering>,
-        val til: KClass<out Revurdering>,
-    ) : KunneIkkeLeggeTilBosituasjongrunnlag()
-
-    data class KunneIkkeEndreBosituasjongrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
-        KunneIkkeLeggeTilBosituasjongrunnlag()
     data class Konsistenssjekk(val feil: Konsistensproblem.Bosituasjon) : KunneIkkeLeggeTilBosituasjongrunnlag()
-    data class KunneIkkeOppdatereFormue(val feil: Revurdering.KunneIkkeLeggeTilFormue) : KunneIkkeLeggeTilBosituasjongrunnlag()
-    object PerioderMangler : KunneIkkeLeggeTilBosituasjongrunnlag()
+    data class KunneIkkeLeggeTilBosituasjon(val feil: Revurdering.KunneIkkeLeggeTilBosituasjon) : KunneIkkeLeggeTilBosituasjongrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFormuegrunnlag {

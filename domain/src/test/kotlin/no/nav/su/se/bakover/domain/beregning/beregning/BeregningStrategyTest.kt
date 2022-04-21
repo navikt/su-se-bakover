@@ -48,7 +48,6 @@ internal class BeregningStrategyTest {
             ),
         )
         BeregningFactory(fixedClock).ny(
-            periode = beregningsgrunnlag.beregningsperiode,
             fradrag = beregningsgrunnlag.fradrag,
             begrunnelse = "en begrunnelse",
             beregningsperioder = listOf(

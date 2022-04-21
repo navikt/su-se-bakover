@@ -257,24 +257,9 @@ internal object Feilresponser {
         "kunne_ikke_legge_til_bosituasjonsgrunnlag",
     )
 
-    val bosituasjonMangler = BadRequest.errorJson(
-        "Bosituajson mangler",
-        "bosituasjon_mangler"
-    )
-
-    val bosituasjonErUfullstendig = BadRequest.errorJson(
-        "Bosituasjon er ufullstendig",
-        "bosituasjon_ufullstendig"
-    )
-
     val kunneIkkeLeggeTilFradragsgrunnlag = BadRequest.errorJson(
         "Kunne ikke legge til fradragsgrunnlag",
         "kunne_ikke_legge_til_fradragsgrunnlag",
-    )
-
-    val kunneIkkeAvgjøreOmFørstegangEllerNyPeriode = InternalServerError.errorJson(
-        "Kunne ikke opprette oppgave siden vi ikke kan avgjøre om det er en FØRSTEGANGSSØKNAD eller NY_PERIODE",
-        "kunne_ikke_avgjøre_om_førstegang_eller_ny_periode",
     )
 
     val harIkkeEktefelle = BadRequest.errorJson(

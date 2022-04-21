@@ -197,7 +197,11 @@ fun List<Periode>.reduser(): List<Periode> {
     }
 }
 
-fun List<Periode>.minusListe(other: List<Periode>): List<Periode> {
+/**
+ * Fjerner alle periodene inneholdt i [other] fra [this]. Eliminerer duplikater og slår sammen gjenstående
+ * perioder i [this] til en minimum antall sammenhengende perioder.
+ */
+operator fun List<Periode>.minus(other: List<Periode>): List<Periode> {
     return (flatMap { it.tilMånedsperioder() }.toSet() - other.flatMap { it.tilMånedsperioder() }.toSet())
         .toList()
         .reduser()

@@ -23,11 +23,11 @@ import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
-import java.util.*
+import java.util.UUID
 
 class LeggTilBosituasjonTest {
     @Test
-    fun `fjerner eventuelle fradrag for EPS i perioder hvor bosituajson endres til å være enslig`() {
+    fun `fjerner eventuelle fradrag for EPS i perioder hvor bosituasjon endres til å være enslig`() {
         val bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
             periode = periode2021,
         )

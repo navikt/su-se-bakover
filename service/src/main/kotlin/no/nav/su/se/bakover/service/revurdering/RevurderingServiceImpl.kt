@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
@@ -176,15 +175,6 @@ internal class RevurderingServiceImpl(
             }.left()
         }.also {
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
-        }
-
-        SjekkOmGrunnlagErKonsistent(
-            formuegrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.formue.grunnlag,
-            uføregrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.uføre.grunnlag,
-            bosituasjongrunnlag = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
-            fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
-        ).resultat.getOrHandle {
-            // TODO("flere_satser ingenting igjen å sjekke her siden flere bosituasjoner er tillatt")
         }
 
         when (val r = VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat) {
@@ -398,28 +388,13 @@ internal class RevurderingServiceImpl(
             return it.left()
         }
 
-        return revurdering.oppdaterBosituasjonOgMarkerSomVurdert(bosituasjongrunnlag).mapLeft {
-            when (it) {
-                is Revurdering.KunneIkkeLeggeTilBosituasjon.Valideringsfeil -> {
-                    KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeEndreBosituasjongrunnlag(it.feil)
-                }
-                is Revurdering.KunneIkkeLeggeTilBosituasjon.UgyldigTilstand -> {
-                    KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(it.fra, it.til)
-                }
-                is Revurdering.KunneIkkeLeggeTilBosituasjon.Konsistenssjekk -> {
-                    KunneIkkeLeggeTilBosituasjongrunnlag.Konsistenssjekk(it.feil)
-                }
-                Revurdering.KunneIkkeLeggeTilBosituasjon.PerioderMangler -> {
-                    KunneIkkeLeggeTilBosituasjongrunnlag.PerioderMangler
-                }
-                is Revurdering.KunneIkkeLeggeTilBosituasjon.KunneIkkeOppdatereFormue -> {
-                    KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeOppdatereFormue(it.feil)
-                }
+        return revurdering.oppdaterBosituasjonOgMarkerSomVurdert(bosituasjongrunnlag)
+            .mapLeft {
+                KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilBosituasjon(it)
+            }.map {
+                revurderingRepo.lagre(it)
+                identifiserFeilOgLagResponse(it)
             }
-        }.map {
-            revurderingRepo.lagre(it)
-            identifiserFeilOgLagResponse(it)
-        }
     }
 
     override fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse> {
@@ -562,15 +537,6 @@ internal class RevurderingServiceImpl(
             }.left()
         }.also {
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
-        }
-
-        SjekkOmGrunnlagErKonsistent(
-            formuegrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.formue.grunnlag,
-            uføregrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.uføre.grunnlag,
-            bosituasjongrunnlag = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
-            fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
-        ).resultat.getOrHandle {
-            // TODO("flere_satser ingenting igjen å sjekke her siden flere bosituasjoner er tillatt")
         }
 
         when (val r = VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat) {

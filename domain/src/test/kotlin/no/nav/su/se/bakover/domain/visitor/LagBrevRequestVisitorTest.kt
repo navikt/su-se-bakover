@@ -1417,7 +1417,6 @@ internal class LagBrevRequestVisitorTest {
         return BeregningFactory(clock = fixedClock).ny(
             id = id,
             opprettet = fixedTidspunkt,
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
@@ -1440,7 +1439,6 @@ internal class LagBrevRequestVisitorTest {
         return BeregningFactory(clock = fixedClock).ny(
             id = id,
             opprettet = fixedTidspunkt,
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,

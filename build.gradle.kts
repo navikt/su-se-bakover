@@ -106,7 +106,7 @@ subprojects {
             freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
             freeCompilerArgs += "-Xenable-builder-inference"
             freeCompilerArgs += "-progressive"
-            allWarningsAsErrors = true
+            allWarningsAsErrors = false
         }
     }
 

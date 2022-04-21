@@ -253,7 +253,6 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     ): Beregning {
         val periode = Periode.create(fradrag.minOf { it.periode.fraOgMed }, fradrag.maxOf { it.periode.tilOgMed })
         return BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
             fradrag = listOf(
                 *fradrag,
                 FradragFactory.ny(

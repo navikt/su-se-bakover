@@ -5,9 +5,9 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
 import no.nav.su.se.bakover.common.periode.inneholderAlle
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag.Verdier.Companion.perioder
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag.Verdier.Companion.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harOverlappende
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioder
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.allePerioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.perioder
@@ -106,7 +106,7 @@ data class SjekkOmGrunnlagErKonsistent(
         }
 
         private fun harBosituasjonForAllePerioder(): Boolean {
-            return bosituasjon.perioder().inneholderAlle(fradrag.perioder())
+            return bosituasjon.minsteAntallSammenhengendePerioder().inneholderAlle(fradrag.perioder())
         }
     }
 
@@ -141,15 +141,15 @@ data class SjekkOmGrunnlagErKonsistent(
         }
 
         private fun gyldigKombinasjonAvBosituasjonOgFormue(): Boolean {
-            return bosituasjon.perioderMedEPS().inneholderAlle(formue.allePerioderMedEPS())
+            return bosituasjon.perioderMedEPS().inneholderAlle(formue.perioderMedEPS())
         }
 
         private fun harFormueForAllePerioder(): Boolean {
-            return bosituasjon.perioder() == formue.perioder()
+            return bosituasjon.minsteAntallSammenhengendePerioder() == formue.minsteAntallSammenhengendePerioder()
         }
 
         private fun harFormueEpsForAlleRelevantePerioder(): Boolean {
-            return bosituasjon.perioderMedEPS() == formue.allePerioderMedEPS()
+            return bosituasjon.perioderMedEPS() == formue.perioderMedEPS()
         }
     }
 }

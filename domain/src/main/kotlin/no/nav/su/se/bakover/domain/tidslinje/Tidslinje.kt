@@ -9,25 +9,25 @@ import java.util.LinkedList
 
 /**
  * Konstruerer en tidslinje av periodiserte opplysninger innenfor angitt [periode].
- * Periodiseringen vil ta hensyn til to hovedparametere; [KanPeriodiseresInternt.periode] og [KanPeriodiseresInternt.opprettet].
- * Dersom [KanPeriodiseresInternt.periode] er overlappende for to elementer, vil elementet med nyeste [KanPeriodiseresInternt.opprettet]
+ * Periodiseringen vil ta hensyn til to hovedparametere; [KanPlasseresPåTidslinjeMedSegSelv.periode] og [KanPlasseresPåTidslinjeMedSegSelv.opprettet].
+ * Dersom [KanPlasseresPåTidslinjeMedSegSelv.periode] er overlappende for to elementer, vil elementet med nyeste [KanPlasseresPåTidslinjeMedSegSelv.opprettet]
  * få presedens og følgelig overskrive det første elementet for perioden som overlapper. Perioder uten overlapp for elementer forblir uberørt.
  *
  * @param periode "utsnittet" tidslinjen skal konstrueres for.
  *
- * @see KanPeriodiseresInternt
+ * @see KanPlasseresPåTidslinjeMedSegSelv
  * @see KanPlasseresPåTidslinje
  * @see MaskerFraTidslinje
  */
-class Tidslinje<T : KanPeriodiseresInternt<T>> private constructor(
+class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
     private val periode: Periode,
-    private val objekter: List<KanPeriodiseresInternt<T>>,
+    private val objekter: List<KanPlasseresPåTidslinjeMedSegSelv<T>>,
 ) {
     companion object {
         @JvmName("intern")
-        operator fun <T : KanPeriodiseresInternt<T>> invoke(
+        operator fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> invoke(
             periode: Periode,
-            objekter: List<KanPeriodiseresInternt<T>>,
+            objekter: List<KanPlasseresPåTidslinjeMedSegSelv<T>>,
         ): Tidslinje<T> {
             return Tidslinje(periode, objekter)
         }
@@ -40,18 +40,18 @@ class Tidslinje<T : KanPeriodiseresInternt<T>> private constructor(
         }
 
         object Validator {
-            fun <T : KanPeriodiseresInternt<T>> valider(elementer: List<T>) {
-                require(
+            fun <T : KanPlasseresPåTidslinjeMedSegSelv<T>> valider(elementer: List<T>) {
+                check(
                     elementer.all { t1 ->
                         elementer.minus(t1).none { t2 -> t1.periode.fraOgMed == t2.periode.fraOgMed }
                     },
                 ) { "Tidslinje har flere elementer med samme fraOgMed dato!" }
-                require(
+                check(
                     elementer.all { t1 ->
                         elementer.minus(t1).none { t2 -> t1.periode.tilOgMed == t2.periode.tilOgMed }
                     },
                 ) { "Tidslinje har flere elementer med samme tilOgMed dato!" }
-                require(
+                check(
                     elementer.all { t1 ->
                         elementer.minus(t1).none { t2 -> t1.periode overlapper t2.periode }
                     },
@@ -240,7 +240,7 @@ class Tidslinje<T : KanPeriodiseresInternt<T>> private constructor(
         }
     }
 
-    private fun List<KanPeriodiseresInternt<T>>.justerFraOgMedForElementerDelvisUtenforPeriode(): List<T> {
+    private fun List<KanPlasseresPåTidslinjeMedSegSelv<T>>.justerFraOgMedForElementerDelvisUtenforPeriode(): List<T> {
         return map {
             if (it.periode starterTidligere periode) {
                 it.copy(
@@ -257,7 +257,7 @@ class Tidslinje<T : KanPeriodiseresInternt<T>> private constructor(
         }
     }
 
-    private fun List<KanPeriodiseresInternt<T>>.justerTilOgMedForElementerDelvisUtenforPeriode(): List<T> {
+    private fun List<KanPlasseresPåTidslinjeMedSegSelv<T>>.justerTilOgMedForElementerDelvisUtenforPeriode(): List<T> {
         return map {
             if (it.periode slutterEtter periode) {
                 it.copy(
@@ -274,7 +274,7 @@ class Tidslinje<T : KanPeriodiseresInternt<T>> private constructor(
         }
     }
 
-    private fun List<KanPeriodiseresInternt<T>>.overlappMedAndreEksisterer(): Boolean {
+    private fun List<KanPlasseresPåTidslinjeMedSegSelv<T>>.overlappMedAndreEksisterer(): Boolean {
         return filter { t1 ->
             any { t2 -> t1 != t2 && t1.periode overlapper t2.periode }
         }.isNotEmpty()

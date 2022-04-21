@@ -41,35 +41,33 @@ class BeregningStrategyFactory(val clock: Clock) {
     fun beregn(revurdering: Revurdering): Beregning {
         return beregn(
             grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
-            beregningsPeriode = revurdering.periode,
-            begrunnelse = null
+            begrunnelse = null,
         )
     }
 
     fun beregn(søknadsbehandling: Søknadsbehandling, begrunnelse: String?): Beregning {
         return beregn(
             grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
-            beregningsPeriode = søknadsbehandling.periode,
-            begrunnelse = begrunnelse
+            begrunnelse = begrunnelse,
         )
     }
 
     fun beregn(regulering: Regulering, begrunnelse: String?): Beregning {
         return beregn(
             grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
-            beregningsPeriode = regulering.periode,
-            begrunnelse = begrunnelse
+            begrunnelse = begrunnelse,
         )
     }
 
     private fun beregn(
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger,
-        beregningsPeriode: Periode,
         begrunnelse: String?,
     ): Beregning {
-        grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.ifEmpty { throw IllegalStateException("Bosituasjon er påkrevet.") }
+        val totalBeregningsperiode = grunnlagsdataOgVilkårsvurderinger.periode()!!
 
-        val beregningsperioder = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.map {
+        require(grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.isNotEmpty()) { "Bosituasjon er påkrevet for å kunne beregne." }
+
+        val delperioder = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.map {
             Beregningsperiode(
                 periode = it.periode,
                 strategy = (it as Grunnlag.Bosituasjon.Fullstendig).utledBeregningsstrategi(),
@@ -77,7 +75,7 @@ class BeregningStrategyFactory(val clock: Clock) {
         }
 
         val beregningsgrunnlag = Beregningsgrunnlag.tryCreate(
-            beregningsperiode = beregningsPeriode,
+            beregningsperiode = totalBeregningsperiode,
             uføregrunnlag = when (val vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger) {
                 is Vilkårsvurderinger.Revurdering -> {
                     vilkårsvurderinger.uføre.grunnlag
@@ -92,11 +90,12 @@ class BeregningStrategyFactory(val clock: Clock) {
             throw IllegalArgumentException(it.toString())
         }
 
+        require(totalBeregningsperiode.fullstendigOverlapp(delperioder.map { it.periode() }))
+
         return BeregningFactory(clock).ny(
-            periode = beregningsPeriode,
             fradrag = beregningsgrunnlag.fradrag,
             begrunnelse = begrunnelse,
-            beregningsperioder = beregningsperioder,
+            beregningsperioder = delperioder,
         )
     }
 }

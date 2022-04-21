@@ -87,7 +87,6 @@ internal class EnsligBorMedVoksneBeregningTest {
         )
 
         BeregningFactory(fixedClock).ny(
-            periode = beregningsgrunnlag.beregningsperiode,
             fradrag = beregningsgrunnlag.fradrag,
             begrunnelse = "bor med voksen",
             beregningsperioder = listOf(

@@ -119,7 +119,6 @@ internal class VurderOmBeløpErForskjelligFraGjeldendeUtbetalingTest {
         val periode = periodeBeløpMap.map { it.first }
             .let { perioder -> Periode.create(perioder.minOf { it.fraOgMed }, perioder.maxOf { it.tilOgMed }) }
         return BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
             fradrag = fradrag,
             begrunnelse = null,
             beregningsperioder = listOf(

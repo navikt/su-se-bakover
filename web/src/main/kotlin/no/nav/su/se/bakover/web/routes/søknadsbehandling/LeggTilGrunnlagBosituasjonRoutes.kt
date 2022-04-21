@@ -184,12 +184,7 @@ internal fun KunneIkkeLageGrunnlagsdata.tilResultat(): Resultat {
             "må_ha_bosituasjon_før_fradrag",
         )
         is KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag -> this.feil.tilResultat()
-        is KunneIkkeLageGrunnlagsdata.Konsistenssjekk -> this.feil.tilResultat().let {
-            HttpStatusCode.BadRequest.errorJson(
-                it.message,
-                it.code!!,
-            )
-        }
+        is KunneIkkeLageGrunnlagsdata.Konsistenssjekk -> this.feil.tilResultat()
     }
 }
 
