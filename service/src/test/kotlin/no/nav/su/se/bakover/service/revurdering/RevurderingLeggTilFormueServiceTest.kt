@@ -14,9 +14,9 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
@@ -48,7 +48,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import java.util.*
+import java.util.UUID
 
 internal class RevurderingLeggTilFormueServiceTest {
 
@@ -67,7 +67,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Formue)),
                     grunnlagsdataOverrides = listOf(
                         lagFradragsgrunnlag(
-                            type = Fradragstype(F.Arbeidsinntekt),
+                            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                             månedsbeløp = 10000.0,
                             periode = periode2021,
                             utenlandskInntekt = null,

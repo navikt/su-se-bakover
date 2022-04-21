@@ -11,7 +11,8 @@ import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.fixedClock
@@ -55,13 +56,13 @@ internal class EpsUnder67BeregningTest {
             ),
             fradragFraSaksbehandler = listOf(
                 lagFradragsgrunnlag(
-                    type = Fradragstype(F.OffentligPensjon),
+                    type = FradragskategoriWrapper(Fradragskategori.OffentligPensjon),
                     månedsbeløp = folketrygdPrMnd,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 lagFradragsgrunnlag(
-                    type = Fradragstype(F.OffentligPensjon),
+                    type = FradragskategoriWrapper(Fradragskategori.OffentligPensjon),
                     månedsbeløp = folketrygdEpsPrMnd,
                     periode = periode,
                     tilhører = FradragTilhører.EPS

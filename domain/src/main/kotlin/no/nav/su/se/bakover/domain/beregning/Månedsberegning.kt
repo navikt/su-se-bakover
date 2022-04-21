@@ -5,8 +5,8 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Månedsperiode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
 
 interface Månedsberegning : PeriodisertInformasjon {
     fun getSumYtelse(): Int
@@ -19,7 +19,7 @@ interface Månedsberegning : PeriodisertInformasjon {
     fun getMerknader(): List<Merknad.Beregning>
 
     fun erFradragForEpsBenyttetIBeregning() =
-        getFradrag().any { it.fradragstype.type == F.BeregnetFradragEPS }
+        getFradrag().any { it.fradragskategoriWrapper.kategori == Fradragskategori.BeregnetFradragEPS }
 
     val måned: Månedsperiode
 

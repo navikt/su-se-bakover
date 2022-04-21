@@ -27,12 +27,12 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -369,14 +369,14 @@ internal class UtbetalingsstrategiNyTest {
             beregning = BeregningFactory(clock = fixedClock).ny(
                 fradrag = listOf(
                     FradragFactory.ny(
-                        type = Fradragstype(F.ForventetInntekt),
+                        type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         månedsbeløp = 1000.0,
                         periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 30.april(2020)),
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     FradragFactory.ny(
-                        type = Fradragstype(F.Arbeidsinntekt),
+                        type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                         månedsbeløp = 4000.0,
                         periode = Periode.create(fraOgMed = 1.februar(2020), tilOgMed = 29.februar(2020)),
                         utenlandskInntekt = null,
@@ -541,21 +541,21 @@ internal class UtbetalingsstrategiNyTest {
                 beregning = BeregningFactory(clock = fixedClock).ny(
                     fradrag = listOf(
                         FradragFactory.ny(
-                            type = Fradragstype(F.ForventetInntekt),
+                            type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                             månedsbeløp = 0.0,
                             periode = periode,
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
                         FradragFactory.ny(
-                            type = Fradragstype(F.Sosialstønad),
+                            type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                             månedsbeløp = 1000.0,
                             periode = Periode.create(1.januar(2021), 31.mai(2021)),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
                         FradragFactory.ny(
-                            type = Fradragstype(F.Kontantstøtte),
+                            type = FradragskategoriWrapper(Fradragskategori.Kontantstøtte),
                             månedsbeløp = 3000.0,
                             periode = Periode.create(1.juni(2021), 31.desember(2021)),
                             utenlandskInntekt = null,
@@ -692,21 +692,21 @@ internal class UtbetalingsstrategiNyTest {
             beregning = BeregningFactory(clock = fixedClock).ny(
                 fradrag = listOf(
                     FradragFactory.ny(
-                        type = Fradragstype(F.ForventetInntekt),
+                        type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         månedsbeløp = 1000.0,
                         periode = periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     FradragFactory.ny(
-                        type = Fradragstype(F.Sosialstønad),
+                        type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                         månedsbeløp = 5000.0,
                         periode = Periode.create(1.januar(2021), 31.mai(2021)),
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     FradragFactory.ny(
-                        type = Fradragstype(F.Kontantstøtte),
+                        type = FradragskategoriWrapper(Fradragskategori.Kontantstøtte),
                         månedsbeløp = 8000.0,
                         periode = Periode.create(1.juni(2021), 31.desember(2021)),
                         utenlandskInntekt = null,
@@ -787,21 +787,21 @@ internal class UtbetalingsstrategiNyTest {
             beregning = BeregningFactory(clock = fixedClock).ny(
                 fradrag = listOf(
                     FradragFactory.ny(
-                        type = Fradragstype(F.ForventetInntekt),
+                        type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         månedsbeløp = 1000.0,
                         periode = periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     FradragFactory.ny(
-                        type = Fradragstype(F.Sosialstønad),
+                        type = FradragskategoriWrapper(Fradragskategori.Sosialstønad),
                         månedsbeløp = 5000.0,
                         periode = Periode.create(1.januar(2021), 31.mai(2021)),
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     FradragFactory.ny(
-                        type = Fradragstype(F.Kontantstøtte),
+                        type = FradragskategoriWrapper(Fradragskategori.Kontantstøtte),
                         månedsbeløp = 8000.0,
                         periode = Periode.create(1.juni(2021), 31.desember(2021)),
                         utenlandskInntekt = null,
@@ -1015,7 +1015,7 @@ internal class UtbetalingsstrategiNyTest {
     private fun createBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate) = BeregningFactory(clock = fixedClock).ny(
         fradrag = listOf(
             FradragFactory.ny(
-                type = Fradragstype(F.ForventetInntekt),
+                type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                 månedsbeløp = 0.0,
                 periode = Periode.create(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
                 utenlandskInntekt = null,

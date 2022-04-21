@@ -5,9 +5,9 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import java.util.UUID
@@ -29,7 +29,7 @@ fun fradragsgrunnlagArbeidsinntekt(
 ): Grunnlag.Fradragsgrunnlag {
     return lagFradragsgrunnlag(
         id = id,
-        type = Fradragstype(F.Arbeidsinntekt),
+        type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
         månedsbeløp = arbeidsinntekt,
         periode = periode,
         utenlandskInntekt = null,

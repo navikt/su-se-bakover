@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.periode.toMånedsperiode
 import no.nav.su.se.bakover.domain.CopyArgs
 
 internal data class FradragForMåned(
-    private val type: Fradragstype,
+    private val type: FradragskategoriWrapper,
     override val månedsbeløp: Double,
     val måned: Månedsperiode,
     override val utenlandskInntekt: UtenlandskInntekt? = null,
@@ -17,7 +17,7 @@ internal data class FradragForMåned(
     }
     override val periode: Månedsperiode = måned
 
-    override val fradragstype: Fradragstype = type
+    override val fradragskategoriWrapper: FradragskategoriWrapper = type
 
     override fun copy(args: CopyArgs.Snitt): Fradrag? {
         return args.snittFor(periode)?.let { copy(måned = it.toMånedsperiode()) }

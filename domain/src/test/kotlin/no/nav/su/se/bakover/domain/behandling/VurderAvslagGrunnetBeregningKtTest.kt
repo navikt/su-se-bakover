@@ -23,11 +23,11 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.beregning.finnMerknaderForPeriode
 import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvslag
 import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknad
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
@@ -136,7 +136,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
 
     @Test
     fun `ikke avslag dersom det eksisterer 1 måned med beløp lik 0 pågrunn av sosialstønad`() {
-        val januar = lagFradrag(30000.0, januar(2021), Fradragstype(F.Sosialstønad))
+        val januar = lagFradrag(30000.0, januar(2021), FradragskategoriWrapper(Fradragskategori.Sosialstønad))
         val desember = lagFradrag(2500.0, desember(2021))
 
         val beregning = lagBeregningMedFradrag(januar, desember, strategy = BeregningStrategy.BorAlene)
@@ -165,7 +165,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `ikke avslag dersom det eksisterer 1 måned med beløp under minstegrensen pågrunn av sosialstønad`() {
         val januar = lagFradrag(2500.0, januar(2021))
-        val juni = lagFradrag(21900.0, juni(2021), Fradragstype(F.Sosialstønad))
+        val juni = lagFradrag(21900.0, juni(2021), FradragskategoriWrapper(Fradragskategori.Sosialstønad))
         val desember = lagFradrag(2500.0, desember(2021))
 
         val beregning = lagBeregningMedFradrag(januar, juni, desember, strategy = BeregningStrategy.EpsUnder67År)
@@ -176,7 +176,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `ikke avslag dersom beløp er under minstegrensen på grunn av EPS sosialstønad`() {
         val januar = lagFradrag(2500.0, januar(2021))
-        val juni = lagFradrag(21900.0, juni(2021), Fradragstype(F.Sosialstønad), FradragTilhører.EPS)
+        val juni = lagFradrag(21900.0, juni(2021), FradragskategoriWrapper(Fradragskategori.Sosialstønad), FradragTilhører.EPS)
         val desember = lagFradrag(2500.0, desember(2021))
 
         val beregning = lagBeregningMedFradrag(januar, juni, desember, strategy = BeregningStrategy.EpsUnder67År)
@@ -188,7 +188,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `ikke avslag dersom beløp er under minstegrensen på grunn av avkorting`() {
         val januar = lagFradrag(5000.0, januar(2021))
-        val juni = lagFradrag(21900.0, juni(2021), Fradragstype(F.AvkortingUtenlandsopphold))
+        val juni = lagFradrag(21900.0, juni(2021), FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold))
         val desember = lagFradrag(5000.0, desember(2021))
 
         val beregning = lagBeregningMedFradrag(januar, juni, desember, strategy = BeregningStrategy.EpsUnder67År)
@@ -201,8 +201,8 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `ikke avslag dersom beløp er under minstegrensen på grunn av avkorting pluss sosialstønad`() {
         val januar = lagFradrag(5000.0, januar(2021))
-        val juniAvkorting = lagFradrag(10900.0, juni(2021), Fradragstype(F.AvkortingUtenlandsopphold))
-        val juniSosialstønad = lagFradrag(11000.0, juni(2021), Fradragstype(F.Sosialstønad))
+        val juniAvkorting = lagFradrag(10900.0, juni(2021), FradragskategoriWrapper(Fradragskategori.AvkortingUtenlandsopphold))
+        val juniSosialstønad = lagFradrag(11000.0, juni(2021), FradragskategoriWrapper(Fradragskategori.Sosialstønad))
         val desember = lagFradrag(5000.0, desember(2021))
 
         val beregning = lagBeregningMedFradrag(
@@ -222,8 +222,8 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `ikke avslag dersom beløp er under minstegresen pågrunn av EPS og brukers sosialstønad`() {
         val januar = lagFradrag(2500.0, januar(2021))
-        val juni = lagFradrag(10950.0, juni(2021), Fradragstype(F.Sosialstønad), FradragTilhører.BRUKER)
-        val juniEPS = lagFradrag(10950.0, juni(2021), Fradragstype(F.Sosialstønad), FradragTilhører.EPS)
+        val juni = lagFradrag(10950.0, juni(2021), FradragskategoriWrapper(Fradragskategori.Sosialstønad), FradragTilhører.BRUKER)
+        val juniEPS = lagFradrag(10950.0, juni(2021), FradragskategoriWrapper(Fradragskategori.Sosialstønad), FradragTilhører.EPS)
         val desember = lagFradrag(2500.0, desember(2021))
 
         val beregning =
@@ -257,7 +257,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             fradrag = listOf(
                 *fradrag,
                 FradragFactory.ny(
-                    Fradragstype(F.ForventetInntekt),
+                    FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 0.0,
                     periode = periode,
                     utenlandskInntekt = null,
@@ -277,10 +277,10 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     private fun lagFradrag(
         beløp: Double,
         periode: Periode,
-        fradragstype: Fradragstype? = null,
+        fradragskategoriWrapper: FradragskategoriWrapper? = null,
         tilhører: FradragTilhører? = null,
     ) = FradragFactory.ny(
-        type = fradragstype ?: Fradragstype(F.Kapitalinntekt),
+        type = fradragskategoriWrapper ?: FradragskategoriWrapper(Fradragskategori.Kapitalinntekt),
         månedsbeløp = beløp,
         periode = periode,
         utenlandskInntekt = null,

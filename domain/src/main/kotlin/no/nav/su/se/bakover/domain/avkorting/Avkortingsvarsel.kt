@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel.Utenlandsopphold.A
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel.Utenlandsopphold.Opprettet
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.util.UUID
 
@@ -87,7 +87,7 @@ sealed interface Avkortingsvarsel {
             fun fullstendigAvkortetAv(beregning: Beregning): Boolean {
                 val beløpSkalAvkortes = simulering.hentUtbetalteBeløp().sum()
                 val fradragAvkorting = beregning.getFradrag()
-                    .filter { it.fradragstype.type == F.AvkortingUtenlandsopphold }
+                    .filter { it.fradragskategoriWrapper.kategori == Fradragskategori.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp }
                     .toInt()
                 return beløpSkalAvkortes == fradragAvkorting

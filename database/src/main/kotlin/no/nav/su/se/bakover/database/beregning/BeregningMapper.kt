@@ -15,7 +15,8 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import java.util.UUID
 
@@ -97,12 +98,28 @@ internal data class PersistertMånedsberegning(
 }
 
 internal data class PersistertFradrag(
-    override val fradragstype: Fradragstype,
     override val månedsbeløp: Double,
     override val utenlandskInntekt: UtenlandskInntekt?,
     override val periode: Periode,
     override val tilhører: FradragTilhører,
+    @field:JsonProperty("fradragstype")
+    val fradragskategori: Fradragskategori,
+    val spesifisertKategori: String? = null,
 ) : Fradrag {
+    init {
+        if (fradragskategori == Fradragskategori.Annet && spesifisertKategori == null) throw IllegalArgumentException("Typen må spesifiseres")
+        if (fradragskategori != Fradragskategori.Annet && spesifisertKategori != null) throw IllegalArgumentException("Typen skal kun spesifieres dersom den er 'Annet'")
+    }
+
+    @get:JsonIgnore
+    override val fradragskategoriWrapper: FradragskategoriWrapper
+        get() {
+            return FradragskategoriWrapper(
+                kategori = fradragskategori,
+                spesifisertKategori = spesifisertKategori,
+            )
+        }
+
     override fun copy(args: CopyArgs.Snitt): Fradrag? {
         return args.snittFor(periode)?.let { copy(periode = it) }
     }
@@ -134,7 +151,8 @@ internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
 )
 
 internal fun Fradrag.toSnapshot() = PersistertFradrag(
-    fradragstype = fradragstype,
+    fradragskategori = fradragskategoriWrapper.kategori,
+    spesifisertKategori = fradragskategoriWrapper.spesifisertKategori,
     månedsbeløp = månedsbeløp,
     utenlandskInntekt = utenlandskInntekt,
     periode = periode,

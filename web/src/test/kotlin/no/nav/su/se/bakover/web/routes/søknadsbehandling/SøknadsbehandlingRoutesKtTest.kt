@@ -34,9 +34,9 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -81,7 +81,7 @@ import no.nav.su.se.bakover.web.requestSomAttestant
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.stønadsperiode
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragstypeJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragskategoriWrapperJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import no.nav.su.se.bakover.web.testSusebakover
@@ -368,14 +368,14 @@ internal class SøknadsbehandlingRoutesKtTest {
                     val behandlingJson = deserialize<BehandlingJson>(response.content!!)
                     val epsFradrag = FradragJson(
                         periode = PeriodeJson("2021-05-01", "2021-12-31"),
-                        type = FradragstypeJson("Arbeidsinntekt"),
+                        fradragskategoriWrapper = FradragskategoriWrapperJson("Arbeidsinntekt"),
                         beløp = 9879.0,
                         utenlandskInntekt = null,
                         tilhører = "EPS",
                     )
                     val brukerFradrag = FradragJson(
                         periode = PeriodeJson("2021-06-01", "2021-12-31"),
-                        type = FradragstypeJson("Kontantstøtte"),
+                        fradragskategoriWrapper = FradragskategoriWrapperJson("Kontantstøtte"),
                         beløp = 10000.0,
                         utenlandskInntekt = null,
                         tilhører = "BRUKER",
@@ -943,14 +943,14 @@ internal class SøknadsbehandlingRoutesKtTest {
                     fradragsgrunnlag = listOf(
                         lagFradragsgrunnlag(
                             periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
-                            type = Fradragstype(F.Arbeidsinntekt),
+                            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                             månedsbeløp = 9879.00,
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
                         lagFradragsgrunnlag(
                             periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
-                            type = Fradragstype(F.Kontantstøtte),
+                            type = FradragskategoriWrapper(Fradragskategori.Kontantstøtte),
                             månedsbeløp = 10000.00,
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -965,14 +965,14 @@ internal class SøknadsbehandlingRoutesKtTest {
                     fradragsgrunnlag = listOf(
                         lagFradragsgrunnlag(
                             periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
-                            type = Fradragstype(F.Arbeidsinntekt),
+                            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                             månedsbeløp = 9879.00,
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.EPS,
                         ),
                         lagFradragsgrunnlag(
                             periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
-                            type = Fradragstype(F.Kontantstøtte),
+                            type = FradragskategoriWrapper(Fradragskategori.Kontantstøtte),
                             månedsbeløp = 10000.00,
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,

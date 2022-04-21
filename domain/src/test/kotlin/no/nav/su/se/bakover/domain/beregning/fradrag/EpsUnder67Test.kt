@@ -17,14 +17,14 @@ internal class EpsUnder67Test {
     @Test
     fun `velger arbeidsinntekt dersom den er større enn forventet inntekt`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
-        val arbeidsinntekt = lagFradrag(Fradragstype(F.Arbeidsinntekt), 2000.0, periode)
-        val kontantstøtte = lagFradrag(Fradragstype(F.Kontantstøtte), 500.0, periode)
-        val forventetInntekt = lagFradrag(Fradragstype(F.ForventetInntekt), 500.0, periode)
+        val arbeidsinntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt), 2000.0, periode)
+        val kontantstøtte = lagFradrag(FradragskategoriWrapper(Fradragskategori.Kontantstøtte), 500.0, periode)
+        val forventetInntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.ForventetInntekt), 500.0, periode)
 
         val expectedArbeidsinntekt =
-            lagPeriodisertFradrag(Fradragstype(F.Arbeidsinntekt), 2000.0, månedsperiodeJanuar2020)
+            lagPeriodisertFradrag(FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt), 2000.0, månedsperiodeJanuar2020)
         val expectedKontantstøtte =
-            lagPeriodisertFradrag(Fradragstype(F.Kontantstøtte), 500.0, månedsperiodeJanuar2020)
+            lagPeriodisertFradrag(FradragskategoriWrapper(Fradragskategori.Kontantstøtte), 500.0, månedsperiodeJanuar2020)
 
         FradragStrategy.EpsUnder67År.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
@@ -35,21 +35,21 @@ internal class EpsUnder67Test {
                 expectedArbeidsinntekt,
                 expectedKontantstøtte,
             )
-            it.values.forEach { it.none { it.fradragstype.type == F.ForventetInntekt } }
+            it.values.forEach { it.none { it.fradragskategoriWrapper.kategori == Fradragskategori.ForventetInntekt } }
         }
     }
 
     @Test
     fun `velger forventet inntekt dersom den er større enn arbeidsinntekt`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
-        val arbeidsinntekt = lagFradrag(Fradragstype(F.Arbeidsinntekt), 500.0, periode)
-        val kontantstøtte = lagFradrag(Fradragstype(F.Kontantstøtte), 500.0, periode)
-        val forventetInntekt = lagFradrag(Fradragstype(F.ForventetInntekt), 2000.0, periode)
+        val arbeidsinntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt), 500.0, periode)
+        val kontantstøtte = lagFradrag(FradragskategoriWrapper(Fradragskategori.Kontantstøtte), 500.0, periode)
+        val forventetInntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.ForventetInntekt), 2000.0, periode)
 
         val expectedForventetInntekt =
-            lagPeriodisertFradrag(Fradragstype(F.ForventetInntekt), 2000.0, månedsperiodeJanuar2020)
+            lagPeriodisertFradrag(FradragskategoriWrapper(Fradragskategori.ForventetInntekt), 2000.0, månedsperiodeJanuar2020)
         val expectedKontantstøtte =
-            lagPeriodisertFradrag(Fradragstype(F.Kontantstøtte), 500.0, månedsperiodeJanuar2020)
+            lagPeriodisertFradrag(FradragskategoriWrapper(Fradragskategori.Kontantstøtte), 500.0, månedsperiodeJanuar2020)
 
         FradragStrategy.EpsUnder67År.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
@@ -60,20 +60,20 @@ internal class EpsUnder67Test {
                 expectedForventetInntekt,
                 expectedKontantstøtte,
             )
-            it.values.forEach { it.none { it.fradragstype.type == F.Arbeidsinntekt } }
+            it.values.forEach { it.none { it.fradragskategoriWrapper.kategori == Fradragskategori.Arbeidsinntekt } }
         }
     }
 
     @Test
     fun `tar med fradrag som tilhører EPS`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
-        val epsArbeidsinntekt = lagFradrag(Fradragstype(F.Arbeidsinntekt), 2000.0, periode, tilhører = EPS)
-        val forventetInntekt = lagFradrag(Fradragstype(F.ForventetInntekt), 1000.0, periode)
+        val epsArbeidsinntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt), 2000.0, periode, tilhører = EPS)
+        val forventetInntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.ForventetInntekt), 1000.0, periode)
 
         val expectedBrukerInntekt =
-            lagPeriodisertFradrag(Fradragstype(F.ForventetInntekt), 1000.0, månedsperiodeJanuar2020)
+            lagPeriodisertFradrag(FradragskategoriWrapper(Fradragskategori.ForventetInntekt), 1000.0, månedsperiodeJanuar2020)
         val expectedEpsInntekt = lagPeriodisertFradrag(
-            Fradragstype(F.BeregnetFradragEPS), 2000.0, månedsperiodeJanuar2020, EPS,
+            FradragskategoriWrapper(Fradragskategori.BeregnetFradragEPS), 2000.0, månedsperiodeJanuar2020, EPS,
         )
 
         FradragStrategy.EpsUnder67År.beregn(
@@ -93,12 +93,12 @@ internal class EpsUnder67Test {
     @Test
     fun `inneholder bare ett fradrag for eps, uavhengig av hvor mange som er input`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
-        val forventetInntekt = lagFradrag(Fradragstype(F.ForventetInntekt), 10000.0, periode)
-        val epsForventetInntekt = lagFradrag(Fradragstype(F.ForventetInntekt), 150000.0, periode, tilhører = EPS)
-        val epsUføretrygd = lagFradrag(Fradragstype(F.NAVytelserTilLivsopphold), 150000.0, periode, tilhører = EPS)
-        val epsArbeidsinntekt = lagFradrag(Fradragstype(F.Arbeidsinntekt), 5000.0, periode, tilhører = EPS)
-        val epsKapitalinntekt = lagFradrag(Fradragstype(F.Kapitalinntekt), 60000.0, periode, tilhører = EPS)
-        val epsPensjon = lagFradrag(Fradragstype(F.PrivatPensjon), 15000.0, periode, tilhører = EPS)
+        val forventetInntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.ForventetInntekt), 10000.0, periode)
+        val epsForventetInntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.ForventetInntekt), 150000.0, periode, tilhører = EPS)
+        val epsUføretrygd = lagFradrag(FradragskategoriWrapper(Fradragskategori.NAVytelserTilLivsopphold), 150000.0, periode, tilhører = EPS)
+        val epsArbeidsinntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt), 5000.0, periode, tilhører = EPS)
+        val epsKapitalinntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.Kapitalinntekt), 60000.0, periode, tilhører = EPS)
+        val epsPensjon = lagFradrag(FradragskategoriWrapper(Fradragskategori.PrivatPensjon), 15000.0, periode, tilhører = EPS)
 
         FradragStrategy.EpsUnder67År.beregn(
             fradrag = listOf(
@@ -115,7 +115,7 @@ internal class EpsUnder67Test {
             fradrag.values.forEach { alleFradrag ->
                 alleFradrag.filter { it.tilhører == EPS }.let { epsFradrag ->
                     epsFradrag shouldHaveSize 1
-                    epsFradrag.all { it.fradragstype == Fradragstype(F.BeregnetFradragEPS) } shouldBe true
+                    epsFradrag.all { it.fradragskategoriWrapper == FradragskategoriWrapper(Fradragskategori.BeregnetFradragEPS) } shouldBe true
                 }
             }
         }
@@ -127,8 +127,8 @@ internal class EpsUnder67Test {
 
         FradragStrategy.EpsUnder67År.beregn(
             fradrag = listOf(
-                lagFradrag(Fradragstype(F.ForventetInntekt), 0.0, periode),
-                lagFradrag(Fradragstype(F.Sosialstønad), 5000.0, periode, EPS),
+                lagFradrag(FradragskategoriWrapper(Fradragskategori.ForventetInntekt), 0.0, periode),
+                lagFradrag(FradragskategoriWrapper(Fradragskategori.Sosialstønad), 5000.0, periode, EPS),
             ),
             beregningsperiode = periode,
         ).let {

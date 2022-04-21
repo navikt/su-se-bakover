@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
 import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
@@ -120,9 +120,9 @@ sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
         }
 
         private fun harBeløpsendringerEkskludertForventetInntekt(): Boolean {
-            val nyeFradrag = nyBeregning.getFradrag().filterNot { it.fradragstype.type == F.ForventetInntekt }
+            val nyeFradrag = nyBeregning.getFradrag().filterNot { it.fradragskategoriWrapper.kategori == Fradragskategori.ForventetInntekt }
             val tidligereFradrag = tidligereBeregning.getFradrag()
-                .filterNot { it.fradragstype.type == F.ForventetInntekt }
+                .filterNot { it.fradragskategoriWrapper.kategori == Fradragskategori.ForventetInntekt }
                 .mapNotNull { it.copy(CopyArgs.Snitt(revurderingsperiode)) }
             return tidligereFradrag != nyeFradrag
         }

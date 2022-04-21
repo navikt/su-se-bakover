@@ -25,10 +25,10 @@ import no.nav.su.se.bakover.common.periode.september
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -62,7 +62,7 @@ class SøknadsbehandlingServiceBeregningTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.ny(
-                            type = Fradragstype(F.Arbeidsinntekt),
+                            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                             månedsbeløp = 12000.0,
                             periode = vilkårsvurdert.periode,
                             utenlandskInntekt = null,
@@ -91,14 +91,14 @@ class SøknadsbehandlingServiceBeregningTest {
             beregnet.beregning.let { beregning ->
                 beregning.getFradrag() shouldBe listOf(
                     FradragFactory.ny(
-                        type = Fradragstype(F.Arbeidsinntekt),
+                        type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                         månedsbeløp = 12000.0,
                         periode = vilkårsvurdert.periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     FradragFactory.ny(
-                        type = Fradragstype(F.ForventetInntekt),
+                        type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         månedsbeløp = 0.0,
                         periode = vilkårsvurdert.periode,
                         utenlandskInntekt = null,
@@ -173,9 +173,9 @@ class SøknadsbehandlingServiceBeregningTest {
             )
             beregnet.grunnlagsdata shouldNotBe vilkårsvurdert.grunnlagsdata
             beregnet.grunnlagsdata.fradragsgrunnlag
-                .any { it.fradragstype.type == F.AvkortingUtenlandsopphold } shouldBe true
+                .any { it.fradragskategoriWrapper.kategori == Fradragskategori.AvkortingUtenlandsopphold } shouldBe true
             beregnet.beregning.getFradrag()
-                .any { it.fradragstype.type == F.AvkortingUtenlandsopphold } shouldBe true
+                .any { it.fradragskategoriWrapper.kategori == Fradragskategori.AvkortingUtenlandsopphold } shouldBe true
 
             verify(it.søknadsbehandlingRepo).hent(vilkårsvurdert.id)
             verify(it.søknadsbehandlingRepo).defaultTransactionContext()
@@ -234,9 +234,9 @@ class SøknadsbehandlingServiceBeregningTest {
             )
             beregnet.grunnlagsdata shouldNotBe vilkårsvurdert.grunnlagsdata
             beregnet.grunnlagsdata.fradragsgrunnlag
-                .any { it.fradragstype.type == F.AvkortingUtenlandsopphold } shouldBe true
+                .any { it.fradragskategoriWrapper.kategori == Fradragskategori.AvkortingUtenlandsopphold } shouldBe true
             beregnet.beregning.getFradrag()
-                .any { it.fradragstype.type == F.AvkortingUtenlandsopphold } shouldBe true
+                .any { it.fradragskategoriWrapper.kategori == Fradragskategori.AvkortingUtenlandsopphold } shouldBe true
 
             verify(it.søknadsbehandlingRepo).hent(vilkårsvurdert.id)
             verify(it.søknadsbehandlingRepo).defaultTransactionContext()

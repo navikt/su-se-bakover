@@ -27,9 +27,9 @@ internal class BeregningJsonTest {
                         "fraOgMed":"2020-08-01",
                         "tilOgMed":"2020-08-31"
                       },
-                      "type": {
-                        "type": "Arbeidsinntekt",
-                        "spesifisertType": null
+                      "fradragskategoriWrapper": {
+                        "kategori": "Arbeidsinntekt",
+                        "spesifisertKategori": null
                       },
                       "beløp": 1000.0,
                       "tilhører": "BRUKER",
@@ -39,9 +39,9 @@ internal class BeregningJsonTest {
                         "fraOgMed":"2020-08-01",
                         "tilOgMed":"2020-08-31"
                       },
-                      "type": {
-                        "type": "Arbeidsinntekt",
-                        "spesifisertType": null
+                      "fradragskategoriWrapper": {
+                        "kategori": "Arbeidsinntekt",
+                        "spesifisertKategori": null
                       },
                       "beløp": 20000.0,
                       "tilhører": "EPS",
@@ -53,9 +53,9 @@ internal class BeregningJsonTest {
                         "fraOgMed":"2020-08-01",
                         "tilOgMed":"2020-08-31"
                       },
-                      "type": {
-                        "type": "Arbeidsinntekt",
-                        "spesifisertType": null
+                      "fradragskategoriWrapper": {
+                        "kategori": "Arbeidsinntekt",
+                        "spesifisertKategori": null
                       },
                       "beløp": 20000.0,
                       "tilhører": "EPS",
@@ -64,9 +64,9 @@ internal class BeregningJsonTest {
                     "merknader": []
                 }],
                 "fradrag": [{
-                  "type": {
-                    "type": "Arbeidsinntekt",
-                    "spesifisertType": null
+                  "fradragskategoriWrapper": {
+                    "kategori": "Arbeidsinntekt",
+                    "spesifisertKategori": null
                   },
                   "beløp": 1000.0,
                   "utenlandskInntekt": null,
@@ -76,9 +76,9 @@ internal class BeregningJsonTest {
                   },
                   "tilhører": "BRUKER"
                 }, {
-                  "type": {
-                    "type": "Arbeidsinntekt",
-                    "spesifisertType": null
+                  "fradragskategoriWrapper": {
+                    "kategori": "Arbeidsinntekt",
+                    "spesifisertKategori": null
                   },
                   "beløp": 20000.0,
                   "utenlandskInntekt": null,

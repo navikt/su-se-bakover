@@ -12,10 +12,10 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -676,7 +676,7 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
 fun lagFradragsgrunnlag(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
-    type: Fradragstype,
+    type: FradragskategoriWrapper,
     månedsbeløp: Double,
     periode: Periode,
     utenlandskInntekt: UtenlandskInntekt? = null,
@@ -711,7 +711,7 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
             grunnlagsdata = it.grunnlagsdata.copy(
                 fradragsgrunnlag = listOf(
                     lagFradragsgrunnlag(
-                        type = Fradragstype(F.Arbeidsinntekt),
+                        type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                         månedsbeløp = 6000.0,
                         periode = stønadsperiode.periode,
                         tilhører = FradragTilhører.BRUKER,

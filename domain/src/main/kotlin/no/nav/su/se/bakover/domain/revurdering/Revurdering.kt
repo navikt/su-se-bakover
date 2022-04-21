@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -440,7 +440,7 @@ sealed class Revurdering :
                      * Kontroller er at vi ikke opphører noe som inneholder planlagte avkortinger, da dette vil føre til at
                      * beløpene aldri vil avkortes. //TODO må sannsynligvis støtte dette på et eller annet tidspunkt
                      */
-                    if (beregning.getFradrag().any { it.fradragstype.type == F.AvkortingUtenlandsopphold }) {
+                    if (beregning.getFradrag().any { it.fradragskategoriWrapper.kategori == Fradragskategori.AvkortingUtenlandsopphold }) {
                         KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes.left()
                     } else {
                         Unit.right()

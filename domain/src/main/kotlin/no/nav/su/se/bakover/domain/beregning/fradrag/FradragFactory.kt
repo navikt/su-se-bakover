@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 
 object FradragFactory {
     fun ny(
-        type: Fradragstype,
+        type: FradragskategoriWrapper,
         månedsbeløp: Double,
         periode: Periode,
         utenlandskInntekt: UtenlandskInntekt? = null,
@@ -22,7 +22,7 @@ object FradragFactory {
     fun periodiser(fradrag: Fradrag): List<Fradrag> =
         fradrag.periode.tilMånedsperioder().map {
             FradragForMåned(
-                type = fradrag.fradragstype,
+                type = fradrag.fradragskategoriWrapper,
                 månedsbeløp = fradrag.månedsbeløp,
                 måned = it,
                 utenlandskInntekt = fradrag.utenlandskInntekt,

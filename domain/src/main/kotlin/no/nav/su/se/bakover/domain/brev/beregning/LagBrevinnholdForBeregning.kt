@@ -40,7 +40,7 @@ data class LagBrevinnholdForBeregning(
     /**
      * Deducing fradrag for EPS is a bit more complicated due to the "type erasure" of fradrag.
      * When calculating each month, all input fradrag for EPS will be transformed into a single fradrag of type
-     * [no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.BeregnetFradragEPS] if the total sum of fradrag
+     * [no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper.BeregnetFradragEPS] if the total sum of fradrag
      * exceedes the "fribeløp" for the specific month - otherwise no fradrag will actually be used for the calculation.
      * To determine the types for fradrag actually used, we need to "backtrack" to the original input fradrag.
      */

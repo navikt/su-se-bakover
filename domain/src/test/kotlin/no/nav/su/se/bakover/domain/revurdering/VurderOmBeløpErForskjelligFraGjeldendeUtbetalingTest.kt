@@ -10,10 +10,10 @@ import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.test.fixedClock
@@ -112,7 +112,7 @@ internal class VurderOmBeløpErForskjelligFraGjeldendeUtbetalingTest {
             val sats = Sats.HØY.månedsbeløp(it.first.fraOgMed)
             val diff = abs(sats - it.second)
             FradragFactory.ny(
-                type = Fradragstype(F.ForventetInntekt),
+                type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                 månedsbeløp = diff,
                 periode = it.first,
                 utenlandskInntekt = null,

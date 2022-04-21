@@ -8,11 +8,11 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
@@ -81,7 +81,7 @@ internal object TestMånedsberegningSomGirOpphør : Månedsberegning {
 }
 
 internal object TestFradrag : Fradrag {
-    override val fradragstype: Fradragstype = Fradragstype(F.Arbeidsinntekt)
+    override val fradragskategoriWrapper: FradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt)
     override val månedsbeløp: Double = 12000.0
     override val utenlandskInntekt: UtenlandskInntekt? = null
     override val tilhører: FradragTilhører = FradragTilhører.BRUKER

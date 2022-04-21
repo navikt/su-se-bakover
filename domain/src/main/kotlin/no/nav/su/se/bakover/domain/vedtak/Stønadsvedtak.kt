@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.grunnlag.lagTidslinje
@@ -49,11 +49,11 @@ sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
     }
 
     /**
-     * Dersom grunnlaget inneholder fradrag av typen [Fradragstype.AvkortingUtenlandsopphold] vet vi at vedtaket
+     * Dersom grunnlaget inneholder fradrag av typen [FradragskategoriWrapper.AvkortingUtenlandsopphold] vet vi at vedtaket
      * aktivt avkorter ytelsen.
      */
     fun harPågåendeAvkorting(): Boolean {
-        return behandling.grunnlagsdata.fradragsgrunnlag.any { it.fradragstype.type == F.AvkortingUtenlandsopphold }
+        return behandling.grunnlagsdata.fradragsgrunnlag.any { it.fradragskategoriWrapper.kategori == Fradragskategori.AvkortingUtenlandsopphold }
     }
 
     /**
@@ -388,7 +388,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                                 it.fullstendigOrThrow()
                             }.lagTidslinje(args.periode),
                             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot {
-                                it.fradragstype.type == F.ForventetInntekt
+                                it.fradragskategoriWrapper.kategori == Fradragskategori.ForventetInntekt
                             }.mapNotNull {
                                 it.copy(args = CopyArgs.Snitt(args.periode))
                             },

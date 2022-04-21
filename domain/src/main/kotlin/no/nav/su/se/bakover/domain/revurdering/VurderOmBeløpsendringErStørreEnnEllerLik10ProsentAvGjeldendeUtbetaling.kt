@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.revurdering
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import kotlin.math.abs
@@ -51,7 +51,7 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
     private fun Månedsberegning.finnBeløpFor10ProsentSjekk(): Int {
         return if (getMerknader().contains(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)) {
             getFradrag()
-                .filter { it.fradragstype.type == F.UnderMinstenivå }
+                .filter { it.fradragskategoriWrapper.kategori == Fradragskategori.UnderMinstenivå }
                 .sumOf { it.månedsbeløp }
                 .roundToInt()
         } else {

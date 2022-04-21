@@ -7,31 +7,30 @@ import arrow.core.right
 import arrow.core.sequence
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.UtenlandskInntektJson.Companion.toJson
 
-internal data class FradragstypeJson(
-    val type: String,
-    val spesifisertType: String? = null,
+internal data class FradragskategoriWrapperJson(
+    val kategori: String,
+    val spesifisertKategori: String? = null,
 ) {
     init {
-        if (type == F.Annet.toString() && spesifisertType == null) throw IllegalArgumentException("Typen må spesifiseres")
-        if (type != F.Annet.toString() && spesifisertType != null) throw IllegalArgumentException("Typen skal kun spesifieres dersom den er 'Annet'")
+        if (kategori == Fradragskategori.Annet.toString() && spesifisertKategori == null) throw IllegalArgumentException("Typen må spesifiseres")
+        if (kategori != Fradragskategori.Annet.toString() && spesifisertKategori != null) throw IllegalArgumentException("Typen skal kun spesifieres dersom den er 'Annet'")
     }
 }
 
 internal data class FradragJson(
     val periode: PeriodeJson?,
-    // TODO: navn?
-    val type: FradragstypeJson,
+    val fradragskategoriWrapper: FradragskategoriWrapperJson,
     val beløp: Double,
     val utenlandskInntekt: UtenlandskInntektJson?,
     val tilhører: String,
@@ -44,9 +43,9 @@ internal data class FradragJson(
             return it.left()
         } ?: beregningsperiode
         return FradragFactory.ny(
-            type = Fradragstype(
-                type = F.valueOf(type.type),
-                spesifisertType = type.spesifisertType,
+            type = FradragskategoriWrapper(
+                kategori = Fradragskategori.valueOf(fradragskategoriWrapper.kategori),
+                spesifisertKategori = fradragskategoriWrapper.spesifisertKategori,
             ),
             månedsbeløp = beløp,
             periode = periode,
@@ -77,9 +76,9 @@ internal data class FradragJson(
 
         fun Fradrag.toJson() =
             FradragJson(
-                type = FradragstypeJson(
-                    type = fradragstype.type.toString(),
-                    spesifisertType = fradragstype.spesifisertType,
+                fradragskategoriWrapper = FradragskategoriWrapperJson(
+                    kategori = fradragskategoriWrapper.kategori.toString(),
+                    spesifisertKategori = fradragskategoriWrapper.spesifisertKategori,
                 ),
                 beløp = månedsbeløp,
                 utenlandskInntekt = utenlandskInntekt?.toJson(),

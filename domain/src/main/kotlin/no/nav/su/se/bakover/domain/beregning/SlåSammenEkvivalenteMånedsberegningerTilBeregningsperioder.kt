@@ -56,7 +56,7 @@ internal data class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
             this.getFradrag().likeFradrag(other.getFradrag())
 
     private infix fun Fradrag.likhetUtenDato(other: Fradrag): Boolean =
-        this.fradragstype == other.fradragstype &&
+        this.fradragskategoriWrapper == other.fradragskategoriWrapper &&
             this.månedsbeløp == other.månedsbeløp &&
             this.utenlandskInntekt == other.utenlandskInntekt &&
             this.tilhører == other.tilhører
@@ -73,7 +73,7 @@ internal data class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 
     private fun List<Fradrag>.sorterFradrag() = this
         .sortedBy { it.månedsbeløp }
-        .sortedBy { it.fradragstype.type }
+        .sortedBy { it.fradragskategoriWrapper.kategori }
         .sortedBy { it.tilhører }
 }
 

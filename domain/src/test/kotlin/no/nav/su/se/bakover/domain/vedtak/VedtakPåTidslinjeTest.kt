@@ -14,9 +14,9 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -64,7 +64,7 @@ internal class VedtakPåTidslinjeTest {
         )
 
         val f1 = lagFradragsgrunnlag(
-            type = Fradragstype(F.Kontantstøtte),
+            type = FradragskategoriWrapper(Fradragskategori.Kontantstøtte),
             månedsbeløp = 5000.0,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 28.februar(2021)),
             utenlandskInntekt = null,
@@ -72,7 +72,7 @@ internal class VedtakPåTidslinjeTest {
         )
 
         val f2 = lagFradragsgrunnlag(
-            type = Fradragstype(F.Arbeidsinntekt),
+            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
             månedsbeløp = 1000.0,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.oktober(2021)),
             utenlandskInntekt = null,
@@ -228,7 +228,7 @@ internal class VedtakPåTidslinjeTest {
         )
 
         val f1 = lagFradragsgrunnlag(
-            type = Fradragstype(F.Kontantstøtte),
+            type = FradragskategoriWrapper(Fradragskategori.Kontantstøtte),
             månedsbeløp = 5000.0,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 28.februar(2021)),
             utenlandskInntekt = null,
@@ -236,7 +236,7 @@ internal class VedtakPåTidslinjeTest {
         )
 
         val f2 = lagFradragsgrunnlag(
-            type = Fradragstype(F.Arbeidsinntekt),
+            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
             månedsbeløp = 1000.0,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.oktober(2021)),
             utenlandskInntekt = null,
@@ -367,7 +367,7 @@ internal class VedtakPåTidslinjeTest {
                 vedtakPåTidslinje.grunnlagsdata.fradragsgrunnlag.let { fradragCopy ->
                     fradragCopy shouldHaveSize 2
                     fradragCopy[0].let {
-                        it.fradragstype shouldBe Fradragstype(F.Arbeidsinntekt)
+                        it.fradragskategoriWrapper shouldBe FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt)
                         it.månedsbeløp shouldBe 1000.0
                         it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
                         it.utenlandskInntekt shouldBe null

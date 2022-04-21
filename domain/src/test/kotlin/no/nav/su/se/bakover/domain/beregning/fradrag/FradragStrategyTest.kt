@@ -23,7 +23,7 @@ internal class FradragStrategyTest {
             FradragStrategy.Enslig.beregn(
                 fradrag = listOf(
                     lagFradrag(
-                        Fradragstype(F.ForventetInntekt),
+                        FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         5000.0,
                         månedsperiodeJanuar2020,
                     ),
@@ -38,12 +38,12 @@ internal class FradragStrategyTest {
             FradragStrategy.Enslig.beregn(
                 fradrag = listOf(
                     lagFradrag(
-                        Fradragstype(F.ForventetInntekt),
+                        FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         12_000.0,
                         periode,
                     ),
                     lagFradrag(
-                        Fradragstype(F.ForventetInntekt),
+                        FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         24_000.0,
                         månedsperiodeJanuar2020,
                     ),
@@ -58,7 +58,7 @@ internal class FradragStrategyTest {
             FradragStrategy.EpsOver67År.beregn(
                 fradrag = listOf(
                     lagFradrag(
-                        Fradragstype(F.ForventetInntekt),
+                        FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         5000.0,
                         månedsperiodeJanuar2020,
                     ),
@@ -73,12 +73,12 @@ internal class FradragStrategyTest {
             FradragStrategy.EpsOver67År.beregn(
                 fradrag = listOf(
                     lagFradrag(
-                        Fradragstype(F.ForventetInntekt),
+                        FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         12_000.0,
                         periode,
                     ),
                     lagFradrag(
-                        Fradragstype(F.ForventetInntekt),
+                        FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         24_000.0,
                         månedsperiodeJanuar2020,
                     ),
@@ -93,7 +93,7 @@ internal class FradragStrategyTest {
             FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
                 fradrag = listOf(
                     lagFradrag(
-                        Fradragstype(F.ForventetInntekt),
+                        FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         5000.0,
                         månedsperiodeJanuar2020,
                     ),
@@ -108,12 +108,12 @@ internal class FradragStrategyTest {
             FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
                 fradrag = listOf(
                     lagFradrag(
-                        Fradragstype(F.ForventetInntekt),
+                        FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         12_000.0,
                         periode,
                     ),
                     lagFradrag(
-                        Fradragstype(F.ForventetInntekt),
+                        FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         24_000.0,
                         månedsperiodeJanuar2020,
                     ),
@@ -128,7 +128,7 @@ internal class FradragStrategyTest {
             FradragStrategy.EpsUnder67År.beregn(
                 fradrag = listOf(
                     lagFradrag(
-                        Fradragstype(F.ForventetInntekt),
+                        FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         5000.0,
                         månedsperiodeJanuar2020,
                     ),
@@ -143,12 +143,12 @@ internal class FradragStrategyTest {
             FradragStrategy.EpsUnder67År.beregn(
                 fradrag = listOf(
                     lagFradrag(
-                        Fradragstype(F.ForventetInntekt),
+                        FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         12_000.0,
                         periode,
                     ),
                     lagFradrag(
-                        Fradragstype(F.ForventetInntekt),
+                        FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                         24_000.0,
                         månedsperiodeJanuar2020,
                     ),
@@ -191,7 +191,7 @@ internal class FradragStrategyTest {
 }
 
 internal fun lagFradrag(
-    type: Fradragstype,
+    type: FradragskategoriWrapper,
     beløp: Double,
     periode: Periode,
     tilhører: FradragTilhører = FradragTilhører.BRUKER,
@@ -204,7 +204,7 @@ internal fun lagFradrag(
 )
 
 internal fun lagPeriodisertFradrag(
-    type: Fradragstype,
+    type: FradragskategoriWrapper,
     beløp: Double,
     måned: Månedsperiode,
     tilhører: FradragTilhører = FradragTilhører.BRUKER,

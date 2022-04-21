@@ -47,9 +47,9 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                     {
                         "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
                         "beløp":9879,
-                        "type":{
-                            "type": "Arbeidsinntekt",
-                            "spesifisertType": null
+                        "fradragskategoriWrapper":{
+                            "kategori": "Arbeidsinntekt",
+                            "spesifisertKategori": null
                           },
                         "utenlandskInntekt":null,
                         "tilhører":"EPS"
@@ -57,9 +57,9 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                     {
                         "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
                         "beløp":10000,
-                        "type":{
-                            "type": "Kontantstøtte",
-                            "spesifisertType": null
+                        "fradragskategoriWrapper":{
+                            "kategori": "Kontantstøtte",
+                            "spesifisertKategori": null
                           },
                         "utenlandskInntekt":null,
                         "tilhører":"BRUKER"
@@ -189,9 +189,9 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                             [
                                 {
                                     "beløp":9879,
-                                    "type":{
-                                        "type": "Arbeidsinntekt",
-                                        "spesifisertType": null
+                                    "fradragskategoriWrapper":{
+                                        "kategori": "Arbeidsinntekt",
+                                        "spesifisertKategori": null
                                       },
                                     "utenlandskInntekt":null,
                                     "tilhører":"EPS"
@@ -199,9 +199,9 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                                 {
                                     "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
                                     "beløp":10000,
-                                    "type":{
-                                        "type": "Kontantstøtte",
-                                        "spesifisertType": null
+                                    "fradragskategoriWrapper":{
+                                        "kategori": "Kontantstøtte",
+                                        "spesifisertKategori": null
                                       },
                                     "utenlandskInntekt":null,
                                     "tilhører":"BRUKER"

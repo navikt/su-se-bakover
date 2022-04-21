@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.database.beregning
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.mai
@@ -12,14 +14,17 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.F
+import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -65,10 +70,8 @@ internal class BeregningMapperTest {
                   "satsbeløp": 21989.126666666667,
                   "fradrag": [
                     {
-                      "fradragstype": {
-                        "type": "ForventetInntekt",
-                        "spesifisertType": null
-                      },
+                      "fradragstype": "ForventetInntekt",
+                       "spesifisertKategori": null,
                       "månedsbeløp": 55000.0,
                       "utenlandskInntekt": null,
                       "periode": {
@@ -92,10 +95,8 @@ internal class BeregningMapperTest {
               ],
               "fradrag": [
                 {
-                  "fradragstype": {
-                    "type": "ForventetInntekt",
-                    "spesifisertType": null
-                  },
+                  "fradragstype": "ForventetInntekt",
+                  "spesifisertKategori": null,  
                   "månedsbeløp": 55000.0,
                   "utenlandskInntekt": null,
                   "periode": {
@@ -156,6 +157,34 @@ internal class BeregningMapperTest {
         (a === b) shouldBe false
     }
 
+    @Test
+    fun `kaster dersom kategorien ikke er Annet, og kategorien er spesifisert`() {
+        assertThrows<IllegalArgumentException> {
+            PersistertFradrag(
+                månedsbeløp = 0.0,
+                utenlandskInntekt = null,
+                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 1.februar(2021)),
+                tilhører = FradragTilhører.BRUKER,
+                fradragskategori = Fradragskategori.Sosialstønad,
+                spesifisertKategori = "jeg er spesifisert, uten at jeg skal være det",
+            )
+        }
+    }
+
+    @Test
+    fun `kaster dersom kategorien er Annet, og kategorien er ikke spesifisert`() {
+        assertThrows<IllegalArgumentException> {
+            PersistertFradrag(
+                månedsbeløp = 0.0,
+                utenlandskInntekt = null,
+                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 1.februar(2021)),
+                tilhører = FradragTilhører.BRUKER,
+                fradragskategori = Fradragskategori.Annet,
+                spesifisertKategori = null,
+            )
+        }
+    }
+
     private fun createBeregning(
         periode: Periode = periode2021,
         opprettet: Tidspunkt = fixedTidspunkt,
@@ -167,7 +196,7 @@ internal class BeregningMapperTest {
             opprettet = opprettet,
             fradrag = listOf(
                 FradragFactory.ny(
-                    type = Fradragstype(F.ForventetInntekt),
+                    type = FradragskategoriWrapper(Fradragskategori.ForventetInntekt),
                     månedsbeløp = 55000.0,
                     utenlandskInntekt = null,
                     periode = periode,

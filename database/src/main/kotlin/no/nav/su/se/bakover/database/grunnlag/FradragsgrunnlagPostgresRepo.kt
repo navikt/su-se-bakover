@@ -12,9 +12,8 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.util.UUID
 
@@ -67,10 +66,8 @@ internal class FradragsgrunnlagPostgresRepo(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             fradrag = PersistertFradrag(
-                fradragstype = Fradragstype(
-                    type = F.valueOf(string("fradragstype")),
-                    spesifisertType = stringOrNull("spesifiserttype"),
-                ),
+                fradragskategori = Fradragskategori.valueOf(string("fradragstype")),
+                spesifisertKategori = stringOrNull("spesifiserttype"),
                 månedsbeløp = double("månedsbeløp"),
                 utenlandskInntekt = stringOrNull("utenlandskInntekt")?.let { deserialize(it) },
                 periode = Periode.create(fraOgMed = localDate("fraOgMed"), tilOgMed = localDate("tilOgMed")),
@@ -114,11 +111,11 @@ internal class FradragsgrunnlagPostgresRepo(
                     "behandlingId" to behandlingId,
                     "fraOgMed" to fradragsgrunnlag.fradrag.periode.fraOgMed,
                     "tilOgMed" to fradragsgrunnlag.fradrag.periode.tilOgMed,
-                    "fradragstype" to fradragsgrunnlag.fradrag.fradragstype.type.toString(),
+                    "fradragstype" to fradragsgrunnlag.fradrag.fradragskategoriWrapper.kategori.toString(),
                     "manedsbelop" to fradragsgrunnlag.fradrag.månedsbeløp,
                     "utenlandskInntekt" to objectMapper.writeValueAsString(fradragsgrunnlag.fradrag.utenlandskInntekt),
                     "tilhorer" to fradragsgrunnlag.fradrag.tilhører,
-                    "spesifisertType" to fradragsgrunnlag.fradrag.fradragstype.spesifisertType,
+                    "spesifisertType" to fradragsgrunnlag.fradrag.fradragskategoriWrapper.spesifisertKategori,
                 ),
                 tx,
             )

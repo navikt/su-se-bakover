@@ -15,10 +15,10 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
@@ -77,7 +77,7 @@ internal class ReguleringServiceImplTest {
                         Grunnlag.Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
                             fradrag = FradragFactory.ny(
-                                type = Fradragstype(F.OffentligPensjon),
+                                type = FradragskategoriWrapper(Fradragskategori.OffentligPensjon),
                                 månedsbeløp = 8000.0,
                                 periode = periode2021,
                                 utenlandskInntekt = null,
@@ -202,7 +202,7 @@ internal class ReguleringServiceImplTest {
                         Grunnlag.Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
                             fradrag = FradragFactory.ny(
-                                type = Fradragstype(F.OffentligPensjon),
+                                type = FradragskategoriWrapper(Fradragskategori.OffentligPensjon),
                                 månedsbeløp = 8000.0,
                                 periode = periode2021,
                                 utenlandskInntekt = null,
@@ -244,7 +244,7 @@ internal class ReguleringServiceImplTest {
                         Grunnlag.Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
                             fradrag = FradragFactory.ny(
-                                type = Fradragstype(F.OffentligPensjon),
+                                type = FradragskategoriWrapper(Fradragskategori.OffentligPensjon),
                                 månedsbeløp = 8000.0,
                                 periode = periode2021,
                                 utenlandskInntekt = null,

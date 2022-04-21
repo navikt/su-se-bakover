@@ -12,10 +12,10 @@ import io.ktor.routing.post
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
@@ -56,11 +56,11 @@ internal fun Route.leggTilGrunnlagFradrag(
                             periode = fradrag.periode.toPeriode().getOrHandle { feilResultat ->
                                 return feilResultat.left()
                             },
-                            type = Fradragstype(
-                                type = F.tryParse(fradrag.type).getOrHandle {
+                            type = FradragskategoriWrapper(
+                                kategori = Fradragskategori.tryParse(fradrag.type).getOrHandle {
                                     return Behandlingsfeilresponser.ugyldigFradragstype.left()
                                 },
-                                spesifisertType = fradrag.spesifisertType,
+                                spesifisertKategori = fradrag.spesifisertType,
                             ),
                             månedsbeløp = fradrag.beløp,
                             utenlandskInntekt = fradrag.utenlandskInntekt?.toUtenlandskInntekt()

@@ -14,14 +14,14 @@ internal class EnsligStrategyTest {
     @Test
     fun `velger arbeidsinntekt dersom den er større enn forventet inntekt`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
-        val arbeidsinntekt = lagFradrag(Fradragstype(F.Arbeidsinntekt), 2000.0, periode)
-        val kontantstøtte = lagFradrag(Fradragstype(F.Kontantstøtte), 500.0, periode)
-        val forventetInntekt = lagFradrag(Fradragstype(F.ForventetInntekt), 500.0, periode)
+        val arbeidsinntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt), 2000.0, periode)
+        val kontantstøtte = lagFradrag(FradragskategoriWrapper(Fradragskategori.Kontantstøtte), 500.0, periode)
+        val forventetInntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.ForventetInntekt), 500.0, periode)
 
         val expectedArbeidsinntekt =
-            lagPeriodisertFradrag(Fradragstype(F.Arbeidsinntekt), 2000.0, månedsperiodeJanuar2020)
+            lagPeriodisertFradrag(FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt), 2000.0, månedsperiodeJanuar2020)
         val expectedKontantstøtte =
-            lagPeriodisertFradrag(Fradragstype(F.Kontantstøtte), 500.0, månedsperiodeJanuar2020)
+            lagPeriodisertFradrag(FradragskategoriWrapper(Fradragskategori.Kontantstøtte), 500.0, månedsperiodeJanuar2020)
 
         FradragStrategy.Enslig.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
@@ -32,21 +32,21 @@ internal class EnsligStrategyTest {
                 expectedArbeidsinntekt,
                 expectedKontantstøtte,
             )
-            it.values.forEach { it.none { it.fradragstype.type == F.ForventetInntekt } }
+            it.values.forEach { it.none { it.fradragskategoriWrapper.kategori == Fradragskategori.ForventetInntekt } }
         }
     }
 
     @Test
     fun `velger forventet inntekt dersom den er større enn arbeidsinntekt`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
-        val arbeidsinntekt = lagFradrag(Fradragstype(F.Arbeidsinntekt), 500.0, periode)
-        val kontantstøtte = lagFradrag(Fradragstype(F.Kontantstøtte), 500.0, periode)
-        val forventetInntekt = lagFradrag(Fradragstype(F.ForventetInntekt), 2000.0, periode)
+        val arbeidsinntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt), 500.0, periode)
+        val kontantstøtte = lagFradrag(FradragskategoriWrapper(Fradragskategori.Kontantstøtte), 500.0, periode)
+        val forventetInntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.ForventetInntekt), 2000.0, periode)
 
         val expectedForventetInntekt =
-            lagPeriodisertFradrag(Fradragstype(F.ForventetInntekt), 2000.0, månedsperiodeJanuar2020)
+            lagPeriodisertFradrag(FradragskategoriWrapper(Fradragskategori.ForventetInntekt), 2000.0, månedsperiodeJanuar2020)
         val expectedKontantstøtte =
-            lagPeriodisertFradrag(Fradragstype(F.Kontantstøtte), 500.0, månedsperiodeJanuar2020)
+            lagPeriodisertFradrag(FradragskategoriWrapper(Fradragskategori.Kontantstøtte), 500.0, månedsperiodeJanuar2020)
 
         FradragStrategy.Enslig.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
@@ -57,16 +57,16 @@ internal class EnsligStrategyTest {
                 expectedForventetInntekt,
                 expectedKontantstøtte,
             )
-            it.values.forEach { it.none { it.fradragstype.type == F.Arbeidsinntekt } }
+            it.values.forEach { it.none { it.fradragskategoriWrapper.kategori == Fradragskategori.Arbeidsinntekt } }
         }
     }
 
     @Test
     fun `bruker bare fradrag som tilhører bruker`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
-        val arbeidsinntekt = lagFradrag(Fradragstype(F.Arbeidsinntekt), 5000.0, periode, tilhører = FradragTilhører.EPS)
-        val kontantstøtte = lagFradrag(Fradragstype(F.Kontantstøtte), 5000.0, periode)
-        val forventetInntekt = lagFradrag(Fradragstype(F.ForventetInntekt), 15000.0, periode)
+        val arbeidsinntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt), 5000.0, periode, tilhører = FradragTilhører.EPS)
+        val kontantstøtte = lagFradrag(FradragskategoriWrapper(Fradragskategori.Kontantstøtte), 5000.0, periode)
+        val forventetInntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.ForventetInntekt), 15000.0, periode)
 
         FradragStrategy.Enslig.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
@@ -78,14 +78,14 @@ internal class EnsligStrategyTest {
 
     @Test
     fun `varierer bruk av arbeidsinntekt og forventet inntekt for forskjellige måneder`() {
-        val arbeidsinntektJanuar = lagFradrag(Fradragstype(F.Arbeidsinntekt), 6000.0, månedsperiodeJanuar2020)
-        val arbeidsinntektJuni = lagFradrag(Fradragstype(F.Arbeidsinntekt), 1000.0, månedsperiodeJuni2020)
-        val forventetInntekt = lagFradrag(Fradragstype(F.ForventetInntekt), 2000.0, Periode.create(1.januar(2020), 31.desember(2020)))
+        val arbeidsinntektJanuar = lagFradrag(FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt), 6000.0, månedsperiodeJanuar2020)
+        val arbeidsinntektJuni = lagFradrag(FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt), 1000.0, månedsperiodeJuni2020)
+        val forventetInntekt = lagFradrag(FradragskategoriWrapper(Fradragskategori.ForventetInntekt), 2000.0, Periode.create(1.januar(2020), 31.desember(2020)))
 
         val expectedInntektJanuar =
-            lagPeriodisertFradrag(Fradragstype(F.Arbeidsinntekt), 6000.0, månedsperiodeJanuar2020)
+            lagPeriodisertFradrag(FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt), 6000.0, månedsperiodeJanuar2020)
         val expectedInntektJuni =
-            lagPeriodisertFradrag(Fradragstype(F.ForventetInntekt), 2000.0, månedsperiodeJuni2020)
+            lagPeriodisertFradrag(FradragskategoriWrapper(Fradragskategori.ForventetInntekt), 2000.0, månedsperiodeJuni2020)
 
         FradragStrategy.Enslig.beregn(
             fradrag = listOf(arbeidsinntektJanuar, forventetInntekt, arbeidsinntektJuni),

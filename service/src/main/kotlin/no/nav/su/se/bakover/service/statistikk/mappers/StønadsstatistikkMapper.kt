@@ -109,7 +109,7 @@ private fun tilMånedsbeløp(
     nettosats = månedsberegning.getSumYtelse().toLong(),
     inntekter = månedsberegning.getFradrag().map { fradrag ->
         Statistikk.Inntekt(
-            inntektstype = fradrag.fradragstype.type.toString(),
+            inntektstype = fradrag.fradragskategoriWrapper.kategori.toString(),
             beløp = fradrag.månedsbeløp.toLong(),
         )
     },

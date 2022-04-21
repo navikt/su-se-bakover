@@ -7,7 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsplan
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.time.Clock
 import kotlin.math.roundToInt
@@ -66,7 +66,7 @@ internal class AnnullerAvkorting(
 
 private fun beregnUtenAvkorting(revurdering: Revurdering, clock: Clock): Pair<OpprettetRevurdering, Beregning> {
     return revurdering.oppdaterFradrag(
-        fradragsgrunnlag = revurdering.grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype.type == F.AvkortingUtenlandsopphold },
+        fradragsgrunnlag = revurdering.grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragskategoriWrapper.kategori == Fradragskategori.AvkortingUtenlandsopphold },
     ).getOrHandle {
         throw IllegalStateException(Revurdering.KunneIkkeLeggeTilFradrag.UgyldigTilstand(revurdering::class).toString())
     }.let {

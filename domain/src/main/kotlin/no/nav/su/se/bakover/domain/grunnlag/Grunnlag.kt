@@ -13,9 +13,9 @@ import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.periode.reduser
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.beregning.fradrag.F
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
 import no.nav.su.se.bakover.domain.tidslinje.masker
@@ -117,7 +117,7 @@ sealed class Grunnlag {
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                     fradrag = FradragFactory.ny(
-                        type = this.fradrag.fradragstype,
+                        type = this.fradrag.fradragskategoriWrapper,
                         månedsbeløp = this.fradrag.månedsbeløp,
                         periode = oppdatertPeriode,
                         utenlandskInntekt = this.fradrag.utenlandskInntekt,
@@ -130,7 +130,7 @@ sealed class Grunnlag {
         override fun erLik(other: Grunnlag): Boolean {
             return other is Fradragsgrunnlag &&
                 this.periode tilstøter other.periode &&
-                this.fradrag.fradragstype == other.fradragstype &&
+                this.fradrag.fradragskategoriWrapper == other.fradragskategoriWrapper &&
                 this.fradrag.månedsbeløp == other.månedsbeløp &&
                 this.fradrag.utenlandskInntekt == other.utenlandskInntekt &&
                 this.fradrag.tilhører == other.tilhører
@@ -212,7 +212,7 @@ sealed class Grunnlag {
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                             fradrag = FradragFactory.ny(
-                                type = it.first().fradragstype,
+                                type = it.first().fradragskategoriWrapper,
                                 månedsbeløp = it.first().månedsbeløp,
                                 periode = periode,
                                 utenlandskInntekt = it.first().utenlandskInntekt,
@@ -227,10 +227,10 @@ sealed class Grunnlag {
              */
             private fun harUgyldigFradragsType(fradrag: Fradrag): Boolean =
                 setOf(
-                    F.ForventetInntekt,
-                    F.BeregnetFradragEPS,
-                    F.UnderMinstenivå,
-                ).contains(fradrag.fradragstype.type)
+                    Fradragskategori.ForventetInntekt,
+                    Fradragskategori.BeregnetFradragEPS,
+                    Fradragskategori.UnderMinstenivå,
+                ).contains(fradrag.fradragskategoriWrapper.kategori)
 
             private fun List<Fradragsgrunnlag>.sisteFradragsgrunnlagErLikOgTilstøtende(other: Fradragsgrunnlag) =
                 this.last().let { it.tilstøter(other) && it.erLik(other) }

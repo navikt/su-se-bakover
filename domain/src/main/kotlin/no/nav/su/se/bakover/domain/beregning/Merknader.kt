@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 
 sealed class Merknader {
 
@@ -43,14 +43,14 @@ sealed class Merknad {
     sealed class Beregning {
         sealed class Avslag : Beregning() {
             /**
-             * Beregnet beløp for en måned (ex [Fradragstype.Sosialstønad]) er mellom 0 og 2% av [Sats.HØY]
+             * Beregnet beløp for en måned (ex [FradragskategoriWrapper.Sosialstønad]) er mellom 0 og 2% av [Sats.HØY]
              */
             object BeløpMellomNullOgToProsentAvHøySats : Avslag() {
                 override fun toString(): String = this.javaClass.simpleName
             }
 
             /**
-             * Beregnet beløp for en måned (ex [Fradragstype.Sosialstønad]) er 0.
+             * Beregnet beløp for en måned (ex [FradragskategoriWrapper.Sosialstønad]) er 0.
              */
             object BeløpErNull : Avslag() {
                 override fun toString(): String = this.javaClass.simpleName

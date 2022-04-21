@@ -4,18 +4,20 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 
-data class Fradragstype(
-    val type: F,
-    val spesifisertType: String? = null,
+/**
+ * spesifisertKategori - manuelt skrevet av saksbehandler
+ */
+data class FradragskategoriWrapper(
+    val kategori: Fradragskategori,
+    val spesifisertKategori: String? = null,
 ) {
     init {
-        if (type == F.Annet && spesifisertType == null) throw IllegalArgumentException("Typen må spesifiseres")
-        if (type != F.Annet && spesifisertType != null) throw IllegalArgumentException("Typen skal kun spesifieres dersom den er 'Annet'")
+        if (kategori == Fradragskategori.Annet && spesifisertKategori == null) throw IllegalArgumentException("Typen må spesifiseres")
+        if (kategori != Fradragskategori.Annet && spesifisertKategori != null) throw IllegalArgumentException("Typen skal kun spesifieres dersom den er 'Annet'")
     }
 }
 
-// TODO: navn
-enum class F {
+enum class Fradragskategori {
     Alderspensjon,
     Annet,
     Arbeidsavklaringspenger,
@@ -50,7 +52,7 @@ enum class F {
     UnderMinstenivå;
 
     companion object {
-        fun tryParse(value: String): Either<UgyldigFradragstype, F> {
+        fun tryParse(value: String): Either<UgyldigFradragstype, Fradragskategori> {
             return values().firstOrNull { it.name == value }?.right() ?: UgyldigFradragstype.left()
         }
     }
