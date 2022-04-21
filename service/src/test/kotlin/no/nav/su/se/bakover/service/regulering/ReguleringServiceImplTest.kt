@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.fixedClock
@@ -39,12 +40,14 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
+import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.simulertFeilutbetaling
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Nested
@@ -129,17 +132,16 @@ internal class ReguleringServiceImplTest {
             val reguleringService = lagReguleringServiceImpl(revurdertSak)
 
             reguleringService.startRegulering(1.mai(2021))
-                .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(Sak.KunneIkkeOppretteEllerOppdatereRegulering.HelePeriodenErOpphør).left()
+                .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(Sak.KunneIkkeOppretteEllerOppdatereRegulering.HelePeriodenErOpphør)
+                .left()
         }
 
         @Test
-        fun `en behandling med delvis opphør skal reguleres manuelt`() {
+        fun `en behandling med delvis opphør i slutten av perioden skal reguleres automatisk`() {
             val revurdertSak =
                 vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
                     revurderingsperiode = Periode.create(
-                        1.september(
-                            2021,
-                        ),
+                        1.september(2021),
                         31.desember(2021),
                     ),
                 ).first
@@ -147,7 +149,72 @@ internal class ReguleringServiceImplTest {
             val reguleringService = lagReguleringServiceImpl(revurdertSak)
 
             val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
-            regulering.reguleringstype shouldBe Reguleringstype.MANUELL
+            regulering.reguleringstype shouldBe Reguleringstype.AUTOMATISK
+            regulering.periode shouldBe Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.august(2021))
+        }
+
+        @Test
+        fun `en behandling med delvis opphør i starten av perioden skal reguleres automatisk`() {
+            val clock = TikkendeKlokke()
+            val (sakEtterFørsteRevudering, vedtak) =
+                vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+                    revurderingsperiode = Periode.create(
+                        1.mai(2021),
+                        31.desember(2021),
+                    ),
+                    clock = clock,
+                )
+
+            val sak = vedtakRevurdering(
+                revurderingsperiode = Periode.create(1.juni(2021), tilOgMed = 31.desember(2021)),
+                sakOgVedtakSomKanRevurderes = sakEtterFørsteRevudering to vedtak,
+                vilkårOverrides = listOf(
+                    innvilgetUførevilkår(
+                        periode = Periode.create(
+                            1.juni(2021),
+                            tilOgMed = 31.desember(2021),
+                        ),
+                    ),
+                ),
+                clock = clock,
+            ).first
+            val reguleringService = lagReguleringServiceImpl(sak)
+
+            val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
+            regulering.reguleringstype shouldBe Reguleringstype.AUTOMATISK
+            regulering.periode shouldBe Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021))
+        }
+
+        @Test
+        fun `en behandling med delvis opphør i midten av perioden skal ikke støttes`() {
+            val clock = TikkendeKlokke()
+            val (sakEtterFørsteRevudering, vedtak) =
+                vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+                    revurderingsperiode = Periode.create(
+                        1.juni(2021),
+                        31.desember(2021),
+                    ),
+                    clock = clock,
+                )
+
+            val sak = vedtakRevurdering(
+                revurderingsperiode = Periode.create(1.august(2021), tilOgMed = 31.desember(2021)),
+                sakOgVedtakSomKanRevurderes = sakEtterFørsteRevudering to vedtak,
+                vilkårOverrides = listOf(
+                    innvilgetUførevilkår(
+                        periode = Periode.create(
+                            1.august(2021),
+                            tilOgMed = 31.desember(2021),
+                        ),
+                    ),
+                ),
+                clock = clock,
+            ).first
+            val reguleringService = lagReguleringServiceImpl(sak)
+
+            reguleringService.startRegulering(1.mai(2021))
+                .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig)
+                .left()
         }
 
         @Test

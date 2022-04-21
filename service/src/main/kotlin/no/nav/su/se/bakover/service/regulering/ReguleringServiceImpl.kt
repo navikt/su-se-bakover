@@ -130,8 +130,10 @@ class ReguleringServiceImpl(
             val regulert = it.mapNotNull { regulering ->
                 regulering.fold(ifLeft = { null }, ifRight = { it })
             }
-            val antallAutomatiske = regulert.filter { regulering -> regulering.reguleringstype == Reguleringstype.AUTOMATISK }.size
-            val antallManuelle = regulert.filter { regulering -> regulering.reguleringstype == Reguleringstype.MANUELL }.size
+            val antallAutomatiske =
+                regulert.filter { regulering -> regulering.reguleringstype == Reguleringstype.AUTOMATISK }.size
+            val antallManuelle =
+                regulert.filter { regulering -> regulering.reguleringstype == Reguleringstype.MANUELL }.size
 
             log.info("Totalt antall prosesserte reguleringer: ${regulert.size}, antall automatiske: $antallAutomatiske, antall manuelle: $antallManuelle")
         }
