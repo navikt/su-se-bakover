@@ -122,6 +122,7 @@ sealed class Revurdering :
         data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
             KunneIkkeLeggeTilBosituasjon()
         data class Konsistenssjekk(val feil: Konsistensproblem.Bosituasjon) : KunneIkkeLeggeTilBosituasjon()
+        data class KunneIkkeOppdatereFormue(val feil: KunneIkkeLeggeTilFormue) : KunneIkkeLeggeTilBosituasjon()
         object PerioderMangler : KunneIkkeLeggeTilBosituasjon()
     }
 
@@ -254,13 +255,13 @@ sealed class Revurdering :
                     bosituasjon = bosituasjon,
                 ).mapLeft {
                     KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it)
-                }.map { grunnlagsdata ->
-                    oppdaterGrunnlag(grunnlagsdata).let {
-                        it.oppdaterFormueInternal(
-                            formue = it.vilkårsvurderinger.formue.fjernEPSFormue(bosituasjon.perioderUtenEPS())
+                }.flatMap { grunnlagsdata ->
+                    oppdaterGrunnlag(grunnlagsdata).let { medOppdatertFradrag ->
+                        medOppdatertFradrag.oppdaterFormueInternal(
+                            formue = medOppdatertFradrag.vilkårsvurderinger.formue.fjernEPSFormue(bosituasjon.perioderUtenEPS())
                                 .slåSammenLikePerioder(),
-                        ).getOrHandle {
-                            throw IllegalStateException("""${this::oppdaterFormueInternal} returnerte uvente feil som ikke skal kunne oppstå.""")
+                        ).mapLeft {
+                            KunneIkkeLeggeTilBosituasjon.KunneIkkeOppdatereFormue(it)
                         }
                     }
                 }

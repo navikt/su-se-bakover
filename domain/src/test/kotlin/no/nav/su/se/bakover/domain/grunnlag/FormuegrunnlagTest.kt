@@ -178,7 +178,7 @@ internal class FormuegrunnlagTest {
                 bosituasjon = listOf(enslig),
                 behandlingsPeriode = Periode.create(1.januar(2021), 31.desember(2021)),
             ) shouldBe KunneIkkeLageFormueGrunnlag.Konsistenssjekk(
-                Konsistensproblem.BosituasjonOgFormue.PerioderForBosituasjonOgFormueSamsvarerIkke
+                Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode
             ).left()
         }
 
@@ -279,13 +279,16 @@ internal class FormuegrunnlagTest {
         val f1 = lagFormuegrunnlag(
             periodeInnenfor2021 = Periode.create(1.januar(2021), 31.januar(2021)),
             bosiutasjon = bosituasjon,
+            epsFormue = Formuegrunnlag.Verdier.empty().copy(
+                verdiEiendommer = 40,
+            ),
         )
         val f2 = lagFormuegrunnlag(
+            periodeInnenfor2021 = Periode.create(1.februar(2021), 28.februar(2021)),
+            bosiutasjon = bosituasjon,
             epsFormue = Formuegrunnlag.Verdier.empty().copy(
                 verdiEiendommer = 100,
             ),
-            periodeInnenfor2021 = Periode.create(1.februar(2021), 28.februar(2021)),
-            bosiutasjon = bosituasjon,
         )
 
         f1.tilstøterOgErLik(f2) shouldBe false

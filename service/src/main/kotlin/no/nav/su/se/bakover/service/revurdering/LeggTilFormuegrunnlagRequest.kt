@@ -7,7 +7,6 @@ import arrow.core.left
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueGrunnlag
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import java.time.Clock
@@ -38,17 +37,7 @@ data class LeggTilFormuegrunnlagRequest(
                             KunneIkkeLeggeTilFormuegrunnlag.FormuePeriodeErUtenforBehandlingsperioden
                         }
                         is KunneIkkeLageFormueGrunnlag.Konsistenssjekk -> {
-                            when (it.feil) {
-                                Konsistensproblem.BosituasjonOgFormue.PerioderForBosituasjonEPSOgFormueEPSSamsvarerIkke -> {
-                                    KunneIkkeLeggeTilFormuegrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode
-                                }
-                                Konsistensproblem.BosituasjonOgFormue.PerioderForBosituasjonOgFormueSamsvarerIkke -> {
-                                    KunneIkkeLeggeTilFormuegrunnlag.FormuePeriodeErUtenforBehandlingsperioden
-                                }
-                                is Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon -> {
-                                    throw IllegalStateException(it.toString())
-                                }
-                            }
+                            KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk(it.feil)
                         }
                     }.left()
                 }

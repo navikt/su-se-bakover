@@ -364,6 +364,7 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
     data class KunneIkkeEndreBosituasjongrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
         KunneIkkeLeggeTilBosituasjongrunnlag()
     data class Konsistenssjekk(val feil: Konsistensproblem.Bosituasjon) : KunneIkkeLeggeTilBosituasjongrunnlag()
+    data class KunneIkkeOppdatereFormue(val feil: Revurdering.KunneIkkeLeggeTilFormue) : KunneIkkeLeggeTilBosituasjongrunnlag()
     object PerioderMangler : KunneIkkeLeggeTilBosituasjongrunnlag()
 }
 

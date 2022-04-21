@@ -128,7 +128,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 listOf(medEps(periode)),
                 listOf(arbeidsinntekt(Periode.create(1.januar(2021), 31.mai(2023)), FradragTilhører.BRUKER)),
             ).resultat shouldBe setOf(
-                Konsistensproblem.BosituasjonOgFradrag.PerioderMedFradragUtenforPerioderMedBosituasjon,
+                Konsistensproblem.BosituasjonOgFradrag.IngenBosituasjonForFradragsperiode,
             ).left()
         }
 
@@ -138,7 +138,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 listOf(utenEps(periode)),
                 listOf(arbeidsinntekt(periode, FradragTilhører.EPS)),
             ).resultat shouldBe setOf(
-                Konsistensproblem.BosituasjonOgFradrag.PerioderForBosituasjonEPSOgFradragEPSSamsvarerIkke,
+                Konsistensproblem.BosituasjonOgFradrag.KombinasjonAvBosituasjonOgFradragErUgyldig,
             ).left()
         }
 
@@ -151,7 +151,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 ),
                 listOf(arbeidsinntekt(periode, FradragTilhører.EPS)),
             ).resultat shouldBe setOf(
-                Konsistensproblem.BosituasjonOgFradrag.PerioderForBosituasjonEPSOgFradragEPSSamsvarerIkke,
+                Konsistensproblem.BosituasjonOgFradrag.KombinasjonAvBosituasjonOgFradragErUgyldig,
             ).left()
         }
 
@@ -220,9 +220,10 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 ),
             ).resultat shouldBe setOf(
                 Konsistensproblem.Uføre.Mangler,
-                Konsistensproblem.BosituasjonOgFradrag.PerioderForBosituasjonEPSOgFradragEPSSamsvarerIkke,
-                Konsistensproblem.BosituasjonOgFradrag.PerioderMedFradragUtenforPerioderMedBosituasjon,
-                Konsistensproblem.BosituasjonOgFormue.PerioderForBosituasjonEPSOgFormueEPSSamsvarerIkke,
+                Konsistensproblem.BosituasjonOgFradrag.KombinasjonAvBosituasjonOgFradragErUgyldig,
+                Konsistensproblem.BosituasjonOgFradrag.IngenBosituasjonForFradragsperiode,
+                Konsistensproblem.BosituasjonOgFormue.KombinasjonAvBosituasjonOgFormueErUyldig,
+                Konsistensproblem.BosituasjonOgFormue.FormueForEPSManglerForBosituasjonsperiode
             ).left()
         }
     }
@@ -237,12 +238,42 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 forventetInntekt = 0,
                 opprettet = fixedTidspunkt,
             )
+            val bosituasjon = medEps(periode)
             SjekkOmGrunnlagErKonsistent(
-                formuegrunnlag = innvilgetFormueVilkår(periode = periode).grunnlag,
+                formuegrunnlag = innvilgetFormueVilkår(periode = periode, bosituasjon = bosituasjon).grunnlag,
                 uføregrunnlag = listOf(uføregrunnlag),
-                bosituasjongrunnlag = listOf(medEps(periode)),
+                bosituasjongrunnlag = listOf(bosituasjon),
                 fradragsgrunnlag = listOf(arbeidsinntekt(periode, FradragTilhører.EPS)),
             ).resultat shouldBe Unit.right()
+        }
+    }
+
+    @Nested
+    inner class BosituasjonOgFormue {
+        @Test
+        fun `ikke samsvar mellom perioder for bosituasjon og formue`() {
+            val janApr = Periode.create(1.januar(2021), 30.april(2021))
+            val maiDes = Periode.create(1.mai(2021), 31.desember(2021))
+
+            SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
+                bosituasjon = listOf(utenEps(janApr)),
+                formue = innvilgetFormueVilkår(periode = maiDes, bosituasjon = utenEps(maiDes)).grunnlag,
+            ).resultat shouldBe setOf(Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode).left()
+        }
+
+        @Test
+        fun `bosituasjon er ugyldig`() {
+            val maiDes = Periode.create(1.mai(2021), 31.desember(2021))
+
+            SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
+                bosituasjon = listOf(),
+                formue = innvilgetFormueVilkår(periode = maiDes, bosituasjon = utenEps(maiDes)).grunnlag,
+            ).resultat shouldBe setOf(
+                Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode,
+                Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon(
+                    setOf(Konsistensproblem.Bosituasjon.Mangler),
+                ),
+            ).left()
         }
     }
 }

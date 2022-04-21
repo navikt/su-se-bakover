@@ -12,6 +12,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjonRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjonerRequest
@@ -123,5 +124,20 @@ private fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
             message = "Bosituasjon mangler for hele eller deler av behandlingsperioden",
             code = "bosituasjon_mangler_for_perioder",
         )
+    }
+    is KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeOppdatereFormue -> {
+        when (val inner = this.feil) {
+            is Revurdering.KunneIkkeLeggeTilFormue.Konsistenssjekk -> {
+                inner.feil.tilResultat().let {
+                    HttpStatusCode.BadRequest.errorJson(
+                        message = it.message,
+                        code = it.code!!,
+                    )
+                }
+            }
+            is Revurdering.KunneIkkeLeggeTilFormue.UgyldigTilstand -> {
+                Feilresponser.ugyldigTilstand(inner.fra, inner.til)
+            }
+        }
     }
 }

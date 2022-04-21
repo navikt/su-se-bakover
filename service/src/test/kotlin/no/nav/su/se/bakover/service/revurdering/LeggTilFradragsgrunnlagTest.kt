@@ -206,7 +206,7 @@ internal class LeggTilFradragsgrunnlagTest {
         )
 
         revurderingService.leggTilFradragsgrunnlag(request) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
-            KunneIkkeLageGrunnlagsdata.Konsistenssjekk(Konsistensproblem.BosituasjonOgFradrag.PerioderMedFradragUtenforPerioderMedBosituasjon),
+            KunneIkkeLageGrunnlagsdata.Konsistenssjekk(Konsistensproblem.BosituasjonOgFradrag.IngenBosituasjonForFradragsperiode),
         ).left()
     }
 }

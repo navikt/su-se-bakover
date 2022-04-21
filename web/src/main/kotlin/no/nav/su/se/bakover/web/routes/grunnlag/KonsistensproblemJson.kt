@@ -16,32 +16,36 @@ fun Konsistensproblem.tilResultat() = when (this) {
         message = "Uføregrunnlag mangler",
         code = "uføregrunnlag_mangler",
     )
-    Konsistensproblem.BosituasjonOgFormue.PerioderForBosituasjonEPSOgFormueEPSSamsvarerIkke -> ErrorJson(
-        message = "Ikke samsvar mellom bosituasjon og formue for EPS for alle perioder.",
-        code = "ikke_samsvar_bosituasjon_formue_eps",
+    Konsistensproblem.BosituasjonOgFormue.KombinasjonAvBosituasjonOgFormueErUyldig -> ErrorJson(
+        message = "Ugyldig kombinasjon av bosituasjon og formue for hele eller deler av perioden",
+        code = "ugyldig_kombinasjon_bosituasjon_formue",
     )
-    Konsistensproblem.BosituasjonOgFradrag.PerioderMedFradragUtenforPerioderMedBosituasjon -> ErrorJson(
-        message = "Perioder for alle bosituasjoner overlapper ikke med perioder for alle fradrag",
-        code = "ikke_overlapp_bosituasjon_fradrag",
+    Konsistensproblem.BosituasjonOgFradrag.IngenBosituasjonForFradragsperiode -> ErrorJson(
+        message = "Bosituasjon mangler for periode med fradrag.",
+        code = "ingen_bosituasjon_for_fradragsperiode",
     )
     Konsistensproblem.Bosituasjon.Overlapp -> ErrorJson(
         message = "Ikke lov med overlapp i perioder for bosituasjon. Hvar bosituasjon må ha en distinkt periode.",
-        code = "bosituasjonsperioder_overlapper"
+        code = "bosituasjonsperioder_overlapper",
     )
-    Konsistensproblem.BosituasjonOgFormue.PerioderForBosituasjonOgFormueSamsvarerIkke -> ErrorJson(
-        message = "Perioder for alle bosituasjoner overlapper ikke med perioder for alle fradrag",
-        code = "ikke_overlapp_bosituasjon_formue"
+    Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode -> ErrorJson(
+        message = "Formue mangler for periode med bosituasjon",
+        code = "ingen_formue_for_bosituasjonsperiode",
     )
     is Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon -> ErrorJson(
         message = "Ugyldig bosituasjon: ${this.feil}",
-        code = "ugyldig_bosituasjon"
+        code = "ugyldig_bosituasjon",
     )
-    Konsistensproblem.BosituasjonOgFradrag.PerioderForBosituasjonEPSOgFradragEPSSamsvarerIkke -> ErrorJson(
-        message = "Ikke samsvar mellom bosituasjon og fradrag for EPS for alle perioder.",
-        code = "ikke_samsvar_bosituasjon_fradrag_eps",
+    Konsistensproblem.BosituasjonOgFradrag.KombinasjonAvBosituasjonOgFradragErUgyldig -> ErrorJson(
+        message = "Ugyldig kombinasjon av bosituasjon og fradrag for hele eller deler av perioden.",
+        code = "ugyldig_kombinasjon_bosituasjon_fradrag",
     )
     is Konsistensproblem.BosituasjonOgFradrag.UgyldigBosituasjon -> ErrorJson(
         message = "Ugyldig bosituasjon: ${this.feil}",
-        code = "ugyldig_bosituasjon"
+        code = "ugyldig_bosituasjon",
+    )
+    Konsistensproblem.BosituasjonOgFormue.FormueForEPSManglerForBosituasjonsperiode -> ErrorJson(
+        message = "Formue for EPS mangler for en eller flere av periodene.",
+        code = "ingen_formue_eps_for_bosituasjonsperiode"
     )
 }

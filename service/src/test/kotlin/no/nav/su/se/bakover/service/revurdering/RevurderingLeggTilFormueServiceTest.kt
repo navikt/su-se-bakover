@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -144,7 +145,9 @@ internal class RevurderingLeggTilFormueServiceTest {
                     ),
                 ),
             ).getOrHandle {
-                it shouldBe KunneIkkeLeggeTilFormuegrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode
+                it shouldBe KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk(
+                    Konsistensproblem.BosituasjonOgFormue.KombinasjonAvBosituasjonOgFormueErUyldig
+                )
             }
 
             inOrder(
@@ -207,8 +210,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
                             LeggTilFormuegrunnlagRequest.Grunnlag(
-                                periode = periode2021,
-                                epsFormue = Formuegrunnlag.Verdier.empty(),
+                                periode = Periode.create(1.januar(2021), 31.mars(2021)),
+                                epsFormue = null,
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                                 begrunnelse = null,
                             ),
@@ -216,7 +219,9 @@ internal class RevurderingLeggTilFormueServiceTest {
                     ),
                 ),
             ).getOrHandle {
-                it shouldBe KunneIkkeLeggeTilFormuegrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode
+                it shouldBe KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk(
+                    Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode
+                )
             }
 
             inOrder(
@@ -258,7 +263,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                             ),
                             LeggTilFormuegrunnlagRequest.Grunnlag(
                                 periode = periodeMarsDesember,
-                                epsFormue = null,
+                                epsFormue = Formuegrunnlag.Verdier.empty(),
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                                 begrunnelse = null,
                             ),

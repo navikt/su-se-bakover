@@ -412,6 +412,9 @@ internal class RevurderingServiceImpl(
                 Revurdering.KunneIkkeLeggeTilBosituasjon.PerioderMangler -> {
                     KunneIkkeLeggeTilBosituasjongrunnlag.PerioderMangler
                 }
+                is Revurdering.KunneIkkeLeggeTilBosituasjon.KunneIkkeOppdatereFormue -> {
+                    KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeOppdatereFormue(it.feil)
+                }
             }
         }.map {
             revurderingRepo.lagre(it)
