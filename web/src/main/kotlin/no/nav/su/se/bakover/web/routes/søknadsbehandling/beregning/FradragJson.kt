@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import arrow.core.sequenceEither
+import arrow.core.sequence
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -54,7 +54,7 @@ internal data class FradragJson(
         fun List<FradragJson>.toFradrag(): Either<Resultat, List<Fradrag>> {
             return this.map {
                 it.toFradrag()
-            }.sequenceEither()
+            }.sequence()
         }
 
         fun List<Fradrag>.toJson() =
