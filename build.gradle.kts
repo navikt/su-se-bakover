@@ -39,7 +39,7 @@ subprojects {
         implementation("no.finn.unleash:unleash-client-java:4.4.1")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.5.0")
-        implementation("io.confluent:kafka-avro-serializer:6.2.1")
+        implementation("io.confluent:kafka-avro-serializer:7.1.0")
         implementation("org.apache.avro:avro:1.11.0")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
