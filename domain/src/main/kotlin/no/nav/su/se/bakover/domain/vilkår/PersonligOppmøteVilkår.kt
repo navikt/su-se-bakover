@@ -22,6 +22,7 @@ sealed class PersonligOppmøteVilkår : Vilkår() {
 
     abstract override fun lagTidslinje(periode: Periode): PersonligOppmøteVilkår
     abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PersonligOppmøteVilkår
+    abstract override fun slåSammenLikePerioder(): PersonligOppmøteVilkår
 
     object IkkeVurdert : PersonligOppmøteVilkår() {
         override val resultat: Resultat = Resultat.Uavklart
@@ -33,6 +34,10 @@ sealed class PersonligOppmøteVilkår : Vilkår() {
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
+        override fun slåSammenLikePerioder(): PersonligOppmøteVilkår {
+            return this
+        }
+
         override fun hentTidligesteDatoForAvslag(): LocalDate? = null
         override fun erLik(other: Vilkår): Boolean {
             return other is IkkeVurdert
@@ -96,6 +101,10 @@ sealed class PersonligOppmøteVilkår : Vilkår() {
                 },
             )
         }
+
+        override fun slåSammenLikePerioder(): PersonligOppmøteVilkår {
+            return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
+        }
     }
 }
 
@@ -132,6 +141,9 @@ data class VurderingsperiodePersonligOppmøte private constructor(
                 periode = args.periode,
                 grunnlag = grunnlag?.copy(args),
             )
+        }
+        is CopyArgs.Tidslinje.Maskert -> {
+            copy(args.args).copy(opprettet = opprettet.plusUnits(1))
         }
     }
 

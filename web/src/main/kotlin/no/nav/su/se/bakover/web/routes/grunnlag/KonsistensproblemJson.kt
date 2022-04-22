@@ -1,24 +1,14 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
+import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.web.ErrorJson
+import no.nav.su.se.bakover.web.errorJson
 
-fun Konsistensproblem.tilResultat() = when (this) {
-    Konsistensproblem.Bosituasjon.Flere -> ErrorJson(
-        message = "Flere bosituasjoner støttes ikke",
-        code = "flere_bosituasjoner_støttes_ikke",
-    )
+internal fun Konsistensproblem.tilResultat() = when (this) {
     Konsistensproblem.Bosituasjon.Ufullstendig -> ErrorJson(
         message = "Bosituasjon er ufullstendig",
         code = "bosituasjone_er_ufullstendig",
-    )
-    Konsistensproblem.BosituasjonOgFradrag.FlereBosituasjonerOgFradragForEPS -> ErrorJson(
-        message = "Flere bosituasjoner og fradrag for EPS",
-        code = "flere_bosituasjoner_og_fradrag_for_eps",
-    )
-    Konsistensproblem.BosituasjonOgFradrag.IngenEPSMenFradragForEPS -> ErrorJson(
-        message = "Har fradrag for EPS, men ingen EPS er registrert.",
-        code = "fradrag_for_eps_ingen_eps_registrert",
     )
     Konsistensproblem.Bosituasjon.Mangler -> ErrorJson(
         message = "Bosituasjon mangler",
@@ -28,20 +18,41 @@ fun Konsistensproblem.tilResultat() = when (this) {
         message = "Uføregrunnlag mangler",
         code = "uføregrunnlag_mangler",
     )
-    Konsistensproblem.BosituasjonOgFormue.FlereBosituasjonerOgFormueForEPS -> ErrorJson(
-        message = "Flere bosituasjoner og formue for EPS",
-        code = "flere_bosituasjoner_og_formue_for_eps",
+    Konsistensproblem.BosituasjonOgFormue.KombinasjonAvBosituasjonOgFormueErUyldig -> ErrorJson(
+        message = "Ugyldig kombinasjon av bosituasjon og formue for hele eller deler av perioden",
+        code = "ugyldig_kombinasjon_bosituasjon_formue",
     )
-    Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS -> ErrorJson(
-        message = "Har formue for EPS, men ingen EPS er registrert.",
-        code = "formue_for_eps_ingen_eps_registrert",
+    Konsistensproblem.BosituasjonOgFradrag.IngenBosituasjonForFradragsperiode -> ErrorJson(
+        message = "Bosituasjon mangler for periode med fradrag.",
+        code = "ingen_bosituasjon_for_fradragsperiode",
     )
-    Konsistensproblem.BosituasjonOgFormue.EPSFormueperiodeErUtenforBosituasjonPeriode -> ErrorJson(
-        "Ikke lov med formueperiode utenfor bosituasjonperioder for EPS",
-        "ikke_lov_med_formueperiode_utenfor_bosituasjonperiode",
+    Konsistensproblem.Bosituasjon.Overlapp -> ErrorJson(
+        message = "Ikke lov med overlapp i perioder for bosituasjon. Hvar bosituasjon må ha en distinkt periode.",
+        code = "bosituasjonsperioder_overlapper",
     )
-    Konsistensproblem.BosituasjonOgFradrag.EPSFradragsperiodeErUtenforBosituasjonPeriode -> ErrorJson(
-        "Ikke lov med fradragsperiode utenfor bosituasjonperioder for EPS",
-        "ikke_lov_med_fradragsperiode_utenfor_bosituasjonperiode",
+    Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode -> ErrorJson(
+        message = "Formue mangler for periode med bosituasjon",
+        code = "ingen_formue_for_bosituasjonsperiode",
+    )
+    is Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon -> ErrorJson(
+        message = "Ugyldig bosituasjon: ${this.feil}",
+        code = "ugyldig_bosituasjon",
+    )
+    Konsistensproblem.BosituasjonOgFradrag.KombinasjonAvBosituasjonOgFradragErUgyldig -> ErrorJson(
+        message = "Ugyldig kombinasjon av bosituasjon og fradrag for hele eller deler av perioden.",
+        code = "ugyldig_kombinasjon_bosituasjon_fradrag",
+    )
+    is Konsistensproblem.BosituasjonOgFradrag.UgyldigBosituasjon -> ErrorJson(
+        message = "Ugyldig bosituasjon: ${this.feil}",
+        code = "ugyldig_bosituasjon",
+    )
+    Konsistensproblem.BosituasjonOgFormue.FormueForEPSManglerForBosituasjonsperiode -> ErrorJson(
+        message = "Formue for EPS mangler for en eller flere av periodene.",
+        code = "ingen_formue_eps_for_bosituasjonsperiode",
+    )
+}.let {
+    HttpStatusCode.BadRequest.errorJson(
+        message = it.message,
+        code = it.code!!,
     )
 }

@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import java.time.Clock
 import kotlin.math.roundToInt
 
@@ -79,13 +78,5 @@ private fun gjørBeregning(
     revurdering: OpprettetRevurdering,
     clock: Clock,
 ): Beregning {
-    return BeregningStrategyFactory(clock).beregn(
-        GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-            grunnlagsdata = revurdering.grunnlagsdata,
-            vilkårsvurderinger = revurdering.vilkårsvurderinger,
-        ),
-        beregningsPeriode = revurdering.periode,
-        // kan ikke legge til begrunnelse for inntekt/fradrag
-        null,
-    )
+    return BeregningStrategyFactory(clock).beregn(revurdering)
 }

@@ -22,6 +22,7 @@ sealed class FastOppholdINorgeVilkår : Vilkår() {
 
     abstract override fun lagTidslinje(periode: Periode): FastOppholdINorgeVilkår
     abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FastOppholdINorgeVilkår
+    abstract override fun slåSammenLikePerioder(): FastOppholdINorgeVilkår
 
     object IkkeVurdert : FastOppholdINorgeVilkår() {
         override val resultat: Resultat = Resultat.Uavklart
@@ -33,6 +34,10 @@ sealed class FastOppholdINorgeVilkår : Vilkår() {
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
+        override fun slåSammenLikePerioder(): FastOppholdINorgeVilkår {
+            return this
+        }
+
         override fun hentTidligesteDatoForAvslag(): LocalDate? = null
         override fun erLik(other: Vilkår): Boolean {
             return other is IkkeVurdert
@@ -95,6 +100,10 @@ sealed class FastOppholdINorgeVilkår : Vilkår() {
                 },
             )
         }
+
+        override fun slåSammenLikePerioder(): FastOppholdINorgeVilkår {
+            return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
+        }
     }
 }
 
@@ -131,6 +140,9 @@ data class VurderingsperiodeFastOppholdINorge private constructor(
                 periode = args.periode,
                 grunnlag = grunnlag?.copy(args),
             )
+        }
+        is CopyArgs.Tidslinje.Maskert -> {
+            copy(args.args).copy(opprettet = opprettet.plusUnits(1))
         }
     }
 

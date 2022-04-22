@@ -5,8 +5,10 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
+import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -79,7 +81,16 @@ internal class EpsOver67BeregningTest {
             )
         )
 
-        BeregningStrategy.Eps67EllerEldre.beregn(beregningsgrunnlag, fixedClock).let {
+        BeregningFactory(fixedClock).ny(
+            fradrag = beregningsgrunnlag.fradrag,
+            begrunnelse = null,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = beregningsgrunnlag.beregningsperiode,
+                    strategy = BeregningStrategy.Eps67EllerEldre,
+                )
+            )
+        ).let {
             it.getSumYtelse() shouldBe 27720
             it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr + (epsFolketrygdPrÅr - garantipensjon)).plusOrMinus(0.5)
             it.getMånedsberegninger().forEach {

@@ -22,6 +22,7 @@ sealed class FlyktningVilkår : Vilkår() {
 
     abstract override fun lagTidslinje(periode: Periode): FlyktningVilkår
     abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FlyktningVilkår
+    abstract override fun slåSammenLikePerioder(): FlyktningVilkår
 
     object IkkeVurdert : FlyktningVilkår() {
         override val resultat: Resultat = Resultat.Uavklart
@@ -33,6 +34,10 @@ sealed class FlyktningVilkår : Vilkår() {
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
+        override fun slåSammenLikePerioder(): FlyktningVilkår {
+            return this
+        }
+
         override fun hentTidligesteDatoForAvslag(): LocalDate? = null
         override fun erLik(other: Vilkår): Boolean {
             return other is IkkeVurdert
@@ -96,6 +101,10 @@ sealed class FlyktningVilkår : Vilkår() {
                 },
             )
         }
+
+        override fun slåSammenLikePerioder(): FlyktningVilkår {
+            return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
+        }
     }
 }
 
@@ -132,6 +141,9 @@ data class VurderingsperiodeFlyktning private constructor(
                 periode = args.periode,
                 grunnlag = grunnlag?.copy(args),
             )
+        }
+        is CopyArgs.Tidslinje.Maskert -> {
+            copy(args.args).copy(opprettet = opprettet.plusUnits(1))
         }
     }
 

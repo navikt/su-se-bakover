@@ -23,11 +23,12 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
+import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -365,8 +366,6 @@ internal class UtbetalingsstrategiNyTest {
             utbetalinger = emptyList(),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             beregning = BeregningFactory(clock = fixedClock).ny(
-                periode = Periode.create(1.januar(2020), 30.april(2020)),
-                sats = Sats.HØY,
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.ForventetInntekt,
@@ -383,7 +382,12 @@ internal class UtbetalingsstrategiNyTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
-                fradragStrategy = FradragStrategy.Enslig,
+                beregningsperioder = listOf(
+                    Beregningsperiode(
+                        periode = Periode.create(1.januar(2020), 30.april(2020)),
+                        strategy = BeregningStrategy.BorAlene,
+                    )
+                )
             ),
             clock = fixedClock,
             uføregrunnlagListe,
@@ -534,8 +538,6 @@ internal class UtbetalingsstrategiNyTest {
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 clock = fixedClock,
                 beregning = BeregningFactory(clock = fixedClock).ny(
-                    periode = periode,
-                    sats = Sats.HØY,
                     fradrag = listOf(
                         FradragFactory.ny(
                             type = Fradragstype.ForventetInntekt,
@@ -559,7 +561,12 @@ internal class UtbetalingsstrategiNyTest {
                             tilhører = FradragTilhører.BRUKER,
                         ),
                     ),
-                    fradragStrategy = FradragStrategy.Enslig,
+                    beregningsperioder = listOf(
+                        Beregningsperiode(
+                            periode = periode,
+                            strategy = BeregningStrategy.BorAlene,
+                        )
+                    )
                 ),
                 uføregrunnlag = emptyList(),
             ).generate()
@@ -682,8 +689,6 @@ internal class UtbetalingsstrategiNyTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             clock = fixedClock,
             beregning = BeregningFactory(clock = fixedClock).ny(
-                periode = periode,
-                sats = Sats.HØY,
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.ForventetInntekt,
@@ -707,7 +712,12 @@ internal class UtbetalingsstrategiNyTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
-                fradragStrategy = FradragStrategy.Enslig,
+                beregningsperioder = listOf(
+                    Beregningsperiode(
+                        periode = periode,
+                        strategy = BeregningStrategy.BorAlene,
+                    )
+                )
             ),
             uføregrunnlag = uføreList,
         ).generate()
@@ -774,8 +784,6 @@ internal class UtbetalingsstrategiNyTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             clock = fixedClock,
             beregning = BeregningFactory(clock = fixedClock).ny(
-                periode = periode,
-                sats = Sats.HØY,
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.ForventetInntekt,
@@ -799,7 +807,12 @@ internal class UtbetalingsstrategiNyTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
-                fradragStrategy = FradragStrategy.Enslig,
+                beregningsperioder = listOf(
+                    Beregningsperiode(
+                        periode = periode,
+                        strategy = BeregningStrategy.BorAlene,
+                    )
+                )
             ),
             uføregrunnlag = uføreList,
         ).generate()
@@ -999,8 +1012,6 @@ internal class UtbetalingsstrategiNyTest {
     }
 
     private fun createBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate) = BeregningFactory(clock = fixedClock).ny(
-        periode = Periode.create(fraOgMed, tilOgMed),
-        sats = Sats.HØY,
         fradrag = listOf(
             FradragFactory.ny(
                 type = Fradragstype.ForventetInntekt,
@@ -1010,6 +1021,11 @@ internal class UtbetalingsstrategiNyTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
         ),
-        fradragStrategy = FradragStrategy.Enslig,
+        beregningsperioder = listOf(
+            Beregningsperiode(
+                periode = Periode.create(fraOgMed, tilOgMed),
+                strategy = BeregningStrategy.BorAlene,
+            )
+        )
     )
 }

@@ -9,9 +9,10 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
+import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -115,13 +116,17 @@ internal class VurderOmBeløpErForskjelligFraGjeldendeUtbetalingTest {
                 tilhører = FradragTilhører.BRUKER,
             )
         }
+        val periode = periodeBeløpMap.map { it.first }
+            .let { perioder -> Periode.create(perioder.minOf { it.fraOgMed }, perioder.maxOf { it.tilOgMed }) }
         return BeregningFactory(clock = fixedClock).ny(
-            periode = periodeBeløpMap.map { it.first }
-                .let { perioder -> Periode.create(perioder.minOf { it.fraOgMed }, perioder.maxOf { it.tilOgMed }) },
-            sats = Sats.HØY,
             fradrag = fradrag,
-            fradragStrategy = FradragStrategy.Enslig,
             begrunnelse = null,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         )
     }
 }

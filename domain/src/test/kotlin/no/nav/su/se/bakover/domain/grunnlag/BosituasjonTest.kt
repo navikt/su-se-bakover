@@ -72,34 +72,6 @@ internal class BosituasjonTest {
     }
 
     @Test
-    fun `returnerer false hvis 2 grunnlag har samme informasjon om ektefelle`() {
-        val gjeldendeBosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
-            fnr = Fnr.generer(),
-        )
-
-        gjeldendeBosituasjon.harEndretEllerFjernetEktefelle(gjeldendeBosituasjon) shouldBe false
-    }
-
-    @Test
-    fun `returnerer true hvis grunnlag om ektefelle har endret sig`() {
-        val gjeldendeBosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
-            fnr = Fnr.generer(),
-        )
-
-        Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
-        ).harEndretEllerFjernetEktefelle(gjeldendeBosituasjon) shouldBe true
-    }
-
-    @Test
     fun `oppdaterer periode i bosituasjon`() {
         val oppdatertPeriode = Periode.create(1.februar(2021), 31.januar(2022))
         val gjeldendeBosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(

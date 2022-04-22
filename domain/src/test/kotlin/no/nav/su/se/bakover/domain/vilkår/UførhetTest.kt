@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.vilkår.Vilkår.Uførhet.Vurdert.Companion.slåSammenVurderingsperiode
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt0
@@ -58,7 +57,7 @@ internal class UførhetTest {
         val v3 =
             lagUføreVurderingsperiode(resultat = Resultat.Avslag, periode = Periode.create(1.mars(2021), 31.mars(2021)))
 
-        val actual = nonEmptyListOf(v1, v2, v3).slåSammenVurderingsperiode()
+        val actual = nonEmptyListOf(v1, v2, v3).slåSammenLikePerioder()
         actual.size shouldBe 2
         actual.first() shouldBe Vurderingsperiode.Uføre.create(
             id = actual.first().id,

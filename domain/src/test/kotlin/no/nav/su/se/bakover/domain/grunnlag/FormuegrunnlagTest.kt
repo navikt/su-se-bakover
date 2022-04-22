@@ -168,14 +168,31 @@ internal class FormuegrunnlagTest {
         }
 
         @Test
-        fun `feiler når vi oppretter formuegrunnlag med periode som er utenfor behandlignsperioden`() {
+        fun `feiler når vi oppretter formuegrunnlag med periode som er utenfor bosituasjon`() {
             Formuegrunnlag.tryCreate(
                 id = UUID.randomUUID(),
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 opprettet = Tidspunkt.EPOCH, epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                 begrunnelse = null,
-                bosituasjon = enslig,
+                bosituasjon = listOf(enslig),
+                behandlingsPeriode = Periode.create(1.januar(2021), 31.desember(2021)),
+            ) shouldBe KunneIkkeLageFormueGrunnlag.Konsistenssjekk(
+                Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode
+            ).left()
+        }
+
+        @Test
+        fun `feiler når vi oppretter formuegrunnlag med periode som er utenfor behandlignsperioden`() {
+            val periode = Periode.create(1.januar(2021), 31.desember(2021))
+            val enslig = enslig.copy(periode = periode)
+            Formuegrunnlag.tryCreate(
+                id = UUID.randomUUID(),
+                periode = periode,
+                opprettet = Tidspunkt.EPOCH, epsFormue = null,
+                søkersFormue = Formuegrunnlag.Verdier.empty(),
+                begrunnelse = null,
+                bosituasjon = listOf(enslig),
                 behandlingsPeriode = Periode.create(1.januar(2021), 31.mars(2021)),
             ) shouldBe KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
         }
@@ -184,6 +201,7 @@ internal class FormuegrunnlagTest {
         fun `Ok formuegrunnlag `() {
             val id = UUID.randomUUID()
             val periode = Periode.create(1.januar(2021), 31.desember(2021))
+            val enslig = enslig.copy(periode = periode)
 
             val formueTryCreate = Formuegrunnlag.tryCreate(
                 id = id,
@@ -192,7 +210,7 @@ internal class FormuegrunnlagTest {
                 epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                 begrunnelse = null,
-                bosituasjon = enslig,
+                bosituasjon = listOf(enslig),
                 behandlingsPeriode = Periode.create(1.januar(2021), 31.desember(2021)),
             )
 
@@ -261,13 +279,16 @@ internal class FormuegrunnlagTest {
         val f1 = lagFormuegrunnlag(
             periodeInnenfor2021 = Periode.create(1.januar(2021), 31.januar(2021)),
             bosiutasjon = bosituasjon,
+            epsFormue = Formuegrunnlag.Verdier.empty().copy(
+                verdiEiendommer = 40,
+            ),
         )
         val f2 = lagFormuegrunnlag(
+            periodeInnenfor2021 = Periode.create(1.februar(2021), 28.februar(2021)),
+            bosiutasjon = bosituasjon,
             epsFormue = Formuegrunnlag.Verdier.empty().copy(
                 verdiEiendommer = 100,
             ),
-            periodeInnenfor2021 = Periode.create(1.februar(2021), 28.februar(2021)),
-            bosiutasjon = bosituasjon,
         )
 
         f1.tilstøterOgErLik(f2) shouldBe false

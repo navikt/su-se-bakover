@@ -11,20 +11,21 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.common.periode.juli
+import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.perioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
-import java.util.UUID
+import java.util.*
 
 internal class FradragsgrunnlagTest {
 
@@ -188,7 +189,7 @@ internal class FradragsgrunnlagTest {
     fun `2 fradragsgrunnlag som tilstøter, men fradragstype er ulik`() {
         val f1 = lagFradragsgrunnlag(periode = Periode.create(1.januar(2021), 31.januar(2021)))
         val f2 = lagFradragsgrunnlag(
-            periode = Periode.create(1.februar(2021), 28.februar(2021)), type = Fradragstype.Sosialstønad
+            periode = Periode.create(1.februar(2021), 28.februar(2021)), type = Fradragstype.Sosialstønad,
         )
         f1.tilstøterOgErLik(f2) shouldBe false
     }
@@ -298,8 +299,7 @@ internal class FradragsgrunnlagTest {
             periode = Periode.create(1.januar(2021), 31.desember(2021)),
         )
 
-        listOf(f1, f2)
-            .fjernFradragForEPSHvisEnslig(bosituasjonUtenEPS) shouldBe listOf(f2)
+        listOf(f1, f2).fjernFradragForEPSHvisEnslig(bosituasjonUtenEPS) shouldBe listOf(f2)
     }
 
     @Test
@@ -333,16 +333,102 @@ internal class FradragsgrunnlagTest {
             fnr = Fnr.generer(),
         )
 
-        listOf(f1, f2)
-            .fjernFradragForEPSHvisEnslig(bosituasjonUtenEPS) shouldBe listOf(f1, f2)
+        listOf(f1, f2).fjernFradragForEPSHvisEnslig(bosituasjonUtenEPS) shouldBe listOf(f1, f2)
     }
 
     @Test
-    fun `test`() {
-        listOf(
-            fradragsgrunnlagArbeidsinntekt1000(periode = januar(2021)),
-            fradragsgrunnlagArbeidsinntekt1000(periode = juli(2021))
-        ).perioder()
+    fun `fjerner fradrag for EPS for utvalgte perioder og bevarer for resterende`() {
+        val fBruker = lagFradragsgrunnlag(
+            type = Fradragstype.Arbeidsinntekt,
+            månedsbeløp = 5_000.0,
+            periode = periode2021,
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER,
+        )
+        val fEps = lagFradragsgrunnlag(
+            type = Fradragstype.Arbeidsinntekt,
+            månedsbeløp = 10_000.0,
+            periode = periode2021,
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.EPS,
+        )
+        listOf(fBruker, fEps).fjernFradragEPS(
+            listOf(
+                februar(2021),
+                juni(2021),
+            ),
+        ).let {
+            it[0] shouldBe fBruker
+            it[1].erLik(
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 10_000.0,
+                    periode = januar(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.EPS,
+                ),
+            ) shouldBe true
+            it[2].erLik(
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 10_000.0,
+                    periode = Periode.create(1.mars(2021), 31.mai(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.EPS,
+                ),
+            ) shouldBe true
+            it[3].erLik(
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 10_000.0,
+                    periode = Periode.create(1.juli(2021), 31.desember(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.EPS,
+                ),
+            ) shouldBe true
+        }
+    }
+
+    @Test
+    fun `fjerning av fradrag for EPS uten spesifisert periode`() {
+        val fBruker = lagFradragsgrunnlag(
+            type = Fradragstype.Arbeidsinntekt,
+            månedsbeløp = 5_000.0,
+            periode = periode2021,
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER,
+        )
+        val fEps = lagFradragsgrunnlag(
+            type = Fradragstype.Arbeidsinntekt,
+            månedsbeløp = 10_000.0,
+            periode = periode2021,
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.EPS,
+        )
+        listOf(fBruker, fEps).fjernFradragEPS(emptyList()).let {
+            it shouldBe listOf(fBruker, fEps.copy(id = it[1].id))
+        }
+    }
+
+    @Test
+    fun `fjerning av fradrag for EPS perioder som ikke overlapper med fradraget`() {
+        val fBruker = lagFradragsgrunnlag(
+            type = Fradragstype.Arbeidsinntekt,
+            månedsbeløp = 5_000.0,
+            periode = periode2021,
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER,
+        )
+        val fEps = lagFradragsgrunnlag(
+            type = Fradragstype.Arbeidsinntekt,
+            månedsbeløp = 10_000.0,
+            periode = periode2021,
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.EPS,
+        )
+        listOf(fBruker, fEps).fjernFradragEPS(listOf(Periode.create(1.januar(2023), 31.desember(2023)))).let {
+            it shouldBe listOf(fBruker, fEps.copy(id = it[1].id))
+        }
     }
 
     private fun lagFradragsgrunnlag(

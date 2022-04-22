@@ -197,16 +197,38 @@ fun List<Periode>.reduser(): List<Periode> {
     }
 }
 
-fun List<Periode>.minusListe(other: List<Periode>): List<Periode> {
-    return (flatMap { it.tilMånedsperioder() } - other.flatMap { it.tilMånedsperioder() }.toSet()).reduser()
+/**
+ * Fjerner alle periodene inneholdt i [other] fra [this]. Eliminerer duplikater og slår sammen gjenstående
+ * perioder i [this] til en minimum antall sammenhengende perioder.
+ */
+operator fun List<Periode>.minus(other: List<Periode>): List<Periode> {
+    return (flatMap { it.tilMånedsperioder() }.toSet() - other.flatMap { it.tilMånedsperioder() }.toSet())
+        .toList()
+        .reduser()
 }
 
 fun Periode.inneholderAlle(other: List<Periode>): Boolean {
-    return (other.flatMap { it.tilMånedsperioder() }.minusListe(tilMånedsperioder())).isEmpty()
+    return tilMånedsperioder().inneholderAlle(other)
 }
 
 fun List<Periode>.inneholderAlle(other: List<Periode>): Boolean {
-    return (other.flatMap { it.tilMånedsperioder() }.minusListe(flatMap { it.tilMånedsperioder() })).isEmpty()
+    val denne = flatMap { it.tilMånedsperioder() }.toSet()
+    val andre = other.flatMap { it.tilMånedsperioder() }.toSet()
+    return when {
+        other.isEmpty() -> {
+            true
+        }
+        denne.count() >= andre.count() -> {
+            (andre - denne).isEmpty()
+        }
+        else -> {
+            false
+        }
+    }
+}
+
+fun List<Periode>.harOverlappende(): Boolean {
+    return if (isEmpty()) false else this.all { p1 -> this.minus(p1).any { p2 -> p1 overlapper p2 } }
 }
 
 fun januar(year: Int) = 1.januar(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }

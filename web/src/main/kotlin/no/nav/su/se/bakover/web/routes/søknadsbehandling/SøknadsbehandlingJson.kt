@@ -3,12 +3,10 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.grunnlag.throwIfMultiple
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson.Companion.create
-import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
@@ -266,10 +264,6 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
         is LukketSøknadsbehandling -> {
             lukketSøknadsbehandling.toJson().copy(erLukket = true)
         }
-    }.also {
-        // TODO jah: Vi garanterer frontend maks 1 bosituasjon.
-        //  Vi ønsker å gjøre denne sjekken backend for å ha bedre kontroll + oversikt (logger)
-        grunnlagsdata.bosituasjon.throwIfMultiple()
     }
 }
 

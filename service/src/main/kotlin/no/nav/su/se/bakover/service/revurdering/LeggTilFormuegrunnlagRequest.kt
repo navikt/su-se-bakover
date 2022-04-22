@@ -17,7 +17,7 @@ data class LeggTilFormuegrunnlagRequest(
     val formuegrunnlag: Nel<Grunnlag>,
 ) {
     fun toDomain(
-        bosituasjon: no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Fullstendig,
+        bosituasjon: List<no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Fullstendig>,
         behandlingsperiode: Periode,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilFormuegrunnlag, Vilkår.Formue.Vurdert> {
@@ -33,10 +33,13 @@ data class LeggTilFormuegrunnlagRequest(
                     behandlingsPeriode = behandlingsperiode,
                 ).getOrHandle {
                     return when (it) {
-                        KunneIkkeLageFormueGrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode -> KunneIkkeLeggeTilFormuegrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode.left()
-                        KunneIkkeLageFormueGrunnlag.MåHaEpsHvisManHarSattEpsFormue -> KunneIkkeLeggeTilFormuegrunnlag.MåHaEpsHvisManHarSattEpsFormue.left()
-                        KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden -> KunneIkkeLeggeTilFormuegrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
-                    }
+                        KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden -> {
+                            KunneIkkeLeggeTilFormuegrunnlag.FormuePeriodeErUtenforBehandlingsperioden
+                        }
+                        is KunneIkkeLageFormueGrunnlag.Konsistenssjekk -> {
+                            KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk(it.feil)
+                        }
+                    }.left()
                 }
             },
         ).mapLeft {

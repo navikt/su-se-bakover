@@ -129,8 +129,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.vilkårsvurderinger(
                 if (it.isNotEmpty()) {
                     Vilkår.Uførhet.Vurdert.fromVurderingsperioder(vurderingsperioder = NonEmptyList.fromListUnsafe(it))
                         .getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Uførhet.Vurdert::class.simpleName}. Melding: $it") }
-                        .slåSammenVurderingsperioder()
-                        .getOrHandle { throw IllegalArgumentException("Kunne ikke slå sammen vurderingsperioder uføre: $it") }
+                        .slåSammenLikePerioder()
                 } else {
                     Vilkår.Uførhet.IkkeVurdert
                 }
@@ -141,8 +140,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.vilkårsvurderinger(
             .let {
                 if (it.isNotEmpty()) {
                     Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
-                        .slåSammenVurderingsperioder()
-                        .getOrHandle { throw IllegalArgumentException("Kunne ikke slå sammen vurderingsperioder formue: $it") }
+                        .slåSammenLikePerioder()
                 } else {
                     Vilkår.Formue.IkkeVurdert
                 }
@@ -153,8 +151,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.vilkårsvurderinger(
             .let {
                 if (it.isNotEmpty()) {
                     UtenlandsoppholdVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
-                        .slåSammenVurderingsperioder()
-                        .getOrHandle { throw IllegalArgumentException("Kunne ikke slå sammen vurderingsperioder utlandsopphold: $it") }
+                        .slåSammenLikePerioder()
                 } else {
                     UtenlandsoppholdVilkår.IkkeVurdert
                 }

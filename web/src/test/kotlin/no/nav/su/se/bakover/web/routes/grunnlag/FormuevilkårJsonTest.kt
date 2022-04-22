@@ -1,6 +1,10 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
 import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
+import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Fnr
@@ -13,22 +17,27 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.LocalDate
 import java.util.UUID
 
 internal class FormuevilkårJsonTest {
 
     @Test
     fun `serialize formuevilkårjson`() {
-        val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+        val janDes = Periode.create(1.januar(2021), 31.desember(2021))
+        val janJun = Periode.create(1.januar(2021), 30.juni(2021))
+        val julDes = Periode.create(1.juli(2021), 31.desember(2021))
+        val bosituasjonJanJun = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
             id = UUID.fromString("5441d6ef-08c7-4a4f-8e4c-d17e1ab95789"),
             opprettet = fixedTidspunkt,
-            periode = Periode.create(
-                fraOgMed = LocalDate.of(2021, 1, 1),
-                tilOgMed = LocalDate.of(2021, 12, 31),
-            ),
+            periode = janDes,
             fnr = Fnr("12312312345"),
-            begrunnelse = "bosituasjonBegrunnelse",
+            begrunnelse = "bosituasjonJanJun",
+        )
+        val bosituasjonJulDes = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+            id = UUID.fromString("5441d6ef-08c7-4a4f-8e4c-d17e1ab95790"),
+            opprettet = fixedTidspunkt,
+            periode = janDes,
+            begrunnelse = "bosituasjonJulDes",
         )
         val vilkår = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
             nonEmptyListOf(
@@ -39,10 +48,7 @@ internal class FormuevilkårJsonTest {
                     grunnlag = Formuegrunnlag.create(
                         id = UUID.fromString("5441d6ef-08c7-4a4f-8e4c-d17e1ab95789"),
                         opprettet = fixedTidspunkt,
-                        periode = Periode.create(
-                            fraOgMed = LocalDate.of(2021, 1, 1),
-                            tilOgMed = LocalDate.of(2021, 6, 30),
-                        ),
+                        periode = janJun,
                         epsFormue = Formuegrunnlag.Verdier.create(
                             verdiIkkePrimærbolig = 1,
                             verdiEiendommer = 2,
@@ -64,16 +70,10 @@ internal class FormuevilkårJsonTest {
                             depositumskonto = 2,
                         ),
                         begrunnelse = "formueBegrunnelse",
-                        bosituasjon = bosituasjon,
-                        behandlingsPeriode = Periode.create(
-                            fraOgMed = LocalDate.of(2021, 1, 1),
-                            tilOgMed = LocalDate.of(2021, 12, 31),
-                        ),
+                        bosituasjon = bosituasjonJanJun,
+                        behandlingsPeriode = janDes,
                     ),
-                    periode = Periode.create(
-                        fraOgMed = LocalDate.of(2021, 1, 1),
-                        tilOgMed = LocalDate.of(2021, 6, 30),
-                    ),
+                    periode = janJun,
                 ),
                 Vurderingsperiode.Formue.create(
                     id = UUID.fromString("2403e105-b3fc-435a-a38b-e0a76ef9a73c"),
@@ -82,10 +82,7 @@ internal class FormuevilkårJsonTest {
                     grunnlag = Formuegrunnlag.create(
                         id = UUID.fromString("36ba42b1-c919-4ba6-a90f-9505db28f04d"),
                         opprettet = fixedTidspunkt,
-                        periode = Periode.create(
-                            fraOgMed = LocalDate.of(2021, 7, 1),
-                            tilOgMed = LocalDate.of(2021, 12, 31),
-                        ),
+                        periode = julDes,
                         epsFormue = null,
                         søkersFormue = Formuegrunnlag.Verdier.create(
                             verdiIkkePrimærbolig = 1,
@@ -98,16 +95,10 @@ internal class FormuevilkårJsonTest {
                             depositumskonto = 2,
                         ),
                         begrunnelse = null,
-                        bosituasjon = bosituasjon,
-                        behandlingsPeriode = Periode.create(
-                            fraOgMed = LocalDate.of(2021, 1, 1),
-                            tilOgMed = LocalDate.of(2021, 12, 31),
-                        ),
+                        bosituasjon = bosituasjonJulDes,
+                        behandlingsPeriode = janDes,
                     ),
-                    periode = Periode.create(
-                        fraOgMed = LocalDate.of(2021, 7, 1),
-                        tilOgMed = LocalDate.of(2021, 12, 31),
-                    ),
+                    periode = julDes,
                 ),
             ),
         ).toJson()

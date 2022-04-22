@@ -4,7 +4,13 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.harEpsInntekt
+import no.nav.su.se.bakover.common.periode.inneholderAlle
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag.Verdier.Companion.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harOverlappende
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.allePerioderMedEPS
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.perioder
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 
 data class SjekkOmGrunnlagErKonsistent(
@@ -54,16 +60,14 @@ data class SjekkOmGrunnlagErKonsistent(
 
         private fun bosituasjon(bosituasjon: List<Grunnlag.Bosituasjon>): Either<Set<Konsistensproblem.Bosituasjon>, Unit> {
             mutableSetOf<Konsistensproblem.Bosituasjon>().apply {
-                when {
-                    bosituasjon.isEmpty() -> {
-                        add(Konsistensproblem.Bosituasjon.Mangler)
-                    }
-                    bosituasjon.any { it is Grunnlag.Bosituasjon.Ufullstendig } -> {
-                        add(Konsistensproblem.Bosituasjon.Ufullstendig)
-                    }
-                    bosituasjon.harFlerEnnEnBosituasjonsperiode() -> {
-                        add(Konsistensproblem.Bosituasjon.Flere)
-                    }
+                if (bosituasjon.isEmpty()) {
+                    add(Konsistensproblem.Bosituasjon.Mangler)
+                }
+                if (bosituasjon.any { it is Grunnlag.Bosituasjon.Ufullstendig }) {
+                    add(Konsistensproblem.Bosituasjon.Ufullstendig)
+                }
+                if (bosituasjon.harOverlappende()) {
+                    add(Konsistensproblem.Bosituasjon.Overlapp)
                 }
                 return if (this.isEmpty()) Unit.right() else this.left()
             }
@@ -71,8 +75,6 @@ data class SjekkOmGrunnlagErKonsistent(
     }
 
     /**
-     * Dersom man har epsFradrag, sjekker at det ikke finnes fler enn 1 bosituasjon og at man har en EPS
-     *
      * Bruk Bosituasjon og Fradrag direkte dersom du trenger å vite om de hver for seg er i henhold (typisk om de er utfylt).
      * @return Either.Right(Unit) dersom søker ikke har EPS eller ikke har fradrag.
      */
@@ -80,39 +82,35 @@ data class SjekkOmGrunnlagErKonsistent(
         val bosituasjon: List<Grunnlag.Bosituasjon>,
         val fradrag: List<Grunnlag.Fradragsgrunnlag>,
     ) {
-        val resultat: Either<Set<Konsistensproblem.BosituasjonOgFradrag>, Unit> =
-            bosituasjonOgFradrag(bosituasjon, fradrag)
+        val resultat: Either<Set<Konsistensproblem.BosituasjonOgFradrag>, Unit> = bosituasjonOgFradrag()
 
-        private fun bosituasjonOgFradrag(
-            bosituasjon: List<Grunnlag.Bosituasjon>,
-            fradrag: List<Grunnlag.Fradragsgrunnlag>,
-        ): Either<Set<Konsistensproblem.BosituasjonOgFradrag>, Unit> {
+        private fun bosituasjonOgFradrag(): Either<Set<Konsistensproblem.BosituasjonOgFradrag>, Unit> {
             if (fradrag.isEmpty()) return Unit.right()
-            if (!fradrag.harEpsInntekt()) return Unit.right()
+
             mutableSetOf<Konsistensproblem.BosituasjonOgFradrag>().apply {
-                when {
-                    bosituasjon.harFlerEnnEnBosituasjonsperiode() -> {
-                        // Vi støtter ikke fler bosituasjoner ved innsending eller etter vilkårsvurdering.
-                        // Det kan oppstår dersom man revurderer på tvers av vedtak.
-                        add(Konsistensproblem.BosituasjonOgFradrag.FlereBosituasjonerOgFradragForEPS)
-                    }
-                    bosituasjon.any { !it.harEPS() } -> {
-                        add(Konsistensproblem.BosituasjonOgFradrag.IngenEPSMenFradragForEPS)
-                    }
-                    bosituasjon.any { bosituasjon ->
-                        fradrag.any { fradrag ->
-                            !bosituasjon.periode.inneholder(fradrag.periode)
-                        }
-                    } -> add(Konsistensproblem.BosituasjonOgFradrag.EPSFradragsperiodeErUtenforBosituasjonPeriode)
+                Bosituasjon(bosituasjon).resultat.tapLeft {
+                    add(Konsistensproblem.BosituasjonOgFradrag.UgyldigBosituasjon(it))
+                }
+                if (!gyldigKombinasjonAvBosituasjonOgFradrag()) {
+                    add(Konsistensproblem.BosituasjonOgFradrag.KombinasjonAvBosituasjonOgFradragErUgyldig)
+                }
+                if (!harBosituasjonForAllePerioder()) {
+                    add(Konsistensproblem.BosituasjonOgFradrag.IngenBosituasjonForFradragsperiode)
                 }
                 return if (this.isEmpty()) Unit.right() else this.left()
             }
         }
+
+        private fun gyldigKombinasjonAvBosituasjonOgFradrag(): Boolean {
+            return bosituasjon.perioderMedEPS().inneholderAlle(fradrag.allePerioderMedEPS())
+        }
+
+        private fun harBosituasjonForAllePerioder(): Boolean {
+            return bosituasjon.minsteAntallSammenhengendePerioder().inneholderAlle(fradrag.perioder())
+        }
     }
 
     /**
-     * Dersom man har epsFormue, sjekker at det ikke finnes fler enn 1 bosituasjon og at man har en EPS
-     *
      * Bruk Bosituasjon og Formue direkte dersom du trenger å vite om de hver for seg er i henhold (typisk om de er utfylt).
      * @return Either.Right(Unit) dersom søker ikke har EPS eller ikke har formue.
      */
@@ -120,33 +118,38 @@ data class SjekkOmGrunnlagErKonsistent(
         val bosituasjon: List<Grunnlag.Bosituasjon>,
         val formue: List<Formuegrunnlag>,
     ) {
-        val resultat: Either<Set<Konsistensproblem.BosituasjonOgFormue>, Unit> =
-            bosituasjonOgFormue(bosituasjon, formue)
+        val resultat: Either<Set<Konsistensproblem.BosituasjonOgFormue>, Unit> = bosituasjonOgFormue()
 
-        private fun bosituasjonOgFormue(
-            bosituasjon: List<Grunnlag.Bosituasjon>,
-            formue: List<Formuegrunnlag>,
-        ): Either<Set<Konsistensproblem.BosituasjonOgFormue>, Unit> {
+        private fun bosituasjonOgFormue(): Either<Set<Konsistensproblem.BosituasjonOgFormue>, Unit> {
             if (formue.isEmpty()) return Unit.right()
-            if (!formue.harEPSFormue()) return Unit.right()
+
             mutableSetOf<Konsistensproblem.BosituasjonOgFormue>().apply {
-                when {
-                    bosituasjon.harFlerEnnEnBosituasjonsperiode() -> {
-                        // Vi støtter ikke fler bosituasjoner ved innsending eller etter vilkårsvurdering.
-                        // Det kan oppstår dersom man revurderer på tvers av vedtak.
-                        add(Konsistensproblem.BosituasjonOgFormue.FlereBosituasjonerOgFormueForEPS)
-                    }
-                    bosituasjon.any { !it.harEPS() } -> {
-                        add(Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS)
-                    }
-                    bosituasjon.any { bosituasjon ->
-                        formue.any { formue ->
-                            !bosituasjon.periode.inneholder(formue.periode)
-                        }
-                    } -> add(Konsistensproblem.BosituasjonOgFormue.EPSFormueperiodeErUtenforBosituasjonPeriode)
+                Bosituasjon(bosituasjon).resultat.tapLeft {
+                    add(Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon(it))
+                }
+                if (!gyldigKombinasjonAvBosituasjonOgFormue()) {
+                    add(Konsistensproblem.BosituasjonOgFormue.KombinasjonAvBosituasjonOgFormueErUyldig)
+                }
+                if (!harFormueForAllePerioder()) {
+                    add(Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode)
+                }
+                if (!harFormueEpsForAlleRelevantePerioder()) {
+                    add(Konsistensproblem.BosituasjonOgFormue.FormueForEPSManglerForBosituasjonsperiode)
                 }
                 return if (this.isEmpty()) Unit.right() else this.left()
             }
+        }
+
+        private fun gyldigKombinasjonAvBosituasjonOgFormue(): Boolean {
+            return bosituasjon.perioderMedEPS().inneholderAlle(formue.perioderMedEPS())
+        }
+
+        private fun harFormueForAllePerioder(): Boolean {
+            return bosituasjon.minsteAntallSammenhengendePerioder() == formue.minsteAntallSammenhengendePerioder()
+        }
+
+        private fun harFormueEpsForAlleRelevantePerioder(): Boolean {
+            return bosituasjon.perioderMedEPS() == formue.perioderMedEPS()
         }
     }
 }
@@ -168,11 +171,6 @@ sealed class Konsistensproblem {
     }
 
     sealed class Bosituasjon : Konsistensproblem() {
-        /** Det er generelt gyldig at bosituasjon kan variere fra måned til måned, men vi støtter det ikke enda. */
-        object Flere : Bosituasjon() {
-            override fun erGyldigTilstand() = true
-        }
-
         /** Du har f.eks. valgt EPS, men ikke tatt stilling til om hen bor med voksne/alene etc.  */
         object Ufullstendig : Bosituasjon() {
             override fun erGyldigTilstand() = false
@@ -182,38 +180,41 @@ sealed class Konsistensproblem {
         object Mangler : Bosituasjon() {
             override fun erGyldigTilstand() = false
         }
+
+        /** Periodene med bosituasjon overlapper hverandre */
+        object Overlapp : Bosituasjon() {
+            override fun erGyldigTilstand(): Boolean = false
+        }
     }
 
     sealed class BosituasjonOgFradrag : Konsistensproblem() {
-        /** Dette er en gyldig case som vi ikke støtter enda. Her har vi EPS-fradrag i tillegg til flere bosituasjoner */
-        object FlereBosituasjonerOgFradragForEPS : BosituasjonOgFradrag() {
-            override fun erGyldigTilstand() = true
-        }
-
-        /** Ugyldig case. Vi må ha EPS for å kunne ha fradrag tilhørende EPS. */
-        object IngenEPSMenFradragForEPS : BosituasjonOgFradrag() {
+        object IngenBosituasjonForFradragsperiode : BosituasjonOgFradrag() {
             override fun erGyldigTilstand() = false
         }
 
-        /** Ugyldig case. Vi har fradragsperioder for EPS som vi mangler bosituasjonsperiode for. Disse bør være 1-1. */
-        object EPSFradragsperiodeErUtenforBosituasjonPeriode : BosituasjonOgFradrag() {
+        data class UgyldigBosituasjon(val feil: Set<Bosituasjon>) : BosituasjonOgFradrag() {
+            override fun erGyldigTilstand() = false
+        }
+
+        object KombinasjonAvBosituasjonOgFradragErUgyldig : BosituasjonOgFradrag() {
             override fun erGyldigTilstand() = false
         }
     }
 
     sealed class BosituasjonOgFormue : Konsistensproblem() {
-        /** Dette er en gyldig case som vi ikke støtter enda. Her har vi EPS-formue i tillegg til flere bosituasjoner */
-        object FlereBosituasjonerOgFormueForEPS : BosituasjonOgFormue() {
-            override fun erGyldigTilstand() = true
-        }
-
-        /** Ugyldig case. Vi må ha EPS for å kunne ha formue tilhørende EPS. */
-        object IngenEPSMenFormueForEPS : BosituasjonOgFormue() {
+        object IngenFormueForBosituasjonsperiode : BosituasjonOgFormue() {
             override fun erGyldigTilstand() = false
         }
 
-        /** Ugyldig case. Vi har formueperioder for EPS som vi mangler bosituasjonsperiode for. Disse bør være 1-1. */
-        object EPSFormueperiodeErUtenforBosituasjonPeriode : BosituasjonOgFormue() {
+        data class UgyldigBosituasjon(val feil: Set<Bosituasjon>) : BosituasjonOgFormue() {
+            override fun erGyldigTilstand() = false
+        }
+
+        object KombinasjonAvBosituasjonOgFormueErUyldig : BosituasjonOgFormue() {
+            override fun erGyldigTilstand() = false
+        }
+
+        object FormueForEPSManglerForBosituasjonsperiode : BosituasjonOgFormue() {
             override fun erGyldigTilstand() = false
         }
     }

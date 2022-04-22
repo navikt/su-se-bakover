@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import no.nav.su.se.bakover.domain.grunnlag.throwIfMultiple
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -432,10 +431,6 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         simulering = simulering?.toJson(),
         attesteringer = attesteringer.toJson(),
     )
-}.also {
-    // TODO jah: Vi skal ikke pre-utfylle Bosituasjon for revurdering med mer enn ett element.
-    //  vi ønsker å gjøre denne sjekken backend for å ha bedre kontroll + oversikt (logger)
-    grunnlagsdata.bosituasjon.throwIfMultiple()
 }
 
 internal class InstansTilStatusMapper(revurdering: AbstraktRevurdering) {

@@ -20,6 +20,7 @@ data class BeregningMedFradragBeregnetMånedsvis(
     private val fradrag: List<Fradrag>,
     private val fradragStrategy: FradragStrategy,
     private val begrunnelse: String?,
+    private val beregningsperioder: List<Beregningsperiode>,
 ) : Beregning {
     private val beregning = beregn()
 
@@ -40,26 +41,31 @@ data class BeregningMedFradragBeregnetMånedsvis(
     override fun getFradragStrategyName(): FradragStrategyName = fradragStrategy.getName()
 
     private fun beregn(): Map<Periode, Månedsberegning> {
-        val perioder = periode.tilMånedsperioder()
+        val månedsperiodeTilStrategi =
+            beregningsperioder.fold(emptyMap<Periode, BeregningStrategy>()) { acc, beregningsperiode ->
+                acc + beregningsperiode.månedsoversikt()
+            }
 
-        return perioder.associateWith { periode ->
+        return månedsperiodeTilStrategi.mapValues { (måned, strategi) ->
             beregnMåned(
-                periode = periode,
+                periode = måned,
                 fradrag = fradrag,
+                strategy = strategi,
             ).let { månedsberegning ->
                 when {
-                    månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats() -> {
+                    månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategi) -> {
                         månedsberegning.leggTilMerknad(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
                         månedsberegning
                     }
-                    månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats() -> {
+                    månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats(strategi) -> {
                         månedsberegning.leggTilMerknad(Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
                         månedsberegning
                     }
                     månedsberegning.beløpStørreEnn0MenMindreEnnToProsentAvHøySats() -> {
                         beregnMåned(
-                            periode = periode,
+                            periode = måned,
                             fradrag = fradrag + månedsberegning.lagFradragForBeløpUnderMinstegrense(),
+                            strategy = strategi,
                         ).let {
                             it.leggTilMerknad(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
                             it
@@ -69,7 +75,9 @@ data class BeregningMedFradragBeregnetMånedsvis(
                         månedsberegning.leggTilMerknad(Merknad.Beregning.Avslag.BeløpErNull)
                         månedsberegning
                     }
-                    else -> månedsberegning
+                    else -> {
+                        månedsberegning
+                    }
                 }
             }
         }
@@ -78,39 +86,46 @@ data class BeregningMedFradragBeregnetMånedsvis(
     private fun beregnMåned(
         periode: Periode,
         fradrag: List<Fradrag>,
+        strategy: BeregningStrategy,
     ): PeriodisertBeregning {
         return PeriodisertBeregning(
             periode = periode,
-            sats = sats,
-            fradrag = fradragStrategy.beregn(fradrag, periode)[periode] ?: emptyList(),
-            fribeløpForEps = fradragStrategy.getEpsFribeløp(periode),
+            sats = strategy.sats(),
+            fradrag = strategy.fradragStrategy().beregn(fradrag, periode)[periode] ?: emptyList(),
+            fribeløpForEps = strategy.fradragStrategy().getEpsFribeløp(periode),
         )
     }
 
-    private fun Månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(): Boolean {
+    private fun Månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): Boolean {
         // hvis sum er mer enn 2%, er alt good
         if (getSumYtelse() >= Sats.toProsentAvHøy(periode)) return false
 
         // hvis sum uten avkorting gjør at vi havner under 2% er det sosialstønad som har skylda
-        if (sumYtelseUtenAvkorting(periode = periode) < Sats.toProsentAvHøy(periode) &&
-            sumYtelseUtenSosialstønad(periode) != getSumYtelse() // se om det finnes sosialstønad
+        if (sumYtelseUtenAvkorting(periode = periode, strategy = strategy) < Sats.toProsentAvHøy(periode) &&
+            sumYtelseUtenSosialstønad(
+                    periode = periode,
+                    strategy = strategy,
+                ) != getSumYtelse() // se om det finnes sosialstønad
         ) return true
 
         // hvis vi er under 2% og har kommet hit, er det avkorting sin skyld og ikke sosialstønad
         return false
     }
 
-    private fun Månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats(): Boolean {
+    private fun Månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): Boolean {
         // hvis sum er mer enn 2%, er alt good
         if (getSumYtelse() >= Sats.toProsentAvHøy(periode)) return false
 
         // hvis sum uten avkorting gjør at vi havner under 2% er det sosialstønad som har skylda
-        if (sumYtelseUtenAvkorting(periode = periode) < Sats.toProsentAvHøy(periode) &&
-            sumYtelseUtenSosialstønad(periode) != getSumYtelse() // se om det finnes sosialstønad
+        if (sumYtelseUtenAvkorting(periode = periode, strategy = strategy) < Sats.toProsentAvHøy(periode) &&
+            sumYtelseUtenSosialstønad(
+                    periode = periode,
+                    strategy = strategy,
+                ) != getSumYtelse() // se om det finnes sosialstønad
         ) return false
 
         // hvis vi er under 2% og har kommet hit, er det avkorting sin skyld hvis det finnes noen avkorting
-        if (sumYtelseUtenAvkorting(periode) != getSumYtelse()) return true
+        if (sumYtelseUtenAvkorting(periode = periode, strategy = strategy) != getSumYtelse()) return true
         return false
     }
 
@@ -119,17 +134,19 @@ data class BeregningMedFradragBeregnetMånedsvis(
      * filtrert vekk eventuell sosialstønad for EPS. Etter at fradragene har vært gjennom [FradragStrategy.beregnFradrag]
      * vil alle EPS sine fradrag være bakt sammen til et element av typen [Fradragstype.BeregnetFradragEPS]
      */
-    private fun sumYtelseUtenSosialstønad(periode: Periode): Int {
+    private fun sumYtelseUtenSosialstønad(periode: Periode, strategy: BeregningStrategy): Int {
         return beregnMåned(
             periode = periode,
             fradrag = fradrag.utenSosialstønad(),
+            strategy = strategy,
         ).getSumYtelse()
     }
 
-    private fun sumYtelseUtenAvkorting(periode: Periode): Int {
+    private fun sumYtelseUtenAvkorting(periode: Periode, strategy: BeregningStrategy): Int {
         return beregnMåned(
             periode = periode,
             fradrag = fradrag.utenAvkorting(),
+            strategy = strategy,
         ).getSumYtelse()
     }
 

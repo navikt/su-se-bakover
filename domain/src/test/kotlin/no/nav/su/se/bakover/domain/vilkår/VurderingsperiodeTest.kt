@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
@@ -132,7 +131,6 @@ internal class VurderingsperiodeTest {
         Tidslinje(
             periode = Periode.create(1.januar(2021), 31.desember(2021)),
             objekter = listOf(a, b, c),
-            clock = fixedClock,
         ).tidslinje.let {
             it[0].let { copy ->
                 copy.id shouldNotBe a.id

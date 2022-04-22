@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toFradrag
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.tilResultat
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -67,12 +68,15 @@ internal fun Route.leggTilFradragRevurdering(
                                     ),
                                 ).mapLeft {
                                     when (it) {
-                                        KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> Revurderingsfeilresponser.fantIkkeRevurdering
-                                        is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
-                                            fra = it.fra,
-                                            til = it.til,
-                                        )
-                                        is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
+                                        KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> {
+                                            Revurderingsfeilresponser.fantIkkeRevurdering
+                                        }
+                                        is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> {
+                                            Feilresponser.ugyldigTilstand(fra = it.fra, til = it.til)
+                                        }
+                                        is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
+                                            it.feil.tilResultat()
+                                        }
                                     }
                                 }.map {
                                     call.sikkerlogg("Lagret fradrag for revudering $revurderingId på $sakId")

@@ -5,8 +5,10 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
+import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -45,10 +47,15 @@ internal class BeregningStrategyTest {
                 ),
             ),
         )
-        BeregningStrategy.BorAlene.beregn(
-            beregningsgrunnlag = beregningsgrunnlag,
-            clock = fixedClock,
+        BeregningFactory(fixedClock).ny(
+            fradrag = beregningsgrunnlag.fradrag,
             begrunnelse = "en begrunnelse",
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = beregningsgrunnlag.beregningsperiode,
+                    strategy = BeregningStrategy.BorAlene,
+                )
+            )
         ).let {
             it.periode.fraOgMed shouldBe periode.fraOgMed
             it.periode.tilOgMed shouldBe periode.tilOgMed
