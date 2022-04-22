@@ -8,7 +8,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
 import no.nav.su.se.bakover.domain.beregning.fradrag.utenAvkorting
 import no.nav.su.se.bakover.domain.beregning.fradrag.utenSosialstønad
 import java.time.Clock
@@ -92,7 +93,7 @@ class BeregningFactory(val clock: Clock) {
 
         fun Månedsberegning.lagFradragForBeløpUnderMinstegrense() = FradragFactory.periodiser(
             FradragFactory.ny(
-                type = Fradragstype.UnderMinstenivå,
+                fradragskategoriWrapper = FradragskategoriWrapper(Fradragskategori.UnderMinstenivå),
                 månedsbeløp = getSumYtelse().toDouble(),
                 periode = måned,
                 utenlandskInntekt = null,

@@ -122,7 +122,7 @@ fun grunnlagsdataMedEpsMedFradrag(
 
 fun arbeidsinntekt(periode: Periode, tilhører: FradragTilhører): Grunnlag.Fradragsgrunnlag {
     return lagFradragsgrunnlag(
-        type = Fradragstype.Arbeidsinntekt,
+        type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
         månedsbeløp = 5000.0,
         periode = periode,
         utenlandskInntekt = null,

@@ -244,7 +244,7 @@ internal class VedtakPåTidslinjeTest {
         )
 
         val f3 = lagFradragsgrunnlag(
-            type = Fradragstype.Arbeidsinntekt,
+            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
             månedsbeløp = 2000.0,
             periode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 31.desember(2021)),
             utenlandskInntekt = null,
@@ -374,7 +374,7 @@ internal class VedtakPåTidslinjeTest {
                         it.tilhører shouldBe FradragTilhører.BRUKER
                     }
                     fradragCopy[1].let {
-                        it.fradragstype shouldBe Fradragstype.Arbeidsinntekt
+                        it.fradragskategoriWrapper.kategori shouldBe Fradragskategori.Arbeidsinntekt
                         it.månedsbeløp shouldBe 2000.0
                         it.periode shouldBe Periode.create(1.juli(2021), 31.juli(2021))
                         it.utenlandskInntekt shouldBe null

@@ -345,14 +345,14 @@ internal class FradragsgrunnlagTest {
     @Test
     fun `fjerner fradrag for EPS for utvalgte perioder og bevarer for resterende`() {
         val fBruker = lagFradragsgrunnlag(
-            type = Fradragstype(F.Arbeidsinntekt),
+            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
             månedsbeløp = 5_000.0,
             periode = periode2021,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )
         val fEps = lagFradragsgrunnlag(
-            type = Fradragstype(F.Arbeidsinntekt),
+            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
             månedsbeløp = 10_000.0,
             periode = periode2021,
             utenlandskInntekt = null,
@@ -367,7 +367,7 @@ internal class FradragsgrunnlagTest {
             it[0] shouldBe fBruker
             it[1].erLik(
                 lagFradragsgrunnlag(
-                    type = Fradragstype(F.Arbeidsinntekt),
+                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 10_000.0,
                     periode = januar(2021),
                     utenlandskInntekt = null,
@@ -376,7 +376,7 @@ internal class FradragsgrunnlagTest {
             ) shouldBe true
             it[2].erLik(
                 lagFradragsgrunnlag(
-                    type = Fradragstype(F.Arbeidsinntekt),
+                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 10_000.0,
                     periode = Periode.create(1.mars(2021), 31.mai(2021)),
                     utenlandskInntekt = null,
@@ -385,7 +385,7 @@ internal class FradragsgrunnlagTest {
             ) shouldBe true
             it[3].erLik(
                 lagFradragsgrunnlag(
-                    type = Fradragstype(F.Arbeidsinntekt),
+                    type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
                     månedsbeløp = 10_000.0,
                     periode = Periode.create(1.juli(2021), 31.desember(2021)),
                     utenlandskInntekt = null,
@@ -398,14 +398,14 @@ internal class FradragsgrunnlagTest {
     @Test
     fun `fjerning av fradrag for EPS uten spesifisert periode`() {
         val fBruker = lagFradragsgrunnlag(
-            type = Fradragstype(F.Arbeidsinntekt),
+            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
             månedsbeløp = 5_000.0,
             periode = periode2021,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )
         val fEps = lagFradragsgrunnlag(
-            type = Fradragstype(F.Arbeidsinntekt),
+            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
             månedsbeløp = 10_000.0,
             periode = periode2021,
             utenlandskInntekt = null,
@@ -419,14 +419,14 @@ internal class FradragsgrunnlagTest {
     @Test
     fun `fjerning av fradrag for EPS perioder som ikke overlapper med fradraget`() {
         val fBruker = lagFradragsgrunnlag(
-            type = Fradragstype(F.Arbeidsinntekt),
+            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
             månedsbeløp = 5_000.0,
             periode = periode2021,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )
         val fEps = lagFradragsgrunnlag(
-            type = Fradragstype(F.Arbeidsinntekt),
+            type = FradragskategoriWrapper(Fradragskategori.Arbeidsinntekt),
             månedsbeløp = 10_000.0,
             periode = periode2021,
             utenlandskInntekt = null,
