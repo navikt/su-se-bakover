@@ -5,7 +5,7 @@ import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import arrow.core.sequenceEither
+import arrow.core.sequence
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
@@ -185,7 +185,7 @@ sealed class Grunnlag {
             fun List<Fradragsgrunnlag>.oppdaterFradragsperiode(
                 oppdatertPeriode: Periode,
             ): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
-                return this.map { it.oppdaterFradragsperiode(oppdatertPeriode) }.sequenceEither()
+                return this.map { it.oppdaterFradragsperiode(oppdatertPeriode) }.sequence()
             }
 
             fun List<Fradragsgrunnlag>.harEpsInntekt() = this.any { it.fradrag.tilhørerEps() }
