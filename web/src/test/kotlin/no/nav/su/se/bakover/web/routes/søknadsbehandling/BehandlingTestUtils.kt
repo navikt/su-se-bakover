@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.bosituasjon
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.vurderingsperiodeUføre
 import no.nav.su.se.bakover.web.routes.grunnlag.UtenlandsoppholdVilkårJsonTest.Companion.utenlandsopphold
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.TestBeregning
 import java.time.LocalDate
 import java.util.UUID
 

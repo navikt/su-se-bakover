@@ -1,17 +1,17 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.Månedsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 
 object MånedsberegningFactory {
     fun ny(
-        periode: Periode,
+        måned: Månedsperiode,
         sats: Sats,
         fradrag: List<Fradrag>,
         fribeløpForEps: Double = 0.0,
     ): Månedsberegning {
         return PeriodisertBeregning(
-            periode = periode,
+            måned = måned,
             sats = sats,
             fradrag = fradrag,
             fribeløpForEps = fribeløpForEps

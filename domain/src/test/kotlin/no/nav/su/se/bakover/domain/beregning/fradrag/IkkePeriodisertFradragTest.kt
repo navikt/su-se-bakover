@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2021
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -20,7 +22,7 @@ internal class IkkePeriodisertFradragTest {
             FradragFactory.ny(
                 type = Fradragstype.Arbeidsinntekt,
                 månedsbeløp = -5.0,
-                periode = Periode.create(1.januar(2020), 31.januar(2020)),
+                periode = månedsperiodeJanuar2020,
                 tilhører = FradragTilhører.BRUKER,
             )
         }
@@ -31,7 +33,7 @@ internal class IkkePeriodisertFradragTest {
         val f1 = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            periode = Periode.create(1.januar(2020), 31.januar(2020)),
+            periode = månedsperiodeJanuar2020,
             tilhører = FradragTilhører.BRUKER,
         )
         f1.månedsbeløp shouldBe 12000.0
@@ -50,13 +52,13 @@ internal class IkkePeriodisertFradragTest {
         val f1 = IkkePeriodisertFradrag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            periode = Periode.create(1.januar(2020), 31.januar(2020)),
+            periode = månedsperiodeJanuar2020,
             tilhører = FradragTilhører.BRUKER,
         )
-        val periodisert = PeriodisertFradrag(
+        val periodisert = FradragForMåned(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            periode = Periode.create(1.januar(2020), 31.januar(2020)),
+            måned = månedsperiodeJanuar2020,
             tilhører = FradragTilhører.BRUKER,
         )
         FradragFactory.periodiser(f1) shouldBe listOf(periodisert)
@@ -67,7 +69,7 @@ internal class IkkePeriodisertFradragTest {
         val fradrag = IkkePeriodisertFradrag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            periode = månedsperiodeJanuar2021,
             tilhører = FradragTilhører.BRUKER,
         )
 
@@ -92,7 +94,7 @@ internal class IkkePeriodisertFradragTest {
         val fradrag = IkkePeriodisertFradrag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            periode = månedsperiodeJanuar2021,
             tilhører = FradragTilhører.BRUKER,
         )
         fradrag.copy(CopyArgs.Snitt(Periode.create(1.februar(2021), 31.desember(2021)))) shouldBe null

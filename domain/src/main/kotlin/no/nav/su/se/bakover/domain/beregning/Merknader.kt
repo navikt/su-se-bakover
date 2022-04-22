@@ -45,22 +45,30 @@ sealed class Merknad {
             /**
              * Beregnet beløp for en måned (ex [Fradragstype.Sosialstønad]) er mellom 0 og 2% av [Sats.HØY]
              */
-            object BeløpMellomNullOgToProsentAvHøySats : Avslag()
+            object BeløpMellomNullOgToProsentAvHøySats : Avslag() {
+                override fun toString(): String = this.javaClass.simpleName
+            }
 
             /**
              * Beregnet beløp for en måned (ex [Fradragstype.Sosialstønad]) er 0.
              */
-            object BeløpErNull : Avslag()
+            object BeløpErNull : Avslag() {
+                override fun toString(): String = this.javaClass.simpleName
+            }
         }
 
         /**
          * Beregnet beløp for en måned er lavere enn 2% av [Sats.HØY] som følge av avkorting.
          */
-        object AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
+        object AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning() {
+            override fun toString(): String = this.javaClass.simpleName
+        }
 
         /**
          * Beregnet beløp for en måned er lavere enn 2% av [Sats.HØY] som følge av sosialstønad.
          */
-        object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
+        object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning() {
+            override fun toString(): String = this.javaClass.simpleName
+        }
     }
 }

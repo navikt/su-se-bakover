@@ -131,7 +131,7 @@ internal class OpprettRevurderingServiceTest {
             revurderingRepo = revurderingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            avkortingsvarselRepo = mock() {
+            avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
         )
@@ -215,7 +215,7 @@ internal class OpprettRevurderingServiceTest {
             revurderingRepo = revurderingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            avkortingsvarselRepo = mock() {
+            avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
         )
@@ -313,7 +313,7 @@ internal class OpprettRevurderingServiceTest {
             revurderingRepo = revurderingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            avkortingsvarselRepo = mock() {
+            avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
         )
@@ -584,7 +584,7 @@ internal class OpprettRevurderingServiceTest {
             revurderingRepo = revurderingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            avkortingsvarselRepo = mock() {
+            avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
         )
@@ -774,7 +774,7 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `støtter ikke tilfeller hvor gjeldende vedtaksdata ikke er sammenhengende i tid`() {
         val førsteVedtak = createSøknadsbehandlingVedtak()
-        val periodePlussEtÅr = periodeNesteMånedOgTreMånederFram.copy(
+        val periodePlussEtÅr = Periode.create(
             periodeNesteMånedOgTreMånederFram.fraOgMed.plusYears(1),
             periodeNesteMånedOgTreMånederFram.tilOgMed.plusYears(1),
         )
@@ -817,7 +817,7 @@ internal class OpprettRevurderingServiceTest {
         )
 
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram.copy(
+            periode = Periode.create(
                 førsteVedtak.periode.fraOgMed,
                 andreVedtak.periode.tilOgMed,
             ),

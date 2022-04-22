@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.månedsperiodeDesember2021
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -124,7 +125,7 @@ internal class VurderingsperiodeTest {
             opprettet = fixedTidspunkt.plus(2, ChronoUnit.DAYS),
             resultat = Resultat.Innvilget,
             grunnlag = null,
-            periode = Periode.create(1.desember(2021), 31.desember(2021)),
+            periode = månedsperiodeDesember2021,
             begrunnelse = "begrunnelsen b",
         )
 
@@ -160,7 +161,7 @@ internal class VurderingsperiodeTest {
                 copy.id shouldNotBe a.id
                 copy.id shouldNotBe b.id
                 copy.id shouldNotBe c.id
-                copy.periode shouldBe Periode.create(1.desember(2021), 31.desember(2021))
+                copy.periode shouldBe månedsperiodeDesember2021
                 copy.begrunnelse shouldBe b.begrunnelse
                 copy.grunnlag shouldBe null
             }

@@ -108,7 +108,9 @@ internal class BeregningMapperTest {
               "begrunnelse": "begrunnelse"
             }
         """.trimIndent()
-        JSONAssert.assertEquals(expectedJson, serialiserBeregning(beregningSnapshot), true)
+        val actual = serialiserBeregning(beregningSnapshot)
+        JSONAssert.assertEquals(expectedJson, actual, true)
+        deserialiserBeregning(actual) shouldBe beregningSnapshot.toSnapshot()
     }
 
     @Test

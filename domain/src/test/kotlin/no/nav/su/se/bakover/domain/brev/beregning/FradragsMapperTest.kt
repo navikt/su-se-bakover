@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
 import org.junit.jupiter.api.Test
 
 internal class FradragsMapperTest {
@@ -104,7 +105,7 @@ internal class FradragsMapperTest {
             FradragFactory.ny(
                 type = Fradragstype.Arbeidsinntekt,
                 månedsbeløp = 10000.0,
-                periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020)),
+                periode = månedsperiodeJanuar2020,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.EPS
             )
@@ -112,7 +113,7 @@ internal class FradragsMapperTest {
 
         EpsFradragFraSaksbehandlerIBeregningsperiode(
             fradrag,
-            Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020))
+            månedsperiodeJanuar2020
         ).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.Arbeidsinntekt.toReadableTypeName(false),

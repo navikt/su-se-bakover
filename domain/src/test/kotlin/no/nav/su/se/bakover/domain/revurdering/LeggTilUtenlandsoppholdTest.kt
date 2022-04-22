@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
@@ -18,6 +17,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.periodeFebruar2021
 import no.nav.su.se.bakover.test.periodeJanuar2021
@@ -37,7 +37,7 @@ class LeggTilUtenlandsoppholdTest {
 
         uavklart.oppdaterUtenlandsoppholdOgMarkerSomVurdert(
             utenlandsopphold = utenlandsoppholdInnvilget(
-                periode = Periode.create(1.januar(2020), 31.januar(2020)),
+                periode = månedsperiodeJanuar2020,
             ),
         ) shouldBe Revurdering.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
 
@@ -55,7 +55,7 @@ class LeggTilUtenlandsoppholdTest {
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = null,
-                        periode = Periode.create(1.januar(2020), 31.januar(2020)),
+                        periode = månedsperiodeJanuar2020,
                         begrunnelse = "begrunnelse",
                     ),
                 ),
