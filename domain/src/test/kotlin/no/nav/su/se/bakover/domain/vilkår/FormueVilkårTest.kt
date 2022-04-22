@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldHaveSize
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
@@ -12,6 +13,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
@@ -227,6 +229,61 @@ internal class FormueVilkårTest {
         ).let { opprinneligVilkår ->
             opprinneligVilkår.fjernEPSFormue(listOf(Periode.create(1.februar(2022), 31.juli(2022)))).let {
                 it.erLik(opprinneligVilkår)
+            }
+        }
+    }
+
+    @Test
+    fun `legger til tom formue for EPS for ønsket periode`() {
+        innvilgetFormueVilkår(
+            periode = Periode.create(1.januar(2021), 31.mars(2021)),
+            bosituasjon = bosituasjongrunnlagEnslig(
+                periode = Periode.create(1.januar(2021), 31.mars(2021)),
+            ),
+        ).let { opprinneligVilkår ->
+            opprinneligVilkår.harEPSFormue() shouldBe false
+            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(listOf(februar(2021))).let {
+                it.grunnlag shouldHaveSize 3
+                it.grunnlag[0].erLik(opprinneligVilkår.grunnlag.single())
+                it.grunnlag[0].harEPSFormue() shouldBe false
+                !it.grunnlag[1].erLik(opprinneligVilkår.grunnlag.single())
+                it.grunnlag[1].harEPSFormue() shouldBe true
+                it.grunnlag[2].erLik(opprinneligVilkår.grunnlag.single())
+                it.grunnlag[2].harEPSFormue() shouldBe false
+            }
+        }
+    }
+
+    @Test
+    fun `legger til tom formue for EPS for ønsket hele perioden`() {
+        innvilgetFormueVilkår(
+            periode = Periode.create(1.januar(2021), 31.mars(2021)),
+            bosituasjon = bosituasjongrunnlagEnslig(
+                periode = Periode.create(1.januar(2021), 31.mars(2021)),
+            ),
+        ).let { opprinneligVilkår ->
+            opprinneligVilkår.harEPSFormue() shouldBe false
+            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(listOf(Periode.create(1.januar(2021), 31.mars(2021)))).let {
+                opprinneligVilkår.harEPSFormue() shouldBe false
+                it.grunnlag shouldHaveSize 1
+                !it.grunnlag[0].erLik(opprinneligVilkår.grunnlag.single())
+                it.harEPSFormue() shouldBe true
+            }
+        }
+    }
+
+    @Test
+    fun `legg til tom formue har ingen effekt dersom den ikke mangler`() {
+        innvilgetFormueVilkår(
+            periode = Periode.create(1.januar(2021), 31.mars(2021)),
+            bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
+                periode = Periode.create(1.januar(2021), 31.mars(2021)),
+            ),
+        ).let { opprinneligVilkår ->
+            opprinneligVilkår.harEPSFormue() shouldBe true
+            opprinneligVilkår.leggTilTomEPSFormueHvisDetMangler(listOf(Periode.create(1.januar(2021), 31.mars(2021)))).let {
+                opprinneligVilkår.harEPSFormue() shouldBe true
+                it.erLik(opprinneligVilkår) shouldBe true
             }
         }
     }

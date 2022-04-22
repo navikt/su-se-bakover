@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -121,6 +122,7 @@ sealed class Revurdering :
         data class Valideringsfeil(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilBosituasjon()
         data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
             KunneIkkeLeggeTilBosituasjon()
+
         data class Konsistenssjekk(val feil: Konsistensproblem.Bosituasjon) : KunneIkkeLeggeTilBosituasjon()
         data class KunneIkkeOppdatereFormue(val feil: KunneIkkeLeggeTilFormue) : KunneIkkeLeggeTilBosituasjon()
         object PerioderMangler : KunneIkkeLeggeTilBosituasjon()
@@ -251,15 +253,31 @@ sealed class Revurdering :
             .mapLeft { KunneIkkeLeggeTilBosituasjon.Konsistenssjekk(it.first()) }
             .flatMap {
                 Grunnlagsdata.tryCreate(
+                    /**
+                     * Hvis vi går fra "eps" til "ingen eps" må vi fjerne fradragene for EPS for alle periodene
+                     * hvor det eksiterer fradrag for EPS. Ved endring fra "ingen eps" til "eps" er det umulig for
+                     * oss å vite om det skal eksistere fradrag, caset er derfor uhåndtert (opp til saksbehandler).
+                     */
                     fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragEPS(bosituasjon.perioderUtenEPS()),
                     bosituasjon = bosituasjon,
                 ).mapLeft {
                     KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it)
                 }.flatMap { grunnlagsdata ->
                     oppdaterGrunnlag(grunnlagsdata).let { medOppdatertFradrag ->
+                        val justertForEPS = medOppdatertFradrag.vilkårsvurderinger.formue
+                            /**
+                             * Hvis vi går fra "ingen eps" til "eps" må vi fylle på med tomme verdier for EPS formue for
+                             * periodene hvor vi tidligere ikke hadde eps.
+                             */
+                            .leggTilTomEPSFormueHvisDetMangler(bosituasjon.perioderMedEPS())
+                            /**
+                             * Hvis vi går fra "eps" til "ingen eps" må vi fjerne formue for alle periodene hvor vi
+                             * ikke lenger har eps.
+                             */
+                            .fjernEPSFormue(bosituasjon.perioderUtenEPS())
+                            .slåSammenLikePerioder()
                         medOppdatertFradrag.oppdaterFormueInternal(
-                            formue = medOppdatertFradrag.vilkårsvurderinger.formue.fjernEPSFormue(bosituasjon.perioderUtenEPS())
-                                .slåSammenLikePerioder(),
+                            formue = justertForEPS,
                         ).mapLeft {
                             KunneIkkeLeggeTilBosituasjon.KunneIkkeOppdatereFormue(it)
                         }

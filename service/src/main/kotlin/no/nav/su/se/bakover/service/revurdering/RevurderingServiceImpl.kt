@@ -227,7 +227,6 @@ internal class RevurderingServiceImpl(
                 forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles else null,
                 grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                 vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
-
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = uteståendeAvkorting,

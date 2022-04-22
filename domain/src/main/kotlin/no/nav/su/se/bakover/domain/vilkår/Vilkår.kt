@@ -593,6 +593,8 @@ sealed class Vilkår {
             return grunnlag.any { it.harEPSFormue() }
         }
 
+        abstract fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Formue
+
         /**
          * @param perioder vi ønsker å fjerne formue for EPS for. Eventuell formue for EPS som ligger utenfor
          * periodene bevares.
@@ -616,6 +618,10 @@ sealed class Vilkår {
             }
 
             override fun slåSammenLikePerioder(): IkkeVurdert {
+                return this
+            }
+
+            override fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Formue {
                 return this
             }
 
@@ -653,6 +659,10 @@ sealed class Vilkår {
                         ).tidslinje,
                     ),
                 )
+            }
+
+            override fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Formue {
+                return copy(vurderingsperioder = vurderingsperioder.flatMap { it.leggTilTomEPSFormueHvisDetMangler(perioder) })
             }
 
             override fun fjernEPSFormue(perioder: List<Periode>): Vurdert {
@@ -893,12 +903,18 @@ sealed class Vurderingsperiode {
                 grunnlag.erLik(other.grunnlag)
         }
 
-        private fun fjernEPSFormue(): Formue {
-            return copy(grunnlag = grunnlag.fjernEPSFormue())
-        }
-
         fun harEPSFormue(): Boolean {
             return grunnlag.harEPSFormue()
+        }
+
+        fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Nel<Formue> {
+            val uendret = masker(perioder)
+            val endret = leggTilTomEPSFormueHvisDetMangler().masker(perioder = uendret.map { it.periode }.reduser())
+            return Nel.fromListUnsafe(Tidslinje(periode, uendret + endret).tidslinje)
+        }
+
+        private fun leggTilTomEPSFormueHvisDetMangler(): Formue {
+            return copy(grunnlag = grunnlag.leggTilTomEPSFormueHvisDenMangler())
         }
 
         /**
@@ -911,6 +927,10 @@ sealed class Vurderingsperiode {
             val uendret = masker(perioder = perioder)
             val endret = fjernEPSFormue().masker(perioder = uendret.map { it.periode }.reduser())
             return Nel.fromListUnsafe(Tidslinje(periode, uendret + endret).tidslinje)
+        }
+
+        private fun fjernEPSFormue(): Formue {
+            return copy(grunnlag = grunnlag.fjernEPSFormue())
         }
 
         companion object {

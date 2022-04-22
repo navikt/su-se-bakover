@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
@@ -18,6 +19,8 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
+import no.nav.su.se.bakover.test.fullstendigMedEPS
+import no.nav.su.se.bakover.test.fullstendigUtenEPS
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -126,6 +129,43 @@ class LeggTilBosituasjonTest {
                 oppdatert.grunnlagsdata.bosituasjon.harEPS() shouldBe true
                 oppdatert.grunnlagsdata.fradragsgrunnlag.filter { it.tilhørerEps() } shouldHaveSize 1
                 oppdatert.vilkårsvurderinger.formue.harEPSFormue() shouldBe true
+            }
+        }
+    }
+
+    @Test
+    fun `legger til tom formue for EPS dersom bosituasjon endres til å ha EPS`() {
+        val bosituasjon = fullstendigUtenEPS(periode2021)
+        opprettetRevurdering(
+            grunnlagsdataOverrides = listOf(
+                bosituasjon,
+            ),
+            vilkårOverrides = listOf(
+                innvilgetFormueVilkår(
+                    periode = periode2021,
+                    bosituasjon = bosituasjon,
+                ),
+            ),
+        ).let { (_, revurdering) ->
+            revurdering.grunnlagsdata.bosituasjon.harEPS() shouldBe false
+            revurdering.vilkårsvurderinger.formue.harEPSFormue() shouldBe false
+            revurdering.oppdaterBosituasjonOgMarkerSomVurdert(
+                bosituasjon = listOf(
+                    fullstendigMedEPS(periode2021),
+                ),
+            ).getOrFail().let { oppdatert ->
+                oppdatert.grunnlagsdata.bosituasjon.harEPS() shouldBe true
+                oppdatert.vilkårsvurderinger.formue.harEPSFormue() shouldBe true
+                oppdatert.vilkårsvurderinger.formue.grunnlag.single().epsFormue shouldBe Formuegrunnlag.Verdier.create(
+                    verdiIkkePrimærbolig = 0,
+                    verdiEiendommer = 0,
+                    verdiKjøretøy = 0,
+                    innskudd = 0,
+                    verdipapir = 0,
+                    pengerSkyldt = 0,
+                    kontanter = 0,
+                    depositumskonto = 0,
+                )
             }
         }
     }

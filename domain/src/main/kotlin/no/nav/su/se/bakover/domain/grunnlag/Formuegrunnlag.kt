@@ -24,6 +24,21 @@ data class Formuegrunnlag private constructor(
         return epsFormue != null
     }
 
+    fun leggTilTomEPSFormueHvisDenMangler(): Formuegrunnlag {
+        return epsFormue?.let { this } ?: copy(
+            epsFormue = Verdier.create(
+                verdiIkkePrimærbolig = 0,
+                verdiEiendommer = 0,
+                verdiKjøretøy = 0,
+                innskudd = 0,
+                verdipapir = 0,
+                pengerSkyldt = 0,
+                kontanter = 0,
+                depositumskonto = 0,
+            ),
+        )
+    }
+
     fun fjernEPSFormue(): Formuegrunnlag {
         return copy(epsFormue = null)
     }
@@ -264,6 +279,7 @@ sealed class KunneIkkeLageFormueVerdier {
     object DepositumErStørreEnnInnskudd : KunneIkkeLageFormueVerdier()
     object VerdierKanIkkeVæreNegativ : KunneIkkeLageFormueVerdier()
 }
+
 /**
  * @throws IllegalStateException dersom antall elementer i listen ikke tilsvarer 1
  */
