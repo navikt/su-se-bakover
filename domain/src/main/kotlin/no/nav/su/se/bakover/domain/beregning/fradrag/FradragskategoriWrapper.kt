@@ -12,8 +12,8 @@ data class FradragskategoriWrapper(
     val spesifisertKategori: String? = null,
 ) {
     init {
-        if (kategori == Fradragskategori.Annet && spesifisertKategori == null) throw IllegalArgumentException("Typen må spesifiseres")
-        if (kategori != Fradragskategori.Annet && spesifisertKategori != null) throw IllegalArgumentException("Typen skal kun spesifieres dersom den er 'Annet'")
+        if (kategori == Fradragskategori.Annet && spesifisertKategori == null) throw IllegalArgumentException("Kategorien må spesifiseres")
+        if (kategori != Fradragskategori.Annet && spesifisertKategori != null) throw IllegalArgumentException("Kategorien skal kun spesifieres dersom den er 'Annet'")
     }
 }
 

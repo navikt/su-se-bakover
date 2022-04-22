@@ -39,7 +39,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragskategoriWrapper
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragskategori
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -120,7 +120,7 @@ open class Session(
                 is VedtakType -> this.setString(idx, v.toString())
                 is Utbetalingslinje.Endring.LinjeStatus -> this.setString(idx, v.toString())
                 is RevurderingsType -> this.setString(idx, v.toString())
-                is FradragskategoriWrapper -> this.setString(idx, v.toString())
+                is Fradragskategori -> this.setString(idx, v.toString())
                 is FradragTilhører -> this.setString(idx, v.toString())
                 is List<*> -> this.setArray(
                     idx,

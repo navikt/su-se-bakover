@@ -21,12 +21,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.UtenlandskIn
 internal data class FradragskategoriWrapperJson(
     val kategori: String,
     val spesifisertKategori: String? = null,
-) {
-    init {
-        if (kategori == Fradragskategori.Annet.toString() && spesifisertKategori == null) throw IllegalArgumentException("Typen må spesifiseres")
-        if (kategori != Fradragskategori.Annet.toString() && spesifisertKategori != null) throw IllegalArgumentException("Typen skal kun spesifieres dersom den er 'Annet'")
-    }
-}
+)
 
 internal data class FradragJson(
     val periode: PeriodeJson?,

@@ -26,7 +26,7 @@ internal class Avkortingsplan(
         check(
             beregning.getFradrag()
                 .none { it.fradragskategoriWrapper.kategori == Fradragskategori.AvkortingUtenlandsopphold },
-        ) { "Beregning inneholder allerede fradrag av type: ${Fradragskategori.AvkortingUtenlandsopphold}. Gamle fradrag må fjenres før ny beregning kan gjennomføres." }
+        ) { "Beregning inneholder allerede fradrag av type: ${Fradragskategori.AvkortingUtenlandsopphold}. Gamle fradrag må fjernes før ny beregning kan gjennomføres." }
     }
 
     private val tilbakebetalinger: Månedsbeløp = lagTilbakebetalingsplan(beregning)
