@@ -178,7 +178,10 @@ internal object SharedRegressionTestData {
         )
     }
 
-    internal fun withTestApplicationAndEmbeddedDb(test: TestApplicationEngine.() -> Unit) {
+    internal fun withTestApplicationAndEmbeddedDb(
+        clock: Clock = fixedClock,
+        test: TestApplicationEngine.() -> Unit,
+    ) {
         withMigratedDb { dataSource ->
             withTestApplication(
                 moduleFunction = {
@@ -186,7 +189,7 @@ internal object SharedRegressionTestData {
                         databaseRepos = databaseRepos(
                             dataSource = dataSource,
                         ),
-                        clock = fixedClock,
+                        clock = clock,
                     )
                 },
                 test = test,
