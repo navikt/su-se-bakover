@@ -73,7 +73,7 @@ internal data class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 
     private fun List<Fradrag>.sorterFradrag() = this
         .sortedBy { it.månedsbeløp }
-        .sortedBy { it.fradragstype }
+        .sortedBy { it.fradragstype.kategori }
         .sortedBy { it.tilhører }
 }
 

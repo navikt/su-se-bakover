@@ -66,7 +66,7 @@ internal class FradragsgrunnlagPostgresRepo(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             fradrag = PersistertFradrag(
-                fradragstype = Fradragstype.valueOf(string("fradragstype")),
+                kategori = Fradragstype.Kategori.valueOf(string("fradragstype")),
                 månedsbeløp = double("månedsbeløp"),
                 utenlandskInntekt = stringOrNull("utenlandskInntekt")?.let { deserialize(it) },
                 periode = Periode.create(fraOgMed = localDate("fraOgMed"), tilOgMed = localDate("tilOgMed")),

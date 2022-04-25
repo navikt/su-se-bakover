@@ -97,15 +97,33 @@ internal data class PersistertMånedsberegning(
 }
 
 internal data class PersistertFradrag(
-    override val fradragstype: Fradragstype,
+    @get:JsonProperty("fradragstype")
+    val kategori: Fradragstype.Kategori,
     override val månedsbeløp: Double,
     override val utenlandskInntekt: UtenlandskInntekt?,
     override val periode: Periode,
     override val tilhører: FradragTilhører,
 ) : Fradrag {
+
+    constructor(
+        fradragstype: Fradragstype,
+        månedsbeløp: Double,
+        utenlandskInntekt: UtenlandskInntekt?,
+        periode: Periode,
+        tilhører: FradragTilhører,
+    ) : this(
+        kategori = fradragstype.kategori,
+        månedsbeløp = månedsbeløp,
+        utenlandskInntekt = utenlandskInntekt,
+        periode = periode,
+        tilhører = tilhører,
+    )
+
     override fun copy(args: CopyArgs.Snitt): Fradrag? {
         return args.snittFor(periode)?.let { copy(periode = it) }
     }
+
+    override val fradragstype = Fradragstype.from(kategori)
 }
 
 internal fun Beregning.toSnapshot() = PersistertBeregning(

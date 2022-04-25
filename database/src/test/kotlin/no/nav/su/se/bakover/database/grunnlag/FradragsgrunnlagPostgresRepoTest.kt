@@ -53,7 +53,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
                 testDataHelper.fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandling.id, tx) shouldBe listOf(
                     fradragsgrunnlag1.copy(
                         fradrag = PersistertFradrag(
-                            fradragstype = Fradragstype.Arbeidsinntekt,
+                            kategori = Fradragstype.Arbeidsinntekt.kategori,
                             månedsbeløp = 5000.0,
                             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
                             utenlandskInntekt = UtenlandskInntekt.create(
@@ -64,7 +64,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
                     ),
                     fradragsgrunnlag2.copy(
                         fradrag = PersistertFradrag(
-                            fradragstype = Fradragstype.Kontantstøtte,
+                            kategori = Fradragstype.Kontantstøtte.kategori,
                             månedsbeløp = 15000.0,
                             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
                             utenlandskInntekt = null,

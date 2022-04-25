@@ -32,7 +32,7 @@ internal data class FradragJson(
             return it.left()
         } ?: beregningsperiode
         return FradragFactory.ny(
-            type = Fradragstype.valueOf(type),
+            type = Fradragstype.from(Fradragstype.Kategori.valueOf(type)),
             månedsbeløp = beløp,
             periode = periode,
             utenlandskInntekt = utenlandskInntekt,
@@ -62,7 +62,7 @@ internal data class FradragJson(
 
         fun Fradrag.toJson() =
             FradragJson(
-                type = fradragstype.toString(),
+                type = fradragstype.kategori.toString(),
                 beløp = månedsbeløp,
                 utenlandskInntekt = utenlandskInntekt?.toJson(),
                 periode = periode.toJson(),
