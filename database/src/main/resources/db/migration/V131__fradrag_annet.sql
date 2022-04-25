@@ -1,0 +1,1 @@
+alter table grunnlag_fradrag add column beskrivelse text default null;

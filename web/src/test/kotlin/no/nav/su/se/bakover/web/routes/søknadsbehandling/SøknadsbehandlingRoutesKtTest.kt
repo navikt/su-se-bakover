@@ -367,6 +367,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     val epsFradrag = FradragJson(
                         periode = PeriodeJson("2021-05-01", "2021-12-31"),
                         type = "Arbeidsinntekt",
+                        beskrivelse = null,
                         beløp = 9879.0,
                         utenlandskInntekt = null,
                         tilhører = "EPS",
@@ -374,6 +375,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     val brukerFradrag = FradragJson(
                         periode = PeriodeJson("2021-06-01", "2021-12-31"),
                         type = "Kontantstøtte",
+                        beskrivelse = null,
                         beløp = 10000.0,
                         utenlandskInntekt = null,
                         tilhører = "BRUKER",

@@ -33,7 +33,8 @@ internal class FradragJsonTest {
 
         deserialize<FradragJson>(fradragJson) shouldBe FradragJson(
             periode = PeriodeJson("2020-01-01", "2020-01-31"),
-            type = Fradragstype.Arbeidsinntekt.toString(),
+            type = Fradragstype.Kategori.Arbeidsinntekt.toString(),
+            beskrivelse = null,
             beløp = 10.0,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER.toString(),
@@ -54,7 +55,8 @@ internal class FradragJsonTest {
 
         deserialize<FradragJson>(fradragJson) shouldBe FradragJson(
             periode = null,
-            type = Fradragstype.Arbeidsinntekt.toString(),
+            type = Fradragstype.Kategori.Arbeidsinntekt.toString(),
+            beskrivelse = null,
             beløp = 10.0,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER.toString(),
@@ -65,7 +67,8 @@ internal class FradragJsonTest {
     fun `fradrag som ikke har egen periode bruker den som sendes inn i mappingfunksjonen`() {
         val jsonUtenPeriode = FradragJson(
             periode = null,
-            type = Fradragstype.Arbeidsinntekt.toString(),
+            type = Fradragstype.Kategori.Arbeidsinntekt.toString(),
+            beskrivelse = null,
             beløp = 10.0,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER.toString(),
@@ -87,7 +90,8 @@ internal class FradragJsonTest {
     fun `fradrag som har egen periode bruker benytter denne`() {
         val jsonUtenPeriode = FradragJson(
             periode = PeriodeJson("2021-01-01", "2021-01-31"),
-            type = Fradragstype.Arbeidsinntekt.toString(),
+            type = Fradragstype.Kategori.Arbeidsinntekt.toString(),
+            beskrivelse = null,
             beløp = 10.0,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER.toString(),

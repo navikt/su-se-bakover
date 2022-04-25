@@ -71,16 +71,17 @@ internal class FradragsgrunnlagTest {
 
     @Test
     fun `kan lage gyldige fradragsgrunnlag`() {
-        Fradragstype.values().filterNot {
+        Fradragstype.Kategori.values().filterNot {
             listOf(
-                Fradragstype.BeregnetFradragEPS,
-                Fradragstype.ForventetInntekt,
-                Fradragstype.UnderMinstenivå,
+                Fradragstype.Kategori.BeregnetFradragEPS,
+                Fradragstype.Kategori.ForventetInntekt,
+                Fradragstype.Kategori.UnderMinstenivå,
+                Fradragstype.Kategori.Annet,
             ).contains(it)
         }.forEach {
             Grunnlag.Fradragsgrunnlag.tryCreate(
                 fradrag = FradragFactory.ny(
-                    type = it,
+                    type = Fradragstype.from(it, null),
                     månedsbeløp = 150.0,
                     periode = behandlingsperiode,
                     utenlandskInntekt = null,
