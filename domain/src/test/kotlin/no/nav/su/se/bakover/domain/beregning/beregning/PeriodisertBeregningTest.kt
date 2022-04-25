@@ -4,9 +4,9 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
 import no.nav.su.se.bakover.test.månedsperiodeDesember2020
 import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
 import org.junit.jupiter.api.Test
@@ -30,10 +30,10 @@ internal class PeriodisertBeregningTest {
             måned = månedsperiodeJanuar2020,
             sats = Sats.HØY,
             fradrag = listOf(
-                IkkePeriodisertFradrag(
-                    type = Fradragstype.Kontantstøtte,
+                FradragForMåned(
+                    fradragstype = Fradragstype.Kontantstøtte,
                     månedsbeløp = 5000.0,
-                    periode = månedsperiodeJanuar2020,
+                    måned = månedsperiodeJanuar2020,
                     tilhører = FradragTilhører.BRUKER
                 )
             )
@@ -49,10 +49,10 @@ internal class PeriodisertBeregningTest {
                 måned = månedsperiodeJanuar2020,
                 sats = Sats.HØY,
                 fradrag = listOf(
-                    IkkePeriodisertFradrag(
-                        type = Fradragstype.Kontantstøtte,
+                    FradragForMåned(
+                        fradragstype = Fradragstype.Kontantstøtte,
                         månedsbeløp = 5000.0,
-                        periode = månedsperiodeDesember2020,
+                        måned = månedsperiodeDesember2020,
                         tilhører = FradragTilhører.BRUKER
                     )
                 )
@@ -67,10 +67,10 @@ internal class PeriodisertBeregningTest {
             måned = periode,
             sats = Sats.ORDINÆR,
             fradrag = listOf(
-                IkkePeriodisertFradrag(
-                    type = Fradragstype.Kontantstøtte,
+                FradragForMåned(
+                    fradragstype = Fradragstype.Kontantstøtte,
                     månedsbeløp = 123000.0,
-                    periode = periode,
+                    måned = periode,
                     tilhører = FradragTilhører.BRUKER
                 )
             )
@@ -85,10 +85,10 @@ internal class PeriodisertBeregningTest {
             måned = periode,
             sats = Sats.ORDINÆR,
             fradrag = listOf(
-                IkkePeriodisertFradrag(
-                    type = Fradragstype.Kontantstøtte,
+                FradragForMåned(
+                    fradragstype = Fradragstype.Kontantstøtte,
                     månedsbeløp = 123000.0,
-                    periode = periode,
+                    måned = periode,
                     tilhører = FradragTilhører.BRUKER
                 )
             )
@@ -116,10 +116,10 @@ internal class PeriodisertBeregningTest {
 
     @Test
     fun `henter fradrag for aktuell måned`() {
-        val f1 = FradragFactory.ny(
-            type = Fradragstype.Arbeidsinntekt,
+        val f1 = FradragFactory.nyMånedsperiode(
+            fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 1234.56,
-            periode = månedsperiodeJanuar2020,
+            måned = månedsperiodeJanuar2020,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER
         )
@@ -133,10 +133,10 @@ internal class PeriodisertBeregningTest {
 
     @Test
     fun `er fradrag for eps benyttet i beregning`() {
-        val f1 = FradragFactory.ny(
-            type = Fradragstype.BeregnetFradragEPS,
+        val f1 = FradragFactory.nyMånedsperiode(
+            fradragstype = Fradragstype.BeregnetFradragEPS,
             månedsbeløp = 1234.56,
-            periode = månedsperiodeJanuar2020,
+            måned = månedsperiodeJanuar2020,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.EPS
         )
@@ -147,10 +147,10 @@ internal class PeriodisertBeregningTest {
         )
         m1.erFradragForEpsBenyttetIBeregning() shouldBe true
 
-        val f2 = FradragFactory.ny(
-            type = Fradragstype.Arbeidsinntekt,
+        val f2 = FradragFactory.nyMånedsperiode(
+            fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 1234.56,
-            periode = månedsperiodeJanuar2020,
+            måned = månedsperiodeJanuar2020,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER
         )

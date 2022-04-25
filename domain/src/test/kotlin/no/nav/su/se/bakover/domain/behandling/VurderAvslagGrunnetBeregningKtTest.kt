@@ -255,7 +255,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         return BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 *fradrag,
-                FradragFactory.ny(
+                FradragFactory.nyFradragsperiode(
                     Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
                     periode = periode,
@@ -278,8 +278,8 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         periode: Periode,
         fradragstype: Fradragstype? = null,
         tilhører: FradragTilhører? = null,
-    ) = FradragFactory.ny(
-        type = fradragstype ?: Fradragstype.Kapitalinntekt,
+    ) = FradragFactory.nyFradragsperiode(
+        fradragstype = fradragstype ?: Fradragstype.Kapitalinntekt,
         månedsbeløp = beløp,
         periode = periode,
         utenlandskInntekt = null,

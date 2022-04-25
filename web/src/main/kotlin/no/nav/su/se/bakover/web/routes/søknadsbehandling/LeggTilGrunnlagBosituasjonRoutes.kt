@@ -78,7 +78,10 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                         }
                                     },
                                     {
-                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
+                                        Resultat.json(
+                                            HttpStatusCode.Created,
+                                            serialize(it.toJson())
+                                        )
                                     },
                                 )
                             }.merge(),
@@ -135,7 +138,10 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                         is SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag -> Feilresponser.kunneIkkeLeggeTilBosituasjonsgrunnlag
                                     }
                                 }.map {
-                                    Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
+                                    Resultat.json(
+                                        HttpStatusCode.Created,
+                                        serialize(it.toJson())
+                                    )
                                 }
                             }.getOrHandle {
                                 it

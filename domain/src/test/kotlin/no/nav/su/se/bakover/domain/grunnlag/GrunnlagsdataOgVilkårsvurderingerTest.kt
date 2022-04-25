@@ -169,8 +169,8 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
         val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            fradrag = FradragFactory.ny(
-                type = Fradragstype.Kontantstøtte,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.Kontantstøtte,
                 månedsbeløp = 0.0,
                 periode = forrigePeriode,
                 utenlandskInntekt = null,

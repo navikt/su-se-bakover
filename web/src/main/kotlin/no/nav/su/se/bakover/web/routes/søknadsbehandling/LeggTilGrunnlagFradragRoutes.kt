@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -25,7 +26,7 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.utenforBehandlingsperioden
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
+import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.UtenlandskInntektJson
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -51,11 +52,11 @@ internal fun Route.leggTilGrunnlagFradrag(
                     Grunnlag.Fradragsgrunnlag.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(clock),
-                        fradrag = FradragFactory.ny(
-                            periode = fradrag.periode.toPeriode().getOrHandle { feilResultat ->
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            periode = fradrag.periode.toPeriodeOrResultat().getOrHandle { feilResultat ->
                                 return feilResultat.left()
                             },
-                            type = fradrag.type.let {
+                            fradragstype = fradrag.type.let {
                                 Fradragstype.tryParse(it, fradrag.beskrivelse).getOrHandle {
                                     return Behandlingsfeilresponser.ugyldigFradragstype.left()
                                 }

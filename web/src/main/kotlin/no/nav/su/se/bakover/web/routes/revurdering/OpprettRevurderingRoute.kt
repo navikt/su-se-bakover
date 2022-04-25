@@ -73,7 +73,12 @@ internal fun Route.opprettRevurderingRoute(
                             call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
                             SuMetrics.behandlingStartet(SuMetrics.Behandlingstype.REVURDERING)
-                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
+                            call.svar(
+                                Resultat.json(
+                                    HttpStatusCode.Created,
+                                    serialize(it.toJson())
+                                )
+                            )
                         },
                     )
                 }

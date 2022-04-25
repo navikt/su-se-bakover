@@ -17,14 +17,17 @@ class FradragsgrunnlagJsonTest {
 
     @Test
     fun `serialiserer og deserialiserer fradragsgrunnlag`() {
-        JSONAssert.assertEquals(expectedFradragsgrunnlagJson, serialize(fradragsgrunnlag.toJson()), true)
+        JSONAssert.assertEquals(
+            expectedFradragsgrunnlagJson,
+            serialize(fradragsgrunnlag.toJson()), true
+        )
         deserialize<FradragJson>(expectedFradragsgrunnlagJson) shouldBe fradragsgrunnlag.toJson()
     }
 
     @Test
     fun `serialiserer og deserialiserer fradragsgrunnlag med annet`() {
-        val fradrag = FradragFactory.ny(
-            type = Fradragstype.from(Fradragstype.Kategori.Annet, "vant på flaxlodd"),
+        val fradrag = FradragFactory.nyFradragsperiode(
+            fradragstype = Fradragstype.from(Fradragstype.Kategori.Annet, "vant på flaxlodd"),
             månedsbeløp = 1000.0,
             periode = periode2021,
             utenlandskInntekt = null,

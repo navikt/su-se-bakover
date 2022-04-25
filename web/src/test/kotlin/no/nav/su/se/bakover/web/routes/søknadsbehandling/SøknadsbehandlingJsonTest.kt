@@ -135,7 +135,10 @@ internal class SøknadsbehandlingJsonTest {
 
     @Test
     fun `should serialize to json string`() {
-        JSONAssert.assertEquals(behandlingJsonString, serialize(søknadsbehandling.toJson()), true)
+        JSONAssert.assertEquals(
+            behandlingJsonString,
+            serialize(søknadsbehandling.toJson()), true
+        )
     }
 
     @Test

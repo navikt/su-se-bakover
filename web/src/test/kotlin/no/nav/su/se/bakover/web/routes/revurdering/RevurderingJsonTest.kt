@@ -1520,7 +1520,10 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(simulertRevurderingJson, serialize(simulertRevurdering.toJson()), true)
+        JSONAssert.assertEquals(
+            simulertRevurderingJson,
+            serialize(simulertRevurdering.toJson()), true
+        )
 
         val iverksattRevurdering = simulertRevurdering.iverksett(
             attestering = attesteringIverksatt(clock = fixedClock),
@@ -1554,7 +1557,10 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(iverksattRevurderingJson, serialize(iverksattRevurdering.toJson()), true)
+        JSONAssert.assertEquals(
+            iverksattRevurderingJson,
+            serialize(iverksattRevurdering.toJson()), true
+        )
     }
 
     @Test
@@ -1591,7 +1597,10 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(simulertRevurderingJson, serialize(simulertRevurdering.toJson()), true)
+        JSONAssert.assertEquals(
+            simulertRevurderingJson,
+            serialize(simulertRevurdering.toJson()), true
+        )
 
         val iverksattRevurdering = simulertRevurdering.iverksett(attesteringIverksatt(clock = fixedClock))
             .getOrFail("Feil i oppsett av testdata")
@@ -1624,7 +1633,10 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(iverksattRevurderingJson, serialize(iverksattRevurdering.toJson()), true)
+        JSONAssert.assertEquals(
+            iverksattRevurderingJson,
+            serialize(iverksattRevurdering.toJson()), true
+        )
     }
 
     @Test

@@ -9,6 +9,7 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.post
+import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
@@ -23,8 +24,8 @@ import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.depositumErHøyereEnnInnskudd
 import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
+import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.routes.revurdering.FormueBody.Companion.toServiceRequest
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -65,7 +66,7 @@ private data class FormueBody(
                 formuegrunnlag = NonEmptyList.fromListUnsafe(
                     this.map { formueBody ->
                         LeggTilFormuegrunnlagRequest.Grunnlag(
-                            periode = formueBody.periode.toPeriode()
+                            periode = formueBody.periode.toPeriodeOrResultat()
                                 .getOrHandle { return it.left() },
                             epsFormue = formueBody.epsFormue?.let {
                                 lagFormuegrunnlag(formueBody.epsFormue).getOrHandle {

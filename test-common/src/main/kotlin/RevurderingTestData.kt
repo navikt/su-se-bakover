@@ -683,8 +683,8 @@ fun lagFradragsgrunnlag(
 ) = Grunnlag.Fradragsgrunnlag.tryCreate(
     id = id,
     opprettet = opprettet,
-    fradrag = FradragFactory.ny(
-        type = type,
+    fradrag = FradragFactory.nyFradragsperiode(
+        fradragstype = type,
         månedsbeløp = månedsbeløp,
         periode = periode,
         utenlandskInntekt = utenlandskInntekt,

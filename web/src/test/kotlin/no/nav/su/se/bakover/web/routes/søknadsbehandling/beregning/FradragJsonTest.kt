@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -75,8 +76,8 @@ internal class FradragJsonTest {
         )
 
         val expectedPeriode = månedsperiodeJanuar2020
-        val expected = FradragFactory.ny(
-            type = Fradragstype.Arbeidsinntekt,
+        val expected = FradragFactory.nyFradragsperiode(
+            fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 10.0,
             periode = expectedPeriode,
             utenlandskInntekt = null,
@@ -97,8 +98,8 @@ internal class FradragJsonTest {
             tilhører = FradragTilhører.BRUKER.toString(),
         )
 
-        val expected = FradragFactory.ny(
-            type = Fradragstype.Arbeidsinntekt,
+        val expected = FradragFactory.nyFradragsperiode(
+            fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 10.0,
             periode = månedsperiodeJanuar2021,
             utenlandskInntekt = null,

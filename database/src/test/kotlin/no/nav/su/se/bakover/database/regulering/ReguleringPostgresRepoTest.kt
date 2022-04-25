@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.regulering
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.withMigratedDb
 import org.junit.jupiter.api.Test
 
@@ -20,7 +19,7 @@ internal class ReguleringPostgresRepoTest {
             val hentRegulering = repo.hentReguleringerSomIkkeErIverksatt()
 
             hentRegulering.size shouldBe 1
-            hentRegulering.first() shouldBe regulering.persistertVariant()
+            hentRegulering.first() shouldBe regulering
         }
     }
 
@@ -34,7 +33,7 @@ internal class ReguleringPostgresRepoTest {
             val hentRegulering = repo.hentForSakId(regulering.sakId)
 
             hentRegulering.size shouldBe 1
-            hentRegulering.first() shouldBe regulering.persistertVariant()
+            hentRegulering.first() shouldBe regulering
         }
     }
 
@@ -47,7 +46,7 @@ internal class ReguleringPostgresRepoTest {
             val regulering = testDataHelper.persisterReguleringOpprettet()
             val hentRegulering = repo.hent(regulering.id)
 
-            hentRegulering shouldBe regulering.persistertVariant()
+            hentRegulering shouldBe regulering
         }
     }
 
@@ -60,7 +59,7 @@ internal class ReguleringPostgresRepoTest {
             val regulering = testDataHelper.persisterReguleringIverksatt()
             val hentRegulering = repo.hent(regulering.id)
 
-            hentRegulering shouldBe regulering.persistertVariant()
+            hentRegulering shouldBe regulering
         }
     }
 

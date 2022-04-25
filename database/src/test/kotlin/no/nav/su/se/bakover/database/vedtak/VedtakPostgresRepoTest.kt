@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.innvilgetBeregning
-import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
@@ -45,7 +44,7 @@ internal class VedtakPostgresRepoTest {
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
 
             dataSource.withSession {
-                vedtakRepo.hent(vedtak.id, it) shouldBe vedtak.persistertVariant()
+                vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
             }
         }
     }
@@ -61,7 +60,7 @@ internal class VedtakPostgresRepoTest {
             vedtakRepo.lagre(vedtak)
 
             dataSource.withSession {
-                vedtakRepo.hent(vedtak.id, it) shouldBe vedtak.persistertVariant()
+                vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
             }
         }
     }
@@ -154,7 +153,7 @@ internal class VedtakPostgresRepoTest {
                 ).second
             vedtakRepo.hentAktive(1.februar(2021)).also {
                 it.size shouldBe 1
-                it.first() shouldBe vedtakSomErAktivt.persistertVariant()
+                it.first() shouldBe vedtakSomErAktivt
             }
         }
     }
@@ -242,7 +241,7 @@ internal class VedtakPostgresRepoTest {
             vedtakRepo.lagre(revurderingVedtak)
 
             dataSource.withSession {
-                vedtakRepo.hent(revurderingVedtak.id, it) shouldBe revurderingVedtak.persistertVariant()
+                vedtakRepo.hent(revurderingVedtak.id, it) shouldBe revurderingVedtak
             }
 
             dataSource.withSession { session ->
@@ -263,7 +262,7 @@ internal class VedtakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val vedtak = testDataHelper.persisterVedtakForStans()
             testDataHelper.dataSource.withSession {
-                testDataHelper.vedtakRepo.hent(vedtak.id, it) shouldBe vedtak.persistertVariant()
+                testDataHelper.vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
             }
         }
     }
@@ -274,7 +273,7 @@ internal class VedtakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val vedtak = testDataHelper.persisterVedtakForGjenopptak()
             testDataHelper.dataSource.withSession {
-                testDataHelper.vedtakRepo.hent(vedtak.id, it) shouldBe vedtak.persistertVariant()
+                testDataHelper.vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
             }
         }
     }
