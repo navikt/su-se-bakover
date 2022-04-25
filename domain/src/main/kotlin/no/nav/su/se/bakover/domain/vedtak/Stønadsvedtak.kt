@@ -38,6 +38,7 @@ sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
     val behandling: Behandling
 
     fun erOpphør(): Boolean
+    fun erStans(): Boolean
 
     fun skalSendeBrev(): Boolean {
         return SkalSendeBrevVisitor().let {
@@ -74,6 +75,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
     override val behandling: Behandling
 
     override fun erOpphør(): Boolean
+    override fun erStans(): Boolean
 
     companion object {
         fun fromSøknadsbehandling(
@@ -204,6 +206,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
             override fun erOpphør() = false
+            override fun erStans() = false
 
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -224,6 +227,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
             override fun erOpphør() = false
+            override fun erStans() = false
 
             override fun harIdentifisertBehovForFremtidigAvkorting() =
                 behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
@@ -245,6 +249,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
             override fun erOpphør() = false
+            override fun erStans() = false
 
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -268,6 +273,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             fun utledOpphørsgrunner(clock: Clock) = behandling.utledOpphørsgrunner(clock)
 
             override fun erOpphør() = true
+            override fun erStans() = false
 
             override fun harIdentifisertBehovForFremtidigAvkorting() =
                 behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
@@ -289,6 +295,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         ) : EndringIYtelse {
 
             override fun erOpphør() = false
+            override fun erStans() = true
 
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -308,6 +315,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
             override fun erOpphør() = false
+            override fun erStans() = false
 
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -327,6 +335,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         val beregning: Beregning,
     ) : VedtakSomKanRevurderes {
         override fun erOpphør() = false
+        override fun erStans() = false
 
         override fun harIdentifisertBehovForFremtidigAvkorting() =
             behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
@@ -397,6 +406,10 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         fun erOpphør(): Boolean {
             return originaltVedtak.erOpphør()
         }
+
+        fun erStans(): Boolean {
+            return originaltVedtak.erStans()
+        }
     }
 }
 
@@ -406,6 +419,7 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
     override val behandling: Søknadsbehandling.Iverksatt.Avslag
 
     override fun erOpphør(): Boolean
+    override fun erStans(): Boolean
 
     companion object {
         fun fromSøknadsbehandlingMedBeregning(
@@ -463,6 +477,7 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         override val periode: Periode,
     ) : Avslagsvedtak {
         override fun erOpphør() = false
+        override fun erStans() = false
 
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -482,6 +497,7 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         override val avslagsgrunner: List<Avslagsgrunn>,
     ) : Avslagsvedtak {
         override fun erOpphør() = false
+        override fun erStans() = false
 
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
 

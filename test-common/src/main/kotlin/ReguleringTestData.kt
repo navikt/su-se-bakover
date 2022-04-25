@@ -106,3 +106,21 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         regulering,
     )
 }
+
+fun stansetSøknadsbehandlingMedÅpenRegulering(
+    regulerFraOgMed: LocalDate,
+    clock: Clock = fixedClock,
+): Pair<Sak, Regulering.OpprettetRegulering> {
+    val sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+        clock = clock,
+    )
+    val sak = sakOgVedtak.first
+    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, fixedClock).getOrFail()
+
+    return Pair(
+        sak.copy(
+            reguleringer = listOf(regulering),
+        ),
+        regulering,
+    )
+}

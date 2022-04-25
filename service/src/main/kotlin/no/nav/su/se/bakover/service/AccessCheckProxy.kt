@@ -902,7 +902,7 @@ open class AccessCheckProxy(
                     uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
                     fradrag: List<Grunnlag.Fradragsgrunnlag>,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeRegulereManuelt, Unit> {
+                ): Either<KunneIkkeRegulereManuelt, Regulering.IverksattRegulering> {
                     return services.reguleringService.regulerManuelt(
                         reguleringId,
                         uføregrunnlag,

@@ -4,7 +4,9 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -22,7 +24,9 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
@@ -144,18 +148,47 @@ class ReguleringServiceImpl(
         uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
         fradrag: List<Grunnlag.Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeRegulereManuelt, Unit> {
+    ): Either<KunneIkkeRegulereManuelt, Regulering.IverksattRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.foo.left()
         if (regulering.erFerdigstilt) return KunneIkkeRegulereManuelt.foo.left()
 
+        val sak = Either.catch {
+            sakRepo.hentSak(sakId = regulering.sakId) ?: return KunneIkkeRegulereManuelt.FantIkkeSak.left()
+                .also {
+                    log.error(
+                        "Regulering med id $reguleringId: Klarte ikke hente sak",
+                        RuntimeException("Inkluderer stacktrace"),
+                    )
+                }
+        }.getOrHandle {
+            log.error("Regulering med id $reguleringId: Klarte ikke hente sak", it)
+            return KunneIkkeRegulereManuelt.FantIkkeSak.left()
+        }
+
+        if (sak.vedtakstidslinje(regulering.periode).any { it.erStans() })
+            return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
+
+        // if (nestSisteVedtak = stans) da må siste vedtak være gjenopptaStans
+
+        // Flytte denne til sak.oppdater() ?
         val oppdatertRegulering = (regulering as Regulering.OpprettetRegulering).copy(
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                 grunnlagsdata = Grunnlagsdata.tryCreate(
                     bosituasjon = regulering.grunnlagsdata.bosituasjon,
                     fradragsgrunnlag = fradrag,
-                ).getOrHandle { throw IllegalStateException("") },
+                ).getOrHandle { throw IllegalStateException("$it") },
                 vilkårsvurderinger = regulering.vilkårsvurderinger.copy(
-                    uføre = (regulering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert),
+                    uføre = Vilkår.Uførhet.Vurdert.tryCreate(
+                        vurderingsperioder = nonEmptyListOf(
+                            Vurderingsperiode.Uføre.tryCreate(
+                                opprettet = Tidspunkt.now(clock),
+                                resultat = Resultat.Innvilget,
+                                grunnlag = uføregrunnlag.single(),
+                                vurderingsperiode = regulering.periode,
+                                begrunnelse = null,
+                            ).getOrHandle { throw RuntimeException("$it") }
+                        ),
+                    ).getOrHandle { throw RuntimeException("$it") },
                     formue = regulering.vilkårsvurderinger.formue,
                     utenlandsopphold = regulering.vilkårsvurderinger.utenlandsopphold,
                 ),
@@ -164,14 +197,9 @@ class ReguleringServiceImpl(
             reguleringstype = Reguleringstype.MANUELL,
         )
 
-        oppdatertRegulering.beregn(clock)
-            .mapLeft { KunneIkkeRegulereManuelt.BeregningFeilet }
-            .flatMap {
-                it.simuler(utbetalingService::simulerUtbetaling).mapLeft { KunneIkkeRegulereManuelt.SimuleringFeilet }
-            }.tapLeft { return it.left() }
-            .map { lagVedtakOgUtbetal(it.tilIverksatt()) }
-
-        return Unit.right()
+        return regulerAutomatisk(oppdatertRegulering)
+            .mapLeft { KunneIkkeRegulereManuelt.foo }
+            .map { it }
     }
 
     private fun regulerAutomatisk(regulering: Regulering.OpprettetRegulering): Either<KunneIkkeRegulereAutomatisk, Regulering.IverksattRegulering> {

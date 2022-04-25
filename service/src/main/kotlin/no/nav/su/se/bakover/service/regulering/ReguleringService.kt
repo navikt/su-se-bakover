@@ -28,6 +28,8 @@ sealed class KunneIkkeRegulereManuelt {
     object SimuleringFeilet : KunneIkkeRegulereManuelt()
     object BeregningFeilet : KunneIkkeRegulereManuelt()
     object AlleredeFerdigstilt : KunneIkkeRegulereManuelt()
+    object FantIkkeSak : KunneIkkeRegulereManuelt()
+    object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt()
 }
 
 sealed class BeregnOgSimulerFeilet {
@@ -65,5 +67,5 @@ interface ReguleringService {
         uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
         fradrag: List<Grunnlag.Fradragsgrunnlag>,
         saksbehandler: NavIdentBruker.Saksbehandler
-    ): Either<KunneIkkeRegulereManuelt, Unit>
+    ): Either<KunneIkkeRegulereManuelt, Regulering.IverksattRegulering>
 }

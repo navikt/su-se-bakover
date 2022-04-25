@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.regulering
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToComparingFieldsExcept
 import io.kotest.matchers.shouldBe
@@ -34,6 +35,7 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.beregning
+import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
@@ -41,11 +43,16 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.plus
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertFeilutbetaling
 import no.nav.su.se.bakover.test.simulertUtbetaling
+import no.nav.su.se.bakover.test.stansetSøknadsbehandlingMedÅpenRegulering
+import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
@@ -61,6 +68,8 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class ReguleringServiceImplTest {
+
+    val periodeMaiDes = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
 
     @Test
     fun `regulerer alle saker`() {
@@ -215,6 +224,76 @@ internal class ReguleringServiceImplTest {
             reguleringService.startRegulering(1.mai(2021))
                 .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil = Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig)
                 .left()
+        }
+
+        private fun offentligPensjonGrunnlag(beløp: Double, periode: Periode) =
+            lagFradragsgrunnlag(
+                id = UUID.randomUUID(),
+                type = Fradragstype.OffentligPensjon,
+                månedsbeløp = beløp,
+                periode = periode,
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.BRUKER,
+            )
+
+        @Test
+        fun `manuell behandling happy case`() {
+            val (sak, regulering) = innvilgetSøknadsbehandlingMedÅpenRegulering(
+                regulerFraOgMed = 1.mai(2021),
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
+                    periode = stønadsperiode2021.periode,
+                    fradragsgrunnlag = listOf(
+                        offentligPensjonGrunnlag(8000.0, periode2021)
+                    ),
+                    bosituasjon = nonEmptyListOf(
+                        bosituasjongrunnlagEnslig(
+                            periode = stønadsperiode2021.periode,
+                        ),
+                    ),
+                ),
+            )
+
+            val reguleringService = lagReguleringServiceImpl(sak)
+
+            val iverksattRegulering = reguleringService.regulerManuelt(
+                reguleringId = regulering.id,
+                uføregrunnlag = listOf(uføregrunnlagForventetInntekt0(periode = periodeMaiDes)),
+                fradrag = listOf(offentligPensjonGrunnlag(8100.0, periodeMaiDes)),
+                saksbehandler = saksbehandler,
+            ).getOrFail()
+
+            iverksattRegulering.beregning.getFradrag() shouldBe listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.OffentligPensjon,
+                    månedsbeløp = 8100.0,
+                    periode = periodeMaiDes,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 0.0,
+                    periode = periodeMaiDes,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+            )
+        }
+
+        @Test
+        fun `manuell behandling av stans skal ikke være lov`() {
+            val (sak, regulering) = stansetSøknadsbehandlingMedÅpenRegulering(
+                regulerFraOgMed = 1.mai(2021),
+            )
+
+            val reguleringService = lagReguleringServiceImpl(sak)
+
+            reguleringService.regulerManuelt(
+                reguleringId = regulering.id,
+                uføregrunnlag = listOf(uføregrunnlagForventetInntekt0(periode = periodeMaiDes)),
+                fradrag = listOf(offentligPensjonGrunnlag(8100.0, periodeMaiDes)),
+                saksbehandler = saksbehandler,
+            ) shouldBe KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
         }
 
         @Test
@@ -381,6 +460,7 @@ internal class ReguleringServiceImplTest {
 
         return ReguleringServiceImpl(
             reguleringRepo = mock {
+                on { hent(any()) } doReturn _sak.reguleringer.firstOrNull()
                 on { hentForSakId(any(), any()) } doReturn _sak.reguleringer
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
