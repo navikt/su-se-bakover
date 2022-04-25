@@ -24,7 +24,8 @@ internal data class ReguleringJson(
     val reguleringstype: Reguleringstype,
     val periode: PeriodeJson,
     val erFerdigstilt: Boolean,
-    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson
+    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
+    val saksbehandler: String,
 )
 
 internal fun Regulering.toJson() = ReguleringJson(
@@ -38,5 +39,6 @@ internal fun Regulering.toJson() = ReguleringJson(
     reguleringstype = reguleringstype,
     erFerdigstilt = this.erFerdigstilt,
     periode = periode.toJson(),
-    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger)
+    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
+    saksbehandler = saksbehandler.navIdent
 )
