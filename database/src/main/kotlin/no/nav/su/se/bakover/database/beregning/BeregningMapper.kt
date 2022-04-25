@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
@@ -28,7 +27,6 @@ internal data class PersistertBeregning(
     private val sumYtelse: Int,
     private val sumFradrag: Double,
     override val periode: Periode,
-    private val fradragStrategyName: FradragStrategyName,
     private val begrunnelse: String?,
 ) : Beregning {
     override fun getId(): UUID = id
@@ -38,7 +36,6 @@ internal data class PersistertBeregning(
     override fun getFradrag(): List<Fradrag> = fradrag
     override fun getSumYtelse(): Int = sumYtelse
     override fun getSumFradrag(): Double = sumFradrag
-    override fun getFradragStrategyName(): FradragStrategyName = fradragStrategyName
     override fun getBegrunnelse(): String? = begrunnelse
 
     override fun equals(other: Any?) = (other as? Beregning)?.let { this.equals(other) } ?: false
@@ -50,7 +47,6 @@ internal data class PersistertBeregning(
         result = 31 * result + sumYtelse
         result = 31 * result + sumFradrag.hashCode()
         result = 31 * result + periode.hashCode()
-        result = 31 * result + fradragStrategyName.hashCode()
         return result
     }
 }
@@ -141,7 +137,6 @@ internal fun Beregning.toSnapshot() = PersistertBeregning(
     sumYtelse = getSumYtelse(),
     sumFradrag = getSumFradrag(),
     periode = periode,
-    fradragStrategyName = getFradragStrategyName(),
     begrunnelse = getBegrunnelse(),
 )
 

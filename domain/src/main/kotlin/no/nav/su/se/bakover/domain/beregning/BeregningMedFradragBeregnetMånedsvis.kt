@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import java.util.UUID
 
 data class BeregningMedFradragBeregnetMånedsvis(
@@ -33,8 +32,6 @@ data class BeregningMedFradragBeregnetMånedsvis(
     override fun getSumYtelse(): Int = sumYtelse
 
     override fun getSumFradrag(): Double = sumFradrag
-
-    override fun getFradragStrategyName(): FradragStrategyName = fradragStrategy.getName()
 
     override fun getSats(): Sats = sats
 

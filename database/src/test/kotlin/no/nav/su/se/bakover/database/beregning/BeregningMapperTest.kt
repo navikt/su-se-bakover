@@ -128,7 +128,6 @@ internal class BeregningMapperTest {
                 "fraOgMed": "2021-05-01",
                 "tilOgMed": "2021-05-31"
               },
-              "fradragStrategyName": "Enslig",
               "begrunnelse": "begrunnelse"
             }
         """.trimIndent()

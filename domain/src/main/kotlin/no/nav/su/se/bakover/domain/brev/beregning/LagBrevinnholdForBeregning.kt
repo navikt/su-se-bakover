@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.brev.beregning
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.EkvivalenteMånedsberegninger
 import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -15,14 +14,10 @@ data class LagBrevinnholdForBeregning(
     internal val brevInnhold: List<Beregningsperiode> =
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(beregning.getMånedsberegninger()).beregningsperioder.map { beregningsperiode ->
             Beregningsperiode(
-                // TODO eps firbeløp ikke safe vel?
                 periode = beregningsperiode.periode.formaterForBrev(),
                 ytelsePerMåned = beregningsperiode.getSumYtelse(),
                 satsbeløpPerMåned = beregningsperiode.getSatsbeløp().roundToInt(),
-                epsFribeløp = FradragStrategy.fromName(beregning.getFradragStrategyName())
-                    .getEpsFribeløp(beregningsperiode.periode).let {
-                        it / beregningsperiode.periode.getAntallMåneder()
-                    }.roundToInt(),
+                epsFribeløp = beregningsperiode.getFribeløpForEps().roundToInt(),
                 fradrag = Fradrag(
                     bruker = BrukerFradragBenyttetIBeregningsperiode(beregningsperiode.getFradrag()).fradrag,
                     eps = finnFradragForEps(beregningsperiode)
