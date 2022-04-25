@@ -14,35 +14,94 @@ sealed class Fradragstype {
     }
 
     enum class Kategori {
-        NAVytelserTilLivsopphold,
+        Alderspensjon,
+        Annet,
+        Arbeidsavklaringspenger,
         Arbeidsinntekt,
+
+        // AFP
+        AvtalefestetPensjon,
+        AvtalefestetPensjonPrivat,
+        BidragEtterEkteskapsloven,
+        Dagpenger,
+        Gjenlevendepensjon,
+        Introduksjonsstønad,
+        Kapitalinntekt,
+        Kontantstøtte,
+        Kvalifiseringsstønad,
+        NAVytelserTilLivsopphold,
         OffentligPensjon,
         PrivatPensjon,
         Sosialstønad,
-        Kontantstøtte,
-        Introduksjonsstønad,
-        Kvalifiseringsstønad,
-        BidragEtterEkteskapsloven,
-        Kapitalinntekt,
-        ForventetInntekt,
-        AvkortingUtenlandsopphold,
+        SupplerendeStønad,
+        Sykepenger,
+        Uføretrygd,
 
         /**
          *  Resulting type of the operation that calculates EPS fradrag to be included in brukers beregning.
          *  Represents a "mixed bag" of fradrag that in total exceeds the respecive limits given by §5 and §6.
          *  Not to be used for input-operations (i.e. from frontend).
          */
+        ForventetInntekt,
+        AvkortingUtenlandsopphold,
         BeregnetFradragEPS,
         UnderMinstenivå,
-        Annet;
     }
 
-    object NAVytelserTilLivsopphold : Fradragstype() {
-        override val kategori: Kategori = Kategori.NAVytelserTilLivsopphold
+    object Alderspensjon : Fradragstype() {
+        override val kategori: Kategori = Kategori.Alderspensjon
+    }
+
+    data class Annet(val beskrivelse: String) : Fradragstype() {
+        override val kategori: Kategori = Kategori.Annet
+    }
+
+    object Arbeidsavklaringspenger : Fradragstype() {
+        override val kategori: Kategori = Kategori.Arbeidsavklaringspenger
     }
 
     object Arbeidsinntekt : Fradragstype() {
         override val kategori: Kategori = Kategori.Arbeidsinntekt
+    }
+
+    object AvtalefestetPensjon : Fradragstype() {
+        override val kategori: Kategori = Kategori.AvtalefestetPensjon
+    }
+
+    object AvtalefestetPensjonPrivat : Fradragstype() {
+        override val kategori: Kategori = Kategori.AvtalefestetPensjonPrivat
+    }
+
+    object BidragEtterEkteskapsloven : Fradragstype() {
+        override val kategori: Kategori = Kategori.BidragEtterEkteskapsloven
+    }
+
+    object Dagpenger : Fradragstype() {
+        override val kategori: Kategori = Kategori.Dagpenger
+    }
+
+    object Gjenlevendepensjon : Fradragstype() {
+        override val kategori: Kategori = Kategori.Gjenlevendepensjon
+    }
+
+    object Introduksjonsstønad : Fradragstype() {
+        override val kategori: Kategori = Kategori.Introduksjonsstønad
+    }
+
+    object Kapitalinntekt : Fradragstype() {
+        override val kategori: Kategori = Kategori.Kapitalinntekt
+    }
+
+    object Kontantstøtte : Fradragstype() {
+        override val kategori: Kategori = Kategori.Kontantstøtte
+    }
+
+    object Kvalifiseringsstønad : Fradragstype() {
+        override val kategori: Kategori = Kategori.Kvalifiseringsstønad
+    }
+
+    object NAVytelserTilLivsopphold : Fradragstype() {
+        override val kategori: Kategori = Kategori.NAVytelserTilLivsopphold
     }
 
     object OffentligPensjon : Fradragstype() {
@@ -57,24 +116,16 @@ sealed class Fradragstype {
         override val kategori: Kategori = Kategori.Sosialstønad
     }
 
-    object Kontantstøtte : Fradragstype() {
-        override val kategori: Kategori = Kategori.Kontantstøtte
+    object SupplerendeStønad : Fradragstype() {
+        override val kategori: Kategori = Kategori.SupplerendeStønad
     }
 
-    object Introduksjonsstønad : Fradragstype() {
-        override val kategori: Kategori = Kategori.Introduksjonsstønad
+    object Sykepenger : Fradragstype() {
+        override val kategori: Kategori = Kategori.Sykepenger
     }
 
-    object Kvalifiseringsstønad : Fradragstype() {
-        override val kategori: Kategori = Kategori.Kvalifiseringsstønad
-    }
-
-    object BidragEtterEkteskapsloven : Fradragstype() {
-        override val kategori: Kategori = Kategori.BidragEtterEkteskapsloven
-    }
-
-    object Kapitalinntekt : Fradragstype() {
-        override val kategori: Kategori = Kategori.Kapitalinntekt
+    object Uføretrygd : Fradragstype() {
+        override val kategori: Kategori = Kategori.Uføretrygd
     }
 
     object ForventetInntekt : Fradragstype() {
@@ -91,10 +142,6 @@ sealed class Fradragstype {
 
     object UnderMinstenivå : Fradragstype() {
         override val kategori: Kategori = Kategori.UnderMinstenivå
-    }
-
-    data class Annet(val beskrivelse: String) : Fradragstype() {
-        override val kategori: Kategori = Kategori.Annet
     }
 
     companion object {
