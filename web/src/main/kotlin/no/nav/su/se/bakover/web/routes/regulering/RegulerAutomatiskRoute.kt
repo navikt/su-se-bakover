@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
@@ -63,9 +64,22 @@ internal fun Route.reguler(
                             uføregrunnlag = body.uføre.toDomain(), // TODO ai: asap
                             fradrag = body.fradrag.toDomain().getOrHandle { return@post call.svar(it) },
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
+                        ).fold(
+                            ifLeft = {
+                                when (it) {
+                                    KunneIkkeRegulereManuelt.AlleredeFerdigstilt -> HttpStatusCode.BadRequest.errorJson("Reguleringen er allerede ferdigstilt", "regulering_allerede_ferdigstilt")
+                                    KunneIkkeRegulereManuelt.FantIkkeRegulering -> HttpStatusCode.BadRequest.errorJson("Fant ikke regulering", "fant_ikke_regulering")
+                                    KunneIkkeRegulereManuelt.BeregningFeilet -> HttpStatusCode.InternalServerError.errorJson("Beregning feilet", "beregning_feilet")
+                                    KunneIkkeRegulereManuelt.SimuleringFeilet -> HttpStatusCode.InternalServerError.errorJson("Simulering feilet", "simulering_feilet")
+                                    KunneIkkeRegulereManuelt.foo -> HttpStatusCode.InternalServerError.errorJson("foo", "foo")
+                                }.let { feilResultat ->
+                                    call.svar(feilResultat)
+                                }
+                            },
+                            ifRight = {
+                                call.svar(Resultat.okJson(HttpStatusCode.OK))
+                            }
                         )
-
-                        call.svar(Resultat.okJson(HttpStatusCode.OK))
                     }
                 },
             )
