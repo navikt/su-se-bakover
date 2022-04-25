@@ -84,6 +84,9 @@ fun Fradragstype.toReadableTypeName(utenlandsk: Boolean) =
             "Beløp under minstegrense for utbetaling"
         Fradragstype.AvkortingUtenlandsopphold ->
             "Avkorting på grunn av tidligere utenlandsopphold"
+        is Fradragstype.Annet -> {
+            "Annet"
+        }
     }.let { fradragsnavn ->
         if (utenlandsk) {
             "$fradragsnavn — fra utlandet"

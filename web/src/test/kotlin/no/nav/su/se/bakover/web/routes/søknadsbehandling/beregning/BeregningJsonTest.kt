@@ -28,6 +28,7 @@ internal class BeregningJsonTest {
                         "tilOgMed":"2020-08-31"
                       },
                       "type": "Arbeidsinntekt",
+                      "beskrivelse": null,
                       "beløp": 1000.0,
                       "tilhører": "BRUKER",
                       "utenlandskInntekt": null
@@ -37,6 +38,7 @@ internal class BeregningJsonTest {
                         "tilOgMed":"2020-08-31"
                       },
                       "type": "Arbeidsinntekt",
+                      "beskrivelse": null,
                       "beløp": 20000.0,
                       "tilhører": "EPS",
                       "utenlandskInntekt": null
@@ -48,6 +50,7 @@ internal class BeregningJsonTest {
                         "tilOgMed":"2020-08-31"
                       },
                       "type": "Arbeidsinntekt",
+                      "beskrivelse": null,
                       "beløp": 20000.0,
                       "tilhører": "EPS",
                       "utenlandskInntekt": null
@@ -56,6 +59,7 @@ internal class BeregningJsonTest {
                 }],
                 "fradrag": [{
                   "type": "Arbeidsinntekt",
+                  "beskrivelse": null,
                   "beløp": 1000.0,
                   "utenlandskInntekt": null,
                   "periode" : {
@@ -65,6 +69,7 @@ internal class BeregningJsonTest {
                   "tilhører": "BRUKER"
                 }, {
                   "type": "Arbeidsinntekt",
+                  "beskrivelse": null,
                   "beløp": 20000.0,
                   "utenlandskInntekt": null,
                   "periode" : {

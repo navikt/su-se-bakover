@@ -76,11 +76,12 @@ internal class FradragsgrunnlagTest {
                 Fradragstype.Kategori.BeregnetFradragEPS,
                 Fradragstype.Kategori.ForventetInntekt,
                 Fradragstype.Kategori.UnderMinstenivå,
+                Fradragstype.Kategori.Annet,
             ).contains(it)
         }.forEach {
             Grunnlag.Fradragsgrunnlag.tryCreate(
                 fradrag = FradragFactory.ny(
-                    type = Fradragstype.from(it),
+                    type = Fradragstype.from(it, null),
                     månedsbeløp = 150.0,
                     periode = behandlingsperiode,
                     utenlandskInntekt = null,

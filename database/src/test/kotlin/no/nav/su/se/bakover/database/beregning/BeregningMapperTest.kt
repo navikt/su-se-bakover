@@ -65,7 +65,19 @@ internal class BeregningMapperTest {
                   "fradrag": [
                     {
                       "fradragstype": "ForventetInntekt",
+                      "beskrivelse": null,
                       "månedsbeløp": 55000.0,
+                      "utenlandskInntekt": null,
+                      "periode": {
+                        "fraOgMed": "2021-05-01",
+                        "tilOgMed": "2021-05-31"
+                      },
+                      "tilhører": "BRUKER"
+                    },
+                    {
+                      "fradragstype": "Annet",
+                      "beskrivelse": "vant på flaxlodd",
+                      "månedsbeløp": 1000.0,
                       "utenlandskInntekt": null,
                       "periode": {
                         "fraOgMed": "2021-05-01",
@@ -89,7 +101,19 @@ internal class BeregningMapperTest {
               "fradrag": [
                 {
                   "fradragstype": "ForventetInntekt",
+                  "beskrivelse": null,
                   "månedsbeløp": 55000.0,
+                  "utenlandskInntekt": null,
+                  "periode": {
+                    "fraOgMed": "2021-05-01",
+                    "tilOgMed": "2021-05-31"
+                  },
+                  "tilhører": "BRUKER"
+                },
+                {
+                  "fradragstype": "Annet",
+                  "beskrivelse": "vant på flaxlodd",
+                  "månedsbeløp": 1000.0,
                   "utenlandskInntekt": null,
                   "periode": {
                     "fraOgMed": "2021-05-01",
@@ -162,6 +186,13 @@ internal class BeregningMapperTest {
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 55000.0,
+                    utenlandskInntekt = null,
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Annet("vant på flaxlodd"),
+                    månedsbeløp = 1000.0,
                     utenlandskInntekt = null,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER,

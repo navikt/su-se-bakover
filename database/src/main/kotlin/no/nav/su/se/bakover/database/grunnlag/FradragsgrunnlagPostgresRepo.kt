@@ -67,6 +67,7 @@ internal class FradragsgrunnlagPostgresRepo(
             opprettet = tidspunkt("opprettet"),
             fradrag = PersistertFradrag(
                 kategori = Fradragstype.Kategori.valueOf(string("fradragstype")),
+                beskrivelse = stringOrNull("beskrivelse"),
                 månedsbeløp = double("månedsbeløp"),
                 utenlandskInntekt = stringOrNull("utenlandskInntekt")?.let { deserialize(it) },
                 periode = Periode.create(fraOgMed = localDate("fraOgMed"), tilOgMed = localDate("tilOgMed")),
@@ -85,6 +86,7 @@ internal class FradragsgrunnlagPostgresRepo(
                 fraOgMed,
                 tilOgMed,
                 fradragstype,
+                beskrivelse,
                 månedsbeløp,
                 utenlandskInntekt,
                 tilhører
@@ -96,6 +98,7 @@ internal class FradragsgrunnlagPostgresRepo(
                 :fraOgMed,
                 :tilOgMed,
                 :fradragstype,
+                :beskrivelse,
                 :manedsbelop,
                 to_json(:utenlandskInntekt::json),
                 :tilhorer
@@ -108,7 +111,11 @@ internal class FradragsgrunnlagPostgresRepo(
                     "behandlingId" to behandlingId,
                     "fraOgMed" to fradragsgrunnlag.fradrag.periode.fraOgMed,
                     "tilOgMed" to fradragsgrunnlag.fradrag.periode.tilOgMed,
-                    "fradragstype" to fradragsgrunnlag.fradrag.fradragstype,
+                    "fradragstype" to fradragsgrunnlag.fradrag.fradragstype.kategori,
+                    "beskrivelse" to when (val f = fradragsgrunnlag.fradragstype) {
+                        is Fradragstype.Annet -> f.beskrivelse
+                        else -> null
+                    },
                     "manedsbelop" to fradragsgrunnlag.fradrag.månedsbeløp,
                     "utenlandskInntekt" to objectMapper.writeValueAsString(fradragsgrunnlag.fradrag.utenlandskInntekt),
                     "tilhorer" to fradragsgrunnlag.fradrag.tilhører,

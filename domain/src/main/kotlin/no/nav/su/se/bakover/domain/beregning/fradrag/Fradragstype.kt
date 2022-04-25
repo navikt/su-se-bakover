@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 
@@ -32,7 +33,8 @@ sealed class Fradragstype {
          *  Not to be used for input-operations (i.e. from frontend).
          */
         BeregnetFradragEPS,
-        UnderMinstenivå;
+        UnderMinstenivå,
+        Annet;
     }
 
     object NAVytelserTilLivsopphold : Fradragstype() {
@@ -91,17 +93,39 @@ sealed class Fradragstype {
         override val kategori: Kategori = Kategori.UnderMinstenivå
     }
 
+    data class Annet(val beskrivelse: String) : Fradragstype() {
+        override val kategori: Kategori = Kategori.Annet
+    }
+
     companion object {
-        fun tryParse(value: String): Either<UgyldigFradragstype, Fradragstype> {
-            return Kategori.values().firstOrNull { it.name == value }
-                ?.let { from(it).right() }
-                ?: UgyldigFradragstype.left()
+        fun tryParse(value: String, beskrivelse: String?): Either<UgyldigFradragstype, Fradragstype> {
+            return Kategori.values().firstOrNull { value == it.name }?.let { kategori ->
+                when {
+                    kategori == Kategori.Annet && beskrivelse == null -> {
+                        UgyldigFradragstype.UspesifisertKategoriUtenBeskrivelse.left()
+                    }
+                    kategori != Kategori.Annet && beskrivelse != null -> {
+                        UgyldigFradragstype.SpesifisertKategoriMedBeskrivelse.left()
+                    }
+                    else -> {
+                        if (kategori == Kategori.Annet) {
+                            Annet(beskrivelse!!)
+                        } else {
+                            Fradragstype::class.sealedSubclasses.first { kategori == it.objectInstance?.kategori }.objectInstance!!
+                        }.right()
+                    }
+                }
+            } ?: UgyldigFradragstype.UkjentFradragstype.left()
         }
 
-        fun from(kategori: Kategori): Fradragstype {
-            return Fradragstype::class.sealedSubclasses.first { kategori == it.objectInstance?.kategori }.objectInstance!!
+        fun from(kategori: Kategori, beskrivelse: String?): Fradragstype {
+            return tryParse(kategori.name, beskrivelse).getOrHandle { throw IllegalArgumentException("$it") }
         }
 
-        object UgyldigFradragstype
+        sealed interface UgyldigFradragstype {
+            object UkjentFradragstype : UgyldigFradragstype
+            object UspesifisertKategoriUtenBeskrivelse : UgyldigFradragstype
+            object SpesifisertKategoriMedBeskrivelse : UgyldigFradragstype
+        }
     }
 }
