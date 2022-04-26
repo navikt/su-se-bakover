@@ -312,7 +312,7 @@ internal class ReguleringServiceImplTest {
 
             reguleringService.startRegulering(1.mai(2021)) shouldBe listOf(
                 KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(
-                    KunneIkkeRegulereAutomatisk.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling,
+                    KunneIkkeFerdigstilleOgIverksette.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling,
                 ).left(),
             )
         }

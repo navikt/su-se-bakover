@@ -71,9 +71,9 @@ internal fun Route.reguler(
                                     KunneIkkeRegulereManuelt.FantIkkeRegulering -> HttpStatusCode.BadRequest.errorJson("Fant ikke regulering", "fant_ikke_regulering")
                                     KunneIkkeRegulereManuelt.BeregningFeilet -> HttpStatusCode.InternalServerError.errorJson("Beregning feilet", "beregning_feilet")
                                     KunneIkkeRegulereManuelt.SimuleringFeilet -> HttpStatusCode.InternalServerError.errorJson("Simulering feilet", "simulering_feilet")
-                                    KunneIkkeRegulereManuelt.foo -> HttpStatusCode.InternalServerError.errorJson("foo", "foo")
-                                    KunneIkkeRegulereManuelt.FantIkkeSak -> TODO()
-                                    KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> TODO()
+                                    KunneIkkeRegulereManuelt.FantIkkeSak -> HttpStatusCode.BadRequest.errorJson("Fant ikke sak", "fant_ikke_sak")
+                                    KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson("Stanset ytelse må startes før den kan reguleres", "stanset_ytelse_må_startes_før_den_kan_reguleres")
+                                    is KunneIkkeRegulereManuelt.KunneIkkeFerdigstille -> HttpStatusCode.InternalServerError.errorJson("Kunne ikke ferdigstille regulering på grunn av ${it.feil}", "kunne_ikke_ferdigstille_regulering")
                                 }.let { feilResultat ->
                                     call.svar(feilResultat)
                                 }
