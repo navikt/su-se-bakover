@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.reduser
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
@@ -37,7 +37,7 @@ internal class BeregningMedFlereSatserTest {
             beregning.getMånedsberegninger().groupBy { it.getSats() }.let { satsMånedMap ->
                 satsMånedMap shouldHaveSize 2
                 satsMånedMap[Sats.HØY]!!.let { månedsberegninger ->
-                    månedsberegninger.map { it.periode }.reduser().single() shouldBe Periode.create(
+                    månedsberegninger.map { it.periode }.minsteAntallSammenhengendePerioder().single() shouldBe Periode.create(
                         1.januar(2021),
                         30.april(2021),
                     )
@@ -48,7 +48,7 @@ internal class BeregningMedFlereSatserTest {
                 }
 
                 satsMånedMap[Sats.ORDINÆR]!!.let { månedsberegninger ->
-                    månedsberegninger.map { it.periode }.reduser().single() shouldBe Periode.create(
+                    månedsberegninger.map { it.periode }.minsteAntallSammenhengendePerioder().single() shouldBe Periode.create(
                         1.mai(2021),
                         31.desember(2021),
                     )

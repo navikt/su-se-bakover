@@ -6,7 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.reduser
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
@@ -131,7 +131,7 @@ data class Formuegrunnlag private constructor(
             }
 
             fun List<Formuegrunnlag>.minsteAntallSammenhengendePerioder(): List<Periode> {
-                return map { it.periode }.reduser()
+                return map { it.periode }.minsteAntallSammenhengendePerioder()
             }
         }
     }
@@ -291,5 +291,5 @@ fun List<Formuegrunnlag>.firstOrThrowIfMultipleOrEmpty(): Formuegrunnlag {
 }
 
 fun List<Formuegrunnlag>.perioderMedEPS(): List<Periode> {
-    return filter { it.harEPSFormue() }.map { it.periode }.reduser()
+    return filter { it.harEPSFormue() }.map { it.periode }.minsteAntallSammenhengendePerioder()
 }

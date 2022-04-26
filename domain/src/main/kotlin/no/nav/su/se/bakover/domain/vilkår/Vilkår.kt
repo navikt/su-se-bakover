@@ -9,9 +9,9 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.periode.minus
 import no.nav.su.se.bakover.common.periode.overlappende
-import no.nav.su.se.bakover.common.periode.reduser
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Grunnbeløp.Companion.`0,5G`
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -909,7 +909,7 @@ sealed class Vurderingsperiode {
 
         fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Nel<Formue> {
             val uendret = masker(perioder)
-            val endret = leggTilTomEPSFormueHvisDetMangler().masker(perioder = uendret.map { it.periode }.reduser())
+            val endret = leggTilTomEPSFormueHvisDetMangler().masker(perioder = uendret.map { it.periode }.minsteAntallSammenhengendePerioder())
             return Nel.fromListUnsafe(Tidslinje(periode, uendret + endret).tidslinje)
         }
 
@@ -925,7 +925,7 @@ sealed class Vurderingsperiode {
          */
         fun fjernEPSFormue(perioder: List<Periode>): Nel<Formue> {
             val uendret = masker(perioder = perioder)
-            val endret = fjernEPSFormue().masker(perioder = uendret.map { it.periode }.reduser())
+            val endret = fjernEPSFormue().masker(perioder = uendret.map { it.periode }.minsteAntallSammenhengendePerioder())
             return Nel.fromListUnsafe(Tidslinje(periode, uendret + endret).tidslinje)
         }
 

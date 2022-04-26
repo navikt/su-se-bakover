@@ -608,21 +608,21 @@ internal class PeriodeTest {
             månedsperiodeFebruar2021,
             månedsperiodeMars2021,
             månedsperiodeApril2021,
-        ).reduser() shouldBe listOf(
+        ).minsteAntallSammenhengendePerioder() shouldBe listOf(
             Periode.create(1.januar(2021), 30.april(2021)),
         )
 
         listOf(
             Periode.create(1.januar(2021), 31.mars(2021)),
             Periode.create(1.februar(2021), 30.april(2021)),
-        ).reduser() shouldBe listOf(
+        ).minsteAntallSammenhengendePerioder() shouldBe listOf(
             Periode.create(1.januar(2021), 30.april(2021)),
         )
 
         listOf(
             Periode.create(1.januar(2021), 31.mars(2021)),
             Periode.create(1.mars(2021), 31.desember(2021)),
-        ).reduser() shouldBe listOf(
+        ).minsteAntallSammenhengendePerioder() shouldBe listOf(
             Periode.create(1.januar(2021), 31.desember(2021)),
         )
 
@@ -630,25 +630,31 @@ internal class PeriodeTest {
             Periode.create(1.april(2021), 31.juli(2021)),
             Periode.create(1.februar(2021), 31.mars(2021)),
             Periode.create(1.februar(2021), 31.desember(2021)),
-        ).reduser() shouldBe listOf(
+        ).minsteAntallSammenhengendePerioder() shouldBe listOf(
             Periode.create(1.februar(2021), 31.desember(2021)),
         )
 
         listOf(
             Periode.create(1.april(2021), 31.juli(2021)),
             Periode.create(1.februar(2022), 31.mars(2022)),
-        ).reduser() shouldBe listOf(
+        ).minsteAntallSammenhengendePerioder() shouldBe listOf(
             Periode.create(1.april(2021), 31.juli(2021)),
             Periode.create(1.februar(2022), 31.mars(2022)),
         )
 
         listOf(
             Periode.create(1.april(2021), 31.juli(2021)),
-        ).reduser() shouldBe listOf(
+        ).minsteAntallSammenhengendePerioder() shouldBe listOf(
             Periode.create(1.april(2021), 31.juli(2021)),
         )
 
-        emptyList<Periode>().reduser() shouldBe emptyList()
+        emptyList<Periode>().minsteAntallSammenhengendePerioder() shouldBe emptyList()
+
+        listOf(
+            Periode.create(1.mai(2022), 31.august(2022)),
+            Periode.create(1.januar(2023), 30.april(2023)),
+            Periode.create(1.september(2022), 31.desember(2022)),
+        ).minsteAntallSammenhengendePerioder() shouldBe listOf(Periode.create(1.mai(2022), 30.april(2023)))
     }
 
     @Test

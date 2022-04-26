@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
-import no.nav.su.se.bakover.common.periode.reduser
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -189,9 +189,9 @@ sealed class Grunnlag {
             }
 
             fun List<Fradragsgrunnlag>.harEpsInntekt() = this.any { it.fradrag.tilhørerEps() }
-            fun List<Fradragsgrunnlag>.perioder(): List<Periode> = map { it.periode }.reduser()
+            fun List<Fradragsgrunnlag>.perioder(): List<Periode> = map { it.periode }.minsteAntallSammenhengendePerioder()
             fun List<Fradragsgrunnlag>.allePerioderMedEPS(): List<Periode> {
-                return filter { it.tilhørerEps() }.map { it.periode }.reduser()
+                return filter { it.tilhørerEps() }.map { it.periode }.minsteAntallSammenhengendePerioder()
             }
 
             fun List<Fradragsgrunnlag>.slåSammenPeriodeOgFradrag(): List<Fradragsgrunnlag> {
@@ -317,15 +317,15 @@ sealed class Grunnlag {
                 this.last().let { it.tilstøter(other) && it.erLik(other) }
 
             fun List<Bosituasjon>.minsteAntallSammenhengendePerioder(): List<Periode> {
-                return map { it.periode }.reduser()
+                return map { it.periode }.minsteAntallSammenhengendePerioder()
             }
 
             fun List<Bosituasjon>.perioderMedEPS(): List<Periode> {
-                return filter { it.harEPS() }.map { it.periode }.reduser()
+                return filter { it.harEPS() }.map { it.periode }.minsteAntallSammenhengendePerioder()
             }
 
             fun List<Bosituasjon>.perioderUtenEPS(): List<Periode> {
-                return filter { !it.harEPS() }.map { it.periode }.reduser()
+                return filter { !it.harEPS() }.map { it.periode }.minsteAntallSammenhengendePerioder()
             }
 
             fun List<Bosituasjon>.harOverlappende(): Boolean {
