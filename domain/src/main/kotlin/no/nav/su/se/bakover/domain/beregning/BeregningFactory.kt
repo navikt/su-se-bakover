@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.beregning
 import arrow.core.Nel
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Månedsperiode
-import no.nav.su.se.bakover.common.periode.reduser
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
@@ -148,7 +148,7 @@ class BeregningFactory(val clock: Clock) {
         return BeregningMedFradragBeregnetMånedsvis(
             id = id,
             opprettet = opprettet,
-            periode = beregningsperioder.map { it.periode() }.reduser().single(),
+            periode = beregningsperioder.map { it.periode() }.minsteAntallSammenhengendePerioder().single(),
             sats = beregningsperioder.first().sats(),
             fradrag = fradrag,
             // TODO jah+jacob: Denne brukes kun fra brev og bør kunne utledes fra under-periodene

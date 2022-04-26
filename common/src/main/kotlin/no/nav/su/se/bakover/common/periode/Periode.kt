@@ -120,7 +120,7 @@ open class Periode private constructor(
     infix fun før(other: Periode) = tilOgMed.isBefore(other.fraOgMed)
     infix fun etter(other: Periode) = fraOgMed.isAfter(other.tilOgMed)
     infix fun minus(other: Periode): List<Periode> {
-        return (tilMånedsperioder() - other.tilMånedsperioder().toSet()).reduser()
+        return (tilMånedsperioder() - other.tilMånedsperioder().toSet()).minsteAntallSammenhengendePerioder()
     }
 
     /**
@@ -200,16 +200,18 @@ fun List<Periode>.minAndMaxOf(): Periode {
 }
 
 /**
- * Reduserer en liste med [Periode] ved å slå sammen elementer etter reglene definert av [Periode.slåSammen]
+ * Finner minste antall sammenhengende perioder fra en liste med [Periode] ved å slå sammen elementer etter reglene
+ * definert av [Periode.slåSammen].
  */
-fun List<Periode>.reduser(): List<Periode> {
-    return fold(mutableListOf()) { slåttSammen: MutableList<Periode>, periode: Periode ->
-        val forrige = slåttSammen.lastOrNull()
-        when {
-            forrige == null -> slåttSammen.add(periode)
-            (forrige slåSammen periode).isRight() -> slåttSammen[slåttSammen.lastIndex] = forrige.slåSammen(periode)
-                .getOrHandle { throw IllegalStateException("Skulle gått bra") }
-            else -> slåttSammen.add(periode)
+fun List<Periode>.minsteAntallSammenhengendePerioder(): List<Periode> {
+    return sorted().fold(mutableListOf()) { slåttSammen: MutableList<Periode>, periode: Periode ->
+        if (slåttSammen.isEmpty()) {
+            slåttSammen.add(periode)
+        } else if (slåttSammen.last().slåSammen(periode).isRight()) {
+            val last = slåttSammen.removeLast()
+            slåttSammen.add(last.slåSammen(periode).getOrHandle { throw IllegalStateException("Skulle gått bra") })
+        } else {
+            slåttSammen.add(periode)
         }
         slåttSammen
     }
@@ -222,7 +224,7 @@ fun List<Periode>.reduser(): List<Periode> {
 operator fun List<Periode>.minus(other: List<Periode>): List<Periode> {
     return (flatMap { it.tilMånedsperioder() }.toSet() - other.flatMap { it.tilMånedsperioder() }.toSet())
         .toList()
-        .reduser()
+        .minsteAntallSammenhengendePerioder()
 }
 
 fun Periode.inneholderAlle(other: List<Periode>): Boolean {
