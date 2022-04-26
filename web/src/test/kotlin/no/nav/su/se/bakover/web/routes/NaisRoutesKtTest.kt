@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.routes
 
-import io.ktor.server.http.HttpMethod.Companion.Get
-import io.ktor.server.server.testing.handleRequest
-import io.ktor.server.server.testing.withTestApplication
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -11,21 +11,20 @@ internal class NaisRoutesKtTest {
 
     @Test
     fun naisRoutes() {
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
             }
-        ) {
-            handleRequest(Get, "/isalive").apply {
-                assertEquals(200, status!!.value)
-                assertEquals("ALIVE", response.content!!)
+            client.get("/isalive").apply {
+                assertEquals(200, status)
+                assertEquals("ALIVE", this.bodyAsText())
             }
-            handleRequest(Get, "/isready").apply {
-                assertEquals(200, status!!.value)
-                assertEquals("READY", response.content!!)
+            client.get("/isready").apply {
+                assertEquals(200, status)
+                assertEquals("READY", this.bodyAsText())
             }
-            handleRequest(Get, "/metrics").apply {
-                assertEquals(200, status!!.value)
+            client.get("/metrics").apply {
+                assertEquals(200, status)
             }
         }
     }

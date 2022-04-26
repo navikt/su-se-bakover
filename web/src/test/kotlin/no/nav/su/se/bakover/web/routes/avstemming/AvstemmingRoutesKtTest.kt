@@ -4,9 +4,10 @@ import arrow.core.Either
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.http.HttpMethod
-import io.ktor.server.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.endOfDay
@@ -71,11 +72,12 @@ internal class AvstemmingRoutesKtTest {
 
     @Test
     fun `kall uten parametre gir OK`() {
-        testApplication(
-            ({ testSusebakover(services = services()) }),
-        ) {
+        testApplication {
+            application {
+                testSusebakover(services = services())
+            }
             defaultRequest(
-                HttpMethod.Post,
+                Post,
                 "/avstemming/grensesnitt",
                 listOf(Brukerrolle.Drift),
             ).apply {
@@ -86,11 +88,12 @@ internal class AvstemmingRoutesKtTest {
 
     @Test
     fun `kall med enten fraOgMed _eller_ tilOgMed feiler`() {
-        testApplication(
-            ({ testSusebakover(services = services()) }),
-        ) {
+        testApplication {
+            application {
+                testSusebakover(services = services())
+            }
             defaultRequest(
-                HttpMethod.Post,
+                Post,
                 "/avstemming/grensesnitt?fraOgMed=2020-11-01",
                 listOf(Brukerrolle.Drift),
             ).apply {
@@ -98,7 +101,7 @@ internal class AvstemmingRoutesKtTest {
             }
 
             defaultRequest(
-                HttpMethod.Post,
+                Post,
                 "/avstemming/grensesnitt?tilOgMed=2020-11-01",
                 listOf(Brukerrolle.Drift),
             ).apply {
@@ -109,15 +112,16 @@ internal class AvstemmingRoutesKtTest {
 
     @Test
     fun `kall med fraOgMed eller tilOgMed på feil format feiler`() {
-        testApplication(
-            ({ testSusebakover(services = services()) }),
-        ) {
+        testApplication {
+            application {
+                testSusebakover(services = services())
+            }
             listOf(
                 "/avstemming/grensesnitt?fraOgMed=2020-11-17T11:02:19Z&tilOgMed=2020-11-17",
                 "/avstemming/grensesnitt?fraOgMed=2020-11-12T11:02:19Z&tilOgMed=2020-11-17T11:02:19Z",
             ).forEach {
                 defaultRequest(
-                    HttpMethod.Post,
+                    Post,
                     it,
                     listOf(Brukerrolle.Drift),
                 ).apply {
@@ -129,15 +133,16 @@ internal class AvstemmingRoutesKtTest {
 
     @Test
     fun `kall med fraOgMed eller tilOgMed må ha fraOgMed før tilOgMed`() {
-        testApplication(
-            ({ testSusebakover(services = services()) }),
-        ) {
+        testApplication {
+            application {
+                testSusebakover(services = services())
+            }
             listOf(
                 "/avstemming/grensesnitt?fraOgMed=2020-11-18&tilOgMed=2020-11-17",
                 "/avstemming/grensesnitt?fraOgMed=2021-11-18&tilOgMed=2020-11-12",
             ).forEach {
                 defaultRequest(
-                    HttpMethod.Post,
+                    Post,
                     it,
                     listOf(Brukerrolle.Drift),
                 ).apply {
@@ -149,16 +154,16 @@ internal class AvstemmingRoutesKtTest {
 
     @Test
     fun `kall med tilOgMed etter dagens dato feiler`() {
-        testApplication(
-            ({ testSusebakover(services = services()) }),
-        ) {
+        testApplication {
+            application { testSusebakover(services = services()) }
+
             listOf(
                 "/avstemming/grensesnitt?fraOgMed=2020-11-11&tilOgMed=${
-                fixedLocalDate.plusDays(1).format(DateTimeFormatter.ISO_DATE)
+                    fixedLocalDate.plusDays(1).format(DateTimeFormatter.ISO_DATE)
                 }",
             ).forEach {
                 defaultRequest(
-                    HttpMethod.Post,
+                    Post,
                     it,
                     listOf(Brukerrolle.Drift),
                 ).apply {
@@ -170,19 +175,19 @@ internal class AvstemmingRoutesKtTest {
 
     @Test
     fun `kall til konsistensavstemming uten fraOgMed går ikke`() {
-        testApplication(
-            ({ testSusebakover(services = services()) }),
-        ) {
+        testApplication {
+            application { testSusebakover(services = services()) }
+
             listOf(
                 "/avstemming/konsistens",
             ).forEach {
                 defaultRequest(
-                    HttpMethod.Post,
+                    Post,
                     it,
                     listOf(Brukerrolle.Drift),
                 ).apply {
                     status shouldBe HttpStatusCode.BadRequest
-                    body<String>()Contain "'fraOgMed' mangler"
+                    bodyAsText() shouldContain "'fraOgMed' mangler"
                 }
             }
         }
@@ -190,14 +195,14 @@ internal class AvstemmingRoutesKtTest {
 
     @Test
     fun `kall til konsistensavstemming går fint`() {
-        testApplication(
-            ({ testSusebakover(services = services()) }),
-        ) {
+        testApplication {
+            application { testSusebakover(services = services()) }
+
             listOf(
                 "/avstemming/konsistens?fraOgMed=2021-01-01",
             ).forEach {
                 defaultRequest(
-                    HttpMethod.Post,
+                    Post,
                     it,
                     listOf(Brukerrolle.Drift),
                 ).apply {
@@ -209,14 +214,14 @@ internal class AvstemmingRoutesKtTest {
 
     @Test
     fun `kun driftspersonell kan kalle endepunktet for avstemming`() {
-        testApplication(
-            ({ testSusebakover(services = services()) }),
-        ) {
+        testApplication {
+            application { testSusebakover(services = services()) }
+
             Brukerrolle.values()
                 .filterNot { it == Brukerrolle.Drift }
-                .forEach {
+                .forEach { _ ->
                     defaultRequest(
-                        HttpMethod.Post,
+                        Post,
                         "/avstemming/konsistens?fraOgMed=2021-01-01",
                         listOf(Brukerrolle.Veileder),
                     ).apply {

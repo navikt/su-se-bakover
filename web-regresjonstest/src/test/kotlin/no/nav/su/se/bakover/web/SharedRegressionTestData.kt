@@ -1,13 +1,14 @@
 package no.nav.su.se.bakover.web
 
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.headers
+import io.ktor.client.request.request
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.server.application.Application
-import io.ktor.server.http.HttpHeaders
-import io.ktor.server.http.HttpMethod
-import io.ktor.server.server.testing.TestApplicationCall
-import io.ktor.server.server.testing.TestApplicationEngine
-import io.ktor.server.server.testing.TestApplicationRequest
-import io.ktor.server.server.testing.handleRequest
-import io.ktor.server.server.testing.withTestApplication
+import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.server.testing.TestApplicationEngine
 import no.finn.unleash.FakeUnleash
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
@@ -42,6 +43,7 @@ import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.web.komponenttest.testApplication
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.mockito.kotlin.mock
@@ -219,19 +221,19 @@ internal object SharedRegressionTestData {
         )
     }
 
-    fun TestApplicationEngine.defaultRequest(
+    suspend fun ApplicationTestBuilder.defaultRequest(
         method: HttpMethod,
         uri: String,
-        roller: List<Brukerrolle>,
-        navIdent: String = "Z990Lokal",
-        setup: TestApplicationRequest.() -> Unit = {},
-    ): TestApplicationCall {
-        return handleRequest(method, uri) {
-            addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-            addHeader(
-                HttpHeaders.Authorization,
-                jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken(),
-            )
+        roller: List<Brukerrolle> = emptyList(),
+        navIdent: String,
+        setup: HttpRequestBuilder.() -> Unit = {},
+    ): HttpResponse {
+        return this.client.request(uri) {
+            this.method = method
+            this.headers {
+                append(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+                append(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken())
+            }
             setup()
         }
     }

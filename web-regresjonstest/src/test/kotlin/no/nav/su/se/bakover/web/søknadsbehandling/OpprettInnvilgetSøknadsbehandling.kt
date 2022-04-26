@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.søknadsbehandling
 
-import io.ktor.server.server.testing.TestApplicationEngine
+import io.ktor.server.testing.TestApplicationEngine
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr

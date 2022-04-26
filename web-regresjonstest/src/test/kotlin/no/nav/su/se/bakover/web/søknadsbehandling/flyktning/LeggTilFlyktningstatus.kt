@@ -1,32 +1,34 @@
 package no.nav.su.se.bakover.web.søknadsbehandling.flyktning
 
-import io.kotest.matchers.shouldBe
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.http.HttpHeaders
-import io.ktor.server.http.HttpMethod
-import io.ktor.server.server.testing.TestApplicationEngine
-import io.ktor.server.server.testing.contentType
-import io.ktor.server.server.testing.setBody
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.headers
+import io.ktor.client.request.request
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
+import no.nav.su.se.bakover.web.stubs.asBearerToken
 
 /**
 - [resultat] se [no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning.Status]
  */
-internal fun TestApplicationEngine.leggTilFlyktningstatus(
+internal suspend fun ApplicationTestBuilder.leggTilFlyktningstatus(
     sakId: String,
     behandlingId: String,
     resultat: String = "VilkårOppfylt",
     begrunnelse: String = "Vurdering av flyktningstatus er lagt til automatisk av LeggTilFlyktningstatus.kt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
 ): String {
-    return defaultRequest(
-        HttpMethod.Patch,
-        "/saker/$sakId/behandlinger/$behandlingId/informasjon",
-        listOf(brukerrolle),
+
+    
+    return this.defaultRequest(
+        method = HttpMethod.Patch,
+        uri = "/saker/$sakId/behandlinger/$behandlingId/informasjon",
+        roller = listOf(brukerrolle),
     ) {
-        addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+       /* addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
         setBody(
             //language=JSON
             """
@@ -45,6 +47,6 @@ internal fun TestApplicationEngine.leggTilFlyktningstatus(
         )
     }.apply {
         status shouldBe HttpStatusCode.OK
-        response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-    }.response.content!!
+        response.contentType shouldBe ContentType.parse("application/json; charset=UTF-8")*/
+    }
 }

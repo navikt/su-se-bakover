@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.web
 
+import io.ktor.client.request.header
+import io.ktor.client.utils.EmptyContent.status
+import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
@@ -45,8 +48,8 @@ internal class AuthenticationTest {
             application {
                 testSusebakover()
             }
-            handleRequest(Get, secureEndpoint) {
-                addHeader(Authorization, jwtStub.createJwtToken(audience = "wrong_audience").asBearerToken())
+            defaultRequest(Get, secureEndpoint) {
+                header(Authorization, jwtStub.createJwtToken(audience = "wrong_audience").asBearerToken())
             }
         }.apply {
             assertEquals(Unauthorized, status)
@@ -55,13 +58,12 @@ internal class AuthenticationTest {
 
     @Test
     fun `forespørsel uten medlemskap i påkrevet gruppe skal svare med 401`() {
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
-            handleRequest(Get, secureEndpoint) {
-                addHeader(Authorization, jwtStub.createJwtToken(roller = emptyList()).asBearerToken())
+            }
+            defaultRequest(Get, secureEndpoint) {
+                header(Authorization, jwtStub.createJwtToken(roller = emptyList()).asBearerToken())
             }
         }.apply {
             assertEquals(Unauthorized, status)
@@ -70,31 +72,29 @@ internal class AuthenticationTest {
 
     @Test
     fun `forespørsel med utgått token skal svare med 401`() {
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
-            handleRequest(Get, secureEndpoint) {
-                addHeader(
+            }
+            defaultRequest(Get, secureEndpoint) {
+                header(
                     Authorization,
                     jwtStub.createJwtToken(expiresAt = Date.from(Instant.now().minusSeconds(1))).asBearerToken(),
                 )
+            }.apply {
+                assertEquals(Unauthorized, status)
             }
-        }.apply {
-            assertEquals(Unauthorized, status)
         }
     }
 
     @Test
     fun `forespørsel med feil issuer skal svare med 401`() {
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
-            handleRequest(Get, secureEndpoint) {
-                addHeader(Authorization, jwtStub.createJwtToken(issuer = "wrong_issuer").asBearerToken())
+            }
+            defaultRequest(Get, secureEndpoint) {
+                header(Authorization, jwtStub.createJwtToken(issuer = "wrong_issuer").asBearerToken())
             }
         }.apply {
             assertEquals(Unauthorized, status)

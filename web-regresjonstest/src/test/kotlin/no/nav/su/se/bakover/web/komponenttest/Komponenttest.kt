@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import io.ktor.server.application.Application
-import io.ktor.server.server.testing.TestApplicationEngine
-import io.ktor.server.server.testing.createTestEnvironment
-import io.ktor.server.server.testing.withApplication
+import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.createTestEnvironment
+import io.ktor.server.testing.withApplication
 import no.finn.unleash.FakeUnleash
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
