@@ -17,15 +17,15 @@ sealed class Reguleringstype {
     }
 }
 
-sealed interface ÅrsakTilManuellRegulering {
-    object FradragMåHåndteresManuelt : ÅrsakTilManuellRegulering
-    object YtelseErMidlertidigStanset : ÅrsakTilManuellRegulering
-    object ForventetInntektErStørreEnn0 : ÅrsakTilManuellRegulering
-    object DelvisOpphør : ÅrsakTilManuellRegulering
-    object VedtakstidslinjeErIkkeSammenhengende : ÅrsakTilManuellRegulering
-    object PågåendeAvkortingEllerBehovForFremtidigAvkorting : ÅrsakTilManuellRegulering
-    object AvventerKravgrunnlag : ÅrsakTilManuellRegulering
-    object UtbetalingFeilet : ÅrsakTilManuellRegulering
+enum class ÅrsakTilManuellRegulering {
+    FradragMåHåndteresManuelt,
+    YtelseErMidlertidigStanset,
+    ForventetInntektErStørreEnn0,
+    DelvisOpphør,
+    VedtakstidslinjeErIkkeSammenhengende,
+    PågåendeAvkortingEllerBehovForFremtidigAvkorting,
+    AvventerKravgrunnlag,
+    UtbetalingFeilet;
 }
 
 fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {

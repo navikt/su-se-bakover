@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import org.junit.jupiter.api.Test
 
 internal class ReguleringPostgresRepoTest {
-
     @Test
     fun `hent reguleringer som ikke er iverksatt`() {
         withMigratedDb { dataSource ->

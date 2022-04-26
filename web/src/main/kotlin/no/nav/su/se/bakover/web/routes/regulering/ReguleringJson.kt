@@ -50,9 +50,5 @@ internal fun Regulering.toJson() = ReguleringJson(
 )
 
 internal fun Set<ÅrsakTilManuellRegulering>.toJson(): Set<String> {
-    return map { it.toJson() }.toSet()
-}
-
-internal fun ÅrsakTilManuellRegulering.toJson(): String {
-    return this::class.simpleName.toString()
+    return map { it.name }.toSet()
 }
