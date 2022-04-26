@@ -15,21 +15,21 @@ data class BeregnRequest(
     val begrunnelse: String?,
 )
 
-sealed class KunneIkkeRegulereAutomatisk {
-    object KunneIkkeBeregne : KunneIkkeRegulereAutomatisk()
-    object KunneIkkeSimulere : KunneIkkeRegulereAutomatisk()
-    object KunneIkkeUtbetale : KunneIkkeRegulereAutomatisk()
-    object KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling : KunneIkkeRegulereAutomatisk()
+sealed class KunneIkkeFerdigstilleOgIverksette {
+    object KunneIkkeBeregne : KunneIkkeFerdigstilleOgIverksette()
+    object KunneIkkeSimulere : KunneIkkeFerdigstilleOgIverksette()
+    object KunneIkkeUtbetale : KunneIkkeFerdigstilleOgIverksette()
+    object KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling : KunneIkkeFerdigstilleOgIverksette()
 }
 
 sealed class KunneIkkeRegulereManuelt {
-    object foo : KunneIkkeRegulereManuelt()
     object FantIkkeRegulering : KunneIkkeRegulereManuelt()
     object SimuleringFeilet : KunneIkkeRegulereManuelt()
     object BeregningFeilet : KunneIkkeRegulereManuelt()
     object AlleredeFerdigstilt : KunneIkkeRegulereManuelt()
     object FantIkkeSak : KunneIkkeRegulereManuelt()
     object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt()
+    data class KunneIkkeFerdigstille(val feil: KunneIkkeFerdigstilleOgIverksette): KunneIkkeRegulereManuelt()
 }
 
 sealed class BeregnOgSimulerFeilet {
@@ -52,7 +52,7 @@ sealed class KunneIkkeOppretteRegulering {
     object FantIkkeSak : KunneIkkeOppretteRegulering()
     object FørerIkkeTilEnEndring : KunneIkkeOppretteRegulering()
     data class KunneIkkeHenteEllerOppretteRegulering(val feil: Sak.KunneIkkeOppretteEllerOppdatereRegulering) : KunneIkkeOppretteRegulering()
-    data class KunneIkkeRegulereAutomatisk(val feil: no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereAutomatisk) : KunneIkkeOppretteRegulering()
+    data class KunneIkkeRegulereAutomatisk(val feil: no.nav.su.se.bakover.service.regulering.KunneIkkeFerdigstilleOgIverksette) : KunneIkkeOppretteRegulering()
 }
 
 interface ReguleringService {

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.regulering
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
@@ -23,8 +24,11 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import java.time.Clock
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -141,6 +145,33 @@ sealed interface Regulering : Reguleringsfelter {
                     ).getOrHandle { throw IllegalStateException("") },
                     vilkårsvurderinger = vilkårsvurderinger,
                 ),
+            )
+
+        fun leggTilUføre(uføregrunnlag: List<Grunnlag.Uføregrunnlag>, clock: Clock): OpprettetRegulering =
+            this.copy(
+                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+                    grunnlagsdata = grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurderinger.copy(
+                        uføre = Vilkår.Uførhet.Vurdert.tryCreate(
+                            vurderingsperioder = nonEmptyListOf(
+                                Vurderingsperiode.Uføre.tryCreate(
+                                    opprettet = Tidspunkt.now(clock),
+                                    resultat = Resultat.Innvilget,
+                                    grunnlag = uføregrunnlag.single(),
+                                    vurderingsperiode = periode,
+                                    begrunnelse = null,
+                                ).getOrHandle { throw RuntimeException("$it") }
+                            )
+                        ).getOrHandle { throw RuntimeException("$it") },
+                        formue = vilkårsvurderinger.formue,
+                        utenlandsopphold = vilkårsvurderinger.utenlandsopphold,
+                    ),
+                ),
+            )
+
+        fun leggTilSaksbehandler(saksbehandler: NavIdentBruker.Saksbehandler): OpprettetRegulering =
+            this.copy(
+                saksbehandler = saksbehandler,
             )
 
         fun beregn(clock: Clock, begrunnelse: String? = null): Either<KunneIkkeBeregne, OpprettetRegulering> {
