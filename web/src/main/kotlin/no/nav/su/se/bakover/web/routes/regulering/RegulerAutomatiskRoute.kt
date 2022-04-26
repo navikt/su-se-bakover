@@ -72,6 +72,8 @@ internal fun Route.reguler(
                                     KunneIkkeRegulereManuelt.BeregningFeilet -> HttpStatusCode.InternalServerError.errorJson("Beregning feilet", "beregning_feilet")
                                     KunneIkkeRegulereManuelt.SimuleringFeilet -> HttpStatusCode.InternalServerError.errorJson("Simulering feilet", "simulering_feilet")
                                     KunneIkkeRegulereManuelt.foo -> HttpStatusCode.InternalServerError.errorJson("foo", "foo")
+                                    KunneIkkeRegulereManuelt.FantIkkeSak -> TODO()
+                                    KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> TODO()
                                 }.let { feilResultat ->
                                     call.svar(feilResultat)
                                 }

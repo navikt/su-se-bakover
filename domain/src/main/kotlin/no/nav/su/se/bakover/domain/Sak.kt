@@ -386,7 +386,7 @@ data class Sak(
                 it.erOpphør()
             }.map { vedtakUtenOpphør ->
                 vedtakUtenOpphør.periode
-            }.reduser().ifEmpty { return KunneIkkeOppretteEllerOppdatereRegulering.HelePeriodenErOpphør.left() }
+            }.minsteAntallSammenhengendePerioder().ifEmpty { return KunneIkkeOppretteEllerOppdatereRegulering.HelePeriodenErOpphør.left() }
                 .also { log.info("Hele perioden er opphør. Lager ingen regulering for denne") }
         }.also {
             if (it.count() != 1) return KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig.left()
