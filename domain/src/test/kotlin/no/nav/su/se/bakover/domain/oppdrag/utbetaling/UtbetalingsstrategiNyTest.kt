@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -64,7 +63,6 @@ internal class UtbetalingsstrategiNyTest {
         override fun getFradrag(): List<Fradrag> = emptyList()
         override fun getSumYtelse(): Int = 1000
         override fun getSumFradrag(): Double = 1000.0
-        override fun getFradragStrategyName(): FradragStrategyName = FradragStrategyName.Enslig
         override fun getBegrunnelse(): String = mock()
         override fun equals(other: Any?): Boolean = mock()
         override val periode: Periode = Periode.create(1.juni(2021), 30.november(2021))
