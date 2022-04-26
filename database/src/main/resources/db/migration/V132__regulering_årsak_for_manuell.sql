@@ -1,0 +1,1 @@
+alter table regulering add column if not exists arsakForManuell jsonb;

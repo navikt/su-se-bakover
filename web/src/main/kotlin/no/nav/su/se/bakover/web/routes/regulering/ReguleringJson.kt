@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
@@ -21,7 +22,8 @@ internal data class ReguleringJson(
     val simulering: SimuleringJson?,
     val sakId: UUID,
     val saksnummer: Saksnummer,
-    val reguleringstype: Reguleringstype,
+    val reguleringstype: String,
+    val årsakForManuell: Set<String>?,
     val periode: PeriodeJson,
     val erFerdigstilt: Boolean,
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
@@ -36,9 +38,21 @@ internal fun Regulering.toJson() = ReguleringJson(
     saksnummer = saksnummer,
     beregning = beregning?.toJson(),
     simulering = simulering?.toJson(),
-    reguleringstype = reguleringstype,
+    reguleringstype = reguleringstype.toString(),
+    årsakForManuell = when (val type = reguleringstype) {
+        Reguleringstype.AUTOMATISK -> null
+        is Reguleringstype.MANUELL -> type.problemer.toJson()
+    },
     erFerdigstilt = this.erFerdigstilt,
     periode = periode.toJson(),
     grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
-    saksbehandler = saksbehandler.navIdent
+    saksbehandler = saksbehandler.navIdent,
 )
+
+internal fun Set<ÅrsakTilManuellRegulering>.toJson(): Set<String> {
+    return map { it.toJson() }.toSet()
+}
+
+internal fun ÅrsakTilManuellRegulering.toJson(): String {
+    return this::class.simpleName.toString()
+}

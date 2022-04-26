@@ -31,7 +31,7 @@ fun opprettetRegulering(
         vilkårsvurderingerRevurderingInnvilget(periode = reguleringsperiode),
     ),
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(saksbehandlerNavn),
-    reguleringstype: Reguleringstype = Reguleringstype.MANUELL,
+    reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
 ) = Regulering.OpprettetRegulering(
     id = id,
     opprettet = opprettet,

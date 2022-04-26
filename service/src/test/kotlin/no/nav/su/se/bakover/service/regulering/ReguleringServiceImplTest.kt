@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -112,13 +113,17 @@ internal class ReguleringServiceImplTest {
         @Test
         fun `OffentligPensjon gir manuell`() {
             reguleringService.startRegulering(1.mai(2021)).single()
-                .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL
+                .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
+                setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
+            )
         }
 
         @Test
         fun `NAVytelserTilLivsopphold gir manuell`() {
             reguleringService.startRegulering(1.mai(2021)).single()
-                .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL
+                .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
+                setOf(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt),
+            )
         }
 
         @Test
@@ -127,7 +132,9 @@ internal class ReguleringServiceImplTest {
             val reguleringService = lagReguleringServiceImpl(stansAvYtelse)
 
             reguleringService.startRegulering(1.mai(2021)).single()
-                .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL
+                .getOrFail().reguleringstype shouldBe Reguleringstype.MANUELL(
+                setOf(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset),
+            )
         }
 
         @Test
@@ -243,7 +250,7 @@ internal class ReguleringServiceImplTest {
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
                     periode = stønadsperiode2021.periode,
                     fradragsgrunnlag = listOf(
-                        offentligPensjonGrunnlag(8000.0, periode2021)
+                        offentligPensjonGrunnlag(8000.0, periode2021),
                     ),
                     bosituasjon = nonEmptyListOf(
                         bosituasjongrunnlagEnslig(
@@ -268,14 +275,14 @@ internal class ReguleringServiceImplTest {
                     månedsbeløp = 8100.0,
                     periode = periodeMaiDes,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
                     periode = periodeMaiDes,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
             )
         }

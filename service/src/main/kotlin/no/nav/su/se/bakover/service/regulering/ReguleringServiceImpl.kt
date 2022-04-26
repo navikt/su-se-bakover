@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
+import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -114,7 +115,7 @@ class ReguleringServiceImpl(
                 .ifNotEmpty {
                     log.info("Regulering for saksnummer $saksnummer: Kan ikke sende oppdragslinjer mens vi venter på et kravgrunnlag, siden det kan annulere nåværende kravgrunnlag. Setter reguleringen til manuell.")
                     return@map regulering.copy(
-                        reguleringstype = Reguleringstype.MANUELL,
+                        reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.AvventerKravgrunnlag)),
                     ).right().tap {
                         reguleringRepo.lagre(regulering)
                     }
@@ -122,7 +123,7 @@ class ReguleringServiceImpl(
 
             reguleringRepo.lagre(regulering)
 
-            if (regulering.reguleringstype == Reguleringstype.AUTOMATISK) {
+            if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
                 regulerAutomatisk(regulering)
                     .tap { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                     .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }
@@ -135,9 +136,9 @@ class ReguleringServiceImpl(
                 regulering.fold(ifLeft = { null }, ifRight = { it })
             }
             val antallAutomatiske =
-                regulert.filter { regulering -> regulering.reguleringstype == Reguleringstype.AUTOMATISK }.size
+                regulert.filter { regulering -> regulering.reguleringstype is Reguleringstype.AUTOMATISK }.size
             val antallManuelle =
-                regulert.filter { regulering -> regulering.reguleringstype == Reguleringstype.MANUELL }.size
+                regulert.filter { regulering -> regulering.reguleringstype is Reguleringstype.MANUELL }.size
 
             log.info("Totalt antall prosesserte reguleringer: ${regulert.size}, antall automatiske: $antallAutomatiske, antall manuelle: $antallManuelle")
         }
@@ -186,7 +187,7 @@ class ReguleringServiceImpl(
                                 grunnlag = uføregrunnlag.single(),
                                 vurderingsperiode = regulering.periode,
                                 begrunnelse = null,
-                            ).getOrHandle { throw RuntimeException("$it") }
+                            ).getOrHandle { throw RuntimeException("$it") },
                         ),
                     ).getOrHandle { throw RuntimeException("$it") },
                     formue = regulering.vilkårsvurderinger.formue,
@@ -194,7 +195,7 @@ class ReguleringServiceImpl(
                 ),
             ),
             saksbehandler = saksbehandler,
-            reguleringstype = Reguleringstype.MANUELL,
+            reguleringstype = regulering.reguleringstype,
         )
 
         return regulerAutomatisk(oppdatertRegulering)
@@ -234,7 +235,17 @@ class ReguleringServiceImpl(
             }
             .map { simulertRegulering -> simulertRegulering.tilIverksatt() }
             .flatMap { lagVedtakOgUtbetal(it) }
-            .tapLeft { reguleringRepo.lagre(regulering.copy(reguleringstype = Reguleringstype.MANUELL)) }
+            .tapLeft {
+                reguleringRepo.lagre(
+                    regulering.copy(
+                        reguleringstype = Reguleringstype.MANUELL(
+                            setOf(
+                                ÅrsakTilManuellRegulering.UtbetalingFeilet,
+                            ),
+                        ),
+                    ),
+                )
+            }
             .map {
                 val (iverksattRegulering, vedtak) = it
 

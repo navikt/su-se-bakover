@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
+import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import java.util.UUID
 
@@ -131,7 +132,8 @@ internal class ReguleringPostgresRepo(
                 simulering,
                 saksbehandler,
                 reguleringStatus,
-                reguleringType
+                reguleringType,
+                arsakForManuell
             ) values (
                 :id,
                 :sakId,
@@ -141,7 +143,8 @@ internal class ReguleringPostgresRepo(
                 to_json(:simulering::json),
                 :saksbehandler,
                 :reguleringStatus,
-                :reguleringType
+                :reguleringType,
+                to_json(:arsakForManuell::json)
             )
                 ON CONFLICT(id) do update set
                 id=:id,
@@ -152,7 +155,8 @@ internal class ReguleringPostgresRepo(
                 simulering=to_json(:simulering::json),
                 saksbehandler=:saksbehandler,
                 reguleringStatus=:reguleringStatus,
-                reguleringType=:reguleringType
+                reguleringType=:reguleringType,
+                arsakForManuell=to_json(:arsakForManuell::json)
                 """.trimIndent()
                     .insert(
                         mapOf(
@@ -163,7 +167,22 @@ internal class ReguleringPostgresRepo(
                             "saksbehandler" to regulering.saksbehandler.navIdent,
                             "beregning" to regulering.beregning,
                             "simulering" to regulering.simulering?.let { serialize(it) },
-                            "reguleringType" to regulering.reguleringstype.toString(),
+                            "reguleringType" to when (regulering.reguleringstype) {
+                                is Reguleringstype.AUTOMATISK -> {
+                                    ReguleringstypeDb.AUTOMATISK.name
+                                }
+                                is Reguleringstype.MANUELL -> {
+                                    ReguleringstypeDb.MANUELL.name
+                                }
+                            },
+                            "arsakForManuell" to when (val type = regulering.reguleringstype) {
+                                Reguleringstype.AUTOMATISK -> {
+                                    null
+                                }
+                                is Reguleringstype.MANUELL -> {
+                                    objectMapper.writeValueAsString(type.problemer)
+                                }
+                            },
                             "reguleringStatus" to when (regulering) {
                                 is Regulering.IverksattRegulering -> ReguleringStatus.IVERKSATT
                                 is Regulering.OpprettetRegulering -> ReguleringStatus.OPPRETTET
@@ -188,6 +207,11 @@ internal class ReguleringPostgresRepo(
         return sessionFactory.newTransactionContext()
     }
 
+    private enum class ReguleringstypeDb {
+        MANUELL,
+        AUTOMATISK
+    }
+
     private fun Row.toRegulering(session: Session): Regulering {
         val sakId = uuid("sakid")
         val id = uuid("id")
@@ -195,7 +219,18 @@ internal class ReguleringPostgresRepo(
         val saksnummer = Saksnummer(long("saksnummer"))
         val fnr = Fnr(string("fnr"))
         val status = ReguleringStatus.valueOf(string("reguleringStatus"))
-        val reguleringstype = Reguleringstype.valueOf(string("reguleringType"))
+        val reguleringstype = ReguleringstypeDb.valueOf(string("reguleringType"))
+        val årsakForManuell = stringOrNull("arsakForManuell")
+            ?.let { objectMapper.readValue<Set<ÅrsakTilManuellRegulering>>(it) }
+
+        val type = when (reguleringstype) {
+            ReguleringstypeDb.MANUELL -> {
+                Reguleringstype.MANUELL(årsakForManuell ?: emptySet())
+            }
+            ReguleringstypeDb.AUTOMATISK -> {
+                Reguleringstype.AUTOMATISK
+            }
+        }
 
         val beregning = deserialiserBeregning(stringOrNull("beregning"))
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
@@ -217,7 +252,7 @@ internal class ReguleringPostgresRepo(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             beregning = beregning,
             simulering = simulering,
-            reguleringstype = reguleringstype,
+            reguleringstype = type,
         )
     }
 
