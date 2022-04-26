@@ -7,7 +7,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.overlappende
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -81,7 +81,7 @@ sealed class FastOppholdINorgeVilkår : Vilkår() {
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeFastOppholdINorge>,
             ): Either<UgyldigFastOppholdINorgeVikår, Vurdert> {
-                if (vurderingsperioder.overlappende()) {
+                if (vurderingsperioder.harOverlappende()) {
                     return UgyldigFastOppholdINorgeVikår.OverlappendeVurderingsperioder.left()
                 }
                 return Vurdert(vurderingsperioder).right()

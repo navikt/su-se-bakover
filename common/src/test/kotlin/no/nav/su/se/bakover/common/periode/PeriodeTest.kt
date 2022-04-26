@@ -818,5 +818,11 @@ internal class PeriodeTest {
             mai(2021),
             Periode.create(1.januar(2021), 31.desember(2021)),
         ).harOverlappende() shouldBe true
+
+        listOf(
+            mai(2021),
+            Periode.create(1.januar(2021), 31.desember(2021)),
+            Periode.create(1.januar(2022), 31.desember(2022))
+        ).harOverlappende() shouldBe true
     }
 }

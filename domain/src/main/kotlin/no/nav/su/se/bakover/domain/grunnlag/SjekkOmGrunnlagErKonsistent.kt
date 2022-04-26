@@ -29,6 +29,7 @@ data class SjekkOmGrunnlagErKonsistent(
     val resultat: Either<Set<Konsistensproblem>, Unit> = setOf(
         Uføre(uføregrunnlag).resultat,
         Bosituasjon(bosituasjongrunnlag).resultat,
+        Formue(formuegrunnlag).resultat,
         BosituasjonOgFradrag(bosituasjongrunnlag, fradragsgrunnlag).resultat,
         BosituasjonOgFormue(bosituasjongrunnlag, formuegrunnlag).resultat,
     ).let {
@@ -68,6 +69,24 @@ data class SjekkOmGrunnlagErKonsistent(
                 }
                 if (bosituasjon.harOverlappende()) {
                     add(Konsistensproblem.Bosituasjon.Overlapp)
+                }
+                return if (this.isEmpty()) Unit.right() else this.left()
+            }
+        }
+    }
+
+    data class Formue(
+        val formue: List<Formuegrunnlag>,
+    ) {
+        val resultat: Either<Set<Konsistensproblem.Formue>, Unit> = formue(formue)
+
+        private fun formue(formue: List<Formuegrunnlag>): Either<Set<Konsistensproblem.Formue>, Unit> {
+            mutableSetOf<Konsistensproblem.Formue>().apply {
+                if (formue.isEmpty()) {
+                    add(Konsistensproblem.Formue.Mangler)
+                }
+                if (formue.harOverlappende()) {
+                    add(Konsistensproblem.Formue.Overlapp)
                 }
                 return if (this.isEmpty()) Unit.right() else this.left()
             }
@@ -126,6 +145,9 @@ data class SjekkOmGrunnlagErKonsistent(
             mutableSetOf<Konsistensproblem.BosituasjonOgFormue>().apply {
                 Bosituasjon(bosituasjon).resultat.tapLeft {
                     add(Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon(it))
+                }
+                Formue(formue).resultat.tapLeft {
+                    add(Konsistensproblem.BosituasjonOgFormue.UgyldigFormue(it))
                 }
                 if (!gyldigKombinasjonAvBosituasjonOgFormue()) {
                     add(Konsistensproblem.BosituasjonOgFormue.KombinasjonAvBosituasjonOgFormueErUyldig)
@@ -187,6 +209,16 @@ sealed class Konsistensproblem {
         }
     }
 
+    sealed class Formue : Konsistensproblem() {
+        object Mangler : Formue() {
+            override fun erGyldigTilstand(): Boolean = false
+        }
+
+        object Overlapp : Formue() {
+            override fun erGyldigTilstand(): Boolean = false
+        }
+    }
+
     sealed class BosituasjonOgFradrag : Konsistensproblem() {
         object IngenBosituasjonForFradragsperiode : BosituasjonOgFradrag() {
             override fun erGyldigTilstand() = false
@@ -208,6 +240,10 @@ sealed class Konsistensproblem {
 
         data class UgyldigBosituasjon(val feil: Set<Bosituasjon>) : BosituasjonOgFormue() {
             override fun erGyldigTilstand() = false
+        }
+
+        data class UgyldigFormue(val feil: Set<Formue>) : BosituasjonOgFormue() {
+            override fun erGyldigTilstand(): Boolean = false
         }
 
         object KombinasjonAvBosituasjonOgFormueErUyldig : BosituasjonOgFormue() {
