@@ -163,6 +163,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 fradragsgrunnlag = listOf(arbeidsinntekt(periode, FradragTilhører.EPS)),
             ).resultat shouldBe setOf(
                 Konsistensproblem.Uføre.Mangler,
+                Konsistensproblem.Formue.Mangler,
                 Konsistensproblem.Bosituasjon.Overlapp,
                 Konsistensproblem.BosituasjonOgFradrag.UgyldigBosituasjon(setOf(Konsistensproblem.Bosituasjon.Overlapp)),
             ).left()
@@ -171,7 +172,10 @@ internal class SjekkOmGrunnlagErKonsistentTest {
         @Test
         fun `fullstendig sjekk variant`() {
             SjekkOmGrunnlagErKonsistent(
-                formuegrunnlag = innvilgetFormueVilkår(periode = periode, bosituasjon = fullstendigMedEPS(periode)).grunnlag,
+                formuegrunnlag = innvilgetFormueVilkår(
+                    periode = periode,
+                    bosituasjon = fullstendigMedEPS(periode),
+                ).grunnlag,
                 uføregrunnlag = emptyList(),
                 bosituasjongrunnlag = listOf(fullstendigUtenEPS(periode)),
                 fradragsgrunnlag = listOf(
@@ -185,7 +189,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 Konsistensproblem.BosituasjonOgFradrag.KombinasjonAvBosituasjonOgFradragErUgyldig,
                 Konsistensproblem.BosituasjonOgFradrag.IngenBosituasjonForFradragsperiode,
                 Konsistensproblem.BosituasjonOgFormue.KombinasjonAvBosituasjonOgFormueErUyldig,
-                Konsistensproblem.BosituasjonOgFormue.FormueForEPSManglerForBosituasjonsperiode
+                Konsistensproblem.BosituasjonOgFormue.FormueForEPSManglerForBosituasjonsperiode,
             ).left()
         }
     }
@@ -219,7 +223,10 @@ internal class SjekkOmGrunnlagErKonsistentTest {
 
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
                 bosituasjon = listOf(fullstendigUtenEPS(janApr)),
-                formue = innvilgetFormueVilkår(periode = maiDes, bosituasjon = fullstendigUtenEPS(maiDes)).grunnlag,
+                formue = innvilgetFormueVilkår(
+                    periode = maiDes,
+                    bosituasjon = fullstendigUtenEPS(maiDes),
+                ).grunnlag,
             ).resultat shouldBe setOf(Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode).left()
         }
 
@@ -229,11 +236,34 @@ internal class SjekkOmGrunnlagErKonsistentTest {
 
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
                 bosituasjon = listOf(),
-                formue = innvilgetFormueVilkår(periode = maiDes, bosituasjon = fullstendigUtenEPS(maiDes)).grunnlag,
+                formue = innvilgetFormueVilkår(
+                    periode = maiDes,
+                    bosituasjon = fullstendigUtenEPS(maiDes),
+                ).grunnlag,
             ).resultat shouldBe setOf(
                 Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode,
                 Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon(
                     setOf(Konsistensproblem.Bosituasjon.Mangler),
+                ),
+            ).left()
+        }
+
+        @Test
+        fun `formue er ugyldig`() {
+            val maiDes = Periode.create(1.mai(2021), 31.desember(2021))
+
+            SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
+                bosituasjon = listOf(fullstendigUtenEPS(maiDes)),
+                formue = innvilgetFormueVilkår(
+                    periode = maiDes,
+                    bosituasjon = fullstendigUtenEPS(maiDes),
+                ).grunnlag + innvilgetFormueVilkår(
+                    periode = maiDes,
+                    bosituasjon = fullstendigUtenEPS(maiDes),
+                ).grunnlag,
+            ).resultat shouldBe setOf(
+                Konsistensproblem.BosituasjonOgFormue.UgyldigFormue(
+                    setOf(Konsistensproblem.Formue.Overlapp),
                 ),
             ).left()
         }

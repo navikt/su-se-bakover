@@ -50,6 +50,18 @@ internal fun Konsistensproblem.tilResultat() = when (this) {
         message = "Formue for EPS mangler for en eller flere av periodene.",
         code = "ingen_formue_eps_for_bosituasjonsperiode",
     )
+    is Konsistensproblem.BosituasjonOgFormue.UgyldigFormue -> ErrorJson(
+        message = "Ugyldig formue: ${this.feil}",
+        code = "ugyldig_formue",
+    )
+    Konsistensproblem.Formue.Mangler -> ErrorJson(
+        message = "Formue mangler",
+        code = "formue_mangler",
+    )
+    Konsistensproblem.Formue.Overlapp -> ErrorJson(
+        message = "Perioder med formue overlapper.",
+        code = "formue_overlapper",
+    )
 }.let {
     HttpStatusCode.BadRequest.errorJson(
         message = it.message,

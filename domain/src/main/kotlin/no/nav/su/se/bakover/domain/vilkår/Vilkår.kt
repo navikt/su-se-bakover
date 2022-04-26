@@ -8,10 +8,10 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.periode.minus
-import no.nav.su.se.bakover.common.periode.overlappende
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Grunnbeløp.Companion.`0,5G`
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -467,7 +467,7 @@ sealed class Vilkår {
                 fun tryCreate(
                     vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
                 ): Either<UgyldigUførevilkår, Vurdert> {
-                    if (vurderingsperioder.overlappende()) {
+                    if (vurderingsperioder.harOverlappende()) {
                         return UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
                     }
 
@@ -477,7 +477,7 @@ sealed class Vilkår {
                 fun fromVurderingsperioder(
                     vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
                 ): Either<UgyldigUførevilkår, Vurdert> {
-                    if (vurderingsperioder.overlappende()) {
+                    if (vurderingsperioder.harOverlappende()) {
                         return UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
                     }
                     return Vurdert(vurderingsperioder).right()
@@ -714,7 +714,7 @@ sealed class Vilkår {
                 fun fromVurderingsperioder(
                     vurderingsperioder: Nel<Vurderingsperiode.Formue>,
                 ): Either<UgyldigFormuevilkår, Vurdert> {
-                    if (vurderingsperioder.overlappende()) {
+                    if (vurderingsperioder.harOverlappende()) {
                         return UgyldigFormuevilkår.OverlappendeVurderingsperioder.left()
                     }
                     return Vurdert(vurderingsperioder).right()

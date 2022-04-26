@@ -248,7 +248,7 @@ fun List<Periode>.inneholderAlle(other: List<Periode>): Boolean {
 }
 
 fun List<Periode>.harOverlappende(): Boolean {
-    return if (isEmpty()) false else this.all { p1 -> this.minus(p1).any { p2 -> p1 overlapper p2 } }
+    return if (isEmpty()) false else this.any { p1 -> this.minus(p1).any { p2 -> p1 overlapper p2 } }
 }
 
 fun januar(year: Int) = Månedsperiode(YearMonth.of(year, Month.JANUARY))

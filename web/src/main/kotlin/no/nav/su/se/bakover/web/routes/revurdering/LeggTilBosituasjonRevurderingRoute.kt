@@ -5,7 +5,7 @@ import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import arrow.core.sequence
+import arrow.core.sequenceEither
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
@@ -36,7 +36,7 @@ private data class JsonRequest(
     val bosituasjoner: List<JsonBody>,
 ) {
     fun toService(revurderingId: UUID): Either<Resultat, LeggTilBosituasjonerRequest> {
-        return bosituasjoner.map { it.toService() }.sequence()
+        return bosituasjoner.map { it.toService() }.sequenceEither()
             .mapLeft { it }
             .map {
                 LeggTilBosituasjonerRequest(
