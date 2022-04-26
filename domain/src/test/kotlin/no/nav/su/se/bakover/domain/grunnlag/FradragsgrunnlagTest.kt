@@ -36,8 +36,8 @@ internal class FradragsgrunnlagTest {
     @Test
     fun `ugyldig for enkelte fradragstyper`() {
         Grunnlag.Fradragsgrunnlag.tryCreate(
-            fradrag = FradragFactory.ny(
-                type = Fradragstype.UnderMinstenivå,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.UnderMinstenivå,
                 månedsbeløp = 150.0,
                 periode = behandlingsperiode,
                 utenlandskInntekt = null,
@@ -47,8 +47,8 @@ internal class FradragsgrunnlagTest {
         ) shouldBe Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
 
         Grunnlag.Fradragsgrunnlag.tryCreate(
-            fradrag = FradragFactory.ny(
-                type = Fradragstype.BeregnetFradragEPS,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.BeregnetFradragEPS,
                 månedsbeløp = 150.0,
                 periode = behandlingsperiode,
                 utenlandskInntekt = null,
@@ -58,8 +58,8 @@ internal class FradragsgrunnlagTest {
         ) shouldBe Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
 
         Grunnlag.Fradragsgrunnlag.tryCreate(
-            fradrag = FradragFactory.ny(
-                type = Fradragstype.ForventetInntekt,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.ForventetInntekt,
                 månedsbeløp = 150.0,
                 periode = behandlingsperiode,
                 utenlandskInntekt = null,
@@ -80,8 +80,8 @@ internal class FradragsgrunnlagTest {
             ).contains(it)
         }.forEach {
             Grunnlag.Fradragsgrunnlag.tryCreate(
-                fradrag = FradragFactory.ny(
-                    type = Fradragstype.from(it, null),
+                fradrag = FradragFactory.nyFradragsperiode(
+                    fradragstype = Fradragstype.from(it, null),
                     månedsbeløp = 150.0,
                     periode = behandlingsperiode,
                     utenlandskInntekt = null,
@@ -98,8 +98,8 @@ internal class FradragsgrunnlagTest {
         val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            fradrag = FradragFactory.ny(
-                type = Fradragstype.Kontantstøtte,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.Kontantstøtte,
                 månedsbeløp = 200.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
@@ -118,8 +118,8 @@ internal class FradragsgrunnlagTest {
         val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            fradrag = FradragFactory.ny(
-                type = Fradragstype.Kontantstøtte,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.Kontantstøtte,
                 månedsbeløp = 200.0,
                 periode = Periode.create(1.februar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
@@ -138,8 +138,8 @@ internal class FradragsgrunnlagTest {
         val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            fradrag = FradragFactory.ny(
-                type = Fradragstype.Kontantstøtte,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.Kontantstøtte,
                 månedsbeløp = 200.0,
                 periode = Periode.create(1.januar(2021), 31.august(2021)),
                 utenlandskInntekt = null,
@@ -158,8 +158,8 @@ internal class FradragsgrunnlagTest {
         val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            fradrag = FradragFactory.ny(
-                type = Fradragstype.Kontantstøtte,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.Kontantstøtte,
                 månedsbeløp = 200.0,
                 periode = Periode.create(1.februar(2022), 31.august(2022)),
                 utenlandskInntekt = null,
@@ -256,15 +256,15 @@ internal class FradragsgrunnlagTest {
 
         val actual = listOf(f1, f2, f3).slåSammenPeriodeOgFradrag()
         actual.size shouldBe 2
-        actual.first().fradrag shouldBe FradragFactory.ny(
-            type = Fradragstype.Kontantstøtte,
+        actual.first().fradrag shouldBe FradragFactory.nyFradragsperiode(
+            fradragstype = Fradragstype.Kontantstøtte,
             månedsbeløp = 200.0,
             periode = Periode.create(1.januar(2021), 28.februar(2021)),
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )
-        actual.last().fradrag shouldBe FradragFactory.ny(
-            type = Fradragstype.Sosialstønad,
+        actual.last().fradrag shouldBe FradragFactory.nyFradragsperiode(
+            fradragstype = Fradragstype.Sosialstønad,
             månedsbeløp = 300.0,
             periode = månedsperiodeMars2021,
             utenlandskInntekt = null,
@@ -276,8 +276,8 @@ internal class FradragsgrunnlagTest {
     fun `fjerner fradrag som tilhører EPS, når vi har bosituasjon uten EPS`() {
         val f1 = Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(), opprettet = fixedTidspunkt,
-            fradrag = FradragFactory.ny(
-                type = Fradragstype.Sosialstønad,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.Sosialstønad,
                 månedsbeløp = 100.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
@@ -287,8 +287,8 @@ internal class FradragsgrunnlagTest {
 
         val f2 = Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(), opprettet = fixedTidspunkt,
-            fradrag = FradragFactory.ny(
-                type = Fradragstype.PrivatPensjon,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.PrivatPensjon,
                 månedsbeløp = 100.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
@@ -309,8 +309,8 @@ internal class FradragsgrunnlagTest {
     fun `fjerner ikke fradrag for EPS, dersom søker bor med EPS`() {
         val f1 = Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(), opprettet = fixedTidspunkt,
-            fradrag = FradragFactory.ny(
-                type = Fradragstype.Sosialstønad,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.Sosialstønad,
                 månedsbeløp = 100.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
@@ -320,8 +320,8 @@ internal class FradragsgrunnlagTest {
 
         val f2 = Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(), opprettet = fixedTidspunkt,
-            fradrag = FradragFactory.ny(
-                type = Fradragstype.PrivatPensjon,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.PrivatPensjon,
                 månedsbeløp = 100.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
@@ -444,8 +444,8 @@ internal class FradragsgrunnlagTest {
     ): Grunnlag.Fradragsgrunnlag {
         return Grunnlag.Fradragsgrunnlag.create(
             opprettet = opprettet,
-            fradrag = FradragFactory.ny(
-                type = type,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = type,
                 månedsbeløp = månedsbeløp,
                 periode = periode,
                 utenlandskInntekt = utenlandskInntekt,

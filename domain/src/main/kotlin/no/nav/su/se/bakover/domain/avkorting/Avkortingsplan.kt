@@ -72,8 +72,8 @@ internal class Avkortingsplan(
                 Grunnlag.Fradragsgrunnlag.create(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
-                    fradrag = FradragFactory.ny(
-                        type = Fradragstype.AvkortingUtenlandsopphold,
+                    fradrag = FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.AvkortingUtenlandsopphold,
                         månedsbeløp = it.beløp.sum().toDouble(),
                         periode = it.periode,
                         utenlandskInntekt = null,

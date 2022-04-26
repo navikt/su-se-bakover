@@ -22,7 +22,10 @@ internal class UtenlandsoppholdVilkårJsonTest {
 
     @Test
     fun `serialiserer vurdert opphold i utlandet`() {
-        JSONAssert.assertEquals(expectedUtenlandsoppholdVurdert, serialize(utenlandsopphold.toJson()), true)
+        JSONAssert.assertEquals(
+            expectedUtenlandsoppholdVurdert,
+            serialize(utenlandsopphold.toJson()), true
+        )
     }
 
     @Test

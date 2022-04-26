@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.revurdering
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -44,7 +43,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
 
-            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering.persistertVariant()
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
 
             val persistertSimulert = testDataHelper.revurderingRepo.hent(simulertRevurdering.id)!! as GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse
 
@@ -81,7 +80,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
             )
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
-            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering.persistertVariant()
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
 
             val nyInformasjon = simulertRevurdering.copy(
                 periode = periodeMai2021,
@@ -99,7 +98,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
             )
 
             testDataHelper.revurderingRepo.lagre(nyInformasjon)
-            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe nyInformasjon.persistertVariant()
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe nyInformasjon
         }
     }
 

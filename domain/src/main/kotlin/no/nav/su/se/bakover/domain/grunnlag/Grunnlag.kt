@@ -116,8 +116,8 @@ sealed class Grunnlag {
                 it?.right() ?: tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
-                    fradrag = FradragFactory.ny(
-                        type = this.fradrag.fradragstype,
+                    fradrag = FradragFactory.nyFradragsperiode(
+                        fradragstype = this.fradrag.fradragstype,
                         månedsbeløp = this.fradrag.månedsbeløp,
                         periode = oppdatertPeriode,
                         utenlandskInntekt = this.fradrag.utenlandskInntekt,
@@ -211,8 +211,8 @@ sealed class Grunnlag {
                         tryCreate(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
-                            fradrag = FradragFactory.ny(
-                                type = it.first().fradragstype,
+                            fradrag = FradragFactory.nyFradragsperiode(
+                                fradragstype = it.first().fradragstype,
                                 månedsbeløp = it.first().månedsbeløp,
                                 periode = periode,
                                 utenlandskInntekt = it.first().utenlandskInntekt,

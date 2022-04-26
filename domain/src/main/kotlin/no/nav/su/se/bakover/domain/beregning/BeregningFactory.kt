@@ -21,14 +21,14 @@ class BeregningFactory(val clock: Clock) {
         fradrag: List<Fradrag>,
         begrunnelse: String? = null,
         beregningsperioder: List<Beregningsperiode>,
-    ): Beregning {
+    ): BeregningMedFradragBeregnetMånedsvis {
 
         fun beregnMåned(
             måned: Månedsperiode,
             fradrag: List<Fradrag>,
             strategy: BeregningStrategy,
-        ): PeriodisertBeregning {
-            return PeriodisertBeregning(
+        ): BeregningForMåned {
+            return MånedsberegningFactory.ny(
                 måned = måned,
                 sats = strategy.sats(),
                 fradrag = strategy.fradragStrategy().beregn(fradrag, måned)[måned] ?: emptyList(),
@@ -91,8 +91,8 @@ class BeregningFactory(val clock: Clock) {
         }
 
         fun Månedsberegning.lagFradragForBeløpUnderMinstegrense() = FradragFactory.periodiser(
-            FradragFactory.ny(
-                type = Fradragstype.UnderMinstenivå,
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.UnderMinstenivå,
                 månedsbeløp = getSumYtelse().toDouble(),
                 periode = måned,
                 utenlandskInntekt = null,
@@ -151,10 +151,7 @@ class BeregningFactory(val clock: Clock) {
             periode = beregningsperioder.map { it.periode() }.minsteAntallSammenhengendePerioder().single(),
             sats = beregningsperioder.first().sats(),
             fradrag = fradrag,
-            // TODO jah+jacob: Denne brukes kun fra brev og bør kunne utledes fra under-periodene
-            fradragStrategy = beregningsperioder.first().fradragStrategy(),
             begrunnelse = begrunnelse,
-            beregningsperioder = beregningsperioder,
             sumYtelse = månedsperiodeTilMånedsberegning.values
                 .sumOf { it.getSumYtelse() },
             sumFradrag = månedsperiodeTilMånedsberegning.values

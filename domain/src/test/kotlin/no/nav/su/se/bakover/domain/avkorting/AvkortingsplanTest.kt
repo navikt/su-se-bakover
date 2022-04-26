@@ -92,8 +92,8 @@ internal class AvkortingsplanTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.Sosialstønad,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.Sosialstønad,
                             månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.januar(2021)).toDouble(),
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             utenlandskInntekt = null,
@@ -103,8 +103,8 @@ internal class AvkortingsplanTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.Sosialstønad,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.Sosialstønad,
                             månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.mai(2021)).toDouble(),
                             periode = Periode.create(1.mai(2021), 30.september(2021)),
                             utenlandskInntekt = null,
@@ -156,8 +156,8 @@ internal class AvkortingsplanTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.Sosialstønad,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.Sosialstønad,
                             månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.januar(2021)).toDouble(),
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             utenlandskInntekt = null,
@@ -167,8 +167,8 @@ internal class AvkortingsplanTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.Sosialstønad,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.Sosialstønad,
                             månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.mai(2021)).toDouble(),
                             periode = Periode.create(1.mai(2021), 31.desember(2021)),
                             utenlandskInntekt = null,
@@ -201,8 +201,8 @@ internal class AvkortingsplanTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.Kapitalinntekt,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.Kapitalinntekt,
                             månedsbeløp = 10000.0,
                             periode = periode2021,
                             utenlandskInntekt = null,
@@ -272,8 +272,8 @@ internal class AvkortingsplanTest {
         return Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            fradrag = FradragFactory.ny(
-                type = Fradragstype.AvkortingUtenlandsopphold,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.AvkortingUtenlandsopphold,
                 månedsbeløp = beløp.toDouble(),
                 periode = periode,
                 utenlandskInntekt = null,

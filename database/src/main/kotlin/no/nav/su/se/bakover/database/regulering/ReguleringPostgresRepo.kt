@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -197,7 +198,7 @@ internal class ReguleringPostgresRepo(
         val status = ReguleringStatus.valueOf(string("reguleringStatus"))
         val reguleringstype = Reguleringstype.valueOf(string("reguleringType"))
 
-        val beregning = deserialiserBeregning(stringOrNull("beregning"))
+        val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning()
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }

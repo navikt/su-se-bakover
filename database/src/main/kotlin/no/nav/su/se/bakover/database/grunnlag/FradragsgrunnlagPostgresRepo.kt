@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
+import arrow.core.getOrHandle
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.objectMapper
@@ -7,11 +8,11 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
-import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForPeriode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -65,9 +66,11 @@ internal class FradragsgrunnlagPostgresRepo(
         return Grunnlag.Fradragsgrunnlag.tryCreate(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
-            fradrag = PersistertFradrag(
-                kategori = Fradragstype.Kategori.valueOf(string("fradragstype")),
-                beskrivelse = stringOrNull("beskrivelse"),
+            fradrag = FradragForPeriode(
+                fradragstype = Fradragstype.tryParse(
+                    value = string("fradragstype"),
+                    beskrivelse = stringOrNull("beskrivelse"),
+                ).getOrHandle { throw IllegalArgumentException("$it") },
                 månedsbeløp = double("månedsbeløp"),
                 utenlandskInntekt = stringOrNull("utenlandskInntekt")?.let { deserialize(it) },
                 periode = Periode.create(fraOgMed = localDate("fraOgMed"), tilOgMed = localDate("tilOgMed")),

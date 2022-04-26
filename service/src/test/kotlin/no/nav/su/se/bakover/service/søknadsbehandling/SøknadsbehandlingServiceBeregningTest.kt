@@ -60,8 +60,8 @@ class SøknadsbehandlingServiceBeregningTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.Arbeidsinntekt,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 12000.0,
                             periode = vilkårsvurdert.periode,
                             utenlandskInntekt = null,
@@ -89,15 +89,15 @@ class SøknadsbehandlingServiceBeregningTest {
 
             beregnet.beregning.let { beregning ->
                 beregning.getFradrag() shouldBe listOf(
-                    FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
+                    FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 12000.0,
                         periode = vilkårsvurdert.periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
-                    FradragFactory.ny(
-                        type = Fradragstype.ForventetInntekt,
+                    FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.ForventetInntekt,
                         månedsbeløp = 0.0,
                         periode = vilkårsvurdert.periode,
                         utenlandskInntekt = null,

@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.database.revurdering
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -45,14 +44,14 @@ internal class StansAvYtelsePostgresRepoTest {
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
 
-            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering.persistertVariant()
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
 
             val iverksattRevurdering = simulertRevurdering.iverksett(
                 Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
             ).getOrFail("Feil i oppsett av testdata")
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
-            testDataHelper.revurderingRepo.hent(iverksattRevurdering.id) shouldBe iverksattRevurdering.persistertVariant()
+            testDataHelper.revurderingRepo.hent(iverksattRevurdering.id) shouldBe iverksattRevurdering
         }
     }
 

@@ -5,9 +5,9 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withTransaction
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForPeriode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
@@ -52,9 +52,8 @@ internal class FradragsgrunnlagPostgresRepoTest {
 
                 testDataHelper.fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandling.id, tx) shouldBe listOf(
                     fradragsgrunnlag1.copy(
-                        fradrag = PersistertFradrag(
-                            kategori = Fradragstype.Arbeidsinntekt.kategori,
-                            beskrivelse = null,
+                        fradrag = FradragForPeriode(
+                            fradragstype = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 5000.0,
                             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
                             utenlandskInntekt = UtenlandskInntekt.create(
@@ -64,9 +63,8 @@ internal class FradragsgrunnlagPostgresRepoTest {
                         ),
                     ),
                     fradragsgrunnlag2.copy(
-                        fradrag = PersistertFradrag(
-                            kategori = Fradragstype.Kontantstøtte.kategori,
-                            beskrivelse = null,
+                        fradrag = FradragForPeriode(
+                            fradragstype = Fradragstype.Kontantstøtte,
                             månedsbeløp = 15000.0,
                             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
                             utenlandskInntekt = null,
@@ -109,9 +107,8 @@ internal class FradragsgrunnlagPostgresRepoTest {
 
                 grunnlagRepo.hentFradragsgrunnlag(behandling.id, tx) shouldBe listOf(
                     grunnlag.copy(
-                        fradrag = PersistertFradrag(
-                            kategori = Fradragstype.Kategori.Annet,
-                            beskrivelse = "vet ikke hva dette er",
+                        fradrag = FradragForPeriode(
+                            fradragstype = Fradragstype.Annet("vet ikke hva dette er"),
                             månedsbeløp = 15000.0,
                             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
                             utenlandskInntekt = null,

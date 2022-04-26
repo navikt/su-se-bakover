@@ -63,34 +63,41 @@ internal fun PersistertMerknad.Beregning.toDomain(): Merknad.Beregning {
     }
 }
 
+@Suppress("unused")
 internal fun Merknad.Beregning.Avslag.BeløpErNull.toSnapshot(): PersistertMerknad.Beregning.BeløpErNull {
     return PersistertMerknad.Beregning.BeløpErNull
 }
 
+@Suppress("unused")
 internal fun Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats.toSnapshot(): PersistertMerknad.Beregning.BeløpMellomNullOgToProsentAvHøySats {
     return PersistertMerknad.Beregning.BeløpMellomNullOgToProsentAvHøySats
 }
-
+@Suppress("unused")
 internal fun Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats.toSnapshot(): PersistertMerknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats {
     return PersistertMerknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats
 }
 
+@Suppress("unused")
 internal fun Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats.toSnapshot(): PersistertMerknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats {
     return PersistertMerknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats
 }
 
+@Suppress("unused")
 internal fun PersistertMerknad.Beregning.BeløpErNull.toDomain(): Merknad.Beregning.Avslag.BeløpErNull {
     return Merknad.Beregning.Avslag.BeløpErNull
 }
 
+@Suppress("unused")
 internal fun PersistertMerknad.Beregning.BeløpMellomNullOgToProsentAvHøySats.toDomain(): Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats {
     return Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats
 }
 
+@Suppress("unused")
 internal fun PersistertMerknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats.toDomain(): Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats {
     return Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats
 }
 
+@Suppress("unused")
 internal fun PersistertMerknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats.toDomain(): Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats {
     return Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats
 }

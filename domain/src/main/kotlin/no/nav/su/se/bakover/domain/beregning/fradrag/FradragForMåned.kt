@@ -4,8 +4,13 @@ import no.nav.su.se.bakover.common.periode.Månedsperiode
 import no.nav.su.se.bakover.common.periode.toMånedsperiode
 import no.nav.su.se.bakover.domain.CopyArgs
 
-internal data class FradragForMåned(
-    private val type: Fradragstype,
+/**
+ * Et fradrag for en spesifikk måned.
+ * Brukes for eksempel av [no.nav.su.se.bakover.domain.beregning.Månedsberegning]
+ * Dersom du trenger et fradrag for en lengre periode, bruk [FradragForPeriode].
+ */
+data class FradragForMåned(
+    override val fradragstype: Fradragstype,
     override val månedsbeløp: Double,
     val måned: Månedsperiode,
     override val utenlandskInntekt: UtenlandskInntekt? = null,
@@ -16,8 +21,6 @@ internal data class FradragForMåned(
         require(månedsbeløp >= 0.0) { "Fradrag kan ikke være negative" }
     }
     override val periode: Månedsperiode = måned
-
-    override val fradragstype: Fradragstype = type
 
     override fun copy(args: CopyArgs.Snitt): Fradrag? {
         return args.snittFor(periode)?.let { copy(måned = it.toMånedsperiode()) }

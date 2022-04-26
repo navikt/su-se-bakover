@@ -36,7 +36,10 @@ internal class TilbakekrevingsbehandlingJsonTest {
             }
         """.trimIndent()
 
-        JSONAssert.assertEquals(forsto, serialize(this.ikkeAvgjort.tilbakekrev().toJson()), true)
+        JSONAssert.assertEquals(
+            forsto,
+            serialize(this.ikkeAvgjort.tilbakekrev().toJson()), true
+        )
 
         val kunneIkkeForstått = """
             {
@@ -44,6 +47,9 @@ internal class TilbakekrevingsbehandlingJsonTest {
             }
         """.trimIndent()
 
-        JSONAssert.assertEquals(kunneIkkeForstått, serialize(this.ikkeAvgjort.ikkeTilbakekrev().toJson()), true)
+        JSONAssert.assertEquals(
+            kunneIkkeForstått,
+            serialize(this.ikkeAvgjort.ikkeTilbakekrev().toJson()), true
+        )
     }
 }

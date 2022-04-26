@@ -34,7 +34,10 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                     .mapLeft {
                                         it.mapFeil()
                                     }.map {
-                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
+                                        Resultat.json(
+                                            HttpStatusCode.Created,
+                                            serialize(it.toJson())
+                                        )
                                     }
                             }.getOrHandle { it },
                     )
