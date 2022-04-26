@@ -7,7 +7,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.overlappende
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -82,7 +82,7 @@ sealed class LovligOppholdVilkår : Vilkår() {
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeLovligOpphold>,
             ): Either<UgyldigLovligOppholdVilkår, Vurdert> {
-                if (vurderingsperioder.overlappende()) {
+                if (vurderingsperioder.harOverlappende()) {
                     return UgyldigLovligOppholdVilkår.OverlappendeVurderingsperioder.left()
                 }
                 return Vurdert(vurderingsperioder).right()

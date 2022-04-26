@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
@@ -292,4 +293,8 @@ fun List<Formuegrunnlag>.firstOrThrowIfMultipleOrEmpty(): Formuegrunnlag {
 
 fun List<Formuegrunnlag>.perioderMedEPS(): List<Periode> {
     return filter { it.harEPSFormue() }.map { it.periode }.minsteAntallSammenhengendePerioder()
+}
+
+fun List<Formuegrunnlag>.harOverlappende(): Boolean {
+    return map { it.periode }.harOverlappende()
 }
