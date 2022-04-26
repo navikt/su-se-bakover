@@ -6,6 +6,8 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.harOverlappende
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
@@ -21,6 +23,21 @@ data class Formuegrunnlag private constructor(
 
     fun harEPSFormue(): Boolean {
         return epsFormue != null
+    }
+
+    fun leggTilTomEPSFormueHvisDenMangler(): Formuegrunnlag {
+        return epsFormue?.let { this } ?: copy(
+            epsFormue = Verdier.create(
+                verdiIkkePrimærbolig = 0,
+                verdiEiendommer = 0,
+                verdiKjøretøy = 0,
+                innskudd = 0,
+                verdipapir = 0,
+                pengerSkyldt = 0,
+                kontanter = 0,
+                depositumskonto = 0,
+            ),
+        )
     }
 
     fun fjernEPSFormue(): Formuegrunnlag {
@@ -113,6 +130,10 @@ data class Formuegrunnlag private constructor(
                     depositumskonto = depositumskonto,
                 ).right()
             }
+
+            fun List<Formuegrunnlag>.minsteAntallSammenhengendePerioder(): List<Periode> {
+                return map { it.periode }.minsteAntallSammenhengendePerioder()
+            }
         }
     }
 
@@ -129,7 +150,7 @@ data class Formuegrunnlag private constructor(
             søkersFormue: Verdier,
             begrunnelse: String?,
             // Denne tar ikke høyde for søknadsbehandling da denne ikke nødvendigvis er fullstendig
-            bosituasjon: Bosituasjon.Fullstendig,
+            bosituasjon: List<Bosituasjon.Fullstendig>,
             behandlingsPeriode: Periode,
         ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
             val formuegrunnlag = Formuegrunnlag(
@@ -140,24 +161,23 @@ data class Formuegrunnlag private constructor(
                 søkersFormue = søkersFormue,
                 begrunnelse = if (begrunnelse.isNullOrBlank()) null else begrunnelse,
             )
-            SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
-                bosituasjon = listOf(bosituasjon),
-                formue = listOf(formuegrunnlag),
-            ).resultat.mapLeft {
-                if (it.contains(Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS)) {
-                    return KunneIkkeLageFormueGrunnlag.MåHaEpsHvisManHarSattEpsFormue.left()
-                }
-                if (it.contains(Konsistensproblem.BosituasjonOgFormue.EPSFormueperiodeErUtenforBosituasjonPeriode)) {
-                    return KunneIkkeLageFormueGrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode.left()
-                }
-            }
 
             if (!(behandlingsPeriode.inneholder(periode))) {
                 return KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
             }
+
+            konsistenssjekk(
+                /**
+                 * Mismatch å sjekke 1 fradragsgrunnlag mot mange bosituasjoner, men gir mening innenfor samme periode.
+                 */
+                bosituasjon = bosituasjon.lagTidslinje(periode),
+                formuegrunnlag = listOf(formuegrunnlag),
+            ).getOrHandle { return it.left() }
+
             return formuegrunnlag.right()
         }
 
+        @JvmName("tryCreatePotensieltUfullstendigBosituasjon")
         fun tryCreate(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
@@ -166,7 +186,7 @@ data class Formuegrunnlag private constructor(
             søkersFormue: Verdier,
             begrunnelse: String?,
             // Tillater ufullstending for å kunne bruke med søknadsbehandling
-            bosituasjon: Bosituasjon,
+            bosituasjon: List<Bosituasjon>,
             behandlingsPeriode: Periode,
         ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
             val formuegrunnlag = Formuegrunnlag(
@@ -177,22 +197,44 @@ data class Formuegrunnlag private constructor(
                 søkersFormue = søkersFormue,
                 begrunnelse = if (begrunnelse.isNullOrBlank()) null else begrunnelse,
             )
-            SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
-                bosituasjon = listOf(bosituasjon),
-                formue = listOf(formuegrunnlag),
-            ).resultat.mapLeft {
-                if (it.contains(Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS)) {
-                    return KunneIkkeLageFormueGrunnlag.MåHaEpsHvisManHarSattEpsFormue.left()
-                }
-                if (it.contains(Konsistensproblem.BosituasjonOgFormue.EPSFormueperiodeErUtenforBosituasjonPeriode)) {
-                    return KunneIkkeLageFormueGrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode.left()
-                }
-            }
 
             if (!(behandlingsPeriode.inneholder(periode))) {
                 return KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
             }
+
+            konsistenssjekk(
+                bosituasjon = bosituasjon,
+                formuegrunnlag = listOf(formuegrunnlag),
+            ).getOrHandle {
+                when (it) {
+                    is KunneIkkeLageFormueGrunnlag.Konsistenssjekk -> {
+                        // TODO("flere_satser fritar denne fra å ha fullstendig bosituasjon - det er midlertidig gyldig på søknadsbehandling)
+                        when (it.feil) {
+                            is Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon -> {
+                                it.feil.feil.singleOrNull { it is Konsistensproblem.Bosituasjon.Ufullstendig }?.let {
+                                    Unit.right()
+                                } ?: it.left()
+                            }
+                            else -> it.left()
+                        }
+                    }
+                    else -> it.left()
+                }
+            }
+
             return formuegrunnlag.right()
+        }
+
+        private fun konsistenssjekk(
+            bosituasjon: List<Bosituasjon>,
+            formuegrunnlag: List<Formuegrunnlag>,
+        ): Either<KunneIkkeLageFormueGrunnlag, Unit> {
+            return SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
+                bosituasjon = bosituasjon,
+                formue = formuegrunnlag,
+            ).resultat.mapLeft { problem ->
+                problem.first().let { KunneIkkeLageFormueGrunnlag.Konsistenssjekk(it) }
+            }
         }
 
         fun fromPersistence(
@@ -223,21 +265,21 @@ data class Formuegrunnlag private constructor(
         is CopyArgs.Tidslinje.NyPeriode -> {
             this.copy(id = UUID.randomUUID(), periode = args.periode)
         }
+        is CopyArgs.Tidslinje.Maskert -> {
+            copy(args).copy(opprettet = opprettet.plusUnits(1))
+        }
     }
 }
 
 sealed class KunneIkkeLageFormueGrunnlag {
-    object EpsFormueperiodeErUtenforBosituasjonPeriode : KunneIkkeLageFormueGrunnlag()
-    object MåHaEpsHvisManHarSattEpsFormue : KunneIkkeLageFormueGrunnlag()
     object FormuePeriodeErUtenforBehandlingsperioden : KunneIkkeLageFormueGrunnlag()
+    data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFormue) : KunneIkkeLageFormueGrunnlag()
 }
 
 sealed class KunneIkkeLageFormueVerdier {
     object DepositumErStørreEnnInnskudd : KunneIkkeLageFormueVerdier()
     object VerdierKanIkkeVæreNegativ : KunneIkkeLageFormueVerdier()
 }
-
-fun List<Formuegrunnlag>.harEPSFormue() = any { it.harEPSFormue() }
 
 /**
  * @throws IllegalStateException dersom antall elementer i listen ikke tilsvarer 1
@@ -247,4 +289,12 @@ fun List<Formuegrunnlag>.firstOrThrowIfMultipleOrEmpty(): Formuegrunnlag {
         throw IllegalStateException("Antall elementer i listen tilsvarer ikke 1")
     }
     return this.first()
+}
+
+fun List<Formuegrunnlag>.perioderMedEPS(): List<Periode> {
+    return filter { it.harEPSFormue() }.map { it.periode }.minsteAntallSammenhengendePerioder()
+}
+
+fun List<Formuegrunnlag>.harOverlappende(): Boolean {
+    return map { it.periode }.harOverlappende()
 }

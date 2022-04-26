@@ -9,19 +9,21 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
+import no.nav.su.se.bakover.test.månedsperiodeJuni2020
 import org.junit.jupiter.api.Test
 
 internal class SatsTest {
     @Test
     fun `periodiserer sats`() {
-        val p1 = Sats.HØY.periodiser(Periode.create(1.januar(2020), 31.januar(2020)))
-        p1 shouldBe mapOf(Periode.create(1.januar(2020), 31.januar(2020)) to 20637.32)
+        val p1 = Sats.HØY.periodiser(månedsperiodeJanuar2020)
+        p1 shouldBe mapOf(månedsperiodeJanuar2020 to 20637.32)
 
         val p2 = Sats.HØY.periodiser(Periode.create(1.april(2020), 30.juni(2020)))
         p2 shouldBe mapOf(
             Periode.create(1.april(2020), 30.april(2020)) to Sats.HØY.månedsbeløp(1.april(2020)),
             Periode.create(1.mai(2020), 31.mai(2020)) to Sats.HØY.månedsbeløp(1.mai(2020)),
-            Periode.create(1.juni(2020), 30.juni(2020)) to Sats.HØY.månedsbeløp(1.mai(2020)),
+            månedsperiodeJuni2020 to Sats.HØY.månedsbeløp(1.mai(2020)),
         )
     }
 
@@ -31,7 +33,7 @@ internal class SatsTest {
         Sats.HØY.årsbeløp(31.desember(2020)) shouldBe 251350.0.plusOrMinus(0.5)
 
         val p1 = Sats.HØY.periodiser(Periode.create(1.januar(2020), 30.april(2020)))
-        p1[Periode.create(1.januar(2020), 31.januar(2020))] shouldBe 20637.32.plusOrMinus(0.5)
+        p1[månedsperiodeJanuar2020] shouldBe 20637.32.plusOrMinus(0.5)
         val sumOfJanApr = p1.values.sum()
         sumOfJanApr shouldBe 82549.28.plusOrMinus(0.5)
 

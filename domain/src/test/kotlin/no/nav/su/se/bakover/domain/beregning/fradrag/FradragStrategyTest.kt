@@ -5,7 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Månedsperiode
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -23,7 +25,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         5000.0,
-                        Periode.create(1.januar(2020), 31.januar(2020)),
+                        månedsperiodeJanuar2020,
                     ),
                 ),
                 beregningsperiode = periode,
@@ -43,7 +45,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         24_000.0,
-                        Periode.create(1.januar(2020), 31.januar(2020)),
+                        månedsperiodeJanuar2020,
                     ),
                 ),
                 beregningsperiode = periode,
@@ -58,7 +60,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         5000.0,
-                        Periode.create(1.januar(2020), 31.januar(2020)),
+                        månedsperiodeJanuar2020,
                     ),
                 ),
                 beregningsperiode = periode,
@@ -78,7 +80,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         24_000.0,
-                        Periode.create(1.januar(2020), 31.januar(2020)),
+                        månedsperiodeJanuar2020,
                     ),
                 ),
                 beregningsperiode = periode,
@@ -93,7 +95,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         5000.0,
-                        Periode.create(1.januar(2020), 31.januar(2020)),
+                        månedsperiodeJanuar2020,
                     ),
                 ),
                 beregningsperiode = periode,
@@ -113,7 +115,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         24_000.0,
-                        Periode.create(1.januar(2020), 31.januar(2020)),
+                        månedsperiodeJanuar2020,
                     ),
                 ),
                 beregningsperiode = periode,
@@ -128,7 +130,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         5000.0,
-                        Periode.create(1.januar(2020), 31.januar(2020)),
+                        månedsperiodeJanuar2020,
                     ),
                 ),
                 beregningsperiode = periode,
@@ -148,7 +150,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         24_000.0,
-                        Periode.create(1.januar(2020), 31.januar(2020)),
+                        månedsperiodeJanuar2020,
                     ),
                 ),
                 beregningsperiode = periode,
@@ -160,7 +162,7 @@ internal class FradragStrategyTest {
 
     @Nested
     inner class `fribeløp EPS` {
-        val periode = Periode.create(1.januar(2020), 31.januar(2020))
+        val periode = månedsperiodeJanuar2020
 
         @Test
         fun `EPS over 67 år bruker garantipensjonsnivå`() {
@@ -204,12 +206,12 @@ internal fun lagFradrag(
 internal fun lagPeriodisertFradrag(
     type: Fradragstype,
     beløp: Double,
-    periode: Periode,
+    måned: Månedsperiode,
     tilhører: FradragTilhører = FradragTilhører.BRUKER,
-) = PeriodisertFradrag(
+) = FradragForMåned(
     type = type,
     månedsbeløp = beløp,
-    periode = periode,
+    måned = måned,
     utenlandskInntekt = null,
     tilhører = tilhører,
 )

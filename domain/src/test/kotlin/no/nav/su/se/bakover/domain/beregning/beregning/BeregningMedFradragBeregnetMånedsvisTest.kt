@@ -21,9 +21,12 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.toMånedsperiode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
-import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
+import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.IngenMerknaderForAvslag
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -31,15 +34,16 @@ import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvsla
 import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknad
 import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknadForAvslag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodisertFradrag
 import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
+import no.nav.su.se.bakover.test.månedsperiodeJuni2020
 import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -52,8 +56,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     fun `summer for enkel beregning`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
-            sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
@@ -63,7 +65,12 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         )
         beregning.getSumYtelse() shouldBe 250116
         beregning.getSumFradrag() shouldBe 0
@@ -73,8 +80,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     fun `fradrag for alle perioder`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
-            sats = Sats.HØY,
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt, månedsbeløp = 1000.0,
@@ -82,7 +87,12 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         )
 
         beregning.getSumYtelse() shouldBe 238116
@@ -93,8 +103,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     fun `fradrag som gjør at alle perioder får beløp under minstenivå`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
-            sats = Sats.HØY,
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt, månedsbeløp = 20500.0,
@@ -107,7 +115,12 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         )
 
         beregning.finnMånederMedMerknad().getOrFail() shouldContainAll listOf(
@@ -121,8 +134,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     fun `fradrag som gjør at alle perioder får beløp lik 0`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
-            sats = Sats.HØY,
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt, månedsbeløp = 150000.0,
@@ -130,7 +141,12 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         )
 
         beregning.harAlleMånederMerknadForAvslag() shouldBe true
@@ -146,8 +162,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     fun `fradrag for enkelte perioder`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
-            sats = Sats.HØY,
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
@@ -158,11 +172,16 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 6000.0,
-                    periode = Periode.create(1.juni(2020), 30.juni(2020)),
+                    periode = månedsperiodeJuni2020,
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         )
 
         beregning.getSumYtelse() shouldBe 238616
@@ -173,8 +192,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     fun `overlappende fradrag for samme periode`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
-            sats = Sats.HØY,
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
@@ -185,11 +202,16 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Kontantstøtte,
                     månedsbeløp = 6000.0,
-                    periode = Periode.create(1.januar(2020), 31.januar(2020)),
+                    periode = månedsperiodeJanuar2020,
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         )
 
         beregning.getSumYtelse() shouldBe 238116
@@ -222,8 +244,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     fun `sum under minstebeløp for utbetaling (2 prosent av høy sats)`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
-            sats = Sats.HØY,
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
@@ -232,7 +252,12 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         )
 
         val (janAprUnderMinstenivå, janAprAndre) = beregning.getMånedsberegninger()
@@ -242,20 +267,20 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
         janAprUnderMinstenivå shouldHaveSize 4
         janAprUnderMinstenivå.forEach {
-            it shouldBe PeriodisertFradrag(
+            it shouldBe FradragForMåned(
                 type = Fradragstype.UnderMinstenivå,
                 månedsbeløp = 211.0,
-                periode = it.periode,
+                måned = it.periode.toMånedsperiode(),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             )
         }
         janAprAndre shouldHaveSize 4
         janAprAndre.forEach {
-            it shouldBe PeriodisertFradrag(
+            it shouldBe FradragForMåned(
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 20426.42,
-                periode = it.periode,
+                måned = it.periode.toMånedsperiode(),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             )
@@ -269,10 +294,10 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         maiDesUnderMinstenivå shouldHaveSize 0
         maiDesAndre shouldHaveSize 8
         maiDesAndre.forEach {
-            it shouldBe PeriodisertFradrag(
+            it shouldBe FradragForMåned(
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 20426.42,
-                periode = it.periode,
+                måned = it.periode.toMånedsperiode(),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             )
@@ -284,19 +309,23 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
     @Test
     fun `generer bare bare id og opprettet en gang for hvert objekt`() {
+        val periode = Periode.create(1.januar(2020), 31.mars(2020))
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = Periode.create(1.januar(2020), 31.mars(2020)),
-            sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
-                    periode = Periode.create(1.januar(2020), 31.mars(2020)),
+                    periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         )
         beregning.getId() shouldBe beregning.getId()
         beregning.getOpprettet() shouldBe beregning.getOpprettet()
@@ -309,8 +338,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         val totaltFradrag = 100000.0
 
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
-            sats = Sats.HØY,
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
@@ -321,17 +348,22 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = totaltFradrag,
-                    periode = Periode.create(1.januar(2020), 31.januar(2020)),
+                    periode = månedsperiodeJanuar2020,
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         )
 
         beregning.getSumYtelse() shouldBe 41274
         beregning.getSumFradrag() shouldBe 20637.32
         val grouped = beregning.getMånedsberegninger().groupBy { it.periode }
-        val januar = grouped[Periode.create(1.januar(2020), 31.januar(2020))]!!.first()
+        val januar = grouped[månedsperiodeJanuar2020]!!.first()
         januar.getSumFradrag() shouldBe 20637.32
         januar.getSumYtelse() shouldBe 0
         val februar = grouped[Periode.create(1.februar(2020), 29.februar(2020))]!!.first()
@@ -346,8 +378,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         val totaltFradrag = 100000.0
 
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
-            sats = Sats.HØY,
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
@@ -358,16 +388,19 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = totaltFradrag,
-                    periode = Periode.create(1.januar(2020), 31.januar(2020)),
+                    periode = månedsperiodeJanuar2020,
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         )
 
         val beregning2 = BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
-            sats = Sats.HØY,
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
@@ -382,7 +415,12 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         )
 
         beregning.getMånedsberegninger() shouldNotBe beregning2.getMånedsberegninger()
@@ -395,8 +433,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         val beregningsperiode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
         assertThrows<IllegalArgumentException> {
             BeregningFactory(clock = fixedClock).ny(
-                periode = beregningsperiode,
-                sats = Sats.HØY,
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.ForventetInntekt,
@@ -406,14 +442,17 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
-                fradragStrategy = FradragStrategy.Enslig,
+                beregningsperioder = listOf(
+                    Beregningsperiode(
+                        periode = beregningsperiode,
+                        strategy = BeregningStrategy.BorAlene,
+                    ),
+                ),
             )
         }
 
         assertThrows<IllegalArgumentException> {
             BeregningFactory(clock = fixedClock).ny(
-                periode = beregningsperiode,
-                sats = Sats.HØY,
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.ForventetInntekt,
@@ -423,7 +462,12 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
-                fradragStrategy = FradragStrategy.Enslig,
+                beregningsperioder = listOf(
+                    Beregningsperiode(
+                        periode = beregningsperiode,
+                        strategy = BeregningStrategy.BorAlene,
+                    ),
+                ),
             )
         }
     }
@@ -443,8 +487,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     fun `sosialstønad som gir beløp under minstenivå leder ikke til 0-beløp`() {
         val periode = Periode.create(1.juni(2021), 31.desember(2021))
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
-            sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
@@ -458,7 +500,12 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         )
 
         beregning.getSumYtelse() shouldBe periode.getAntallMåneder() * 100
@@ -472,8 +519,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     fun `sosialstønad for EPS som gir beløp under minstenivå leder ikke til 0-beløp`() {
         val periode = Periode.create(1.juni(2021), 31.desember(2021))
         val beregning = BeregningFactory(clock = fixedClock).ny(
-            periode = periode,
-            sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
@@ -487,7 +532,12 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     tilhører = FradragTilhører.EPS,
                 ),
             ),
-            fradragStrategy = FradragStrategy.EpsUnder67År,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = BeregningStrategy.EpsUnder67År,
+                ),
+            ),
         )
 
         beregning.getSumYtelse() shouldBe periode.getAntallMåneder() * 100
@@ -500,8 +550,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     @Test
     fun `merknader avslag`() {
         BeregningFactory(clock = fixedClock).ny(
-            periode = periode2021,
-            sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
@@ -525,7 +573,12 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode2021,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         ).let {
             val beløpNull = it.getMånedsberegninger()[5] to listOf(
                 Merknad.Beregning.Avslag.BeløpErNull,
@@ -550,8 +603,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     @Test
     fun `merknader avkorting utenlandsopphold under 2 prosent`() {
         BeregningFactory(clock = fixedClock).ny(
-            periode = periode2021,
-            sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
@@ -601,9 +652,14 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     periode = april(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
-                )
+                ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode2021,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         ).let {
             val avkortingJanuar = it.getMånedsberegninger()[0] to listOf(
                 Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats,
@@ -615,25 +671,24 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             )
             it.getMånedsberegninger()[1].getSumYtelse() shouldBe 46
 
-            val avkortingMars = it.getMånedsberegninger()[3] to listOf(
+            val avkortingApril = it.getMånedsberegninger()[3] to listOf(
                 Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats,
             )
             it.getMånedsberegninger()[3].getSumYtelse() shouldBe 0
 
+            it.finnMånederMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
+
             it.finnMånederMedMerknad().getOrFail() shouldBe listOf(
                 avkortingJanuar,
                 avkortingFebruar,
-                avkortingMars
+                avkortingApril,
             )
-            it.finnMånederMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
         }
     }
 
     @Test
     fun `merknader sosialstønad under 2 prosent`() {
         BeregningFactory(clock = fixedClock).ny(
-            periode = periode2021,
-            sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
@@ -690,10 +745,14 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     periode = april(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
-                )
-
+                ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode2021,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         ).let {
             val sosialstønadJanuar = it.getMånedsberegninger()[0] to listOf(
                 Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
@@ -713,28 +772,36 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             it.finnMånederMedMerknad().getOrFail() shouldBe listOf(
                 sosialstønadJanuar,
                 sosialstønadFebruar,
-                sosialstønadMars
+                sosialstønadMars,
             )
             it.finnMånederMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
         }
     }
 
-    private fun createBeregning(opprettet: Tidspunkt = fixedTidspunkt, begrunnelse: String = "begrunnelse") =
-        BeregningMedFradragBeregnetMånedsvis(
+    private fun createBeregning(
+        opprettet: Tidspunkt = fixedTidspunkt,
+        begrunnelse: String = "begrunnelse",
+    ): Beregning {
+        val periode = år(2020)
+        return BeregningFactory(fixedClock).ny(
             id = UUID.randomUUID(),
             opprettet = opprettet,
-            periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
-            sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 12000.0,
-                    periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
+                    periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
             begrunnelse = begrunnelse,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = periode,
+                    strategy = BeregningStrategy.BorAlene,
+                ),
+            ),
         )
+    }
 }

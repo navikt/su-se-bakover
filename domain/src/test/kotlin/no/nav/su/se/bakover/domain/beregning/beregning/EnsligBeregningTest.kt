@@ -5,8 +5,10 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
+import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -66,7 +68,16 @@ internal class EnsligBeregningTest {
             ),
         )
 
-        BeregningStrategy.BorAlene.beregn(beregningsgrunnlag = beregningsgrunnlag, clock = fixedClock).let {
+        BeregningFactory(fixedClock).ny(
+            fradrag = beregningsgrunnlag.fradrag,
+            begrunnelse = null,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = beregningsgrunnlag.beregningsperiode,
+                    strategy = BeregningStrategy.BorAlene,
+                )
+            )
+        ).let {
             it.getSumYtelse() shouldBe 5028
             it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr).plusOrMinus(0.5)
             it.getMånedsberegninger().forEach {

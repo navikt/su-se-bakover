@@ -21,10 +21,10 @@ object FradragFactory {
 
     fun periodiser(fradrag: Fradrag): List<Fradrag> =
         fradrag.periode.tilMånedsperioder().map {
-            PeriodisertFradrag(
+            FradragForMåned(
                 type = fradrag.fradragstype,
                 månedsbeløp = fradrag.månedsbeløp,
-                periode = it,
+                måned = it,
                 utenlandskInntekt = fradrag.utenlandskInntekt,
                 tilhører = fradrag.tilhører
             )

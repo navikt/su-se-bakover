@@ -15,11 +15,13 @@ import java.util.UUID
 interface Beregning : PeriodisertInformasjon {
     fun getId(): UUID
     fun getOpprettet(): Tidspunkt
+    // TODO("flere_satser dette gir ikke mening da samme beregning kan ha brukt forskjellige satser for forskjellige perioder")
     fun getSats(): Sats
     fun getMånedsberegninger(): List<Månedsberegning>
     fun getFradrag(): List<Fradrag>
     fun getSumYtelse(): Int
     fun getSumFradrag(): Double
+    // TODO("flere_satser dette gir ikke mening da samme beregning kan ha brukt forskjellige strategier for forskjellige perioder")
     fun getFradragStrategyName(): FradragStrategyName
     fun getBegrunnelse(): String?
 

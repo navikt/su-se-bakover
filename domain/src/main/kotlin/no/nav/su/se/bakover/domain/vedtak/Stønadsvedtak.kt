@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
+import no.nav.su.se.bakover.domain.grunnlag.lagTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -369,11 +370,16 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                     copy(
                         periode = periode,
                         grunnlagsdata = Grunnlagsdata.create(
-                            bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
-                                (it.fullstendigOrThrow()).copy(
-                                    CopyArgs.Snitt(periode),
-                                )
-                            },
+                            bosituasjon = grunnlagsdata.bosituasjon.map {
+                                it.fullstendigOrThrow()
+                            }.lagTidslinje(periode),
+                            /**
+                             * TODO("dette ser ut som en bug, bør vel kvitte oss med forventet inntekt her og")
+                             * Se hva vi gjør for NyPeriode litt lenger ned i denne funksjonen.
+                             * Dersom dette grunnlaget brukes til en ny revurdering ønsker vi vel at forventet inntekt
+                             * utledes på nytt fra grunnlaget i uførevilkåret? Kan vi potensielt ende opp med at vi
+                             * får dobbelt opp med fradrag for forventet inntekt?
+                             */
                             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.mapNotNull {
                                 it.copy(args = CopyArgs.Snitt(periode))
                             },
@@ -386,11 +392,9 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                     copy(
                         periode = args.periode,
                         grunnlagsdata = Grunnlagsdata.create(
-                            bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
-                                (it.fullstendigOrThrow()).copy(
-                                    CopyArgs.Snitt(args.periode),
-                                )
-                            },
+                            bosituasjon = grunnlagsdata.bosituasjon.map {
+                                it.fullstendigOrThrow()
+                            }.lagTidslinje(args.periode),
                             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot {
                                 it.fradragstype == Fradragstype.ForventetInntekt
                             }.mapNotNull {
@@ -400,6 +404,9 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                         vilkårsvurderinger = vilkårsvurderinger.lagTidslinje(args.periode),
                         originaltVedtak = originaltVedtak,
                     )
+                }
+                is CopyArgs.Tidslinje.Maskert -> {
+                    copy(args.args).copy(opprettet = opprettet.plusUnits(1))
                 }
             }
 

@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -9,7 +8,9 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
+import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
@@ -70,16 +71,15 @@ fun beregning(
     if (fradragsgrunnlag.any { it.fradrag.fradragstype == Fradragstype.ForventetInntekt }) {
         throw IllegalArgumentException("Foreventet inntekt etter uføre populeres via uføregrunnlag")
     }
-    return Beregningsgrunnlag.tryCreate(
+    Beregningsgrunnlag.create(
         beregningsperiode = periode,
         uføregrunnlag = uføregrunnlag,
         fradragFraSaksbehandler = fradragsgrunnlag,
     ).let {
-        bosituasjon.utledBeregningsstrategi().beregn(
-            beregningsgrunnlag = it.getOrHandle {
-                throw IllegalArgumentException("Kunne ikke lage testberegning. Underliggende grunn: $it")
-            },
-            clock = fixedClock,
+        return BeregningFactory(clock = fixedClock).ny(
+            fradrag = it.fradrag,
+            begrunnelse = null,
+            beregningsperioder = listOf(Beregningsperiode(periode, bosituasjon.utledBeregningsstrategi())),
         )
     }
 }

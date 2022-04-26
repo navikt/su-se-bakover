@@ -7,7 +7,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.overlappende
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -22,6 +22,7 @@ sealed class FlyktningVilkår : Vilkår() {
 
     abstract override fun lagTidslinje(periode: Periode): FlyktningVilkår
     abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FlyktningVilkår
+    abstract override fun slåSammenLikePerioder(): FlyktningVilkår
 
     object IkkeVurdert : FlyktningVilkår() {
         override val resultat: Resultat = Resultat.Uavklart
@@ -33,6 +34,10 @@ sealed class FlyktningVilkår : Vilkår() {
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
+        override fun slåSammenLikePerioder(): FlyktningVilkår {
+            return this
+        }
+
         override fun hentTidligesteDatoForAvslag(): LocalDate? = null
         override fun erLik(other: Vilkår): Boolean {
             return other is IkkeVurdert
@@ -77,7 +82,7 @@ sealed class FlyktningVilkår : Vilkår() {
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeFlyktning>,
             ): Either<UgyldigFlyktningVilkår, Vurdert> {
-                if (vurderingsperioder.overlappende()) {
+                if (vurderingsperioder.harOverlappende()) {
                     return UgyldigFlyktningVilkår.OverlappendeVurderingsperioder.left()
                 }
                 return Vurdert(vurderingsperioder).right()
@@ -95,6 +100,10 @@ sealed class FlyktningVilkår : Vilkår() {
                     it.oppdaterStønadsperiode(stønadsperiode)
                 },
             )
+        }
+
+        override fun slåSammenLikePerioder(): FlyktningVilkår {
+            return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
     }
 }
@@ -132,6 +141,9 @@ data class VurderingsperiodeFlyktning private constructor(
                 periode = args.periode,
                 grunnlag = grunnlag?.copy(args),
             )
+        }
+        is CopyArgs.Tidslinje.Maskert -> {
+            copy(args.args).copy(opprettet = opprettet.plusUnits(1))
         }
     }
 

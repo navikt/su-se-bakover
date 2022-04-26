@@ -46,6 +46,48 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
         }
     }
 
+    private fun formuegrunnlagz(
+        periode: Periode,
+        bosituasjon: Grunnlag.Bosituasjon.Fullstendig = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = periode,
+            fnr = Fnr.generer(),
+            begrunnelse = "i87i78i78i87i",
+        ),
+        søkersFormue: Formuegrunnlag.Verdier = Formuegrunnlag.Verdier.create(
+            verdiIkkePrimærbolig = 9,
+            verdiEiendommer = 10,
+            verdiKjøretøy = 11,
+            innskudd = 12,
+            verdipapir = 13,
+            pengerSkyldt = 14,
+            kontanter = 15,
+            depositumskonto = 10,
+        ),
+        epsFormue: Formuegrunnlag.Verdier? = Formuegrunnlag.Verdier.create(
+            verdiIkkePrimærbolig = 1,
+            verdiEiendommer = 2,
+            verdiKjøretøy = 3,
+            innskudd = 4,
+            verdipapir = 5,
+            pengerSkyldt = 6,
+            kontanter = 6,
+            depositumskonto = 1,
+        ),
+    ): Formuegrunnlag {
+        return Formuegrunnlag.create(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = periode,
+            epsFormue = epsFormue,
+            søkersFormue = søkersFormue,
+            begrunnelse = "dfgdfgdfgsdfgdfg",
+            bosituasjon = bosituasjon,
+            behandlingsPeriode = periode,
+        )
+    }
+
     private fun formuegrunnlag(
         periode: Periode,
         epsFormue: Formuegrunnlag.Verdier? = null,
@@ -88,19 +130,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
             val behandlingId = UUID.randomUUID()
             val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
-                grunnlag = formuegrunnlag(
-                    periode = periode,
-                    epsFormue = Formuegrunnlag.Verdier.create(
-                        verdiIkkePrimærbolig = 1,
-                        verdiEiendommer = 2,
-                        verdiKjøretøy = 3,
-                        innskudd = 4,
-                        verdipapir = 5,
-                        pengerSkyldt = 6,
-                        kontanter = 7,
-                        depositumskonto = 3,
-                    ),
-                ),
+                grunnlag = nonEmptyListOf(formuegrunnlagz(periode)),
             )
             dataSource.withTransaction { session ->
                 repo.lagre(behandlingId, vilkår, session)
@@ -123,9 +153,12 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
             val behandlingId = UUID.randomUUID()
             val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
-                grunnlag = formuegrunnlag(
-                    periode = periode,
-                    epsFormue = null,
+                grunnlag = nonEmptyListOf(
+                    formuegrunnlagz(
+                        periode = periode,
+                        bosituasjon = bosituasjongrunnlagEnslig(periode = periode),
+                        epsFormue = null,
+                    ),
                 ),
             )
             dataSource.withTransaction { session ->
@@ -149,17 +182,19 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
             val behandlingId = UUID.randomUUID()
             val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
-                grunnlag = formuegrunnlag(
-                    periode = periode,
-                    epsFormue = Formuegrunnlag.Verdier.create(
-                        verdiIkkePrimærbolig = 1,
-                        verdiEiendommer = 2,
-                        verdiKjøretøy = 3,
-                        innskudd = 4,
-                        verdipapir = 5,
-                        pengerSkyldt = 6,
-                        kontanter = 70000,
-                        depositumskonto = 3,
+                grunnlag = nonEmptyListOf(
+                    formuegrunnlagz(
+                        periode = periode,
+                        epsFormue = Formuegrunnlag.Verdier.create(
+                            verdiIkkePrimærbolig = 1,
+                            verdiEiendommer = 2,
+                            verdiKjøretøy = 3,
+                            innskudd = 4,
+                            verdipapir = 5,
+                            pengerSkyldt = 6,
+                            kontanter = 70000,
+                            depositumskonto = 3,
+                        ),
                     ),
                 ),
             )
@@ -189,10 +224,11 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Uavklart,
-                        grunnlag = formuegrunnlag(
+                        grunnlag = formuegrunnlagz(
                             periode = periode,
-                            epsFormue = null,
-                        ).first(),
+                            bosituasjon = bosituasjongrunnlagEnslig(periode = periode),
+                            epsFormue = null
+                        ),
                         periode = periode,
                     ),
                 ),

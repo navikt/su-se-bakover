@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2021
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -41,7 +42,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 behandlingId = behandlingId,
                 vurderinger = nonEmptyListOf(leggTilUførevilkårRequest),
             ).toVilkår(
-                Periode.create(1.januar(2021), 31.januar(2021)), fixedClock,
+                månedsperiodeJanuar2021, fixedClock,
             ) shouldBe testArg.second.left()
         }
     }
@@ -118,7 +119,7 @@ internal class LeggTilUførevurderingerRequestTest {
             vurderinger = nonEmptyListOf(
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                    periode = månedsperiodeJanuar2021,
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårOppfylt,
@@ -150,7 +151,7 @@ internal class LeggTilUførevurderingerRequestTest {
             vurderinger = nonEmptyListOf(
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                    periode = månedsperiodeJanuar2021,
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårOppfylt,
@@ -182,7 +183,7 @@ internal class LeggTilUførevurderingerRequestTest {
             vurderinger = nonEmptyListOf(
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                    periode = månedsperiodeJanuar2021,
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårIkkeOppfylt,
@@ -214,7 +215,7 @@ internal class LeggTilUførevurderingerRequestTest {
             vurderinger = nonEmptyListOf(
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                    periode = månedsperiodeJanuar2021,
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårOppfylt,
@@ -245,11 +246,11 @@ internal class LeggTilUførevurderingerRequestTest {
                     grunnlag = Grunnlag.Uføregrunnlag(
                         id = actual.vurderingsperioder[0].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[0].grunnlag!!.opprettet,
-                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                        periode = månedsperiodeJanuar2021,
                         uføregrad = Uføregrad.parse(100),
                         forventetInntekt = 12000,
                     ),
-                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                    periode = månedsperiodeJanuar2021,
                     begrunnelse = null,
                 ),
                 Vurderingsperiode.Uføre.create(
@@ -278,7 +279,7 @@ internal class LeggTilUførevurderingerRequestTest {
             vurderinger = nonEmptyListOf(
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                    periode = månedsperiodeJanuar2021,
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårOppfylt,
@@ -309,11 +310,11 @@ internal class LeggTilUførevurderingerRequestTest {
                     grunnlag = Grunnlag.Uføregrunnlag(
                         id = actual.vurderingsperioder[0].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[0].grunnlag!!.opprettet,
-                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                        periode = månedsperiodeJanuar2021,
                         uføregrad = Uføregrad.parse(100),
                         forventetInntekt = 12000,
                     ),
-                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                    periode = månedsperiodeJanuar2021,
                     begrunnelse = null,
                 ),
                 Vurderingsperiode.Uføre.create(
@@ -342,14 +343,14 @@ internal class LeggTilUførevurderingerRequestTest {
             vurderinger = nonEmptyListOf(
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                    periode = månedsperiodeJanuar2021,
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårIkkeOppfylt,
                     begrunnelse = "blah",
                 ),
             ),
-        ).toVilkår(Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)), fixedClock).orNull()!!
+        ).toVilkår(månedsperiodeJanuar2021, fixedClock).orNull()!!
             .let { request ->
                 Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
@@ -358,7 +359,7 @@ internal class LeggTilUførevurderingerRequestTest {
                             opprettet = request.vurderingsperioder[0].opprettet,
                             resultat = Resultat.Innvilget,
                             grunnlag = null,
-                            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                            periode = månedsperiodeJanuar2021,
                             begrunnelse = "blah",
                         ),
                     ),
@@ -370,14 +371,14 @@ internal class LeggTilUførevurderingerRequestTest {
             vurderinger = nonEmptyListOf(
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                    periode = månedsperiodeJanuar2021,
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.HarUføresakTilBehandling,
                     begrunnelse = "blah",
                 ),
             ),
-        ).toVilkår(Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)), fixedClock).orNull()!!
+        ).toVilkår(månedsperiodeJanuar2021, fixedClock).orNull()!!
             .let { request ->
                 Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
@@ -386,7 +387,7 @@ internal class LeggTilUførevurderingerRequestTest {
                             opprettet = request.vurderingsperioder[0].opprettet,
                             resultat = Resultat.Uavklart,
                             grunnlag = null,
-                            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                            periode = månedsperiodeJanuar2021,
                             begrunnelse = "blah",
                         ),
                     ),

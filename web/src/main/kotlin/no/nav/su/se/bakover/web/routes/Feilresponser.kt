@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
-import no.nav.su.se.bakover.web.routes.revurdering.tilResultat
 import kotlin.reflect.KClass
 
 internal object Feilresponser {
@@ -261,11 +260,6 @@ internal object Feilresponser {
     val kunneIkkeLeggeTilFradragsgrunnlag = BadRequest.errorJson(
         "Kunne ikke legge til fradragsgrunnlag",
         "kunne_ikke_legge_til_fradragsgrunnlag",
-    )
-
-    val kunneIkkeAvgjøreOmFørstegangEllerNyPeriode = InternalServerError.errorJson(
-        "Kunne ikke opprette oppgave siden vi ikke kan avgjøre om det er en FØRSTEGANGSSØKNAD eller NY_PERIODE",
-        "kunne_ikke_avgjøre_om_førstegang_eller_ny_periode",
     )
 
     val harIkkeEktefelle = BadRequest.errorJson(

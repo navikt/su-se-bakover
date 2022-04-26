@@ -20,9 +20,11 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.vilkår.Vilkår.Uførhet.Vurdert.Companion.slåSammenVurderingsperiode
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.månedsperiodeFebruar2021
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2021
+import no.nav.su.se.bakover.test.månedsperiodeMars2021
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt12000
 import org.junit.jupiter.api.Test
@@ -53,12 +55,12 @@ internal class UførhetTest {
 
     @Test
     fun `slår sammen tilstøtende og like vurderingsperioder`() {
-        val v1 = lagUføreVurderingsperiode(periode = Periode.create(1.januar(2021), 31.januar(2021)))
-        val v2 = lagUføreVurderingsperiode(periode = Periode.create(1.februar(2021), 28.februar(2021)))
+        val v1 = lagUføreVurderingsperiode(periode = månedsperiodeJanuar2021)
+        val v2 = lagUføreVurderingsperiode(periode = månedsperiodeFebruar2021)
         val v3 =
-            lagUføreVurderingsperiode(resultat = Resultat.Avslag, periode = Periode.create(1.mars(2021), 31.mars(2021)))
+            lagUføreVurderingsperiode(resultat = Resultat.Avslag, periode = månedsperiodeMars2021)
 
-        val actual = nonEmptyListOf(v1, v2, v3).slåSammenVurderingsperiode()
+        val actual = nonEmptyListOf(v1, v2, v3).slåSammenLikePerioder()
         actual.size shouldBe 2
         actual.first() shouldBe Vurderingsperiode.Uføre.create(
             id = actual.first().id,
@@ -73,36 +75,36 @@ internal class UførhetTest {
             opprettet = fixedTidspunkt,
             resultat = Resultat.Avslag,
             grunnlag = null,
-            periode = Periode.create(1.mars(2021), 31.mars(2021)),
+            periode = månedsperiodeMars2021,
             begrunnelse = null,
         )
     }
 
     @Test
     fun `2 uføre-perioder som tilstøter og er lik`() {
-        val v1 = lagUføreVurderingsperiode(periode = Periode.create(1.januar(2021), 31.januar(2021)))
-        val v2 = lagUføreVurderingsperiode(periode = Periode.create(1.februar(2021), 28.februar(2021)))
+        val v1 = lagUføreVurderingsperiode(periode = månedsperiodeJanuar2021)
+        val v2 = lagUføreVurderingsperiode(periode = månedsperiodeFebruar2021)
 
         v1.tilstøterOgErLik(v2) shouldBe true
     }
 
     @Test
     fun `2 uføre-perioder som ikke tilstøter, men er lik`() {
-        val v1 = lagUføreVurderingsperiode(periode = Periode.create(1.januar(2021), 31.januar(2021)))
-        val v2 = lagUføreVurderingsperiode(periode = Periode.create(1.mars(2021), 31.mars(2021)))
+        val v1 = lagUføreVurderingsperiode(periode = månedsperiodeJanuar2021)
+        val v2 = lagUføreVurderingsperiode(periode = månedsperiodeMars2021)
 
         v1.tilstøterOgErLik(v2) shouldBe false
     }
 
     @Test
     fun `2 uføre-perioder som tilstøter, men grunnlag er ulik`() {
-        val v1 = lagUføreVurderingsperiode(periode = Periode.create(1.januar(2021), 31.januar(2021)))
+        val v1 = lagUføreVurderingsperiode(periode = månedsperiodeJanuar2021)
         val v2 = lagUføreVurderingsperiode(
-            periode = Periode.create(1.februar(2021), 28.februar(2021)),
+            periode = månedsperiodeFebruar2021,
             grunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = Periode.create(1.februar(2021), 28.februar(2021)),
+                periode = månedsperiodeFebruar2021,
                 uføregrad = Uføregrad.parse(1),
                 forventetInntekt = 0,
             ),

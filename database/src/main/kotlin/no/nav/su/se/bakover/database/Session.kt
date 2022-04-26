@@ -120,7 +120,7 @@ open class Session(
                 is VedtakType -> this.setString(idx, v.toString())
                 is Utbetalingslinje.Endring.LinjeStatus -> this.setString(idx, v.toString())
                 is RevurderingsType -> this.setString(idx, v.toString())
-                is Fradragstype -> this.setString(idx, v.toString())
+                is Fradragstype.Kategori -> this.setString(idx, v.toString())
                 is FradragTilhører -> this.setString(idx, v.toString())
                 is List<*> -> this.setArray(
                     idx,

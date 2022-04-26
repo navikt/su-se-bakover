@@ -122,16 +122,8 @@ internal class BeregnRoutesKtTest {
         withMigratedDb { dataSource ->
             val repos = repos(dataSource)
             val services = services(dataSource, repos)
-            val objects = setup(services, repos)
-            services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
-                request = LeggTilBosituasjonEpsRequest(behandlingId = objects.søknadsbehandling.id, epsFnr = null),
-            )
-            services.søknadsbehandling.vilkårsvurder(
-                VilkårsvurderRequest(
-                    objects.søknadsbehandling.id,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                ),
-            )
+            val objects = setupMedAlleVilkårOppfylt(services, repos)
+
             withTestApplication(
                 {
                     testSusebakover(

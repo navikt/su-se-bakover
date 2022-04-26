@@ -118,3 +118,13 @@ fun grunnlagsdataMedEpsMedFradrag(
 ): Grunnlagsdata {
     return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }
+
+fun arbeidsinntekt(periode: Periode, tilhører: FradragTilhører): Grunnlag.Fradragsgrunnlag {
+    return lagFradragsgrunnlag(
+        type = Fradragstype.Arbeidsinntekt,
+        månedsbeløp = 5000.0,
+        periode = periode,
+        utenlandskInntekt = null,
+        tilhører = tilhører,
+    )
+}

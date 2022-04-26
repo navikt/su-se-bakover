@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
-import no.nav.su.se.bakover.common.periode.reduser
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.klage.Klage
@@ -230,7 +230,7 @@ data class Sak(
         return vedtakstidslinje(periode = periode)
             .filterNot { it.erOpphør() }
             .map { it.periode }
-            .reduser()
+            .minsteAntallSammenhengendePerioder()
     }
 
     fun vedtakstidslinje(
@@ -276,7 +276,7 @@ data class Sak(
             return false
         }
 
-        if (kommendeUtbetalingslinjer.map { linje -> linje.periode }.reduser().size > 1) {
+        if (kommendeUtbetalingslinjer.map { linje -> linje.periode }.minsteAntallSammenhengendePerioder().size > 1) {
             return false
         }
 

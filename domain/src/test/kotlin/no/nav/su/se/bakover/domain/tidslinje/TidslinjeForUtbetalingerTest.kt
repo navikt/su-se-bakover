@@ -19,6 +19,9 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.månedsperiodeFebruar2021
+import no.nav.su.se.bakover.test.månedsperiodeJanuar2021
+import no.nav.su.se.bakover.test.månedsperiodeMars2020
 import no.nav.su.se.bakover.test.plus
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -184,7 +187,7 @@ internal class TidslinjeForUtbetalingerTest {
             UtbetalingslinjePåTidslinje.Stans(
                 kopiertFraId = stans.id,
                 opprettet = stans.opprettet,
-                periode = Periode.create(1.mars(2020), 31.mars(2020)),
+                periode = månedsperiodeMars2020,
                 beløp = 0,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
@@ -244,7 +247,7 @@ internal class TidslinjeForUtbetalingerTest {
             UtbetalingslinjePåTidslinje.Opphør(
                 kopiertFraId = opphør.id,
                 opprettet = opphør.opprettet,
-                periode = Periode.create(1.mars(2020), 31.mars(2020)),
+                periode = månedsperiodeMars2020,
                 beløp = 0,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
@@ -727,7 +730,7 @@ internal class TidslinjeForUtbetalingerTest {
             UtbetalingslinjePåTidslinje.Opphør(
                 kopiertFraId = opphør.id,
                 opprettet = opphør.opprettet,
-                periode = Periode.create(1.mars(2020), 31.mars(2020)),
+                periode = månedsperiodeMars2020,
                 beløp = 0,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
@@ -880,13 +883,13 @@ internal class TidslinjeForUtbetalingerTest {
             UtbetalingslinjePåTidslinje.Ny(
                 kopiertFraId = tredje.id,
                 opprettet = tredje.opprettet,
-                periode = Periode.create(1.januar(2021), 31.januar(2021)),
+                periode = månedsperiodeJanuar2021,
                 beløp = tredje.beløp,
             ),
             UtbetalingslinjePåTidslinje.Ny(
                 kopiertFraId = fjerde.id,
                 opprettet = fjerde.opprettet,
-                periode = Periode.create(1.februar(2021), 28.februar(2021)),
+                periode = månedsperiodeFebruar2021,
                 beløp = fjerde.beløp,
             ),
             UtbetalingslinjePåTidslinje.Ny(

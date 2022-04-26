@@ -1,25 +1,82 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import arrow.core.getOrHandle
+import no.nav.su.se.bakover.common.periode.Månedsperiode
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 
+data class Beregningsperiode(
+    private val periode: Periode,
+    private val strategy: BeregningStrategy,
+) {
+    fun strategy(): BeregningStrategy {
+        return strategy
+    }
+
+    fun periode(): Periode {
+        return periode
+    }
+
+    fun fradragStrategy(): FradragStrategy {
+        return strategy.fradragStrategy()
+    }
+
+    fun sats(): Sats {
+        return strategy.sats()
+    }
+
+    fun månedsoversikt(): Map<Månedsperiode, BeregningStrategy> {
+        return periode.tilMånedsperioder().associateWith { strategy }
+    }
+}
+
 class BeregningStrategyFactory(val clock: Clock) {
-    fun beregn(
+    fun beregn(revurdering: Revurdering): Beregning {
+        return beregn(
+            grunnlagsdataOgVilkårsvurderinger = revurdering.grunnlagsdataOgVilkårsvurderinger,
+            begrunnelse = null,
+        )
+    }
+
+    fun beregn(søknadsbehandling: Søknadsbehandling, begrunnelse: String?): Beregning {
+        return beregn(
+            grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
+            begrunnelse = begrunnelse,
+        )
+    }
+
+    fun beregn(regulering: Regulering, begrunnelse: String?): Beregning {
+        return beregn(
+            grunnlagsdataOgVilkårsvurderinger = regulering.grunnlagsdataOgVilkårsvurderinger,
+            begrunnelse = begrunnelse,
+        )
+    }
+
+    private fun beregn(
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger,
-        beregningsPeriode: Periode,
         begrunnelse: String?,
     ): Beregning {
-        val bosituasjon = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.singleFullstendigOrThrow()
+        val totalBeregningsperiode = grunnlagsdataOgVilkårsvurderinger.periode()!!
+
+        require(grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.isNotEmpty()) { "Bosituasjon er påkrevet for å kunne beregne." }
+
+        val delperioder = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.map {
+            Beregningsperiode(
+                periode = it.periode,
+                strategy = (it as Grunnlag.Bosituasjon.Fullstendig).utledBeregningsstrategi(),
+            )
+        }
 
         val beregningsgrunnlag = Beregningsgrunnlag.tryCreate(
-            beregningsperiode = beregningsPeriode,
+            beregningsperiode = totalBeregningsperiode,
             uføregrunnlag = when (val vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger) {
                 is Vilkårsvurderinger.Revurdering -> {
                     vilkårsvurderinger.uføre.grunnlag
@@ -33,15 +90,14 @@ class BeregningStrategyFactory(val clock: Clock) {
             // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UgyldigBeregningsgrunnlag
             throw IllegalArgumentException(it.toString())
         }
-        val strategy =
-            when (bosituasjon) {
-                is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> BeregningStrategy.BorMedVoksne
-                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> BeregningStrategy.Eps67EllerEldre
-                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> BeregningStrategy.EpsUnder67År
-                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
-                is Grunnlag.Bosituasjon.Fullstendig.Enslig -> BeregningStrategy.BorAlene
-            }
-        return strategy.beregn(beregningsgrunnlag, clock, begrunnelse)
+
+        require(totalBeregningsperiode.fullstendigOverlapp(delperioder.map { it.periode() }))
+
+        return BeregningFactory(clock).ny(
+            fradrag = beregningsgrunnlag.fradrag,
+            begrunnelse = begrunnelse,
+            beregningsperioder = delperioder,
+        )
     }
 }
 
@@ -49,15 +105,6 @@ sealed class BeregningStrategy {
     abstract fun fradragStrategy(): FradragStrategy
     abstract fun sats(): Sats
     abstract fun satsgrunn(): Satsgrunn
-    fun beregn(beregningsgrunnlag: Beregningsgrunnlag, clock: Clock, begrunnelse: String? = null): Beregning {
-        return BeregningFactory(clock).ny(
-            periode = beregningsgrunnlag.beregningsperiode,
-            sats = sats(),
-            fradrag = beregningsgrunnlag.fradrag,
-            fradragStrategy = fradragStrategy(),
-            begrunnelse = begrunnelse,
-        )
-    }
 
     object BorAlene : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.Enslig

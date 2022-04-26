@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.periode.Månedsperiode
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -61,7 +62,7 @@ internal data class PersistertMånedsberegning(
     private val sats: Sats,
     private val satsbeløp: Double,
     private val fradrag: List<PersistertFradrag>,
-    override val periode: Periode,
+    override val periode: Månedsperiode,
     private val fribeløpForEps: Double,
     @JsonProperty("merknader")
     val persisterteMerknader: List<PersistertMerknad.Beregning> = emptyList(),
@@ -76,6 +77,9 @@ internal data class PersistertMånedsberegning(
 
     @JsonIgnore
     override fun getMerknader(): List<Merknad.Beregning> = persisterteMerknader.toDomain()
+
+    @JsonIgnore
+    override val måned: Månedsperiode = periode
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 
@@ -93,15 +97,39 @@ internal data class PersistertMånedsberegning(
 }
 
 internal data class PersistertFradrag(
-    override val fradragstype: Fradragstype,
+    @get:JsonProperty("fradragstype")
+    val kategori: Fradragstype.Kategori,
+    val beskrivelse: String?,
     override val månedsbeløp: Double,
     override val utenlandskInntekt: UtenlandskInntekt?,
     override val periode: Periode,
     override val tilhører: FradragTilhører,
 ) : Fradrag {
+
+    constructor(
+        fradragstype: Fradragstype,
+        månedsbeløp: Double,
+        utenlandskInntekt: UtenlandskInntekt?,
+        periode: Periode,
+        tilhører: FradragTilhører,
+    ) : this(
+        kategori = fradragstype.kategori,
+        beskrivelse = if (fradragstype is Fradragstype.Annet) {
+            fradragstype.beskrivelse
+        } else {
+            null
+        },
+        månedsbeløp = månedsbeløp,
+        utenlandskInntekt = utenlandskInntekt,
+        periode = periode,
+        tilhører = tilhører,
+    )
+
     override fun copy(args: CopyArgs.Snitt): Fradrag? {
         return args.snittFor(periode)?.let { copy(periode = it) }
     }
+
+    override val fradragstype = Fradragstype.from(kategori, beskrivelse)
 }
 
 internal fun Beregning.toSnapshot() = PersistertBeregning(
@@ -124,7 +152,7 @@ internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
     sats = getSats(),
     satsbeløp = getSatsbeløp(),
     fradrag = getFradrag().map { it.toSnapshot() },
-    periode = periode,
+    periode = måned,
     fribeløpForEps = getFribeløpForEps(),
     persisterteMerknader = getMerknader().toSnapshot(),
 )

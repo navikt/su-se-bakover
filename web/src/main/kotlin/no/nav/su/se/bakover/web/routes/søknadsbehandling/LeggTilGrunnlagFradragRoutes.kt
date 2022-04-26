@@ -56,7 +56,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                                 return feilResultat.left()
                             },
                             type = fradrag.type.let {
-                                Fradragstype.tryParse(it).getOrHandle {
+                                Fradragstype.tryParse(it, fradrag.beskrivelse).getOrHandle {
                                     return Behandlingsfeilresponser.ugyldigFradragstype.left()
                                 }
                             },
@@ -123,6 +123,7 @@ internal fun KunneIkkeLeggeTilFradragsgrunnlag.tilResultat(): Resultat {
 private data class FradragsgrunnlagJson(
     val periode: PeriodeJson,
     val type: String,
+    val beskrivelse: String?,
     val beløp: Double,
     val utenlandskInntekt: UtenlandskInntektJson?,
     val tilhører: String,

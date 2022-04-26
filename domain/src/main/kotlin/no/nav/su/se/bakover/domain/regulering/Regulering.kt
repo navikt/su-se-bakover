@@ -174,14 +174,7 @@ sealed interface Regulering : Reguleringsfelter {
             clock: Clock,
         ): Either<KunneIkkeBeregne.BeregningFeilet, Beregning> {
             return Either.catch {
-                BeregningStrategyFactory(clock).beregn(
-                    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-                        grunnlagsdata = grunnlagsdata,
-                        vilkårsvurderinger = vilkårsvurderinger,
-                    ),
-                    beregningsPeriode = periode,
-                    begrunnelse = begrunnelse,
-                )
+                BeregningStrategyFactory(clock).beregn(this, begrunnelse)
             }.mapLeft { KunneIkkeBeregne.BeregningFeilet(feil = it) }
         }
     }

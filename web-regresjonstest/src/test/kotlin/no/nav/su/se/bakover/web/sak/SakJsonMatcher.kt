@@ -44,6 +44,7 @@ fun assertSakJson(
         "søknader[*].sakId",
         "utbetalinger[*].sakId",
         "vedtak[*].id",
+        "vedtak[*].opprettet",
         "vedtak[*].utbetalingId",
         "vedtak[*].sakId",
         "vedtak[*].behandlingId",

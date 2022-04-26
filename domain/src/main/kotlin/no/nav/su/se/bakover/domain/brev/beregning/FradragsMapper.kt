@@ -56,34 +56,30 @@ internal fun List<Fradrag>.toMånedsfradragPerType(): List<Månedsfradrag> =
 
 fun Fradragstype.toReadableTypeName(utenlandsk: Boolean) =
     when (this) {
-        Fradragstype.NAVytelserTilLivsopphold ->
-            "NAV-ytelser til livsopphold"
-        Fradragstype.Arbeidsinntekt ->
-            "Arbeidsinntekt"
-        Fradragstype.OffentligPensjon ->
-            "Offentlig pensjon"
-        Fradragstype.PrivatPensjon ->
-            "Privat pensjon"
-        Fradragstype.Sosialstønad ->
-            "Sosialstønad"
-        Fradragstype.Kontantstøtte ->
-            "Kontantstøtte"
-        Fradragstype.Introduksjonsstønad ->
-            "Introduksjonsstønad"
-        Fradragstype.Kvalifiseringsstønad ->
-            "Kvalifiseringsstønad"
-        Fradragstype.BidragEtterEkteskapsloven ->
-            "Bidrag etter ekteskapsloven"
-        Fradragstype.Kapitalinntekt ->
-            "Kapitalinntekt"
-        Fradragstype.ForventetInntekt ->
-            "Forventet inntekt etter uførhet"
-        Fradragstype.BeregnetFradragEPS ->
-            "Utregnet fradrag for ektefelle/samboers inntekter"
-        Fradragstype.UnderMinstenivå ->
-            "Beløp under minstegrense for utbetaling"
-        Fradragstype.AvkortingUtenlandsopphold ->
-            "Avkorting på grunn av tidligere utenlandsopphold"
+        Fradragstype.Alderspensjon -> "Alderspensjon"
+        is Fradragstype.Annet -> "Annet"
+        Fradragstype.Arbeidsavklaringspenger -> "Arbeidsavklaringspenger"
+        Fradragstype.Arbeidsinntekt -> "Arbeidsinntekt"
+        Fradragstype.AvkortingUtenlandsopphold -> "Avkorting på grunn av tidligere utenlandsopphold"
+        Fradragstype.AvtalefestetPensjon -> "Avtalefestet pensjon (AFP)"
+        Fradragstype.AvtalefestetPensjonPrivat -> "Avtalefestet pensjon privat (AFP)"
+        Fradragstype.BeregnetFradragEPS -> "Utregnet fradrag for ektefelle/samboers inntekter"
+        Fradragstype.BidragEtterEkteskapsloven -> "Bidrag etter ekteskapsloven"
+        Fradragstype.Dagpenger -> "Dagpenger"
+        Fradragstype.ForventetInntekt -> "Forventet inntekt etter uførhet"
+        Fradragstype.Gjenlevendepensjon -> "Gjenlevendepensjon"
+        Fradragstype.Introduksjonsstønad -> "Introduksjonsstønad"
+        Fradragstype.Kapitalinntekt -> "Kapitalinntekt"
+        Fradragstype.Kontantstøtte -> "Kontantstøtte"
+        Fradragstype.Kvalifiseringsstønad -> "Kvalifiseringsstønad"
+        Fradragstype.NAVytelserTilLivsopphold -> "NAV-ytelser til livsopphold"
+        Fradragstype.OffentligPensjon -> "Offentlig pensjon"
+        Fradragstype.PrivatPensjon -> "Privat pensjon"
+        Fradragstype.Sosialstønad -> "Sosialstønad"
+        Fradragstype.SupplerendeStønad -> "Supplerende stønad"
+        Fradragstype.Sykepenger -> "Sykepenger"
+        Fradragstype.Uføretrygd -> "uføretrygd"
+        Fradragstype.UnderMinstenivå -> "Beløp under minstegrense for utbetaling"
     }.let { fradragsnavn ->
         if (utenlandsk) {
             "$fradragsnavn — fra utlandet"

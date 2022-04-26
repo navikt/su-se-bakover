@@ -1,7 +1,7 @@
-package no.nav.su.se.bakover.web.routes.søknadsbehandling
+package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.august
+import no.nav.su.se.bakover.common.periode.Månedsperiode
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.test.månedsperiodeAugust2020
 import java.time.LocalDateTime
 import java.time.Month
 import java.time.ZoneOffset
@@ -28,7 +29,7 @@ internal object TestBeregning : Beregning {
     override fun getFradrag(): List<Fradrag> = listOf(TestFradrag, TestFradragEps)
     override fun getSumYtelse(): Int = 8637
     override fun getSumFradrag(): Double = 12000.0
-    override val periode: Periode = Periode.create(1.august(2020), 31.august(2020))
+    override val periode: Periode = månedsperiodeAugust2020
     override fun getFradragStrategyName(): FradragStrategyName = FradragStrategyName.Enslig
     override fun getBegrunnelse(): String? = null
     override fun equals(other: Any?) = (other as? Beregning)?.let { this.equals(other) } ?: false
@@ -44,8 +45,9 @@ internal object TestMånedsberegning : Månedsberegning {
     override fun getFribeløpForEps(): Double = 0.0
     override fun getMerknader(): List<Merknad.Beregning> = emptyList()
 
-    override val periode: Periode = Periode.create(1.august(2020), 31.august(2020))
+    override val periode: Periode = månedsperiodeAugust2020
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
+    override val måned: Månedsperiode = månedsperiodeAugust2020
 }
 
 internal object TestFradrag : Fradrag {
@@ -53,7 +55,7 @@ internal object TestFradrag : Fradrag {
     override val månedsbeløp: Double = 1000.0
     override val utenlandskInntekt: UtenlandskInntekt? = null
     override val tilhører: FradragTilhører = FradragTilhører.BRUKER
-    override val periode: Periode = Periode.create(1.august(2020), 31.august(2020))
+    override val periode: Periode = månedsperiodeAugust2020
     override fun copy(args: CopyArgs.Snitt): Fradrag? {
         throw NotImplementedError()
     }
@@ -64,7 +66,7 @@ internal object TestFradragEps : Fradrag {
     override val månedsbeløp: Double = 20000.0
     override val utenlandskInntekt: UtenlandskInntekt? = null
     override val tilhører: FradragTilhører = FradragTilhører.EPS
-    override val periode: Periode = Periode.create(1.august(2020), 31.august(2020))
+    override val periode: Periode = månedsperiodeAugust2020
     override fun copy(args: CopyArgs.Snitt): Fradrag? {
         throw NotImplementedError()
     }

@@ -8,9 +8,10 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
-import no.nav.su.se.bakover.common.periode.minusListe
-import no.nav.su.se.bakover.common.periode.overlappende
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.periode.minus
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Grunnbeløp.Companion.`0,5G`
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag.Companio
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.masker
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger.Søknadsbehandling.Companion.equals
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge.Companion.equals
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning.Companion.equals
@@ -244,6 +246,7 @@ sealed class Vilkårsvurderinger {
             }.fold(this) { acc, vilkår -> acc.leggTil(vilkår) }
         }
 
+        // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
         fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Søknadsbehandling = copy(
             uføre = uføre.oppdaterStønadsperiode(stønadsperiode),
             formue = formue.oppdaterStønadsperiode(stønadsperiode),
@@ -397,6 +400,7 @@ sealed class Vilkår {
     abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkår
     abstract fun erLik(other: Vilkår): Boolean
     abstract fun lagTidslinje(periode: Periode): Vilkår
+    abstract fun slåSammenLikePerioder(): Vilkår
 
     sealed class Uførhet : Vilkår() {
         override val vilkår = Inngangsvilkår.Uførhet
@@ -422,6 +426,10 @@ sealed class Vilkår {
 
             override fun erLik(other: Vilkår): Boolean {
                 return other is IkkeVurdert
+            }
+
+            override fun slåSammenLikePerioder(): Vilkår {
+                return this
             }
         }
 
@@ -450,8 +458,8 @@ sealed class Vilkår {
                 return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
             }
 
-            fun slåSammenVurderingsperioder(): Either<UgyldigUførevilkår, Vurdert> {
-                return fromVurderingsperioder(vurderingsperioder = vurderingsperioder.slåSammenVurderingsperiode())
+            override fun slåSammenLikePerioder(): Vurdert {
+                return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
             }
 
             companion object {
@@ -459,42 +467,21 @@ sealed class Vilkår {
                 fun tryCreate(
                     vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
                 ): Either<UgyldigUførevilkår, Vurdert> {
-                    if (vurderingsperioder.overlappende()) {
+                    if (vurderingsperioder.harOverlappende()) {
                         return UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
                     }
 
                     return Vurdert(vurderingsperioder).right()
-                }
-
-                fun Nel<Vurderingsperiode.Uføre>.slåSammenVurderingsperiode(): Nel<Vurderingsperiode.Uføre> {
-                    val slåttSammen = this.sortedBy { it.periode.fraOgMed }
-                        .fold(mutableListOf<MutableList<Vurderingsperiode.Uføre>>()) { acc, uføre ->
-                            if (acc.isEmpty()) {
-                                acc.add(mutableListOf(uføre))
-                            } else if (acc.last().sisteUføreperiodeErLikOgTilstøtende(uføre)) {
-                                acc.last().add(uføre)
-                            } else {
-                                acc.add(mutableListOf(uføre))
-                            }
-                            acc
-                        }.map {
-                            val periode = it.map { it.periode }.minAndMaxOf()
-                            it.first().copy(CopyArgs.Tidslinje.NyPeriode(periode = periode))
-                        }
-                    return NonEmptyList.fromListUnsafe(slåttSammen)
                 }
 
                 fun fromVurderingsperioder(
                     vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
                 ): Either<UgyldigUførevilkår, Vurdert> {
-                    if (vurderingsperioder.overlappende()) {
+                    if (vurderingsperioder.harOverlappende()) {
                         return UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
                     }
                     return Vurdert(vurderingsperioder).right()
                 }
-
-                private fun List<Vurderingsperiode.Uføre>.sisteUføreperiodeErLikOgTilstøtende(other: Vurderingsperiode.Uføre) =
-                    this.last().tilstøterOgErLik(other)
             }
 
             sealed class UgyldigUførevilkår {
@@ -508,7 +495,7 @@ sealed class Vilkår {
                     val vurderingerMedOverlapp = lagTidslinje(stønadsperiode.periode).vurderingsperioder
                     val manglendePerioder =
                         listOf(stønadsperiode.periode)
-                            .minusListe(vurderingerMedOverlapp.map { it.periode })
+                            .minus(vurderingerMedOverlapp.map { it.periode })
                             .sortedBy { it.fraOgMed }.toSet()
                     val paired: List<Pair<Periode, Vurderingsperiode.Uføre?>> = vurderingerMedOverlapp.map {
                         it.periode to it
@@ -551,9 +538,7 @@ sealed class Vilkår {
                     }.map {
                         it.second
                     }.let {
-                        copy(
-                            vurderingsperioder = NonEmptyList.fromListUnsafe(it).slåSammenVurderingsperiode(),
-                        )
+                        copy(vurderingsperioder = it.slåSammenLikePerioder())
                     }
                 } else {
                     val tidligere = stønadsperiode.periode.starterTidligere(
@@ -568,7 +553,7 @@ sealed class Vilkår {
                                     vurderingsperioder.minByOrNull { it.periode.fraOgMed }!!
                                         .oppdaterStønadsperiode(stønadsperiode),
                                 ),
-                            ).slåSammenVurderingsperiode(),
+                            ).slåSammenLikePerioder(),
                         )
                     } else {
                         copy(
@@ -577,7 +562,7 @@ sealed class Vilkår {
                                     vurderingsperioder.maxByOrNull { it.periode.tilOgMed }!!
                                         .oppdaterStønadsperiode(stønadsperiode),
                                 ),
-                            ).slåSammenVurderingsperiode(),
+                            ).slåSammenLikePerioder(),
                         )
                     }
                 }
@@ -601,14 +586,20 @@ sealed class Vilkår {
         abstract val grunnlag: List<Formuegrunnlag>
 
         abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue
-
         abstract override fun lagTidslinje(periode: Periode): Formue
+        abstract override fun slåSammenLikePerioder(): Formue
 
         fun harEPSFormue(): Boolean {
             return grunnlag.any { it.harEPSFormue() }
         }
 
-        abstract fun fjernEPSFormue(): Formue
+        abstract fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Formue
+
+        /**
+         * @param perioder vi ønsker å fjerne formue for EPS for. Eventuell formue for EPS som ligger utenfor
+         * periodene bevares.
+         */
+        abstract fun fjernEPSFormue(perioder: List<Periode>): Formue
 
         /**
          * Definert i paragraf 8 til 0.5 G som vanligvis endrer seg 1. mai, årlig.
@@ -626,6 +617,14 @@ sealed class Vilkår {
                 return other is IkkeVurdert
             }
 
+            override fun slåSammenLikePerioder(): IkkeVurdert {
+                return this
+            }
+
+            override fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Formue {
+                return this
+            }
+
             override val grunnlag = emptyList<Formuegrunnlag>()
 
             override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue = this
@@ -634,7 +633,7 @@ sealed class Vilkår {
                 return this
             }
 
-            override fun fjernEPSFormue(): Formue {
+            override fun fjernEPSFormue(perioder: List<Periode>): Formue {
                 return this
             }
         }
@@ -662,8 +661,12 @@ sealed class Vilkår {
                 )
             }
 
-            override fun fjernEPSFormue(): Formue {
-                return copy(vurderingsperioder = vurderingsperioder.map { it.fjernEPSFormue() })
+            override fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Formue {
+                return copy(vurderingsperioder = vurderingsperioder.flatMap { it.leggTilTomEPSFormueHvisDetMangler(perioder) })
+            }
+
+            override fun fjernEPSFormue(perioder: List<Periode>): Vurdert {
+                return copy(vurderingsperioder = vurderingsperioder.flatMap { it.fjernEPSFormue(perioder) })
             }
 
             override val erInnvilget: Boolean =
@@ -684,12 +687,12 @@ sealed class Vilkår {
                 return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
             }
 
-            override val grunnlag: List<Formuegrunnlag> = vurderingsperioder.map {
-                it.grunnlag
+            override fun slåSammenLikePerioder(): Vurdert {
+                return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
             }
 
-            fun slåSammenVurderingsperioder(): Either<UgyldigFormuevilkår, Vurdert> {
-                return fromVurderingsperioder(vurderingsperioder = vurderingsperioder.slåSammenVurderingsperioder())
+            override val grunnlag: List<Formuegrunnlag> = vurderingsperioder.map {
+                it.grunnlag
             }
 
             companion object {
@@ -711,32 +714,11 @@ sealed class Vilkår {
                 fun fromVurderingsperioder(
                     vurderingsperioder: Nel<Vurderingsperiode.Formue>,
                 ): Either<UgyldigFormuevilkår, Vurdert> {
-                    if (vurderingsperioder.overlappende()) {
+                    if (vurderingsperioder.harOverlappende()) {
                         return UgyldigFormuevilkår.OverlappendeVurderingsperioder.left()
                     }
                     return Vurdert(vurderingsperioder).right()
                 }
-
-                fun Nel<Vurderingsperiode.Formue>.slåSammenVurderingsperioder(): Nel<Vurderingsperiode.Formue> {
-                    val slåttSammen = this.sortedBy { it.periode.fraOgMed }
-                        .fold(mutableListOf<MutableList<Vurderingsperiode.Formue>>()) { acc, formue ->
-                            if (acc.isEmpty()) {
-                                acc.add(mutableListOf(formue))
-                            } else if (acc.last().sisteFormueperiodeErLikOgTilstøtende(formue)) {
-                                acc.last().add(formue)
-                            } else {
-                                acc.add(mutableListOf(formue))
-                            }
-                            acc
-                        }.map {
-                            val periode = it.map { it.periode }.minAndMaxOf()
-                            it.first().copy(CopyArgs.Tidslinje.NyPeriode(periode = periode))
-                        }
-                    return NonEmptyList.fromListUnsafe(slåttSammen)
-                }
-
-                private fun List<Vurderingsperiode.Formue>.sisteFormueperiodeErLikOgTilstøtende(other: Vurderingsperiode.Formue) =
-                    this.last().tilstøterOgErLik(other)
             }
 
             sealed class UgyldigFormuevilkår {
@@ -744,6 +726,34 @@ sealed class Vilkår {
             }
         }
     }
+}
+
+fun <T> List<T>.slåSammenLikePerioder(): Nel<T> where T : Vurderingsperiode, T : KanPlasseresPåTidslinje<T> {
+    return Nel.fromListUnsafe(
+        Tidslinje(
+            periode = map { it.periode }.minAndMaxOf(),
+            objekter = this,
+        ).tidslinje.fold(mutableListOf()) { acc, t ->
+            if (acc.isEmpty()) {
+                acc.add(t)
+            } else if (acc.last().tilstøterOgErLik(t)) {
+                val last = acc.removeLast()
+                acc.add(
+                    last.copy(
+                        CopyArgs.Tidslinje.NyPeriode(
+                            Periode.create(
+                                last.periode.fraOgMed,
+                                (t as Vurderingsperiode).periode.tilOgMed,
+                            ),
+                        ),
+                    ),
+                )
+            } else {
+                acc.add(t)
+            }
+            acc
+        },
+    )
 }
 
 sealed class Vurderingsperiode {
@@ -791,6 +801,9 @@ sealed class Vurderingsperiode {
                     periode = args.periode,
                     grunnlag = grunnlag?.copy(args),
                 )
+            }
+            is CopyArgs.Tidslinje.Maskert -> {
+                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
             }
         }
 
@@ -879,6 +892,9 @@ sealed class Vurderingsperiode {
                     grunnlag = grunnlag.copy(args),
                 )
             }
+            is CopyArgs.Tidslinje.Maskert -> {
+                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+            }
         }
 
         override fun erLik(other: Vurderingsperiode): Boolean {
@@ -887,7 +903,33 @@ sealed class Vurderingsperiode {
                 grunnlag.erLik(other.grunnlag)
         }
 
-        fun fjernEPSFormue(): Formue {
+        fun harEPSFormue(): Boolean {
+            return grunnlag.harEPSFormue()
+        }
+
+        fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Nel<Formue> {
+            val uendret = masker(perioder)
+            val endret = leggTilTomEPSFormueHvisDetMangler().masker(perioder = uendret.map { it.periode }.minsteAntallSammenhengendePerioder())
+            return Nel.fromListUnsafe(Tidslinje(periode, uendret + endret).tidslinje)
+        }
+
+        private fun leggTilTomEPSFormueHvisDetMangler(): Formue {
+            return copy(grunnlag = grunnlag.leggTilTomEPSFormueHvisDenMangler())
+        }
+
+        /**
+         * Fjerner formue for EPS for periodene angitt av [perioder]. Identifiserer først alle periodene hvor det ikke
+         * skal skje noen endringer og bevarer verdiene for disse (kan være både med/uten EPS). Deretter fjernes
+         * EPS for alle periodene, og alle periodene identifisert i første steg maskeres ut. Syr deretter sammen periodene
+         * med/uten endring til en komplett oversikt for [periode].
+         */
+        fun fjernEPSFormue(perioder: List<Periode>): Nel<Formue> {
+            val uendret = masker(perioder = perioder)
+            val endret = fjernEPSFormue().masker(perioder = uendret.map { it.periode }.minsteAntallSammenhengendePerioder())
+            return Nel.fromListUnsafe(Tidslinje(periode, uendret + endret).tidslinje)
+        }
+
+        private fun fjernEPSFormue(): Formue {
             return copy(grunnlag = grunnlag.fjernEPSFormue())
         }
 

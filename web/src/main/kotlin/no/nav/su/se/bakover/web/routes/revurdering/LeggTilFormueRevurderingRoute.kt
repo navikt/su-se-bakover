@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.depositumErHøyereEnnInnskudd
 import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
+import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.FormueBody.Companion.toServiceRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -139,4 +140,7 @@ private fun KunneIkkeLeggeTilFormuegrunnlag.tilResultat() = when (this) {
         "Ikke lov med formue for eps hvis man ikke har eps",
         "ikke_lov_med_formue_for_eps_hvis_man_ikke_har_eps",
     )
+    is KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk -> {
+        this.feil.tilResultat()
+    }
 }

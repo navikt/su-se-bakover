@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.test.beregningAvslagUnderMinstebeløp
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
+import no.nav.su.se.bakover.test.månedsperiodeNovember2021
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -76,7 +77,7 @@ internal class VurderOpphørVedRevurderingTest {
         val beregning = beregning(
             fradragsgrunnlag = nonEmptyListOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = Periode.create(1.november(2021), 30.november(2021)),
+                    periode = månedsperiodeNovember2021,
                     arbeidsinntekt = Sats.HØY.månedsbeløpSomHeltall(1.november(2021)) - 100.0,
                 ),
             ),
