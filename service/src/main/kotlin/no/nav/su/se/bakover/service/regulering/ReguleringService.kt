@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.regulering.Regulering
-import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import java.time.LocalDate
 import java.util.UUID
 
@@ -52,14 +51,18 @@ sealed class KunneIkkeOppretteRegulering {
     object FantIkkeSak : KunneIkkeOppretteRegulering()
     object FørerIkkeTilEnEndring : KunneIkkeOppretteRegulering()
     data class KunneIkkeHenteEllerOppretteRegulering(val feil: Sak.KunneIkkeOppretteEllerOppdatereRegulering) : KunneIkkeOppretteRegulering()
-    data class KunneIkkeRegulereAutomatisk(val feil: no.nav.su.se.bakover.service.regulering.KunneIkkeFerdigstilleOgIverksette) : KunneIkkeOppretteRegulering()
+    data class KunneIkkeRegulereAutomatisk(val feil: KunneIkkeFerdigstilleOgIverksette) : KunneIkkeOppretteRegulering()
+}
+
+sealed class KunneIkkeAvslutte {
+    object FantIkkeRegulering : KunneIkkeAvslutte()
+    object UgyldigTilstand : KunneIkkeAvslutte()
 }
 
 interface ReguleringService {
     fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>>
-    fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering>
-    fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering>
     fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering>
+    fun avslutt(reguleringId: UUID, begrunnelse: String?): Either<KunneIkkeAvslutte, Regulering.AvsluttetRegulering>
     fun hentStatus(): List<Regulering>
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
     fun regulerManuelt(

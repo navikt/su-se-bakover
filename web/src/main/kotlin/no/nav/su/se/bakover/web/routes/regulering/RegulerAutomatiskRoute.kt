@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.service.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.web.Resultat
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.lesUUID
+import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.svar
@@ -74,6 +76,8 @@ internal fun Route.reguler(
                                     KunneIkkeRegulereManuelt.FantIkkeSak -> HttpStatusCode.BadRequest.errorJson("Fant ikke sak", "fant_ikke_sak")
                                     KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson("Stanset ytelse må startes før den kan reguleres", "stanset_ytelse_må_startes_før_den_kan_reguleres")
                                     is KunneIkkeRegulereManuelt.KunneIkkeFerdigstille -> HttpStatusCode.InternalServerError.errorJson("Kunne ikke ferdigstille regulering på grunn av ${it.feil}", "kunne_ikke_ferdigstille_regulering")
+                                    KunneIkkeRegulereManuelt.FantIkkeSak -> Feilresponser.fantIkkeSak
+                                    KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson("Kan ikke regulere en stanset sak", "kan_ikke_regulere_stanset_sak")
                                 }.let { feilResultat ->
                                     call.svar(feilResultat)
                                 }
@@ -81,6 +85,32 @@ internal fun Route.reguler(
                             ifRight = {
                                 call.svar(Resultat.okJson(HttpStatusCode.OK))
                             }
+                        )
+                    }
+                },
+            )
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        data class Body(val begrunnelse: String?)
+        post("$reguleringPath/avslutt/{reguleringId}") {
+            call.lesUUID("reguleringId").fold(
+                ifLeft = {
+                    HttpStatusCode.BadRequest.errorJson(it, "reguleringId_mangler_eller_feil_format")
+                },
+                ifRight = {
+                    call.withBody<Body> { body ->
+                        reguleringService.avslutt(it, body.begrunnelse).fold(
+                            ifLeft = { feilmelding ->
+                                when (feilmelding) {
+                                    KunneIkkeAvslutte.FantIkkeRegulering -> HttpStatusCode.BadRequest.errorJson("Fant ikke regulering", "fant_ikke_regulering")
+                                    KunneIkkeAvslutte.UgyldigTilstand -> HttpStatusCode.BadRequest.errorJson("Ugyldig tilstand på reguleringen", "regulering_ugyldig_tilstand")
+                                }
+                            },
+                            ifRight = {
+                                call.svar(Resultat.okJson(HttpStatusCode.OK))
+                            },
                         )
                     }
                 },

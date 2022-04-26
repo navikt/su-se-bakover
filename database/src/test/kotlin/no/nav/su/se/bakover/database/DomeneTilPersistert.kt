@@ -238,6 +238,12 @@ internal fun Regulering.IverksattRegulering.persistertVariant(): Regulering.Iver
     )
 }
 
+internal fun Regulering.AvsluttetRegulering.persistertVariant(): Regulering.AvsluttetRegulering {
+    return this.copy(
+        opprettetRegulering = opprettetRegulering.persistertVariant(),
+    )
+}
+
 internal fun VedtakSomKanRevurderes.persistertVariant(): VedtakSomKanRevurderes {
     return when (this) {
         is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> {

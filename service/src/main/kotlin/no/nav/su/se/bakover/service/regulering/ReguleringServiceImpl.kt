@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
@@ -170,7 +169,6 @@ class ReguleringServiceImpl(
 
         return ferdigstillOgIverksettRegulering(oppdatertRegulering)
             .mapLeft { KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = it) }
-            .map { it }
     }
 
     private fun ferdigstillOgIverksettRegulering(regulering: Regulering.OpprettetRegulering): Either<KunneIkkeFerdigstilleOgIverksette, Regulering.IverksattRegulering> {
@@ -235,25 +233,6 @@ class ReguleringServiceImpl(
     /**
      * Denne brukes kun i den manuelle flyten som ikke er implementert ferdig enda.
      */
-    override fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering> {
-        reguleringRepo.hent(request.behandlingId)?.let { regulering ->
-            return when (regulering) {
-                is Regulering.IverksattRegulering -> {
-                    KunneIkkeLeggeTilFradrag.ReguleringErAlleredeIverksatt.left()
-                }
-                is Regulering.OpprettetRegulering -> {
-                    regulering.leggTilFradrag(request.fradragsgrunnlag)
-                    reguleringRepo.lagre(regulering)
-                    regulering.right()
-                }
-            }
-        }
-        return KunneIkkeLeggeTilFradrag.FantIkkeRegulering.left()
-    }
-
-    /**
-     * Denne brukes kun i den manuelle flyten som ikke er implementert ferdig enda.
-     */
     override fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering> {
         val regulering =
             (reguleringRepo.hent(request.behandlingId) as? Regulering.OpprettetRegulering)
@@ -274,31 +253,26 @@ class ReguleringServiceImpl(
             .mapLeft { BeregnOgSimulerFeilet.KunneIkkeSimulere }
     }
 
+    override fun avslutt(reguleringId: UUID, begrunnelse: String?): Either<KunneIkkeAvslutte, Regulering.AvsluttetRegulering> {
+        val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeAvslutte.FantIkkeRegulering.left()
+
+        return when (regulering) {
+            is Regulering.AvsluttetRegulering, is Regulering.IverksattRegulering -> KunneIkkeAvslutte.UgyldigTilstand.left()
+            is Regulering.OpprettetRegulering -> {
+                val avsluttetRegulering = regulering.avslutt(begrunnelse, clock)
+                reguleringRepo.lagre(avsluttetRegulering)
+
+                avsluttetRegulering.right()
+            }
+        }
+    }
+
     override fun hentStatus(): List<Regulering> {
         return reguleringRepo.hentReguleringerSomIkkeErIverksatt()
     }
 
     override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
         return reguleringRepo.hentSakerMedÅpenBehandlingEllerStans()
-    }
-
-    /**
-     * Denne brukes kun i den manuelle flyten som ikke er implementert ferdig enda.
-     */
-    override fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering> {
-        reguleringRepo.hent(reguleringId)?.let { regulering ->
-            return when (regulering) {
-                is Regulering.IverksattRegulering -> {
-                    KunneIkkeIverksetteRegulering.ReguleringErAlleredeIverksatt.left()
-                }
-                is Regulering.OpprettetRegulering -> {
-                    regulering.tilIverksatt().also { iverksattRegulering ->
-                        reguleringRepo.lagre(iverksattRegulering)
-                    }.right()
-                }
-            }
-        }
-        return KunneIkkeIverksetteRegulering.FantIkkeRegulering.left()
     }
 
     private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, Pair<Regulering.IverksattRegulering, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering>> {

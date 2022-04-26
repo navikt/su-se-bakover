@@ -24,11 +24,24 @@ internal data class ReguleringJson(
     val saksnummer: Saksnummer,
     val reguleringstype: String,
     val årsakForManuell: Set<String>?,
+    val reguleringsstatus: Status,
     val periode: PeriodeJson,
     val erFerdigstilt: Boolean,
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     val saksbehandler: String,
-)
+    val avsluttet: Avsluttet?,
+) {
+    data class Avsluttet(val begrunnelse: String?)
+    enum class Status {
+        OPPRETTET,
+        IVERKSATT,
+        AVSLUTTET;
+
+        override fun toString(): String {
+            return this.name
+        }
+    }
+}
 
 internal fun Regulering.toJson() = ReguleringJson(
     id = id,
@@ -43,10 +56,19 @@ internal fun Regulering.toJson() = ReguleringJson(
         Reguleringstype.AUTOMATISK -> null
         is Reguleringstype.MANUELL -> type.problemer.toJson()
     },
+    reguleringsstatus = when (this) {
+        is Regulering.AvsluttetRegulering -> ReguleringJson.Status.AVSLUTTET
+        is Regulering.IverksattRegulering -> ReguleringJson.Status.IVERKSATT
+        is Regulering.OpprettetRegulering -> ReguleringJson.Status.OPPRETTET
+    },
     erFerdigstilt = this.erFerdigstilt,
     periode = periode.toJson(),
     grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
     saksbehandler = saksbehandler.navIdent,
+    avsluttet = when (this) {
+        is Regulering.AvsluttetRegulering -> ReguleringJson.Avsluttet(this.begrunnelse)
+        is Regulering.IverksattRegulering, is Regulering.OpprettetRegulering -> null
+    },
 )
 
 internal fun Set<ÅrsakTilManuellRegulering>.toJson(): Set<String> {

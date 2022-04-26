@@ -133,7 +133,8 @@ internal class ReguleringPostgresRepo(
                 saksbehandler,
                 reguleringStatus,
                 reguleringType,
-                arsakForManuell
+                arsakForManuell,
+                avsluttet
             ) values (
                 :id,
                 :sakId,
@@ -144,7 +145,8 @@ internal class ReguleringPostgresRepo(
                 :saksbehandler,
                 :reguleringStatus,
                 :reguleringType,
-                to_json(:arsakForManuell::json)
+                to_json(:arsakForManuell::json),
+                to_jsonb(:avsluttet::jsonb)
             )
                 ON CONFLICT(id) do update set
                 id=:id,
@@ -156,7 +158,8 @@ internal class ReguleringPostgresRepo(
                 saksbehandler=:saksbehandler,
                 reguleringStatus=:reguleringStatus,
                 reguleringType=:reguleringType,
-                arsakForManuell=to_json(:arsakForManuell::json)
+                arsakForManuell=to_json(:arsakForManuell::json),
+                avsluttet=to_jsonb(:avsluttet::jsonb)
                 """.trimIndent()
                     .insert(
                         mapOf(
@@ -186,7 +189,16 @@ internal class ReguleringPostgresRepo(
                             "reguleringStatus" to when (regulering) {
                                 is Regulering.IverksattRegulering -> ReguleringStatus.IVERKSATT
                                 is Regulering.OpprettetRegulering -> ReguleringStatus.OPPRETTET
+                                is Regulering.AvsluttetRegulering -> ReguleringStatus.AVSLUTTET
                             }.toString(),
+                            "avsluttet" to when (regulering) {
+                                is Regulering.AvsluttetRegulering -> AvsluttetReguleringJson(
+                                    begrunnelse = regulering.begrunnelse,
+                                    tidspunkt = regulering.tidspunkt,
+                                ).let { objectMapper.writeValueAsString(it) }
+                                is Regulering.IverksattRegulering -> null
+                                is Regulering.OpprettetRegulering -> null
+                            }
                         ),
                         session,
                     )
@@ -240,6 +252,8 @@ internal class ReguleringPostgresRepo(
         val grunnlagsdataOgVilkårsvurderinger =
             grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(id, session)
 
+        val avsluttet = stringOrNull("avsluttet")?.let { objectMapper.readValue<AvsluttetReguleringJson>(it) }
+
         return lagRegulering(
             status = status,
             id = id,
@@ -253,12 +267,14 @@ internal class ReguleringPostgresRepo(
             beregning = beregning,
             simulering = simulering,
             reguleringstype = type,
+            avsluttetReguleringJson = avsluttet
         )
     }
 
     private enum class ReguleringStatus {
         OPPRETTET,
-        IVERKSATT;
+        IVERKSATT,
+        AVSLUTTET;
     }
 
     private fun lagRegulering(
@@ -274,6 +290,7 @@ internal class ReguleringPostgresRepo(
         beregning: Beregning?,
         simulering: Simulering?,
         reguleringstype: Reguleringstype,
+        avsluttetReguleringJson: AvsluttetReguleringJson?
     ): Regulering {
         return when (status) {
             ReguleringStatus.OPPRETTET -> Regulering.OpprettetRegulering(
@@ -305,6 +322,23 @@ internal class ReguleringPostgresRepo(
                 ),
                 beregning = beregning!!,
                 simulering = simulering!!,
+            )
+            ReguleringStatus.AVSLUTTET -> Regulering.AvsluttetRegulering(
+                opprettetRegulering = Regulering.OpprettetRegulering(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    saksbehandler = saksbehandler,
+                    fnr = fnr,
+                    periode = periode,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+                    beregning = beregning,
+                    simulering = simulering,
+                    reguleringstype = reguleringstype,
+                ),
+                begrunnelse = avsluttetReguleringJson!!.begrunnelse,
+                tidspunkt = avsluttetReguleringJson.tidspunkt
             )
         }
     }

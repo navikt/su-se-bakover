@@ -102,8 +102,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.regulering.BeregnOgSimulerFeilet
 import no.nav.su.se.bakover.service.regulering.BeregnRequest
-import no.nav.su.se.bakover.service.regulering.KunneIkkeIverksetteRegulering
-import no.nav.su.se.bakover.service.regulering.KunneIkkeLeggeTilFradrag
+import no.nav.su.se.bakover.service.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.service.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.service.regulering.ReguleringService
@@ -877,16 +876,12 @@ open class AccessCheckProxy(
                     return services.reguleringService.startRegulering(startDato)
                 }
 
-                override fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
                 override fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering> {
                     kastKanKunKallesFraAnnenService()
+                }
+
+                override fun avslutt(reguleringId: UUID, begrunnelse: String?): Either<KunneIkkeAvslutte, Regulering.AvsluttetRegulering> {
+                    return services.reguleringService.avslutt(reguleringId, begrunnelse)
                 }
 
                 override fun hentStatus(): List<Regulering> {

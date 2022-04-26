@@ -4,6 +4,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 
 internal class ReguleringPostgresRepoTest {
@@ -60,6 +62,20 @@ internal class ReguleringPostgresRepoTest {
             val hentRegulering = repo.hent(regulering.id)
 
             hentRegulering shouldBe regulering.persistertVariant()
+        }
+    }
+
+    @Test
+    fun `lagre og hent en avsluttet regulering`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.reguleringRepo
+
+            val opprettetRegulering = testDataHelper.persisterReguleringOpprettet()
+            val avsluttetRegulering = Regulering.AvsluttetRegulering(opprettetRegulering, "begrunnelse", fixedTidspunkt)
+
+            repo.lagre(avsluttetRegulering)
+            repo.hent(avsluttetRegulering.id) shouldBe avsluttetRegulering.persistertVariant()
         }
     }
 

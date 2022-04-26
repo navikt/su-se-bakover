@@ -133,9 +133,6 @@ sealed interface Regulering : Reguleringsfelter {
             beregning?.let { assert(periode == beregning.periode) }
         }
 
-        /**
-         * Denne brukes kun i den manuelle flyten som ikke er implementert ferdig enda.
-         */
         fun leggTilFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): OpprettetRegulering =
             this.copy(
                 grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
@@ -146,7 +143,6 @@ sealed interface Regulering : Reguleringsfelter {
                     vilkårsvurderinger = vilkårsvurderinger,
                 ),
             )
-
         fun leggTilUføre(uføregrunnlag: List<Grunnlag.Uføregrunnlag>, clock: Clock): OpprettetRegulering =
             this.copy(
                 grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
@@ -168,7 +164,6 @@ sealed interface Regulering : Reguleringsfelter {
                     ),
                 ),
             )
-
         fun leggTilSaksbehandler(saksbehandler: NavIdentBruker.Saksbehandler): OpprettetRegulering =
             this.copy(
                 saksbehandler = saksbehandler,
@@ -198,6 +193,14 @@ sealed interface Regulering : Reguleringsfelter {
                 .map { this.copy(simulering = it.simulering) }
         }
 
+        fun avslutt(begrunnelse: String?, clock: Clock): AvsluttetRegulering {
+            return AvsluttetRegulering(
+                opprettetRegulering = this,
+                begrunnelse = begrunnelse,
+                tidspunkt = Tidspunkt.now(clock)
+            )
+        }
+
         fun tilIverksatt(): IverksattRegulering = IverksattRegulering(opprettetRegulering = this, beregning!!, simulering!!)
 
         private fun gjørBeregning(
@@ -218,6 +221,14 @@ sealed interface Regulering : Reguleringsfelter {
         override val beregning: Beregning,
         override val simulering: Simulering,
     ) : Regulering, Reguleringsfelter by opprettetRegulering {
+        override val erFerdigstilt = true
+    }
+
+    data class AvsluttetRegulering(
+        val opprettetRegulering: OpprettetRegulering,
+        val begrunnelse: String?,
+        val tidspunkt: Tidspunkt
+    ) : Regulering by opprettetRegulering {
         override val erFerdigstilt = true
     }
 }
