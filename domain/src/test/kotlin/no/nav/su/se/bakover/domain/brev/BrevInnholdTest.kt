@@ -66,6 +66,7 @@ internal class BrevInnholdTest {
                     satsbeløpPerMåned = 100,
                     epsFribeløp = 100,
                     fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), false)),
+                    sats = "høy",
                 ),
             ),
             saksbehandlerNavn = "Hei",
@@ -122,7 +123,8 @@ internal class BrevInnholdTest {
                       "fradrag": [],
                       "harFradragMedSumSomErLavereEnnFribeløp": false
                       }
-                    }
+                    },
+                    "sats": "høy"
                 }],
                 "saksbehandlerNavn": "Hei",
                 "attestantNavn": "Hopp",
@@ -186,6 +188,7 @@ internal class BrevInnholdTest {
                     satsbeløpPerMåned = 100,
                     epsFribeløp = 100,
                     fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), false)),
+                    sats = "høy",
                 ),
             ),
             saksbehandlerNavn = "Hei",
@@ -234,7 +237,8 @@ internal class BrevInnholdTest {
                       "fradrag": [],
                       "harFradragMedSumSomErLavereEnnFribeløp": false
                       }
-                    }
+                    },
+                    "sats": "høy"
                 }],
                 "saksbehandlerNavn": "Hei",
                 "attestantNavn": "Hopp",

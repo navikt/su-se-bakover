@@ -30,6 +30,7 @@ object VedtakInnholdTestdataBuilder {
                 satsbeløpPerMåned = 0,
                 epsFribeløp = 0,
                 fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), true)),
+                sats = "høy",
             ),
         ),
         saksbehandlerNavn = "Nei Josbø",

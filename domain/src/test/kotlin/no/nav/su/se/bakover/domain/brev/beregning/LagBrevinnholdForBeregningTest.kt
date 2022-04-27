@@ -59,6 +59,7 @@ internal class LagBrevinnholdForBeregningTest {
                     ),
                     eps = Fradrag.Eps(emptyList(), false),
                 ),
+                sats = "høy",
             ),
         )
     }
@@ -115,6 +116,7 @@ internal class LagBrevinnholdForBeregningTest {
                     ),
                     eps = Fradrag.Eps(emptyList(), false),
                 ),
+                sats = "høy",
             ),
             Beregningsperiode(
                 periode = BrevPeriode(fraOgMed = "juni 2020", tilOgMed = "august 2020"),
@@ -140,6 +142,7 @@ internal class LagBrevinnholdForBeregningTest {
                     ),
                     eps = Fradrag.Eps(emptyList(), false),
                 ),
+                sats = "høy",
             ),
             Beregningsperiode(
                 periode = BrevPeriode(fraOgMed = "september 2020", tilOgMed = "april 2021"),
@@ -158,6 +161,7 @@ internal class LagBrevinnholdForBeregningTest {
                     ),
                     eps = Fradrag.Eps(emptyList(), false),
                 ),
+                sats = "høy",
             ),
         )
     }
@@ -225,6 +229,7 @@ internal class LagBrevinnholdForBeregningTest {
                         false,
                     ),
                 ),
+                sats = "ordinær",
             ),
             Beregningsperiode(
                 periode = BrevPeriode(fraOgMed = "desember 2020", tilOgMed = "desember 2020"),
@@ -261,6 +266,7 @@ internal class LagBrevinnholdForBeregningTest {
                         false,
                     ),
                 ),
+                sats = "ordinær",
             ),
             Beregningsperiode(
                 periode = BrevPeriode(fraOgMed = "januar 2021", tilOgMed = "april 2021"),
@@ -290,6 +296,7 @@ internal class LagBrevinnholdForBeregningTest {
                         false,
                     ),
                 ),
+                sats = "ordinær",
             ),
         )
     }
@@ -339,6 +346,7 @@ internal class LagBrevinnholdForBeregningTest {
                     false,
                 ),
             ),
+            sats = "høy",
         )
 
         //language=json
@@ -388,7 +396,8 @@ internal class LagBrevinnholdForBeregningTest {
                   ],
                   "harFradragMedSumSomErLavereEnnFribeløp": false
                 }
-            }
+            },
+            "sats": "høy"
           }
         """.trimIndent()
 
@@ -443,6 +452,7 @@ internal class LagBrevinnholdForBeregningTest {
                         true,
                     ),
                 ),
+                sats = "ordinær",
             ),
         )
     }
@@ -531,6 +541,7 @@ internal class LagBrevinnholdForBeregningTest {
                         false,
                     ),
                 ),
+                sats = "ordinær",
             ),
         )
     }
