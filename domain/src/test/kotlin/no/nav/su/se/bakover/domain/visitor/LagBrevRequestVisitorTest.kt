@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.behandling.satsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -36,7 +35,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.AvslagBrevRequest
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest.InnvilgetVedtak
+import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -44,7 +43,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEP
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
-import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
@@ -181,6 +179,7 @@ internal class LagBrevRequestVisitorTest {
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
                     saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                    satsoversikt = satsoversikt2021Enslig,
                 ).right()
 
                 it.brevRequest.map { brevRequest ->
@@ -255,6 +254,7 @@ internal class LagBrevRequestVisitorTest {
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
                     saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                    satsoversikt = satsoversikt2021Enslig,
                 ).right()
 
                 it.brevRequest.map { brevRequest ->
@@ -280,10 +280,9 @@ internal class LagBrevRequestVisitorTest {
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe InnvilgetVedtak(
+                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
                         beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
-                        satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
                         harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
                         saksbehandlerNavn = "-",
                         attestantNavn = "-",
@@ -291,6 +290,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                        satsoversikt = satsoversikt2021Enslig,
                     ).right()
                 }
             }
@@ -336,6 +336,7 @@ internal class LagBrevRequestVisitorTest {
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
                     saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                    satsoversikt = satsoversikt2021Enslig,
                 ).right()
             }
         }
@@ -354,10 +355,9 @@ internal class LagBrevRequestVisitorTest {
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe InnvilgetVedtak(
+                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
                         beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
-                        satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
                         harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
                         saksbehandlerNavn = "-",
                         attestantNavn = "-",
@@ -365,6 +365,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                        satsoversikt = satsoversikt2021Enslig,
                     ).right()
 
                     it.brevRequest.map { brevRequest ->
@@ -407,6 +408,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                        satsoversikt = satsoversikt2021Enslig,
                     ).right()
                 }
             }
@@ -456,6 +458,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                        satsoversikt = satsoversikt2021Enslig,
                     ).right()
                 }
             }
@@ -476,10 +479,9 @@ internal class LagBrevRequestVisitorTest {
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe InnvilgetVedtak(
+                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
                         beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
-                        satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
                         harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = "-",
@@ -487,6 +489,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                        satsoversikt = satsoversikt2021Enslig,
                     ).right()
                 }
             }
@@ -530,6 +533,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                        satsoversikt = satsoversikt2021Enslig,
                     ).right()
                 }
             }
@@ -588,6 +592,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                        satsoversikt = satsoversikt2021Enslig,
                     ).right()
                 }
             }
@@ -616,10 +621,9 @@ internal class LagBrevRequestVisitorTest {
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe InnvilgetVedtak(
+                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
                         beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
-                        satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
                         harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
@@ -627,6 +631,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                        satsoversikt = satsoversikt2021Enslig,
                     ).right()
                 }
             }
@@ -665,6 +670,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                        satsoversikt = satsoversikt2021Enslig,
                     ).right()
                 }
             }
@@ -718,6 +724,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                        satsoversikt = satsoversikt2021Enslig,
                     ).right()
                 }
             }
@@ -739,10 +746,9 @@ internal class LagBrevRequestVisitorTest {
                     hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = fixedClock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe InnvilgetVedtak(
+                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
                         beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
-                        satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
                         harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
@@ -750,6 +756,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
+                        satsoversikt = satsoversikt2021Enslig,
                     ).right()
                 }
             }
@@ -784,10 +791,9 @@ internal class LagBrevRequestVisitorTest {
         ).apply { innvilgetVedtak.accept(this) }
 
         brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
-        brevSøknadsbehandling.brevRequest shouldBe InnvilgetVedtak(
+        brevSøknadsbehandling.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
             person = person,
             beregning = expectedInnvilgetBeregning(innvilgetVedtak.beregning.getId()),
-            satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
             harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEPS(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
@@ -795,6 +801,7 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
             saksnummer = søknadsbehandling.saksnummer,
+            satsoversikt = satsoversikt2021Enslig,
         ).right()
     }
 
@@ -854,6 +861,7 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
             saksnummer = søknadsbehandling.saksnummer,
+            satsoversikt = satsoversikt2021Enslig,
         ).right()
     }
 
@@ -902,6 +910,7 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
             saksnummer = søknadsbehandling.saksnummer,
+            satsoversikt = satsoversikt2021Enslig,
         ).right()
     }
 
@@ -984,6 +993,7 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
             saksnummer = søknadsbehandling.saksnummer,
+            satsoversikt = satsoversikt2021Enslig,
         ).right()
     }
 
@@ -1060,6 +1070,7 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
             saksnummer = revurdering.saksnummer,
+            satsoversikt = satsoversikt2021Enslig,
         ).right()
 
         brevRevurdering.brevRequest.map { brevRequest ->
@@ -1128,7 +1139,7 @@ internal class LagBrevRequestVisitorTest {
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
-            tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet
+            tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
         )
 
         val opphørsvedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
@@ -1161,6 +1172,7 @@ internal class LagBrevRequestVisitorTest {
             saksnummer = revurdering.saksnummer,
             opphørsdato = revurdering.periode.fraOgMed,
             avkortingsBeløp = null,
+            satsoversikt = satsoversikt2021Enslig,
         ).right()
 
         brevRevurdering.brevRequest.map { brevRequest ->
@@ -1207,6 +1219,7 @@ internal class LagBrevRequestVisitorTest {
             saksnummer = revurdering.saksnummer,
             opphørsdato = revurdering.periode.fraOgMed,
             avkortingsBeløp = null,
+            satsoversikt = satsoversikt2021Enslig,
         ).right()
     }
 
@@ -1251,11 +1264,11 @@ internal class LagBrevRequestVisitorTest {
                         eksisterendeUtbetalinger = sak.utbetalinger,
                     )
                 },
-                false
+                false,
             ).getOrFail()
         }.ikkeSendForhåndsvarsel().getOrFail()
             .oppdaterTilbakekrevingsbehandling(
-                tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling
+                tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
             )
             .tilAttestering(
                 attesteringsoppgaveId = oppgaveIdRevurdering,
@@ -1299,6 +1312,7 @@ internal class LagBrevRequestVisitorTest {
             saksnummer = revurdering.saksnummer,
             opphørsdato = revurdering.periode.fraOgMed,
             avkortingsBeløp = null,
+            satsoversikt = satsoversikt2021Enslig,
         ).right()
     }
 
@@ -1376,6 +1390,7 @@ internal class LagBrevRequestVisitorTest {
                 gjeldendeMånedsutbetaling = 120,
                 dagensDato = fixedLocalDate,
                 saksnummer = revurdering.saksnummer,
+                satsoversikt = satsoversikt2021Enslig,
             )
 
             it.brevInnhold should beOfType<BrevInnhold.VedtakIngenEndring>()
@@ -1430,8 +1445,8 @@ internal class LagBrevRequestVisitorTest {
                 Beregningsperiode(
                     periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     strategy = BeregningStrategy.BorAlene,
-                )
-            )
+                ),
+            ),
         )
     }
 
@@ -1459,8 +1474,8 @@ internal class LagBrevRequestVisitorTest {
                 Beregningsperiode(
                     periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     strategy = BeregningStrategy.BorAlene,
-                )
-            )
+                ),
+            ),
         )
     }
 
@@ -1470,6 +1485,25 @@ internal class LagBrevRequestVisitorTest {
         datoBeregnet = 1.januar(2021),
         nettoBeløp = 0,
         periodeList = listOf(),
+    )
+
+    private val satsoversikt2021Enslig = Satsoversikt(
+        perioder = listOf(
+            Satsoversikt.Satsperiode(
+                fraOgMed = "01.01.2021",
+                tilOgMed = "30.04.2021",
+                sats = "høy",
+                satsBeløp = 20946,
+                satsGrunn = "ENSLIG",
+            ),
+            Satsoversikt.Satsperiode(
+                fraOgMed = "01.05.2021",
+                tilOgMed = "31.12.2021",
+                sats = "høy",
+                satsBeløp = 21989,
+                satsGrunn = "ENSLIG",
+            ),
+        ),
     )
 
     private val vilkårsvurdertInnvilget = søknadsbehandlingVilkårsvurdertInnvilget().second

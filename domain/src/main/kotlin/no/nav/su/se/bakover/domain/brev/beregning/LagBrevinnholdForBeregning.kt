@@ -21,7 +21,8 @@ data class LagBrevinnholdForBeregning(
                 fradrag = Fradrag(
                     bruker = BrukerFradragBenyttetIBeregningsperiode(beregningsperiode.getFradrag()).fradrag,
                     eps = finnFradragForEps(beregningsperiode)
-                )
+                ),
+                sats = beregningsperiode.getSats().toString().lowercase()
             )
         }
 
