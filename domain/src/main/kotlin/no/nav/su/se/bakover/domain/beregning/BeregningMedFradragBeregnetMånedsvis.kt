@@ -10,7 +10,6 @@ data class BeregningMedFradragBeregnetMånedsvis(
     private val id: UUID = UUID.randomUUID(),
     private val opprettet: Tidspunkt,
     override val periode: Periode,
-    private val sats: Sats,
     private val fradrag: List<Fradrag>,
     private val begrunnelse: String?,
     private val sumYtelse: Int,
@@ -29,8 +28,6 @@ data class BeregningMedFradragBeregnetMånedsvis(
     override fun getSumYtelse(): Int = sumYtelse
 
     override fun getSumFradrag(): Double = sumFradrag
-
-    override fun getSats(): Sats = sats
 
     override fun getMånedsberegninger(): List<Månedsberegning> = månedsberegninger
 

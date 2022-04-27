@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -58,7 +57,6 @@ internal class UtbetalingsstrategiNyTest {
     private object BeregningMedTomMånedsbereninger : Beregning {
         override fun getId(): UUID = mock()
         override fun getOpprettet(): Tidspunkt = mock()
-        override fun getSats(): Sats = Sats.HØY
         override fun getMånedsberegninger(): List<Månedsberegning> = emptyList()
         override fun getFradrag(): List<Fradrag> = emptyList()
         override fun getSumYtelse(): Int = 1000

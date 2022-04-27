@@ -11,7 +11,6 @@ internal data class BeregningJson(
     val opprettet: String,
     val fraOgMed: String,
     val tilOgMed: String,
-    val sats: String,
     val månedsberegninger: List<MånedsberegningJson> = emptyList(),
     val fradrag: List<FradragJson> = emptyList(),
     val begrunnelse: String?
@@ -28,7 +27,6 @@ internal fun Beregning.toJson(): BeregningJson {
         opprettet = getOpprettet().toString(),
         fraOgMed = periode.fraOgMed.format(DateTimeFormatter.ISO_DATE),
         tilOgMed = periode.tilOgMed.format(DateTimeFormatter.ISO_DATE),
-        sats = getSats().name,
         månedsberegninger = getMånedsberegninger().map {
             it.toJson(
                 it.getFribeløpForEps(),

@@ -149,7 +149,6 @@ class BeregningFactory(val clock: Clock) {
             id = id,
             opprettet = opprettet,
             periode = beregningsperioder.map { it.periode() }.minsteAntallSammenhengendePerioder().single(),
-            sats = beregningsperioder.first().sats(),
             fradrag = fradrag,
             begrunnelse = begrunnelse,
             sumYtelse = månedsperiodeTilMånedsberegning.values

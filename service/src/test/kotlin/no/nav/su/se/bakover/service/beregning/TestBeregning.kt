@@ -21,7 +21,6 @@ internal object TestBeregning : Beregning {
     private val tidspunkt = fixedTidspunkt
     override fun getId(): UUID = id
     override fun getOpprettet(): Tidspunkt = tidspunkt
-    override fun getSats(): Sats = Sats.HØY
     override fun getMånedsberegninger(): List<Månedsberegning> = listOf(TestMånedsberegning)
     override fun getFradrag(): List<Fradrag> = listOf(TestFradrag)
     override fun getSumYtelse(): Int = 8637

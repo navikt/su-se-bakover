@@ -14,8 +14,6 @@ import java.util.UUID
 interface Beregning : PeriodisertInformasjon {
     fun getId(): UUID
     fun getOpprettet(): Tidspunkt
-    // TODO("flere_satser dette gir ikke mening da samme beregning kan ha brukt forskjellige satser for forskjellige perioder")
-    fun getSats(): Sats
     fun getMånedsberegninger(): List<Månedsberegning>
     fun getFradrag(): List<Fradrag>
     fun getSumYtelse(): Int
@@ -29,9 +27,6 @@ interface Beregning : PeriodisertInformasjon {
     fun equals(other: Beregning?): Boolean {
         if (this === other) return true
         if (other == null) return false
-
-        if (getSats() != other.getSats()) return false
-        if (getMånedsberegninger() != other.getMånedsberegninger()) return false
         if (getMånedsberegninger() != other.getMånedsberegninger()) return false
         if (getFradrag() != other.getFradrag()) return false
         if (getSumYtelse() != other.getSumYtelse()) return false
