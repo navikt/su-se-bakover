@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain
 
-import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
+import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
@@ -21,10 +21,6 @@ object VedtakInnholdTestdataBuilder {
         ),
         fradato = "01.01.2020",
         tildato = "01.01.2020",
-        sats = "100",
-        satsGrunn = Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN,
-        satsBeløp = 100,
-        satsGjeldendeFraDato = "01.05.2020",
         forventetInntektStørreEnn0 = true,
         harEktefelle = true,
         beregningsperioder = listOf(
@@ -39,5 +35,16 @@ object VedtakInnholdTestdataBuilder {
         saksbehandlerNavn = "Nei Josbø",
         attestantNavn = "Morge R. R. Gartin",
         fritekst = "Dette er fritekst",
+        satsoversikt = Satsoversikt(
+            perioder = listOf(
+                Satsoversikt.Satsperiode(
+                    fraOgMed = "01.01.2020",
+                    tilOgMed = "31.01.2020",
+                    sats = "høy",
+                    satsBeløp = 1000,
+                    satsGrunn = "ENSLIG",
+                ),
+            ),
+        ),
     )
 }
