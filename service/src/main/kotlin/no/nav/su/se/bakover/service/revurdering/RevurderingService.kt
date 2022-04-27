@@ -493,11 +493,11 @@ data class LeggTilBosituasjonerRequest(
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, List<Grunnlag.Bosituasjon.Fullstendig>> {
         return bosituasjoner.map {
-                it.toDomain(
-                    clock = clock,
-                    hentPerson = hentPerson,
-                )
-            }.sequence()
+            it.toDomain(
+                clock = clock,
+                hentPerson = hentPerson,
+            )
+        }.sequence()
     }
 }
 

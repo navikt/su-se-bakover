@@ -84,7 +84,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
         stønadsperiode.periode,
     ),
-    clock: Clock = fixedClock,
+    clock: Clock = TikkendeKlokke(),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Regulering.OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
@@ -97,7 +97,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         avkorting = avkorting,
     )
     val sak = sakOgVedtak.first
-    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, fixedClock).getOrFail()
+    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock).getOrFail()
 
     return Pair(
         sak.copy(
