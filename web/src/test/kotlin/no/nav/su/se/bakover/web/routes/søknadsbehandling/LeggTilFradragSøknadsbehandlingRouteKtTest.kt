@@ -3,10 +3,11 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.http.HttpMethod
-import io.ktor.server.server.testing.setBody
-import io.ktor.server.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -54,11 +55,10 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        testApplication(
-            {
+        testApplication{
+            application {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/grunnlag/fradrag",
@@ -102,11 +102,10 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        testApplication(
-            {
+        testApplication{
+            application {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/grunnlag/fradrag",
@@ -115,7 +114,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
                 setBody(bodyFradragUtenPeriode)
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
-                body<String>()Contain ("ugyldig_body")
+                bodyAsText() shouldContain "ugyldig_body"
             }
         }
     }
@@ -152,11 +151,10 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        testApplication(
-            {
+        testApplication{
+            application {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/grunnlag/fradrag",
@@ -165,7 +163,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
                 setBody(bodyMedUgyldigFradrag)
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
-                body<String>()Contain ("ugyldig_fradragstype")
+                bodyAsText() shouldContain "ugyldig_fradragstype"
             }
         }
     }
@@ -202,11 +200,10 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        testApplication(
-            {
+        testApplication{
+            application {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/grunnlag/fradrag",
@@ -215,7 +212,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
                 setBody(bodyMedUgyldigFradrag)
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
-                body<String>()Contain ("ugyldig_fradragstype")
+                bodyAsText() shouldContain "ugyldig_fradragstype"
             }
         }
     }
@@ -252,11 +249,10 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        testApplication(
-            {
+        testApplication{
+            application {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/grunnlag/fradrag",
@@ -265,7 +261,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
                 setBody(bodyMedUgyldigFradrag)
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
-                body<String>()Contain ("ugyldig_fradragstype")
+                bodyAsText() shouldContain "ugyldig_fradragstype"
             }
         }
     }
@@ -302,11 +298,10 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        testApplication(
-            {
+        testApplication{
+            application {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/grunnlag/fradrag",
@@ -315,7 +310,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
                 setBody(bodyMedUgyldigFradrag)
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
-                body<String>()Contain ("ugyldig_fradragstype")
+                bodyAsText() shouldContain "ugyldig_fradragstype"
             }
         }
     }

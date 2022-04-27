@@ -3,12 +3,13 @@ package no.nav.su.se.bakover.web.routes.klage
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.http.HttpMethod
-import io.ktor.server.server.testing.contentType
-import io.ktor.server.server.testing.setBody
-import io.ktor.server.server.testing.withTestApplication
+import io.ktor.http.contentType
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -40,18 +41,17 @@ internal class VurderKlageTest {
 
     @Test
     fun `ingen tilgang gir unauthorized`() {
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 uri,
                 emptyList(),
             ).apply {
                 status shouldBe HttpStatusCode.Unauthorized
-                body<String>()Be null
+                bodyAsText() shouldBe null
             }
         }
     }
@@ -63,18 +63,17 @@ internal class VurderKlageTest {
             listOf(Brukerrolle.Attestant),
             listOf(Brukerrolle.Drift),
         ).forEach {
-            testApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover()
-                },
-            ) {
+                }
                 defaultRequest(
                     HttpMethod.Post,
                     uri,
                     it,
                 ).apply {
                     status shouldBe HttpStatusCode.Forbidden
-                    body<String>()Be "{\"message\":\"Bruker mangler en av de tillatte rollene: Saksbehandler.\"}"
+                    bodyAsText() shouldBe "{\"message\":\"Bruker mangler en av de tillatte rollene: Saksbehandler.\"}"
                 }
             }
         }
@@ -142,21 +141,21 @@ internal class VurderKlageTest {
         val klageServiceMock = mock<KlageService> {
             on { vurder(any()) } doReturn feilkode.left()
         }
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = TestServicesBuilder.services()
                         .copy(klageService = klageServiceMock),
                 )
-            },
-        ) {
+            }
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)) {
                 setBody(validBody)
+            }.apply {
+                this.status shouldBe status
+                this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                bodyAsText() shouldBe body
             }
-        }.apply {
-            status shouldBe status
-            response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-            body<String>()Be body
+
         }
     }
 
@@ -166,23 +165,21 @@ internal class VurderKlageTest {
         val klageServiceMock = mock<KlageService> {
             on { vurder(any()) } doReturn påbegyntVurdertKlage.right()
         }
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = TestServicesBuilder.services()
                         .copy(klageService = klageServiceMock),
                 )
-            },
-        ) {
+            }
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)) {
                 setBody(validBody)
-            }
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-            response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-            JSONAssert.assertEquals(
-                //language=JSON
-                """
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                JSONAssert.assertEquals(
+                    //language=JSON
+                    """
                 {
                   "id":"${påbegyntVurdertKlage.id}",
                   "sakid":"${påbegyntVurdertKlage.sakId}",
@@ -203,9 +200,11 @@ internal class VurderKlageTest {
                   "avsluttet": "KAN_AVSLUTTES"
                 }
                 """.trimIndent(),
-                response.content,
-                true,
-            )
+                    bodyAsText(),
+                    true,
+                )
+            }
+
         }
     }
 }

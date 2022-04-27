@@ -1,15 +1,9 @@
 package no.nav.su.se.bakover.web.søknadsbehandling.flyktning
 
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.headers
-import io.ktor.client.request.request
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
-import no.nav.su.se.bakover.web.stubs.asBearerToken
 
 /**
 - [resultat] se [no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning.Status]
@@ -22,7 +16,6 @@ internal suspend fun ApplicationTestBuilder.leggTilFlyktningstatus(
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
 ): String {
 
-    
     return this.defaultRequest(
         method = HttpMethod.Patch,
         uri = "/saker/$sakId/behandlinger/$behandlingId/informasjon",

@@ -4,9 +4,10 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.http.HttpMethod
-import io.ktor.server.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -50,11 +51,10 @@ internal class IverksettRevurderingRouteKtTest {
 
     @Test
     fun `uautoriserte kan ikke iverksette revurdering`() {
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/iverksett",
@@ -67,7 +67,7 @@ internal class IverksettRevurderingRouteKtTest {
                         "message":"Bruker mangler en av de tillatte rollene: Attestant."
                     }
                     """.trimIndent(),
-                    response.content,
+                    bodyAsText(),
                     true,
                 )
             }
@@ -110,18 +110,17 @@ internal class IverksettRevurderingRouteKtTest {
             on { iverksett(any(), any()) } doReturn iverksattRevurdering.right()
         }
 
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/${iverksattRevurdering.id}/iverksett",
                 listOf(Brukerrolle.Attestant),
             ).apply {
                 status shouldBe HttpStatusCode.OK
-                val actualResponse = objectMapper.readValue<IverksattRevurderingJson>(response.content!!)
+                val actualResponse = objectMapper.readValue<IverksattRevurderingJson>(bodyAsText())
                 actualResponse.id shouldBe iverksattRevurdering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.IVERKSATT_INNVILGET
             }
@@ -210,22 +209,17 @@ internal class IverksettRevurderingRouteKtTest {
             on { iverksett(any(), any()) } doReturn error.left()
         }
 
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/iverksett",
                 listOf(Brukerrolle.Attestant),
             ).apply {
                 status shouldBe expectedStatusCode
-                JSONAssert.assertEquals(
-                    expectedJsonResponse,
-                    response.content,
-                    true,
-                )
+                JSONAssert.assertEquals(expectedJsonResponse, bodyAsText(), true)
             }
         }
     }

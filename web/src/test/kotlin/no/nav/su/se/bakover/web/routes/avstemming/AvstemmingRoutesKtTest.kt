@@ -159,7 +159,7 @@ internal class AvstemmingRoutesKtTest {
 
             listOf(
                 "/avstemming/grensesnitt?fraOgMed=2020-11-11&tilOgMed=${
-                    fixedLocalDate.plusDays(1).format(DateTimeFormatter.ISO_DATE)
+                fixedLocalDate.plusDays(1).format(DateTimeFormatter.ISO_DATE)
                 }",
             ).forEach {
                 defaultRequest(

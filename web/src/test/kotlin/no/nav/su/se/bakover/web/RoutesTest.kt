@@ -5,6 +5,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.header
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.client.utils.EmptyContent
 import io.ktor.client.utils.EmptyContent.headers
 import io.ktor.client.utils.EmptyContent.status
 import io.ktor.http.ContentType
@@ -16,7 +18,6 @@ import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
-import kotlinx.serialization.json.JsonNull.content
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
@@ -98,12 +99,12 @@ class RoutesTest {
             }
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"${Fnr.generer()}"}""")
+            }.apply {
+                EmptyContent.status shouldBe InternalServerError
+                JSONAssert.assertEquals("""{"message":"Ukjent feil"}""", this.bodyAsText(), true)
             }
-        }.apply {
-            status shouldBe InternalServerError
-            JSONAssert.assertEquals("""{"message":"Ukjent feil"}""", content, true)
-        }
-    }
+
+        }    }
 
     @Test
     fun `should use content-type application-json by default`() {

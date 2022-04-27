@@ -24,8 +24,8 @@ internal class SuUserPluginTest {
                 navIdent = "navidenten",
             ).apply {
                 fail("sjekk på suUserContext")
-                //this.suUserContext.navIdent shouldBe "navidenten"
-                //this.suUserContext.grupper shouldBe listOf(applicationConfig.azure.groups.veileder)
+                // this.suUserContext.navIdent shouldBe "navidenten"
+                // this.suUserContext.grupper shouldBe listOf(applicationConfig.azure.groups.veileder)
             }
         }
     }

@@ -4,10 +4,11 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.http.HttpMethod
-import io.ktor.server.server.testing.setBody
-import io.ktor.server.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
@@ -46,11 +47,11 @@ internal class LeggTilFormueRevurderingRouteKtTest {
     @Test
     fun `ikke tillatte roller`() {
         Brukerrolle.values().filterNot { it == Brukerrolle.Saksbehandler }.forEach { rolle ->
-            testApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover()
-                },
-            ) {
+                }
+
                 defaultRequest(
                     HttpMethod.Post,
                     "${RevurderingRoutesTestData.requestPath}/$revurderingId/formuegrunnlag",
@@ -65,7 +66,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
                                 "message":"Bruker mangler en av de tillatte rollene: Saksbehandler."
                             }
                         """.trimIndent(),
-                        response.content,
+                        bodyAsText(),
                         true,
                     )
                 }
@@ -175,11 +176,10 @@ internal class LeggTilFormueRevurderingRouteKtTest {
             on { leggTilFormuegrunnlag(any()) } doReturn error.left()
         }
 
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "${RevurderingRoutesTestData.requestPath}/$revurderingId/formuegrunnlag",
@@ -190,7 +190,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
                 status shouldBe expectStatusCode
                 JSONAssert.assertEquals(
                     expectErrorJson,
-                    response.content,
+                    bodyAsText(),
                     true,
                 )
             }
@@ -206,11 +206,10 @@ internal class LeggTilFormueRevurderingRouteKtTest {
             ).right()
         }
 
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "${RevurderingRoutesTestData.requestPath}/$revurderingId/formuegrunnlag",
@@ -219,9 +218,9 @@ internal class LeggTilFormueRevurderingRouteKtTest {
                 setBody(validBody)
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                response.headers.values("Content-Type") shouldBe listOf("application/json; charset=UTF-8")
-                response.headers.values("X-Correlation-ID") shouldBe listOf("her skulle vi sikkert hatt en korrelasjonsid")
-                body<String>()Contain opprettetRevurdering.id.toString()
+                this.headers["Content-Type"] shouldBe "application/json; charset=UTF-8"
+                this.headers["X-Correlation-ID"] shouldBe "her skulle vi sikkert hatt en korrelasjonsid"
+                bodyAsText() shouldContain opprettetRevurdering.id.toString()
             }
         }
     }

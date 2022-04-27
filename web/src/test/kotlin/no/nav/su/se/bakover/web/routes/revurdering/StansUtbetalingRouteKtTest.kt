@@ -4,10 +4,11 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.http.HttpMethod
-import io.ktor.server.server.testing.setBody
-import io.ktor.server.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -41,15 +42,14 @@ internal class StansUtbetalingRouteKtTest {
         val revurderingServiceMock = mock<RevurderingService> {
             on { stansAvYtelse(any()) } doReturn enRevurdering.right()
         }
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = mockServices.copy(
                         revurdering = revurderingServiceMock,
                     ),
                 )
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "saker/${enRevurdering.sakId}/revurderinger/stans",
@@ -79,22 +79,21 @@ internal class StansUtbetalingRouteKtTest {
                 enRevurdering::class,
             ).left()
         }
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = mockServices.copy(
                         revurdering = revurderingServiceMock,
                     ),
                 )
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "saker/${enRevurdering.sakId}/revurderinger/stans/${enRevurdering.id}/iverksett",
                 listOf(Brukerrolle.Attestant),
             ).apply {
                 status shouldBe HttpStatusCode.BadRequest
-                body<String>()Contain "kunne_ikke_iverksette_stans_ugyldig_tilstand"
+                bodyAsText() shouldContain "kunne_ikke_iverksette_stans_ugyldig_tilstand"
             }
         }
     }
@@ -107,22 +106,21 @@ internal class StansUtbetalingRouteKtTest {
                 UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil),
             ).left()
         }
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = mockServices.copy(
                         revurdering = revurderingServiceMock,
                     ),
                 )
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "saker/${enRevurdering.sakId}/revurderinger/stans/${enRevurdering.id}/iverksett",
                 listOf(Brukerrolle.Attestant),
             ).apply {
                 status shouldBe HttpStatusCode.InternalServerError
-                body<String>()Contain "kunne_ikke_utbetale"
+                bodyAsText() shouldContain "kunne_ikke_utbetale"
             }
         }
     }
@@ -139,15 +137,14 @@ internal class StansUtbetalingRouteKtTest {
                 ).right()
             }.whenever(mock).stansAvYtelse(any())
         }
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = mockServices.copy(
                         revurdering = revurderingServiceMock,
                     ),
                 )
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Patch,
                 "saker/${eksisterende.sakId}/revurderinger/stans/${eksisterende.id}",
@@ -165,8 +162,8 @@ internal class StansUtbetalingRouteKtTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                body<String>()Contain "2021-01-01"
-                body<String>()Contain "kebabeluba"
+                bodyAsText() shouldContain "2021-01-01"
+                bodyAsText() shouldContain "kebabeluba"
             }
         }
     }
@@ -177,15 +174,14 @@ internal class StansUtbetalingRouteKtTest {
         val revurderingServiceMock = mock<RevurderingService> {
             on { stansAvYtelse(any()) } doReturn enRevurdering.right()
         }
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = mockServices.copy(
                         revurdering = revurderingServiceMock,
                     ),
                 )
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "saker/${enRevurdering.sakId}/revurderinger/stans",
@@ -203,7 +199,7 @@ internal class StansUtbetalingRouteKtTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
-                body<String>()Contain """"code":"revurderingsårsak_ugyldig_begrunnelse""""
+                bodyAsText() shouldContain """"code":"revurderingsårsak_ugyldig_begrunnelse""""
             }
         }
     }
@@ -217,15 +213,14 @@ internal class StansUtbetalingRouteKtTest {
                 ),
             ).left()
         }
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = mockServices.copy(
                         revurdering = revurderingServiceMock,
                     ),
                 )
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "saker/${UUID.randomUUID()}/revurderinger/stans",
@@ -243,7 +238,7 @@ internal class StansUtbetalingRouteKtTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.InternalServerError
-                body<String>()Contain """"code":"simulering_feilet_oppdraget_finnes_ikke""""
+                bodyAsText() shouldContain """"code":"simulering_feilet_oppdraget_finnes_ikke""""
             }
         }
     }

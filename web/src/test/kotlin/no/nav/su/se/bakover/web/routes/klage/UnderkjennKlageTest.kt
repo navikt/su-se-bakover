@@ -3,12 +3,13 @@ package no.nav.su.se.bakover.web.routes.klage
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.http.HttpMethod
-import io.ktor.server.server.testing.contentType
-import io.ktor.server.server.testing.setBody
-import io.ktor.server.server.testing.withTestApplication
+import io.ktor.http.contentType
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -41,18 +42,17 @@ internal class UnderkjennKlageTest {
 
     @Test
     fun `ingen tilgang gir unauthorized`() {
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 uri,
                 emptyList(),
             ).apply {
                 status shouldBe HttpStatusCode.Unauthorized
-                body<String>()Be null
+                bodyAsText() shouldBe null
             }
         }
     }
@@ -64,18 +64,17 @@ internal class UnderkjennKlageTest {
             listOf(Brukerrolle.Saksbehandler),
             listOf(Brukerrolle.Drift),
         ).forEach {
-            testApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover()
-                },
-            ) {
+                }
                 defaultRequest(
                     HttpMethod.Post,
                     uri,
                     it,
                 ).apply {
                     status shouldBe HttpStatusCode.Forbidden
-                    body<String>()Be "{\"message\":\"Bruker mangler en av de tillatte rollene: Attestant.\"}"
+                    bodyAsText() shouldBe "{\"message\":\"Bruker mangler en av de tillatte rollene: Attestant.\"}"
                 }
             }
         }
@@ -83,11 +82,10 @@ internal class UnderkjennKlageTest {
 
     @Test
     fun `ugyldig underkjennelsesgrunn`() {
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 uri,
@@ -96,7 +94,7 @@ internal class UnderkjennKlageTest {
                 setBody("""{"grunn": "UGYLDIG_GRUNN", "kommentar": "Ingen kommentar."}""")
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
-                body<String>()Be "{\"message\":\"Ugyldig underkjennelsesgrunn\",\"code\":\"ugyldig_grunn_for_underkjenning\"}"
+                bodyAsText() shouldBe "{\"message\":\"Ugyldig underkjennelsesgrunn\",\"code\":\"ugyldig_grunn_for_underkjenning\"}"
             }
         }
     }
@@ -127,21 +125,21 @@ internal class UnderkjennKlageTest {
         val klageServiceMock = mock<KlageService> {
             on { underkjenn(any()) } doReturn feilkode.left()
         }
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = TestServicesBuilder.services()
                         .copy(klageService = klageServiceMock),
                 )
-            },
-        ) {
+            }
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Attestant)) {
                 setBody(validBody)
+            }.apply {
+                status shouldBe status
+                this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                bodyAsText() shouldBe body
             }
-        }.apply {
-            status shouldBe status
-            response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-            body<String>()Be body
+
         }
     }
 
@@ -151,23 +149,21 @@ internal class UnderkjennKlageTest {
         val klageServiceMock = mock<KlageService> {
             on { underkjenn(any()) } doReturn underkjentKlage.right()
         }
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = TestServicesBuilder.services()
                         .copy(klageService = klageServiceMock),
                 )
-            },
-        ) {
+            }
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Attestant)) {
                 setBody(validBody)
-            }
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-            response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-            JSONAssert.assertEquals(
-                //language=JSON
-                """
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                JSONAssert.assertEquals(
+                    //language=JSON
+                    """
                 {
                   "id":"${underkjentKlage.id}",
                   "sakid":"${underkjentKlage.sakId}",
@@ -206,9 +202,11 @@ internal class UnderkjennKlageTest {
                   "avsluttet": "KAN_AVSLUTTES"
                 }
                 """.trimIndent(),
-                response.content,
-                true,
-            )
+                    bodyAsText(),
+                    true,
+                )
+            }
+
         }
     }
 }

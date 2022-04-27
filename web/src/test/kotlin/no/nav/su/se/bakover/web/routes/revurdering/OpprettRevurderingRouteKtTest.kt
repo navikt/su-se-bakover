@@ -4,10 +4,11 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.http.HttpMethod
-import io.ktor.server.server.testing.setBody
-import io.ktor.server.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -50,11 +51,10 @@ internal class OpprettRevurderingRouteKtTest {
 
     @Test
     fun `uautoriserte kan ikke opprette revurdering`() {
-        testApplication(
-            {
+        testApplication{
+            application {
                 testSusebakover()
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 requestPath,
@@ -69,7 +69,7 @@ internal class OpprettRevurderingRouteKtTest {
                         "message":"Bruker mangler en av de tillatte rollene: Saksbehandler."
                     }
                     """.trimIndent(),
-                    response.content,
+                    bodyAsText(),
                     true,
                 )
             }
@@ -101,11 +101,10 @@ internal class OpprettRevurderingRouteKtTest {
             on { opprettRevurdering(any()) } doReturn opprettetRevurdering.right()
         }
 
-        testApplication(
-            {
+        testApplication{
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 requestPath,
@@ -123,7 +122,7 @@ internal class OpprettRevurderingRouteKtTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.Created
-                val actualResponse = objectMapper.readValue<OpprettetRevurderingJson>(response.content!!)
+                val actualResponse = objectMapper.readValue<OpprettetRevurderingJson>(bodyAsText())
                 actualResponse.id shouldBe opprettetRevurdering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.OPPRETTET
             }
@@ -227,11 +226,10 @@ internal class OpprettRevurderingRouteKtTest {
             on { opprettRevurdering(any()) } doReturn error.left()
         }
 
-        testApplication(
-            {
+        testApplication{
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 requestPath,
@@ -242,7 +240,7 @@ internal class OpprettRevurderingRouteKtTest {
                 status shouldBe expectedStatusCode
                 JSONAssert.assertEquals(
                     expectedJsonResponse,
-                    response.content,
+                    bodyAsText(),
                     true,
                 )
             }

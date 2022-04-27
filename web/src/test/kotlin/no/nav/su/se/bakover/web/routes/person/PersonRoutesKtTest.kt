@@ -3,15 +3,16 @@ package no.nav.su.se.bakover.web.routes.person
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.http.HttpMethod
-import io.ktor.server.http.HttpMethod.Companion.Post
-import io.ktor.server.server.testing.handleRequest
-import io.ktor.server.server.testing.setBody
-import io.ktor.server.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
@@ -39,43 +40,48 @@ internal class PersonRoutesKtTest {
 
     private val services = TestServicesBuilder.services()
 
+    fun lol() {
+        return
+    }
+
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
-            handleRequest(HttpMethod.Post, "$personPath/søk") {
-                setBody("""{"fnr":"$testIdent"}""")
             }
-        }.apply {
-            status shouldBe HttpStatusCode.Unauthorized
+
+            client.post("$personPath/søk") {
+                setBody("""{"fnr":"$testIdent"}""")
+            }.apply {
+                status shouldBe HttpStatusCode.Unauthorized
+            }
+
         }
     }
 
     @Test
     fun `bad request ved ugyldig fnr`() {
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
+            }
             defaultRequest(HttpMethod.Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"qwertyuiopå"}""")
-            }
-        }.apply {
-            status shouldBe HttpStatusCode.BadRequest
-            JSONAssert.assertEquals(
-                """
+            }.apply {
+                status shouldBe HttpStatusCode.BadRequest
+                JSONAssert.assertEquals(
+                    """
                   {
                   "message": "Inneholder ikke et gyldig fødselsnummer",
                   "code": "ikke_gyldig_fødselsnummer"
                   }
                 """.trimIndent(),
-                response.content,
-                true,
-            )
+                    bodyAsText(),
+                    true,
+                )
+            }
+
         }
     }
 
@@ -130,17 +136,17 @@ internal class PersonRoutesKtTest {
                 }
             """.trimIndent()
 
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(accessCheckProxy = accessCheckProxyMock, clock = fixedClock)
-            },
-        ) {
+            }
             defaultRequest(HttpMethod.Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"$testIdent"}""")
+            }.apply {
+                status shouldBe OK
+                JSONAssert.assertEquals(expectedResponseJson, bodyAsText(), true)
             }
-        }.apply {
-            status shouldBe OK
-            JSONAssert.assertEquals(expectedResponseJson, response.content!!, true)
+
         }
     }
 
@@ -157,27 +163,26 @@ internal class PersonRoutesKtTest {
             },
         )
 
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(clients = clients)
-            },
-        ) {
+            }
             defaultRequest(HttpMethod.Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"$testIdent"}""")
-            }
-        }.apply {
-            status shouldBe HttpStatusCode.InternalServerError
-            response.content
-            JSONAssert.assertEquals(
-                """
+            }.apply {
+                status shouldBe HttpStatusCode.InternalServerError
+                JSONAssert.assertEquals(
+                    """
                   {
                   "message": "Feil ved oppslag på person",
                   "code": "feil_ved_oppslag_person"
                   }
                 """.trimIndent(),
-                response.content,
-                true,
-            )
+                    bodyAsText(),
+                    true,
+                )
+            }
+
         }
     }
 
@@ -194,11 +199,10 @@ internal class PersonRoutesKtTest {
             },
         )
 
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(clients = clients)
-            },
-        ) {
+            }
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody(
                     """
@@ -207,19 +211,20 @@ internal class PersonRoutesKtTest {
                     }
                     """.trimIndent(),
                 )
-            }
-        }.apply {
-            status shouldBe NotFound
-            JSONAssert.assertEquals(
-                """
+            }.apply {
+                status shouldBe NotFound
+                JSONAssert.assertEquals(
+                    """
                   {
                   "message": "Fant ikke person",
                   "code": "fant_ikke_person"
                   }
                 """.trimIndent(),
-                response.content,
-                true,
-            )
+                    bodyAsText(),
+                    true,
+                )
+            }
+
         }
     }
 
@@ -236,13 +241,12 @@ internal class PersonRoutesKtTest {
             },
         )
 
-        testApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     clients = clients,
                 )
-            },
-        ) {
+            }
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody(
                     """
@@ -251,19 +255,19 @@ internal class PersonRoutesKtTest {
                         }
                     """.trimIndent(),
                 )
-            }
-        }.apply {
-            status shouldBe Forbidden
-            response.content
-            JSONAssert.assertEquals(
-                """
+            }.apply {
+                status shouldBe Forbidden
+                JSONAssert.assertEquals(
+                    """
                 {
                   "message": "Ikke tilgang til å se person",
                   "code": "ikke_tilgang_til_person"
                 }
                 """.trimIndent(),
-                response.content, true,
-            )
+                    bodyAsText(), true,
+                )
+            }
+
         }
     }
 }

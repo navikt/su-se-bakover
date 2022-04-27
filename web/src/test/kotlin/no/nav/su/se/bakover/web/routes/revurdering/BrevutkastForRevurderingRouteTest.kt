@@ -3,12 +3,14 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.readBytes
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.http.HttpMethod
-import io.ktor.server.server.testing.contentType
-import io.ktor.server.server.testing.setBody
-import io.ktor.server.server.testing.withTestApplication
+import io.ktor.http.contentType
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
@@ -29,13 +31,12 @@ internal class BrevutkastForRevurderingRouteTest {
 
     @Test
     fun `uautoriserte kan ikke lage brevutkast`() {
-        testApplication({
-            testSusebakover()
-        }) {
+        testApplication {
+            application { testSusebakover() }
             defaultRequest(
                 HttpMethod.Post,
                 "${RevurderingRoutesTestData.requestPath}/$revurderingId/brevutkast",
-                listOf(Brukerrolle.Veileder)
+                listOf(Brukerrolle.Veileder),
             ) {
                 setBody(validBody)
             }.apply {
@@ -46,8 +47,8 @@ internal class BrevutkastForRevurderingRouteTest {
                         "message":"Bruker mangler en av de tillatte rollene: Saksbehandler."
                     }
                     """.trimIndent(),
-                    response.content,
-                    true
+                    bodyAsText(),
+                    true,
                 )
             }
         }
@@ -64,19 +65,18 @@ internal class BrevutkastForRevurderingRouteTest {
             on { hentRevurdering(any()) } doReturn revurderingMock
         }
 
-        testApplication({
-            testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
-        }) {
+        testApplication {
+            application { testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock)) }
             defaultRequest(
                 HttpMethod.Post,
                 "${RevurderingRoutesTestData.requestPath}/$revurderingId/brevutkast",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                response.byteContent shouldBe pdfAsBytes
-                response.contentType() shouldBe ContentType.Application.Pdf
+                this.readBytes() shouldBe pdfAsBytes
+                this.contentType() shouldBe ContentType.Application.Pdf
             }
         }
     }
@@ -151,23 +151,24 @@ internal class BrevutkastForRevurderingRouteTest {
             on { hentRevurdering(any()) } doReturn mock()
         }
 
-        testApplication({
-            testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
-        }) {
+        testApplication {
+            application { testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock)) }
             defaultRequest(
                 HttpMethod.Post,
                 "${RevurderingRoutesTestData.requestPath}/$revurderingId/brevutkast",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)
             }.apply {
                 status shouldBe expectedStatusCode
                 JSONAssert.assertEquals(
                     expectedJsonResponse,
-                    response.content,
-                    true
+                    bodyAsText(),
+                    true,
                 )
             }
         }
     }
 }
+
+

@@ -57,5 +57,4 @@ internal fun ApplicationTestBuilder.leggTilLovligOppholdINorge(
         response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
     }.response.content!!
     */
-
 }

@@ -32,7 +32,7 @@ internal class AuthenticationTest {
 
     @Test
     fun `secure endpoint ok med gyldig token`() {
-        testApplication{
+        testApplication {
             application {
                 testSusebakover()
             }
