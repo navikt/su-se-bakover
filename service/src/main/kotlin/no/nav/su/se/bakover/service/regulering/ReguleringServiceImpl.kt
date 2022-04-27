@@ -93,7 +93,7 @@ class ReguleringServiceImpl(
 
             val regulering = sak.opprettEllerOppdaterRegulering(startDato, clock).getOrHandle { feil ->
                 // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
-                log.info("Regulering for saksnummer $saksnummer: Skippet. Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer")
+                log.info("Regulering for saksnummer $saksnummer: Skippet. Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Feil: $feil")
                 return@map KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil).left()
             }
 
@@ -145,33 +145,22 @@ class ReguleringServiceImpl(
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
         if (regulering.erFerdigstilt) return KunneIkkeRegulereManuelt.AlleredeFerdigstilt.left()
 
-        val sak = Either.catch {
-            sakRepo.hentSak(sakId = regulering.sakId) ?: return KunneIkkeRegulereManuelt.FantIkkeSak.left()
-                .also {
-                    log.error(
-                        "Regulering med id $reguleringId: Klarte ikke hente sak",
-                        RuntimeException("Inkluderer stacktrace"),
-                    )
-                }
-        }.getOrHandle {
-            log.error("Regulering med id $reguleringId: Klarte ikke hente sak", it)
-            return KunneIkkeRegulereManuelt.FantIkkeSak.left()
-        }
+        val sak = sakRepo.hentSak(sakId = regulering.sakId) ?: return KunneIkkeRegulereManuelt.FantIkkeSak.left()
 
         if (sak.vedtakstidslinje(regulering.periode).any { it.erStans() })
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
 
-        if (sak.vedtakstidslinje(regulering.periode).filter { !it.erGjenopptak() && it.originaltVedtak.opprettet.instant > regulering.opprettet.instant }.isNotEmpty())
-            return KunneIkkeRegulereManuelt.KanIkkeRegulereNårDetFinnesNyereVedtak.left()
+        val reguleringMedNyttGrunnlag = sak.opprettEllerOppdaterRegulering(regulering.periode.fraOgMed, clock)
+            .getOrHandle { throw RuntimeException() }
 
-        val oppdatertRegulering = (regulering as Regulering.OpprettetRegulering).leggTilFradrag(fradrag).let {
-            it.leggTilUføre(uføregrunnlag, clock).let {
-                it.leggTilSaksbehandler(saksbehandler)
+        return reguleringMedNyttGrunnlag
+            .leggTilFradrag(fradrag)
+            .leggTilUføre(uføregrunnlag, clock)
+            .leggTilSaksbehandler(saksbehandler)
+            .let {
+                ferdigstillOgIverksettRegulering(it)
+                    .mapLeft { feil -> KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = feil) }
             }
-        }
-
-        return ferdigstillOgIverksettRegulering(oppdatertRegulering)
-            .mapLeft { KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = it) }
     }
 
     private fun ferdigstillOgIverksettRegulering(regulering: Regulering.OpprettetRegulering): Either<KunneIkkeFerdigstilleOgIverksette, Regulering.IverksattRegulering> {

@@ -141,6 +141,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
+import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.StatistikkService
@@ -286,6 +287,14 @@ open class AccessCheckProxy(
                         .also {
                             it.map { sak -> assertHarTilgangTilSak(sak.id) }
                         }
+                }
+
+                override fun hentGjeldendeVedtaksdata(
+                    sakId: UUID,
+                    fraOgMed: LocalDate,
+                ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata?> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.sak.hentGjeldendeVedtaksdata(sakId, fraOgMed)
                 }
 
                 override fun hentSakidOgSaksnummer(fnr: Fnr) = kastKanKunKallesFraAnnenService()

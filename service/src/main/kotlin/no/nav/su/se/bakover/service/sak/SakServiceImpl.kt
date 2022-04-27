@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.sak
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -13,10 +14,12 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class SakServiceImpl(
@@ -36,6 +39,25 @@ internal class SakServiceImpl(
 
     override fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak> {
         return sakRepo.hentSak(saksnummer)?.right() ?: FantIkkeSak.left()
+    }
+
+    override fun hentGjeldendeVedtaksdata(
+        sakId: UUID,
+        fraOgMed: LocalDate,
+    ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata?> {
+        return hentSak(sakId)
+            .mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak }
+            .flatMap { sak ->
+                sak.kopierGjeldendeVedtaksdata(fraOgMed, clock).fold(
+                    ifLeft = {
+                        when (it) {
+                            is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> null.right()
+                            is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode.left()
+                        }
+                    },
+                    ifRight = { it.right() }
+                )
+            }
     }
 
     override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakIdSaksnummerFnr> {

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
@@ -23,6 +24,8 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.parameter
 import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
+import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.sak.BehandlingsoversiktJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
@@ -30,6 +33,7 @@ import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSakId
 import java.time.Clock
+import java.time.LocalDate
 
 internal const val sakPath = "/saker"
 
@@ -154,6 +158,40 @@ internal fun Route.sakRoutes(
                         },
                     ),
                 )
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        data class Body(val fraOgMed: LocalDate)
+        data class Response(val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson?)
+
+        post("$sakPath/{sakId}/gjeldendeVedtaksdata") {
+            call.withSakId { sakId ->
+                call.withBody<Body> { body ->
+                    call.svar(
+                        sakService.hentGjeldendeVedtaksdata(sakId, body.fraOgMed).fold(
+                            {
+                                when (it) {
+                                    KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak -> NotFound.errorJson(
+                                        "Fant ikke sak med id: $sakId",
+                                        "fant_ikke_sak",
+                                    )
+                                    KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> BadRequest.errorJson(
+                                        "Ugyldig periode",
+                                        "ugyldig_periode",
+                                    )
+                                }
+                            },
+                            {
+                                Resultat.json(
+                                    OK,
+                                    serialize((Response(it?.grunnlagsdataOgVilkårsvurderinger?.toJson()))),
+                                )
+                            },
+                        ),
+                    )
+                }
             }
         }
     }

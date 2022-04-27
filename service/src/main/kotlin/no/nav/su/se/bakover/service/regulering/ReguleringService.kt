@@ -28,7 +28,6 @@ sealed class KunneIkkeRegulereManuelt {
     object AlleredeFerdigstilt : KunneIkkeRegulereManuelt()
     object FantIkkeSak : KunneIkkeRegulereManuelt()
     object StansetYtelseMåStartesFørDenKanReguleres : KunneIkkeRegulereManuelt()
-    object KanIkkeRegulereNårDetFinnesNyereVedtak : KunneIkkeRegulereManuelt()
     data class KunneIkkeFerdigstille(val feil: KunneIkkeFerdigstilleOgIverksette) : KunneIkkeRegulereManuelt()
 }
 
