@@ -9,20 +9,15 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import java.util.UUID
 
 interface Beregning : PeriodisertInformasjon {
     fun getId(): UUID
     fun getOpprettet(): Tidspunkt
-    // TODO("flere_satser dette gir ikke mening da samme beregning kan ha brukt forskjellige satser for forskjellige perioder")
-    fun getSats(): Sats
     fun getMånedsberegninger(): List<Månedsberegning>
     fun getFradrag(): List<Fradrag>
     fun getSumYtelse(): Int
     fun getSumFradrag(): Double
-    // TODO("flere_satser dette gir ikke mening da samme beregning kan ha brukt forskjellige strategier for forskjellige perioder")
-    fun getFradragStrategyName(): FradragStrategyName
     fun getBegrunnelse(): String?
 
     /**
@@ -32,13 +27,9 @@ interface Beregning : PeriodisertInformasjon {
     fun equals(other: Beregning?): Boolean {
         if (this === other) return true
         if (other == null) return false
-
-        if (getSats() != other.getSats()) return false
-        if (getMånedsberegninger() != other.getMånedsberegninger()) return false
         if (getMånedsberegninger() != other.getMånedsberegninger()) return false
         if (getFradrag() != other.getFradrag()) return false
         if (getSumYtelse() != other.getSumYtelse()) return false
-        if (getFradragStrategyName() != other.getFradragStrategyName()) return false
         return true
     }
 

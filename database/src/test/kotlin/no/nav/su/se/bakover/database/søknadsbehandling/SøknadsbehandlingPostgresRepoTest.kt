@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.dbMetricsStub
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.iverksattAttestering
-import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.saksbehandler
 import no.nav.su.se.bakover.database.sessionCounterStub
 import no.nav.su.se.bakover.database.simulering
@@ -102,7 +101,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val vilkårsvurdert: Søknadsbehandling.Vilkårsvurdert.Innvilget =
                 testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget().second
             repo.hent(vilkårsvurdert.id).also {
-                it shouldBe vilkårsvurdert.persistertVariant()
+                it shouldBe vilkårsvurdert
             }
         }
     }
@@ -148,7 +147,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val innvilgetVilkårsvurdering =
                 testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget().second.also {
                     val behandlingId = it.id
-                    repo.hent(behandlingId) shouldBe it.persistertVariant()
+                    repo.hent(behandlingId) shouldBe it
                     dataSource.withSession { session ->
                         "select * from behandling where id = :id".hent(mapOf("id" to behandlingId), session) { row ->
                             row.stringOrNull("beregning") shouldBe null
@@ -164,7 +163,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 ).getOrFail()
                 .also {
                     repo.lagre(it)
-                    repo.hent(it.id) shouldBe it.persistertVariant()
+                    repo.hent(it.id) shouldBe it
                     dataSource.withSession { session ->
                         "select * from behandling where id = :id".hent(
                             mapOf("id" to innvilgetVilkårsvurdering.id),
@@ -178,7 +177,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val simulert = beregnet.tilSimulert(simulering(beregnet.fnr))
                 .also { simulert ->
                     repo.lagre(simulert)
-                    repo.hent(simulert.id) shouldBe simulert.persistertVariant()
+                    repo.hent(simulert.id) shouldBe simulert
                     dataSource.withSession {
                         "select * from behandling where id = :id".hent(
                             mapOf("id" to innvilgetVilkårsvurdering.id),
@@ -193,7 +192,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             simulert.tilVilkårsvurdert(behandlingsinformasjonAlleVilkårInnvilget, clock = fixedClock)
                 .also { vilkårsvurdert ->
                     repo.lagre(vilkårsvurdert)
-                    repo.hent(vilkårsvurdert.id) shouldBe vilkårsvurdert.persistertVariant()
+                    repo.hent(vilkårsvurdert.id) shouldBe vilkårsvurdert
                     dataSource.withSession {
                         "select * from behandling where id = :id".hent(
                             mapOf("id" to innvilgetVilkårsvurdering.id),
@@ -215,7 +214,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 val testDataHelper = TestDataHelper(dataSource)
                 val repo = testDataHelper.søknadsbehandlingRepo
                 val tilAttestering = testDataHelper.persisterSøknadsbehandlingTilAttesteringInnvilget().second
-                repo.hent(tilAttestering.id) shouldBe tilAttestering.persistertVariant()
+                repo.hent(tilAttestering.id) shouldBe tilAttestering
             }
         }
     }
@@ -226,7 +225,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
             val tilAttestering = testDataHelper.persisterSøknadsbehandlingTilAttesteringAvslagUtenBeregning().second
-            repo.hent(tilAttestering.id) shouldBe tilAttestering.persistertVariant()
+            repo.hent(tilAttestering.id) shouldBe tilAttestering
         }
     }
 
@@ -236,7 +235,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
             val tilAttestering = testDataHelper.persisterSøknadsbehandlingTilAttesteringAvslagMedBeregning().second
-            repo.hent(tilAttestering.id) shouldBe tilAttestering.persistertVariant()
+            repo.hent(tilAttestering.id) shouldBe tilAttestering
         }
     }
 
@@ -248,7 +247,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 val testDataHelper = TestDataHelper(dataSource)
                 val repo = testDataHelper.søknadsbehandlingRepo
                 val tilAttestering = testDataHelper.persisterSøknadsbehandlingUnderkjentInnvilget().second
-                repo.hent(tilAttestering.id) shouldBe tilAttestering.persistertVariant()
+                repo.hent(tilAttestering.id) shouldBe tilAttestering
             }
         }
     }
@@ -259,7 +258,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
             val tilAttestering = testDataHelper.persisterSøknadsbehandlingUnderkjentAvslagUtenBeregning().second
-            repo.hent(tilAttestering.id) shouldBe tilAttestering.persistertVariant()
+            repo.hent(tilAttestering.id) shouldBe tilAttestering
         }
     }
 
@@ -269,7 +268,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
             val tilAttestering = testDataHelper.persisterSøknadsbehandlingUnderkjentAvslagMedBeregning().second
-            repo.hent(tilAttestering.id) shouldBe tilAttestering.persistertVariant()
+            repo.hent(tilAttestering.id) shouldBe tilAttestering
         }
     }
 
@@ -282,7 +281,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 val testDataHelper = TestDataHelper(dataSource)
                 val repo = testDataHelper.søknadsbehandlingRepo
                 val iverksatt = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget().second
-                repo.hent(iverksatt.id) shouldBe iverksatt.persistertVariant()
+                repo.hent(iverksatt.id) shouldBe iverksatt
             }
         }
     }
@@ -325,7 +324,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
             val iverksatt = testDataHelper.persisterSøknadsbehandlingIverksattAvslagMedBeregning().second
-            repo.hent(iverksatt.id) shouldBe iverksatt.persistertVariant()
+            repo.hent(iverksatt.id) shouldBe iverksatt
         }
     }
 
@@ -335,7 +334,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
             val iverksatt = testDataHelper.persisterSøknadsbehandlingIverksattAvslagMedBeregning().second
-            repo.hent(iverksatt.id) shouldBe iverksatt.persistertVariant()
+            repo.hent(iverksatt.id) shouldBe iverksatt
         }
     }
 
@@ -400,7 +399,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
                     håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                 ),
-            ).persistertVariant()
+            )
         }
     }
 

@@ -25,11 +25,20 @@ class AvslagsBrevInnholdTest {
         beregningsperioder = emptyList(),
         saksbehandlerNavn = "Sak Sakesen",
         attestantNavn = "Att Attestantsen",
-        sats = "lav",
         fritekst = "Fritekst til brevet",
-        satsGjeldendeFraDato = "01.01.2020",
         forventetInntektStørreEnn0 = false,
         formueVerdier = null,
+        satsoversikt = Satsoversikt(
+            perioder = listOf(
+                Satsoversikt.Satsperiode(
+                    fraOgMed = "01.01.2020",
+                    tilOgMed = "31.01.2020",
+                    sats = "høy",
+                    satsBeløp = 1000,
+                    satsGrunn = "ENSLIG",
+                ),
+            ),
+        ),
     )
 
     @Test
@@ -53,12 +62,20 @@ class AvslagsBrevInnholdTest {
               "avslagsparagrafer": [1,2],
               "saksbehandlerNavn": "Sak Sakesen",
               "attestantNavn": "Att Attestantsen",
-              "sats": "lav",
-              "satsBeløp": null,
-              "satsGjeldendeFraDato": "01.01.2020",
               "fritekst": "Fritekst til brevet",
               "forventetInntektStørreEnn0": false,
-              "formueVerdier": null
+              "formueVerdier": null,
+              "satsoversikt": {
+                  "perioder": [
+                    {
+                      "fraOgMed": "01.01.2020",
+                      "tilOgMed": "31.01.2020",
+                      "sats": "høy",
+                      "satsBeløp": 1000,
+                      "satsGrunn": "ENSLIG"
+                    }
+                  ]      
+                }
             }
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, actualJson, true)
@@ -134,9 +151,6 @@ class AvslagsBrevInnholdTest {
               "avslagsparagrafer": [8],
               "saksbehandlerNavn": "Sak Sakesen",
               "attestantNavn": "Att Attestantsen",
-              "sats": "lav",
-              "satsBeløp": null,
-              "satsGjeldendeFraDato": "01.01.2020",
               "fritekst": "Fritekst til brevet",
               "forventetInntektStørreEnn0": false,
               "formueVerdier": {
@@ -151,7 +165,18 @@ class AvslagsBrevInnholdTest {
                 },
                 "epsFormue": null,
                 "totalt": 8
-              }
+              },
+              "satsoversikt": {
+                  "perioder": [
+                    {
+                      "fraOgMed": "01.01.2020",
+                      "tilOgMed": "31.01.2020",
+                      "sats": "høy",
+                      "satsBeløp": 1000,
+                      "satsGrunn": "ENSLIG"
+                    }
+                  ]      
+                }
             }
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, actualJson, true)
@@ -203,9 +228,6 @@ class AvslagsBrevInnholdTest {
               "avslagsparagrafer": [8],
               "saksbehandlerNavn": "Sak Sakesen",
               "attestantNavn": "Att Attestantsen",
-              "sats": "lav",
-              "satsBeløp": null,
-              "satsGjeldendeFraDato": "01.01.2020",
               "fritekst": "Fritekst til brevet",
               "forventetInntektStørreEnn0": false,
               "formueVerdier": {
@@ -228,8 +250,20 @@ class AvslagsBrevInnholdTest {
                     "pengerSøkerSkyldes": 1
                 },
                 "totalt": 12
-              }
+              },
+              "satsoversikt": {
+                  "perioder": [
+                    {
+                      "fraOgMed": "01.01.2020",
+                      "tilOgMed": "31.01.2020",
+                      "sats": "høy",
+                      "satsBeløp": 1000,
+                      "satsGrunn": "ENSLIG"
+                    }
+                  ]      
+                }
             }
+            
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, actualJson, true)
     }

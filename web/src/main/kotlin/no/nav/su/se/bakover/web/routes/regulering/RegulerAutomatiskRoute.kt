@@ -145,7 +145,7 @@ private fun List<UføregrunnlagJson>.toDomain(): List<Grunnlag.Uføregrunnlag> {
         Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(), // todo ai: legg til clock
-            periode = it.periode.toPeriode().getOrHandle { throw IllegalStateException("") },
+            periode = it.periode.toPeriode(),
             uføregrad = Uføregrad.tryParse(it.uføregrad).getOrHandle { throw IllegalStateException("") },
             forventetInntekt = it.forventetInntekt
         )

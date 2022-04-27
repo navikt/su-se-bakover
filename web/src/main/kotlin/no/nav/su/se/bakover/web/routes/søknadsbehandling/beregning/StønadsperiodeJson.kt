@@ -3,17 +3,19 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 import arrow.core.Either
 import arrow.core.flatMap
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import no.nav.su.se.bakover.common.periode.PeriodeJson
+import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 
 internal data class StønadsperiodeJson(
     val periode: PeriodeJson,
     val begrunnelse: String,
 ) {
     fun toStønadsperiode(): Either<Resultat, Stønadsperiode> {
-        return periode.toPeriode().flatMap { periode ->
+        return periode.toPeriodeOrResultat().flatMap { periode ->
             Stønadsperiode.tryCreate(periode, begrunnelse).mapLeft {
                 when (it) {
                     Stønadsperiode.UgyldigStønadsperiode.FraOgMedDatoKanIkkeVæreFør2021 -> BadRequest.errorJson(

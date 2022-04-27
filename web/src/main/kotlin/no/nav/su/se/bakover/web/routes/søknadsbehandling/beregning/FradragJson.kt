@@ -7,6 +7,8 @@ import arrow.core.right
 import arrow.core.sequence
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.PeriodeJson
+import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -14,7 +16,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.UtenlandskInntektJson.Companion.toJson
 
 internal fun Fradragstype.Companion.UgyldigFradragstype.tilResultat(): Resultat {
@@ -52,12 +54,11 @@ internal data class FradragJson(
         val utenlandskInntekt: UtenlandskInntekt? = this.utenlandskInntekt?.toUtenlandskInntekt()?.getOrHandle {
             return it.left()
         }
-        val periode: Periode = this.periode?.toPeriode()?.getOrHandle {
+        val periode: Periode = this.periode?.toPeriodeOrResultat()?.getOrHandle {
             return it.left()
         } ?: beregningsperiode
-
-        return FradragFactory.ny(
-            type = Fradragstype.tryParse(type, beskrivelse).getOrHandle { return it.tilResultat().left() },
+        return FradragFactory.nyFradragsperiode(
+            fradragstype = Fradragstype.tryParse(type, beskrivelse).getOrHandle { return it.tilResultat().left() },
             månedsbeløp = beløp,
             periode = periode,
             utenlandskInntekt = utenlandskInntekt,
@@ -71,7 +72,7 @@ internal data class FradragJson(
             "fradrag_mangler_periode",
         ).left()
         else
-            toFradrag(this.periode.toPeriode().getOrHandle { return it.left() })
+            toFradrag(this.periode.toPeriodeOrResultat().getOrHandle { return it.left() })
     }
 
     companion object {

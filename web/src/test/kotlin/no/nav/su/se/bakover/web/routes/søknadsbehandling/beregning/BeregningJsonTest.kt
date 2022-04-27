@@ -14,7 +14,6 @@ internal class BeregningJsonTest {
                 "opprettet":"2020-08-01T12:15:15Z",
                 "fraOgMed":"2020-08-01",
                 "tilOgMed":"2020-08-31",
-                "sats":"HØY",
                 "månedsberegninger": [{
                     "fraOgMed":"2020-08-01",
                     "tilOgMed":"2020-08-31",
@@ -85,6 +84,9 @@ internal class BeregningJsonTest {
 
     @Test
     fun json() {
-        JSONAssert.assertEquals(expectedBeregningJson.trimIndent(), serialize(TestBeregning.toJson()), true)
+        JSONAssert.assertEquals(
+            expectedBeregningJson.trimIndent(),
+            serialize(TestBeregning.toJson()), true
+        )
     }
 }

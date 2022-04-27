@@ -17,16 +17,16 @@ internal class FradragsMapperTest {
     @Test
     fun `Inneholder bare fradrag for aktuell bruker`() {
         val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
-        val fradragForEps = FradragFactory.ny(
-            type = Fradragstype.BidragEtterEkteskapsloven,
+        val fradragForEps = FradragFactory.nyFradragsperiode(
+            fradragstype = Fradragstype.BidragEtterEkteskapsloven,
             månedsbeløp = 3000.0,
             periode = periode,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.EPS
         )
         val fradrag = listOf(
-            FradragFactory.ny(
-                type = Fradragstype.Kapitalinntekt,
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.Kapitalinntekt,
                 månedsbeløp = 5000.0,
                 periode = periode,
                 utenlandskInntekt = null,
@@ -59,15 +59,15 @@ internal class FradragsMapperTest {
     fun `BrukerFradrag inneholder bare fradrag med beløp større enn 0`() {
         val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
         val fradrag = listOf(
-            FradragFactory.ny(
-                type = Fradragstype.Kapitalinntekt,
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.Kapitalinntekt,
                 månedsbeløp = 3337.0,
                 periode = periode,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER
             ),
-            FradragFactory.ny(
-                type = Fradragstype.ForventetInntekt,
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.ForventetInntekt,
                 månedsbeløp = 0.0,
                 periode = periode,
                 utenlandskInntekt = null,
@@ -88,22 +88,22 @@ internal class FradragsMapperTest {
     fun `EpsFradrag inneholder bare fradrag for aktuell beregningsperiode`() {
         val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
         val fradrag = listOf(
-            FradragFactory.ny(
-                type = Fradragstype.Kapitalinntekt,
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.Kapitalinntekt,
                 månedsbeløp = 3337.0,
                 periode = periode,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.EPS
             ),
-            FradragFactory.ny(
-                type = Fradragstype.ForventetInntekt,
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.ForventetInntekt,
                 månedsbeløp = 10000.0,
                 periode = Periode.create(fraOgMed = 1.juni(2020), tilOgMed = 31.august(2020)),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.EPS
             ),
-            FradragFactory.ny(
-                type = Fradragstype.Arbeidsinntekt,
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.Arbeidsinntekt,
                 månedsbeløp = 10000.0,
                 periode = månedsperiodeJanuar2020,
                 utenlandskInntekt = null,

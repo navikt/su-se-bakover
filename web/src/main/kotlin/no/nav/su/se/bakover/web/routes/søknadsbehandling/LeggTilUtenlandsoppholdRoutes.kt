@@ -8,6 +8,7 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.post
+import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
@@ -16,7 +17,7 @@ import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
+import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
@@ -30,7 +31,7 @@ private data class UtenlandsoppholdBody(
     fun toRequest(behandlingId: UUID): Either<Resultat, LeggTilUtenlandsoppholdRequest> {
         return LeggTilUtenlandsoppholdRequest(
             behandlingId = behandlingId,
-            periode = periode.toPeriode().getOrHandle { return it.left() },
+            periode = periode.toPeriodeOrResultat().getOrHandle { return it.left() },
             status = status,
             begrunnelse = begrunnelse,
         ).right()
@@ -48,7 +49,12 @@ internal fun Route.leggTilUtenlandsopphold(
                         .mapLeft {
                             call.svar(it.tilResultat())
                         }.map {
-                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
+                            call.svar(
+                                Resultat.json(
+                                    HttpStatusCode.Created,
+                                    serialize(it.toJson())
+                                )
+                            )
                         }
                 }
             }

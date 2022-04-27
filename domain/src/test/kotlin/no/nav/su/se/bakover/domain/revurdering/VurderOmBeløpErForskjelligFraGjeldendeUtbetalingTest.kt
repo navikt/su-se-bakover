@@ -110,8 +110,8 @@ internal class VurderOmBeløpErForskjelligFraGjeldendeUtbetalingTest {
         val fradrag = periodeBeløpMap.map {
             val sats = Sats.HØY.månedsbeløp(it.first.fraOgMed)
             val diff = abs(sats - it.second)
-            FradragFactory.ny(
-                type = Fradragstype.ForventetInntekt,
+            FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.ForventetInntekt,
                 månedsbeløp = diff,
                 periode = it.first,
                 utenlandskInntekt = null,

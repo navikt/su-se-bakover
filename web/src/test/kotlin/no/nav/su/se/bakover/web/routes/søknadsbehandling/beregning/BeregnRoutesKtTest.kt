@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -110,7 +109,6 @@ internal class BeregnRoutesKtTest {
                     val behandlingJson = deserialize<BehandlingJson>(response.content!!)
                     behandlingJson.beregning!!.fraOgMed shouldBe stønadsperiode.periode.fraOgMed.toString()
                     behandlingJson.beregning.tilOgMed shouldBe stønadsperiode.periode.tilOgMed.toString()
-                    behandlingJson.beregning.sats shouldBe Sats.HØY.name
                     behandlingJson.beregning.månedsberegninger shouldHaveSize 12
                 }
             }

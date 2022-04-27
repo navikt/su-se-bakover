@@ -10,6 +10,7 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.post
+import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -23,7 +24,7 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigBody
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
+import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.tilResultat
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -55,7 +56,7 @@ private data class JsonBody(
     val begrunnelse: String?,
 ) {
     fun toService(): Either<Resultat, LeggTilBosituasjonRequest> {
-        val periode = periode.toPeriode()
+        val periode = periode.toPeriodeOrResultat()
             .getOrHandle { return it.left() }
 
         return LeggTilBosituasjonRequest(

@@ -11,6 +11,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
@@ -28,7 +29,6 @@ import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurdering
 import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.sak.BehandlingsoversiktJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSakId
@@ -69,7 +69,12 @@ internal fun Route.sakRoutes(
                                     }
                                     .map {
                                         call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                                        call.svar(Resultat.json(OK, serialize(it.toJson(clock))))
+                                        call.svar(
+                                            Resultat.json(
+                                                OK,
+                                                serialize(it.toJson(clock))
+                                            )
+                                        )
                                     }
                             },
                         )

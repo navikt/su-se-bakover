@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
@@ -24,13 +23,11 @@ internal object TestBeregning : Beregning {
     private val id = UUID.randomUUID()
     override fun getId(): UUID = id
     override fun getOpprettet(): Tidspunkt = LocalDateTime.of(2020, Month.AUGUST, 1, 12, 15, 15).toTidspunkt(ZoneOffset.UTC)
-    override fun getSats(): Sats = Sats.HØY
     override fun getMånedsberegninger(): List<Månedsberegning> = listOf(TestMånedsberegning)
     override fun getFradrag(): List<Fradrag> = listOf(TestFradrag, TestFradragEps)
     override fun getSumYtelse(): Int = 8637
     override fun getSumFradrag(): Double = 12000.0
     override val periode: Periode = månedsperiodeAugust2020
-    override fun getFradragStrategyName(): FradragStrategyName = FradragStrategyName.Enslig
     override fun getBegrunnelse(): String? = null
     override fun equals(other: Any?) = (other as? Beregning)?.let { this.equals(other) } ?: false
 }

@@ -6,9 +6,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.MånedBeløp
-import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
@@ -59,9 +57,6 @@ internal class BrevInnholdTest {
             personalia = personalia,
             fradato = "01.01.2020",
             tildato = "01.01.2020",
-            sats = Sats.HØY.toString(),
-            satsGrunn = Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN,
-            satsBeløp = 100,
             forventetInntektStørreEnn0 = true,
             harEktefelle = true,
             beregningsperioder = listOf(
@@ -71,12 +66,30 @@ internal class BrevInnholdTest {
                     satsbeløpPerMåned = 100,
                     epsFribeløp = 100,
                     fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), false)),
+                    sats = "høy",
                 ),
             ),
             saksbehandlerNavn = "Hei",
             attestantNavn = "Hopp",
             fritekst = "",
-            satsGjeldendeFraDato = "01.01.2020",
+            satsoversikt = Satsoversikt(
+                perioder = listOf(
+                    Satsoversikt.Satsperiode(
+                        fraOgMed = "01.01.2020",
+                        tilOgMed = "31.01.2020",
+                        sats = "høy",
+                        satsBeløp = 1000,
+                        satsGrunn = "ENSLIG",
+                    ),
+                    Satsoversikt.Satsperiode(
+                        fraOgMed = "01.02.2020",
+                        tilOgMed = "31.12.2020",
+                        sats = "ordinær",
+                        satsBeløp = 5000,
+                        satsGrunn = "DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN",
+                    ),
+                ),
+            ),
         )
 
         val actualJson = objectMapper.writeValueAsString(innvilgetVedtak)
@@ -93,10 +106,6 @@ internal class BrevInnholdTest {
                 },
                 "fradato": "01.01.2020",
                 "tildato": "01.01.2020",
-                "sats": "HØY",
-                "satsGrunn": "DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN",
-                "satsBeløp": 100,
-                "satsGjeldendeFraDato": "01.01.2020",
                 "forventetInntektStørreEnn0": true,
                 "harEktefelle": true,
                 "harFradrag": false,
@@ -114,12 +123,31 @@ internal class BrevInnholdTest {
                       "fradrag": [],
                       "harFradragMedSumSomErLavereEnnFribeløp": false
                       }
-                    }
+                    },
+                    "sats": "høy"
                 }],
                 "saksbehandlerNavn": "Hei",
                 "attestantNavn": "Hopp",
                 "fritekst": "",
-                "harAvkorting": false
+                "harAvkorting": false,
+                "satsoversikt": {
+                  "perioder": [
+                    {
+                      "fraOgMed": "01.01.2020",
+                      "tilOgMed": "31.01.2020",
+                      "sats": "høy",
+                      "satsBeløp": 1000,
+                      "satsGrunn": "ENSLIG"
+                    },
+                    {
+                      "fraOgMed": "01.02.2020",
+                      "tilOgMed": "31.12.2020",
+                      "sats": "ordinær",
+                      "satsBeløp": 5000,
+                      "satsGrunn": "DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN"
+                    }
+                  ]      
+                }
             }
             """.trimIndent()
         JSONAssert.assertEquals(expectedJson, actualJson, true)
@@ -150,8 +178,8 @@ internal class BrevInnholdTest {
     fun `jsonformat for opphørsvedtak stemmer overens med det som forventes av pdfgenerator`() {
         val opphørsvedtak = BrevInnhold.Opphørsvedtak(
             personalia = personalia,
-            sats = Sats.HØY.toString(),
-            satsBeløp = 100,
+            opphørsgrunner = listOf(Opphørsgrunn.FOR_HØY_INNTEKT),
+            avslagsparagrafer = listOf(1),
             harEktefelle = true,
             beregningsperioder = listOf(
                 Beregningsperiode(
@@ -160,18 +188,27 @@ internal class BrevInnholdTest {
                     satsbeløpPerMåned = 100,
                     epsFribeløp = 100,
                     fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), false)),
+                    sats = "høy",
                 ),
             ),
             saksbehandlerNavn = "Hei",
             attestantNavn = "Hopp",
             fritekst = "",
-            opphørsgrunner = listOf(Opphørsgrunn.FOR_HØY_INNTEKT),
-            avslagsparagrafer = listOf(1),
-            satsGjeldendeFraDato = "01.01.2020",
             forventetInntektStørreEnn0 = false,
             halvGrunnbeløp = 50000,
             opphørsdato = "01.01.2020",
             avkortingsBeløp = null,
+            satsoversikt = Satsoversikt(
+                perioder = listOf(
+                    Satsoversikt.Satsperiode(
+                        fraOgMed = "01.01.2020",
+                        tilOgMed = "31.01.2020",
+                        sats = "høy",
+                        satsBeløp = 1000,
+                        satsGrunn = "ENSLIG",
+                    ),
+                ),
+            ),
         )
 
         //language=JSON
@@ -184,9 +221,6 @@ internal class BrevInnholdTest {
                     "etternavn": "Strømøy",
                     "saksnummer": 2021
                 },
-                "sats": "HØY",
-                "satsBeløp": 100,
-                "satsGjeldendeFraDato": "01.01.2020",
                 "harEktefelle": true,
                 "harFradrag": false,
                 "beregningsperioder": [{
@@ -203,7 +237,8 @@ internal class BrevInnholdTest {
                       "fradrag": [],
                       "harFradragMedSumSomErLavereEnnFribeløp": false
                       }
-                    }
+                    },
+                    "sats": "høy"
                 }],
                 "saksbehandlerNavn": "Hei",
                 "attestantNavn": "Hopp",
@@ -214,7 +249,18 @@ internal class BrevInnholdTest {
                 "halvGrunnbeløp": 50000,
                 "opphørsdato": "01.01.2020",            
                 "avkortingsBeløp": null,
-                "harAvkorting": false
+                "harAvkorting": false,
+                "satsoversikt": {
+                  "perioder": [
+                    {
+                      "fraOgMed": "01.01.2020",
+                      "tilOgMed": "31.01.2020",
+                      "sats": "høy",
+                      "satsBeløp": 1000,
+                      "satsGrunn": "ENSLIG"
+                    }
+                  ]      
+                }
             }
         """.trimIndent()
 

@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.grunnlag
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
@@ -49,10 +48,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepoTest {
 
                 val revurderingEtterHent = grunnlagRepo.hentForRevurdering(revurdering.id, tx)
 
-                val persisterteFradrag = revurdering.grunnlagsdata.fradragsgrunnlag.map {
-                    it.toSnapshot()
-                }
-                revurderingEtterHent.grunnlagsdata.fradragsgrunnlag.map { it.fradrag } shouldBe persisterteFradrag
+                revurderingEtterHent.grunnlagsdata.fradragsgrunnlag shouldBe revurdering.grunnlagsdata.fradragsgrunnlag
                 revurderingEtterHent.grunnlagsdata.bosituasjon shouldBe revurdering.grunnlagsdata.bosituasjon
                 revurderingEtterHent.vilkårsvurderinger.utenlandsopphold shouldBe revurdering.vilkårsvurderinger.utenlandsopphold
                 revurderingEtterHent.vilkårsvurderinger.uføre shouldBe revurdering.vilkårsvurderinger.uføre

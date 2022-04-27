@@ -379,8 +379,8 @@ internal class RevurderingBeregnTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[0].id,
                         opprettet = Tidspunkt.now(fixedClock),
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.AvkortingUtenlandsopphold,
                             månedsbeløp = 21989.0,
                             periode = mai(2021),
                             utenlandskInntekt = null,
@@ -390,8 +390,8 @@ internal class RevurderingBeregnTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[1].id,
                         opprettet = Tidspunkt.now(fixedClock),
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.AvkortingUtenlandsopphold,
                             månedsbeløp = 21989.0,
                             periode = juni(2021),
                             utenlandskInntekt = null,
@@ -401,8 +401,8 @@ internal class RevurderingBeregnTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[2].id,
                         opprettet = Tidspunkt.now(fixedClock),
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.AvkortingUtenlandsopphold,
                             månedsbeløp = 16022.0,
                             periode = juli(2021),
                             utenlandskInntekt = null,
@@ -443,8 +443,8 @@ internal class RevurderingBeregnTest {
                 Grunnlag.Fradragsgrunnlag.create(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
-                    fradrag = FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
+                    fradrag = FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = arbeidsinntekt.toDouble(),
                         periode = revurderingsperiode,
                         utenlandskInntekt = null,
@@ -482,8 +482,8 @@ internal class RevurderingBeregnTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[0].id,
                         opprettet = Tidspunkt.now(fixedClock),
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.Arbeidsinntekt,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 3750.0,
                             periode = Periode.create(1.mai(2021), 31.desember(2021)),
                             utenlandskInntekt = null,
@@ -493,8 +493,8 @@ internal class RevurderingBeregnTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[1].id,
                         opprettet = Tidspunkt.now(fixedClock),
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.AvkortingUtenlandsopphold,
                             månedsbeløp = 18239.0,
                             periode = mai(2021),
                             utenlandskInntekt = null,
@@ -504,8 +504,8 @@ internal class RevurderingBeregnTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[2].id,
                         opprettet = Tidspunkt.now(fixedClock),
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.AvkortingUtenlandsopphold,
                             månedsbeløp = 18239.0,
                             periode = juni(2021),
                             utenlandskInntekt = null,
@@ -515,8 +515,8 @@ internal class RevurderingBeregnTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[3].id,
                         opprettet = Tidspunkt.now(fixedClock),
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.AvkortingUtenlandsopphold,
                             månedsbeløp = 18239.0,
                             periode = juli(2021),
                             utenlandskInntekt = null,
@@ -526,8 +526,8 @@ internal class RevurderingBeregnTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = beregnet.grunnlagsdata.fradragsgrunnlag[4].id,
                         opprettet = Tidspunkt.now(fixedClock),
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.AvkortingUtenlandsopphold,
                             månedsbeløp = 5283.0,
                             periode = august(2021),
                             utenlandskInntekt = null,

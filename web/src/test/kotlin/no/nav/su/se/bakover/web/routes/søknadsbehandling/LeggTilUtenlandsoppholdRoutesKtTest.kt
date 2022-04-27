@@ -115,7 +115,10 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
-                JSONAssert.assertEquals(response.content, serialize(vilkårsvurdert.toJson()), true)
+                JSONAssert.assertEquals(
+                    response.content,
+                    serialize(vilkårsvurdert.toJson()), true
+                )
             }
         }
     }

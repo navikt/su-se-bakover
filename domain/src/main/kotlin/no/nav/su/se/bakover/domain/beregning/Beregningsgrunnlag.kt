@@ -38,8 +38,8 @@ data class Beregningsgrunnlag private constructor(
         ): Either<UgyldigBeregningsgrunnlag, Beregningsgrunnlag> {
             val fradrag: List<Fradrag> = fradragFraSaksbehandler.map { it.fradrag }.plus(
                 uføregrunnlag.map {
-                    FradragFactory.ny(
-                        type = Fradragstype.ForventetInntekt,
+                    FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.ForventetInntekt,
                         månedsbeløp = it.forventetInntekt / 12.0,
                         periode = it.periode,
                         utenlandskInntekt = null,
@@ -49,8 +49,8 @@ data class Beregningsgrunnlag private constructor(
                     // TODO jah: Dette er egentlig bare en snarvei for testene som går ut over typesikkerheten.
                     //  Vurder å bytt fra List<Grunnlag.Uføregrunnlag> til NonEmptyList<Grunnlag.Uføregrunnlag>
                     listOf(
-                        FradragFactory.ny(
-                            type = Fradragstype.ForventetInntekt,
+                        FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.ForventetInntekt,
                             månedsbeløp = 0.0,
                             periode = beregningsperiode,
                             utenlandskInntekt = null,

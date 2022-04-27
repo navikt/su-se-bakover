@@ -88,8 +88,8 @@ internal class ReguleringServiceImplTest {
                     fradragsgrunnlag = listOf(
                         Grunnlag.Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
-                            fradrag = FradragFactory.ny(
-                                type = Fradragstype.OffentligPensjon,
+                            fradrag = FradragFactory.nyFradragsperiode(
+                                fradragstype = Fradragstype.OffentligPensjon,
                                 månedsbeløp = 8000.0,
                                 periode = periode2021,
                                 utenlandskInntekt = null,
@@ -270,15 +270,15 @@ internal class ReguleringServiceImplTest {
             ).getOrFail()
 
             iverksattRegulering.beregning.getFradrag() shouldBe listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.OffentligPensjon,
+                FradragFactory.nyFradragsperiode(
+                    fradragstype = Fradragstype.OffentligPensjon,
                     månedsbeløp = 8100.0,
                     periode = periodeMaiDes,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
-                FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
+                FradragFactory.nyFradragsperiode(
+                    fradragstype = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
                     periode = periodeMaiDes,
                     utenlandskInntekt = null,
@@ -353,8 +353,8 @@ internal class ReguleringServiceImplTest {
                     fradragsgrunnlag = listOf(
                         Grunnlag.Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
-                            fradrag = FradragFactory.ny(
-                                type = Fradragstype.OffentligPensjon,
+                            fradrag = FradragFactory.nyFradragsperiode(
+                                fradragstype = Fradragstype.OffentligPensjon,
                                 månedsbeløp = 8000.0,
                                 periode = periode2021,
                                 utenlandskInntekt = null,
@@ -395,8 +395,8 @@ internal class ReguleringServiceImplTest {
                     fradragsgrunnlag = listOf(
                         Grunnlag.Fradragsgrunnlag.create(
                             opprettet = fixedTidspunkt,
-                            fradrag = FradragFactory.ny(
-                                type = Fradragstype.OffentligPensjon,
+                            fradrag = FradragFactory.nyFradragsperiode(
+                                fradragstype = Fradragstype.OffentligPensjon,
                                 månedsbeløp = 8000.0,
                                 periode = periode2021,
                                 utenlandskInntekt = null,

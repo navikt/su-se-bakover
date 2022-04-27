@@ -59,7 +59,6 @@ internal class BeregningStrategyTest {
         ).let {
             it.periode.fraOgMed shouldBe periode.fraOgMed
             it.periode.tilOgMed shouldBe periode.tilOgMed
-            it.getSats() shouldBe Sats.HØY
             it.getFradrag() shouldBe beregningsgrunnlag.fradrag
             it.getMånedsberegninger() shouldHaveSize 12
             it.getBegrunnelse() shouldBe "en begrunnelse"

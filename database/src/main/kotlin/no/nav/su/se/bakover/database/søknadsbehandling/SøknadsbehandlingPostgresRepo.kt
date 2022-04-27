@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
+import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
@@ -216,7 +217,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val behandlingsinformasjon = objectMapper.readValue<Behandlingsinformasjon>(string("behandlingsinformasjon"))
         val status = BehandlingsStatus.valueOf(string("status"))
         val oppgaveId = OppgaveId(string("oppgaveId"))
-        val beregning = deserialiserBeregning(stringOrNull("beregning"))
+        val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning()
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val attesteringer = Attesteringshistorikk.create(objectMapper.readValue(string("attestering")))
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
