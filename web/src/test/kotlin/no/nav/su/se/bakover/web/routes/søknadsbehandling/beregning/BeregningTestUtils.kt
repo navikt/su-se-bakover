@@ -23,7 +23,6 @@ internal object TestBeregning : Beregning {
     private val id = UUID.randomUUID()
     override fun getId(): UUID = id
     override fun getOpprettet(): Tidspunkt = LocalDateTime.of(2020, Month.AUGUST, 1, 12, 15, 15).toTidspunkt(ZoneOffset.UTC)
-    override fun getSats(): Sats = Sats.HØY
     override fun getMånedsberegninger(): List<Månedsberegning> = listOf(TestMånedsberegning)
     override fun getFradrag(): List<Fradrag> = listOf(TestFradrag, TestFradragEps)
     override fun getSumYtelse(): Int = 8637

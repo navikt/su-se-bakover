@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
-import no.nav.su.se.bakover.domain.beregning.Sats
 import java.util.UUID
 
 /**
@@ -17,7 +16,6 @@ import java.util.UUID
 private data class PersistertBeregning(
     val id: UUID,
     val opprettet: Tidspunkt,
-    val sats: Sats,
     val månedsberegninger: List<PersistertMånedsberegning>,
     val fradrag: List<PersistertFradrag>,
     val sumYtelse: Int,
@@ -30,7 +28,6 @@ private data class PersistertBeregning(
             id = id,
             opprettet = opprettet,
             periode = periode.toPeriode(),
-            sats = sats,
             fradrag = fradrag.map { it.toFradragForPeriode() },
             begrunnelse = begrunnelse,
             sumYtelse = sumYtelse,
@@ -49,7 +46,6 @@ internal fun Beregning.serialiser(): String {
     return PersistertBeregning(
         id = getId(),
         opprettet = getOpprettet(),
-        sats = getSats(),
         månedsberegninger = getMånedsberegninger().map { it.toJson() },
         fradrag = getFradrag().map { it.toJson() },
         sumYtelse = getSumYtelse(),

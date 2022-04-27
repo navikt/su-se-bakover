@@ -31,7 +31,6 @@ internal class PersistertBeregningTest {
             {
               "id": "${actualBeregning.getId()}",
               "opprettet": "${actualBeregning.getOpprettet()}",
-              "sats": "HØY",
               "månedsberegninger": [
                 {
                   "sumYtelse": 0,

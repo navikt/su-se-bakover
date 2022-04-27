@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.common.periode.september
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -104,7 +103,6 @@ class SøknadsbehandlingServiceBeregningTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 )
-                beregning.getSats() shouldBe Sats.HØY
                 beregning.getBegrunnelse() shouldBe "koko"
             }
 
