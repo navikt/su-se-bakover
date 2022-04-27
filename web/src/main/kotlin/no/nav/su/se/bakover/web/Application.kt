@@ -9,7 +9,9 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
+import io.ktor.server.engine.embeddedServer
 import io.ktor.server.locations.Locations
+import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.callid.CallId
 import io.ktor.server.plugins.callid.callIdMdc
 import io.ktor.server.plugins.callid.generate
@@ -79,11 +81,13 @@ import org.slf4j.event.Level
 import java.time.Clock
 import java.time.format.DateTimeParseException
 
-fun main(args: Array<String>) {
+fun main() {
     if (ApplicationConfig.isRunningLocally()) {
         System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "logback-local.xml")
     }
-    io.ktor.server.netty.EngineMain.main(args)
+    embeddedServer(factory = Netty, port = 8080) {
+        susebakover()
+    }
 }
 
 @OptIn(io.ktor.server.locations.KtorExperimentalLocationsAPI::class)
@@ -121,6 +125,7 @@ fun Application.susebakover(
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
 ) {
+
     install(StatusPages) {
         exception<Tilgangssjekkfeil> { call, cause ->
             when (cause.feil) {

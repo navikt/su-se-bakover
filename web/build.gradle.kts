@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":service"))
     implementation(project(":database"))
     implementation(project(":client"))
+    implementation(project(":test-common"))
 
     //implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
