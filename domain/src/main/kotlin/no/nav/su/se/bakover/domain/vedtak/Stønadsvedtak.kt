@@ -40,6 +40,7 @@ sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
 
     fun erOpphør(): Boolean
     fun erStans(): Boolean
+    fun erGjenopptak(): Boolean
 
     fun skalSendeBrev(): Boolean {
         return SkalSendeBrevVisitor().let {
@@ -77,6 +78,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
 
     override fun erOpphør(): Boolean
     override fun erStans(): Boolean
+    override fun erGjenopptak(): Boolean
 
     companion object {
         fun fromSøknadsbehandling(
@@ -208,6 +210,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         ) : EndringIYtelse {
             override fun erOpphør() = false
             override fun erStans() = false
+            override fun erGjenopptak() = false
 
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -229,6 +232,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         ) : EndringIYtelse {
             override fun erOpphør() = false
             override fun erStans() = false
+            override fun erGjenopptak() = false
 
             override fun harIdentifisertBehovForFremtidigAvkorting() =
                 behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
@@ -251,6 +255,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         ) : EndringIYtelse {
             override fun erOpphør() = false
             override fun erStans() = false
+            override fun erGjenopptak() = false
 
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -275,6 +280,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
 
             override fun erOpphør() = true
             override fun erStans() = false
+            override fun erGjenopptak() = false
 
             override fun harIdentifisertBehovForFremtidigAvkorting() =
                 behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
@@ -297,6 +303,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
 
             override fun erOpphør() = false
             override fun erStans() = true
+            override fun erGjenopptak() = false
 
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -317,6 +324,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         ) : EndringIYtelse {
             override fun erOpphør() = false
             override fun erStans() = false
+            override fun erGjenopptak() = true
 
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -337,6 +345,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
     ) : VedtakSomKanRevurderes {
         override fun erOpphør() = false
         override fun erStans() = false
+        override fun erGjenopptak() = false
 
         override fun harIdentifisertBehovForFremtidigAvkorting() =
             behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
@@ -417,6 +426,10 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         fun erStans(): Boolean {
             return originaltVedtak.erStans()
         }
+
+        fun erGjenopptak(): Boolean {
+            return originaltVedtak.erGjenopptak()
+        }
     }
 }
 
@@ -427,6 +440,7 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
 
     override fun erOpphør(): Boolean
     override fun erStans(): Boolean
+    override fun erGjenopptak(): Boolean
 
     companion object {
         fun fromSøknadsbehandlingMedBeregning(
@@ -485,6 +499,7 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
     ) : Avslagsvedtak {
         override fun erOpphør() = false
         override fun erStans() = false
+        override fun erGjenopptak() = false
 
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
@@ -505,6 +520,7 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
     ) : Avslagsvedtak {
         override fun erOpphør() = false
         override fun erStans() = false
+        override fun erGjenopptak() = false
 
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
 

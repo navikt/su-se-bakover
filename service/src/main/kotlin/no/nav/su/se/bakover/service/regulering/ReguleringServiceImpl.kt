@@ -161,6 +161,10 @@ class ReguleringServiceImpl(
         if (sak.vedtakstidslinje(regulering.periode).any { it.erStans() })
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
 
+
+        if (sak.vedtakstidslinje(regulering.periode).filterNot { it.erGjenopptak() }.isNotEmpty())
+            return KunneIkkeRegulereManuelt.KanIkkeRegulereNårDetFinnesNyereVedtak.left()
+
         val oppdatertRegulering = (regulering as Regulering.OpprettetRegulering).leggTilFradrag(fradrag).let {
             it.leggTilUføre(uføregrunnlag, clock).let {
                 it.leggTilSaksbehandler(saksbehandler)

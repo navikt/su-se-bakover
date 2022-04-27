@@ -78,6 +78,7 @@ internal fun Route.reguler(
                                     is KunneIkkeRegulereManuelt.KunneIkkeFerdigstille -> HttpStatusCode.InternalServerError.errorJson("Kunne ikke ferdigstille regulering på grunn av ${it.feil}", "kunne_ikke_ferdigstille_regulering")
                                     KunneIkkeRegulereManuelt.FantIkkeSak -> Feilresponser.fantIkkeSak
                                     KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson("Kan ikke regulere en stanset sak", "kan_ikke_regulere_stanset_sak")
+                                    KunneIkkeRegulereManuelt.KanIkkeRegulereNårDetFinnesNyereVedtak -> HttpStatusCode.BadRequest.errorJson("Kan ikke regulere når det finnes nye vedtak", "finnes_nyere_vedtak")
                                 }.let { feilResultat ->
                                     call.svar(feilResultat)
                                 }

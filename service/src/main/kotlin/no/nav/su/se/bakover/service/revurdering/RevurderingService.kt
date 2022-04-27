@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import arrow.core.sequenceEither
+import arrow.core.sequence
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
@@ -493,11 +493,11 @@ data class LeggTilBosituasjonerRequest(
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, List<Grunnlag.Bosituasjon.Fullstendig>> {
         return bosituasjoner.map {
-            it.toDomain(
-                clock = clock,
-                hentPerson = hentPerson,
-            )
-        }.sequenceEither()
+                it.toDomain(
+                    clock = clock,
+                    hentPerson = hentPerson,
+                )
+            }.sequence()
     }
 }
 
