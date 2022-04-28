@@ -166,7 +166,7 @@ internal class FormuevilkårJsonTest {
    "formuegrenser":[
      {
         "gyldigFra":"2022-05-01",
-        "beløp":53400
+        "beløp":53450
      },
       {
          "gyldigFra":"2021-05-01",
