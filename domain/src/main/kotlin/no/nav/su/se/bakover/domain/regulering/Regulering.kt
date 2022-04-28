@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
+import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
@@ -149,15 +149,17 @@ sealed interface Regulering : Reguleringsfelter {
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger.copy(
                         uføre = Vilkår.Uførhet.Vurdert.tryCreate(
-                            vurderingsperioder = nonEmptyListOf(
-                                Vurderingsperiode.Uføre.tryCreate(
-                                    opprettet = Tidspunkt.now(clock),
-                                    resultat = Resultat.Innvilget,
-                                    grunnlag = uføregrunnlag.single(),
-                                    vurderingsperiode = periode,
-                                    begrunnelse = null,
-                                ).getOrHandle { throw RuntimeException("$it") }
-                            )
+                            Nel.fromListUnsafe(
+                                uføregrunnlag.map {
+                                    Vurderingsperiode.Uføre.tryCreate(
+                                        opprettet = Tidspunkt.now(clock),
+                                        resultat = Resultat.Innvilget,
+                                        grunnlag = it,
+                                        vurderingsperiode = it.periode,
+                                        begrunnelse = null,
+                                    ).getOrHandle { throw RuntimeException("$it") }
+                                }
+                            ),
                         ).getOrHandle { throw RuntimeException("$it") },
                         formue = vilkårsvurderinger.formue,
                         utenlandsopphold = vilkårsvurderinger.utenlandsopphold,
