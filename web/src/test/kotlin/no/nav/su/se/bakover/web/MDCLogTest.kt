@@ -48,13 +48,13 @@ class MDCLogTest {
         val rootAppender =
             ((LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger).getAppender("STDOUT_JSON")) as ConsoleAppender
         val appender = ListAppender<ILoggingEvent>().apply { start() }
-        lateinit var applog: Logger
         testApplication {
             application {
                 testSusebakover()
-                applog = environment.log as Logger
+                (environment.log as Logger).also {
+                    it.apply { addAppender(appender) }
+                }
             }
-            applog.apply { addAppender(appender) }
             client.get(secureEndpoint) {
                 header(
                     HttpHeaders.Authorization,
