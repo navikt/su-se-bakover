@@ -84,7 +84,7 @@ sealed class FastOppholdINorgeVilkår : Vilkår() {
                 if (vurderingsperioder.harOverlappende()) {
                     return UgyldigFastOppholdINorgeVikår.OverlappendeVurderingsperioder.left()
                 }
-                return Vurdert(vurderingsperioder).right()
+                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
         }
 

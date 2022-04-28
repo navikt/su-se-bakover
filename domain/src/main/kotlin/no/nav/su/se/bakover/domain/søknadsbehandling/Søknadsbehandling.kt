@@ -63,12 +63,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     val erIverksatt: Boolean by lazy { this is Iverksatt.Avslag || this is Iverksatt.Innvilget }
     val erLukket: Boolean by lazy { this is LukketSøknadsbehandling }
 
-    val grunnlagsdataOgVilkårsvurderinger by lazy {
-        GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling
+        get() = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
         )
-    }
 
     sealed class KunneIkkeLukkeSøknadsbehandling {
         object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
@@ -2113,7 +2112,8 @@ enum class BehandlingsStatus {
             UNDERKJENT_AVSLAG,
         )
 
-        fun åpneBeregnetSøknadsbehandlingerKommaseparert(): String = åpneBeregnetSøknadsbehandlinger().joinToString(",") { "'$it'" }
+        fun åpneBeregnetSøknadsbehandlingerKommaseparert(): String =
+            åpneBeregnetSøknadsbehandlinger().joinToString(",") { "'$it'" }
     }
 }
 

@@ -85,7 +85,7 @@ sealed class PersonligOppmøteVilkår : Vilkår() {
                 if (vurderingsperioder.harOverlappende()) {
                     return UgyldigPersonligOppmøteVilkår.OverlappendeVurderingsperioder.left()
                 }
-                return Vurdert(vurderingsperioder).right()
+                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
         }
 

@@ -85,7 +85,7 @@ sealed class LovligOppholdVilkår : Vilkår() {
                 if (vurderingsperioder.harOverlappende()) {
                     return UgyldigLovligOppholdVilkår.OverlappendeVurderingsperioder.left()
                 }
-                return Vurdert(vurderingsperioder).right()
+                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
         }
 

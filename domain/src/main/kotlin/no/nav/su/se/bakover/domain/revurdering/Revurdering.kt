@@ -61,12 +61,12 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 sealed class AbstraktRevurdering : Behandling {
-    val grunnlagsdataOgVilkårsvurderinger by lazy {
-        GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
+        get() = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
         )
-    }
+
     abstract val tilRevurdering: VedtakSomKanRevurderes
     override val sakId by lazy { tilRevurdering.behandling.sakId }
     override val saksnummer by lazy { tilRevurdering.behandling.saksnummer }
