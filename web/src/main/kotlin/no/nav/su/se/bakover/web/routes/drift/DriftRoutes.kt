@@ -17,19 +17,16 @@ internal const val DRIFT_PATH = "/drift"
 internal fun Route.driftRoutes(
     søknadService: SøknadService,
 ) {
-    authorize(Brukerrolle.Drift) {
-        patch("$DRIFT_PATH/søknader/fix") {
+    patch("$DRIFT_PATH/søknader/fix") {
+        authorize(Brukerrolle.Drift) {
             søknadService.opprettManglendeJournalpostOgOppgave().let {
-                call.respond(
-                    HttpStatusCode.OK,
-                    serialize(it.toJson())
-                )
+                call.respond(HttpStatusCode.OK, serialize(it.toJson()))
             }
         }
     }
 
-    authorize(Brukerrolle.Drift) {
-        get("$DRIFT_PATH/isalive") {
+    get("$DRIFT_PATH/isalive") {
+        authorize(Brukerrolle.Drift) {
             call.respond(HttpStatusCode.OK, """{ "Status" : "OK"}""")
         }
     }

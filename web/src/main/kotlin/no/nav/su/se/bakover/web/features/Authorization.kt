@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.features
 
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.BaseApplicationPlugin
 import io.ktor.server.application.call
@@ -7,14 +9,17 @@ import io.ktor.server.application.plugin
 import io.ktor.server.auth.Principal
 import io.ktor.server.auth.authentication
 import io.ktor.server.request.path
+import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RouteSelector
 import io.ktor.server.routing.RouteSelectorEvaluation
 import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.server.routing.application
 import io.ktor.util.AttributeKey
+import io.ktor.util.pipeline.PipelineContext
 import io.ktor.util.pipeline.PipelinePhase
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.web.ErrorJson
 import org.slf4j.LoggerFactory
 
 class AuthorizationException(override val message: String) : RuntimeException(message)
@@ -77,4 +82,23 @@ fun Route.authorize(vararg roller: Brukerrolle, build: Route.() -> Unit): Route 
     application.plugin(Authorization).interceptPipeline(authorizedRoute, roller.toSet())
     authorizedRoute.build()
     return authorizedRoute
+}
+
+suspend fun PipelineContext<Unit, ApplicationCall>.authorize(
+    theFirstRolle: Brukerrolle,
+    vararg roller: Brukerrolle,
+    build: suspend PipelineContext<Unit, ApplicationCall>.() -> Unit,
+) {
+    val krevdeRoller = (listOf(theFirstRolle) + roller.toList())
+    val grupper = call.suUserContext.grupper.map { Brukerrolle.valueOf(it) }
+    val containsRolle = krevdeRoller.any { grupper.contains(it) }
+
+    if (containsRolle) {
+        build()
+    } else {
+        call.respond(
+            HttpStatusCode.Forbidden,
+            ErrorJson("Bruker mangler en av de tillatte rollene: ${roller.joinToString(",")}."),
+        )
+    }
 }
