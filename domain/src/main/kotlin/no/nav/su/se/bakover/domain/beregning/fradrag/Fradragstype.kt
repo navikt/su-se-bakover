@@ -8,6 +8,7 @@ import arrow.core.right
 sealed class Fradragstype {
 
     abstract val kategori: Kategori
+    abstract val måJusteresManueltVedGEndring: Boolean
 
     override fun toString(): String {
         return kategori.toString()
@@ -50,98 +51,122 @@ sealed class Fradragstype {
 
     object Alderspensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.Alderspensjon
+        override val måJusteresManueltVedGEndring: Boolean = true
     }
 
     data class Annet(val beskrivelse: String) : Fradragstype() {
         override val kategori: Kategori = Kategori.Annet
+        override val måJusteresManueltVedGEndring: Boolean = false
     }
 
     object Arbeidsavklaringspenger : Fradragstype() {
         override val kategori: Kategori = Kategori.Arbeidsavklaringspenger
+        override val måJusteresManueltVedGEndring: Boolean = true
     }
 
     object Arbeidsinntekt : Fradragstype() {
         override val kategori: Kategori = Kategori.Arbeidsinntekt
+        override val måJusteresManueltVedGEndring: Boolean = false
     }
 
     object AvtalefestetPensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.AvtalefestetPensjon
+        override val måJusteresManueltVedGEndring: Boolean = true
     }
 
     object AvtalefestetPensjonPrivat : Fradragstype() {
         override val kategori: Kategori = Kategori.AvtalefestetPensjonPrivat
+        override val måJusteresManueltVedGEndring: Boolean = true
     }
 
     object BidragEtterEkteskapsloven : Fradragstype() {
         override val kategori: Kategori = Kategori.BidragEtterEkteskapsloven
+        override val måJusteresManueltVedGEndring: Boolean = false
     }
 
     object Dagpenger : Fradragstype() {
         override val kategori: Kategori = Kategori.Dagpenger
+        override val måJusteresManueltVedGEndring: Boolean = true
     }
 
     object Gjenlevendepensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.Gjenlevendepensjon
+        override val måJusteresManueltVedGEndring: Boolean = true
     }
 
     object Introduksjonsstønad : Fradragstype() {
         override val kategori: Kategori = Kategori.Introduksjonsstønad
+        override val måJusteresManueltVedGEndring: Boolean = true
     }
 
     object Kapitalinntekt : Fradragstype() {
         override val kategori: Kategori = Kategori.Kapitalinntekt
+        override val måJusteresManueltVedGEndring: Boolean = false
     }
 
     object Kontantstøtte : Fradragstype() {
         override val kategori: Kategori = Kategori.Kontantstøtte
+        override val måJusteresManueltVedGEndring: Boolean = false
     }
 
     object Kvalifiseringsstønad : Fradragstype() {
         override val kategori: Kategori = Kategori.Kvalifiseringsstønad
+        override val måJusteresManueltVedGEndring: Boolean = true
     }
 
     object NAVytelserTilLivsopphold : Fradragstype() {
         override val kategori: Kategori = Kategori.NAVytelserTilLivsopphold
+        override val måJusteresManueltVedGEndring: Boolean = true
     }
 
     object OffentligPensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.OffentligPensjon
+        override val måJusteresManueltVedGEndring: Boolean = true
     }
 
     object PrivatPensjon : Fradragstype() {
         override val kategori: Kategori = Kategori.PrivatPensjon
+        override val måJusteresManueltVedGEndring: Boolean = false
     }
 
     object Sosialstønad : Fradragstype() {
         override val kategori: Kategori = Kategori.Sosialstønad
+        override val måJusteresManueltVedGEndring: Boolean = false
     }
 
     object SupplerendeStønad : Fradragstype() {
         override val kategori: Kategori = Kategori.SupplerendeStønad
+        override val måJusteresManueltVedGEndring: Boolean = true
     }
 
     object Sykepenger : Fradragstype() {
         override val kategori: Kategori = Kategori.Sykepenger
+        override val måJusteresManueltVedGEndring: Boolean = false
     }
 
     object Uføretrygd : Fradragstype() {
         override val kategori: Kategori = Kategori.Uføretrygd
+        override val måJusteresManueltVedGEndring: Boolean = true
     }
 
     object ForventetInntekt : Fradragstype() {
         override val kategori: Kategori = Kategori.ForventetInntekt
+        override val måJusteresManueltVedGEndring: Boolean = true
     }
 
     object AvkortingUtenlandsopphold : Fradragstype() {
         override val kategori: Kategori = Kategori.AvkortingUtenlandsopphold
+        override val måJusteresManueltVedGEndring: Boolean = false
     }
 
     object BeregnetFradragEPS : Fradragstype() {
         override val kategori: Kategori = Kategori.BeregnetFradragEPS
+        override val måJusteresManueltVedGEndring: Boolean = false
     }
 
     object UnderMinstenivå : Fradragstype() {
         override val kategori: Kategori = Kategori.UnderMinstenivå
+        override val måJusteresManueltVedGEndring: Boolean = false
     }
 
     companion object {

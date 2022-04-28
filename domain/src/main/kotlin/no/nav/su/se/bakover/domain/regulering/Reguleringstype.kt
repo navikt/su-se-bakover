@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.regulering
 
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 
@@ -31,7 +30,7 @@ enum class ÅrsakTilManuellRegulering {
 fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
     val problemer = mutableSetOf<ÅrsakTilManuellRegulering>()
 
-    if (this.grunnlagsdata.fradragsgrunnlag.any { (it.fradrag.fradragstype == Fradragstype.NAVytelserTilLivsopphold) || (it.fradrag.fradragstype == Fradragstype.OffentligPensjon) }) {
+    if (this.grunnlagsdata.fradragsgrunnlag.any { it.fradrag.skalJusteresVedGEndring() }) {
         problemer.add(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)
     }
 
