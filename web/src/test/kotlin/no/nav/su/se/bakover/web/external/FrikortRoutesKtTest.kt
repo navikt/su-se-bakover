@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.web.external
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.client.call.body
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
-import io.ktor.client.utils.EmptyContent.status
+import io.ktor.client.utils.EmptyContent
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -38,9 +38,9 @@ internal class FrikortRoutesKtTest {
             application {
                 testSusebakover()
             }
-            defaultRequest(HttpMethod.Get, frikortPath)
-        }.apply {
-            status shouldBe HttpStatusCode.Unauthorized
+            defaultRequest(HttpMethod.Get, frikortPath).apply {
+                this.status shouldBe HttpStatusCode.Unauthorized
+            }
         }
     }
 
@@ -54,15 +54,15 @@ internal class FrikortRoutesKtTest {
             application {
                 testSusebakover(services = testServices.copy(vedtakService = vedtakServiceMock))
             }
-            defaultRequest(HttpMethod.Get, frikortPath) {
+            client.get(frikortPath) {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
                     jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername).asBearerToken(),
                 )
+            }.apply {
+                this.status shouldBe HttpStatusCode.OK
             }
-        }.apply {
-            status shouldBe HttpStatusCode.OK
         }
     }
 
@@ -72,15 +72,16 @@ internal class FrikortRoutesKtTest {
             application {
                 testSusebakover()
             }
-            val res = defaultRequest(HttpMethod.Get, "$frikortPath/202121") {
+            client.get("$frikortPath/202121") {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
                     jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername).asBearerToken(),
                 )
+            }.apply {
+                this.status shouldBe HttpStatusCode.BadRequest
+                bodyAsText() shouldContain ("Ugyldig dato - dato må være på format YYYY-MM")
             }
-            status shouldBe HttpStatusCode.BadRequest
-            res.body<String>() shouldContain ("Ugyldig dato - dato må være på format YYYY-MM")
         }
     }
 
@@ -99,7 +100,7 @@ internal class FrikortRoutesKtTest {
                     clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC),
                 )
             }
-            val response = defaultRequest(HttpMethod.Get, frikortPath) {
+            val response = client.get(frikortPath) {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
@@ -126,7 +127,7 @@ internal class FrikortRoutesKtTest {
                 )
             }
 
-            val response = defaultRequest(HttpMethod.Get, "$frikortPath/2021-02") {
+            val response = client.get("$frikortPath/2021-02") {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
@@ -152,7 +153,7 @@ internal class FrikortRoutesKtTest {
                     clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC),
                 )
             }
-            val response = defaultRequest(HttpMethod.Get, "$frikortPath/2021-02") {
+            val response = client.get("$frikortPath/2021-02") {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,

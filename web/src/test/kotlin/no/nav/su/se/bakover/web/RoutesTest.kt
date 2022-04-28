@@ -6,9 +6,6 @@ import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.header
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
-import io.ktor.client.utils.EmptyContent
-import io.ktor.client.utils.EmptyContent.headers
-import io.ktor.client.utils.EmptyContent.status
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.XCorrelationId
@@ -45,10 +42,10 @@ class RoutesTest {
             application {
                 susebakover()
             }
-            defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder))
-        }.apply {
-            status shouldBe OK
-            headers[XCorrelationId] shouldBe DEFAULT_CALL_ID
+            defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder)).apply {
+                this.status shouldBe OK
+                this.headers[XCorrelationId] shouldBe DEFAULT_CALL_ID
+            }
         }
     }
 
@@ -63,11 +60,11 @@ class RoutesTest {
                     HttpHeaders.Authorization,
                     jwtStub.createJwtToken(roller = listOf(Brukerrolle.Veileder)).asBearerToken(),
                 )
+            }.apply {
+                this.status shouldBe OK
+                this.headers[XCorrelationId] shouldNotBe null
+                this.headers[XCorrelationId] shouldNotBe DEFAULT_CALL_ID
             }
-        }.apply {
-            status shouldBe OK
-            headers[XCorrelationId] shouldNotBe null
-            headers[XCorrelationId] shouldNotBe DEFAULT_CALL_ID
         }
     }
 
@@ -100,11 +97,11 @@ class RoutesTest {
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"${Fnr.generer()}"}""")
             }.apply {
-                EmptyContent.status shouldBe InternalServerError
+                this.status shouldBe InternalServerError
                 JSONAssert.assertEquals("""{"message":"Ukjent feil"}""", this.bodyAsText(), true)
             }
-
-        }    }
+        }
+    }
 
     @Test
     fun `should use content-type application-json by default`() {

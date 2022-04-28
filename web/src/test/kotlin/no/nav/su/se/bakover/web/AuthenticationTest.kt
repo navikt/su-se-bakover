@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web
 
+import io.ktor.client.request.get
 import io.ktor.client.request.header
-import io.ktor.client.utils.EmptyContent.status
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -48,11 +48,11 @@ internal class AuthenticationTest {
             application {
                 testSusebakover()
             }
-            defaultRequest(Get, secureEndpoint) {
+            client.get(secureEndpoint) {
                 header(Authorization, jwtStub.createJwtToken(audience = "wrong_audience").asBearerToken())
+            }.apply {
+                assertEquals(Unauthorized, this.status)
             }
-        }.apply {
-            assertEquals(Unauthorized, status)
         }
     }
 
@@ -62,11 +62,11 @@ internal class AuthenticationTest {
             application {
                 testSusebakover()
             }
-            defaultRequest(Get, secureEndpoint) {
+            client.get(secureEndpoint) {
                 header(Authorization, jwtStub.createJwtToken(roller = emptyList()).asBearerToken())
+            }.apply {
+                assertEquals(Unauthorized, this.status)
             }
-        }.apply {
-            assertEquals(Unauthorized, status)
         }
     }
 
@@ -76,7 +76,7 @@ internal class AuthenticationTest {
             application {
                 testSusebakover()
             }
-            defaultRequest(Get, secureEndpoint) {
+            client.get(secureEndpoint) {
                 header(
                     Authorization,
                     jwtStub.createJwtToken(expiresAt = Date.from(Instant.now().minusSeconds(1))).asBearerToken(),
@@ -93,11 +93,11 @@ internal class AuthenticationTest {
             application {
                 testSusebakover()
             }
-            defaultRequest(Get, secureEndpoint) {
+            client.get(secureEndpoint) {
                 header(Authorization, jwtStub.createJwtToken(issuer = "wrong_issuer").asBearerToken())
+            }.apply {
+                assertEquals(Unauthorized, this.status)
             }
-        }.apply {
-            assertEquals(Unauthorized, status)
         }
     }
 }

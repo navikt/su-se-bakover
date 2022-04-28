@@ -75,8 +75,7 @@ class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationCon
         internal fun init(call: ApplicationCall, applicationConfig: ApplicationConfig) =
             call.attributes.put(AttributeKey, SuUserContext(call, applicationConfig))
 
-        internal fun from(call: ApplicationCall) =
-            call.attributes[AttributeKey]
+        internal fun from(call: ApplicationCall) = call.attributes[AttributeKey]
     }
 }
 

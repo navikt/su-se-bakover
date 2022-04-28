@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
@@ -94,7 +95,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 listOf(Brukerrolle.Attestant),
             ).apply {
                 status shouldBe HttpStatusCode.BadRequest
-                bodyAsText() shouldBe "kunne_ikke_iverksette_gjenopptak_ugyldig_tilstand"
+                bodyAsText() shouldContain "kunne_ikke_iverksette_gjenopptak_ugyldig_tilstand"
             }
         }
     }
@@ -125,7 +126,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 listOf(Brukerrolle.Attestant),
             ).apply {
                 status shouldBe HttpStatusCode.InternalServerError
-                bodyAsText() shouldBe "kontrollsimulering_ulik_saksbehandlers_simulering"
+                bodyAsText() shouldContain "kontrollsimulering_ulik_saksbehandlers_simulering"
             }
         }
     }
@@ -172,8 +173,8 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe "2021-08-01"
-                bodyAsText() shouldBe "kebabeluba"
+                bodyAsText() shouldContain "2021-08-01"
+                bodyAsText() shouldContain "kebabeluba"
             }
         }
     }
@@ -209,7 +210,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
-                bodyAsText() shouldBe """"code":"revurderingsårsak_ugyldig_årsak""""
+                bodyAsText() shouldContain """"code":"revurderingsårsak_ugyldig_årsak""""
             }
         }
     }
@@ -247,7 +248,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.InternalServerError
-                bodyAsText() shouldBe """"code":"kan_ikke_gjenoppta_opphørte_utbetalinger""""
+                bodyAsText() shouldContain """"code":"kan_ikke_gjenoppta_opphørte_utbetalinger""""
             }
         }
     }

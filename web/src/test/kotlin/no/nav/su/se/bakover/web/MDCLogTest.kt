@@ -7,9 +7,9 @@ import ch.qos.logback.core.read.ListAppender
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.LoggingTest.Companion.konfigurerLogback
@@ -55,7 +55,7 @@ class MDCLogTest {
                 applog = environment.log as Logger
             }
             applog.apply { addAppender(appender) }
-            defaultRequest(HttpMethod.Get, secureEndpoint) {
+            client.get(secureEndpoint) {
                 header(
                     HttpHeaders.Authorization,
                     jwtStub.createJwtToken(roller = listOf(Brukerrolle.Veileder)).asBearerToken(),

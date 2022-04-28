@@ -11,10 +11,10 @@ import io.kotest.matchers.string.shouldMatch
 import io.ktor.client.request.header
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
 import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpMethod.Companion.Post
+import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -127,7 +127,7 @@ internal class SøknadRoutesKtTest {
                     søknadPath,
                     listOf(Brukerrolle.Veileder),
                 ) {
-                    header(ContentType.toString(), Json.toString())
+                    header(ContentType, Json.toString())
                     setBody(soknadJson)
                 }.apply {
                     status shouldBe Created
@@ -229,7 +229,7 @@ internal class SøknadRoutesKtTest {
                     søknadPath,
                     listOf(Brukerrolle.Veileder),
                 ) {
-                    header(ContentType.toString(), Json.toString())
+                    header(ContentType, Json.toString())
                     setBody(soknadJson)
                 }.apply {
                     status shouldBe Created
@@ -258,7 +258,7 @@ internal class SøknadRoutesKtTest {
                 uri = "$søknadPath/$søknadId/lukk",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
-                header(ContentType.toString(), Json.toString())
+                header(ContentType, Json.toString())
                 setBody(
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
@@ -288,7 +288,7 @@ internal class SøknadRoutesKtTest {
                 uri = "$søknadPath/$søknadId/lukk",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
-                header(ContentType.toString(), Json.toString())
+                header(ContentType, Json.toString())
                 setBody(
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
@@ -318,7 +318,7 @@ internal class SøknadRoutesKtTest {
                 uri = "$søknadPath/$søknadId/lukk",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
-                header(ContentType.toString(), Json.toString())
+                header(ContentType, Json.toString())
                 setBody(
                     objectMapper.writeValueAsString(
                         LukketJson.AvvistJson(
@@ -349,7 +349,7 @@ internal class SøknadRoutesKtTest {
                 uri = "$søknadPath/$søknadId/lukk",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
-                header(ContentType.toString(), Json.toString())
+                header(ContentType, Json.toString())
                 setBody(
                     """
                         {

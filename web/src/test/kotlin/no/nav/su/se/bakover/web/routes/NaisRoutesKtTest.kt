@@ -16,15 +16,15 @@ internal class NaisRoutesKtTest {
                 testSusebakover()
             }
             client.get("/isalive").apply {
-                assertEquals(200, status)
+                assertEquals(200, status.value)
                 assertEquals("ALIVE", this.bodyAsText())
             }
             client.get("/isready").apply {
-                assertEquals(200, status)
+                assertEquals(200, status.value)
                 assertEquals("READY", this.bodyAsText())
             }
             client.get("/metrics").apply {
-                assertEquals(200, status)
+                assertEquals(200, status.value)
             }
         }
     }

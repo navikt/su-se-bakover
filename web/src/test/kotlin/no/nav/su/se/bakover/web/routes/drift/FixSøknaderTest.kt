@@ -41,8 +41,7 @@ internal class FixSøknaderTest {
                     Patch,
                     "$DRIFT_PATH/søknader/fix",
                     listOf(it),
-                ) {
-                }.apply {
+                ).apply {
                     status shouldBe HttpStatusCode.Forbidden
                 }
             }

@@ -403,7 +403,6 @@ open class AccessCheckProxy(
             person = object : PersonService {
                 override fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
                     assertHarTilgangTilPerson(fnr)
-
                     return services.person.hentPerson(fnr)
                 }
 
@@ -411,7 +410,6 @@ open class AccessCheckProxy(
 
                 override fun hentAktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
                     assertHarTilgangTilPerson(fnr)
-
                     return services.person.hentAktørId(fnr)
                 }
 

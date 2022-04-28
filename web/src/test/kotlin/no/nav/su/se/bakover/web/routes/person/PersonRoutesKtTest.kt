@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
@@ -40,10 +39,6 @@ internal class PersonRoutesKtTest {
 
     private val services = TestServicesBuilder.services()
 
-    fun lol() {
-        return
-    }
-
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {
         testApplication {
@@ -66,7 +61,7 @@ internal class PersonRoutesKtTest {
             application {
                 testSusebakover()
             }
-            defaultRequest(HttpMethod.Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+            defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"qwertyuiopå"}""")
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest
@@ -140,7 +135,7 @@ internal class PersonRoutesKtTest {
             application {
                 testSusebakover(accessCheckProxy = accessCheckProxyMock, clock = fixedClock)
             }
-            defaultRequest(HttpMethod.Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+            defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"$testIdent"}""")
             }.apply {
                 status shouldBe OK
@@ -167,7 +162,7 @@ internal class PersonRoutesKtTest {
             application {
                 testSusebakover(clients = clients)
             }
-            defaultRequest(HttpMethod.Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+            defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"$testIdent"}""")
             }.apply {
                 status shouldBe HttpStatusCode.InternalServerError
@@ -204,15 +199,9 @@ internal class PersonRoutesKtTest {
                 testSusebakover(clients = clients)
             }
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
-                setBody(
-                    """
-                    {
-                    "fnr": $testIdent
-                    }
-                    """.trimIndent(),
-                )
+                setBody("""{"fnr": $testIdent}""")
             }.apply {
-                status shouldBe NotFound
+                this.status shouldBe NotFound
                 JSONAssert.assertEquals(
                     """
                   {
