@@ -85,7 +85,7 @@ sealed class FlyktningVilkår : Vilkår() {
                 if (vurderingsperioder.harOverlappende()) {
                     return UgyldigFlyktningVilkår.OverlappendeVurderingsperioder.left()
                 }
-                return Vurdert(vurderingsperioder).right()
+                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
         }
 
