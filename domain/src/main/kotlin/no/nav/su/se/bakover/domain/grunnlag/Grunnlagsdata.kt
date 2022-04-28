@@ -71,8 +71,8 @@ data class Grunnlagsdata private constructor(
                 KunneIkkeLageGrunnlagsdata.Konsistenssjekk(it.first())
             }.map {
                 Grunnlagsdata(
-                    fradragsgrunnlag = fradragsgrunnlag,
-                    bosituasjon = bosituasjon,
+                    fradragsgrunnlag = fradragsgrunnlag.sortedBy { it.periode },
+                    bosituasjon = bosituasjon.sortedBy { it.periode },
                 )
             }
         }

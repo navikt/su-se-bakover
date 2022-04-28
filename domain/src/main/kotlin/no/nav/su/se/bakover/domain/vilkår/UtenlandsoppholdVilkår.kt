@@ -87,7 +87,7 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
                 if (vurderingsperioder.harOverlappende()) {
                     return UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder.left()
                 }
-                return Vurdert(vurderingsperioder).right()
+                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
 
             fun createFromVilkårsvurderinger(
@@ -101,7 +101,7 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
                 if (vurderingsperioder.harOverlappende()) {
                     return UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder.left()
                 }
-                return Vurdert(vurderingsperioder).right()
+                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
         }
 
