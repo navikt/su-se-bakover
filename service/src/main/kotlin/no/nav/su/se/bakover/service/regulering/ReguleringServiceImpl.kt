@@ -109,7 +109,7 @@ class ReguleringServiceImpl(
                     return@map regulering.copy(
                         reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.AvventerKravgrunnlag)),
                     ).right().tap {
-                        reguleringRepo.lagre(regulering)
+                        reguleringRepo.lagre(it)
                     }
                 }
 
