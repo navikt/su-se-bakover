@@ -37,8 +37,8 @@ internal fun Route.sakRoutes(
     sakService: SakService,
     clock: Clock,
 ) {
-    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        post("$sakPath/søk") {
+    post("$sakPath/søk") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             data class Body(
                 val fnr: String?,
                 val saksnummer: String?,
@@ -109,8 +109,8 @@ internal fun Route.sakRoutes(
         }
     }
 
-    authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        get("$sakPath/info/{fnr}") {
+    get("$sakPath/info/{fnr}") {
+        authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.parameter("fnr")
                 .flatMap {
                     Either.catch { Fnr(it) }
@@ -142,8 +142,8 @@ internal fun Route.sakRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        get("$sakPath/{sakId}") {
+    get("$sakPath/{sakId}") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.svar(
                     sakService.hentSak(sakId).fold(
@@ -158,15 +158,15 @@ internal fun Route.sakRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        get("$sakPath/behandlinger/apne") {
+    get("$sakPath/behandlinger/apne") {
+        authorize(Brukerrolle.Saksbehandler) {
             val åpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
             call.svar(Resultat.json(OK, serialize(åpneBehandlinger.toJson())))
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        get("$sakPath/behandlinger/ferdige") {
+    get("$sakPath/behandlinger/ferdige") {
+        authorize(Brukerrolle.Saksbehandler) {
             val ferdigeBehandlinger = sakService.hentFerdigeBehandlingerForAlleSaker()
             call.svar(Resultat.json(OK, serialize(ferdigeBehandlinger.toJson())))
         }

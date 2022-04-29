@@ -40,11 +40,14 @@ private data class UtenlandsoppholdBody(
 internal fun Route.leggTilUtenlandsopphold(
     søknadsbehandlingService: SøknadsbehandlingService,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$behandlingPath/{behandlingId}/utenlandsopphold") {
+    post("$behandlingPath/{behandlingId}/utenlandsopphold") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<UtenlandsoppholdBody> { body ->
-                    søknadsbehandlingService.leggTilUtenlandsopphold(body.toRequest(behandlingId).getOrHandle { return@withBehandlingId call.svar(it) })
+                    søknadsbehandlingService.leggTilUtenlandsopphold(
+                        body.toRequest(behandlingId)
+                            .getOrHandle { return@withBehandlingId call.svar(it) },
+                    )
                         .mapLeft {
                             call.svar(it.tilResultat())
                         }.map {

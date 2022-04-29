@@ -33,8 +33,8 @@ import no.nav.su.se.bakover.web.withRevurderingId
 internal fun Route.iverksettRevurderingRoute(
     revurderingService: RevurderingService,
 ) {
-    authorize(Brukerrolle.Attestant) {
-        post("$revurderingPath/{revurderingId}/iverksett") {
+    post("$revurderingPath/{revurderingId}/iverksett") {
+        authorize(Brukerrolle.Attestant) {
             call.withRevurderingId { revurderingId ->
                 revurderingService.iverksett(
                     revurderingId = revurderingId, attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent),

@@ -76,8 +76,8 @@ internal fun Route.leggTilGrunnlagFradrag(
             ).right()
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$behandlingPath/{behandlingId}/grunnlag/fradrag") {
+    post("$behandlingPath/{behandlingId}/grunnlag/fradrag") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
                     call.withBody<Body> { body ->

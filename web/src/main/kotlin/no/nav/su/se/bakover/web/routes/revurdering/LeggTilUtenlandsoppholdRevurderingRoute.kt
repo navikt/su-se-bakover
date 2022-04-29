@@ -59,8 +59,8 @@ private data class UtenlandsoppholdJson(
 internal fun Route.leggTilUtlandsoppholdRoute(
     revurderingService: RevurderingService,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/{revurderingId}/utenlandsopphold") {
+    post("$revurderingPath/{revurderingId}/utenlandsopphold") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<UtlandsoppholdBody> { body ->
                     val req = body.toRequest(revurderingId)

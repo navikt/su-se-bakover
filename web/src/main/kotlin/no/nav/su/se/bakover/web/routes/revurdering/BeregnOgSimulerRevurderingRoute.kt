@@ -36,8 +36,8 @@ import no.nav.su.se.bakover.web.withSakId
 internal fun Route.beregnOgSimulerRevurdering(
     revurderingService: RevurderingService,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/{revurderingId}/beregnOgSimuler") {
+    post("$revurderingPath/{revurderingId}/beregnOgSimuler") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     revurderingService.beregnOgSimuler(

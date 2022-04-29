@@ -37,8 +37,8 @@ import no.nav.su.se.bakover.web.withSakId
 internal fun Route.gjenopptaUtbetaling(
     revurderingService: RevurderingService,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/gjenoppta") {
+    post("$revurderingPath/gjenoppta") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<GjenopptaUtbetalingBody> { body ->
                     val navIdent = call.suUserContext.navIdent
@@ -67,8 +67,8 @@ internal fun Route.gjenopptaUtbetaling(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        patch("$revurderingPath/gjenoppta/{revurderingId}") {
+    patch("$revurderingPath/gjenoppta/{revurderingId}") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<GjenopptaUtbetalingBody> { body ->
@@ -100,8 +100,8 @@ internal fun Route.gjenopptaUtbetaling(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        post("$revurderingPath/gjenoppta/{revurderingId}/iverksett") {
+    post("$revurderingPath/gjenoppta/{revurderingId}/iverksett") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     revurderingService.iverksettGjenopptakAvYtelse(

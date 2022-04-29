@@ -59,8 +59,8 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$behandlingPath/{behandlingId}/grunnlag/bosituasjon/eps") {
+    post("$behandlingPath/{behandlingId}/grunnlag/bosituasjon/eps") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<EpsBody> { body ->
                     call.svar(
@@ -87,8 +87,8 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$behandlingPath/{behandlingId}/grunnlag/bosituasjon/eps/skjermet") {
+    post("$behandlingPath/{behandlingId}/grunnlag/bosituasjon/eps/skjermet") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<EpsBody> { body ->
                     if (body.epsFnr.isNullOrEmpty()) {
@@ -117,8 +117,8 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$behandlingPath/{behandlingId}/grunnlag/bosituasjon/fullfør") {
+    post("$behandlingPath/{behandlingId}/grunnlag/bosituasjon/fullfør") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<BosituasjonBody> { body ->
                     call.svar(

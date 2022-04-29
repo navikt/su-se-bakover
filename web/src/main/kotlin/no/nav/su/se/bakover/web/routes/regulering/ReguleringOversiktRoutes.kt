@@ -14,8 +14,8 @@ import no.nav.su.se.bakover.web.svar
 internal fun Route.reguleringOversiktRoutes(
     reguleringService: ReguleringService,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        get("$reguleringPath/status") {
+    get("$reguleringPath/status") {
+        authorize(Brukerrolle.Saksbehandler) {
             val json = reguleringService.hentStatus().map { it.toJson() }
             call.svar(Resultat.json(HttpStatusCode.OK, serialize(json)))
         }

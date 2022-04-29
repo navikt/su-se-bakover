@@ -30,8 +30,8 @@ internal fun Route.LeggTilBosituasjonRevurderingRoute(
         val begrunnelse: String?
     )
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/{revurderingId}/bosituasjongrunnlag") {
+    post("$revurderingPath/{revurderingId}/bosituasjongrunnlag") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<BosituasjonBody> { body ->

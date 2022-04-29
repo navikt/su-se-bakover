@@ -36,8 +36,8 @@ import java.time.LocalDate
 internal fun Route.stansUtbetaling(
     revurderingService: RevurderingService,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/stans") {
+    post("$revurderingPath/stans") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<StansUtbetalingBody> { body ->
                     val navIdent = call.suUserContext.navIdent
@@ -67,8 +67,8 @@ internal fun Route.stansUtbetaling(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        patch("$revurderingPath/stans/{revurderingId}") {
+    patch("$revurderingPath/stans/{revurderingId}") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<StansUtbetalingBody> { body ->
@@ -101,8 +101,8 @@ internal fun Route.stansUtbetaling(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        post("$revurderingPath/stans/{revurderingId}/iverksett") {
+    post("$revurderingPath/stans/{revurderingId}/iverksett") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     revurderingService.iverksettStansAvYtelse(

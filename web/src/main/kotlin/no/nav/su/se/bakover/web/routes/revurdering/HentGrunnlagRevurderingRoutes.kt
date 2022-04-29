@@ -29,8 +29,8 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
     revurderingService: RevurderingService,
     vedtakService: VedtakService, // TODO ai: Flytte denne til "VedtakRoutes" når vi får något sånt
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        get("$revurderingPath/{revurderingId}/grunnlagsdataOgVilkårsvurderinger") {
+    get("$revurderingPath/{revurderingId}/grunnlagsdataOgVilkårsvurderinger") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
 
                 call.svar(
@@ -62,8 +62,8 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        get("$revurderingPath/historisk/vedtak/{vedtakId}/grunnlagsdataOgVilkårsvurderinger") {
+    get("$revurderingPath/historisk/vedtak/{vedtakId}/grunnlagsdataOgVilkårsvurderinger") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withVedtakId { vedtakId ->
                     vedtakService.historiskGrunnlagForVedtaksperiode(sakId, vedtakId).fold(

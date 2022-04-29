@@ -24,13 +24,12 @@ import no.nav.su.se.bakover.web.withRevurderingId
 internal fun Route.oppdaterTilbakekrevingsbehandlingRoute(
     revurderingService: RevurderingService,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
 
-        data class Body(
-            val avgjørelse: OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse,
-        )
-
-        post("$revurderingPath/{revurderingId}/tilbakekreving") {
+    data class Body(
+        val avgjørelse: OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse,
+    )
+    post("$revurderingPath/{revurderingId}/tilbakekreving") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<Body> { body ->
                     revurderingService.oppdaterTilbakekrevingsbehandling(

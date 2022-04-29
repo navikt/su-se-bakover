@@ -29,36 +29,35 @@ import no.nav.su.se.bakover.web.withRevurderingId
 internal fun Route.avsluttRevurderingRoute(
     revurderingService: RevurderingService,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-
         data class AvsluttRevurderingBody(
             val begrunnelse: String,
             val fritekst: String?,
         )
-
         post("$revurderingPath/{revurderingId}/avslutt") {
-            call.withBody<AvsluttRevurderingBody> { body ->
-                call.withRevurderingId { revurderingId ->
-                    revurderingService.avsluttRevurdering(
-                        revurderingId = revurderingId,
-                        begrunnelse = body.begrunnelse,
-                        fritekst = body.fritekst,
-                    ).fold(
-                        ifLeft = { call.svar(it.tilResultat()) },
-                        ifRight = {
-                            call.sikkerlogg("Avsluttet behandling av revurdering med revurderingId $revurderingId")
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
-                        },
-                    )
+            authorize(Brukerrolle.Saksbehandler) {
+                call.withBody<AvsluttRevurderingBody> { body ->
+                    call.withRevurderingId { revurderingId ->
+                        revurderingService.avsluttRevurdering(
+                            revurderingId = revurderingId,
+                            begrunnelse = body.begrunnelse,
+                            fritekst = body.fritekst,
+                        ).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = {
+                                call.sikkerlogg("Avsluttet behandling av revurdering med revurderingId $revurderingId")
+                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                            },
+                        )
+                    }
                 }
             }
         }
 
-        data class BrevutkastForAvslutting(
-            val fritekst: String?,
-        )
-
-        post("$revurderingPath/{revurderingId}/brevutkastForAvslutting") {
+    data class BrevutkastForAvslutting(
+        val fritekst: String?,
+    )
+    post("$revurderingPath/{revurderingId}/brevutkastForAvslutting") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<BrevutkastForAvslutting> { body ->
                     revurderingService.lagBrevutkastForAvslutting(revurderingId, body.fritekst).fold(

@@ -53,8 +53,8 @@ internal fun Route.søknadRoutes(
     avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService,
     clock: Clock,
 ) {
-    authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
-        post(søknadPath) {
+    post(søknadPath) {
+        authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             Either.catch { deserialize<SøknadInnholdJson>(call) }.fold(
                 ifLeft = {
                     call.application.environment.log.info(it.message, it)
@@ -100,8 +100,8 @@ internal fun Route.søknadRoutes(
         }
     }
 
-    authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
-        get("$søknadPath/{søknadId}/utskrift") {
+    get("$søknadPath/{søknadId}/utskrift") {
+        authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 søknadService.hentSøknadPdf(søknadId).fold(
                     {
@@ -130,8 +130,8 @@ internal fun Route.søknadRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$søknadPath/{søknadId}/lukk") {
+    post("$søknadPath/{søknadId}/lukk") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 LukkSøknadInputHandler.handle(
                     body = call.receiveTextUTF8(),
@@ -155,8 +155,8 @@ internal fun Route.søknadRoutes(
 
     data class WithFritekstBody(val fritekst: String)
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$søknadPath/{søknadId}/avslag") {
+    post("$søknadPath/{søknadId}/avslag") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 call.withBody<WithFritekstBody> { body ->
                     avslåSøknadManglendeDokumentasjonService.avslå(
@@ -189,8 +189,8 @@ internal fun Route.søknadRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$søknadPath/{søknadId}/lukk/brevutkast") {
+    post("$søknadPath/{søknadId}/lukk/brevutkast") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 LukkSøknadInputHandler.handle(
                     body = call.receiveTextUTF8(),

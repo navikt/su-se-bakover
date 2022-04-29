@@ -54,8 +54,8 @@ data class UnderkjennBody(
 internal fun Route.underkjennRevurdering(
     revurderingService: RevurderingService
 ) {
-    authorize(Brukerrolle.Attestant) {
-        patch("$revurderingPath/{revurderingId}/underkjenn") {
+    patch("$revurderingPath/{revurderingId}/underkjenn") {
+        authorize(Brukerrolle.Attestant) {
             val navIdent = call.suUserContext.navIdent
 
             call.withRevurderingId { revurderingId ->
@@ -93,7 +93,7 @@ internal fun Route.underkjennRevurdering(
                                 )
                             }
                         )
-                    }
+                    },
                 )
             }
         }

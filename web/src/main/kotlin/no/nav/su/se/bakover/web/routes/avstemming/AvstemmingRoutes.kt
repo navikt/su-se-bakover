@@ -25,8 +25,8 @@ internal fun Route.avstemmingRoutes(
     service: AvstemmingService,
     clock: Clock,
 ) {
-    authorize(Brukerrolle.Drift) {
-        post("$AVSTEMMING_PATH/grensesnitt") {
+    post("$AVSTEMMING_PATH/grensesnitt") {
+        authorize(Brukerrolle.Drift) {
             val fraOgMed = call.parameters["fraOgMed"] // YYYY-MM-DD
             val tilOgMed = call.parameters["tilOgMed"] // YYYY-MM-DD
 
@@ -42,14 +42,14 @@ internal fun Route.avstemmingRoutes(
                             ).mapBoth { LocalDate.parse(it, DateTimeFormatter.ISO_DATE) }
                         }
                             .mapLeft {
-                                return@post call.respond(
+                                return@authorize call.respond(
                                     HttpStatusCode.BadRequest,
                                     "Ugyldig(e) dato(er). Må være på ${DateTimeFormatter.ISO_DATE}",
                                 )
                             }
                             .map {
                                 if (!isValidAvstemmingsperiode(it, clock)) {
-                                    return@post call.respond(
+                                    return@authorize call.respond(
                                         HttpStatusCode.BadRequest,
                                         "fraOgMed må være <= tilOgMed. Og tilOgMed må være tidligere enn dagens dato!",
                                     )
@@ -57,7 +57,7 @@ internal fun Route.avstemmingRoutes(
                                 it
                             }
                     else ->
-                        return@post call.respond(HttpStatusCode.BadRequest, "Ugyldig as")
+                        return@authorize call.respond(HttpStatusCode.BadRequest, "Ugyldig as")
                 }
 
             periode.fold(
@@ -73,8 +73,8 @@ internal fun Route.avstemmingRoutes(
         }
     }
 
-    authorize(Brukerrolle.Drift) {
-        post("$AVSTEMMING_PATH/konsistens") {
+    post("$AVSTEMMING_PATH/konsistens") {
+        authorize(Brukerrolle.Drift) {
             val fraOgMed = call.parameters["fraOgMed"]
 
             if (fraOgMed == null) call.svar(

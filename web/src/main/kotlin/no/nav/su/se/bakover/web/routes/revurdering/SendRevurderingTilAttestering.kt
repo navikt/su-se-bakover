@@ -29,34 +29,33 @@ import no.nav.su.se.bakover.web.withRevurderingId
 internal fun Route.sendRevurderingTilAttestering(
     revurderingService: RevurderingService,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-
         data class Body(
             val fritekstTilBrev: String,
             val skalFøreTilBrevutsending: Boolean?,
         )
 
         post("$revurderingPath/{revurderingId}/tilAttestering") {
-            call.withRevurderingId { revurderingId ->
-                call.withBody<Body> { body ->
-                    revurderingService.sendTilAttestering(
-                        SendTilAttesteringRequest(
-                            revurderingId = revurderingId,
-                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                            fritekstTilBrev = body.fritekstTilBrev,
-                            skalFøreTilBrevutsending = body.skalFøreTilBrevutsending ?: true,
-                        ),
-                    ).fold(
-                        ifLeft = { call.svar(it.tilResultat()) },
-                        ifRight = {
-                            call.sikkerlogg("Sendt revurdering til attestering med id $revurderingId")
-                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
-                        },
-                    )
+            authorize(Brukerrolle.Saksbehandler) {
+                call.withRevurderingId { revurderingId ->
+                    call.withBody<Body> { body ->
+                        revurderingService.sendTilAttestering(
+                            SendTilAttesteringRequest(
+                                revurderingId = revurderingId,
+                                saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                                fritekstTilBrev = body.fritekstTilBrev,
+                                skalFøreTilBrevutsending = body.skalFøreTilBrevutsending ?: true,
+                            ),
+                        ).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = {
+                                call.sikkerlogg("Sendt revurdering til attestering med id $revurderingId")
+                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                            },
+                        )
+                    }
                 }
             }
-        }
     }
 }
 

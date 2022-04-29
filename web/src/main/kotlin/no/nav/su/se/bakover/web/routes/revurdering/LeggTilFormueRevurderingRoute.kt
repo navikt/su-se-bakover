@@ -86,8 +86,8 @@ private data class FormueBody(
 internal fun Route.leggTilFormueRevurderingRoute(
     revurderingService: RevurderingService,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/{revurderingId}/formuegrunnlag") {
+    post("$revurderingPath/{revurderingId}/formuegrunnlag") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<List<FormueBody>> { body ->

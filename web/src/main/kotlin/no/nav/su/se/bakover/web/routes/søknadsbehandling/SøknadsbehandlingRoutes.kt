@@ -91,143 +91,138 @@ internal fun Route.søknadsbehandlingRoutes(
         "feil_ved_henting_av_saksbehandler_eller_attestant",
     )
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$sakPath/{sakId}/behandlinger") {
+    post("$sakPath/{sakId}/behandlinger") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<OpprettBehandlingBody> { body ->
                     body.soknadId.toUUID().mapLeft {
                         call.svar(BadRequest.errorJson("soknadId er ikke en gyldig uuid", "ikke_gyldig_uuid"))
                     }.map { søknadId ->
-                        søknadsbehandlingService.opprett(OpprettRequest(søknadId))
-                            .fold(
-                                {
-                                    call.svar(
-                                        when (it) {
-                                            is KunneIkkeOpprette.FantIkkeSøknad -> {
-                                                NotFound.errorJson(
-                                                    "Fant ikke søknad med id $søknadId",
-                                                    "fant_ikke_søknad",
-                                                )
-                                            }
-                                            is KunneIkkeOpprette.SøknadManglerOppgave -> {
-                                                InternalServerError.errorJson(
-                                                    "Søknad med id $søknadId mangler oppgave",
-                                                    "søknad_mangler_oppgave",
-                                                )
-                                            }
-                                            is KunneIkkeOpprette.SøknadHarAlleredeBehandling -> {
-                                                BadRequest.errorJson(
-                                                    "Søknad med id $søknadId har allerede en behandling",
-                                                    "søknad_har_behandling",
-                                                )
-                                            }
-                                            is KunneIkkeOpprette.SøknadErLukket -> {
-                                                BadRequest.errorJson(
-                                                    "Søknad med id $søknadId er lukket",
-                                                    "søknad_er_lukket",
-                                                )
-                                            }
-                                            KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling -> {
-                                                BadRequest.errorJson(
-                                                    "Har allerede en åpen søknadsbehandling",
-                                                    "har_allerede_en_åpen_søknadsbehandling",
-                                                )
-                                            }
-                                        },
-                                    )
-                                },
-                                {
-                                    call.sikkerlogg("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
-                                    call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
-                                    SuMetrics.behandlingStartet(SuMetrics.Behandlingstype.SØKNAD)
-                                    call.svar(Created.jsonBody(it))
-                                },
-                            )
+                        søknadsbehandlingService.opprett(OpprettRequest(søknadId)).fold(
+                            {
+                                call.svar(
+                                    when (it) {
+                                        is KunneIkkeOpprette.FantIkkeSøknad -> {
+                                            NotFound.errorJson(
+                                                "Fant ikke søknad med id $søknadId",
+                                                "fant_ikke_søknad",
+                                            )
+                                        }
+                                        is KunneIkkeOpprette.SøknadManglerOppgave -> {
+                                            InternalServerError.errorJson(
+                                                "Søknad med id $søknadId mangler oppgave",
+                                                "søknad_mangler_oppgave",
+                                            )
+                                        }
+                                        is KunneIkkeOpprette.SøknadHarAlleredeBehandling -> {
+                                            BadRequest.errorJson(
+                                                "Søknad med id $søknadId har allerede en behandling",
+                                                "søknad_har_behandling",
+                                            )
+                                        }
+                                        is KunneIkkeOpprette.SøknadErLukket -> {
+                                            BadRequest.errorJson(
+                                                "Søknad med id $søknadId er lukket",
+                                                "søknad_er_lukket",
+                                            )
+                                        }
+                                        KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling -> {
+                                            BadRequest.errorJson(
+                                                "Har allerede en åpen søknadsbehandling",
+                                                "har_allerede_en_åpen_søknadsbehandling",
+                                            )
+                                        }
+                                    },
+                                )
+                            },
+                            {
+                                call.sikkerlogg("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
+                                call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
+                                SuMetrics.behandlingStartet(SuMetrics.Behandlingstype.SØKNAD)
+                                call.svar(Created.jsonBody(it))
+                            },
+                        )
                     }
                 }
             }
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$behandlingPath/{behandlingId}/stønadsperiode") {
+    post("$behandlingPath/{behandlingId}/stønadsperiode") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
                     call.withBody<StønadsperiodeJson> { body ->
-                        body.toStønadsperiode()
-                            .mapLeft {
-                                call.svar(it)
-                            }
-                            .flatMap { stønadsperiode ->
-                                søknadsbehandlingService.oppdaterStønadsperiode(
-                                    SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
-                                        behandlingId = behandlingId,
-                                        stønadsperiode = stønadsperiode,
-                                        sakId = sakId,
-                                    ),
-                                )
-                                    .mapLeft { error ->
-                                        call.svar(
-                                            when (error) {
-                                                SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
+                        body.toStønadsperiode().mapLeft {
+                            call.svar(it)
+                        }.flatMap { stønadsperiode ->
+                            søknadsbehandlingService.oppdaterStønadsperiode(
+                                SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
+                                    behandlingId = behandlingId,
+                                    stønadsperiode = stønadsperiode,
+                                    sakId = sakId,
+                                ),
+                            ).mapLeft { error ->
+                                call.svar(
+                                    when (error) {
+                                        SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
+                                            fantIkkeBehandling
+                                        }
+                                        SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak -> {
+                                            fantIkkeSak
+                                        }
+                                        is SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode -> {
+                                            when (val feil = error.feil) {
+                                                Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
                                                     fantIkkeBehandling
                                                 }
-                                                SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak -> {
-                                                    fantIkkeSak
+                                                is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
+                                                    log.error("Feil ved oppdatering av stønadsperiode: ${feil.feil}")
+                                                    InternalServerError.errorJson(
+                                                        "Feil ved oppdatering av stønadsperiode",
+                                                        "oppdatering_av_stønadsperiode",
+                                                    )
                                                 }
-                                                is SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode -> {
-                                                    when (val feil = error.feil) {
-                                                        Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
-                                                            fantIkkeBehandling
-                                                        }
-                                                        is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
-                                                            log.error("Feil ved oppdatering av stønadsperiode: ${feil.feil}")
-                                                            InternalServerError.errorJson(
-                                                                "Feil ved oppdatering av stønadsperiode",
-                                                                "oppdatering_av_stønadsperiode",
-                                                            )
-                                                        }
-                                                        Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer -> {
-                                                            BadRequest.errorJson(
-                                                                "Kan ikke legge til ny stønadsperiode forut for eksisterende stønadsperioder",
-                                                                "senere_stønadsperioder_eksisterer",
-                                                            )
-                                                        }
-                                                        Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode -> {
-                                                            BadRequest.errorJson(
-                                                                "Stønadsperioden overlapper med eksisterende stønadsperiode",
-                                                                "stønadsperioden_overlapper_med_eksisterende_søknadsbehandling",
-                                                            )
-                                                        }
-                                                        is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeHenteGjeldendeVedtaksdata -> {
-                                                            InternalServerError.errorJson(
-                                                                "Kunne ikke hente gjeldende vedtaksdata",
-                                                                "kunne_ikke_hente_gjeldende_vedtaksdata",
-                                                            )
-                                                        }
-                                                        Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold -> {
-                                                            BadRequest.errorJson(
-                                                                "Stønadsperioden inneholder utbetalinger som skal avkortes pga utenlandsopphold. Dette støttes ikke.",
-                                                                "stønadsperiode_inneholder_avkorting_utenlandsopphold",
-                                                            )
-                                                        }
-                                                    }
+                                                Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer -> {
+                                                    BadRequest.errorJson(
+                                                        "Kan ikke legge til ny stønadsperiode forut for eksisterende stønadsperioder",
+                                                        "senere_stønadsperioder_eksisterer",
+                                                    )
                                                 }
-                                            },
-                                        )
-                                    }
-                                    .map {
-                                        call.svar(Created.jsonBody(it))
-                                    }
+                                                Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode -> {
+                                                    BadRequest.errorJson(
+                                                        "Stønadsperioden overlapper med eksisterende stønadsperiode",
+                                                        "stønadsperioden_overlapper_med_eksisterende_søknadsbehandling",
+                                                    )
+                                                }
+                                                is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeHenteGjeldendeVedtaksdata -> {
+                                                    InternalServerError.errorJson(
+                                                        "Kunne ikke hente gjeldende vedtaksdata",
+                                                        "kunne_ikke_hente_gjeldende_vedtaksdata",
+                                                    )
+                                                }
+                                                Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold -> {
+                                                    BadRequest.errorJson(
+                                                        "Stønadsperioden inneholder utbetalinger som skal avkortes pga utenlandsopphold. Dette støttes ikke.",
+                                                        "stønadsperiode_inneholder_avkorting_utenlandsopphold",
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    },
+                                )
+                            }.map {
+                                call.svar(Created.jsonBody(it))
                             }
+                        }
                     }
                 }
             }
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        get("$behandlingPath/{behandlingId}") {
+    get("$behandlingPath/{behandlingId}") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBehandlingId { behandlingId ->
                 søknadsbehandlingService.hent(HentRequest(behandlingId)).mapLeft {
                     call.svar(
@@ -245,8 +240,8 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        patch("$behandlingPath/{behandlingId}/informasjon") {
+    patch("$behandlingPath/{behandlingId}/informasjon") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<BehandlingsinformasjonJson> { body ->
                     søknadsbehandlingService.vilkårsvurder(
@@ -275,8 +270,8 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$behandlingPath/{behandlingId}/beregn") {
+    post("$behandlingPath/{behandlingId}/beregn") {
+        authorize(Brukerrolle.Saksbehandler) {
             data class Body(
                 val begrunnelse: String?,
             ) {
@@ -324,57 +319,57 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        suspend fun lagBrevutkast(call: ApplicationCall, req: BrevRequest) =
-            søknadsbehandlingService.brev(req)
-                .fold(
-                    {
-                        val resultat = when (it) {
-                            is KunneIkkeLageBrev.KunneIkkeLagePDF -> {
-                                InternalServerError.errorJson("Kunne ikke lage brev", "kunne_ikke_lage_pdf")
-                            }
-                            is KunneIkkeLageBrev.FantIkkePerson -> fantIkkePerson
-                            is KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant -> feilVedHentingAvSaksbehandlerEllerAttestant
-                            is KunneIkkeLageBrev.KunneIkkeFinneGjeldendeUtbetaling -> {
-                                InternalServerError.errorJson(
-                                    "Kunne ikke hente gjeldende utbetaling",
-                                    "finner_ikke_utbetaling",
-                                )
-                            }
-                        }
-                        call.svar(resultat)
-                    },
-                    {
-                        call.sikkerlogg("Hentet brev for behandling med id ${req.behandling.id}")
-                        call.audit(req.behandling.fnr, AuditLogEvent.Action.ACCESS, req.behandling.id)
-                        call.respondBytes(it, ContentType.Application.Pdf)
-                    },
-                )
-
-        post("$behandlingPath/{behandlingId}/vedtaksutkast") {
-            call.withBehandlingId { behandlingId ->
-                call.withBody<WithFritekstBody> { body ->
-                    søknadsbehandlingService.hent(HentRequest(behandlingId))
-                        .fold(
-                            { call.svar(fantIkkeBehandling) },
-                            { lagBrevutkast(call, BrevRequest.MedFritekst(it, body.fritekst)) },
-                        )
+    suspend fun lagBrevutkast(call: ApplicationCall, req: BrevRequest) = søknadsbehandlingService.brev(req).fold(
+        {
+            val resultat = when (it) {
+                is KunneIkkeLageBrev.KunneIkkeLagePDF -> {
+                    InternalServerError.errorJson("Kunne ikke lage brev", "kunne_ikke_lage_pdf")
+                }
+                is KunneIkkeLageBrev.FantIkkePerson -> fantIkkePerson
+                is KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant -> feilVedHentingAvSaksbehandlerEllerAttestant
+                is KunneIkkeLageBrev.KunneIkkeFinneGjeldendeUtbetaling -> {
+                    InternalServerError.errorJson(
+                        "Kunne ikke hente gjeldende utbetaling",
+                        "finner_ikke_utbetaling",
+                    )
                 }
             }
-        }
-        get("$behandlingPath/{behandlingId}/vedtaksutkast") {
+            call.svar(resultat)
+        },
+        {
+            call.sikkerlogg("Hentet brev for behandling med id ${req.behandling.id}")
+            call.audit(req.behandling.fnr, AuditLogEvent.Action.ACCESS, req.behandling.id)
+            call.respondBytes(it, ContentType.Application.Pdf)
+        },
+    )
+
+    post("$behandlingPath/{behandlingId}/vedtaksutkast") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withBehandlingId { behandlingId ->
-                søknadsbehandlingService.hent(HentRequest(behandlingId))
-                    .fold(
+                call.withBody<WithFritekstBody> { body ->
+                    søknadsbehandlingService.hent(HentRequest(behandlingId)).fold(
                         { call.svar(fantIkkeBehandling) },
-                        { lagBrevutkast(call, BrevRequest.UtenFritekst(it)) },
+                        { lagBrevutkast(call, BrevRequest.MedFritekst(it, body.fritekst)) },
                     )
+                }
             }
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$behandlingPath/{behandlingId}/simuler") {
+    get("$behandlingPath/{behandlingId}/vedtaksutkast") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+            call.withBehandlingId { behandlingId ->
+                søknadsbehandlingService.hent(HentRequest(behandlingId)).fold(
+                    { call.svar(fantIkkeBehandling) },
+                    { lagBrevutkast(call, BrevRequest.UtenFritekst(it)) },
+                )
+            }
+        }
+    }
+
+
+    post("$behandlingPath/{behandlingId}/simuler") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 søknadsbehandlingService.simuler(
                     SimulerRequest(
@@ -399,8 +394,8 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$behandlingPath/{behandlingId}/tilAttestering") {
+    post("$behandlingPath/{behandlingId}/tilAttestering") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withSakId {
                     call.withBody<WithFritekstBody> { body ->
@@ -441,18 +436,18 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-    authorize(Brukerrolle.Attestant) {
-        fun kunneIkkeIverksetteMelding(value: KunneIkkeIverksette): Resultat {
-            return when (value) {
-                is KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
-                is KunneIkkeIverksette.KunneIkkeUtbetale -> value.utbetalingFeilet.tilResultat()
-                is KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev -> kunneIkkeGenerereBrev
-                is KunneIkkeIverksette.FantIkkeBehandling -> fantIkkeBehandling
-                KunneIkkeIverksette.AvkortingErUfullstendig -> avkortingErUfullstendig
-                KunneIkkeIverksette.HarAlleredeBlittAvkortetAvEnAnnen -> avkortingErAlleredeAvkortet
-                KunneIkkeIverksette.HarBlittAnnullertAvEnAnnen -> avkortingErAlleredeAnnullert
-                KunneIkkeIverksette.KunneIkkeOpprettePlanlagtKontrollsamtale -> InternalServerError.errorJson(
-                    "Kunne ikke opprette kontrollsamtale",
+
+    fun kunneIkkeIverksetteMelding(value: KunneIkkeIverksette): Resultat {
+        return when (value) {
+            is KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
+            is KunneIkkeIverksette.KunneIkkeUtbetale -> value.utbetalingFeilet.tilResultat()
+            is KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev -> kunneIkkeGenerereBrev
+            is KunneIkkeIverksette.FantIkkeBehandling -> fantIkkeBehandling
+            KunneIkkeIverksette.AvkortingErUfullstendig -> avkortingErUfullstendig
+            KunneIkkeIverksette.HarAlleredeBlittAvkortetAvEnAnnen -> avkortingErAlleredeAvkortet
+            KunneIkkeIverksette.HarBlittAnnullertAvEnAnnen -> avkortingErAlleredeAnnullert
+            KunneIkkeIverksette.KunneIkkeOpprettePlanlagtKontrollsamtale -> InternalServerError.errorJson(
+                "Kunne ikke opprette kontrollsamtale",
                     "kunne_ikke_opprette_kontrollsamtale",
                 )
                 KunneIkkeIverksette.LagringFeilet -> lagringFeilet
@@ -460,28 +455,29 @@ internal fun Route.søknadsbehandlingRoutes(
         }
 
         patch("$behandlingPath/{behandlingId}/iverksett") {
-            call.withBehandlingId { behandlingId ->
+            authorize(Brukerrolle.Attestant) {
+                call.withBehandlingId { behandlingId ->
 
-                val navIdent = call.suUserContext.navIdent
+                    val navIdent = call.suUserContext.navIdent
 
-                søknadsbehandlingService.iverksett(
-                    IverksettRequest(
-                        behandlingId = behandlingId,
-                        attestering = Attestering.Iverksatt(Attestant(navIdent), Tidspunkt.now(clock)),
-                    ),
-                ).fold(
-                    {
-                        call.svar(kunneIkkeIverksetteMelding(it))
-                    },
-                    {
-                        call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
-                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                        SuMetrics.vedtakIverksatt(SuMetrics.Behandlingstype.SØKNAD)
-                        call.svar(OK.jsonBody(it))
-                    },
-                )
+                    søknadsbehandlingService.iverksett(
+                        IverksettRequest(
+                            behandlingId = behandlingId,
+                            attestering = Attestering.Iverksatt(Attestant(navIdent), Tidspunkt.now(clock)),
+                        ),
+                    ).fold(
+                        {
+                            call.svar(kunneIkkeIverksetteMelding(it))
+                        },
+                        {
+                            call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                            SuMetrics.vedtakIverksatt(SuMetrics.Behandlingstype.SØKNAD)
+                            call.svar(OK.jsonBody(it))
+                        },
+                    )
+                }
             }
-        }
     }
 
     data class UnderkjennBody(
@@ -491,8 +487,8 @@ internal fun Route.søknadsbehandlingRoutes(
         fun valid() = enumContains<Attestering.Underkjent.Grunn>(grunn) && kommentar.isNotBlank()
     }
 
-    authorize(Brukerrolle.Attestant) {
-        patch("$behandlingPath/{behandlingId}/underkjenn") {
+    patch("$behandlingPath/{behandlingId}/underkjenn") {
+        authorize(Brukerrolle.Attestant) {
             val navIdent = call.suUserContext.navIdent
 
             call.withBehandlingId { behandlingId ->

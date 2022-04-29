@@ -22,11 +22,11 @@ import java.util.UUID
 internal fun Route.kontrollsamtaleRoutes(
     kontrollsamtaleService: KontrollsamtaleService
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        post("kontrollsamtale/nyDato") {
+    post("kontrollsamtale/nyDato") {
+        authorize(Brukerrolle.Saksbehandler) {
             data class Body(
                 val sakId: UUID,
-                val nyDato: LocalDate
+                val nyDato: LocalDate,
             )
 
             call.withBody<Body> { body ->
@@ -37,17 +37,19 @@ internal fun Route.kontrollsamtaleRoutes(
                                 KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeGjeldendeStønadsperiode -> Feilresponser.fantIkkeGjeldendeStønadsperiode
                                 KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeSak -> Feilresponser.fantIkkeSak
                                 KunneIkkeSetteNyDatoForKontrollsamtale.UgyldigStatusovergang -> Feilresponser.ugyldigStatusovergangKontrollsamtale
-                            }
+                            },
                         )
                     },
                     {
                         call.svar(Resultat.okJson(HttpStatusCode.OK))
-                    }
+                    },
                 )
             }
         }
+    }
 
-        get("kontrollsamtale/hent/{sakId}") {
+    get("kontrollsamtale/hent/{sakId}") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(sakId).fold(
                     {
@@ -55,14 +57,14 @@ internal fun Route.kontrollsamtaleRoutes(
                             when (it) {
                                 KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler -> Feilresponser.kunneIkkeHenteNesteKontrollsamtale
                                 KunneIkkeHenteKontrollsamtale.FantIkkeKontrollsamtale -> Resultat.json(
-                                    HttpStatusCode.OK, "null"
+                                    HttpStatusCode.OK, "null",
                                 )
-                            }
+                            },
                         )
                     },
                     {
                         call.svar(Resultat.json(HttpStatusCode.OK, serialize(it)))
-                    }
+                    },
                 )
             }
         }

@@ -53,8 +53,8 @@ internal fun Route.opprettRevurderingRoute(
         val begrunnelse: String,
         val informasjonSomRevurderes: List<Revurderingsteg>,
     )
-    authorize(Brukerrolle.Saksbehandler) {
-        post(revurderingPath) {
+    post(revurderingPath) {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<Body> { body ->
                     val navIdent = call.suUserContext.navIdent

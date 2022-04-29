@@ -98,7 +98,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.authorize(
     } else {
         call.respond(
             HttpStatusCode.Forbidden,
-            ErrorJson("Bruker mangler en av de tillatte rollene: ${roller.joinToString(",")}."),
+            ErrorJson("Bruker mangler en av de tillatte rollene: $krevdeRoller"),
         )
     }
 }

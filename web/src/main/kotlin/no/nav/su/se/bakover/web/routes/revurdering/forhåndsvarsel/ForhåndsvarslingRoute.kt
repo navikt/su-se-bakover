@@ -39,10 +39,8 @@ internal fun Route.forhåndsvarslingRoute(
 ) {
 
     data class ForhåndsvarsleBody(val forhåndsvarselhandling: Forhåndsvarselhandling, val fritekst: String)
-    data class ForhåndsvarselBrevutkastBody(val fritekst: String)
-
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/{revurderingId}/forhandsvarsel") {
+    post("$revurderingPath/{revurderingId}/forhandsvarsel") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withBody<ForhåndsvarsleBody> { body ->
                 call.withRevurderingId { revurderingId ->
                     revurderingService.lagreOgSendForhåndsvarsel(
@@ -59,8 +57,11 @@ internal fun Route.forhåndsvarslingRoute(
                 }
             }
         }
+    }
 
-        post("$revurderingPath/{revurderingId}/brevutkastForForhandsvarsel") {
+    data class ForhåndsvarselBrevutkastBody(val fritekst: String)
+    post("$revurderingPath/{revurderingId}/brevutkastForForhandsvarsel") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<ForhåndsvarselBrevutkastBody> { body ->
                     val revurdering = revurderingService.hentRevurdering(revurderingId)
@@ -77,17 +78,19 @@ internal fun Route.forhåndsvarslingRoute(
                 }
             }
         }
+    }
 
-        data class FortsettEtterForhåndsvarslingBody(
-            val begrunnelse: String,
-            /**
-             * @see BeslutningEtterForhåndsvarsling
-             */
-            val valg: String,
-            val fritekstTilBrev: String?,
-        )
+    data class FortsettEtterForhåndsvarslingBody(
+        val begrunnelse: String,
+        /**
+         * @see BeslutningEtterForhåndsvarsling
+         */
+        val valg: String,
+        val fritekstTilBrev: String?,
+    )
 
-        post("$revurderingPath/{revurderingId}/fortsettEtterForhåndsvarsel") {
+    post("$revurderingPath/{revurderingId}/fortsettEtterForhåndsvarsel") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<FortsettEtterForhåndsvarslingBody> { body ->
                     when (body.valg) {
@@ -157,3 +160,4 @@ internal fun Route.forhåndsvarslingRoute(
         }
     }
 }
+
