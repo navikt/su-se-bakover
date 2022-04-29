@@ -154,6 +154,7 @@ class ReguleringServiceImpl(
             .getOrHandle { throw RuntimeException() }
 
         return reguleringMedNyttGrunnlag
+            .copy(reguleringstype = regulering.reguleringstype)
             .leggTilFradrag(fradrag)
             .leggTilUføre(uføregrunnlag, clock)
             .leggTilSaksbehandler(saksbehandler)
