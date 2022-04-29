@@ -44,7 +44,7 @@ internal class BrevutkastForRevurderingRouteTest {
                 JSONAssert.assertEquals(
                     """
                     {
-                        "message":"Bruker mangler en av de tillatte rollene: Saksbehandler."
+                        "message":"Bruker mangler en av de tillatte rollene: [Saksbehandler]"
                     }
                     """.trimIndent(),
                     bodyAsText(),
