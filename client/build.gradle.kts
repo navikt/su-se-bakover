@@ -25,7 +25,7 @@ dependencies {
     implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
 
     testImplementation(project(":test-common"))
-    testImplementation("com.github.tomakehurst:wiremock-jre8:2.33.1") {
+    testImplementation("com.github.tomakehurst:wiremock-jre8:2.33.2") {
         exclude(group = "junit")
     }
     testImplementation("org.xmlunit:xmlunit-matchers:2.9.0")
