@@ -179,7 +179,7 @@ internal class LagBrevRequestVisitorTest {
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
                     saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                    satsoversikt = satsoversikt2021Enslig,
+                    satsoversikt = null,
                 ).right()
 
                 it.brevRequest.map { brevRequest ->
@@ -254,7 +254,7 @@ internal class LagBrevRequestVisitorTest {
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
                     saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                    satsoversikt = satsoversikt2021Enslig,
+                    satsoversikt = null,
                 ).right()
 
                 it.brevRequest.map { brevRequest ->
@@ -408,7 +408,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = satsoversikt2021Enslig,
+                        satsoversikt = null,
                     ).right()
                 }
             }
@@ -533,7 +533,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = satsoversikt2021Enslig,
+                        satsoversikt = null,
                     ).right()
                 }
             }
@@ -670,7 +670,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = satsoversikt2021Enslig,
+                        satsoversikt = null,
                     ).right()
                 }
             }
@@ -910,7 +910,7 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
             saksnummer = søknadsbehandling.saksnummer,
-            satsoversikt = satsoversikt2021Enslig,
+            satsoversikt = null,
         ).right()
     }
 
@@ -993,7 +993,7 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
             saksnummer = søknadsbehandling.saksnummer,
-            satsoversikt = satsoversikt2021Enslig,
+            satsoversikt = null,
         ).right()
     }
 
