@@ -252,7 +252,7 @@ data class TestClientsBuilder(
         dokArkiv = DokArkivStub,
         oppgaveClient = OppgaveClientStub,
         kodeverk = mock(),
-        simuleringClient = SimuleringStub(fixedClock, databaseRepos.utbetaling),
+        simuleringClient = SimuleringStub(clock, databaseRepos.utbetaling),
         utbetalingPublisher = UtbetalingStub,
         dokDistFordeling = DokDistFordelingStub,
         avstemmingPublisher = AvstemmingStub,
