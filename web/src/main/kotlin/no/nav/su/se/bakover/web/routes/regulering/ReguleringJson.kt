@@ -31,7 +31,7 @@ internal data class ReguleringJson(
     val saksbehandler: String,
     val avsluttet: Avsluttet?,
 ) {
-    data class Avsluttet(val begrunnelse: String?)
+    data class Avsluttet(val tidspunkt: Tidspunkt)
     enum class Status {
         OPPRETTET,
         IVERKSATT,
@@ -66,7 +66,7 @@ internal fun Regulering.toJson() = ReguleringJson(
     grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
     saksbehandler = saksbehandler.navIdent,
     avsluttet = when (this) {
-        is Regulering.AvsluttetRegulering -> ReguleringJson.Avsluttet(this.begrunnelse)
+        is Regulering.AvsluttetRegulering -> ReguleringJson.Avsluttet(this.avsluttetTidspunkt)
         is Regulering.IverksattRegulering, is Regulering.OpprettetRegulering -> null
     },
 )

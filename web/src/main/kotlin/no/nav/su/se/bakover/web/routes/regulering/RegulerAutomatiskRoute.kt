@@ -63,28 +63,52 @@ internal fun Route.reguler(
                     call.withBody<Body> { body ->
                         reguleringService.regulerManuelt(
                             reguleringId = id,
-                            uføregrunnlag = body.uføre.toDomain(), // TODO ai: asap
+                            uføregrunnlag = body.uføre.toDomain(),
                             fradrag = body.fradrag.toDomain().getOrHandle { return@post call.svar(it) },
-                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
+                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                         ).fold(
                             ifLeft = {
                                 when (it) {
-                                    KunneIkkeRegulereManuelt.AlleredeFerdigstilt -> HttpStatusCode.BadRequest.errorJson("Reguleringen er allerede ferdigstilt", "regulering_allerede_ferdigstilt")
-                                    KunneIkkeRegulereManuelt.FantIkkeRegulering -> HttpStatusCode.BadRequest.errorJson("Fant ikke regulering", "fant_ikke_regulering")
-                                    KunneIkkeRegulereManuelt.BeregningFeilet -> HttpStatusCode.InternalServerError.errorJson("Beregning feilet", "beregning_feilet")
-                                    KunneIkkeRegulereManuelt.SimuleringFeilet -> HttpStatusCode.InternalServerError.errorJson("Simulering feilet", "simulering_feilet")
-                                    KunneIkkeRegulereManuelt.FantIkkeSak -> HttpStatusCode.BadRequest.errorJson("Fant ikke sak", "fant_ikke_sak")
-                                    KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson("Stanset ytelse må startes før den kan reguleres", "stanset_ytelse_må_startes_før_den_kan_reguleres")
-                                    is KunneIkkeRegulereManuelt.KunneIkkeFerdigstille -> HttpStatusCode.InternalServerError.errorJson("Kunne ikke ferdigstille regulering på grunn av ${it.feil}", "kunne_ikke_ferdigstille_regulering")
+                                    KunneIkkeRegulereManuelt.AlleredeFerdigstilt -> HttpStatusCode.BadRequest.errorJson(
+                                        "Reguleringen er allerede ferdigstilt",
+                                        "regulering_allerede_ferdigstilt",
+                                    )
+                                    KunneIkkeRegulereManuelt.FantIkkeRegulering -> HttpStatusCode.BadRequest.errorJson(
+                                        "Fant ikke regulering",
+                                        "fant_ikke_regulering",
+                                    )
+                                    KunneIkkeRegulereManuelt.BeregningFeilet -> HttpStatusCode.InternalServerError.errorJson(
+                                        "Beregning feilet",
+                                        "beregning_feilet",
+                                    )
+                                    KunneIkkeRegulereManuelt.SimuleringFeilet -> HttpStatusCode.InternalServerError.errorJson(
+                                        "Simulering feilet",
+                                        "simulering_feilet",
+                                    )
+                                    KunneIkkeRegulereManuelt.FantIkkeSak -> HttpStatusCode.BadRequest.errorJson(
+                                        "Fant ikke sak",
+                                        "fant_ikke_sak",
+                                    )
+                                    KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson(
+                                        "Stanset ytelse må startes før den kan reguleres",
+                                        "stanset_ytelse_må_startes_før_den_kan_reguleres",
+                                    )
+                                    is KunneIkkeRegulereManuelt.KunneIkkeFerdigstille -> HttpStatusCode.InternalServerError.errorJson(
+                                        "Kunne ikke ferdigstille regulering på grunn av ${it.feil}",
+                                        "kunne_ikke_ferdigstille_regulering",
+                                    )
                                     KunneIkkeRegulereManuelt.FantIkkeSak -> Feilresponser.fantIkkeSak
-                                    KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson("Kan ikke regulere en stanset sak", "kan_ikke_regulere_stanset_sak")
+                                    KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson(
+                                        "Kan ikke regulere en stanset sak",
+                                        "kan_ikke_regulere_stanset_sak",
+                                    )
                                 }.let { feilResultat ->
                                     call.svar(feilResultat)
                                 }
                             },
                             ifRight = {
                                 call.svar(Resultat.okJson(HttpStatusCode.OK))
-                            }
+                            },
                         )
                     }
                 },
@@ -93,26 +117,29 @@ internal fun Route.reguler(
     }
 
     authorize(Brukerrolle.Saksbehandler) {
-        data class Body(val begrunnelse: String?)
         post("$reguleringPath/avslutt/{reguleringId}") {
             call.lesUUID("reguleringId").fold(
                 ifLeft = {
                     HttpStatusCode.BadRequest.errorJson(it, "reguleringId_mangler_eller_feil_format")
                 },
                 ifRight = {
-                    call.withBody<Body> { body ->
-                        reguleringService.avslutt(it, body.begrunnelse).fold(
-                            ifLeft = { feilmelding ->
-                                when (feilmelding) {
-                                    KunneIkkeAvslutte.FantIkkeRegulering -> HttpStatusCode.BadRequest.errorJson("Fant ikke regulering", "fant_ikke_regulering")
-                                    KunneIkkeAvslutte.UgyldigTilstand -> HttpStatusCode.BadRequest.errorJson("Ugyldig tilstand på reguleringen", "regulering_ugyldig_tilstand")
-                                }
-                            },
-                            ifRight = {
-                                call.svar(Resultat.okJson(HttpStatusCode.OK))
-                            },
-                        )
-                    }
+                    reguleringService.avslutt(it).fold(
+                        ifLeft = { feilmelding ->
+                            when (feilmelding) {
+                                KunneIkkeAvslutte.FantIkkeRegulering -> HttpStatusCode.BadRequest.errorJson(
+                                    "Fant ikke regulering",
+                                    "fant_ikke_regulering",
+                                )
+                                KunneIkkeAvslutte.UgyldigTilstand -> HttpStatusCode.BadRequest.errorJson(
+                                    "Ugyldig tilstand på reguleringen",
+                                    "regulering_ugyldig_tilstand",
+                                )
+                            }
+                        },
+                        ifRight = {
+                            call.svar(Resultat.okJson(HttpStatusCode.OK))
+                        },
+                    )
                 },
             )
         }
@@ -144,10 +171,10 @@ private fun List<UføregrunnlagJson>.toDomain(): List<Grunnlag.Uføregrunnlag> {
     return this.map {
         Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(), // todo ai: legg til clock
+            opprettet = Tidspunkt.now(),
             periode = it.periode.toPeriode(),
             uføregrad = Uføregrad.tryParse(it.uføregrad).getOrHandle { throw IllegalStateException("") },
-            forventetInntekt = it.forventetInntekt
+            forventetInntekt = it.forventetInntekt,
         )
     }
 }

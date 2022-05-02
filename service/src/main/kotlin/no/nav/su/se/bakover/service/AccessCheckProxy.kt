@@ -889,8 +889,8 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun avslutt(reguleringId: UUID, begrunnelse: String?): Either<KunneIkkeAvslutte, Regulering.AvsluttetRegulering> {
-                    return services.reguleringService.avslutt(reguleringId, begrunnelse)
+                override fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, Regulering.AvsluttetRegulering> {
+                    return services.reguleringService.avslutt(reguleringId)
                 }
 
                 override fun hentStatus(): List<Regulering> {

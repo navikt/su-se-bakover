@@ -351,7 +351,6 @@ data class Sak(
 
     sealed interface KunneIkkeOppretteEllerOppdatereRegulering {
         object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KunneIkkeOppretteEllerOppdatereRegulering
-        object HelePeriodenErOpphør : KunneIkkeOppretteEllerOppdatereRegulering
         object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KunneIkkeOppretteEllerOppdatereRegulering
         object BleIkkeLagetReguleringDaDenneUansettMåRevurderes : KunneIkkeOppretteEllerOppdatereRegulering
     }
@@ -382,22 +381,21 @@ data class Sak(
                 tilOgMed = LocalDate.MAX,
             ),
         ).let { tidslinje ->
-            tidslinje.filterNot {
-                it.erOpphør()
-            }.map { vedtakUtenOpphør ->
-                vedtakUtenOpphør.periode
-            }.minsteAntallSammenhengendePerioder().ifEmpty { return KunneIkkeOppretteEllerOppdatereRegulering.HelePeriodenErOpphør.left() }
-                .also { log.info("Hele perioden er opphør. Lager ingen regulering for denne") }
+            tidslinje.filterNot { it.erOpphør() }
+                .map { vedtakUtenOpphør -> vedtakUtenOpphør.periode }
+                .minsteAntallSammenhengendePerioder()
+                .ifEmpty {
+                    log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere fra og med $_startDato")
+                    return KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
+                }
         }.also {
             if (it.count() != 1) return KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig.left()
         }.single()
 
-        val gjeldendeVedtaksdata =
-            this.hentGjeldendeVedtaksdata(periode = periode, clock = clock).getOrHandle { feil ->
+        val gjeldendeVedtaksdata = this.hentGjeldendeVedtaksdata(periode = periode, clock = clock)
+            .getOrHandle { feil ->
+                log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
                 return KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
-                    .also {
-                        log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
-                    }
             }
 
         return Regulering.opprettRegulering(

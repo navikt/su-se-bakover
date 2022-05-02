@@ -71,7 +71,7 @@ internal class ReguleringPostgresRepoTest {
             val repo = testDataHelper.reguleringRepo
 
             val opprettetRegulering = testDataHelper.persisterReguleringOpprettet()
-            val avsluttetRegulering = Regulering.AvsluttetRegulering(opprettetRegulering, "begrunnelse", fixedTidspunkt)
+            val avsluttetRegulering = Regulering.AvsluttetRegulering(opprettetRegulering, fixedTidspunkt)
 
             repo.lagre(avsluttetRegulering)
             repo.hent(avsluttetRegulering.id) shouldBe avsluttetRegulering

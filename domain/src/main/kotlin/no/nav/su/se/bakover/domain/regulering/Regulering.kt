@@ -195,11 +195,10 @@ sealed interface Regulering : Reguleringsfelter {
                 .map { this.copy(simulering = it.simulering) }
         }
 
-        fun avslutt(begrunnelse: String?, clock: Clock): AvsluttetRegulering {
+        fun avslutt(clock: Clock): AvsluttetRegulering {
             return AvsluttetRegulering(
                 opprettetRegulering = this,
-                begrunnelse = begrunnelse,
-                tidspunkt = Tidspunkt.now(clock)
+                avsluttetTidspunkt = Tidspunkt.now(clock)
             )
         }
 
@@ -228,8 +227,7 @@ sealed interface Regulering : Reguleringsfelter {
 
     data class AvsluttetRegulering(
         val opprettetRegulering: OpprettetRegulering,
-        val begrunnelse: String?,
-        val tidspunkt: Tidspunkt
+        val avsluttetTidspunkt: Tidspunkt
     ) : Regulering by opprettetRegulering {
         override val erFerdigstilt = true
     }

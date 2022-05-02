@@ -148,7 +148,7 @@ internal class ReguleringServiceImplTest {
             val reguleringService = lagReguleringServiceImpl(revurdertSak)
 
             reguleringService.startRegulering(1.mai(2021))
-                .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(Sak.KunneIkkeOppretteEllerOppdatereRegulering.HelePeriodenErOpphør)
+                .first() shouldBe KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode)
                 .left()
         }
 

@@ -93,14 +93,22 @@ class ReguleringServiceImpl(
 
             val regulering = sak.opprettEllerOppdaterRegulering(startDato, clock).getOrHandle { feil ->
                 // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
-                log.info("Regulering for saksnummer $saksnummer: Skippet. Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Feil: $feil")
+                when (feil) {
+                    Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
+                        "Regulering for saksnummer $saksnummer: Skippet. Fantes ingen vedtak for valgt periode.",
+                    )
+                    Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
+                        "Regulering for saksnummer $saksnummer: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
+                    )
+                }
+
                 return@map KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil).left()
             }
 
             if (!blirBeregningEndret(sak, regulering)) {
                 // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
+                log.info("Regulering for saksnummer $saksnummer: Skippet. Lager ikke regulering da den ikke fører til noen endring i utbetaling")
                 return@map KunneIkkeOppretteRegulering.FørerIkkeTilEnEndring.left()
-                    .also { log.info("Regulering for saksnummer $saksnummer: Skippet. Lager ikke regulering for $saksnummer, da den ikke fører til noen endring i utbetaling") }
             }
 
             tilbakekrevingService.hentAvventerKravgrunnlag(sak.id)
@@ -151,7 +159,7 @@ class ReguleringServiceImpl(
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
 
         val reguleringMedNyttGrunnlag = sak.opprettEllerOppdaterRegulering(regulering.periode.fraOgMed, clock)
-            .getOrHandle { throw RuntimeException() }
+            .getOrHandle { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
 
         return reguleringMedNyttGrunnlag
             .copy(reguleringstype = regulering.reguleringstype)
@@ -246,13 +254,13 @@ class ReguleringServiceImpl(
             .mapLeft { BeregnOgSimulerFeilet.KunneIkkeSimulere }
     }
 
-    override fun avslutt(reguleringId: UUID, begrunnelse: String?): Either<KunneIkkeAvslutte, Regulering.AvsluttetRegulering> {
+    override fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, Regulering.AvsluttetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeAvslutte.FantIkkeRegulering.left()
 
         return when (regulering) {
             is Regulering.AvsluttetRegulering, is Regulering.IverksattRegulering -> KunneIkkeAvslutte.UgyldigTilstand.left()
             is Regulering.OpprettetRegulering -> {
-                val avsluttetRegulering = regulering.avslutt(begrunnelse, clock)
+                val avsluttetRegulering = regulering.avslutt(clock)
                 reguleringRepo.lagre(avsluttetRegulering)
 
                 avsluttetRegulering.right()
