@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -26,7 +25,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
@@ -36,6 +34,9 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
+import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
@@ -78,33 +79,29 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
     }
 
     @Test
-    fun `ufullstendig gir error hvis behandling er i ugyldig tilstand`() {
-        val tilAttestering = Søknadsbehandling.Vilkårsvurdert.Avslag(
-            id = behandlingId,
-            opprettet = fixedTidspunkt,
-            sakId = sakId,
-            saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.EPOCH,
-                sakId = sakId,
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                oppgaveId = oppgaveId,
-                journalpostId = JournalpostId("j"),
-            ),
-            oppgaveId = oppgaveId,
-            behandlingsinformasjon = behandlingsinformasjon,
-            fnr = Fnr.generer(),
-            fritekstTilBrev = "",
-            stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående),
-        ).tilAttestering(Saksbehandler("saksa"), "")
+    fun `kan oppdatere med ufullstendig bosituasjon`() {
+        SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock {
+                on { hent(any()) } doReturn søknadsbehandlingVilkårsvurdertUavklart(
+                    grunnlagsdata = grunnlagsdataEnsligMedFradrag(),
+                ).second
+            },
+        ).let {
+            val response = it.søknadsbehandlingService.leggTilBosituasjonEpsgrunnlag(
+                request = LeggTilBosituasjonEpsRequest(
+                    behandlingId = UUID.randomUUID(),
+                    epsFnr = null,
+                ),
+            ).getOrFail()
 
+            response.grunnlagsdata.bosituasjon.single().shouldBeType<Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps>()
+        }
+    }
+
+    @Test
+    fun `ufullstendig gir error hvis behandling er i ugyldig tilstand`() {
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn tilAttestering
+            on { hent(any()) } doReturn søknadsbehandlingTilAttesteringAvslagUtenBeregning().second
         }
 
         val actual = createSøknadsbehandlingService(

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.grunnlag
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
@@ -35,7 +36,7 @@ data class Grunnlagsdata private constructor(
     fun oppdaterGrunnlagsperioder(
         oppdatertPeriode: Periode,
     ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
-        return tryCreate(
+        return tryCreateTillatUfullstendigBosituasjon(
             fradragsgrunnlag = fradragsgrunnlag.oppdaterFradragsperiode(oppdatertPeriode)
                 .getOrHandle { return KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag(it).left() },
             bosituasjon = bosituasjon.oppdaterBosituasjonsperiode(oppdatertPeriode),
@@ -60,6 +61,11 @@ data class Grunnlagsdata private constructor(
             bosituasjon: List<Bosituasjon> = emptyList(),
         ) = tryCreate(fradragsgrunnlag, bosituasjon).getOrHandle { throw IllegalStateException(it.toString()) }
 
+        fun createTillatUfullstendigBosituasjon(
+            fradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
+            bosituasjon: List<Bosituasjon> = emptyList(),
+        ) = tryCreateTillatUfullstendigBosituasjon(fradragsgrunnlag, bosituasjon).getOrHandle { throw IllegalStateException(it.toString()) }
+
         fun tryCreate(
             fradragsgrunnlag: List<Fradragsgrunnlag>,
             bosituasjon: List<Bosituasjon>,
@@ -69,6 +75,41 @@ data class Grunnlagsdata private constructor(
                 fradrag = fradragsgrunnlag,
             ).resultat.mapLeft {
                 KunneIkkeLageGrunnlagsdata.Konsistenssjekk(it.first())
+            }.map {
+                Grunnlagsdata(
+                    fradragsgrunnlag = fradragsgrunnlag.sortedBy { it.periode },
+                    bosituasjon = bosituasjon.sortedBy { it.periode },
+                )
+            }
+        }
+
+        /**
+         * Tillater at vi oppretter med ufullstendig bosituasjon for å støtte søknadsbehandlinger i tidlige faser,
+         * og/eller avslag før sats er tatt stilling til.
+         */
+        fun tryCreateTillatUfullstendigBosituasjon(
+            fradragsgrunnlag: List<Fradragsgrunnlag>,
+            bosituasjon: List<Bosituasjon>,
+        ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
+            return SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
+                bosituasjon = bosituasjon,
+                fradrag = fradragsgrunnlag,
+            ).resultat.mapLeft { problemer ->
+                when (val feil = problemer.first()) {
+                    is Konsistensproblem.BosituasjonOgFradrag.UgyldigBosituasjon -> {
+                        if (feil.feil.filterNot { it is Konsistensproblem.Bosituasjon.Ufullstendig }.isNotEmpty()) {
+                            KunneIkkeLageGrunnlagsdata.Konsistenssjekk(feil)
+                        } else {
+                            return Grunnlagsdata(
+                                fradragsgrunnlag = fradragsgrunnlag.sortedBy { it.periode },
+                                bosituasjon = bosituasjon.sortedBy { it.periode },
+                            ).right()
+                        }
+                    }
+                    else -> {
+                        KunneIkkeLageGrunnlagsdata.Konsistenssjekk(feil)
+                    }
+                }
             }.map {
                 Grunnlagsdata(
                     fradragsgrunnlag = fradragsgrunnlag.sortedBy { it.periode },
