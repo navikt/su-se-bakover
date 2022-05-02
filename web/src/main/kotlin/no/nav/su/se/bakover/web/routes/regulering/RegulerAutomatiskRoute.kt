@@ -63,7 +63,7 @@ internal fun Route.reguler(
                     call.withBody<Body> { body ->
                         reguleringService.regulerManuelt(
                             reguleringId = id,
-                            uføregrunnlag = body.uføre.toDomain(),
+                            uføregrunnlag = body.uføre.toDomain().getOrHandle { return@post call.svar(it) },
                             fradrag = body.fradrag.toDomain().getOrHandle { return@post call.svar(it) },
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                         ).fold(
@@ -85,10 +85,6 @@ internal fun Route.reguler(
                                         "Simulering feilet",
                                         "simulering_feilet",
                                     )
-                                    KunneIkkeRegulereManuelt.FantIkkeSak -> HttpStatusCode.BadRequest.errorJson(
-                                        "Fant ikke sak",
-                                        "fant_ikke_sak",
-                                    )
                                     KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson(
                                         "Stanset ytelse må startes før den kan reguleres",
                                         "stanset_ytelse_må_startes_før_den_kan_reguleres",
@@ -99,9 +95,10 @@ internal fun Route.reguler(
                                     )
                                     KunneIkkeRegulereManuelt.FantIkkeSak -> Feilresponser.fantIkkeSak
                                     KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson(
-                                        "Kan ikke regulere en stanset sak",
-                                        "kan_ikke_regulere_stanset_sak",
+                                        "Kan ikke regulere mens sak avventer kravgrunnlag",
+                                        "Kan_ikke_regulere_mens_sak_avventer_kravgrunnlag",
                                     )
+                                    KunneIkkeRegulereManuelt.AvventerKravgrunnlag -> TODO()
                                 }.let { feilResultat ->
                                     call.svar(feilResultat)
                                 }
@@ -167,14 +164,17 @@ private fun List<FradragJson>.toDomain(): Either<Resultat, List<Grunnlag.Fradrag
     }.right()
 }
 
-private fun List<UføregrunnlagJson>.toDomain(): List<Grunnlag.Uføregrunnlag> {
+@JvmName("toDomainUføregrunnlagJson")
+private fun List<UføregrunnlagJson>.toDomain(): Either<Resultat, List<Grunnlag.Uføregrunnlag>> {
     return this.map {
         Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
             periode = it.periode.toPeriode(),
-            uføregrad = Uføregrad.tryParse(it.uføregrad).getOrHandle { throw IllegalStateException("") },
+            uføregrad = Uføregrad.tryParse(it.uføregrad).getOrHandle {
+                return Feilresponser.Uføre.uføregradMåVæreMellomEnOgHundre.left()
+            },
             forventetInntekt = it.forventetInntekt,
         )
-    }
+    }.right()
 }

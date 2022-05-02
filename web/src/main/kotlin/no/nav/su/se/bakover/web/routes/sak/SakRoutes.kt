@@ -178,10 +178,7 @@ internal fun Route.sakRoutes(
                         sakService.hentGjeldendeVedtaksdata(sakId, body.fraOgMed).fold(
                             {
                                 when (it) {
-                                    KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak -> NotFound.errorJson(
-                                        "Fant ikke sak med id: $sakId",
-                                        "fant_ikke_sak",
-                                    )
+                                    KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak -> Feilresponser.fantIkkeSak
                                     KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> BadRequest.errorJson(
                                         "Ugyldig periode",
                                         "ugyldig_periode",
