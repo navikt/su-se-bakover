@@ -112,11 +112,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     open fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
         KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(this::class).left()
 
+    /**
+     * TODO("bør vi skille på oppdatering og fullføring (ufullstendig vs fullstendig bosituasjon)")
+     */
     fun oppdaterBosituasjon(
         bosituasjon: Grunnlag.Bosituasjon,
         clock: Clock,
     ): Either<KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
-        val oppdatertGrunnlagsdata = Grunnlagsdata.tryCreate(
+        val oppdatertGrunnlagsdata = Grunnlagsdata.tryCreateTillatUfullstendigBosituasjon(
             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragForEPSHvisEnslig(bosituasjon),
             bosituasjon = listOf(bosituasjon),
         ).getOrHandle {
@@ -519,7 +522,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     fnr,
                     fritekstTilBrev,
                     stønadsperiode,
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
+                    grunnlagsdata = Grunnlagsdata.tryCreateTillatUfullstendigBosituasjon(
                         fradragsgrunnlag = fradragsgrunnlag,
                         bosituasjon = this.grunnlagsdata.bosituasjon,
                     ).getOrHandle {
