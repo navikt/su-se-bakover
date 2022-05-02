@@ -28,7 +28,7 @@ abstract class BrevInnhold {
         val fritekst: String,
         val forventetInntektStørreEnn0: Boolean,
         val formueVerdier: FormueForBrev?,
-        val satsoversikt: Satsoversikt,
+        val satsoversikt: Satsoversikt?,
     ) : BrevInnhold() {
         @Suppress("unused")
         @JsonInclude
