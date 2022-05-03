@@ -16,6 +16,8 @@ interface Fradrag : PeriodisertInformasjon, KopierbarForSnitt<Fradrag?> {
     fun tilhørerEps(): Boolean {
         return tilhører == FradragTilhører.EPS
     }
+
+    fun skalJusteresVedGEndring() = fradragstype.måJusteresManueltVedGEndring
 }
 
 enum class FradragTilhører {
