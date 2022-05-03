@@ -107,7 +107,7 @@ internal class TilbakekrevingsmeldingMapperTest {
                             beløpNyUtbetaling = BigDecimal.ZERO.setScale(2),
                             beløpSkalTilbakekreves = BigDecimal(9989).setScale(2),
                             beløpSkalIkkeTilbakekreves = BigDecimal.ZERO.setScale(2),
-                            skatteProsent = BigDecimal(43.9983)
+                            skatteProsent = BigDecimal("43.9983")
                                 .setScale(4, RoundingMode.HALF_UP),
                         ),
                     ),
@@ -260,7 +260,7 @@ internal class TilbakekrevingsmeldingMapperTest {
                             beløpNyUtbetaling = BigDecimal(9989).setScale(2),
                             beløpSkalTilbakekreves = BigDecimal(12000).setScale(2),
                             beløpSkalIkkeTilbakekreves = BigDecimal.ZERO.setScale(2),
-                            skatteProsent = BigDecimal(43.9992)
+                            skatteProsent = BigDecimal("43.9992")
                                 .setScale(4, RoundingMode.HALF_UP),
                         ),
                     ),

@@ -58,7 +58,7 @@ fun matchendeKravgrunnlag(
                                 beløpNyUtbetaling = BigDecimal(periode.hentØnsketUtbetaling().sum()),
                                 beløpSkalTilbakekreves = BigDecimal(periode.hentFeilutbetalteBeløp().sum()),
                                 beløpSkalIkkeTilbakekreves = BigDecimal.ZERO,
-                                skatteProsent = BigDecimal(43.9983),
+                                skatteProsent = BigDecimal("43.9983"),
                             ),
                         ),
                     )
