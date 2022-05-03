@@ -154,9 +154,14 @@ class ReguleringServiceImpl(
         if (regulering.erFerdigstilt) return KunneIkkeRegulereManuelt.AlleredeFerdigstilt.left()
 
         val sak = sakRepo.hentSak(sakId = regulering.sakId) ?: return KunneIkkeRegulereManuelt.FantIkkeSak.left()
+        val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(regulering.periode.fraOgMed, clock)
+            .getOrHandle { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
 
-        if (sak.vedtakstidslinje(regulering.periode).any { it.erStans() })
+        if (gjeldendeVedtaksdata.harStans())
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
+
+        if (gjeldendeVedtaksdata.pågåendeAvkortingEllerBehovForFremtidigAvkorting)
+            return KunneIkkeRegulereManuelt.HarPågåendeEllerBehovForAvkorting.left()
 
         if (tilbakekrevingService.hentAvventerKravgrunnlag(sak.id).isNotEmpty())
             return KunneIkkeRegulereManuelt.AvventerKravgrunnlag.left()
