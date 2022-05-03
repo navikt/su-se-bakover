@@ -107,7 +107,7 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `oppretter en revurdering`() {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram,
+            periodeForTidslinje = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
             clock = fixedClock,
         )
@@ -192,7 +192,7 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `kan opprette revurdering med årsak g-regulering i samme måned`() {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram,
+            periodeForTidslinje = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
             clock = fixedClock,
         )
@@ -291,7 +291,7 @@ internal class OpprettRevurderingServiceTest {
         )
 
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periode,
+            periodeForTidslinje = periode,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
             clock = fixedClock,
         )
@@ -491,13 +491,13 @@ internal class OpprettRevurderingServiceTest {
         )
 
         val gjeldendeVedtaksdataFebruar = GjeldendeVedtaksdata(
-            periode = Periode.create(fraOgMedDatoFebruar, vedtakListe.maxOf { it.periode.tilOgMed }),
+            periodeForTidslinje = Periode.create(fraOgMedDatoFebruar, vedtakListe.maxOf { it.periode.tilOgMed }),
             vedtakListe = vedtakListe,
             clock = fixedClock,
         )
 
         val gjeldendeVedtaksdataApril = GjeldendeVedtaksdata(
-            periode = Periode.create(fraOgMedDatoApril, vedtakListe.maxOf { it.periode.tilOgMed }),
+            periodeForTidslinje = Periode.create(fraOgMedDatoApril, vedtakListe.maxOf { it.periode.tilOgMed }),
             vedtakListe = vedtakListe,
             clock = fixedClock,
         )
@@ -560,7 +560,7 @@ internal class OpprettRevurderingServiceTest {
         )
 
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram,
+            periodeForTidslinje = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(
                 søknadsbehandlingVedtak,
                 revurderingVedtak,
@@ -658,7 +658,7 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `fant ikke aktør id`() {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram,
+            periodeForTidslinje = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
             clock = fixedClock,
         )
@@ -695,7 +695,7 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `kunne ikke opprette oppgave`() {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram,
+            periodeForTidslinje = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
             clock = fixedClock,
         )
@@ -817,7 +817,7 @@ internal class OpprettRevurderingServiceTest {
         )
 
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = Periode.create(
+            periodeForTidslinje = Periode.create(
                 førsteVedtak.periode.fraOgMed,
                 andreVedtak.periode.tilOgMed,
             ),
@@ -872,7 +872,7 @@ internal class OpprettRevurderingServiceTest {
 
         RevurderingServiceMocks(
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.hentGjeldendeVedtaksdata(
                     fraOgMed = nyRevurderingsperiode.fraOgMed,
                     clock = clock,
                 ).getOrFail().right()

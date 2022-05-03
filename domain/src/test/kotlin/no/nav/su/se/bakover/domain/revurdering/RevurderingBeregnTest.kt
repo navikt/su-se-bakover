@@ -73,7 +73,7 @@ internal class RevurderingBeregnTest {
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -99,7 +99,7 @@ internal class RevurderingBeregnTest {
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -132,7 +132,7 @@ internal class RevurderingBeregnTest {
             revurdering.beregn(
                 eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(440, revurdering.periode))),
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -157,7 +157,7 @@ internal class RevurderingBeregnTest {
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -183,7 +183,7 @@ internal class RevurderingBeregnTest {
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -211,7 +211,7 @@ internal class RevurderingBeregnTest {
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -232,7 +232,7 @@ internal class RevurderingBeregnTest {
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -261,7 +261,7 @@ internal class RevurderingBeregnTest {
             ).getOrFail().beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -287,7 +287,7 @@ internal class RevurderingBeregnTest {
             ).getOrFail().beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -318,7 +318,7 @@ internal class RevurderingBeregnTest {
             ).getOrFail().beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -357,7 +357,7 @@ internal class RevurderingBeregnTest {
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -456,7 +456,7 @@ internal class RevurderingBeregnTest {
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -561,7 +561,7 @@ internal class RevurderingBeregnTest {
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -594,7 +594,7 @@ internal class RevurderingBeregnTest {
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),

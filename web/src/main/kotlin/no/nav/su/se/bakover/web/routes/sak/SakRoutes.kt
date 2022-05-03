@@ -11,6 +11,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -168,31 +169,37 @@ internal fun Route.sakRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler) {
-        data class Body(val fraOgMed: LocalDate)
+        data class Body(val fraOgMed: LocalDate, val tilOgMed: LocalDate?)
         data class Response(val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson?)
 
         post("$sakPath/{sakId}/gjeldendeVedtaksdata") {
             call.withSakId { sakId ->
                 call.withBody<Body> { body ->
-                    call.svar(
-                        sakService.hentGjeldendeVedtaksdata(sakId, body.fraOgMed).fold(
-                            {
-                                when (it) {
-                                    KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak -> Feilresponser.fantIkkeSak
-                                    KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> BadRequest.errorJson(
-                                        "Ugyldig periode",
-                                        "ugyldig_periode",
-                                    )
-                                }
-                            },
-                            {
-                                Resultat.json(
-                                    OK,
-                                    serialize((Response(it?.grunnlagsdataOgVilkårsvurderinger?.toJson()))),
+                    Periode.tryCreate(body.fraOgMed, body.tilOgMed ?: LocalDate.MAX)
+                        .fold(
+                            ifLeft = { call.svar(Feilresponser.ugyldigPeriode) },
+                            ifRight = { periode ->
+                                call.svar(
+                                    sakService.hentGjeldendeVedtaksdata(sakId, periode).fold(
+                                        {
+                                            when (it) {
+                                                KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak -> Feilresponser.fantIkkeSak
+                                                KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> BadRequest.errorJson(
+                                                    "Ugyldig periode",
+                                                    "ugyldig_periode",
+                                                )
+                                            }
+                                        },
+                                        { gjeldendeVedtaksdata ->
+                                            Resultat.json(
+                                                OK,
+                                                serialize((Response(gjeldendeVedtaksdata?.grunnlagsdataOgVilkårsvurderinger?.toJson()))),
+                                            )
+                                        },
+                                    ),
                                 )
                             },
-                        ),
-                    )
+                        )
                 }
             }
         }

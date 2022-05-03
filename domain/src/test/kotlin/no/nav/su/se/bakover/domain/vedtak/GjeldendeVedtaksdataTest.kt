@@ -43,7 +43,7 @@ internal class GjeldendeVedtaksdataTest {
             )
         )
         val data = GjeldendeVedtaksdata(
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            periodeForTidslinje = Periode.create(1.januar(2021), 31.desember(2021)),
             vedtakListe = nonEmptyListOf(
                 førstegangsvedtak,
                 revurderingsVedtak,
@@ -76,7 +76,7 @@ internal class GjeldendeVedtaksdataTest {
             vedtakListe = sak.vedtakListe + nyStønadsperiode,
         ).let {
             val data = GjeldendeVedtaksdata(
-                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                periodeForTidslinje = Periode.create(1.januar(2021), 31.desember(2021)),
                 vedtakListe = nonEmptyListOf(
                     førstegangsvedtak as VedtakSomKanRevurderes,
                     nyStønadsperiode as VedtakSomKanRevurderes,
@@ -98,7 +98,7 @@ internal class GjeldendeVedtaksdataTest {
             ),
         )
         val data = GjeldendeVedtaksdata(
-            periode = Periode.create(1.mai(2021), 31.desember(2021)),
+            periodeForTidslinje = Periode.create(1.mai(2021), 31.desember(2021)),
             vedtakListe = nonEmptyListOf(førstegangsvedtak as VedtakSomKanRevurderes),
             clock = fixedClock,
         )
@@ -116,7 +116,7 @@ internal class GjeldendeVedtaksdataTest {
         )
 
         val data = GjeldendeVedtaksdata(
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            periodeForTidslinje = Periode.create(1.januar(2021), 31.desember(2021)),
             vedtakListe = nonEmptyListOf(førstegangsvedtak as VedtakSomKanRevurderes),
             clock = fixedClock,
         )
@@ -136,7 +136,7 @@ internal class GjeldendeVedtaksdataTest {
         )
 
         GjeldendeVedtaksdata(
-            periode = periode2021,
+            periodeForTidslinje = periode2021,
             vedtakListe = NonEmptyList.fromListUnsafe(sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()),
             clock = fixedClock,
         ).let {

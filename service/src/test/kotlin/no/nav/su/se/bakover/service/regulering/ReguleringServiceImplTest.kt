@@ -511,7 +511,7 @@ internal class ReguleringServiceImplTest {
                 fnr = søknadsbehandling.fnr,
             ),
 
-            sak.kopierGjeldendeVedtaksdata(
+            sak.hentGjeldendeVedtaksdata(
                 reguleringsdato,
                 fixedClock,
             ).getOrFail(),

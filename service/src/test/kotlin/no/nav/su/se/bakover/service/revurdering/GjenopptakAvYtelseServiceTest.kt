@@ -189,7 +189,7 @@ internal class GjenopptakAvYtelseServiceTest {
                     any(),
                 )
             } doReturn GjeldendeVedtaksdata(
-                periode = periode,
+                periodeForTidslinje = periode,
                 vedtakListe = NonEmptyList.fromListUnsafe(sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()),
                 clock = fixedClock,
             ).right()
@@ -253,7 +253,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 on { hentForSakId(any()) } doReturn sak.vedtakListe
             },
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(periode = periode, vedtakListe = nonEmptyListOf(vedtak), clock = fixedClock).right()
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(periodeForTidslinje = periode, vedtakListe = nonEmptyListOf(vedtak), clock = fixedClock).right()
             },
             utbetalingService = mock {
                 on { simulerGjenopptak(any()) } doReturn simulertGjenopptakUtbetaling().right()
@@ -404,7 +404,7 @@ internal class GjenopptakAvYtelseServiceTest {
                     any(),
                 )
             } doReturn GjeldendeVedtaksdata(
-                periode = periode,
+                periodeForTidslinje = periode,
                 vedtakListe = nonEmptyListOf(revurdering.tilRevurdering),
                 clock = fixedClock,
             ).right()
@@ -518,7 +518,7 @@ internal class GjenopptakAvYtelseServiceTest {
                     any(),
                 )
             } doReturn GjeldendeVedtaksdata(
-                periode = periode,
+                periodeForTidslinje = periode,
                 vedtakListe = NonEmptyList.fromListUnsafe(@Suppress("UNCHECKED_CAST") (sak.vedtakListe as List<VedtakSomKanRevurderes>)),
                 clock = fixedClock,
             ).right()

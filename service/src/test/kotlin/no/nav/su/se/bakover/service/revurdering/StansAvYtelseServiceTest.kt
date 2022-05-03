@@ -122,7 +122,7 @@ internal class StansAvYtelseServiceTest {
                     any(),
                 )
             } doReturn GjeldendeVedtaksdata(
-                periode = periode,
+                periodeForTidslinje = periode,
                 vedtakListe = nonEmptyListOf(vedtak),
                 clock = fixedClock,
             ).right()
@@ -185,7 +185,7 @@ internal class StansAvYtelseServiceTest {
 
         val serviceAndMocks = RevurderingServiceMocks(
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(periode = periode, vedtakListe = nonEmptyListOf(vedtak), clock = fixedClock).right()
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(periodeForTidslinje = periode, vedtakListe = nonEmptyListOf(vedtak), clock = fixedClock).right()
             },
             utbetalingService = mock {
                 on { simulerStans(any()) } doReturn simulertUtbetaling().right()
@@ -358,7 +358,7 @@ internal class StansAvYtelseServiceTest {
                     any(),
                 )
             } doReturn GjeldendeVedtaksdata(
-                periode = periode2021,
+                periodeForTidslinje = periode2021,
                 vedtakListe = nonEmptyListOf(enRevurdering.tilRevurdering),
                 clock = fixedClock,
             ).right()
@@ -426,7 +426,7 @@ internal class StansAvYtelseServiceTest {
                     any(),
                 )
             } doReturn GjeldendeVedtaksdata(
-                periode = periodeMars2021,
+                periodeForTidslinje = periodeMars2021,
                 vedtakListe = nonEmptyListOf(eksisterende.tilRevurdering),
                 clock = fixedClock,
             ).right()

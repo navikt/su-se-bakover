@@ -265,7 +265,7 @@ internal class LagBrevutkastForRevurderingTest {
                         any(),
                         any(),
                     )
-                } doReturn sak.kopierGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail().right()
+                } doReturn sak.hentGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail().right()
             },
         ).beregnOgSimuler(
             revurderingId = revurderingId,
@@ -320,7 +320,7 @@ internal class LagBrevutkastForRevurderingTest {
                             any(),
                             any(),
                         )
-                    } doReturn sak.kopierGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail()
+                    } doReturn sak.hentGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail()
                         .right()
                 },
             ).beregnOgSimuler(

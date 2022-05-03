@@ -49,7 +49,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             val (sak, revurdering) = opprettetRevurdering()
             BeregnRevurderingStrategyDecider(
                 revurdering = revurdering,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -74,7 +74,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             )
             BeregnRevurderingStrategyDecider(
                 revurdering = revurdering,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -118,7 +118,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             )
             BeregnRevurderingStrategyDecider(
                 revurdering = revurdering,
-                gjeldendeVedtaksdata = sak4.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak4.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -170,7 +170,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
         )
         BeregnRevurderingStrategyDecider(
             revurdering = revurdering,
-            gjeldendeVedtaksdata = sak4.kopierGjeldendeVedtaksdata(
+            gjeldendeVedtaksdata = sak4.hentGjeldendeVedtaksdata(
                 fraOgMed = revurdering.periode.fraOgMed,
                 clock = fixedClock,
             ).getOrFail(),
@@ -195,7 +195,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             )
             BeregnRevurderingStrategyDecider(
                 revurdering = revurdering,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -229,7 +229,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             )
             BeregnRevurderingStrategyDecider(
                 revurdering = revurdering,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -264,7 +264,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 )
                 BeregnRevurderingStrategyDecider(
                     revurdering = revurdering,
-                    gjeldendeVedtaksdata = sak2.kopierGjeldendeVedtaksdata(
+                    gjeldendeVedtaksdata = sak2.hentGjeldendeVedtaksdata(
                         fraOgMed = revurdering.periode.fraOgMed,
                         clock = fixedClock,
                     ).getOrFail(),
@@ -317,7 +317,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 )
                 BeregnRevurderingStrategyDecider(
                     revurdering = revurdering,
-                    gjeldendeVedtaksdata = sak2.kopierGjeldendeVedtaksdata(
+                    gjeldendeVedtaksdata = sak2.hentGjeldendeVedtaksdata(
                         fraOgMed = revurdering.periode.fraOgMed,
                         clock = fixedClock,
                     ).getOrFail(),
@@ -362,7 +362,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 )
                 BeregnRevurderingStrategyDecider(
                     revurdering = revurdering,
-                    gjeldendeVedtaksdata = sak2.kopierGjeldendeVedtaksdata(
+                    gjeldendeVedtaksdata = sak2.hentGjeldendeVedtaksdata(
                         fraOgMed = revurdering.periode.fraOgMed,
                         clock = fixedClock,
                     ).getOrFail(),
@@ -399,7 +399,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             )
             BeregnRevurderingStrategyDecider(
                 revurdering = revurdering,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -453,7 +453,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
 
             BeregnRevurderingStrategyDecider(
                 revurdering = revurdering,
-                gjeldendeVedtaksdata = sak4.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak4.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -513,7 +513,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             )
             BeregnRevurderingStrategyDecider(
                 revurdering = revurdering,
-                gjeldendeVedtaksdata = sak4.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak4.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -547,7 +547,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
 
             BeregnRevurderingStrategyDecider(
                 revurdering = revurdering,
-                gjeldendeVedtaksdata = sak2.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak2.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -588,7 +588,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
 
             BeregnRevurderingStrategyDecider(
                 revurdering = revurdering,
-                gjeldendeVedtaksdata = sak2.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak2.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),

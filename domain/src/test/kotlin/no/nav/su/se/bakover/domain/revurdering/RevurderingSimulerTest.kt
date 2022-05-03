@@ -32,7 +32,7 @@ class RevurderingSimulerTest {
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -75,7 +75,7 @@ class RevurderingSimulerTest {
                 revurdering.beregn(
                     eksisterendeUtbetalinger = sak.utbetalinger,
                     clock = fixedClock,
-                    gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                    gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                         fraOgMed = revurdering.periode.fraOgMed,
                         clock = fixedClock,
                     ).getOrFail(),
@@ -105,7 +105,7 @@ class RevurderingSimulerTest {
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
@@ -146,7 +146,7 @@ class RevurderingSimulerTest {
                 it.beregn(
                     eksisterendeUtbetalinger = sak.utbetalinger,
                     clock = fixedClock,
-                    gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                    gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                         fraOgMed = revurdering.periode.fraOgMed,
                         clock = fixedClock,
                     ).getOrFail(),

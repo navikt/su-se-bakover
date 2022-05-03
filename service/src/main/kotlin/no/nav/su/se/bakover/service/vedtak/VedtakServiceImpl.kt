@@ -58,7 +58,7 @@ internal class VedtakServiceImpl(
         return sakService.hentSak(sakId)
             .mapLeft { KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak }
             .flatMap { sak ->
-                sak.kopierGjeldendeVedtaksdata(fraOgMed, clock)
+                sak.hentGjeldendeVedtaksdata(fraOgMed, clock)
                     .mapLeft {
                         when (it) {
                             is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {

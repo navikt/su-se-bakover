@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
@@ -252,7 +251,7 @@ internal class OppdaterRevurderingServiceTest {
     @Test
     fun `Oppdatering av iverksatt revurdering gir ugyldig tilstand`() {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram,
+            periodeForTidslinje = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second),
             clock = fixedClock,
         )
@@ -332,7 +331,7 @@ internal class OppdaterRevurderingServiceTest {
     @Test
     fun `oppdater en revurdering`() {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram,
+            periodeForTidslinje = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second),
             clock = fixedClock,
         )
@@ -428,7 +427,7 @@ internal class OppdaterRevurderingServiceTest {
     @Test
     fun `grunnlag resettes dersom man oppdaterer revurderingen`() {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram,
+            periodeForTidslinje = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second),
             clock = fixedClock,
         )
@@ -528,7 +527,7 @@ internal class OppdaterRevurderingServiceTest {
         )
 
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = Periode.create(
+            periodeForTidslinje = Periode.create(
                 fraOgMed = førsteVedtak.periode.fraOgMed,
                 tilOgMed = andreVedtak.periode.tilOgMed,
             ),
@@ -597,7 +596,7 @@ internal class OppdaterRevurderingServiceTest {
             },
             vedtakService = mock {
                 on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(
-                    periode = revurderingsperiode,
+                    periodeForTidslinje = revurderingsperiode,
                     vedtakListe = NonEmptyList.fromListUnsafe(sak3.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()),
                     clock = fixedClock,
                 ).right()
@@ -646,7 +645,7 @@ internal class OppdaterRevurderingServiceTest {
                 on { hent(any()) } doReturn opprettetRevurdering
             },
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.hentGjeldendeVedtaksdata(
                     fraOgMed = nyRevurderingsperiode.fraOgMed,
                     clock = clock,
                 ).getOrFail().right()

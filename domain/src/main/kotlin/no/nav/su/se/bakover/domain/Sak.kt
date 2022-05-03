@@ -11,9 +11,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato
-import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
-import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -110,38 +107,15 @@ data class Sak(
         )
     }
 
-    fun kopierGjeldendeVedtaksdata(
+    fun hentGjeldendeVedtaksdata(
         fraOgMed: LocalDate,
         clock: Clock,
-    ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
-        return vedtakListe
-            .filterIsInstance<VedtakSomKanRevurderes>()
-            .ifEmpty {
-                return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(fraOgMed).left()
-            }
-            .let { vedtakSomKanRevurderes ->
-                val tilOgMed = vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed }
-                Periode.tryCreate(fraOgMed, tilOgMed)
-                    .mapLeft {
-                        when (it) {
-                            FraOgMedDatoMåVæreFørTilOgMedDato -> KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(
-                                fraOgMed,
-                                tilOgMed,
-                            )
-                            FraOgMedDatoMåVæreFørsteDagIMåneden, TilOgMedDatoMåVæreSisteDagIMåneden,
-                            -> KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode(it)
-                        }
-                    }
-                    .flatMap {
-                        hentGjeldendeVedtaksdata(
-                            periode = it,
-                            clock = clock,
-                        )
-                    }
-            }
-    }
+    ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> =
+        Periode.tryCreate(fraOgMed, LocalDate.MAX)
+            .mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode(it) }
+            .flatMap { hentGjeldendeVedtaksdata(it, clock) }
 
-    private fun hentGjeldendeVedtaksdata(
+    fun hentGjeldendeVedtaksdata(
         periode: Periode,
         clock: Clock,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes, GjeldendeVedtaksdata> {
@@ -149,11 +123,14 @@ data class Sak(
             .filterIsInstance<VedtakSomKanRevurderes>()
             .ifEmpty { return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(periode).left() }
             .let { vedtakSomKanRevurderes ->
+                if (vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed }.isBefore(periode.fraOgMed)) return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(periode).left()
+
                 GjeldendeVedtaksdata(
-                    periode = periode,
+                    periodeForTidslinje = periode,
                     vedtakListe = NonEmptyList.fromListUnsafe(vedtakSomKanRevurderes),
                     clock = clock,
-                ).right()
+                )
+                    .right()
             }
     }
 
@@ -178,7 +155,7 @@ data class Sak(
     fun hentGjeldendeMånedsberegningForMåned(månedsperiode: Periode, clock: Clock): Månedsberegning? {
         assert(månedsperiode.getAntallMåneder() == 1)
         return GjeldendeVedtaksdata(
-            periode = månedsperiode,
+            periodeForTidslinje = månedsperiode,
             vedtakListe = NonEmptyList.fromListUnsafe(
                 vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
                     .filterNot { it is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse || it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse || it is VedtakSomKanRevurderes.IngenEndringIYtelse }

@@ -16,7 +16,7 @@ import java.time.LocalDate
 
 data class GjeldendeVedtaksdata(
     // TODO Finne et bedre navn. Dette er ikke all vedtaksdata, men kun det som kan Revurderes og Reguleres
-    val periode: Periode,
+    private val periodeForTidslinje: Periode,
     private val vedtakListe: NonEmptyList<VedtakSomKanRevurderes>,
     private val clock: Clock,
 ) {
@@ -25,9 +25,21 @@ data class GjeldendeVedtaksdata(
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
 
     private val tidslinje: Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> = vedtakListe
-        .lagTidslinje(periode)
+        .lagTidslinje(periodeForTidslinje)
 
     private val vedtakPåTidslinje: List<VedtakSomKanRevurderes.VedtakPåTidslinje> = tidslinje.tidslinje
+
+    /* Periode som representerer tidligest og senest dato på vedtaken i tidslinjen */
+    val periode: Periode
+        get() =
+            vedtakPåTidslinje
+                .map { it.periode }
+                .let { perioder ->
+                    Periode.create(
+                        fraOgMed = perioder.minOf { it.fraOgMed },
+                        tilOgMed = perioder.maxOf { it.tilOgMed },
+                    )
+                }
 
     val pågåendeAvkortingEllerBehovForFremtidigAvkorting: Boolean =
         vedtakPåTidslinje.any { it.originaltVedtak.harPågåendeAvkorting() || it.originaltVedtak.harIdentifisertBehovForFremtidigAvkorting() }

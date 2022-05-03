@@ -57,7 +57,7 @@ internal class RevurderingIngenEndringTest {
                         any(),
                         any(),
                     )
-                } doReturn sak.kopierGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail().right()
+                } doReturn sak.hentGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail().right()
             },
         ).let {
             val actual = it.revurderingService.beregnOgSimuler(

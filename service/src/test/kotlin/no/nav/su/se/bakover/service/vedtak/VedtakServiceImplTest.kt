@@ -211,7 +211,7 @@ internal class VedtakServiceImplTest {
             UUID.randomUUID(),
             vedtakId = sakOgVedtak2.second.id,
         ) shouldBe GjeldendeVedtaksdata(
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+            periodeForTidslinje = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
             vedtakListe = nonEmptyListOf(sakOgVedtak1.second),
             clock = fixedClock,
         ).right()
@@ -250,7 +250,7 @@ internal class VedtakServiceImplTest {
             .getOrElse { throw RuntimeException("Test feilet") }
 
         actual shouldBe GjeldendeVedtaksdata(
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+            periodeForTidslinje = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
             vedtakListe = nonEmptyListOf(sakOgVedtak1.second, sakOgVedtak2.second),
             fixedClock,
         )

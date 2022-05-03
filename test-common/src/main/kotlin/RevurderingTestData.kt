@@ -130,7 +130,7 @@ fun opprettRevurderingFraSaksopplysninger(
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
 ): Pair<Sak, OpprettetRevurdering> {
-    val gjeldendeVedtaksdata = sakOgVedtakSomKanRevurderes.first.kopierGjeldendeVedtaksdata(
+    val gjeldendeVedtaksdata = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVedtaksdata(
         fraOgMed = revurderingsperiode.fraOgMed,
         clock = clock,
     ).getOrFail()
@@ -241,7 +241,7 @@ fun beregnetRevurdering(
         val beregnet = opprettet.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
-            gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+            gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
@@ -657,7 +657,7 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         val innvilgetBeregnetRevurdering = revurdering.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
-            gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+            gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
@@ -739,7 +739,7 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
         val innvilgetBeregnetRevurdering = revurdering.beregn(
             eksisterendeUtbetalinger = eksisterendeUtbetalinger,
             clock = clock,
-            gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+            gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
@@ -788,7 +788,7 @@ fun beregnetRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
         val opphørtBeregnetRevurdering = revurdering.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
-            gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+            gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
@@ -844,7 +844,7 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         val opphørtBeregnetRevurdering = revurdering.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
-            gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+            gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),

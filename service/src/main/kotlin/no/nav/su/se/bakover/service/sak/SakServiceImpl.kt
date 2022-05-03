@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 internal class SakServiceImpl(
@@ -43,18 +43,13 @@ internal class SakServiceImpl(
 
     override fun hentGjeldendeVedtaksdata(
         sakId: UUID,
-        fraOgMed: LocalDate,
+        periode: Periode,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata?> {
         return hentSak(sakId)
             .mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak }
             .flatMap { sak ->
-                sak.kopierGjeldendeVedtaksdata(fraOgMed, clock).fold(
-                    ifLeft = {
-                        when (it) {
-                            is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> null.right()
-                            is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode.left()
-                        }
-                    },
+                sak.hentGjeldendeVedtaksdata(periode, clock).fold(
+                    ifLeft = { null.right() },
                     ifRight = { it.right() }
                 )
             }

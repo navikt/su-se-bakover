@@ -70,7 +70,7 @@ internal class RevurderingPostgresRepoTest {
 
     private fun opprettet(vedtak: VedtakSomKanRevurderes.EndringIYtelse): OpprettetRevurdering {
         val x = GjeldendeVedtaksdata(
-            periode = periode2021,
+            periodeForTidslinje = periode2021,
             vedtakListe = nonEmptyListOf(vedtak),
             clock = fixedClock,
         )

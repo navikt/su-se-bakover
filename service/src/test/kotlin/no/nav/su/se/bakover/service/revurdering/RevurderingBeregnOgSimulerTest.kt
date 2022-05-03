@@ -81,7 +81,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.hentGjeldendeVedtaksdata(
                     opprettet.periode.fraOgMed,
                     fixedClock,
                 ).getOrFail().right()
@@ -112,7 +112,7 @@ internal class RevurderingBeregnOgSimulerTest {
                     beregning = revurdering.beregn(
                         eksisterendeUtbetalinger = sak.utbetalinger,
                         clock = fixedClock,
-                        gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                        gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                             fraOgMed = revurdering.periode.fraOgMed,
                             clock = fixedClock,
                         ).getOrFail(),
@@ -122,7 +122,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.hentGjeldendeVedtaksdata(
                     revurdering.periode.fraOgMed,
                     fixedClock,
                 ).getOrFail().right()
@@ -161,7 +161,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.hentGjeldendeVedtaksdata(
                     revurdering.periode.fraOgMed,
                     fixedClock,
                 ).getOrFail().right()
@@ -201,7 +201,7 @@ internal class RevurderingBeregnOgSimulerTest {
                     beregning = opprettetRevurdering.beregn(
                         eksisterendeUtbetalinger = sak.utbetalinger,
                         clock = fixedClock,
-                        gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+                        gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
                             fraOgMed = opprettetRevurdering.periode.fraOgMed,
                             clock = fixedClock,
                         ).getOrFail(),
@@ -211,7 +211,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.hentGjeldendeVedtaksdata(
                     opprettetRevurdering.periode.fraOgMed,
                     fixedClock,
                 ).getOrFail().right()
@@ -303,7 +303,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.hentGjeldendeVedtaksdata(
                     fraOgMed = beregnet.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail().right()
@@ -347,7 +347,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.hentGjeldendeVedtaksdata(
                     fraOgMed = underkjent.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail().right()
@@ -404,7 +404,7 @@ internal class RevurderingBeregnOgSimulerTest {
                     on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
                 },
                 vedtakService = mock {
-                    on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
+                    on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.hentGjeldendeVedtaksdata(
                         fraOgMed = opprettet.periode.fraOgMed,
                         clock = fixedClock,
                     ).getOrFail().right()
@@ -439,7 +439,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.hentGjeldendeVedtaksdata(
                     fraOgMed = opprettet.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail().right()
@@ -544,7 +544,7 @@ internal class RevurderingBeregnOgSimulerTest {
                         any(),
                         any(),
                     )
-                } doReturn sakEtterRevurdering2.kopierGjeldendeVedtaksdata(
+                } doReturn sakEtterRevurdering2.hentGjeldendeVedtaksdata(
                     fraOgMed = revurderingsperiode2.fraOgMed,
                     clock = tikkendeKlokke,
                 ).getOrFail().right()

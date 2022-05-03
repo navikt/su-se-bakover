@@ -130,6 +130,11 @@ internal object Feilresponser {
         "ugyldig_fødselsnummer",
     )
 
+    val ugyldigPeriode = BadRequest.errorJson(
+        "Ugyldig periode",
+        "ugyldig_periode",
+    )
+
     val feilVedGenereringAvDokument = InternalServerError.errorJson(
         "Feil ved generering av dokument",
         "feil_ved_generering_av_dokument",
