@@ -96,7 +96,7 @@ internal fun KunneIkkeLeggeTilOpplysningsplikt.tilResultat(): Resultat {
 private class LeggTilOpplysningspliktVilkårBody private constructor(
     val id: UUID,
     val type: Behandlingstype,
-    val data: List<OpplysningspliktVilkårJson>,
+    val data: List<VurderingsperiodeOpplysningspliktVilkårJson>,
 ) {
     fun toDomain(): Either<KunneIkkeLeggeTilOpplysningsplikt, LeggTilOpplysningspliktRequest> {
         return data.toDomain()

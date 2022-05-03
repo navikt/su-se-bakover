@@ -13,6 +13,13 @@ internal data class UføreVilkårJson(
     val resultat: UførevilkårStatus,
 )
 
+internal fun Vilkår.Uførhet.toJson(): UføreVilkårJson? {
+    return when (this) {
+        Vilkår.Uførhet.IkkeVurdert -> null
+        is Vilkår.Uførhet.Vurdert -> this.toJson()
+    }
+}
+
 internal fun Vurderingsperiode.Uføre.toJson() = VurderingsperiodeUføreJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),

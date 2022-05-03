@@ -1,10 +1,11 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.OpplysningspliktVilkårJson
+import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.toJson
 
 internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val uføre: UføreVilkårJson?,
@@ -12,6 +13,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val bosituasjon: List<BosituasjonJson>,
     val formue: FormuevilkårJson?,
     val utenlandsopphold: UtenlandsoppholdVilkårJson?,
+    val opplysningsplikt: OpplysningspliktVilkårJson?,
 ) {
     companion object {
         fun create(
@@ -19,51 +21,13 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
             vilkårsvurderinger: Vilkårsvurderinger,
         ): GrunnlagsdataOgVilkårsvurderingerJson {
             return GrunnlagsdataOgVilkårsvurderingerJson(
-                uføre = vilkårsvurderinger.uføreJson(),
+                uføre = vilkårsvurderinger.uføreVilkår().toJson(),
                 fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag.toJson() },
                 bosituasjon = grunnlagsdata.bosituasjon.toJson(),
-                formue = vilkårsvurderinger.formueJson(),
-                utenlandsopphold = vilkårsvurderinger.utenlandsoppholdJson(),
+                formue = vilkårsvurderinger.formueVilkår().toJson(),
+                utenlandsopphold = vilkårsvurderinger.utenlandsoppholdVilkår().toJson(),
+                opplysningsplikt = vilkårsvurderinger.opplysningspliktVilkår().toJson(),
             )
-        }
-    }
-}
-
-internal fun Vilkårsvurderinger.uføreJson(): UføreVilkårJson? {
-    return when (this) {
-        is Vilkårsvurderinger.Revurdering -> {
-            when (val v = uføre) {
-                Vilkår.Uførhet.IkkeVurdert -> null
-                is Vilkår.Uførhet.Vurdert -> v.toJson()
-            }
-        }
-        is Vilkårsvurderinger.Søknadsbehandling -> {
-            when (val v = uføre) {
-                Vilkår.Uførhet.IkkeVurdert -> null
-                is Vilkår.Uførhet.Vurdert -> v.toJson()
-            }
-        }
-    }
-}
-
-internal fun Vilkårsvurderinger.formueJson(): FormuevilkårJson? {
-    return when (this) {
-        is Vilkårsvurderinger.Revurdering -> {
-            formue.toJson()
-        }
-        is Vilkårsvurderinger.Søknadsbehandling -> {
-            formue.toJson()
-        }
-    }
-}
-
-internal fun Vilkårsvurderinger.utenlandsoppholdJson(): UtenlandsoppholdVilkårJson? {
-    return when (this) {
-        is Vilkårsvurderinger.Revurdering -> {
-            utenlandsopphold.toJson()
-        }
-        is Vilkårsvurderinger.Søknadsbehandling -> {
-            utenlandsopphold.toJson()
         }
     }
 }
