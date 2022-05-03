@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -58,6 +59,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                     ),
                     formue = Vilkår.Formue.IkkeVurdert,
                     utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
+                    opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
                 ),
             )
         }.message shouldBe "Grunnlagsdataperioden (Periode(fraOgMed=2021-01-01, tilOgMed=2021-04-30)) må være lik vilkårsvurderingerperioden (Periode(fraOgMed=2021-01-01, tilOgMed=2021-05-31))"
@@ -96,6 +98,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                 ),
                 formue = Vilkår.Formue.IkkeVurdert,
                 utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
+                opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
             ),
         )
     }
@@ -113,6 +116,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                 ),
                 formue = Vilkår.Formue.IkkeVurdert,
                 utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
+                opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
             ),
         )
     }

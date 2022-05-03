@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilOpplysningsplikt
+import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
@@ -39,6 +41,7 @@ interface SøknadsbehandlingService {
     fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext)
     fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext)
     fun leggTilUtenlandsopphold(request: LeggTilUtenlandsoppholdRequest): Either<KunneIkkeLeggeTilUtenlandsopphold, Søknadsbehandling.Vilkårsvurdert>
+    fun leggTilOpplysningspliktVilkår(request: LeggTilOpplysningspliktRequest.Søknadsbehandling): Either<KunneIkkeLeggeTilOpplysningsplikt, Søknadsbehandling.Vilkårsvurdert>
 
     data class OpprettRequest(
         val søknadId: UUID,

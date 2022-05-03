@@ -55,6 +55,11 @@ internal object Feilresponser {
         "har_allerede_en_aktiv_behandling",
     )
 
+    val vilkårMåVurderesForHeleBehandlingsperioden = BadRequest.errorJson(
+        "Vilkår må vurderes for hele behandlingsperioden",
+        "vilkår_må_vurderes_for_hele_behandlingsperioden"
+    )
+
     val søknadHarBehandlingFraFør = BadRequest.errorJson(
         "Søknad har en behandling fra før",
         "søknad_har_behandling_fra_før",
@@ -221,8 +226,12 @@ internal object Feilresponser {
     )
 
     fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {
+        return ugyldigTilstand(fra.simpleName.toString(), til.simpleName.toString())
+    }
+
+    fun ugyldigTilstand(fra: String, til: String): Resultat {
         return BadRequest.errorJson(
-            "Kan ikke gå fra tilstanden ${fra.simpleName} til tilstanden ${til.simpleName}",
+            "Kan ikke gå fra tilstanden $fra til tilstanden $til",
             "ugyldig_tilstand",
         )
     }

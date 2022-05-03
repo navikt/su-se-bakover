@@ -52,6 +52,8 @@ open class Periode private constructor(
         return this == other || sluttStart == plussEnDag || sluttStart == minusEnDag || startSlutt == plussEnDag || startSlutt == minusEnDag
     }
 
+    infix fun fullstendigOverlapp(other: Periode): Boolean =
+        this fullstendigOverlapp listOf(other)
     /**
      * Alle månedene i denne perioden overlapper fullstendig med settet av alle månedene i lista.
      * Dvs. at de må inneholde de nøyaktige samme månedsperioder.

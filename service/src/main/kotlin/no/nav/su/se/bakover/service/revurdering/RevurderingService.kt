@@ -150,6 +150,10 @@ interface RevurderingService {
         begrunnelse: String,
         fritekst: String?,
     ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering>
+
+    fun leggTilOpplysningspliktVilkår(
+        request: LeggTilOpplysningspliktRequest.Revurdering,
+    ): Either<KunneIkkeLeggeTilOpplysningsplikt, RevurderingOgFeilmeldingerResponse>
 }
 
 data class RevurderingOgFeilmeldingerResponse(
@@ -357,7 +361,8 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
     object KunneIkkeSlåOppEPS : KunneIkkeLeggeTilBosituasjongrunnlag()
     object EpsAlderErNull : KunneIkkeLeggeTilBosituasjongrunnlag()
     data class Konsistenssjekk(val feil: Konsistensproblem.Bosituasjon) : KunneIkkeLeggeTilBosituasjongrunnlag()
-    data class KunneIkkeLeggeTilBosituasjon(val feil: Revurdering.KunneIkkeLeggeTilBosituasjon) : KunneIkkeLeggeTilBosituasjongrunnlag()
+    data class KunneIkkeLeggeTilBosituasjon(val feil: Revurdering.KunneIkkeLeggeTilBosituasjon) :
+        KunneIkkeLeggeTilBosituasjongrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFormuegrunnlag {

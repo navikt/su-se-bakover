@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -92,6 +93,7 @@ internal class RevurderingJsonTest {
                 ),
                 formue = Vilkår.Formue.IkkeVurdert,
                 utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
+                opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(

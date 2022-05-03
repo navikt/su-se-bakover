@@ -53,6 +53,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
@@ -71,6 +72,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
+import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.applicationConfig
@@ -881,6 +883,12 @@ internal class SøknadsbehandlingRoutesKtTest {
             nullableUavklartVilkårsvurdertSøknadsbehandling ?: setup(services, repos)
 
         val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+        services.søknadsbehandling.leggTilOpplysningspliktVilkår(
+            request = LeggTilOpplysningspliktRequest.Søknadsbehandling(
+                behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                vilkår = tilstrekkeligDokumentert(periode = periode2021)
+            )
+        )
         services.søknadsbehandling.leggTilUførevilkår(
             LeggTilUførevurderingerRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,

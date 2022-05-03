@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingSimulert
@@ -29,6 +30,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Nested
@@ -176,13 +178,14 @@ internal class StatusovergangTest {
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
                         utenlandsopphold = utenlandsoppholdInnvilget(),
+                        opplysningsplikt = tilstrekkeligDokumentert(),
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
                     Behandlingsinformasjon().withAlleVilkårOppfylt(),
                     fixedClock,
                 ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+            ).shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
         @Test
@@ -292,13 +295,14 @@ internal class StatusovergangTest {
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
                         utenlandsopphold = utenlandsoppholdInnvilget(),
+                        opplysningsplikt = tilstrekkeligDokumentert(),
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
                     Behandlingsinformasjon().withAlleVilkårOppfylt(),
                     fixedClock,
                 ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+            ).shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
         @Test
@@ -320,13 +324,14 @@ internal class StatusovergangTest {
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
                         utenlandsopphold = utenlandsoppholdInnvilget(),
+                        opplysningsplikt = tilstrekkeligDokumentert(),
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
                     Behandlingsinformasjon().withAlleVilkårOppfylt(),
                     fixedClock,
                 ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+            ).shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
         @Test

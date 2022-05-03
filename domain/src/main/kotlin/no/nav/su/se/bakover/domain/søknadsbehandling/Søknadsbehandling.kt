@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.Vilkårsvurdert.Companion.opprett
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -185,6 +186,22 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ) : KunneIkkeOppdatereStønadsperiode()
     }
 
+    open fun leggTilOpplysningspliktVilkår(
+        opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
+        clock: Clock,
+    ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+        return KunneIkkeLeggeTilOpplysnigsplikt.UgyldigTilstand(this::class).left()
+    }
+
+    sealed interface KunneIkkeLeggeTilOpplysnigsplikt {
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling> = Vilkårsvurdert::class,
+        ) : KunneIkkeLeggeTilOpplysnigsplikt
+
+        object HeleRevurderingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysnigsplikt
+    }
+
     open fun beregn(
         begrunnelse: String?,
         clock: Clock,
@@ -233,6 +250,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         return when {
             !periode.inneholderAlle(uførhet.vurderingsperioder) -> {
                 KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
+            }
+            else -> Unit.right()
+        }
+    }
+
+    protected open fun valider(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysnigsplikt, Unit> {
+        return when {
+            !periode.fullstendigOverlapp(opplysningspliktVilkår.minsteAntallSammenhengendePerioder()) -> {
+                KunneIkkeLeggeTilOpplysnigsplikt.HeleRevurderingsperiodenErIkkeVurdert.left()
             }
             else -> Unit.right()
         }
@@ -542,6 +568,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
+            override fun leggTilOpplysningspliktVilkår(
+                opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+                return valider(opplysningspliktVilkår)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+            }
+
             private fun vilkårsvurder(
                 vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
@@ -654,6 +688,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
+            override fun leggTilOpplysningspliktVilkår(
+                opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+                return valider(opplysningspliktVilkår)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+            }
+
             private fun vilkårsvurder(
                 vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
@@ -724,6 +766,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
                 return valider(utenlandsopphold)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+            }
+
+            override fun leggTilOpplysningspliktVilkår(
+                opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+                return valider(opplysningspliktVilkår)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
             private fun vilkårsvurder(
@@ -884,6 +934,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
+            override fun leggTilOpplysningspliktVilkår(
+                opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+                return valider(opplysningspliktVilkår)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+            }
+
             private fun vilkårsvurder(
                 vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
@@ -1028,6 +1086,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
                 return valider(utenlandsopphold)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+            }
+
+            override fun leggTilOpplysningspliktVilkår(
+                opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+                return valider(opplysningspliktVilkår)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
             private fun vilkårsvurder(
@@ -1223,6 +1289,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
             return valider(utenlandsopphold)
                 .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+        }
+
+        override fun leggTilOpplysningspliktVilkår(
+            opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
+            clock: Clock,
+        ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+            return valider(opplysningspliktVilkår)
+                .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
         }
 
         private fun vilkårsvurder(
@@ -1683,6 +1757,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
+            override fun leggTilOpplysningspliktVilkår(
+                opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+                return valider(opplysningspliktVilkår)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+            }
+
             private fun vilkårsvurder(
                 vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
@@ -1832,6 +1914,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
                 }
 
+                override fun leggTilOpplysningspliktVilkår(
+                    opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
+                    clock: Clock,
+                ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+                    return valider(opplysningspliktVilkår)
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+                }
+
                 private fun vilkårsvurder(
                     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                     clock: Clock,
@@ -1931,6 +2021,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
                     return valider(utenlandsopphold)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+                }
+
+                override fun leggTilOpplysningspliktVilkår(
+                    opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
+                    clock: Clock,
+                ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+                    return valider(opplysningspliktVilkår)
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
                 }
 
                 private fun vilkårsvurder(

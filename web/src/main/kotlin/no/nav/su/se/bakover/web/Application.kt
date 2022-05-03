@@ -76,6 +76,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbehandligRoutes
 import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.routes.toggleRoutes
+import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.opplysningspliktRoutes
 import org.slf4j.event.Level
 import java.time.Clock
 import java.time.format.DateTimeParseException
@@ -254,6 +255,10 @@ fun Application.susebakover(
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
                     kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtale)
                     reguleringRoutes(accessProtectedServices.reguleringService)
+                    opplysningspliktRoutes(
+                        søknadsbehandlingService = accessProtectedServices.søknadsbehandling,
+                        revurderingService = accessProtectedServices.revurdering
+                    )
                 }
             }
         }
