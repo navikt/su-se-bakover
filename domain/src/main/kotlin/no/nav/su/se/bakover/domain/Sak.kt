@@ -141,7 +141,7 @@ data class Sak(
             }
     }
 
-    private fun hentGjeldendeVedtaksdata(
+    fun hentGjeldendeVedtaksdata(
         periode: Periode,
         clock: Clock,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes, GjeldendeVedtaksdata> {
@@ -304,27 +304,17 @@ data class Sak(
         hentGjeldendeVedtaksdata(
             periode = stønadsperiode.periode,
             clock = clock,
-        ).fold(
-            {
-                @Suppress("USELESS_IS_CHECK") // Ønsker compile error dersom Left endrer seg til en sealed class
-                when (it) {
-                    is KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {
-                        // Ignoreres da dette er et gyldig og vanlig case for søknadsbehandling
+        ).map {
+            if (it.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold()) {
+                val alleUtbetalingerErOpphørt =
+                    utbetalingstidslinje(periode = stønadsperiode.periode).tidslinje.all { utbetalingslinjePåTidslinje ->
+                        utbetalingslinjePåTidslinje is UtbetalingslinjePåTidslinje.Opphør
                     }
-                }
-            },
-            {
-                if (it.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold()) {
-                    val alleUtbetalingerErOpphørt =
-                        utbetalingstidslinje(periode = it.periode).tidslinje.all { utbetalingslinjePåTidslinje ->
-                            utbetalingslinjePåTidslinje is UtbetalingslinjePåTidslinje.Opphør
-                        }
 
-                    if (!alleUtbetalingerErOpphørt)
-                        return KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
-                }
-            },
-        )
+                if (!alleUtbetalingerErOpphørt)
+                    return KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
+            }
+        }
 
         return søknadsbehandling.oppdaterStønadsperiode(
             oppdatertStønadsperiode = stønadsperiode,

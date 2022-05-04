@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.AktørId
@@ -291,10 +292,10 @@ open class AccessCheckProxy(
 
                 override fun hentGjeldendeVedtaksdata(
                     sakId: UUID,
-                    fraOgMed: LocalDate,
+                    periode: Periode,
                 ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata?> {
                     assertHarTilgangTilSak(sakId)
-                    return services.sak.hentGjeldendeVedtaksdata(sakId, fraOgMed)
+                    return services.sak.hentGjeldendeVedtaksdata(sakId, periode)
                 }
 
                 override fun hentSakidOgSaksnummer(fnr: Fnr) = kastKanKunKallesFraAnnenService()
