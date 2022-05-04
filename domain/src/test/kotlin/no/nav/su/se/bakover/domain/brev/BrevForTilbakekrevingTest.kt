@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.brev
 
 import arrow.core.Either
 import arrow.core.right
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
@@ -20,7 +21,6 @@ import no.nav.su.se.bakover.test.formuevilkårAvslåttPgrBrukersformue
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.requireType
 import no.nav.su.se.bakover.test.saksbehandler
@@ -35,7 +35,7 @@ class BrevForTilbakekrevingTest {
 
     private fun simulertInnvilgetTilbakekreving(): Pair<Sak, SimulertRevurdering.Innvilget> = simulertRevurdering(
         grunnlagsdataOverrides = listOf(
-            fradragsgrunnlagArbeidsinntekt(periode = periode2021, arbeidsinntekt = 5000.0),
+            fradragsgrunnlagArbeidsinntekt(periode = år(2021), arbeidsinntekt = 5000.0),
         ),
     ).let {
         requireType(it)
@@ -44,9 +44,9 @@ class BrevForTilbakekrevingTest {
     private fun simulertOpphørTilbakekreving(): Pair<Sak, SimulertRevurdering.Opphørt> = simulertRevurdering(
         vilkårOverrides = listOf(
             formuevilkårAvslåttPgrBrukersformue(
-                periode = periode2021,
+                periode = år(2021),
                 bosituasjon = bosituasjongrunnlagEnslig(
-                    periode = periode2021,
+                    periode = år(2021),
                 ),
             ),
         ),

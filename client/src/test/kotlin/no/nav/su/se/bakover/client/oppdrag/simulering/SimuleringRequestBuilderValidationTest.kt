@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -58,10 +58,7 @@ internal class SimuleringRequestBuilderValidationTest {
                     behandler = NavIdentBruker.Saksbehandler("Z123"),
                     avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
                 ),
-                simuleringsperiode = Periode.create(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.januar(2020),
-                ),
+                simuleringsperiode = januar(2020),
             ),
         ).build().request
 

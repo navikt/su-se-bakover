@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.JobContextRepo
@@ -233,7 +234,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
         // opphør fra fra neste måned
         val (sak4, _) = vedtakRevurdering(
-            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)), ""),
+            stønadsperiode = Stønadsperiode.create(år(2021), ""),
             revurderingsperiode = Periode.create(1.august(2021), 31.desember(2021)),
             saksnummer = Saksnummer(3004),
             grunnlagsdataOverrides = listOf(

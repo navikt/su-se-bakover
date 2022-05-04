@@ -9,12 +9,13 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.månedsperiodeDesember2021
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -30,11 +31,11 @@ internal class VurderingsperiodeTest {
             grunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                periode = år(2021),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 500,
             ),
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            periode = år(2021),
             begrunnelse = "begrunnelsen",
         )
         original.copy(
@@ -48,7 +49,7 @@ internal class VurderingsperiodeTest {
             vurderingsperiodeCopy.grunnlag!!.let { grunnlagCopy ->
                 grunnlagCopy.id shouldNotBe original.grunnlag!!.id
                 grunnlagCopy.opprettet shouldBe original.grunnlag!!.opprettet
-                grunnlagCopy.periode shouldBe Periode.create(1.januar(2021), 31.desember(2021))
+                grunnlagCopy.periode shouldBe år(2021)
                 grunnlagCopy.uføregrad shouldBe original.grunnlag!!.uføregrad
                 grunnlagCopy.forventetInntekt shouldBe original.grunnlag!!.forventetInntekt
             }
@@ -64,11 +65,11 @@ internal class VurderingsperiodeTest {
             grunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                periode = år(2021),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 500,
             ),
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            periode = år(2021),
             begrunnelse = "begrunnelsen",
         )
         original.copy(
@@ -97,11 +98,11 @@ internal class VurderingsperiodeTest {
             grunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                periode = år(2021),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 500,
             ),
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            periode = år(2021),
             begrunnelse = "begrunnelsen a",
         )
 
@@ -125,12 +126,12 @@ internal class VurderingsperiodeTest {
             opprettet = fixedTidspunkt.plus(2, ChronoUnit.DAYS),
             resultat = Resultat.Innvilget,
             grunnlag = null,
-            periode = månedsperiodeDesember2021,
+            periode = desember(2021),
             begrunnelse = "begrunnelsen b",
         )
 
         Tidslinje(
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            periode = år(2021),
             objekter = listOf(a, b, c),
         ).tidslinje.let {
             it[0].let { copy ->
@@ -161,7 +162,7 @@ internal class VurderingsperiodeTest {
                 copy.id shouldNotBe a.id
                 copy.id shouldNotBe b.id
                 copy.id shouldNotBe c.id
-                copy.periode shouldBe månedsperiodeDesember2021
+                copy.periode shouldBe desember(2021)
                 copy.begrunnelse shouldBe b.begrunnelse
                 copy.grunnlag shouldBe null
             }
@@ -177,7 +178,7 @@ internal class VurderingsperiodeTest {
             grunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                periode = år(2021),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 500,
             ),

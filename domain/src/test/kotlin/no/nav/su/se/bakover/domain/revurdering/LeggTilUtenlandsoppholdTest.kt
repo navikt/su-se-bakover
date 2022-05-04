@@ -7,6 +7,8 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
@@ -17,10 +19,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.periodeFebruar2021
-import no.nav.su.se.bakover.test.periodeJanuar2021
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
@@ -37,7 +36,7 @@ class LeggTilUtenlandsoppholdTest {
 
         uavklart.oppdaterUtenlandsoppholdOgMarkerSomVurdert(
             utenlandsopphold = utenlandsoppholdInnvilget(
-                periode = månedsperiodeJanuar2020,
+                periode = januar(2020),
             ),
         ) shouldBe Revurdering.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
 
@@ -55,7 +54,7 @@ class LeggTilUtenlandsoppholdTest {
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = null,
-                        periode = månedsperiodeJanuar2020,
+                        periode = januar(2020),
                         begrunnelse = "begrunnelse",
                     ),
                 ),
@@ -122,7 +121,7 @@ class LeggTilUtenlandsoppholdTest {
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = null,
-                        periode = periodeJanuar2021,
+                        periode = januar(2021),
                         begrunnelse = "begrunnelse",
                     ),
                     VurderingsperiodeUtenlandsopphold.create(
@@ -148,14 +147,14 @@ class LeggTilUtenlandsoppholdTest {
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = null,
-                        periode = periodeJanuar2021,
+                        periode = januar(2021),
                         begrunnelse = "begrunnelse",
                     ),
                     VurderingsperiodeUtenlandsopphold.create(
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = null,
-                        periode = periodeFebruar2021,
+                        periode = februar(2021),
                         begrunnelse = "begrunnelse",
                     ),
                 ),

@@ -8,7 +8,11 @@ import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.juli
+import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -22,9 +26,6 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.periode2021
-import no.nav.su.se.bakover.test.periodeJuli2021
-import no.nav.su.se.bakover.test.periodeMai2021
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlle
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlleRevurdering
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
@@ -160,7 +161,7 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `oppdaterer perioden på alle vilkår`() {
-            val gammel = Periode.create(1.januar(2021), 31.desember(2021))
+            val gammel = år(2021)
             val ny = Periode.create(1.juli(2021), 31.desember(2021))
 
             vilkårsvurderingerSøknadsbehandlingInnvilget(periode = gammel)
@@ -191,8 +192,8 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `likhet bryr seg bare om den funksjonelle betydningen av verdiene`() {
-            val a = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periodeMai2021)
-            val b = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periodeJuli2021)
+            val a = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = mai(2021))
+            val b = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = juli(2021))
 
             a shouldBe b
             (a == b) shouldBe true
@@ -205,11 +206,11 @@ internal class VilkårsvurderingerTest {
             innvilget.resultat shouldBe beOfType<Vilkårsvurderingsresultat.Innvilget>()
 
             innvilget.oppdater(
-                stønadsperiode = Stønadsperiode.create(periode2021, ""),
+                stønadsperiode = Stønadsperiode.create(år(2021), ""),
                 behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
                 grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = emptyList(),
-                    bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = periode2021)),
+                    bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
                 ),
                 clock = fixedClock,
             ).let {
@@ -367,7 +368,7 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `oppdaterer perioden på alle vilkår`() {
-            val gammel = Periode.create(1.januar(2021), 31.desember(2021))
+            val gammel = år(2021)
             val ny = Periode.create(1.juli(2021), 31.desember(2021))
 
             vilkårsvurderingerRevurderingInnvilget(periode = gammel)
@@ -410,8 +411,8 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `likhet bryr seg bare om den funksjonelle betydningen av verdiene`() {
-            val a = vilkårsvurderingerRevurderingInnvilget(periode = periodeMai2021)
-            val b = vilkårsvurderingerRevurderingInnvilget(periode = periodeJuli2021)
+            val a = vilkårsvurderingerRevurderingInnvilget(periode = mai(2021))
+            val b = vilkårsvurderingerRevurderingInnvilget(periode = juli(2021))
 
             a shouldBe b
             (a == b) shouldBe true

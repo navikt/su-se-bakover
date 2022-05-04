@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -17,7 +19,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.månedsperiodeJanuar2021
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -42,7 +43,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 behandlingId = behandlingId,
                 vurderinger = nonEmptyListOf(leggTilUførevilkårRequest),
             ).toVilkår(
-                månedsperiodeJanuar2021, fixedClock,
+                januar(2021), fixedClock,
             ) shouldBe testArg.second.left()
         }
     }
@@ -63,7 +64,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 ),
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = Periode.create(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+                    periode = februar(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårOppfylt,
@@ -119,7 +120,7 @@ internal class LeggTilUførevurderingerRequestTest {
             vurderinger = nonEmptyListOf(
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = månedsperiodeJanuar2021,
+                    periode = januar(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårOppfylt,
@@ -127,7 +128,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 ),
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = Periode.create(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+                    periode = februar(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårIkkeOppfylt,
@@ -151,7 +152,7 @@ internal class LeggTilUførevurderingerRequestTest {
             vurderinger = nonEmptyListOf(
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = månedsperiodeJanuar2021,
+                    periode = januar(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårOppfylt,
@@ -159,7 +160,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 ),
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = Periode.create(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+                    periode = februar(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.HarUføresakTilBehandling,
@@ -183,7 +184,7 @@ internal class LeggTilUførevurderingerRequestTest {
             vurderinger = nonEmptyListOf(
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = månedsperiodeJanuar2021,
+                    periode = januar(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårIkkeOppfylt,
@@ -191,7 +192,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 ),
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = Periode.create(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+                    periode = februar(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.HarUføresakTilBehandling,
@@ -215,7 +216,7 @@ internal class LeggTilUførevurderingerRequestTest {
             vurderinger = nonEmptyListOf(
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = månedsperiodeJanuar2021,
+                    periode = januar(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårOppfylt,
@@ -223,7 +224,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 ),
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = Periode.create(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+                    periode = februar(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårOppfylt,
@@ -246,11 +247,11 @@ internal class LeggTilUførevurderingerRequestTest {
                     grunnlag = Grunnlag.Uføregrunnlag(
                         id = actual.vurderingsperioder[0].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[0].grunnlag!!.opprettet,
-                        periode = månedsperiodeJanuar2021,
+                        periode = januar(2021),
                         uføregrad = Uføregrad.parse(100),
                         forventetInntekt = 12000,
                     ),
-                    periode = månedsperiodeJanuar2021,
+                    periode = januar(2021),
                     begrunnelse = null,
                 ),
                 Vurderingsperiode.Uføre.create(
@@ -260,11 +261,11 @@ internal class LeggTilUførevurderingerRequestTest {
                     grunnlag = Grunnlag.Uføregrunnlag(
                         id = actual.vurderingsperioder[1].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[1].grunnlag!!.opprettet,
-                        periode = Periode.create(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+                        periode = februar(2021),
                         uføregrad = Uføregrad.parse(100),
                         forventetInntekt = 12000,
                     ),
-                    periode = Periode.create(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+                    periode = februar(2021),
                     begrunnelse = null,
                 ),
             ),
@@ -279,7 +280,7 @@ internal class LeggTilUførevurderingerRequestTest {
             vurderinger = nonEmptyListOf(
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = månedsperiodeJanuar2021,
+                    periode = januar(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårOppfylt,
@@ -287,7 +288,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 ),
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = Periode.create(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+                    periode = februar(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårOppfylt,
@@ -310,11 +311,11 @@ internal class LeggTilUførevurderingerRequestTest {
                     grunnlag = Grunnlag.Uføregrunnlag(
                         id = actual.vurderingsperioder[0].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[0].grunnlag!!.opprettet,
-                        periode = månedsperiodeJanuar2021,
+                        periode = januar(2021),
                         uføregrad = Uføregrad.parse(100),
                         forventetInntekt = 12000,
                     ),
-                    periode = månedsperiodeJanuar2021,
+                    periode = januar(2021),
                     begrunnelse = null,
                 ),
                 Vurderingsperiode.Uføre.create(
@@ -324,11 +325,11 @@ internal class LeggTilUførevurderingerRequestTest {
                     grunnlag = Grunnlag.Uføregrunnlag(
                         id = actual.vurderingsperioder[1].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[1].grunnlag!!.opprettet,
-                        periode = Periode.create(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+                        periode = februar(2021),
                         uføregrad = Uføregrad.parse(100),
                         forventetInntekt = 12000,
                     ),
-                    periode = Periode.create(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+                    periode = februar(2021),
                     begrunnelse = null,
                 ),
             ),
@@ -343,14 +344,14 @@ internal class LeggTilUførevurderingerRequestTest {
             vurderinger = nonEmptyListOf(
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = månedsperiodeJanuar2021,
+                    periode = januar(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.VilkårIkkeOppfylt,
                     begrunnelse = "blah",
                 ),
             ),
-        ).toVilkår(månedsperiodeJanuar2021, fixedClock).orNull()!!
+        ).toVilkår(januar(2021), fixedClock).orNull()!!
             .let { request ->
                 Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
@@ -359,7 +360,7 @@ internal class LeggTilUførevurderingerRequestTest {
                             opprettet = request.vurderingsperioder[0].opprettet,
                             resultat = Resultat.Innvilget,
                             grunnlag = null,
-                            periode = månedsperiodeJanuar2021,
+                            periode = januar(2021),
                             begrunnelse = "blah",
                         ),
                     ),
@@ -371,14 +372,14 @@ internal class LeggTilUførevurderingerRequestTest {
             vurderinger = nonEmptyListOf(
                 LeggTilUførevilkårRequest(
                     behandlingId = behandlingId,
-                    periode = månedsperiodeJanuar2021,
+                    periode = januar(2021),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
                     oppfylt = UførevilkårStatus.HarUføresakTilBehandling,
                     begrunnelse = "blah",
                 ),
             ),
-        ).toVilkår(månedsperiodeJanuar2021, fixedClock).orNull()!!
+        ).toVilkår(januar(2021), fixedClock).orNull()!!
             .let { request ->
                 Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
@@ -387,7 +388,7 @@ internal class LeggTilUførevurderingerRequestTest {
                             opprettet = request.vurderingsperioder[0].opprettet,
                             resultat = Resultat.Uavklart,
                             grunnlag = null,
-                            periode = månedsperiodeJanuar2021,
+                            periode = januar(2021),
                             begrunnelse = "blah",
                         ),
                     ),

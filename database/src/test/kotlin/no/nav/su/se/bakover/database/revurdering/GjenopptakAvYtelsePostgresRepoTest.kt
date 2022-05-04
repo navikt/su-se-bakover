@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.database.revurdering
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -10,8 +12,6 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
-import no.nav.su.se.bakover.test.periode2021
-import no.nav.su.se.bakover.test.periodeMai2021
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
@@ -29,7 +29,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
             val simulertRevurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = periode2021,
+                periode = år(2021),
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
                 tilRevurdering = vedtak,
@@ -67,7 +67,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
             val simulertRevurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = periode2021,
+                periode = år(2021),
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
                 tilRevurdering = vedtak,
@@ -83,9 +83,9 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
             testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
 
             val nyInformasjon = simulertRevurdering.copy(
-                periode = periodeMai2021,
-                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(periodeMai2021),
-                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(periode = periodeMai2021),
+                periode = mai(2021),
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(mai(2021)),
+                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(periode = mai(2021)),
                 tilRevurdering = vedtak,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksern"),
                 simulering = simulering().copy(
@@ -111,7 +111,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
             val simulertRevurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = periode2021,
+                periode = år(2021),
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
                 tilRevurdering = vedtak,

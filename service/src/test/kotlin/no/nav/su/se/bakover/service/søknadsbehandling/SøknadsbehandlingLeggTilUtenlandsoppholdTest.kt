@@ -4,12 +4,12 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.TestSessionFactory
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
@@ -30,7 +30,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
             it.søknadsbehandlingService.leggTilUtenlandsopphold(
                 LeggTilUtenlandsoppholdRequest(
                     behandlingId = UUID.randomUUID(),
-                    periode = periode2021,
+                    periode = år(2021),
                     status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                     begrunnelse = "",
                 ),
@@ -74,7 +74,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
             it.søknadsbehandlingService.leggTilUtenlandsopphold(
                 LeggTilUtenlandsoppholdRequest(
                     behandlingId = iverksatt.id,
-                    periode = periode2021,
+                    periode = år(2021),
                     status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                     begrunnelse = "jahoo",
                 ),
@@ -99,7 +99,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
             serviceAndMocks.søknadsbehandlingService.leggTilUtenlandsopphold(
                 LeggTilUtenlandsoppholdRequest(
                     behandlingId = innvilget.id,
-                    periode = periode2021,
+                    periode = år(2021),
                     status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                     begrunnelse = "jahoo",
                 ),
@@ -127,7 +127,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
             serviceAndMocks.søknadsbehandlingService.leggTilUtenlandsopphold(
                 LeggTilUtenlandsoppholdRequest(
                     behandlingId = innvilget.id,
-                    periode = periode2021,
+                    periode = år(2021),
                     status = UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet,
                     begrunnelse = "jahoo",
                 ),

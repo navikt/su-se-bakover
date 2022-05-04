@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -46,7 +47,6 @@ import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertFeilutbetaling
@@ -91,7 +91,7 @@ internal class ReguleringServiceImplTest {
                             fradrag = FradragFactory.nyFradragsperiode(
                                 fradragstype = Fradragstype.OffentligPensjon,
                                 månedsbeløp = 8000.0,
-                                periode = periode2021,
+                                periode = år(2021),
                                 utenlandskInntekt = null,
                                 tilhører = FradragTilhører.BRUKER,
                             ),
@@ -187,8 +187,7 @@ internal class ReguleringServiceImplTest {
                 vilkårOverrides = listOf(
                     innvilgetUførevilkår(
                         periode = Periode.create(
-                            1.juni(2021),
-                            tilOgMed = 31.desember(2021),
+                            1.juni(2021), 31.desember(2021),
                         ),
                     ),
                 ),
@@ -250,7 +249,7 @@ internal class ReguleringServiceImplTest {
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
                     periode = stønadsperiode2021.periode,
                     fradragsgrunnlag = listOf(
-                        offentligPensjonGrunnlag(8000.0, periode2021),
+                        offentligPensjonGrunnlag(8000.0, år(2021)),
                     ),
                     bosituasjon = nonEmptyListOf(
                         bosituasjongrunnlagEnslig(
@@ -306,7 +305,7 @@ internal class ReguleringServiceImplTest {
         @Test
         fun `en simulering med feilutbetalinger skal føre til manuell`() {
             val revurdertSak =
-                vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(periode2021)).first
+                vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
 
             val reguleringService = lagReguleringServiceImpl(revurdertSak, simulertFeilutbetaling().right())
 
@@ -323,7 +322,7 @@ internal class ReguleringServiceImplTest {
         @Test
         fun `reguleringen kan ikke starte tidligere enn reguleringsdatoen`() {
             val sak =
-                vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(periode2021)).first
+                vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
             val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
@@ -356,7 +355,7 @@ internal class ReguleringServiceImplTest {
                             fradrag = FradragFactory.nyFradragsperiode(
                                 fradragstype = Fradragstype.OffentligPensjon,
                                 månedsbeløp = 8000.0,
-                                periode = periode2021,
+                                periode = år(2021),
                                 utenlandskInntekt = null,
                                 tilhører = FradragTilhører.BRUKER,
                             ),
@@ -398,7 +397,7 @@ internal class ReguleringServiceImplTest {
                             fradrag = FradragFactory.nyFradragsperiode(
                                 fradragstype = Fradragstype.OffentligPensjon,
                                 månedsbeløp = 8000.0,
-                                periode = periode2021,
+                                periode = år(2021),
                                 utenlandskInntekt = null,
                                 tilhører = FradragTilhører.BRUKER,
                             ),

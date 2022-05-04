@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
@@ -39,8 +40,6 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.månedsperiodeJuni2020
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import org.junit.jupiter.api.Test
@@ -70,14 +69,14 @@ internal class RevurderingPostgresRepoTest {
 
     private fun opprettet(vedtak: VedtakSomKanRevurderes.EndringIYtelse): OpprettetRevurdering {
         val x = GjeldendeVedtaksdata(
-            periode = periode2021,
+            periode = år(2021),
             vedtakListe = nonEmptyListOf(vedtak),
             clock = fixedClock,
         )
 
         return OpprettetRevurdering(
             id = UUID.randomUUID(),
-            periode = periode2021,
+            periode = år(2021),
             opprettet = fixedTidspunkt,
             tilRevurdering = vedtak,
             saksbehandler = saksbehandler,
@@ -233,7 +232,7 @@ internal class RevurderingPostgresRepoTest {
             repo.hent(innvilgetBeregning.id) shouldBe innvilgetBeregning
 
             val oppdatertRevurdering = innvilgetBeregning.oppdater(
-                periode = månedsperiodeJuni2020,
+                periode = juni(2020),
                 revurderingsårsak = Revurderingsårsak(
                     årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     begrunnelse = Revurderingsårsak.Begrunnelse.create("begrunnelse"),

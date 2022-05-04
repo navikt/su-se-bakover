@@ -42,9 +42,6 @@ import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
-import no.nav.su.se.bakover.test.månedsperiodeJuni2020
-import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.temporal.ChronoUnit
@@ -54,7 +51,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
     @Test
     fun `summer for enkel beregning`() {
-        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+        val periode = år(2020)
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragFactory.nyFradragsperiode(
@@ -78,7 +75,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
     @Test
     fun `fradrag for alle perioder`() {
-        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+        val periode = år(2020)
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragForPeriode(
@@ -101,7 +98,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
     @Test
     fun `fradrag som gjør at alle perioder får beløp under minstenivå`() {
-        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+        val periode = år(2020)
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragForPeriode(
@@ -132,7 +129,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
     @Test
     fun `fradrag som gjør at alle perioder får beløp lik 0`() {
-        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+        val periode = år(2020)
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragForPeriode(
@@ -160,7 +157,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
     @Test
     fun `fradrag for enkelte perioder`() {
-        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+        val periode = år(2020)
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragForPeriode(
@@ -172,7 +169,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 FradragForPeriode(
                     fradragstype = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 6000.0,
-                    periode = månedsperiodeJuni2020,
+                    periode = juni(2020),
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
@@ -190,7 +187,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
     @Test
     fun `overlappende fradrag for samme periode`() {
-        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+        val periode = år(2020)
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragForPeriode(
@@ -202,7 +199,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 FradragForPeriode(
                     fradragstype = Fradragstype.Kontantstøtte,
                     månedsbeløp = 6000.0,
-                    periode = månedsperiodeJanuar2020,
+                    periode = januar(2020),
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
@@ -242,7 +239,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
      */
     @Test
     fun `sum under minstebeløp for utbetaling (2 prosent av høy sats)`() {
-        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+        val periode = år(2020)
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragForPeriode(
@@ -348,7 +345,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 FradragForPeriode(
                     fradragstype = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = totaltFradrag,
-                    periode = månedsperiodeJanuar2020,
+                    periode = januar(2020),
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
@@ -363,10 +360,10 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         beregning.getSumYtelse() shouldBe 41274
         beregning.getSumFradrag() shouldBe 20637.32
         val grouped = beregning.getMånedsberegninger().groupBy { it.periode }
-        val januar = grouped[månedsperiodeJanuar2020]!!.first()
+        val januar = grouped[januar(2020)]!!.first()
         januar.getSumFradrag() shouldBe 20637.32
         januar.getSumYtelse() shouldBe 0
-        val februar = grouped[Periode.create(1.februar(2020), 29.februar(2020))]!!.first()
+        val februar = grouped[februar(2020)]!!.first()
         februar.getSumFradrag() shouldBe 0
         februar.getSumYtelse() shouldBe 20637
     }
@@ -388,7 +385,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 FradragForPeriode(
                     fradragstype = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = totaltFradrag,
-                    periode = månedsperiodeJanuar2020,
+                    periode = januar(2020),
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
@@ -430,7 +427,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
     @Test
     fun `fradrag må være innenfor beregningsperioden`() {
-        val beregningsperiode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
+        val beregningsperiode = år(2020)
         assertThrows<IllegalArgumentException> {
             BeregningFactory(clock = fixedClock).ny(
                 fradrag = listOf(
@@ -554,7 +551,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
-                    periode = periode2021,
+                    periode = år(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -575,7 +572,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             ),
             beregningsperioder = listOf(
                 Beregningsperiode(
-                    periode = periode2021,
+                    periode = år(2021),
                     strategy = BeregningStrategy.BorAlene,
                 ),
             ),
@@ -607,7 +604,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
-                    periode = periode2021,
+                    periode = år(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -656,7 +653,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             ),
             beregningsperioder = listOf(
                 Beregningsperiode(
-                    periode = periode2021,
+                    periode = år(2021),
                     strategy = BeregningStrategy.BorAlene,
                 ),
             ),
@@ -693,7 +690,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
-                    periode = periode2021,
+                    periode = år(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -749,7 +746,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             ),
             beregningsperioder = listOf(
                 Beregningsperiode(
-                    periode = periode2021,
+                    periode = år(2021),
                     strategy = BeregningStrategy.BorAlene,
                 ),
             ),

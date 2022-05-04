@@ -2,21 +2,20 @@ package no.nav.su.se.bakover.domain.brev.beregning
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.august
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
 import org.junit.jupiter.api.Test
 
 internal class FradragsMapperTest {
 
     @Test
     fun `Inneholder bare fradrag for aktuell bruker`() {
-        val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
+        val periode = år(2020)
         val fradragForEps = FradragFactory.nyFradragsperiode(
             fradragstype = Fradragstype.BidragEtterEkteskapsloven,
             månedsbeløp = 3000.0,
@@ -57,7 +56,7 @@ internal class FradragsMapperTest {
 
     @Test
     fun `BrukerFradrag inneholder bare fradrag med beløp større enn 0`() {
-        val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
+        val periode = år(2020)
         val fradrag = listOf(
             FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.Kapitalinntekt,
@@ -86,7 +85,7 @@ internal class FradragsMapperTest {
 
     @Test
     fun `EpsFradrag inneholder bare fradrag for aktuell beregningsperiode`() {
-        val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
+        val periode = år(2020)
         val fradrag = listOf(
             FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.Kapitalinntekt,
@@ -105,7 +104,7 @@ internal class FradragsMapperTest {
             FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.Arbeidsinntekt,
                 månedsbeløp = 10000.0,
-                periode = månedsperiodeJanuar2020,
+                periode = januar(2020),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.EPS
             )
@@ -113,7 +112,7 @@ internal class FradragsMapperTest {
 
         EpsFradragFraSaksbehandlerIBeregningsperiode(
             fradrag,
-            månedsperiodeJanuar2020
+            januar(2020)
         ).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.Arbeidsinntekt.toReadableTypeName(false),

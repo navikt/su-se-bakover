@@ -2,14 +2,14 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.periode2021
-import no.nav.su.se.bakover.test.periodeFebruar2021
-import no.nav.su.se.bakover.test.periodeMai2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -26,15 +26,15 @@ internal class VurderingsperiodeLovligOppholdTest {
             grunnlag = LovligOppholdGrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
-                periode = periode2021,
+                periode = år(2021),
             ),
-            vurderingsperiode = periode2021,
+            vurderingsperiode = år(2021),
             begrunnelse = null,
         ).getOrFail()
             .let {
                 it.oppdaterStønadsperiode(
                     Stønadsperiode.create(
-                        periodeFebruar2021,
+                        februar(2021),
                         "",
                     ),
                 ) shouldBe VurderingsperiodeLovligOpphold.tryCreate(
@@ -44,9 +44,9 @@ internal class VurderingsperiodeLovligOppholdTest {
                     grunnlag = LovligOppholdGrunnlag(
                         id = grunnlagId,
                         opprettet = fixedTidspunkt,
-                        periode = periodeFebruar2021,
+                        periode = februar(2021),
                     ),
-                    vurderingsperiode = periodeFebruar2021,
+                    vurderingsperiode = februar(2021),
                     begrunnelse = null,
                 ).getOrFail()
             }
@@ -61,9 +61,9 @@ internal class VurderingsperiodeLovligOppholdTest {
             grunnlag = LovligOppholdGrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
-                periode = periode2021,
+                periode = år(2021),
             ),
-            vurderingsperiode = periode2021,
+            vurderingsperiode = år(2021),
             begrunnelse = null,
         ).getOrFail()
             .copy(CopyArgs.Tidslinje.Full).let {
@@ -77,12 +77,12 @@ internal class VurderingsperiodeLovligOppholdTest {
             grunnlag = LovligOppholdGrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
-                periode = periode2021,
+                periode = år(2021),
             ),
-            vurderingsperiode = periode2021,
+            vurderingsperiode = år(2021),
             begrunnelse = null,
-        ).getOrFail().copy(CopyArgs.Tidslinje.NyPeriode(periodeMai2021)).let {
-            it shouldBe it.copy(periode = periodeMai2021)
+        ).getOrFail().copy(CopyArgs.Tidslinje.NyPeriode(mai(2021))).let {
+            it shouldBe it.copy(periode = mai(2021))
         }
     }
 
@@ -95,9 +95,9 @@ internal class VurderingsperiodeLovligOppholdTest {
             grunnlag = LovligOppholdGrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
-                periode = periode2021,
+                periode = år(2021),
             ),
-            vurderingsperiode = periode2021,
+            vurderingsperiode = år(2021),
             begrunnelse = null,
         ).getOrFail()
             .erLik(
@@ -108,9 +108,9 @@ internal class VurderingsperiodeLovligOppholdTest {
                     grunnlag = LovligOppholdGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(),
-                        periode = periodeFebruar2021,
+                        periode = februar(2021),
                     ),
-                    vurderingsperiode = periodeFebruar2021,
+                    vurderingsperiode = februar(2021),
                     begrunnelse = "koko",
                 ).getOrFail(),
             ) shouldBe true
@@ -122,9 +122,9 @@ internal class VurderingsperiodeLovligOppholdTest {
             grunnlag = LovligOppholdGrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
-                periode = periode2021,
+                periode = år(2021),
             ),
-            vurderingsperiode = periode2021,
+            vurderingsperiode = år(2021),
             begrunnelse = null,
         ).getOrFail()
             .erLik(
@@ -135,9 +135,9 @@ internal class VurderingsperiodeLovligOppholdTest {
                     grunnlag = LovligOppholdGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(),
-                        periode = periodeFebruar2021,
+                        periode = februar(2021),
                     ),
-                    vurderingsperiode = periodeFebruar2021,
+                    vurderingsperiode = februar(2021),
                     begrunnelse = "koko",
                 ).getOrFail(),
             ) shouldBe false

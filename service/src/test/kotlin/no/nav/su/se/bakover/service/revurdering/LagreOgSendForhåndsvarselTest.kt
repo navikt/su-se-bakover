@@ -8,6 +8,7 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -42,7 +43,6 @@ import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksbehandlerNavn
@@ -436,7 +436,7 @@ internal class LagreOgSendForhåndsvarselTest {
         val simulertMedTilbakekreving = simulertRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt1000(
-                    periode = periode2021,
+                    periode = år(2021),
                 ),
             ),
         ).second

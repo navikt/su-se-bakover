@@ -7,12 +7,11 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -156,7 +155,7 @@ internal class VedtakServiceImplTest {
     @Test
     fun `kopier gjeldende vedtaksdata - ugyldig periode`() {
         val vedtakMock = mock<VedtakSomKanRevurderes.EndringIYtelse> {
-            on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
+            on { periode } doReturn år(2021)
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn Sak(
@@ -186,16 +185,16 @@ internal class VedtakServiceImplTest {
     fun `henter tidligere informasjon for overlappende vedtak`() {
 
         val sakOgVedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+            stønadsperiode = Stønadsperiode.create(år(2021)),
             clock = fixedClock,
         )
         val sakOgVedtak2 = vedtakRevurderingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+            stønadsperiode = Stønadsperiode.create(år(2021)),
             sakOgVedtakSomKanRevurderes = sakOgVedtak1,
             clock = fixedClock.plus(1, ChronoUnit.DAYS),
         )
         val sakOgVedtak3 = vedtakRevurderingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+            stønadsperiode = Stønadsperiode.create(år(2021)),
             sakOgVedtakSomKanRevurderes = sakOgVedtak2,
             clock = fixedClock.plus(2, ChronoUnit.DAYS),
         )
@@ -211,7 +210,7 @@ internal class VedtakServiceImplTest {
             UUID.randomUUID(),
             vedtakId = sakOgVedtak2.second.id,
         ) shouldBe GjeldendeVedtaksdata(
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+            periode = år(2021),
             vedtakListe = nonEmptyListOf(sakOgVedtak1.second),
             clock = fixedClock,
         ).right()
@@ -220,7 +219,7 @@ internal class VedtakServiceImplTest {
     @Test
     fun `henter tidligere informasjon for vedtak`() {
         val sakOgVedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+            stønadsperiode = Stønadsperiode.create(år(2021)),
             clock = fixedClock,
         )
         val sakOgVedtak2 = vedtakSøknadsbehandlingIverksattInnvilget(
@@ -228,11 +227,11 @@ internal class VedtakServiceImplTest {
             clock = fixedClock.plus(1, ChronoUnit.DAYS),
         )
         val sakOgVedtak3 = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+            stønadsperiode = Stønadsperiode.create(år(2021)),
             clock = fixedClock.plus(2, ChronoUnit.DAYS),
         )
         val sakOgVedtak4 = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+            stønadsperiode = Stønadsperiode.create(år(2021)),
             clock = fixedClock.plus(3, ChronoUnit.DAYS),
         )
 
@@ -250,7 +249,7 @@ internal class VedtakServiceImplTest {
             .getOrElse { throw RuntimeException("Test feilet") }
 
         actual shouldBe GjeldendeVedtaksdata(
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+            periode = år(2021),
             vedtakListe = nonEmptyListOf(sakOgVedtak1.second, sakOgVedtak2.second),
             fixedClock,
         )
@@ -289,7 +288,7 @@ internal class VedtakServiceImplTest {
                 attesteringer = Attesteringshistorikk.empty()
                     .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.EPOCH)),
                 fritekstTilBrev = "",
-                stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+                stønadsperiode = Stønadsperiode.create(år(2021)),
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,
