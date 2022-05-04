@@ -25,6 +25,7 @@ sealed class Fradragstype {
         AvtalefestetPensjonPrivat,
         BidragEtterEkteskapsloven,
         Dagpenger,
+        Fosterhjemsgodtgjørelse,
         Gjenlevendepensjon,
         Introduksjonsstønad,
         Kapitalinntekt,
@@ -86,6 +87,11 @@ sealed class Fradragstype {
 
     object Dagpenger : Fradragstype() {
         override val kategori: Kategori = Kategori.Dagpenger
+        override val måJusteresManueltVedGEndring: Boolean = true
+    }
+
+    object Fosterhjemsgodtgjørelse : Fradragstype() {
+        override val kategori: Kategori = Kategori.Fosterhjemsgodtgjørelse
         override val måJusteresManueltVedGEndring: Boolean = true
     }
 
