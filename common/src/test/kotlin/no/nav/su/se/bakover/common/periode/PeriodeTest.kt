@@ -130,7 +130,7 @@ internal class PeriodeTest {
         år(2021) tilstøter år(2022) shouldBe true
         år(2021) tilstøter år(2022) shouldBe true
         år(2021) tilstøter år(2050) shouldBe false
-        Periode.create(1.januar(2025), 31.desember(2025)) tilstøter Periode.create(
+        år(2025) tilstøter Periode.create(
             1.januar(2024),
             30.november(2024),
         ) shouldBe false
