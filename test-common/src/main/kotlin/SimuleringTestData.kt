@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -66,7 +67,7 @@ private data class UtbetalingRepoMock(
  * Ved opphør bruk simuleringOpphørt()
  */
 fun simuleringNy(
-    beregning: Beregning = beregning(periode = periode2021),
+    beregning: Beregning = beregning(periode = år(2021)),
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,

@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import org.junit.jupiter.api.Test
@@ -17,7 +17,7 @@ internal class TilbakekrevingsbehandlingJsonTest {
         opprettet = fixedTidspunkt,
         sakId = sakId,
         revurderingId = revurderingId,
-        periode = periode2021,
+        periode = år(2021),
     )
 
     @Test

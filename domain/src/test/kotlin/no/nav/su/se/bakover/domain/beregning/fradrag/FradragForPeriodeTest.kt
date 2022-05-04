@@ -8,9 +8,9 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
-import no.nav.su.se.bakover.test.månedsperiodeJanuar2021
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -22,7 +22,7 @@ internal class FradragForPeriodeTest {
             FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.Arbeidsinntekt,
                 månedsbeløp = -5.0,
-                periode = månedsperiodeJanuar2020,
+                periode = januar(2020),
                 tilhører = FradragTilhører.BRUKER,
             )
         }
@@ -33,7 +33,7 @@ internal class FradragForPeriodeTest {
         val f1 = FradragFactory.nyFradragsperiode(
             fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            periode = månedsperiodeJanuar2020,
+            periode = januar(2020),
             tilhører = FradragTilhører.BRUKER,
         )
         f1.månedsbeløp shouldBe 12000.0
@@ -41,7 +41,7 @@ internal class FradragForPeriodeTest {
         val f2 = FradragFactory.nyFradragsperiode(
             fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = år(2020),
             tilhører = FradragTilhører.BRUKER,
         )
         f2.månedsbeløp shouldBe 12000.0
@@ -52,13 +52,13 @@ internal class FradragForPeriodeTest {
         val f1 = FradragForPeriode(
             fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            periode = månedsperiodeJanuar2020,
+            periode = januar(2020),
             tilhører = FradragTilhører.BRUKER,
         )
         val periodisert = FradragForMåned(
             fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            måned = månedsperiodeJanuar2020,
+            måned = januar(2020),
             tilhører = FradragTilhører.BRUKER,
         )
         FradragFactory.periodiser(f1) shouldBe listOf(periodisert)
@@ -69,11 +69,11 @@ internal class FradragForPeriodeTest {
         val fradrag = FradragForPeriode(
             fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            periode = månedsperiodeJanuar2021,
+            periode = januar(2021),
             tilhører = FradragTilhører.BRUKER,
         )
 
-        fradrag.copy(CopyArgs.Snitt(Periode.create(1.januar(2021), 31.desember(2021)))) shouldBe fradrag
+        fradrag.copy(CopyArgs.Snitt(år(2021))) shouldBe fradrag
     }
 
     @Test
@@ -81,7 +81,7 @@ internal class FradragForPeriodeTest {
         val fradrag = FradragForPeriode(
             fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            periode = år(2021),
             tilhører = FradragTilhører.BRUKER,
         )
         fradrag.copy(CopyArgs.Snitt(Periode.create(1.mars(2021), 31.juli(2021)))) shouldBe fradrag.copy(
@@ -94,7 +94,7 @@ internal class FradragForPeriodeTest {
         val fradrag = FradragForPeriode(
             fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            periode = månedsperiodeJanuar2021,
+            periode = januar(2021),
             tilhører = FradragTilhører.BRUKER,
         )
         fradrag.copy(CopyArgs.Snitt(Periode.create(1.februar(2021), 31.desember(2021)))) shouldBe null

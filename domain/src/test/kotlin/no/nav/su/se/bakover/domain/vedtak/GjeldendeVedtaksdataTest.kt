@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -16,7 +17,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -28,7 +28,7 @@ internal class GjeldendeVedtaksdataTest {
     fun `finner gjeldende vedtak for gitt dato`() {
         val (sak, førstegangsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(
-                Periode.create(1.januar(2021), 31.desember(2021)), "",
+                år(2021), "",
             ),
         )
         val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
@@ -44,7 +44,7 @@ internal class GjeldendeVedtaksdataTest {
             ),
         )
         val data = GjeldendeVedtaksdata(
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            periode = år(2021),
             vedtakListe = nonEmptyListOf(
                 førstegangsvedtak,
                 revurderingsVedtak,
@@ -56,12 +56,12 @@ internal class GjeldendeVedtaksdataTest {
         data.gjeldendeVedtakPåDato(1.mai(2021)) shouldBe revurderingsVedtak
         data.gjeldendeVedtakPåDato(1.desember(2021)) shouldBe revurderingsVedtak
         data.tidslinjeForVedtakErSammenhengende() shouldBe true
-        data.garantertSammenhengendePeriode() shouldBe Periode.create(1.januar(2021), 31.desember(2021))
+        data.garantertSammenhengendePeriode() shouldBe år(2021)
         data.vedtaksperioder() shouldBe listOf(
             Periode.create(1.januar(2021), 30.april(2021)),
             Periode.create(1.mai(2021), 31.desember(2021)),
         )
-        data.periodeFørsteTilOgMedSeneste() shouldBe Periode.create(1.januar(2021), 31.desember(2021))
+        data.periodeFørsteTilOgMedSeneste() shouldBe år(2021)
     }
 
     @Test
@@ -83,7 +83,7 @@ internal class GjeldendeVedtaksdataTest {
             vedtakListe = sak.vedtakListe + nyStønadsperiode,
         ).let {
             val data = GjeldendeVedtaksdata(
-                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                periode = år(2021),
                 vedtakListe = nonEmptyListOf(
                     førstegangsvedtak as VedtakSomKanRevurderes,
                     nyStønadsperiode as VedtakSomKanRevurderes,
@@ -101,7 +101,7 @@ internal class GjeldendeVedtaksdataTest {
                 Periode.create(1.januar(2021), 31.mars(2021)),
                 Periode.create(1.mai(2021), 31.desember(2021)),
             )
-            data.periodeFørsteTilOgMedSeneste() shouldBe Periode.create(1.januar(2021), 31.desember(2021))
+            data.periodeFørsteTilOgMedSeneste() shouldBe år(2021)
         }
     }
 
@@ -133,12 +133,12 @@ internal class GjeldendeVedtaksdataTest {
     fun `tidslinje inneholder bare et vedtak`() {
         val (_, førstegangsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(
-                Periode.create(1.januar(2021), 31.desember(2021)), "",
+                år(2021), "",
             ),
         )
 
         val data = GjeldendeVedtaksdata(
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            periode = år(2021),
             vedtakListe = nonEmptyListOf(førstegangsvedtak as VedtakSomKanRevurderes),
             clock = fixedClock,
         )
@@ -149,16 +149,16 @@ internal class GjeldendeVedtaksdataTest {
     fun `gjeldende vedtaksdata inneholder utbetalinger som skal avkortes`() {
         val (sak, _) = vedtakRevurdering(
             clock = TikkendeKlokke(),
-            revurderingsperiode = periode2021,
+            revurderingsperiode = år(2021),
             vilkårOverrides = listOf(
                 utenlandsoppholdAvslag(
-                    periode = periode2021,
+                    periode = år(2021),
                 ),
             ),
         )
 
         GjeldendeVedtaksdata(
-            periode = periode2021,
+            periode = år(2021),
             vedtakListe = NonEmptyList.fromListUnsafe(sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()),
             clock = fixedClock,
         ).let {

@@ -4,9 +4,7 @@ import arrow.core.left
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
@@ -55,7 +53,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
     private val sakId = UUID.randomUUID()
     private val behandlingId = UUID.randomUUID()
     private val oppgaveId = OppgaveId("o")
-    private val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
+    private val stønadsperiode = Stønadsperiode.create(år(2021))
 
     @Test
     fun `ufullstendig svarer med feil hvis man ikke finner behandling`() {

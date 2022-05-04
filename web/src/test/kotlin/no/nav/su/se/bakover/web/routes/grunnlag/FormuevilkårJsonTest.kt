@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
@@ -23,7 +24,7 @@ internal class FormuevilkårJsonTest {
 
     @Test
     fun `serialize formuevilkårjson`() {
-        val janDes = Periode.create(1.januar(2021), 31.desember(2021))
+        val janDes = år(2021)
         val janJun = Periode.create(1.januar(2021), 30.juni(2021))
         val julDes = Periode.create(1.juli(2021), 31.desember(2021))
         val bosituasjonJanJun = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(

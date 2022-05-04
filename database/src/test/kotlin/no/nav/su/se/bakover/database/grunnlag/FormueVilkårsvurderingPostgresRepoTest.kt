@@ -3,9 +3,8 @@ package no.nav.su.se.bakover.database.grunnlag
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withTransaction
@@ -21,7 +20,6 @@ import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuevilkårUtenEps0Innvilget
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -123,7 +121,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
 
     @Test
     fun `lagrer og henter innvilget med epsFormue`() {
-        val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
+        val periode = år(2021)
 
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
@@ -146,7 +144,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
 
     @Test
     fun `lagrer og henter innvilget uten epsFormue`() {
-        val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
+        val periode = år(2021)
 
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
@@ -175,7 +173,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
 
     @Test
     fun `lagrer og henter avslag med for høy epsFormue`() {
-        val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
+        val periode = år(2021)
 
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
@@ -212,7 +210,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
 
     @Test
     fun `lagrer og henter uavklart uten epsFormue`() {
-        val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
+        val periode = år(2021)
 
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
@@ -251,7 +249,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val (vilkår, grunnlag) = formuevilkårUtenEps0Innvilget(
-                bosituasjon = bosituasjongrunnlagEnslig(periode = periode2021),
+                bosituasjon = bosituasjongrunnlagEnslig(periode = år(2021)),
             ).let { it to it.grunnlag }
 
             dataSource.withTransaction { session ->

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -187,7 +188,7 @@ internal class LagBrevinnholdForBeregningTest {
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.Kapitalinntekt,
                     månedsbeløp = 1000.0,
-                    periode = Periode.create(fraOgMed = 1.desember(2020), tilOgMed = 31.desember(2020)),
+                    periode = desember(2020),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),

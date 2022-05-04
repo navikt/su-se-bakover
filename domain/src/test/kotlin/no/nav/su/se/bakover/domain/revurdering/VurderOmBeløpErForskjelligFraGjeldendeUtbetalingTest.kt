@@ -2,9 +2,13 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
@@ -17,10 +21,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.månedsperiodeApril2021
-import no.nav.su.se.bakover.test.månedsperiodeFebruar2021
-import no.nav.su.se.bakover.test.månedsperiodeJanuar2021
-import no.nav.su.se.bakover.test.månedsperiodeMars2021
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 
@@ -55,7 +55,7 @@ internal class VurderOmBeløpErForskjelligFraGjeldendeUtbetalingTest {
     @Test
     fun `utbetalinger overlapper ikke med beregning gir true`() {
         VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
-            eksisterendeUtbetalinger = listOf(lagUtbetaling(5000, Periode.create(1.januar(2020), 31.desember(2020)))),
+            eksisterendeUtbetalinger = listOf(lagUtbetaling(5000, år(2020))),
             nyBeregning = lagBeregning(5000),
         ).resultat shouldBe true
     }
@@ -65,30 +65,30 @@ internal class VurderOmBeløpErForskjelligFraGjeldendeUtbetalingTest {
         VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
             eksisterendeUtbetalinger = listOf(lagUtbetaling(5000)),
             nyBeregning = lagBeregning(
-                månedsperiodeJanuar2021 to 7500,
-                månedsperiodeFebruar2021 to 5000,
-                månedsperiodeMars2021 to 5000,
-                månedsperiodeApril2021 to 5000,
+                januar(2021) to 7500,
+                februar(2021) to 5000,
+                mars(2021) to 5000,
+                april(2021) to 5000,
             ),
         ).resultat shouldBe true
 
         VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
             eksisterendeUtbetalinger = listOf(lagUtbetaling(5000)),
             nyBeregning = lagBeregning(
-                månedsperiodeJanuar2021 to 5000,
-                månedsperiodeFebruar2021 to 5000,
-                månedsperiodeMars2021 to 5000,
-                månedsperiodeApril2021 to 7500,
+                januar(2021) to 5000,
+                februar(2021) to 5000,
+                mars(2021) to 5000,
+                april(2021) to 7500,
             ),
         ).resultat shouldBe true
 
         VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
             eksisterendeUtbetalinger = listOf(lagUtbetaling(5000)),
             nyBeregning = lagBeregning(
-                månedsperiodeJanuar2021 to 5000,
-                månedsperiodeFebruar2021 to 2500,
-                månedsperiodeMars2021 to 5000,
-                månedsperiodeApril2021 to 5000,
+                januar(2021) to 5000,
+                februar(2021) to 2500,
+                mars(2021) to 5000,
+                april(2021) to 5000,
             ),
         ).resultat shouldBe true
     }

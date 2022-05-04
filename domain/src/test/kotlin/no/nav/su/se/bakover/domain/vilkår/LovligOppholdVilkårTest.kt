@@ -4,15 +4,15 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.juli
+import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.periode2021
-import no.nav.su.se.bakover.test.periodeJuli2021
-import no.nav.su.se.bakover.test.periodeJuni2021
-import no.nav.su.se.bakover.test.periodeMai2021
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -36,9 +36,9 @@ internal class LovligOppholdVilkårTest {
                         grunnlag = LovligOppholdGrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
-                            periode = periode2021,
+                            periode = år(2021),
                         ),
-                        vurderingsperiode = periode2021,
+                        vurderingsperiode = år(2021),
                         begrunnelse = "jabadoo",
                     ).getOrFail(),
                 ),
@@ -64,9 +64,9 @@ internal class LovligOppholdVilkårTest {
                         grunnlag = LovligOppholdGrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
-                            periode = periode2021,
+                            periode = år(2021),
                         ),
-                        vurderingsperiode = periode2021,
+                        vurderingsperiode = år(2021),
                         begrunnelse = "",
                     ).getOrFail(),
                 ),
@@ -96,13 +96,13 @@ internal class LovligOppholdVilkårTest {
                     grunnlag = LovligOppholdGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
-                        periode = periode2021,
+                        periode = år(2021),
                     ),
-                    vurderingsperiode = periode2021,
+                    vurderingsperiode = år(2021),
                     begrunnelse = "jabadoo",
                 ).getOrFail(),
             ),
-        ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(periodeJuli2021, "")).erLik(
+        ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(juli(2021), "")).erLik(
             LovligOppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
                     VurderingsperiodeLovligOpphold.tryCreate(
@@ -112,9 +112,9 @@ internal class LovligOppholdVilkårTest {
                         grunnlag = LovligOppholdGrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
-                            periode = periodeJuli2021,
+                            periode = juli(2021),
                         ),
-                        vurderingsperiode = periodeJuli2021,
+                        vurderingsperiode = juli(2021),
                         begrunnelse = "jabadoo",
                     ).getOrFail(),
                 ),
@@ -133,9 +133,9 @@ internal class LovligOppholdVilkårTest {
                     grunnlag = LovligOppholdGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
-                        periode = periode2021,
+                        periode = år(2021),
                     ),
-                    vurderingsperiode = periode2021,
+                    vurderingsperiode = år(2021),
                     begrunnelse = "jabadoo",
                 ).getOrFail(),
                 VurderingsperiodeLovligOpphold.tryCreate(
@@ -145,9 +145,9 @@ internal class LovligOppholdVilkårTest {
                     grunnlag = LovligOppholdGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
-                        periode = periode2021,
+                        periode = år(2021),
                     ),
-                    vurderingsperiode = periode2021,
+                    vurderingsperiode = år(2021),
                     begrunnelse = "jabadoo",
                 ).getOrFail(),
             ),
@@ -163,9 +163,9 @@ internal class LovligOppholdVilkårTest {
             grunnlag = LovligOppholdGrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),
-                periode = periodeMai2021,
+                periode = mai(2021),
             ),
-            vurderingsperiode = periodeMai2021,
+            vurderingsperiode = mai(2021),
             begrunnelse = "jabadoo",
         ).getOrFail()
 
@@ -176,28 +176,28 @@ internal class LovligOppholdVilkårTest {
             grunnlag = LovligOppholdGrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),
-                periode = periodeJuni2021,
+                periode = juni(2021),
             ),
-            vurderingsperiode = periodeJuni2021,
+            vurderingsperiode = juni(2021),
             begrunnelse = null,
         ).getOrFail()
 
         LovligOppholdVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(v1, v2),
         ).getOrFail()
-            .lagTidslinje(periodeMai2021)
+            .lagTidslinje(mai(2021))
             .erLik(LovligOppholdVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1)).getOrFail())
 
         LovligOppholdVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(v1, v2),
         ).getOrFail()
-            .lagTidslinje(periodeJuni2021)
+            .lagTidslinje(juni(2021))
             .erLik(LovligOppholdVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v2)).getOrFail())
 
         LovligOppholdVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(v1, v2),
         ).getOrFail()
-            .lagTidslinje(periode2021)
+            .lagTidslinje(år(2021))
             .erLik(LovligOppholdVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1, v2)).getOrFail())
     }
 }

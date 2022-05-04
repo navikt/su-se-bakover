@@ -1,11 +1,9 @@
 package no.nav.su.se.bakover.domain
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.år
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -35,7 +33,7 @@ internal class MånedsbeløpTest {
             Månedsbeløp(
                 listOf(
                     MånedBeløp(januar(2021), Beløp(-5000)),
-                    MånedBeløp(Periode.create(1.januar(2021), 31.desember(2021)), Beløp(1000)),
+                    MånedBeløp(år(2021), Beløp(1000)),
                 ),
             )
         }
