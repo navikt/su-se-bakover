@@ -73,7 +73,7 @@ class GjenopptakAvYtelseService(
                             GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
                                 id = update.id,
                                 opprettet = update.opprettet,
-                                periode = gjeldendeVedtaksdata.periode,
+                                periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                                 grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                                 vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
                                 tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtak.periode.fraOgMed)!!,
@@ -98,7 +98,7 @@ class GjenopptakAvYtelseService(
                     GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(clock),
-                        periode = gjeldendeVedtaksdata.periode,
+                        periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                         grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                         vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
                         tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtak.periode.fraOgMed)!!,

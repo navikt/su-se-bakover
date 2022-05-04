@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.merge
 import io.ktor.application.call
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -11,6 +12,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -72,8 +74,8 @@ internal fun Route.sakRoutes(
                                         call.svar(
                                             Resultat.json(
                                                 OK,
-                                                serialize(it.toJson(clock))
-                                            )
+                                                serialize(it.toJson(clock)),
+                                            ),
                                         )
                                     }
                             },
@@ -168,20 +170,23 @@ internal fun Route.sakRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler) {
-        data class Body(val fraOgMed: LocalDate)
+        data class Body(val fraOgMed: LocalDate, val tilOgMed: LocalDate = LocalDate.MAX) {
+            val periode = Periode.create(fraOgMed, tilOgMed)
+        }
+
         data class Response(val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson?)
 
         post("$sakPath/{sakId}/gjeldendeVedtaksdata") {
             call.withSakId { sakId ->
                 call.withBody<Body> { body ->
                     call.svar(
-                        sakService.hentGjeldendeVedtaksdata(sakId, body.fraOgMed).fold(
+                        sakService.hentGjeldendeVedtaksdata(sakId, body.periode).fold(
                             {
                                 when (it) {
                                     KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak -> Feilresponser.fantIkkeSak
-                                    KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> BadRequest.errorJson(
-                                        "Ugyldig periode",
-                                        "ugyldig_periode",
+                                    KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak -> HttpStatusCode.NotFound.errorJson(
+                                        message = "Fant ingen vedtak for ${body.periode}",
+                                        code = "fant_ingen_vedtak_for_periode",
                                     )
                                 }
                             },

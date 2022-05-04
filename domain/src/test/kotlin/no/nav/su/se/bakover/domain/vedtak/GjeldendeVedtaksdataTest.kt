@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 internal class GjeldendeVedtaksdataTest {
     @Test
@@ -39,8 +40,8 @@ internal class GjeldendeVedtaksdataTest {
                     periode = revurderingsperiode,
                     arbeidsinntekt = 5000.0,
                     tilhører = FradragTilhører.BRUKER,
-                )
-            )
+                ),
+            ),
         )
         val data = GjeldendeVedtaksdata(
             periode = Periode.create(1.januar(2021), 31.desember(2021)),
@@ -55,6 +56,12 @@ internal class GjeldendeVedtaksdataTest {
         data.gjeldendeVedtakPåDato(1.mai(2021)) shouldBe revurderingsVedtak
         data.gjeldendeVedtakPåDato(1.desember(2021)) shouldBe revurderingsVedtak
         data.tidslinjeForVedtakErSammenhengende() shouldBe true
+        data.garantertSammenhengendePeriode() shouldBe Periode.create(1.januar(2021), 31.desember(2021))
+        data.vedtaksperioder() shouldBe listOf(
+            Periode.create(1.januar(2021), 30.april(2021)),
+            Periode.create(1.mai(2021), 31.desember(2021)),
+        )
+        data.periodeFørsteTilOgMedSeneste() shouldBe Periode.create(1.januar(2021), 31.desember(2021))
     }
 
     @Test
@@ -87,6 +94,14 @@ internal class GjeldendeVedtaksdataTest {
             data.gjeldendeVedtakPåDato(1.april(2021)) shouldBe null
             data.gjeldendeVedtakPåDato(1.desember(2021)) shouldBe nyStønadsperiode
             data.tidslinjeForVedtakErSammenhengende() shouldBe false
+            assertThrows<IllegalStateException> {
+                data.garantertSammenhengendePeriode()
+            }
+            data.vedtaksperioder() shouldBe listOf(
+                Periode.create(1.januar(2021), 31.mars(2021)),
+                Periode.create(1.mai(2021), 31.desember(2021)),
+            )
+            data.periodeFørsteTilOgMedSeneste() shouldBe Periode.create(1.januar(2021), 31.desember(2021))
         }
     }
 
@@ -105,6 +120,13 @@ internal class GjeldendeVedtaksdataTest {
         data.gjeldendeVedtakPåDato(1.mai(2021)) shouldBe null
         data.grunnlagsdata shouldBe Grunnlagsdata.IkkeVurdert
         data.vilkårsvurderinger shouldBe Vilkårsvurderinger.Revurdering.IkkeVurdert
+        assertThrows<IllegalStateException> {
+            data.garantertSammenhengendePeriode()
+        }
+        data.vedtaksperioder() shouldBe emptyList()
+        assertThrows<NoSuchElementException> {
+            data.periodeFørsteTilOgMedSeneste()
+        }
     }
 
     @Test

@@ -54,7 +54,7 @@ internal class StansAvYtelseService(
                 when (eksisterende) {
                     is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
                         eksisterende.copy(
-                            periode = gjeldendeVedtaksdata.periode,
+                            periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                             grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                             vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
                             tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!,
@@ -81,7 +81,7 @@ internal class StansAvYtelseService(
                 StansAvYtelseRevurdering.SimulertStansAvYtelse(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
-                    periode = gjeldendeVedtaksdata.periode,
+                    periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                     grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                     vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
                     tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!,
