@@ -33,7 +33,7 @@ data class Månedsperiode(
 
     companion object {
         fun now(clock: Clock): Månedsperiode {
-            return Månedsperiode(YearMonth.now(clock.zone))
+            return Månedsperiode(YearMonth.now(clock))
         }
     }
 
