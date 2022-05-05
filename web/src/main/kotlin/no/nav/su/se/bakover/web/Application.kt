@@ -45,14 +45,6 @@ import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
 import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
-import no.nav.su.se.bakover.web.features.Authorization
-import no.nav.su.se.bakover.web.features.AuthorizationException
-import no.nav.su.se.bakover.web.features.FantBrukerMenManglerNAVIdent
-import no.nav.su.se.bakover.web.features.IkkeInitialisert
-import no.nav.su.se.bakover.web.features.KallMotMicrosoftGraphApiFeilet
-import no.nav.su.se.bakover.web.features.ManglerAuthHeader
-import no.nav.su.se.bakover.web.features.SuUserFeaturefeil
-import no.nav.su.se.bakover.web.features.SuUserPlugin
 import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
@@ -125,7 +117,13 @@ fun Application.susebakover(
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
 ) {
-
+    /**
+     * TODO(ktor-2.0.0)
+     * Det er noe som virker å ikke fungere helt her, virker ikke som vi får alle exceptions til å havne her.
+     * Ser at det eksisterer et par rapporterte bugs for denne se:
+     * https://youtrack.jetbrains.com/issue/KTOR-4187
+     * https://youtrack.jetbrains.com/issue/KTOR-4231
+     */
     install(StatusPages) {
         exception<Tilgangssjekkfeil> { call, cause ->
             when (cause.feil) {
@@ -143,24 +141,6 @@ fun Application.susebakover(
                     call.svar(Feilresponser.feilVedOppslagPåPerson)
                 }
             }
-        }
-
-        exception<SuUserFeaturefeil> { call, cause ->
-            log.error("Got SuUserFeaturefeil with message=${cause.message}", cause)
-            call.respond(
-                HttpStatusCode.InternalServerError,
-                ErrorJson(
-                    when (cause) {
-                        is KallMotMicrosoftGraphApiFeilet ->
-                            "Kunne ikke hente informasjon om innlogget bruker"
-                        is ManglerAuthHeader, IkkeInitialisert, FantBrukerMenManglerNAVIdent ->
-                            "En feil oppstod"
-                    },
-                ),
-            )
-        }
-        exception<AuthorizationException> { call, cause ->
-            call.respond(HttpStatusCode.Forbidden, ErrorJson(cause.message))
         }
         exception<UgyldigFnrException> { call, cause ->
             log.warn("Got UgyldigFnrException with message=${cause.message}", cause)
@@ -186,14 +166,6 @@ fun Application.susebakover(
 
     configureAuthentication(clients.oauth, applicationConfig, clients.tokenOppslag)
     val azureGroupMapper = AzureGroupMapper(applicationConfig.azure.groups)
-
-    install(Authorization) {
-        getRoller { principal ->
-            getGroupsFromJWT(applicationConfig, principal)
-                .mapNotNull { azureGroupMapper.fromAzureGroup(it) }
-                .toSet()
-        }
-    }
 
     install(Locations)
 
@@ -223,10 +195,6 @@ fun Application.susebakover(
 
     install(XForwardedHeaders)
 
-    install(SuUserPlugin) {
-        this.applicationConfig = applicationConfig
-    }
-
     routing {
         toggleRoutes(services.toggles)
 
@@ -235,7 +203,7 @@ fun Application.susebakover(
         }
 
         authenticate("jwt") {
-            withUser {
+            withUser(applicationConfig) {
                 meRoutes(applicationConfig, azureGroupMapper)
 
                 withAccessProtectedServices(

@@ -1,66 +1,27 @@
 package no.nav.su.se.bakover.web.features
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.ApplicationCallPipeline
-import io.ktor.server.application.BaseApplicationPlugin
-import io.ktor.server.application.call
-import io.ktor.server.application.plugin
+import io.ktor.server.application.RouteScopedPlugin
+import io.ktor.server.application.createRouteScopedPlugin
+import io.ktor.server.application.install
+import io.ktor.server.application.isHandled
+import io.ktor.server.auth.AuthenticationChecked
+import io.ktor.server.auth.UnauthorizedResponse
 import io.ktor.server.auth.authentication
+import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RouteSelector
 import io.ktor.server.routing.RouteSelectorEvaluation
 import io.ktor.server.routing.RoutingResolveContext
-import io.ktor.server.routing.application
 import io.ktor.util.AttributeKey
-import io.ktor.util.pipeline.PipelinePhase
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
+import no.nav.su.se.bakover.web.ErrorJson
 import no.nav.su.se.bakover.web.getGroupsFromJWT
 import no.nav.su.se.bakover.web.getNAVidentFromJwt
 import no.nav.su.se.bakover.web.getNavnFromJwt
-
-/**
- * Dette er basert løst på denne bloggposten: https://www.ximedes.com/2020-09-17/role-based-authorization-in-ktor/
- */
-
-class SuUserPlugin(private val configuration: Configuration) {
-
-    class Configuration {
-        lateinit var applicationConfig: ApplicationConfig
-    }
-
-    fun interceptPipeline(pipeline: ApplicationCallPipeline) {
-        // TODO jah: De har fjernet Authentication.ChallengePhase
-        val ChallengePhase = PipelinePhase("Challenge")
-        pipeline.insertPhaseAfter(ApplicationCallPipeline.Plugins, ChallengePhase)
-        pipeline.insertPhaseAfter(ChallengePhase, SuUserContextPhase)
-
-        pipeline.intercept(SuUserContextPhase) {
-            SuUserContext.init(call, configuration.applicationConfig)
-        }
-    }
-
-    companion object Feature : BaseApplicationPlugin<ApplicationCallPipeline, Configuration, SuUserPlugin> {
-        override val key = AttributeKey<SuUserPlugin>("SuUserFeature")
-        val SuUserContextPhase = PipelinePhase("Foo")
-
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): SuUserPlugin {
-            val config = Configuration().apply(configure)
-
-            return SuUserPlugin(config)
-        }
-    }
-}
-
-internal sealed class SuUserFeaturefeil(override val message: String) : RuntimeException(message)
-
-internal object ManglerAuthHeader : SuUserFeaturefeil("Mangler auth header")
-internal object IkkeInitialisert : SuUserFeaturefeil("Ikke initialisert")
-internal data class KallMotMicrosoftGraphApiFeilet(val feil: KunneIkkeHenteNavnForNavIdent) :
-    SuUserFeaturefeil("Kall mot Microsoft Graph Api feilet")
-
-internal object FantBrukerMenManglerNAVIdent : SuUserFeaturefeil("Bruker mangler NAVIdent")
 
 class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationConfig) {
     val navIdent: String = getNAVidentFromJwt(applicationConfig, call.authentication.principal)
@@ -89,9 +50,43 @@ class SuUserRouteSelector :
     override fun toString(): String = "(with user)"
 }
 
-fun Route.withUser(build: Route.() -> Unit): Route {
+fun Route.withUser(applicationConfig: ApplicationConfig, build: Route.() -> Unit): Route {
     val routeWithUser = createChild(SuUserRouteSelector())
-    application.plugin(SuUserPlugin).interceptPipeline(routeWithUser)
+    routeWithUser.install(brukerinfoPlugin { BrukerinfoPluginConfig(applicationConfig) })
     routeWithUser.build()
     return routeWithUser
+}
+
+data class BrukerinfoPluginConfig(val applicationConfig: ApplicationConfig)
+
+fun brukerinfoPlugin(
+    config: () -> BrukerinfoPluginConfig,
+): RouteScopedPlugin<BrukerinfoPluginConfig> {
+    return createRouteScopedPlugin("SuBrukerPlugin", config) {
+        on(AuthenticationChecked) { call ->
+            try {
+                when {
+                    call.isHandled -> {
+                        /** En annen plugin i pipelinen har allerede gitt en respons på kallet, ikke gjør noe. */
+                    }
+                    call.authentication.principal == null -> {
+                        /**
+                         * Krev at autentiseringen er gjennomført før vi henter ut brukerinfo fra token.
+                         * Rekkefølgen her er viktig, og styres pt av hvor i route-hierarkiet man kaller på [withUser]
+                         */
+                        call.respond(UnauthorizedResponse())
+                    }
+                    else -> {
+                        SuUserContext.init(call, pluginConfig.applicationConfig)
+                    }
+                }
+            } catch (ex: Throwable) {
+                log.error("Ukjent feil ved uthenting av brukerinformasjon", ex)
+                call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    message = ErrorJson("Ukjent feil ved uthenting av brukerinformasjon"),
+                )
+            }
+        }
+    }
 }

@@ -21,8 +21,8 @@ import no.nav.su.se.bakover.web.withBody
 internal fun Route.leggTilUføregrunnlagRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/grunnlag/uføre") {
+            authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<LeggTilUførervurderingerBody> { body ->
                     call.svar(
