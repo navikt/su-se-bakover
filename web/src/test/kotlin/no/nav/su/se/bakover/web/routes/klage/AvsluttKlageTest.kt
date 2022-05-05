@@ -44,7 +44,7 @@ internal class AvsluttKlageTest {
                 emptyList(),
             ).apply {
                 status shouldBe HttpStatusCode.Unauthorized
-                bodyAsText() shouldBe null
+                bodyAsText() shouldBe ""
             }
         }
     }

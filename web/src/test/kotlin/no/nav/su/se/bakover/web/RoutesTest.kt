@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web
 import arrow.core.Either
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -40,7 +41,7 @@ class RoutesTest {
     fun `should add provided X-Correlation-ID header to response`() {
         testApplication {
             application {
-                susebakover()
+                testSusebakover()
             }
             defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder)).apply {
                 this.status shouldBe OK
@@ -55,7 +56,7 @@ class RoutesTest {
             application {
                 testSusebakover()
             }
-            defaultRequest(Get, secureEndpoint) {
+            client.get(secureEndpoint) {
                 header(
                     HttpHeaders.Authorization,
                     jwtStub.createJwtToken(roller = listOf(Brukerrolle.Veileder)).asBearerToken(),
