@@ -287,7 +287,7 @@ fun List<Periode>.erSortert(): Boolean {
  * Listen trenger ikke være sortert og kan være usammenhengende.
  */
 fun List<Periode>.harDuplikater(): Boolean {
-    return this.tilMånedsperioder().let {
+    return this.flatMap { it.tilMånedsperioder() }.let {
         it.distinct().size != it.size
     }
 }
@@ -308,10 +308,6 @@ fun List<Periode>.erSammenhengende(): Boolean {
  */
 fun List<Periode>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
     return erSammenhengende() && erSortert() && !harDuplikater()
-}
-
-fun List<Periode>.erSortertOgUtenDuplikater(): Boolean {
-    return erSortert() && !harDuplikater()
 }
 
 fun <T> Map<Månedsperiode, T>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
