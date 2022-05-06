@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.test.arbeidsinntekt
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -22,7 +23,7 @@ import org.junit.jupiter.api.Test
 
 internal class SjekkOmGrunnlagErKonsistentTest {
 
-    private val periode = Periode.create(1.januar(2021), 31.desember(2021))
+    private val periode = år(2021)
 
     @Nested
     inner class Uføre {
@@ -52,7 +53,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
         fun `bosituasjon overlapper`() {
             SjekkOmGrunnlagErKonsistent.Bosituasjon(
                 listOf(
-                    fullstendigUtenEPS(Periode.create(1.januar(2021), 31.desember(2021))),
+                    fullstendigUtenEPS(år(2021)),
                     fullstendigUtenEPS(Periode.create(1.mai(2021), 31.desember(2021))),
                 ),
             ).resultat shouldBe setOf(Konsistensproblem.Bosituasjon.Overlapp).left()

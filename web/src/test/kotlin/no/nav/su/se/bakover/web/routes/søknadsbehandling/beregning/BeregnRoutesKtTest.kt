@@ -10,7 +10,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -45,7 +45,6 @@ import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
@@ -62,7 +61,7 @@ import javax.sql.DataSource
 internal class BeregnRoutesKtTest {
 
     private val stønadsperiode = Stønadsperiode.create(
-        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+        periode = år(2021),
         begrunnelse = "begrunnelse",
     )
 
@@ -294,7 +293,7 @@ internal class BeregnRoutesKtTest {
         services.søknadsbehandling.leggTilUtenlandsopphold(
             request = LeggTilUtenlandsoppholdRequest(
                 behandlingId = objects.søknadsbehandling.id,
-                periode = periode2021,
+                periode = år(2021),
                 status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                 begrunnelse = "Veldig bra",
             ),

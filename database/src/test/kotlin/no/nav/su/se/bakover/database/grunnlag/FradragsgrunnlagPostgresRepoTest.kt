@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withTransaction
@@ -26,7 +24,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
             val fradragsgrunnlag1 = lagFradragsgrunnlag(
                 type = Fradragstype.Arbeidsinntekt,
                 månedsbeløp = 5000.0,
-                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                periode = år(2021),
                 utenlandskInntekt = UtenlandskInntekt.create(
                     beløpIUtenlandskValuta = 5, valuta = "DKK", kurs = 10.5,
                 ),
@@ -36,7 +34,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
             val fradragsgrunnlag2 = lagFradragsgrunnlag(
                 type = Fradragstype.Kontantstøtte,
                 månedsbeløp = 15000.0,
-                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                periode = år(2021),
                 tilhører = FradragTilhører.EPS,
             )
 
@@ -55,7 +53,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
                         fradrag = FradragForPeriode(
                             fradragstype = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 5000.0,
-                            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                            periode = år(2021),
                             utenlandskInntekt = UtenlandskInntekt.create(
                                 beløpIUtenlandskValuta = 5, valuta = "DKK", kurs = 10.5,
                             ),
@@ -66,7 +64,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
                         fradrag = FradragForPeriode(
                             fradragstype = Fradragstype.Kontantstøtte,
                             månedsbeløp = 15000.0,
-                            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                            periode = år(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.EPS,
                         ),
@@ -94,7 +92,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
             val grunnlag = lagFradragsgrunnlag(
                 type = Fradragstype.Annet("vet ikke hva dette er"),
                 månedsbeløp = 15000.0,
-                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                periode = år(2021),
                 tilhører = FradragTilhører.EPS,
             )
 
@@ -110,7 +108,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
                         fradrag = FradragForPeriode(
                             fradragstype = Fradragstype.Annet("vet ikke hva dette er"),
                             månedsbeløp = 15000.0,
-                            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                            periode = år(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.EPS,
                         ),

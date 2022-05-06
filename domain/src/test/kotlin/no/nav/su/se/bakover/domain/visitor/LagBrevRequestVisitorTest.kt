@@ -8,9 +8,8 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
@@ -306,7 +305,7 @@ internal class LagBrevRequestVisitorTest {
                     fradrag = FradragFactory.nyFradragsperiode(
                         fradragstype = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 50000.0,
-                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                        periode = år(2021),
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
@@ -425,7 +424,7 @@ internal class LagBrevRequestVisitorTest {
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 50000.0,
-                            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                            periode = år(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
@@ -550,7 +549,7 @@ internal class LagBrevRequestVisitorTest {
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 50000.0,
-                            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                            periode = år(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
@@ -687,7 +686,7 @@ internal class LagBrevRequestVisitorTest {
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 50000.0,
-                            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                            periode = år(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
@@ -816,7 +815,7 @@ internal class LagBrevRequestVisitorTest {
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 50000.0,
-                            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                            periode = år(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
@@ -1010,7 +1009,7 @@ internal class LagBrevRequestVisitorTest {
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
-        val revurderingsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
+        val revurderingsperiode = år(2021)
         val revurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = revurderingsperiode,
@@ -1095,7 +1094,7 @@ internal class LagBrevRequestVisitorTest {
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
-        val revurderingsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
+        val revurderingsperiode = år(2021)
         val revurdering = IverksattRevurdering.Opphørt(
             id = UUID.randomUUID(),
             periode = revurderingsperiode,
@@ -1228,7 +1227,7 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager opphørsvedtak med opphørsgrunn for høy inntekt`() {
         val utbetalingId = UUID30.randomUUID()
-        val opphørsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
+        val opphørsperiode = år(2021)
 
         val (sak, revurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
             revurderingsperiode = opphørsperiode,
@@ -1330,7 +1329,7 @@ internal class LagBrevRequestVisitorTest {
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
-        val revurderingsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
+        val revurderingsperiode = år(2021)
         val revurdering = IverksattRevurdering.IngenEndring(
             id = UUID.randomUUID(),
             periode = revurderingsperiode,
@@ -1438,14 +1437,14 @@ internal class LagBrevRequestVisitorTest {
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
-                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                    periode = år(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
             beregningsperioder = listOf(
                 Beregningsperiode(
-                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                    periode = år(2021),
                     strategy = BeregningStrategy.BorAlene,
                 ),
             ),
@@ -1460,21 +1459,21 @@ internal class LagBrevRequestVisitorTest {
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 50000.0,
-                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                    periode = år(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
-                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                    periode = år(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
             beregningsperioder = listOf(
                 Beregningsperiode(
-                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                    periode = år(2021),
                     strategy = BeregningStrategy.BorAlene,
                 ),
             ),

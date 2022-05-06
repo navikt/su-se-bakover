@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.test
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -29,7 +30,7 @@ import java.util.UUID
 fun uføregrunnlagForventetInntekt0(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
 ): Grunnlag.Uføregrunnlag {
     return uføregrunnlagForventetInntekt(
         id = id,
@@ -46,7 +47,7 @@ fun uføregrunnlagForventetInntekt0(
 fun uføregrunnlagForventetInntekt12000(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
 ): Grunnlag.Uføregrunnlag {
     return uføregrunnlagForventetInntekt(
         id = id,
@@ -60,7 +61,7 @@ fun uføregrunnlagForventetInntekt12000(
 fun uføregrunnlagForventetInntekt(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     forventetInntekt: Int,
 ): Grunnlag.Uføregrunnlag {
     return Grunnlag.Uføregrunnlag(
@@ -75,7 +76,7 @@ fun uføregrunnlagForventetInntekt(
 fun uføregrunnlag(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     forventetInntekt: Int = 0,
     uføregrad: Uføregrad = Uføregrad.parse(100),
 ): Grunnlag.Uføregrunnlag {
@@ -91,7 +92,7 @@ fun uføregrunnlag(
 fun innvilgetUførevilkårForventetInntekt0(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     uføregrunnlag: Grunnlag.Uføregrunnlag = uføregrunnlagForventetInntekt0(
         id = UUID.randomUUID(),
         opprettet = opprettet,
@@ -115,7 +116,7 @@ fun innvilgetUførevilkårForventetInntekt0(
 fun utenlandsoppholdInnvilget(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     grunnlag: Utenlandsoppholdgrunnlag? = null,
 ): UtenlandsoppholdVilkår.Vurdert {
     return UtenlandsoppholdVilkår.Vurdert.tryCreate(
@@ -135,7 +136,7 @@ fun utenlandsoppholdInnvilget(
 fun tilstrekkeligDokumentert(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
 ): OpplysningspliktVilkår.Vurdert {
     return OpplysningspliktVilkår.Vurdert.createFromVilkårsvurderinger(
         vurderingsperioder = nonEmptyListOf(
@@ -157,7 +158,7 @@ fun tilstrekkeligDokumentert(
 fun utilstrekkeligDokumentert(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
 ): OpplysningspliktVilkår.Vurdert {
     return OpplysningspliktVilkår.Vurdert.createFromVilkårsvurderinger(
         vurderingsperioder = nonEmptyListOf(
@@ -179,7 +180,7 @@ fun utilstrekkeligDokumentert(
 fun utenlandsoppholdAvslag(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
 ): UtenlandsoppholdVilkår.Vurdert {
     return UtenlandsoppholdVilkår.Vurdert.tryCreate(
         vurderingsperioder = nonEmptyListOf(
@@ -197,7 +198,7 @@ fun utenlandsoppholdAvslag(
 
 fun innvilgetUførevilkårForventetInntekt12000(
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
 ): Vilkår.Uførhet.Vurdert {
     return Vilkår.Uførhet.Vurdert.create(
         vurderingsperioder = nonEmptyListOf(
@@ -217,7 +218,7 @@ fun innvilgetUførevilkår(
     vurderingsperiodeId: UUID = UUID.randomUUID(),
     grunnlagsId: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     begrunnelse: String? = "innvilgetUførevilkårForventetInntekt0",
     forventetInntekt: Int = 0,
     uføregrad: Uføregrad = Uføregrad.parse(100),
@@ -244,7 +245,7 @@ fun innvilgetUførevilkår(
 
 fun avslåttUførevilkårUtenGrunnlag(
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
 ): Vilkår.Uførhet.Vurdert {
     return Vilkår.Uførhet.Vurdert.create(
         vurderingsperioder = nonEmptyListOf(
@@ -262,7 +263,7 @@ fun avslåttUførevilkårUtenGrunnlag(
 
 fun formueGrunnlagUtenEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
 ): Formuegrunnlag {
     return Formuegrunnlag.create(
@@ -288,7 +289,7 @@ fun formueGrunnlagUtenEps0Innvilget(
 
 fun formueGrunnlagUtenEpsAvslått(
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
 ): Formuegrunnlag {
     return Formuegrunnlag.create(
@@ -314,7 +315,7 @@ fun formueGrunnlagUtenEpsAvslått(
 
 fun formuevilkårUtenEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
 ): Vilkår.Formue {
     return Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
@@ -332,7 +333,7 @@ fun formuevilkårUtenEps0Innvilget(
 
 fun formuevilkårAvslåttPgrBrukersformue(
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
 ): Vilkår.Formue {
     return Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
@@ -356,7 +357,7 @@ fun formuevilkårAvslåttPgrBrukersformue(
  * utenlandsopphold: innvilget
  */
 fun vilkårsvurderingerSøknadsbehandlingInnvilget(
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     uføre: Vilkår.Uførhet = innvilgetUførevilkårForventetInntekt0(
         id = UUID.randomUUID(),
         periode = periode,
@@ -391,7 +392,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
 }
 
 fun vilkårsvurderingerRevurderingInnvilget(
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     uføre: Vilkår.Uførhet = innvilgetUførevilkårForventetInntekt0(periode = periode),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode = periode),
     formue: Vilkår.Formue = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
@@ -407,7 +408,7 @@ fun vilkårsvurderingerRevurderingInnvilget(
 }
 
 fun vilkårsvurderingerAvslåttAlleRevurdering(
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     uføre: Vilkår.Uførhet = avslåttUførevilkårUtenGrunnlag(periode = periode),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode = periode),
     formue: Vilkår.Formue = formuevilkårAvslåttPgrBrukersformue(periode = periode, bosituasjon = bosituasjon),
@@ -433,7 +434,7 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
  */
 @Suppress("unused")
 fun vilkårsvurderingerAvslåttAlle(
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode = periode),
 ): Vilkårsvurderinger.Søknadsbehandling {
     return Vilkårsvurderinger.Søknadsbehandling(
@@ -466,7 +467,7 @@ fun vilkårsvurderingerAvslåttAlle(
  * formue: innvilget
  */
 fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode = periode),
 ): Vilkårsvurderinger.Revurdering {
     return Vilkårsvurderinger.Revurdering(

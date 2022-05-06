@@ -6,9 +6,9 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
-import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
 
 internal class SatsoversiktTest {
@@ -16,7 +16,7 @@ internal class SatsoversiktTest {
     fun `tar høyde for endringer i sats`() {
         Satsoversikt.fra(
             listOf(
-                bosituasjongrunnlagEnslig(periode = periode2021),
+                bosituasjongrunnlagEnslig(periode = år(2021)),
             ),
         ) shouldBe Satsoversikt(
             perioder = listOf(

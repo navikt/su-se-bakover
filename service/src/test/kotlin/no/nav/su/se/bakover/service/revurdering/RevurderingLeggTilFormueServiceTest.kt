@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
@@ -54,7 +55,7 @@ internal class RevurderingLeggTilFormueServiceTest {
     @Test
     fun `legg til revurdering av formue happy case`() {
         val nyFormue = LeggTilFormuegrunnlagRequest.Grunnlag(
-            periode = periode2021,
+            periode = år(2021),
             epsFormue = Formuegrunnlag.Verdier.empty(),
             søkersFormue = Formuegrunnlag.Verdier.empty(),
             begrunnelse = null,
@@ -68,7 +69,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         lagFradragsgrunnlag(
                             type = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 10000.0,
-                            periode = periode2021,
+                            periode = år(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
@@ -76,7 +77,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                             id = UUID.randomUUID(),
                             fnr = epsFnr,
                             opprettet = fixedTidspunkt,
-                            periode = periode2021,
+                            periode = år(2021),
                             begrunnelse = null,
                         ),
                     ),
@@ -123,7 +124,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
-                            periode = periode2021,
+                            periode = år(2021),
                             begrunnelse = null,
                         ),
                     ),
@@ -136,7 +137,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
                             LeggTilFormuegrunnlagRequest.Grunnlag(
-                                periode = periode2021,
+                                periode = år(2021),
                                 epsFormue = Formuegrunnlag.Verdier.empty(),
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                                 begrunnelse = null,
@@ -164,7 +165,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn opprettetRevurdering(
-                    revurderingsperiode = periode2021,
+                    revurderingsperiode = år(2021),
                 ).second
             },
         ).let {
@@ -174,7 +175,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
                             LeggTilFormuegrunnlagRequest.Grunnlag(
-                                periode = Periode.create(1.januar(2020), 31.desember(2020)),
+                                periode = år(2020),
                                 epsFormue = null,
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                                 begrunnelse = null,
@@ -200,7 +201,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn opprettetRevurdering(
-                    revurderingsperiode = periode2021,
+                    revurderingsperiode = år(2021),
                 ).second
             },
         ).let {
@@ -243,7 +244,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                             id = UUID.randomUUID(),
                             fnr = epsFnr,
                             opprettet = fixedTidspunkt,
-                            periode = periode2021,
+                            periode = år(2021),
                             begrunnelse = null,
                         ),
                     ),
@@ -256,13 +257,13 @@ internal class RevurderingLeggTilFormueServiceTest {
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
                             LeggTilFormuegrunnlagRequest.Grunnlag(
-                                periode = periodeJanMars,
+                                periode = periodeJanMars2021,
                                 epsFormue = Formuegrunnlag.Verdier.empty(),
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                                 begrunnelse = null,
                             ),
                             LeggTilFormuegrunnlagRequest.Grunnlag(
-                                periode = periodeMarsDesember,
+                                periode = periodeMarsDesember2021,
                                 epsFormue = Formuegrunnlag.Verdier.empty(),
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                                 begrunnelse = null,
@@ -296,7 +297,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
                             LeggTilFormuegrunnlagRequest.Grunnlag(
-                                periode = periode2021,
+                                periode = år(2021),
                                 epsFormue = Formuegrunnlag.Verdier.empty(),
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                                 begrunnelse = null,
@@ -324,7 +325,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     ),
                     vilkårOverrides = listOf(
                         avslåttUførevilkårUtenGrunnlag(
-                            periode = periode2021,
+                            periode = år(2021),
                         ),
                         Vilkår.Formue.IkkeVurdert,
                         UtenlandsoppholdVilkår.IkkeVurdert,
@@ -337,7 +338,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     revurderingId = revurderingId,
                     formuegrunnlag = nonEmptyListOf(
                         LeggTilFormuegrunnlagRequest.Grunnlag(
-                            periode = periode2021,
+                            periode = år(2021),
                             epsFormue = null,
                             søkersFormue = Formuegrunnlag.Verdier.create(
                                 verdiIkkePrimærbolig = 10000000,
@@ -420,7 +421,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
                             LeggTilFormuegrunnlagRequest.Grunnlag(
-                                periode = periode2021,
+                                periode = år(2021),
                                 epsFormue = null,
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                                 begrunnelse = null,
@@ -437,8 +438,6 @@ internal class RevurderingLeggTilFormueServiceTest {
         }
     }
 
-    private val periode2021 = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
-    private val periodeJanMars = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021))
-    private val periodeMarsDesember = Periode.create(fraOgMed = 1.mars(2021), tilOgMed = 31.desember(2021))
-    private val periodeHele2020 = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.mars(2020))
+    private val periodeJanMars2021 = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021))
+    private val periodeMarsDesember2021 = Periode.create(fraOgMed = 1.mars(2021), tilOgMed = 31.desember(2021))
 }

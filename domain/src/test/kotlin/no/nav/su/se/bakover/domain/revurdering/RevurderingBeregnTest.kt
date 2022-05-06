@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -45,7 +46,6 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Disabled
@@ -61,7 +61,7 @@ internal class RevurderingBeregnTest {
         opprettetRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     arbeidsinntekt = 5000.0,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -90,7 +90,7 @@ internal class RevurderingBeregnTest {
         opprettetRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     arbeidsinntekt = 5000.0,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -148,7 +148,7 @@ internal class RevurderingBeregnTest {
         opprettetRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     arbeidsinntekt = 5000.0,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -174,7 +174,7 @@ internal class RevurderingBeregnTest {
         opprettetRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     arbeidsinntekt = 1000.0,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -202,7 +202,7 @@ internal class RevurderingBeregnTest {
             ),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     arbeidsinntekt = 1000.0,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -555,7 +555,7 @@ internal class RevurderingBeregnTest {
                 ),
             ),
             vilkårOverrides = listOf(
-                avslåttFormueVilkår(periode = periode2021),
+                avslåttFormueVilkår(periode = år(2021)),
             ),
         ).let { (sak, revurdering) ->
             revurdering.beregn(

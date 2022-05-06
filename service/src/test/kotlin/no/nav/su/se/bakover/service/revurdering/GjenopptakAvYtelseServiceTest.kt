@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
@@ -34,7 +35,6 @@ import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oversendtGjenopptakUtbetalingUtenKvittering
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
@@ -119,7 +119,7 @@ internal class GjenopptakAvYtelseServiceTest {
     fun `svarer med feil dersom vi ikke får tak i gjeldende grunnlagdata`() {
         val periode = Periode.create(
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = periode2021.tilOgMed,
+            tilOgMed = år(2021).tilOgMed,
         )
 
         val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode)
@@ -170,7 +170,7 @@ internal class GjenopptakAvYtelseServiceTest {
     fun `svarer med feil dersom simulering feiler`() {
         val periode = Periode.create(
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = periode2021.tilOgMed,
+            tilOgMed = år(2021).tilOgMed,
         )
         val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode)
 
@@ -244,7 +244,7 @@ internal class GjenopptakAvYtelseServiceTest {
     fun `happy path for opprettelse`() {
         val periode = Periode.create(
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = periode2021.tilOgMed,
+            tilOgMed = år(2021).tilOgMed,
         )
         val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode)
 
@@ -313,7 +313,7 @@ internal class GjenopptakAvYtelseServiceTest {
     fun `svarer med feil dersom oversendelse av gjenopptak til oppdrag feiler`() {
         val periode = Periode.create(
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = periode2021.tilOgMed,
+            tilOgMed = år(2021).tilOgMed,
         )
         val revurderingGjenopptak = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(periodeForStans = periode)
 
@@ -474,7 +474,7 @@ internal class GjenopptakAvYtelseServiceTest {
     fun `får ikke iverksatt dersom simulering indikerer feilutbetaling`() {
         val periode = Periode.create(
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = periode2021.tilOgMed,
+            tilOgMed = år(2021).tilOgMed,
         )
         val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
             simulering = simuleringFeilutbetaling(*periode.tilMånedsperioder().toTypedArray()),
@@ -556,7 +556,7 @@ internal class GjenopptakAvYtelseServiceTest {
     fun `happy path for iverksettelse`() {
         val periode = Periode.create(
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = periode2021.tilOgMed,
+            tilOgMed = år(2021).tilOgMed,
         )
         val simulertGjenopptak = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(periodeForStans = periode).second
 

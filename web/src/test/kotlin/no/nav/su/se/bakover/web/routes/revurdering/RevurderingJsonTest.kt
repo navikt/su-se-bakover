@@ -2,10 +2,8 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
@@ -76,7 +74,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = OpprettetRevurdering(
             id = id,
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            periode = år(2021),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -132,7 +130,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                      {
                         "gyldigFra":"2022-05-01",
-                        "beløp":53500
+                        "beløp":53550
                      },
                       {
                           "gyldigFra": "2021-05-01",
@@ -168,7 +166,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = BeregnetRevurdering.Innvilget(
             id = id,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = år(2020),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -216,7 +214,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                      {
                         "gyldigFra":"2022-05-01",
-                        "beløp":53500
+                        "beløp":53550
                      },
                       {
                           "gyldigFra": "2021-05-01",
@@ -252,7 +250,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = BeregnetRevurdering.Opphørt(
             id = id,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = år(2020),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -300,7 +298,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                      {
                         "gyldigFra":"2022-05-01",
-                        "beløp":53500
+                        "beløp":53550
                      },
                       {
                           "gyldigFra": "2021-05-01",
@@ -336,7 +334,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = BeregnetRevurdering.IngenEndring(
             id = id,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = år(2020),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -384,7 +382,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                      {
                         "gyldigFra":"2022-05-01",
-                        "beløp":53500
+                        "beløp":53550
                      },
                       {
                           "gyldigFra": "2021-05-01",
@@ -420,7 +418,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = SimulertRevurdering.Innvilget(
             id = id,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = år(2020),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -480,7 +478,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                      {
                         "gyldigFra":"2022-05-01",
-                        "beløp":53500
+                        "beløp":53550
                      },
                       {
                           "gyldigFra": "2021-05-01",
@@ -520,7 +518,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = SimulertRevurdering.Opphørt(
             id = id,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = år(2020),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -574,7 +572,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                      {
                         "gyldigFra":"2022-05-01",
-                        "beløp":53500
+                        "beløp":53550
                      },
                       {
                           "gyldigFra": "2021-05-01",
@@ -612,7 +610,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = RevurderingTilAttestering.Innvilget(
             id = id,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = år(2020),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -667,7 +665,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                      {
                         "gyldigFra":"2022-05-01",
-                        "beløp":53500
+                        "beløp":53550
                      },
                       {
                           "gyldigFra": "2021-05-01",
@@ -705,7 +703,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = RevurderingTilAttestering.Opphørt(
             id = id,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = år(2020),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -760,7 +758,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                      {
                         "gyldigFra":"2022-05-01",
-                        "beløp":53500
+                        "beløp":53550
                      },
                       {
                           "gyldigFra": "2021-05-01",
@@ -798,7 +796,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = RevurderingTilAttestering.IngenEndring(
             id = id,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = år(2020),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -849,7 +847,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                       {
                          "gyldigFra":"2022-05-01",
-                         "beløp":53500
+                         "beløp":53550
                       },
                       {
                           "gyldigFra": "2021-05-01",
@@ -888,7 +886,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = UnderkjentRevurdering.Innvilget(
             id = id,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = år(2020),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -958,7 +956,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                       {
                          "gyldigFra":"2022-05-01",
-                         "beløp":53500
+                         "beløp":53550
                       },
                       {
                           "gyldigFra": "2021-05-01",
@@ -996,7 +994,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = UnderkjentRevurdering.Opphørt(
             id = id,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = år(2020),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -1066,7 +1064,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                       {
                          "gyldigFra":"2022-05-01",
-                         "beløp":53500
+                         "beløp":53550
                       },
                       {
                           "gyldigFra": "2021-05-01",
@@ -1104,7 +1102,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = UnderkjentRevurdering.IngenEndring(
             id = id,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = år(2020),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -1170,7 +1168,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                       {
                          "gyldigFra":"2022-05-01",
-                         "beløp":53500
+                         "beløp":53550
                       },
                       {
                           "gyldigFra": "2021-05-01",
@@ -1208,7 +1206,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = IverksattRevurdering.Innvilget(
             id = id,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = år(2020),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -1277,7 +1275,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                      {
                         "gyldigFra":"2022-05-01",
-                        "beløp":53500
+                        "beløp":53550
                      },
                       {
                           "gyldigFra": "2021-05-01",
@@ -1318,7 +1316,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = IverksattRevurdering.Opphørt(
             id = id,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = år(2020),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -1379,7 +1377,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                       {
                          "gyldigFra":"2022-05-01",
-                         "beløp":53500
+                         "beløp":53550
                       },
                       {
                           "gyldigFra": "2021-05-01",
@@ -1418,7 +1416,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = IverksattRevurdering.IngenEndring(
             id = id,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = år(2020),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -1475,7 +1473,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                       {
                          "gyldigFra":"2022-05-01",
-                         "beløp":53500
+                         "beløp":53550
                       },
                       {
                           "gyldigFra": "2021-05-01",

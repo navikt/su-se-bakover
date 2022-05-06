@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -126,7 +127,7 @@ internal class VedtakTest {
 
     @Test
     fun `lager tidslinje for enkelt vedtak`() {
-        val periode = Periode.create(1.januar(2021), 31.desember(2021))
+        val periode = år(2021)
         val bosituasjon = lagFullstendigBostiuasjon(periode)
 
         val vedtak = lagVedtak(
@@ -142,7 +143,7 @@ internal class VedtakTest {
             ),
         )
         listOf(vedtak).lagTidslinje(
-            Periode.create(1.januar(2021), 31.desember(2021)),
+            år(2021),
         ).tidslinje.let { tidslinje ->
             tidslinje.size shouldBe 1
             tidslinje[0].shouldBeEqualToExceptId(
@@ -164,7 +165,7 @@ internal class VedtakTest {
      */
     @Test
     fun `lager tidslinje for flere vedtak`() {
-        val periodeA = Periode.create(1.januar(2021), 31.desember(2021))
+        val periodeA = år(2021)
         val bosituasjonA = lagFullstendigBostiuasjon(periodeA)
         val a = lagVedtak(
             rekkefølge = 1,
@@ -195,10 +196,7 @@ internal class VedtakTest {
             ),
         )
         listOf(a, b).lagTidslinje(
-            Periode.create(
-                1.januar(2021),
-                31.desember(2021),
-            ),
+            år(2021),
         ).tidslinje.let {
             it.size shouldBe 2
             it.first().shouldBeEqualToExceptId(
@@ -245,7 +243,7 @@ internal class VedtakTest {
      */
     @Test
     fun `begrenser perioden på grunnlagene til samme perioden som vedtaket`() {
-        val p1 = Periode.create(1.januar(2021), 31.desember(2021))
+        val p1 = år(2021)
         val a = lagVedtak(
             rekkefølge = 1,
             fraDato = p1.fraOgMed,
@@ -274,7 +272,7 @@ internal class VedtakTest {
             ),
         )
         listOf(a, b).lagTidslinje(
-            Periode.create(1.januar(2021), 31.desember(2021)),
+            år(2021),
         ).tidslinje.let { tidslinje ->
             tidslinje.size shouldBe 2
 
@@ -326,7 +324,7 @@ internal class VedtakTest {
      */
     @Test
     fun `informasjon som overskrives av nyere vedtak forsvinner fra tidslinjen`() {
-        val p1 = Periode.create(1.januar(2021), 31.desember(2021))
+        val p1 = år(2021)
         val b1 = lagFullstendigBostiuasjon(p1)
         val a = lagVedtak(
             rekkefølge = 1,
@@ -341,7 +339,7 @@ internal class VedtakTest {
             ),
         )
 
-        val p2 = Periode.create(1.januar(2021), 31.desember(2021))
+        val p2 = år(2021)
         val b2 = lagFullstendigBostiuasjon(p2)
         val uføreVurderingB = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
@@ -367,7 +365,7 @@ internal class VedtakTest {
 
         val actual =
             listOf(a, b).lagTidslinje(
-                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                periode = år(2021),
             ).tidslinje.let {
                 it.size shouldBe 1
                 it[0]

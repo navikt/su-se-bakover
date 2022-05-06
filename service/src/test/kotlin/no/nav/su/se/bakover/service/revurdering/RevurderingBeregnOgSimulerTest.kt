@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -33,7 +34,6 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nyUtbetalingSimulert
 import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.sakId
@@ -144,7 +144,7 @@ internal class RevurderingBeregnOgSimulerTest {
         val (sak, revurdering) = opprettetRevurdering(
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(
-                    periode = periode2021,
+                    periode = år(2021),
                 ),
             ),
         )
@@ -184,7 +184,7 @@ internal class RevurderingBeregnOgSimulerTest {
             grunnlagsdataOverrides = listOf(
                 bosituasjongrunnlagEnslig(),
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     arbeidsinntekt = 5000.0,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -256,7 +256,7 @@ internal class RevurderingBeregnOgSimulerTest {
         val (_, tilAttestring) = revurderingTilAttestering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     arbeidsinntekt = 5000.0,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -287,7 +287,7 @@ internal class RevurderingBeregnOgSimulerTest {
         val (sak, beregnet) = beregnetRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     arbeidsinntekt = 5000.0,
                     tilhører = FradragTilhører.BRUKER,
                 ),

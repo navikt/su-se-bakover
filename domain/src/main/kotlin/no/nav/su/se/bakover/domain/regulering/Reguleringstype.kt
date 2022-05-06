@@ -1,38 +1,58 @@
 package no.nav.su.se.bakover.domain.regulering
 
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 
-enum class Reguleringstype {
-    AUTOMATISK,
-    MANUELL;
+sealed class Reguleringstype {
+    object AUTOMATISK : Reguleringstype() {
+        override fun toString(): String {
+            return "AUTOMATISK"
+        }
+    }
+    data class MANUELL(val problemer: Set<ÅrsakTilManuellRegulering>) : Reguleringstype() {
+        override fun toString(): String {
+            return "MANUELL"
+        }
+    }
+}
+
+enum class ÅrsakTilManuellRegulering {
+    FradragMåHåndteresManuelt,
+    YtelseErMidlertidigStanset,
+    ForventetInntektErStørreEnn0,
+    DelvisOpphør,
+    VedtakstidslinjeErIkkeSammenhengende,
+    PågåendeAvkortingEllerBehovForFremtidigAvkorting,
+    AvventerKravgrunnlag,
+    UtbetalingFeilet;
 }
 
 fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
-    if (this.grunnlagsdata.fradragsgrunnlag.any { (it.fradrag.fradragstype == Fradragstype.NAVytelserTilLivsopphold) || (it.fradrag.fradragstype == Fradragstype.OffentligPensjon) }) {
-        return Reguleringstype.MANUELL
+    val problemer = mutableSetOf<ÅrsakTilManuellRegulering>()
+
+    if (this.grunnlagsdata.fradragsgrunnlag.any { it.fradrag.skalJusteresVedGEndring() }) {
+        problemer.add(ÅrsakTilManuellRegulering.FradragMåHåndteresManuelt)
     }
 
     if (this.harStans()) {
-        return Reguleringstype.MANUELL
+        problemer.add(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset)
     }
 
     if (this.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0()) {
-        return Reguleringstype.MANUELL
+        problemer.add(ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0)
     }
 
     if (this.delerAvPeriodenErOpphør()) {
-        return Reguleringstype.MANUELL
+        problemer.add(ÅrsakTilManuellRegulering.DelvisOpphør)
     }
 
     if (!this.tidslinjeForVedtakErSammenhengende()) {
-        return Reguleringstype.MANUELL
+        problemer.add(ÅrsakTilManuellRegulering.VedtakstidslinjeErIkkeSammenhengende)
     }
 
     if (this.pågåendeAvkortingEllerBehovForFremtidigAvkorting) {
-        return Reguleringstype.MANUELL
+        problemer.add(ÅrsakTilManuellRegulering.PågåendeAvkortingEllerBehovForFremtidigAvkorting)
     }
 
-    return Reguleringstype.AUTOMATISK
+    return if (problemer.isNotEmpty()) Reguleringstype.MANUELL(problemer) else Reguleringstype.AUTOMATISK
 }

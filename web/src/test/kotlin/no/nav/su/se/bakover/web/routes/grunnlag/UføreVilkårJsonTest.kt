@@ -2,10 +2,8 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -60,7 +58,7 @@ class UføreVilkårJsonTest {
             opprettet = vilkårsvurderingUføreOpprettet,
             resultat = Resultat.Innvilget,
             grunnlag = uføregrunnlag,
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            periode = år(2021),
             begrunnelse = "text",
         )
 

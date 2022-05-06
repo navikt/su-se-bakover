@@ -5,10 +5,11 @@ import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt0
-import no.nav.su.se.bakover.test.månedsperiodeJanuar2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -162,14 +162,14 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
         val tomGrunnlagsdata = Grunnlagsdata.create(emptyList(), emptyList())
 
         tomGrunnlagsdata.oppdaterGrunnlagsperioder(
-            oppdatertPeriode = månedsperiodeJanuar2021,
+            oppdatertPeriode = januar(2021),
         ) shouldBe Grunnlagsdata.create(emptyList(), emptyList()).right()
     }
 
     @Test
     fun `oppdaterer periodene på grunnlagene`() {
-        val forrigePeriode = Periode.create(1.januar(2021), 31.desember(2021))
-        val oppdatertPeriode = månedsperiodeJanuar2021
+        val forrigePeriode = år(2021)
+        val oppdatertPeriode = januar(2021)
         val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,

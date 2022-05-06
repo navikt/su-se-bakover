@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
@@ -20,7 +21,7 @@ internal class BeregningMedFlereSatserTest {
     @Test
     fun `kan beregne med flere forskjellig strategier for samme beregning`() {
         val revurdering = opprettetRevurdering(
-            revurderingsperiode = Periode.create(1.januar(2021), 31.desember(2021)),
+            revurderingsperiode = år(2021),
             grunnlagsdataOverrides = listOf(
                 bosituasjongrunnlagEnslig(
                     periode = Periode.create(1.januar(2021), 30.april(2021)),

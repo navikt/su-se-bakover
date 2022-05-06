@@ -2,16 +2,13 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodeJson
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
-import no.nav.su.se.bakover.test.månedsperiodeJanuar2021
 import org.junit.jupiter.api.Test
 
 internal class FradragJsonTest {
@@ -75,7 +72,7 @@ internal class FradragJsonTest {
             tilhører = FradragTilhører.BRUKER.toString(),
         )
 
-        val expectedPeriode = månedsperiodeJanuar2020
+        val expectedPeriode = januar(2020)
         val expected = FradragFactory.nyFradragsperiode(
             fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 10.0,
@@ -101,11 +98,11 @@ internal class FradragJsonTest {
         val expected = FradragFactory.nyFradragsperiode(
             fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 10.0,
-            periode = månedsperiodeJanuar2021,
+            periode = januar(2021),
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )
 
-        jsonUtenPeriode.toFradrag(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe expected.right()
+        jsonUtenPeriode.toFradrag(år(2021)) shouldBe expected.right()
     }
 }

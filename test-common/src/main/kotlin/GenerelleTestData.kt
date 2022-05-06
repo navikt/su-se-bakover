@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.test
 import io.kotest.assertions.fail
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -53,7 +54,7 @@ val enUkeEtterFixedTidspunkt: Tidspunkt = Tidspunkt.now(enUkeEtterFixedClock)
  * Fixed LocalDate at 2021-01-01
  * Correlates with `fixedClock`
  */
-val fixedLocalDate: LocalDate = LocalDate.of(2021, 1, 1)
+val fixedLocalDate: LocalDate = 1.januar(2021)
 
 val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
 
@@ -77,8 +78,8 @@ fun person(
     navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
 )
 
-val stønadsperiode2021 = Stønadsperiode.create(periode2021, "stønadsperiode2021")
-val stønadsperiode2022 = Stønadsperiode.create(periode2022, "stønadsperiode2022")
+val stønadsperiode2021 = Stønadsperiode.create(år(2021), "stønadsperiode2021")
+val stønadsperiode2022 = Stønadsperiode.create(år(2022), "stønadsperiode2022")
 
 val attestant = NavIdentBruker.Attestant("attestant")
 const val attestantNavn = "Att E. Stant"
@@ -92,7 +93,7 @@ fun attesteringUnderkjent(clock: Clock) = Attestering.Underkjent(
     attestant = attestant,
     grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
     kommentar = "attesteringUnderkjent",
-    opprettet = Tidspunkt.now(clock)
+    opprettet = Tidspunkt.now(clock),
 )
 
 class TestSessionFactory : SessionFactory {

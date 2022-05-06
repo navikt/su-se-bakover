@@ -31,7 +31,7 @@ fun opprettetRegulering(
         vilkårsvurderingerRevurderingInnvilget(periode = reguleringsperiode),
     ),
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(saksbehandlerNavn),
-    reguleringstype: Reguleringstype = Reguleringstype.MANUELL,
+    reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
 ) = Regulering.OpprettetRegulering(
     id = id,
     opprettet = opprettet,
@@ -84,7 +84,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
         stønadsperiode.periode,
     ),
-    clock: Clock = fixedClock,
+    clock: Clock = TikkendeKlokke(),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Regulering.OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
@@ -95,6 +95,24 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         vilkårsvurderinger = vilkårsvurderinger,
         clock = clock,
         avkorting = avkorting,
+    )
+    val sak = sakOgVedtak.first
+    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock).getOrFail()
+
+    return Pair(
+        sak.copy(
+            reguleringer = listOf(regulering),
+        ),
+        regulering,
+    )
+}
+
+fun stansetSøknadsbehandlingMedÅpenRegulering(
+    regulerFraOgMed: LocalDate,
+    clock: Clock = fixedClock,
+): Pair<Sak, Regulering.OpprettetRegulering> {
+    val sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+        clock = clock,
     )
     val sak = sakOgVedtak.first
     val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, fixedClock).getOrFail()

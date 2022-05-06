@@ -1,10 +1,8 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -26,7 +24,6 @@ import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSø
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
@@ -389,7 +386,7 @@ internal class BehandlingStatistikkMapperTest {
 
     @Test
     fun `mapper gjenopptak`() {
-        val gjenopptak = iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(periode2021).second
+        val gjenopptak = iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(år(2021)).second
         BehandlingStatistikkMapper(fixedClock).map(gjenopptak) shouldBe Statistikk.Behandling(
             funksjonellTid = gjenopptak.opprettet,
             tekniskTid = fixedTidspunkt,
@@ -433,7 +430,7 @@ internal class BehandlingStatistikkMapperTest {
 
     @Test
     fun `mapper stans`() {
-        val stans = iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode2021).second
+        val stans = iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = år(2021)).second
         BehandlingStatistikkMapper(fixedClock).map(stans) shouldBe Statistikk.Behandling(
             funksjonellTid = stans.opprettet,
             tekniskTid = fixedTidspunkt,
@@ -614,7 +611,7 @@ internal class BehandlingStatistikkMapperTest {
         oppgaveId = OppgaveId(""),
     )
 
-    val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
+    val stønadsperiode = Stønadsperiode.create(år(2021))
 
     private val uavklartSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
 

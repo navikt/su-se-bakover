@@ -3,11 +3,10 @@ package no.nav.su.se.bakover.domain.beregning.fradrag
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Månedsperiode
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.år
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -18,14 +17,14 @@ internal class FradragStrategyTest {
 
     @Test
     fun `hver måned må inneholde nøyaktig ett fradrag for brukers forventede inntekt`() {
-        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+        val periode = år(2020)
         assertThrows<IllegalArgumentException> {
             FradragStrategy.Enslig.beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         5000.0,
-                        månedsperiodeJanuar2020,
+                        januar(2020),
                     ),
                 ),
                 beregningsperiode = periode,
@@ -45,7 +44,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         24_000.0,
-                        månedsperiodeJanuar2020,
+                        januar(2020),
                     ),
                 ),
                 beregningsperiode = periode,
@@ -60,7 +59,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         5000.0,
-                        månedsperiodeJanuar2020,
+                        januar(2020),
                     ),
                 ),
                 beregningsperiode = periode,
@@ -80,7 +79,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         24_000.0,
-                        månedsperiodeJanuar2020,
+                        januar(2020),
                     ),
                 ),
                 beregningsperiode = periode,
@@ -95,7 +94,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         5000.0,
-                        månedsperiodeJanuar2020,
+                        januar(2020),
                     ),
                 ),
                 beregningsperiode = periode,
@@ -115,7 +114,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         24_000.0,
-                        månedsperiodeJanuar2020,
+                        januar(2020),
                     ),
                 ),
                 beregningsperiode = periode,
@@ -130,7 +129,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         5000.0,
-                        månedsperiodeJanuar2020,
+                        januar(2020),
                     ),
                 ),
                 beregningsperiode = periode,
@@ -150,7 +149,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         24_000.0,
-                        månedsperiodeJanuar2020,
+                        januar(2020),
                     ),
                 ),
                 beregningsperiode = periode,
@@ -162,7 +161,7 @@ internal class FradragStrategyTest {
 
     @Nested
     inner class `fribeløp EPS` {
-        val periode = månedsperiodeJanuar2020
+        val periode = januar(2020)
 
         @Test
         fun `EPS over 67 år bruker garantipensjonsnivå`() {

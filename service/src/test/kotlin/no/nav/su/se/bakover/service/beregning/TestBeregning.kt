@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.beregning
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Månedsperiode
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Merknad
@@ -13,7 +14,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
 import java.util.UUID
 
 internal object TestBeregning : Beregning {
@@ -25,7 +25,7 @@ internal object TestBeregning : Beregning {
     override fun getFradrag(): List<Fradrag> = listOf(TestFradrag)
     override fun getSumYtelse(): Int = 8637
     override fun getSumFradrag(): Double = 12000.0
-    override val periode: Periode = månedsperiodeJanuar2020
+    override val periode: Periode = januar(2020)
     override fun getBegrunnelse(): String? = null
     override fun equals(other: Any?) = (other as? Beregning)?.let { this.equals(other) } ?: false
 }
@@ -40,9 +40,9 @@ internal object TestMånedsberegning : Månedsberegning {
     override fun getFribeløpForEps(): Double = 0.0
     override fun getMerknader(): List<Merknad.Beregning> = emptyList()
 
-    override val periode: Periode = månedsperiodeJanuar2020
+    override val periode: Periode = januar(2020)
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
-    override val måned: Månedsperiode = månedsperiodeJanuar2020
+    override val måned: Månedsperiode = januar(2020)
 }
 
 internal object TestFradrag : Fradrag {
@@ -50,7 +50,7 @@ internal object TestFradrag : Fradrag {
     override val månedsbeløp: Double = 12000.0
     override val utenlandskInntekt: UtenlandskInntekt? = null
     override val tilhører: FradragTilhører = FradragTilhører.BRUKER
-    override val periode: Periode = månedsperiodeJanuar2020
+    override val periode: Periode = januar(2020)
     override fun copy(args: CopyArgs.Snitt): Fradrag? {
         throw NotImplementedError()
     }

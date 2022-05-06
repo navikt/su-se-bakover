@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.domain.brev
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -15,7 +13,7 @@ import java.util.UUID
 
 internal class FormueForBrevTest {
 
-    private val periode = Periode.create(1.januar(2021), 31.desember(2021))
+    private val periode = år(2021)
 
     @Test
     fun `regner ut formuen riktig`() {

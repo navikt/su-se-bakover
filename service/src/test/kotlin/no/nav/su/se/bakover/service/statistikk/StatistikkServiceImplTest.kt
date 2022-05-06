@@ -4,11 +4,10 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -45,7 +44,7 @@ internal class StatistikkServiceImplTest {
 
     private val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
 
-    val stønadsperiode = Periode.create(1.januar(2021), 31.desember(2021))
+    val stønadsperiode = år(2021)
 
     @Test
     fun `Gyldig sak publiserer till kafka`() {

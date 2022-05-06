@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toJson
@@ -31,3 +32,5 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
         }
     }
 }
+
+internal fun GrunnlagsdataOgVilkårsvurderinger.toJson(): GrunnlagsdataOgVilkårsvurderingerJson = GrunnlagsdataOgVilkårsvurderingerJson.create(this.grunnlagsdata, this.vilkårsvurderinger)

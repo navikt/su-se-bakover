@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.brev
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.MånedBeløp
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevInnhold
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
-import no.nav.su.se.bakover.test.periodeJanuar2021
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
@@ -303,7 +303,7 @@ internal class BrevInnholdTest {
             dagensDato = LocalDate.now(fixedClock),
             saksnummer = saksnummer,
             bruttoTilbakekreving = 5000000,
-            tilbakekreving = Tilbakekreving(listOf(MånedBeløp(periodeJanuar2021, Beløp.invoke(1000))))
+            tilbakekreving = Tilbakekreving(listOf(MånedBeløp(januar(2021), Beløp.invoke(1000)))),
         )
 
         val expected = """

@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -67,10 +68,7 @@ internal class SimuleringSoapClientTest {
 
         simuleringService.simulerUtbetaling(
             request = SimulerUtbetalingForPeriode(
-                simuleringsperiode = Periode.create(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020),
-                ),
+                simuleringsperiode = år(2020),
                 utbetaling = nyUtbetaling,
             ),
         ) shouldBe SimuleringResponseMapper(
@@ -148,10 +146,7 @@ internal class SimuleringSoapClientTest {
 
         simuleringService.simulerUtbetaling(
             request = SimulerUtbetalingForPeriode(
-                simuleringsperiode = Periode.create(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020),
-                ),
+                simuleringsperiode = år(2020),
                 utbetaling = nyUtbetaling,
             ),
         ) shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
@@ -174,10 +169,7 @@ internal class SimuleringSoapClientTest {
 
         simuleringService.simulerUtbetaling(
             request = SimulerUtbetalingForPeriode(
-                simuleringsperiode = Periode.create(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020),
-                ),
+                simuleringsperiode = år(2020),
                 utbetaling = nyUtbetaling,
             ),
         ) shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
@@ -200,10 +192,7 @@ internal class SimuleringSoapClientTest {
 
         val response = simuleringService.simulerUtbetaling(
             request = SimulerUtbetalingForPeriode(
-                simuleringsperiode = Periode.create(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020),
-                ),
+                simuleringsperiode = år(2020),
                 utbetaling = nyUtbetaling,
             ),
         )
@@ -228,10 +217,7 @@ internal class SimuleringSoapClientTest {
 
         simuleringService.simulerUtbetaling(
             request = SimulerUtbetalingForPeriode(
-                simuleringsperiode = Periode.create(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020),
-                ),
+                simuleringsperiode = år(2020),
                 utbetaling = nyUtbetaling,
             ),
         ) shouldBe SimuleringFeilet.TEKNISK_FEIL.left()

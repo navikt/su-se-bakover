@@ -41,7 +41,9 @@ sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
     val periode: Periode
     val behandling: Behandling
 
-    fun erOpphør(): Boolean
+    fun erOpphør() = this is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering
+    fun erStans() = this is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse
+    fun erGjenopptak() = this is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse
 
     fun skalSendeBrev(): Boolean {
         return SkalSendeBrevVisitor().let {
@@ -76,8 +78,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
     override val attestant: NavIdentBruker.Attestant
     override val periode: Periode
     override val behandling: Behandling
-
-    override fun erOpphør(): Boolean
 
     companion object {
         fun fromSøknadsbehandling(
@@ -207,8 +207,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
-            override fun erOpphør() = false
-
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
             override fun accept(visitor: VedtakVisitor) {
@@ -227,8 +225,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
-            override fun erOpphør() = false
-
             override fun harIdentifisertBehovForFremtidigAvkorting() =
                 behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
 
@@ -248,8 +244,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
-            override fun erOpphør() = false
-
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
             override fun accept(visitor: VedtakVisitor) {
@@ -268,10 +262,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
-
             fun utledOpphørsgrunner(clock: Clock) = behandling.utledOpphørsgrunner(clock)
-
-            override fun erOpphør() = true
 
             override fun harIdentifisertBehovForFremtidigAvkorting() =
                 behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
@@ -291,9 +282,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
-
-            override fun erOpphør() = false
-
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
             override fun accept(visitor: VedtakVisitor) {
@@ -311,8 +299,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
-            override fun erOpphør() = false
-
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
             override fun accept(visitor: VedtakVisitor) {
@@ -330,8 +316,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         override val periode: Periode,
         val beregning: Beregning,
     ) : VedtakSomKanRevurderes {
-        override fun erOpphør() = false
-
         override fun harIdentifisertBehovForFremtidigAvkorting() =
             behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
 
@@ -408,6 +392,14 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             return originaltVedtak.erOpphør()
         }
 
+        fun erStans(): Boolean {
+            return originaltVedtak.erStans()
+        }
+
+        fun erGjenopptak(): Boolean {
+            return originaltVedtak.erGjenopptak()
+        }
+
         fun uføreVilkår(): Vilkår.Uførhet {
             return vilkårsvurderinger.uføreVilkår()
         }
@@ -427,11 +419,8 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
 }
 
 sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvslag {
-
     override val periode: Periode
     override val behandling: Søknadsbehandling.Iverksatt.Avslag
-
-    override fun erOpphør(): Boolean
 
     companion object {
         fun fromSøknadsbehandlingMedBeregning(
@@ -488,8 +477,6 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         override val behandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
         override val periode: Periode,
     ) : Avslagsvedtak {
-        override fun erOpphør() = false
-
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
         override fun accept(visitor: VedtakVisitor) {
@@ -507,8 +494,6 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         val beregning: Beregning,
         override val avslagsgrunner: List<Avslagsgrunn>,
     ) : Avslagsvedtak {
-        override fun erOpphør() = false
-
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
         override fun accept(visitor: VedtakVisitor) {

@@ -8,12 +8,12 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -440,7 +440,7 @@ internal class OpprettRevurderingServiceTest {
 
     @Test
     fun `for en ny revurdering vil det tas utgangspunkt i nyeste vedtak hvor fraOgMed er inni perioden`() {
-        val vedtaksperiode = Periode.create(1.januar(2021), 31.desember(2021))
+        val vedtaksperiode = år(2021)
         val behandlingMock = mock<IverksattRevurdering.Innvilget> {
             on { fnr } doReturn Fnr.generer()
             on { saksnummer } doReturn Saksnummer(2021)

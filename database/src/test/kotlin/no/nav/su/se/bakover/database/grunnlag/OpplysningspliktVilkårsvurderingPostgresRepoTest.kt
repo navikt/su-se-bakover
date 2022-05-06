@@ -2,13 +2,12 @@ package no.nav.su.se.bakover.database.grunnlag
 
 import arrow.core.NonEmptyList
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.test.periode2021
-import no.nav.su.se.bakover.test.periode2022
 import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.utilstrekkeligDokumentert
 import org.junit.jupiter.api.Test
@@ -42,7 +41,7 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {
             withMigratedDb { dataSource ->
                 val testDataHelper = TestDataHelper(dataSource)
                 val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
-                val vilkår = tilstrekkeligDokumentert(periode = periode2021)
+                val vilkår = tilstrekkeligDokumentert(periode = år(2021))
 
                 testDataHelper.sessionFactory.withTransaction { tx ->
                     testDataHelper.opplysningspliktVilkårsvurderingPostgresRepo.lagre(søknadsbehandling.id, vilkår, tx)
@@ -55,7 +54,7 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {
                     ) shouldBe vilkår
                 }
 
-                val utilstrekkelig = utilstrekkeligDokumentert(periode = periode2022)
+                val utilstrekkelig = utilstrekkeligDokumentert(periode = år(2022))
 
                 val flerePerioder = OpplysningspliktVilkår.Vurdert.createFromVilkårsvurderinger(
                     NonEmptyList.fromListUnsafe(vilkår.vurderingsperioder + utilstrekkelig.vurderingsperioder)
