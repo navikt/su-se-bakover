@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.stønadsklassifisering
 import java.time.Clock
-import java.util.UUID
 
 class BehandlingStatistikkMapper(
     private val clock: Clock,
@@ -288,7 +287,7 @@ class BehandlingStatistikkMapper(
             behandlingStatusBeskrivelse = BehandlingStatusBeskrivelseMapper.map(klage),
             versjon = clock.millis(),
             saksbehandler = klage.saksbehandler.navIdent,
-            relatertBehandlingId = when(klage) {
+            relatertBehandlingId = when (klage) {
                 is OpprettetKlage -> null
                 is AvsluttetKlage -> null
                 is AvvistKlage -> klage.vilkårsvurderinger.vedtakId
@@ -309,16 +308,20 @@ class BehandlingStatistikkMapper(
                 is AvvistKlage,
                 -> this
                 is AvsluttetKlage -> this.copy(avsluttet = true)
-                is IverksattAvvistKlage -> this.copy(avsluttet = true)
+                is IverksattAvvistKlage -> this.copy(
+                    avsluttet = true,
+                    beslutter = klage.attesteringer.hentSisteAttestering().attestant.navIdent,
+                )
                 is OversendtKlage -> this.copy(
                     totrinnsbehandling = true,
                     resultat = "Opprettholdt",
                     resultatBegrunnelse = "Opprettholdt i henhold til lov om supplerende stønad " +
                         "${
-                            (klage.vurderinger.vedtaksvurdering as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold).hjemler.joinToString(
-                                ", ",
-                            ) { "kapittel ${it.kapittel} - § ${it.paragrafnummer}" }
+                        (klage.vurderinger.vedtaksvurdering as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold).hjemler.joinToString(
+                            ", ",
+                        ) { "kapittel ${it.kapittel} - § ${it.paragrafnummer}" }
                         }.",
+                    beslutter = klage.attesteringer.hentSisteAttestering().attestant.navIdent
                 )
             }
         }

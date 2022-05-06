@@ -74,10 +74,7 @@ internal class StatistikkServiceImpl(
             }
             is Event.Statistikk.RevurderingStatistikk.Gjenoppta -> publiser(BehandlingStatistikkMapper(clock).map(event.gjenoppta))
             is Event.Statistikk.RevurderingStatistikk.Stans -> publiser(BehandlingStatistikkMapper(clock).map(event.stans))
-            is Event.Statistikk.Klagestatistikk.Avvist -> TODO()
-            is Event.Statistikk.Klagestatistikk.Opprettet -> TODO()
-            is Event.Statistikk.Klagestatistikk.Oversendt -> TODO()
-            is Event.Statistikk.Klagestatistikk.TilAttestering -> TODO()
+            is Event.Statistikk.Klagestatistikk -> publiser(BehandlingStatistikkMapper(clock).map(event.klage))
         }
     }
 }

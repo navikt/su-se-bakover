@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.avsluttetKlage
 import no.nav.su.se.bakover.test.fixedClock
@@ -89,6 +91,9 @@ internal class OpprettKlageTest {
             sakId = avsluttetKlage.sakId,
             klager = listOf(avsluttetKlage),
         ).first
+        val observerMock: EventObserver = mock {
+            on { handle(any()) }.then {}
+        }
         val mocks = KlageServiceMocks(
             sakRepoMock = mock {
                 on { hentSak(any<UUID>()) } doReturn sak
@@ -105,6 +110,7 @@ internal class OpprettKlageTest {
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
             },
+            observer = observerMock
         )
 
         val request = NyKlageRequest(
@@ -117,6 +123,7 @@ internal class OpprettKlageTest {
 
         val nyKlage = mocks.service.opprett(request).getOrFail()
 
+        verify(observerMock).handle(argThat { it shouldBe Event.Statistikk.Klagestatistikk.Opprettet(nyKlage) })
         nyKlage.shouldBeTypeOf<OpprettetKlage>()
         nyKlage.journalpostId shouldBe avsluttetKlage.journalpostId
     }
@@ -259,6 +266,9 @@ internal class OpprettKlageTest {
     fun `kan opprette klage`() {
         val sak = nySakMedjournalførtSøknadOgOppgave().first
 
+        val observerMock: EventObserver = mock {
+            on { handle(any()) }.then {}
+        }
         val mocks = KlageServiceMocks(
             sakRepoMock = mock {
                 on { hentSak(any<UUID>()) } doReturn sak
@@ -275,6 +285,7 @@ internal class OpprettKlageTest {
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
             },
+            observer = observerMock,
         )
         val request = NyKlageRequest(
             sakId = sak.id,
@@ -299,6 +310,7 @@ internal class OpprettKlageTest {
                 datoKlageMottatt = 1.januar(2021),
             )
             it shouldBe expectedKlage
+            verify(observerMock).handle(argThat { expected -> Event.Statistikk.Klagestatistikk.Opprettet(it) shouldBe expected })
         }
 
         verify(mocks.sakRepoMock).hentSak(sak.id)
