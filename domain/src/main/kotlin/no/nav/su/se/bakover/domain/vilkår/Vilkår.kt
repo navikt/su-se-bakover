@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag.Companion.equals
-import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
@@ -427,14 +426,7 @@ sealed class Vilkårsvurderingsresultat {
                     Avslagsgrunn.OPPHOLDSTILLATELSE
                 }
                 is OpplysningspliktVilkår -> {
-                    when (grunnlag.single().beskrivelse) {
-                        OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon -> {
-                            Avslagsgrunn.MANGLENDE_DOKUMENTASJON
-                        }
-                        OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon -> {
-                            throw IllegalStateException("Skal aldri ende opp her, kan ikke føre til avslag.")
-                        }
-                    }
+                    Avslagsgrunn.MANGLENDE_DOKUMENTASJON
                 }
                 is PersonligOppmøteVilkår -> {
                     Avslagsgrunn.PERSONLIG_OPPMØTE

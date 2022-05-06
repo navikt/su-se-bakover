@@ -1,12 +1,16 @@
 package no.nav.su.se.bakover.database.grunnlag
 
+import arrow.core.NonEmptyList
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.periode2022
 import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
+import no.nav.su.se.bakover.test.utilstrekkeligDokumentert
 import org.junit.jupiter.api.Test
 
 internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {
@@ -29,6 +33,43 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {
                         søknadsbehandling.id,
                         session,
                     ) shouldBe vilkår
+                }
+            }
+        }
+
+        @Test
+        fun `sletting av eksisterende og lagrer nytt med flere vurderingsperioder og grunnlag`() {
+            withMigratedDb { dataSource ->
+                val testDataHelper = TestDataHelper(dataSource)
+                val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+                val vilkår = tilstrekkeligDokumentert(periode = periode2021)
+
+                testDataHelper.sessionFactory.withTransaction { tx ->
+                    testDataHelper.opplysningspliktVilkårsvurderingPostgresRepo.lagre(søknadsbehandling.id, vilkår, tx)
+                }
+
+                testDataHelper.sessionFactory.withSession { session ->
+                    testDataHelper.opplysningspliktVilkårsvurderingPostgresRepo.hent(
+                        søknadsbehandling.id,
+                        session,
+                    ) shouldBe vilkår
+                }
+
+                val utilstrekkelig = utilstrekkeligDokumentert(periode = periode2022)
+
+                val flerePerioder = OpplysningspliktVilkår.Vurdert.createFromVilkårsvurderinger(
+                    NonEmptyList.fromListUnsafe(vilkår.vurderingsperioder + utilstrekkelig.vurderingsperioder)
+                )
+
+                testDataHelper.sessionFactory.withTransaction { tx ->
+                    testDataHelper.opplysningspliktVilkårsvurderingPostgresRepo.lagre(søknadsbehandling.id, flerePerioder, tx)
+                }
+
+                testDataHelper.sessionFactory.withSession { session ->
+                    testDataHelper.opplysningspliktVilkårsvurderingPostgresRepo.hent(
+                        søknadsbehandling.id,
+                        session,
+                    ) shouldBe flerePerioder
                 }
             }
         }

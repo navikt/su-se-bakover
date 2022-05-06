@@ -32,8 +32,8 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepo(
                     opplysningspliktGrunnlagRepo.lagre(behandlingId, emptyList(), tx)
                 }
                 is OpplysningspliktVilkår.Vurdert -> {
+                    opplysningspliktGrunnlagRepo.lagre(behandlingId, vilkår.grunnlag, tx)
                     vilkår.vurderingsperioder.forEach {
-                        opplysningspliktGrunnlagRepo.lagre(behandlingId, listOf(it.grunnlag), tx)
                         lagre(behandlingId, it, tx)
                     }
                 }
