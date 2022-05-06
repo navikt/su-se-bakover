@@ -4,11 +4,12 @@ import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.headers
 import io.ktor.client.request.request
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.application.Application
-import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.testApplication
 import no.finn.unleash.FakeUnleash
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
@@ -43,7 +44,6 @@ import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.web.komponenttest.testApplication
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.mockito.kotlin.mock
@@ -161,38 +161,41 @@ internal object SharedRegressionTestData {
      * Uses the local docker-database as datasource.
      * @param clock defaults to system UTC
      */
-    internal fun <R> withTestApplicationAndDockerDb(
+    internal fun withTestApplicationAndDockerDb(
         clock: Clock = Clock.systemUTC(),
-        test: TestApplicationEngine.() -> R,
-    ): R {
+        test: TestApplicationEngine.() -> Unit,
+    ) {
         val dataSource = DatabaseBuilder.newLocalDataSource()
         DatabaseBuilder.migrateDatabase(dataSource)
-        return testApplication(
-            moduleFunction = {
+
+        testApplication {
+            application {
                 testSusebakover(
                     databaseRepos = databaseRepos(
                         dataSource = dataSource,
                         clock = clock,
                     ),
                 )
-            },
-            test = test,
-        )
+            }
+            @Suppress("UNUSED_EXPRESSION")
+            test
+        }
     }
 
     internal fun withTestApplicationAndEmbeddedDb(test: TestApplicationEngine.() -> Unit) {
         withMigratedDb { dataSource ->
-            testApplication(
-                moduleFunction = {
+            testApplication {
+                application {
                     testSusebakover(
                         databaseRepos = databaseRepos(
                             dataSource = dataSource,
+                            clock = fixedClock,
                         ),
-                        clock = fixedClock,
                     )
-                },
-                test = test,
-            )
+                }
+                @Suppress("UNUSED_EXPRESSION")
+                test
+            }
         }
     }
 
@@ -221,20 +224,26 @@ internal object SharedRegressionTestData {
         )
     }
 
-    suspend fun ApplicationTestBuilder.defaultRequest(
+    fun TestApplicationEngine.defaultRequest(
         method: HttpMethod,
         uri: String,
         roller: List<Brukerrolle> = emptyList(),
-        navIdent: String,
+        navIdent: String = "Z990Lokal",
         setup: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return this.client.request(uri) {
-            this.method = method
-            this.headers {
-                append(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-                append(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken())
+        return kotlinx.coroutines.runBlocking {
+            client.request(uri) {
+                this.method = method
+                this.headers {
+                    append(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+                    append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                    append(
+                        HttpHeaders.Authorization,
+                        jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken(),
+                    )
+                }
+                setup()
             }
-            setup()
         }
     }
 }
