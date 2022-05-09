@@ -59,7 +59,7 @@ class AvslagsBrevInnholdTest {
               "halvGrunnbeløp": 10,
               "harEktefelle": false,
               "beregningsperioder": [],
-              "avslagsparagrafer": [2,3],
+              "avslagsparagrafer": [3],
               "saksbehandlerNavn": "Sak Sakesen",
               "attestantNavn": "Att Attestantsen",
               "fritekst": "Fritekst til brevet",
@@ -85,7 +85,7 @@ class AvslagsBrevInnholdTest {
     fun `mapper avslagsgrunn til korrekt paragraf`() {
         mapOf(
             Avslagsgrunn.UFØRHET to listOf(1, 2),
-            Avslagsgrunn.FLYKTNING to listOf(2, 3),
+            Avslagsgrunn.FLYKTNING to listOf(3),
             Avslagsgrunn.OPPHOLDSTILLATELSE to listOf(1, 2),
             Avslagsgrunn.PERSONLIG_OPPMØTE to listOf(17),
             Avslagsgrunn.FORMUE to listOf(8),
