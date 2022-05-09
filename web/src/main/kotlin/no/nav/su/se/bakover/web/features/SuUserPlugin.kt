@@ -18,6 +18,7 @@ import io.ktor.util.AttributeKey
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.web.AzureGroupMapper
 import no.nav.su.se.bakover.web.ErrorJson
 import no.nav.su.se.bakover.web.getGroupsFromJWT
 import no.nav.su.se.bakover.web.getNAVidentFromJwt
@@ -29,6 +30,9 @@ class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationCon
     val attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant(navIdent)
     val navn: String = getNavnFromJwt(applicationConfig, call.authentication.principal)
     val grupper = getGroupsFromJWT(applicationConfig, call.authentication.principal)
+    val roller = grupper.mapNotNull {
+        AzureGroupMapper(applicationConfig.azure.groups).fromAzureGroup(it)
+    }
 
     companion object {
         private val AttributeKey = AttributeKey<SuUserContext>("SuUserContext")

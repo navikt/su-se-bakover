@@ -18,10 +18,9 @@ suspend fun PipelineContext<Unit, ApplicationCall>.authorize(
          * Det er løgn at kallet til [suUserContext] alltid er trygt (null-safe) her. Det er en forutsetning at vi har vært innom
          * [brukerinfoPlugin] og satt den først.
          */
-        val grupper = call.suUserContext.grupper.map { Brukerrolle.valueOf(it) }
-        val containsRolle = autoriserteRoller.any { grupper.contains(it) }
+        val autorisert = autoriserteRoller.any { call.suUserContext.roller.contains(it) }
 
-        if (!containsRolle) {
+        if (!autorisert) {
             call.respond(
                 status = HttpStatusCode.Forbidden,
                 message = ErrorJson("Bruker mangler en av de tillatte rollene: ${autoriserteRoller.toList()}"),
