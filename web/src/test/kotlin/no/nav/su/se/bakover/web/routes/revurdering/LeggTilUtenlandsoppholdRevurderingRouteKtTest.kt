@@ -79,7 +79,7 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
             }.apply {
                 status shouldBe HttpStatusCode.OK
                 // skal vi sjekke JSON ?
-                //kanskje?
+                // kanskje?
             }
         }
     }

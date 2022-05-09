@@ -151,7 +151,7 @@ internal class SakRoutesKtTest {
                                 "harÅpenSøknad": true,
                                 "iverksattInnvilgetStønadsperiode": null
                             }
-                        """.trimIndent()
+                            """.trimIndent()
                         }
                     }
                 }

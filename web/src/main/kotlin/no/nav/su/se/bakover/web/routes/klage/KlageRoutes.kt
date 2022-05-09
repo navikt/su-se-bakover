@@ -336,7 +336,6 @@ internal fun Route.klageRoutes(
         }
     }
 
-
     data class Body(val grunn: String, val kommentar: String) {
         fun toRequest(
             klageId: UUID,
@@ -348,45 +347,45 @@ internal fun Route.klageRoutes(
                 grunn = Either.catch { Grunn.valueOf(grunn) }.map {
                     when (it) {
                         Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT -> Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT
-                            Grunn.BEREGNINGEN_ER_FEIL -> Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL
-                            Grunn.DOKUMENTASJON_MANGLER -> Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER
-                            Grunn.VEDTAKSBREVET_ER_FEIL -> Attestering.Underkjent.Grunn.VEDTAKSBREVET_ER_FEIL
-                            Grunn.ANDRE_FORHOLD -> Attestering.Underkjent.Grunn.ANDRE_FORHOLD
-                        }
-                    }.getOrElse {
-                        return BadRequest.errorJson(
-                            "Ugyldig underkjennelsesgrunn",
-                            "ugyldig_grunn_for_underkjenning",
-                        ).left()
-                    },
-                    kommentar = kommentar,
-                ).right()
-            }
+                        Grunn.BEREGNINGEN_ER_FEIL -> Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL
+                        Grunn.DOKUMENTASJON_MANGLER -> Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER
+                        Grunn.VEDTAKSBREVET_ER_FEIL -> Attestering.Underkjent.Grunn.VEDTAKSBREVET_ER_FEIL
+                        Grunn.ANDRE_FORHOLD -> Attestering.Underkjent.Grunn.ANDRE_FORHOLD
+                    }
+                }.getOrElse {
+                    return BadRequest.errorJson(
+                        "Ugyldig underkjennelsesgrunn",
+                        "ugyldig_grunn_for_underkjenning",
+                    ).left()
+                },
+                kommentar = kommentar,
+            ).right()
         }
-        post("$klagePath/{klageId}/underkjenn") {
-            authorize(Brukerrolle.Attestant) {
-                call.withKlageId { klageId ->
-                    call.withBody<Body> { body ->
-                        body.toRequest(klageId, call.suUserContext.attestant).map {
-                            klageService.underkjenn(it).map { vurdertKlage ->
-                                call.svar(Resultat.json(OK, serialize(vurdertKlage.toJson())))
-                            }.mapLeft { error ->
-                                call.svar(
-                                    when (error) {
-                                        KunneIkkeUnderkjenne.FantIkkeKlage -> fantIkkeKlage
-                                        is KunneIkkeUnderkjenne.UgyldigTilstand -> ugyldigTilstand(error.fra, error.til)
-                                        KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
-                                        KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
-                                    },
-                                )
-                            }
-                        }.mapLeft {
-                            call.svar(it)
+    }
+    post("$klagePath/{klageId}/underkjenn") {
+        authorize(Brukerrolle.Attestant) {
+            call.withKlageId { klageId ->
+                call.withBody<Body> { body ->
+                    body.toRequest(klageId, call.suUserContext.attestant).map {
+                        klageService.underkjenn(it).map { vurdertKlage ->
+                            call.svar(Resultat.json(OK, serialize(vurdertKlage.toJson())))
+                        }.mapLeft { error ->
+                            call.svar(
+                                when (error) {
+                                    KunneIkkeUnderkjenne.FantIkkeKlage -> fantIkkeKlage
+                                    is KunneIkkeUnderkjenne.UgyldigTilstand -> ugyldigTilstand(error.fra, error.til)
+                                    KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+                                    KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
+                                },
+                            )
                         }
+                    }.mapLeft {
+                        call.svar(it)
                     }
                 }
             }
         }
+    }
 
     post("$klagePath/{klageId}/oversend") {
         authorize(Brukerrolle.Attestant) {
@@ -447,7 +446,6 @@ internal fun Route.klageRoutes(
             }
         }
     }
-
 
     post("$klagePath/{klageId}/avslutt") {
         data class Body(val begrunnelse: String)

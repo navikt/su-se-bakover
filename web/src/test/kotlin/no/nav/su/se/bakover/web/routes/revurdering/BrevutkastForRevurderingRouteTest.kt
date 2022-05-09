@@ -170,5 +170,3 @@ internal class BrevutkastForRevurderingRouteTest {
         }
     }
 }
-
-

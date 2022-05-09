@@ -66,7 +66,7 @@ class NyBehandlingRoutesTest {
             on { opprett(any()) } doReturn søknadsbehandling.right()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = services.copy(søknadsbehandling = saksbehandlingServiceMock))
             }

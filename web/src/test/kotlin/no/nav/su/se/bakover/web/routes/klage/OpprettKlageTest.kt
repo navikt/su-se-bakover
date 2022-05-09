@@ -139,7 +139,6 @@ internal class OpprettKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
                 this.bodyAsText() shouldBe body
             }
-
         }
     }
 
@@ -183,12 +182,11 @@ internal class OpprettKlageTest {
                   "klagevedtakshistorikk": [],
                   "avsluttet": "KAN_AVSLUTTES"
                 }
-                """.trimIndent(),
+                    """.trimIndent(),
                     bodyAsText(),
                     true,
                 )
             }
-
         }
     }
 }

@@ -55,7 +55,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             }
@@ -102,7 +102,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             }
@@ -151,7 +151,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             }
@@ -200,7 +200,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             }
@@ -249,7 +249,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             }
@@ -298,7 +298,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
             }

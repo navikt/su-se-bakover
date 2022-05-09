@@ -367,7 +367,6 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-
     post("$behandlingPath/{behandlingId}/simuler") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
@@ -436,7 +435,6 @@ internal fun Route.søknadsbehandlingRoutes(
         }
     }
 
-
     fun kunneIkkeIverksetteMelding(value: KunneIkkeIverksette): Resultat {
         return when (value) {
             is KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
@@ -448,36 +446,36 @@ internal fun Route.søknadsbehandlingRoutes(
             KunneIkkeIverksette.HarBlittAnnullertAvEnAnnen -> avkortingErAlleredeAnnullert
             KunneIkkeIverksette.KunneIkkeOpprettePlanlagtKontrollsamtale -> InternalServerError.errorJson(
                 "Kunne ikke opprette kontrollsamtale",
-                    "kunne_ikke_opprette_kontrollsamtale",
+                "kunne_ikke_opprette_kontrollsamtale",
+            )
+            KunneIkkeIverksette.LagringFeilet -> lagringFeilet
+        }
+    }
+
+    patch("$behandlingPath/{behandlingId}/iverksett") {
+        authorize(Brukerrolle.Attestant) {
+            call.withBehandlingId { behandlingId ->
+
+                val navIdent = call.suUserContext.navIdent
+
+                søknadsbehandlingService.iverksett(
+                    IverksettRequest(
+                        behandlingId = behandlingId,
+                        attestering = Attestering.Iverksatt(Attestant(navIdent), Tidspunkt.now(clock)),
+                    ),
+                ).fold(
+                    {
+                        call.svar(kunneIkkeIverksetteMelding(it))
+                    },
+                    {
+                        call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                        SuMetrics.vedtakIverksatt(SuMetrics.Behandlingstype.SØKNAD)
+                        call.svar(OK.jsonBody(it))
+                    },
                 )
-                KunneIkkeIverksette.LagringFeilet -> lagringFeilet
             }
         }
-
-        patch("$behandlingPath/{behandlingId}/iverksett") {
-            authorize(Brukerrolle.Attestant) {
-                call.withBehandlingId { behandlingId ->
-
-                    val navIdent = call.suUserContext.navIdent
-
-                    søknadsbehandlingService.iverksett(
-                        IverksettRequest(
-                            behandlingId = behandlingId,
-                            attestering = Attestering.Iverksatt(Attestant(navIdent), Tidspunkt.now(clock)),
-                        ),
-                    ).fold(
-                        {
-                            call.svar(kunneIkkeIverksetteMelding(it))
-                        },
-                        {
-                            call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
-                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                            SuMetrics.vedtakIverksatt(SuMetrics.Behandlingstype.SØKNAD)
-                            call.svar(OK.jsonBody(it))
-                        },
-                    )
-                }
-            }
     }
 
     data class UnderkjennBody(

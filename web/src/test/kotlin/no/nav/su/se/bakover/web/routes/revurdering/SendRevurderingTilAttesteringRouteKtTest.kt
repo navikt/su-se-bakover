@@ -50,7 +50,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
 
     @Test
     fun `uautoriserte kan ikke sende revurdering til attestering`() {
-        testApplication{
+        testApplication {
             application {
                 testSusebakover()
             }
@@ -108,7 +108,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             }
@@ -155,7 +155,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             }
@@ -204,7 +204,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             }
@@ -307,7 +307,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             on { sendTilAttestering(any()) } doReturn error.left()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             }

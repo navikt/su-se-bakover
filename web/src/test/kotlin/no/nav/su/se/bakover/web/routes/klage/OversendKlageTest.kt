@@ -183,7 +183,6 @@ internal class OversendKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
                 bodyAsText() shouldBe body
             }
-
         }
     }
 

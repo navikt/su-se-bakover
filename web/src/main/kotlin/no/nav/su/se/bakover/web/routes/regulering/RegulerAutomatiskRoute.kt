@@ -20,8 +20,8 @@ private data class Request(val startDato: LocalDate)
 internal fun Route.regulerAutomatisk(
     reguleringService: ReguleringService,
 ) {
-        post("$reguleringPath/automatisk") {
-    authorize(Brukerrolle.Drift) {
+    post("$reguleringPath/automatisk") {
+        authorize(Brukerrolle.Drift) {
             call.withBody<Request> {
                 CoroutineScope(Dispatchers.IO).launch {
                     reguleringService.startRegulering(it.startDato)

@@ -177,7 +177,7 @@ internal class AvsluttKlageTest {
                   "klagevedtakshistorikk": [],
                   "avsluttet": "ER_AVSLUTTET"
                 }
-                """.trimIndent(),
+                    """.trimIndent(),
                     this.bodyAsText(),
                     true,
                 )

@@ -53,7 +53,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
 
     @Test
     fun `uautoriserte kan ikke oppdatere revurderingsperioden`() {
-        testApplication{
+        testApplication {
             application {
                 testSusebakover()
             }
@@ -103,7 +103,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             on { oppdaterRevurdering(any()) } doReturn opprettetRevurdering.right()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             }
@@ -219,7 +219,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             on { oppdaterRevurdering(any()) } doReturn error.left()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             }

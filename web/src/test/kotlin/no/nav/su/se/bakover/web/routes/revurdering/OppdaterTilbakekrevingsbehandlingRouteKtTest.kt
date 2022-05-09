@@ -24,8 +24,8 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
 
     @Test
     fun `oppdaterer tilbakekrevingsbehandling`() {
-        testApplication{
-            application{
+        testApplication {
+            application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
                         revurdering = mock {
@@ -65,8 +65,8 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
     @Test
     fun `sjekker tilgang`() {
         (Brukerrolle.values().toList() - Brukerrolle.Saksbehandler).forEach {
-            testApplication{
-                application{
+            testApplication {
+                application {
                     testSusebakover()
                 }
                 defaultRequest(
@@ -90,7 +90,7 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
 
     @Test
     fun `ugyldig input`() {
-        testApplication{
+        testApplication {
             application {
                 testSusebakover()
             }

@@ -69,13 +69,12 @@ internal class NøkkeltallRoutesKtTest {
                     "antallUnikePersoner": 1,
                     "løpendeSaker": 0
                 }
-            """.trimIndent()
+                """.trimIndent()
                 val actual = bodyAsText()
 
                 status shouldBe HttpStatusCode.OK
                 JSONAssert.assertEquals(expected, actual, true)
             }
-
         }
     }
 }

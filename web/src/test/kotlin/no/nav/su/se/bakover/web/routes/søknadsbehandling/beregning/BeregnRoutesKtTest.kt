@@ -131,11 +131,12 @@ internal class BeregnRoutesKtTest {
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 ),
             )
-            testApplication { defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/blabla/beregn",
-                listOf(Brukerrolle.Saksbehandler),
-            ) {
+            testApplication {
+                defaultRequest(
+                    HttpMethod.Post,
+                    "$sakPath/${objects.sak.id}/behandlinger/blabla/beregn",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
                     application {
                         testSusebakover(
                             databaseRepos = repos,

@@ -51,7 +51,6 @@ internal class PersonRoutesKtTest {
             }.apply {
                 status shouldBe HttpStatusCode.Unauthorized
             }
-
         }
     }
 
@@ -71,12 +70,11 @@ internal class PersonRoutesKtTest {
                   "message": "Inneholder ikke et gyldig fødselsnummer",
                   "code": "ikke_gyldig_fødselsnummer"
                   }
-                """.trimIndent(),
+                    """.trimIndent(),
                     bodyAsText(),
                     true,
                 )
             }
-
         }
     }
 
@@ -141,7 +139,6 @@ internal class PersonRoutesKtTest {
                 status shouldBe OK
                 JSONAssert.assertEquals(expectedResponseJson, bodyAsText(), true)
             }
-
         }
     }
 
@@ -172,12 +169,11 @@ internal class PersonRoutesKtTest {
                   "message": "Feil ved oppslag på person",
                   "code": "feil_ved_oppslag_person"
                   }
-                """.trimIndent(),
+                    """.trimIndent(),
                     bodyAsText(),
                     true,
                 )
             }
-
         }
     }
 
@@ -208,12 +204,11 @@ internal class PersonRoutesKtTest {
                   "message": "Fant ikke person",
                   "code": "fant_ikke_person"
                   }
-                """.trimIndent(),
+                    """.trimIndent(),
                     bodyAsText(),
                     true,
                 )
             }
-
         }
     }
 
@@ -252,11 +247,10 @@ internal class PersonRoutesKtTest {
                   "message": "Ikke tilgang til å se person",
                   "code": "ikke_tilgang_til_person"
                 }
-                """.trimIndent(),
+                    """.trimIndent(),
                     bodyAsText(), true,
                 )
             }
-
         }
     }
 }

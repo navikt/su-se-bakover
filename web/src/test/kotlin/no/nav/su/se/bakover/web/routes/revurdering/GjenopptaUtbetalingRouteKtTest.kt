@@ -38,7 +38,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
     @Test
     fun `svarer med 201 ved påbegynt gjenopptak av utbetaling`() {
         val enRevurdering = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse().second
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
@@ -72,7 +72,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
     @Test
     fun `svarer med 400 ved forsøk å iverksetting av ugyldig revurdering`() {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
@@ -103,7 +103,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
     @Test
     fun `svarer med 500 hvis utbetaling feiler`() {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
@@ -137,7 +137,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
         val simulertRevurdering = eksisterende.second
         val sisteVedtak = eksisterende.first.vedtakListe.last() as VedtakSomKanRevurderes
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
@@ -183,7 +183,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
     fun `svarer med 400 ved ugyldig input`() {
         val enRevurdering = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
             .second
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
@@ -217,7 +217,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
 
     @Test
     fun `svarer med 500 ved forsøk på gjenopptak av opphørt periode`() {
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(

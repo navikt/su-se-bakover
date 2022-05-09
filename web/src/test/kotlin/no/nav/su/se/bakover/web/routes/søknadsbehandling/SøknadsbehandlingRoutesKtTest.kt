@@ -510,11 +510,9 @@ internal class SøknadsbehandlingRoutesKtTest {
                                     navIdent = navIdentSaksbehandler,
                                 ).asBearerToken(),
                             )
-
                         }.apply {
                             status shouldBe HttpStatusCode.Forbidden
                         }
-
                     }
                 }
             }
@@ -711,9 +709,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                         "grunn": "BEREGNINGEN_ER_FEIL",
                         "kommentar": "Ser fel ut. Men denna borde bli forbidden eftersom attestant og saksbehandler er samme."
                     }
-                            """.trimIndent(),
+                                """.trimIndent(),
                             )
-
                         }.apply {
                             status shouldBe HttpStatusCode.Forbidden
                         }

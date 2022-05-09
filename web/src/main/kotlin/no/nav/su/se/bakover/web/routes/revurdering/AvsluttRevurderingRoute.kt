@@ -29,29 +29,29 @@ import no.nav.su.se.bakover.web.withRevurderingId
 internal fun Route.avsluttRevurderingRoute(
     revurderingService: RevurderingService,
 ) {
-        data class AvsluttRevurderingBody(
-            val begrunnelse: String,
-            val fritekst: String?,
-        )
-        post("$revurderingPath/{revurderingId}/avslutt") {
-            authorize(Brukerrolle.Saksbehandler) {
-                call.withBody<AvsluttRevurderingBody> { body ->
-                    call.withRevurderingId { revurderingId ->
-                        revurderingService.avsluttRevurdering(
-                            revurderingId = revurderingId,
-                            begrunnelse = body.begrunnelse,
-                            fritekst = body.fritekst,
-                        ).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = {
-                                call.sikkerlogg("Avsluttet behandling av revurdering med revurderingId $revurderingId")
-                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
-                            },
-                        )
-                    }
+    data class AvsluttRevurderingBody(
+        val begrunnelse: String,
+        val fritekst: String?,
+    )
+    post("$revurderingPath/{revurderingId}/avslutt") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withBody<AvsluttRevurderingBody> { body ->
+                call.withRevurderingId { revurderingId ->
+                    revurderingService.avsluttRevurdering(
+                        revurderingId = revurderingId,
+                        begrunnelse = body.begrunnelse,
+                        fritekst = body.fritekst,
+                    ).fold(
+                        ifLeft = { call.svar(it.tilResultat()) },
+                        ifRight = {
+                            call.sikkerlogg("Avsluttet behandling av revurdering med revurderingId $revurderingId")
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                        },
+                    )
                 }
             }
         }
+    }
 
     data class BrevutkastForAvslutting(
         val fritekst: String?,

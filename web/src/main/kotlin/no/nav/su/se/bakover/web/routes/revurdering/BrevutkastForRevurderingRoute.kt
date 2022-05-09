@@ -20,25 +20,25 @@ import no.nav.su.se.bakover.web.withRevurderingId
 internal fun Route.brevutkastForRevurdering(
     revurderingService: RevurderingService
 ) {
-        data class Body(val fritekst: String?)
+    data class Body(val fritekst: String?)
 
-        post("$revurderingPath/{revurderingId}/brevutkast") {
-            authorize(Brukerrolle.Saksbehandler) {
-                call.withRevurderingId { revurderingId ->
-                    call.withBody<Body> { body ->
-                        val revurdering = revurderingService.hentRevurdering(revurderingId)
-                            ?: return@withRevurderingId call.svar(fantIkkeRevurdering)
+    post("$revurderingPath/{revurderingId}/brevutkast") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withRevurderingId { revurderingId ->
+                call.withBody<Body> { body ->
+                    val revurdering = revurderingService.hentRevurdering(revurderingId)
+                        ?: return@withRevurderingId call.svar(fantIkkeRevurdering)
 
-                        revurderingService.lagBrevutkastForRevurdering(revurderingId, body.fritekst).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = {
-                                call.sikkerlogg("Laget brevutkast for revurdering med id $revurderingId")
-                                call.audit(revurdering.fnr, AuditLogEvent.Action.ACCESS, revurderingId)
-                                call.respondBytes(it, ContentType.Application.Pdf)
-                            },
-                        )
-                    }
+                    revurderingService.lagBrevutkastForRevurdering(revurderingId, body.fritekst).fold(
+                        ifLeft = { call.svar(it.tilResultat()) },
+                        ifRight = {
+                            call.sikkerlogg("Laget brevutkast for revurdering med id $revurderingId")
+                            call.audit(revurdering.fnr, AuditLogEvent.Action.ACCESS, revurderingId)
+                            call.respondBytes(it, ContentType.Application.Pdf)
+                        },
+                    )
                 }
             }
+        }
     }
 }

@@ -139,7 +139,6 @@ internal class UnderkjennKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
                 bodyAsText() shouldBe body
             }
-
         }
     }
 
@@ -201,12 +200,11 @@ internal class UnderkjennKlageTest {
                   "klagevedtakshistorikk": [],
                   "avsluttet": "KAN_AVSLUTTES"
                 }
-                """.trimIndent(),
+                    """.trimIndent(),
                     bodyAsText(),
                     true,
                 )
             }
-
         }
     }
 }

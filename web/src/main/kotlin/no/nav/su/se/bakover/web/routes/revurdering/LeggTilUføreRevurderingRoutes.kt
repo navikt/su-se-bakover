@@ -45,7 +45,7 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
 }
 
 internal fun LeggTilUførevurderingerRequest.UgyldigUførevurdering.tilResultat() =
-    when(this){
+    when (this) {
         LeggTilUførevurderingerRequest.UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat -> {
             Feilresponser.alleVurderingsperioderMåHaSammeResultat
         }

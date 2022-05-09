@@ -91,7 +91,6 @@ internal class KontrollsamtaleRoutesKtTest {
             ).apply {
                 status shouldBe HttpStatusCode.OK
             }
-
         }
     }
 
@@ -120,7 +119,6 @@ internal class KontrollsamtaleRoutesKtTest {
                 status shouldBe HttpStatusCode.OK
                 bodyAsText() shouldBe "null"
             }
-
         }
     }
 
@@ -147,7 +145,6 @@ internal class KontrollsamtaleRoutesKtTest {
             ).apply {
                 status shouldBe HttpStatusCode.InternalServerError
             }
-
         }
     }
 }

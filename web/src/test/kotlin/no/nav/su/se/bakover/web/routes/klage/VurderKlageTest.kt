@@ -155,7 +155,6 @@ internal class VurderKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
                 bodyAsText() shouldBe body
             }
-
         }
     }
 
@@ -199,12 +198,11 @@ internal class VurderKlageTest {
                   "klagevedtakshistorikk": [],
                   "avsluttet": "KAN_AVSLUTTES"
                 }
-                """.trimIndent(),
+                    """.trimIndent(),
                     bodyAsText(),
                     true,
                 )
             }
-
         }
     }
 }

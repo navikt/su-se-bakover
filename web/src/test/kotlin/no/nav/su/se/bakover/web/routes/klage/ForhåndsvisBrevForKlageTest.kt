@@ -166,7 +166,6 @@ internal class ForhåndsvisBrevForKlageTest {
                 this.readBytes() shouldBe pdfAsBytes
                 this.contentType() shouldBe ContentType.Application.Pdf
             }
-
         }
     }
 }

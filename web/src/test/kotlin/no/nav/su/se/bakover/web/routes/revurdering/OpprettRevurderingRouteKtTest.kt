@@ -51,7 +51,7 @@ internal class OpprettRevurderingRouteKtTest {
 
     @Test
     fun `uautoriserte kan ikke opprette revurdering`() {
-        testApplication{
+        testApplication {
             application {
                 testSusebakover()
             }
@@ -101,7 +101,7 @@ internal class OpprettRevurderingRouteKtTest {
             on { opprettRevurdering(any()) } doReturn opprettetRevurdering.right()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             }
@@ -226,7 +226,7 @@ internal class OpprettRevurderingRouteKtTest {
             on { opprettRevurdering(any()) } doReturn error.left()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             }

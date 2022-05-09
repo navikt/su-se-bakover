@@ -132,7 +132,6 @@ internal class VilkårsvurderKlageTest {
                 this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
                 bodyAsText() shouldBe body
             }
-
         }
     }
 
@@ -176,12 +175,11 @@ internal class VilkårsvurderKlageTest {
                   "klagevedtakshistorikk": [],
                   "avsluttet": "KAN_AVSLUTTES"
                 }
-                """.trimIndent(),
+                    """.trimIndent(),
                     bodyAsText(),
                     true,
                 )
             }
-
         }
     }
 }

@@ -53,7 +53,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
 
     @Test
     fun `uautoriserte kan ikke beregne og simulere revurdering`() {
-        testApplication{
+        testApplication {
             application {
                 testSusebakover()
             }
@@ -124,7 +124,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             } doReturn RevurderingOgFeilmeldingerResponse(simulertRevurdering).right()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             }
@@ -221,7 +221,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             on { beregnOgSimuler(any(), any()) } doReturn error.left()
         }
 
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
             }

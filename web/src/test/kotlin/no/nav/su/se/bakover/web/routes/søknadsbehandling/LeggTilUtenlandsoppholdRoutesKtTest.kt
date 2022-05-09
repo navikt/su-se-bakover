@@ -27,7 +27,7 @@ import java.util.UUID
 internal class LeggTilUtenlandsoppholdRoutesKtTest {
     @Test
     fun `svarer med feilmelding ved ugyldig body`() {
-        testApplication{
+        testApplication {
             application {
                 testSusebakover()
             }
@@ -52,10 +52,11 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
 
     @Test
     fun `svarer med feilmelding fra service`() {
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(
-                    services = TestServicesBuilder.services().copy(søknadsbehandling = mock {
+                    services = TestServicesBuilder.services().copy(
+                        søknadsbehandling = mock {
                             on { leggTilUtenlandsopphold(any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
                         },
                     ),
@@ -85,10 +86,11 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
     @Test
     fun `svarer med søknadsbehandling ved suksess`() {
         val vilkårsvurdert = søknadsbehandlingVilkårsvurdertInnvilget().second
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(
-                    services = TestServicesBuilder.services().copy(søknadsbehandling = mock {
+                    services = TestServicesBuilder.services().copy(
+                        søknadsbehandling = mock {
                             on { leggTilUtenlandsopphold(any()) } doReturn vilkårsvurdert.right()
                         },
                     ),
@@ -118,7 +120,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
 
     @Test
     fun `feilmelding for ugyldig periode`() {
-        testApplication{
+        testApplication {
             application {
                 testSusebakover(services = TestServicesBuilder.services())
             }
