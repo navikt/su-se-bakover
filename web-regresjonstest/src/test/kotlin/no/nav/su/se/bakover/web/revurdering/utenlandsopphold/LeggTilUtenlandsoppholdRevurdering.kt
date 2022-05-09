@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.søknadsbehandling.opphold
+package no.nav.su.se.bakover.web.revurdering.utenlandsopphold
 
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ContentType
@@ -11,20 +11,15 @@ import io.ktor.server.testing.setBody
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-/**
- * - [fraOgMed] må stemme overens med stønadsperiodens fraOgMed
- * - [tilOgMed] må stemme overens med stønadsperiodens tilOgMed
- * - [vurdering] se [no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus]
- */
-internal fun TestApplicationEngine.leggTilUtenlandsopphold(
+internal fun TestApplicationEngine.leggTilUtenlandsoppholdRevurdering(
     sakId: String,
     behandlingId: String,
     fraOgMed: String = "2021-01-01",
     tilOgMed: String = "2021-12-31",
     vurdering: String = "SkalHoldeSegINorge",
-    begrunnelse: String = "Vurdering av utenlandsopphold er lagt til automatisk av LeggTilUførhet.kt",
+    begrunnelse: String = "Revurdering av utenlandsopphold",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
-    url: String = "/saker/$sakId/behandlinger/$behandlingId/utenlandsopphold",
+    url: String = "/saker/$sakId/revurderinger/$behandlingId/utenlandsopphold",
 ): String {
     return defaultRequest(
         HttpMethod.Post,
@@ -35,18 +30,22 @@ internal fun TestApplicationEngine.leggTilUtenlandsopphold(
         setBody(
             //language=JSON
             """
-                  {
-                    "periode":{
-                      "fraOgMed":"$fraOgMed",
-                      "tilOgMed":"$tilOgMed"
-                    },
-                    "status":"$vurdering",
-                    "begrunnelse":"$begrunnelse"
-                  }
+                {
+                    "utenlandsopphold" : [ 
+                       {
+                            "periode": {
+                                "fraOgMed": "$fraOgMed", 
+                                "tilOgMed": "$tilOgMed"
+                              },
+                            "status": "$vurdering",
+                            "begrunnelse": "$begrunnelse"
+                        }
+                    ]
+                }
             """.trimIndent(),
         )
     }.apply {
-        response.status() shouldBe HttpStatusCode.Created
+        response.status() shouldBe HttpStatusCode.OK
         response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
     }.response.content!!
 }
