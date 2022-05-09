@@ -1,22 +1,31 @@
 package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.endOfMonth
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
+import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
@@ -35,6 +44,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
@@ -42,12 +52,13 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
     @Test
     fun `kan avslå en søknad uten påbegynt behandling`() {
-        val (sak, uavklart) = søknadsbehandlingVilkårsvurdertUavklart()
+        val (sak, uavklart) = søknadsbehandlingVilkårsvurdertUavklart(stønadsperiode = null)
 
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { opprett(any()) } doReturn uavklart.right()
@@ -86,6 +97,11 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 ),
             ).getOrFail("$serviceAndMocks")
 
+            val expectedPeriode = Periode.create(
+                fraOgMed = LocalDate.now(serviceAndMocks.clock).startOfMonth(),
+                tilOgMed = LocalDate.now(serviceAndMocks.clock).endOfMonth(),
+            )
+
             val expectedSøknadsbehandling = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
                 id = uavklart.id,
                 opprettet = uavklart.opprettet,
@@ -105,12 +121,31 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     ),
                 ),
                 fritekstTilBrev = "finfin tekst",
-                stønadsperiode = uavklart.stønadsperiode!!,
+                stønadsperiode = Stønadsperiode.create(
+                    periode = expectedPeriode,
+                    begrunnelse = "",
+                ),
                 grunnlagsdata = uavklart.grunnlagsdata,
-                vilkårsvurderinger = uavklart.vilkårsvurderinger,
+                vilkårsvurderinger = uavklart.vilkårsvurderinger.copy(
+                    opplysningsplikt = OpplysningspliktVilkår.Vurdert.tryCreate(
+                        vurderingsperioder = nonEmptyListOf(
+                            VurderingsperiodeOpplysningsplikt.create(
+                                id = UUID.randomUUID(),
+                                opprettet = Tidspunkt.now(fixedClock),
+                                grunnlag = Opplysningspliktgrunnlag(
+                                    id = UUID.randomUUID(),
+                                    opprettet = Tidspunkt.now(fixedClock),
+                                    periode = expectedPeriode,
+                                    beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
+                                ),
+                                periode = expectedPeriode,
+                            ),
+                        ),
+                    ).getOrFail(),
+                ),
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
-                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
-                )
+                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
+                ),
             )
 
             val expectedAvslagVilkår = Avslagsvedtak.AvslagVilkår(
@@ -119,16 +154,24 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 behandling = expectedSøknadsbehandling,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                 attestant = NavIdentBruker.Attestant("saksemannen"),
-                periode = expectedSøknadsbehandling.periode,
+                periode = expectedPeriode,
                 avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON),
             )
 
             verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(søknadId)
             verify(serviceAndMocks.søknadsbehandlingService).opprett(SøknadsbehandlingService.OpprettRequest(søknadId = søknadId))
             verify(serviceAndMocks.søknadsbehandlingService).lagre(
-                argThat { it.søknadsbehandling shouldBe expectedSøknadsbehandling },
+                argThat {
+                    it.søknadsbehandling.shouldBeEqualToIgnoringFields(
+                        expectedSøknadsbehandling,
+                        Søknadsbehandling::vilkårsvurderinger,
+                    )
+
+                    it.søknadsbehandling.vilkårsvurderinger.erLik(expectedSøknadsbehandling.vilkårsvurderinger)
+                },
                 argThat { TestSessionFactory.transactionContext },
             )
+
             val actualVedtak = argumentCaptor<Vedtak>()
             verify(serviceAndMocks.vedtakService).lagre(
                 actualVedtak.capture(),
@@ -202,6 +245,11 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 ),
             ).getOrFail("$serviceAndMocks")
 
+            val expectedPeriode = Periode.create(
+                fraOgMed = LocalDate.now(serviceAndMocks.clock).startOfMonth(),
+                tilOgMed = LocalDate.now(serviceAndMocks.clock).endOfMonth(),
+            )
+
             val expectedSøknadsbehandling = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
                 id = vilkårsvurdertInnvilget.id,
                 opprettet = vilkårsvurdertInnvilget.opprettet,
@@ -223,10 +271,26 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 fritekstTilBrev = "finfin tekst",
                 stønadsperiode = vilkårsvurdertInnvilget.stønadsperiode,
                 grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger,
+                vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger.copy(
+                    opplysningsplikt = OpplysningspliktVilkår.Vurdert.tryCreate(
+                        vurderingsperioder = nonEmptyListOf(
+                            VurderingsperiodeOpplysningsplikt.create(
+                                id = UUID.randomUUID(),
+                                opprettet = Tidspunkt.now(fixedClock),
+                                grunnlag = Opplysningspliktgrunnlag(
+                                    id = UUID.randomUUID(),
+                                    opprettet = Tidspunkt.now(fixedClock),
+                                    periode = expectedPeriode,
+                                    beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
+                                ),
+                                periode = expectedPeriode,
+                            ),
+                        ),
+                    ).getOrFail(),
+                ),
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
-                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
-                )
+                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
+                ),
             )
 
             val expectedAvslagVilkår = Avslagsvedtak.AvslagVilkår(
@@ -241,7 +305,13 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
 
             verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(søknadId)
             verify(serviceAndMocks.søknadsbehandlingService).lagre(
-                argThat { it.søknadsbehandling shouldBe expectedSøknadsbehandling },
+                argThat {
+                    it.søknadsbehandling.shouldBeEqualToIgnoringFields(
+                        expectedSøknadsbehandling,
+                        Søknadsbehandling::vilkårsvurderinger,
+                    )
+                    it.søknadsbehandling.vilkårsvurderinger.erLik(expectedSøknadsbehandling.vilkårsvurderinger)
+                },
                 argThat { TestSessionFactory.transactionContext },
             )
             val actualVedtak = argumentCaptor<Vedtak>()
@@ -289,20 +359,22 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             on { hentForSøknad(søknadId) } doReturn iverksatt
         }
 
-        AvslåSøknadServiceAndMocks(
-            søknadsbehandlingService = søknadsbehandlingServiceMock,
-            clock = fixedClock,
-        ).let {
-            it.service.avslå(
-                AvslåManglendeDokumentasjonRequest(
-                    søknadId,
-                    saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
-                    fritekstTilBrev = "finfin tekst",
-                ),
-            ) shouldBe KunneIkkeAvslåSøknad.SøknadsbehandlingIUgyldigTilstandForAvslag.left()
+        assertThrows<IllegalArgumentException> {
+            AvslåSøknadServiceAndMocks(
+                søknadsbehandlingService = søknadsbehandlingServiceMock,
+                clock = fixedClock,
+            ).let {
+                it.service.avslå(
+                    AvslåManglendeDokumentasjonRequest(
+                        søknadId,
+                        saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
+                        fritekstTilBrev = "finfin tekst",
+                    ),
+                )
 
-            verify(søknadsbehandlingServiceMock).hentForSøknad(søknadId)
-            it.verifyNoMoreInteractions()
+                verify(søknadsbehandlingServiceMock).hentForSøknad(søknadId)
+                it.verifyNoMoreInteractions()
+            }
         }
     }
 

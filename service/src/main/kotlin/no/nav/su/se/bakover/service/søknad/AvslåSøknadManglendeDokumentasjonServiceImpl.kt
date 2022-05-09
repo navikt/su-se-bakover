@@ -3,13 +3,25 @@ package no.nav.su.se.bakover.service.søknad
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
+import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -17,6 +29,8 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
+import java.time.LocalDate
+import java.util.UUID
 
 internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
     private val clock: Clock,
@@ -63,13 +77,21 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
         request: AvslåManglendeDokumentasjonRequest,
         søknadsbehandling: Søknadsbehandling,
     ): Either<KunneIkkeAvslåSøknad, Sak> {
+        val avslåttSøknadsbehandling = søknadsbehandling
+            .leggTilStønadsperiodeHvisNull()
+            .avslåPgaManglendeDok()
+            .tilAttestering(
+                saksbehandler = request.saksbehandler,
+                fritekstTilBrev = request.fritekstTilBrev,
+            )
+            .tilIverksatt(
+                attestering = Attestering.Iverksatt(
+                    attestant = NavIdentBruker.Attestant(request.saksbehandler.navIdent),
+                    opprettet = Tidspunkt.now(clock),
+                ),
+            )
 
-        val avslag = AvslagManglendeDokumentasjon.tryCreate(
-            søknadsbehandling = søknadsbehandling,
-            saksbehandler = request.saksbehandler,
-            fritekstTilBrev = request.fritekstTilBrev,
-            clock = clock,
-        ).getOrHandle { return KunneIkkeAvslåSøknad.SøknadsbehandlingIUgyldigTilstandForAvslag.left() }
+        val avslag = AvslagManglendeDokumentasjon(avslåttSøknadsbehandling)
 
         val avslagsvedtak: Avslagsvedtak.AvslagVilkår = Avslagsvedtak.fromAvslagManglendeDokumentasjon(
             avslag = avslag,
@@ -105,5 +127,40 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
 
         return sakService.hentSak(avslagsvedtak.behandling.sakId)
             .mapLeft { KunneIkkeAvslåSøknad.FantIkkeSak }
+    }
+
+    private fun Søknadsbehandling.leggTilStønadsperiodeHvisNull(): Søknadsbehandling {
+        return oppdaterStønadsperiode(
+            oppdatertStønadsperiode = stønadsperiode
+                ?: Stønadsperiode.create(
+                    periode = Periode.create(
+                        fraOgMed = LocalDate.now(clock).startOfMonth(),
+                        tilOgMed = LocalDate.now(clock).endOfMonth(),
+                    ),
+                    begrunnelse = "",
+                ),
+            clock = clock,
+        ).getOrHandle { throw IllegalArgumentException(it.toString()) }
+    }
+
+    private fun Søknadsbehandling.avslåPgaManglendeDok(): Søknadsbehandling.Vilkårsvurdert.Avslag {
+        return leggTilOpplysningspliktVilkår(
+            opplysningspliktVilkår = OpplysningspliktVilkår.Vurdert.tryCreate(
+                vurderingsperioder = nonEmptyListOf(
+                    VurderingsperiodeOpplysningsplikt.create(
+                        id = UUID.randomUUID(),
+                        opprettet = opprettet,
+                        periode = periode,
+                        grunnlag = Opplysningspliktgrunnlag(
+                            id = UUID.randomUUID(),
+                            opprettet = opprettet,
+                            periode = periode,
+                            beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
+                        ),
+                    ),
+                ),
+            ).getOrHandle { throw IllegalArgumentException(it.toString()) },
+            clock = clock,
+        ).getOrHandle { throw IllegalArgumentException(it.toString()) } as Søknadsbehandling.Vilkårsvurdert.Avslag
     }
 }

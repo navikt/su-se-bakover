@@ -28,9 +28,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.test.argThat
+import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.behandlingsinformasjonAlleVilkårInnvilget
+import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -363,15 +364,11 @@ internal class SøknadsbehandlingPostgresRepoTest {
     fun `kan lagre og hente avslag manglende dokumentasjon`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val opprettetMedStønadsperiode = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget().second
+            val opprettetMedStønadsperiode =
+                testDataHelper.persisterSøknadsbehandlingIverksattAvslagUtenBeregning().second
 
             testDataHelper.søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(
-                avslag = AvslagManglendeDokumentasjon.tryCreate(
-                    søknadsbehandling = opprettetMedStønadsperiode,
-                    saksbehandler = saksbehandler,
-                    fritekstTilBrev = "hshshshs",
-                    clock = fixedClock,
-                ).getOrFail("Feil i oppsett"),
+                avslag = AvslagManglendeDokumentasjon(søknadsbehandling = opprettetMedStønadsperiode),
             )
 
             testDataHelper.søknadsbehandlingRepo.hent(opprettetMedStønadsperiode.id) shouldBe Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
@@ -387,12 +384,12 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 attesteringer = Attesteringshistorikk.create(
                     attesteringer = listOf(
                         Attestering.Iverksatt(
-                            attestant = NavIdentBruker.Attestant(saksbehandler.navIdent),
-                            opprettet = fixedTidspunkt,
+                            attestant = NavIdentBruker.Attestant(attestant.navIdent),
+                            opprettet = enUkeEtterFixedTidspunkt,
                         ),
                     ),
                 ),
-                fritekstTilBrev = "hshshshs",
+                fritekstTilBrev = "",
                 stønadsperiode = opprettetMedStønadsperiode.stønadsperiode,
                 grunnlagsdata = opprettetMedStønadsperiode.grunnlagsdata,
                 vilkårsvurderinger = opprettetMedStønadsperiode.vilkårsvurderinger,

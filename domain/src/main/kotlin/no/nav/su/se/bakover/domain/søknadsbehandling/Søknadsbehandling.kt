@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
@@ -30,6 +31,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
+import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fjernFradragForEPSHvisEnslig
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -40,6 +43,7 @@ import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import no.nav.su.se.bakover.domain.vilkår.inneholderAlle
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
@@ -447,7 +451,31 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdata,
                     clock = clock,
-                )
+                ).let {
+                    if (vilkårsvurderinger.opplysningspliktVilkår() !is OpplysningspliktVilkår.Vurdert) {
+                        it.leggTil(
+                            /**
+                             * Vi legger til implisitt oppfylt for søknadsbehandling
+                             */
+                            OpplysningspliktVilkår.Vurdert.tryCreate(
+                                vurderingsperioder = nonEmptyListOf(
+                                    VurderingsperiodeOpplysningsplikt.create(
+                                        id = UUID.randomUUID(), opprettet = opprettet, periode = stønadsperiode.periode,
+                                        grunnlag = Opplysningspliktgrunnlag(
+                                            id = UUID.randomUUID(),
+                                            opprettet = opprettet,
+                                            periode = stønadsperiode.periode,
+                                            beskrivelse = OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon,
+                                        ),
+                                    ),
+                                ),
+                            ).getOrHandle { throw IllegalArgumentException(it.toString()) },
+                        )
+                    } else {
+                        it
+                    }
+                }
+
                 return when (oppdaterteVilkårsvurderinger.resultat) {
                     is Vilkårsvurderingsresultat.Avslag -> {
                         Avslag(

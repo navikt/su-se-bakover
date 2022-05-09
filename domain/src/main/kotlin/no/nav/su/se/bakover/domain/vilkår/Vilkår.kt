@@ -303,6 +303,7 @@ sealed class Vilkårsvurderinger {
                 institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
                 utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                 personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
             )
         }
     }

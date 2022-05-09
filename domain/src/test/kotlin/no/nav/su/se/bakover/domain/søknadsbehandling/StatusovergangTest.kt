@@ -45,7 +45,11 @@ internal class StatusovergangTest {
         stønadsperiode = stønadsperiode,
     )
 
-    private val opprettet = sakOgUavklart.second
+    private val opprettet = sakOgUavklart.second.copy(
+        vilkårsvurderinger = sakOgUavklart.second.vilkårsvurderinger.copy(
+            opplysningsplikt = tilstrekkeligDokumentert(),
+        ),
+    )
 
     private val simulering = no.nav.su.se.bakover.test.simuleringNy()
 
