@@ -48,7 +48,7 @@ internal class BeregningMedFlereSatserTest {
                         1.januar(2021),
                         30.april(2021),
                     )
-                    månedsberegninger.all { it.getSumYtelse() == fullSupplerendeStønadHøyTest.forMånedsperiode(januar(2021)).satsForMånedAvrundet } shouldBe true
+                    månedsberegninger.all { it.getSumYtelse() == fullSupplerendeStønadHøyTest.forMåned(januar(2021)).satsForMånedAvrundet } shouldBe true
                     månedsberegninger.all { it.getSumFradrag() == 0.0 } shouldBe true
                     månedsberegninger.all { it.getFribeløpForEps() == 0.0 } shouldBe true
                     månedsberegninger.all { it.erFradragForEpsBenyttetIBeregning() } shouldBe false
@@ -59,9 +59,9 @@ internal class BeregningMedFlereSatserTest {
                         1.mai(2021),
                         31.desember(2021),
                     )
-                    månedsberegninger.all { it.getSumYtelse() == fullSupplerendeStønadOrdinærTest.forMånedsperiode(mai(2021)).satsForMånedAvrundet } shouldBe true
+                    månedsberegninger.all { it.getSumYtelse() == fullSupplerendeStønadOrdinærTest.forMåned(mai(2021)).satsForMånedAvrundet } shouldBe true
                     månedsberegninger.all { it.getSumFradrag() == 0.0 } shouldBe true
-                    månedsberegninger.all { it.getFribeløpForEps() == fullSupplerendeStønadOrdinærTest.forMånedsperiode(mai(2021)).satsForMånedAsDouble } shouldBe true
+                    månedsberegninger.all { it.getFribeløpForEps() == fullSupplerendeStønadOrdinærTest.forMåned(mai(2021)).satsForMånedAsDouble } shouldBe true
                     månedsberegninger.all { it.erFradragForEpsBenyttetIBeregning() } shouldBe false
                 }
             }

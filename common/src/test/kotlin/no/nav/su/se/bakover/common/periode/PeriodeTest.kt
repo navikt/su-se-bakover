@@ -38,7 +38,7 @@ internal class PeriodeTest {
     @Test
     fun `periodisert fra og med og til og med`() {
         val periode = år(2021)
-        val periodisert = periode.tilMånedsperioder()
+        val periodisert = periode.måneder()
         periode.fraOgMed shouldBe 1.januar(2021)
         periode.tilOgMed shouldBe 31.desember(2021)
         periodisert.first().fraOgMed shouldBe 1.januar(2021)
@@ -50,14 +50,14 @@ internal class PeriodeTest {
     @Test
     fun `periodiserer måneder`() {
         val periode = januar(2021)
-        val periodisert = periode.tilMånedsperioder()
+        val periodisert = periode.måneder()
         periodisert shouldBe listOf(januar(2021))
     }
 
     @Test
     fun `periodiserer flere måneder`() {
         val periode = Periode.create(1.januar(2021), 30.april(2021))
-        val periodisert = periode.tilMånedsperioder()
+        val periodisert = periode.måneder()
         periodisert shouldBe listOf(
             januar(2021),
             februar(2021),
@@ -772,7 +772,7 @@ internal class PeriodeTest {
     }
 
     @Nested
-    inner class `liste av perioder tilMånedsperioder()` {
+    inner class `liste av perioder til måneder()` {
 
         @Test
         fun `månedsperiode forblir månedsperioder`() {
@@ -780,7 +780,7 @@ internal class PeriodeTest {
                 januar(2021),
                 februar(2021),
                 mars(2021),
-            ).tilMånedsperioder() shouldBe listOf(
+            ).måneder() shouldBe listOf(
                 januar(2021),
                 februar(2021),
                 mars(2021),
@@ -792,7 +792,7 @@ internal class PeriodeTest {
             nonEmptyListOf(
                 Periode.create(1.januar(2021), 28.februar(2021)),
                 Periode.create(1.mars(2021), 30.april(2021)),
-            ).tilMånedsperioder() shouldBe listOf(
+            ).måneder() shouldBe listOf(
                 januar(2021),
                 februar(2021),
                 mars(2021),
@@ -805,7 +805,7 @@ internal class PeriodeTest {
             listOf(
                 Periode.create(1.januar(2021), 28.februar(2021)),
                 Periode.create(1.januar(2021), 28.februar(2021)),
-            ).tilMånedsperioder() shouldBe listOf(
+            ).måneder() shouldBe listOf(
                 januar(2021),
                 februar(2021),
             )
@@ -816,7 +816,7 @@ internal class PeriodeTest {
             nonEmptyListOf(
                 Periode.create(1.mars(2021), 30.april(2021)),
                 Periode.create(1.januar(2021), 28.februar(2021)),
-            ).tilMånedsperioder() shouldBe listOf(
+            ).måneder() shouldBe listOf(
                 januar(2021),
                 februar(2021),
                 mars(2021),
@@ -831,7 +831,7 @@ internal class PeriodeTest {
                 Periode.create(1.januar(2021), 28.februar(2021)),
                 Periode.create(1.april(2021), 31.mai(2021)),
                 Periode.create(1.januar(2021), 28.februar(2021)),
-            ).tilMånedsperioder() shouldBe listOf(
+            ).måneder() shouldBe listOf(
                 januar(2021),
                 februar(2021),
                 april(2021),

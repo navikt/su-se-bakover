@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.common.limitedUpwardsTo
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.positiveOrZero
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadForMåned
@@ -9,7 +9,7 @@ import kotlin.math.roundToInt
 
 object MånedsberegningFactory {
     fun ny(
-        måned: Månedsperiode,
+        måned: Måned,
         fullSupplerendeStønadForMåned: FullSupplerendeStønadForMåned,
         fradrag: List<FradragForMåned>,
         fribeløpForEps: Double = 0.0,

@@ -28,11 +28,11 @@ open class Periode protected constructor(
     @JsonIgnore
     fun getAntallMåneder(): Int = Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths().toInt()
 
-    fun tilMånedsperioder(): NonEmptyList<Månedsperiode> {
+    fun måneder(): NonEmptyList<Måned> {
         return NonEmptyList.fromListUnsafe(
             (0L until getAntallMåneder()).map {
                 val currentMonth = fraOgMed.plusMonths(it)
-                Månedsperiode(YearMonth.of(currentMonth.year, currentMonth.month))
+                Måned(YearMonth.of(currentMonth.year, currentMonth.month))
             },
         )
     }
@@ -55,10 +55,10 @@ open class Periode protected constructor(
 
     /**
      * Alle månedene i denne perioden overlapper fullstendig med settet av alle månedene i lista.
-     * Dvs. at de må inneholde de nøyaktige samme månedsperioder.
+     * Dvs. at de må inneholde de nøyaktige samme måneder.
      */
     infix fun fullstendigOverlapp(other: List<Periode>): Boolean =
-        this.tilMånedsperioder().toSet() == other.flatMap { it.tilMånedsperioder() }.toSet()
+        this.måneder().toSet() == other.flatMap { it.måneder() }.toSet()
 
     /**
      * true: Det finnes minst en måned som overlapper
@@ -124,7 +124,7 @@ open class Periode protected constructor(
     infix fun før(other: Periode) = tilOgMed.isBefore(other.fraOgMed)
     infix fun etter(other: Periode) = fraOgMed.isAfter(other.tilOgMed)
     infix fun minus(other: Periode): List<Periode> {
-        return (tilMånedsperioder() - other.tilMånedsperioder().toSet()).minsteAntallSammenhengendePerioder()
+        return (måneder() - other.måneder().toSet()).minsteAntallSammenhengendePerioder()
     }
 
     /**
@@ -230,18 +230,18 @@ fun List<Periode>.minsteAntallSammenhengendePerioder(): List<Periode> {
  * perioder i [this] til en minimum antall sammenhengende perioder.
  */
 operator fun List<Periode>.minus(other: List<Periode>): List<Periode> {
-    return (flatMap { it.tilMånedsperioder() }.toSet() - other.flatMap { it.tilMånedsperioder() }.toSet())
+    return (flatMap { it.måneder() }.toSet() - other.flatMap { it.måneder() }.toSet())
         .toList()
         .minsteAntallSammenhengendePerioder()
 }
 
 fun Periode.inneholderAlle(other: List<Periode>): Boolean {
-    return tilMånedsperioder().inneholderAlle(other)
+    return måneder().inneholderAlle(other)
 }
 
 fun List<Periode>.inneholderAlle(other: List<Periode>): Boolean {
-    val denne = flatMap { it.tilMånedsperioder() }.toSet()
-    val andre = other.flatMap { it.tilMånedsperioder() }.toSet()
+    val denne = flatMap { it.måneder() }.toSet()
+    val andre = other.flatMap { it.måneder() }.toSet()
     return when {
         other.isEmpty() -> {
             true
@@ -258,20 +258,20 @@ fun List<Periode>.inneholderAlle(other: List<Periode>): Boolean {
 /**
  * Listen med perioder trenger ikke være sortert eller sammenhengende og kan ha duplikater.
  *
- * @return En sortert liste med månedsperioder uten duplikater som kan være usammenhengende.
+ * @return En sortert liste med måneder uten duplikater som kan være usammenhengende.
  */
-fun List<Periode>.tilMånedsperioder(): List<Månedsperiode> {
+fun List<Periode>.måneder(): List<Måned> {
     if (this.isEmpty()) return emptyList()
-    return Nel.fromListUnsafe(this).tilMånedsperioder()
+    return Nel.fromListUnsafe(this).måneder()
 }
 
 /**
  * Listen med perioder trenger ikke være sortert eller sammenhengende og kan ha duplikater.
  *
- * @return En sortert liste med månedsperioder uten duplikater som kan være usammenhengende.
+ * @return En sortert liste med måneder uten duplikater som kan være usammenhengende.
  */
-fun NonEmptyList<Periode>.tilMånedsperioder(): NonEmptyList<Månedsperiode> {
-    return Nel.fromListUnsafe(this.flatMap { it.tilMånedsperioder() }.distinct().sorted())
+fun NonEmptyList<Periode>.måneder(): NonEmptyList<Måned> {
+    return Nel.fromListUnsafe(this.flatMap { it.måneder() }.distinct().sorted())
 }
 
 /**
@@ -287,7 +287,7 @@ fun List<Periode>.erSortert(): Boolean {
  * Listen trenger ikke være sortert og kan være usammenhengende.
  */
 fun List<Periode>.harDuplikater(): Boolean {
-    return this.flatMap { it.tilMånedsperioder() }.let {
+    return this.flatMap { it.måneder() }.let {
         it.distinct().size != it.size
     }
 }
@@ -299,7 +299,7 @@ fun List<Periode>.harDuplikater(): Boolean {
  */
 fun List<Periode>.erSammenhengende(): Boolean {
     return if (this.isEmpty()) true
-    else this.flatMap { it.tilMånedsperioder() }.distinct().size == NonEmptyList.fromListUnsafe(this).minAndMaxOf()
+    else this.flatMap { it.måneder() }.distinct().size == NonEmptyList.fromListUnsafe(this).minAndMaxOf()
         .getAntallMåneder()
 }
 
@@ -310,7 +310,7 @@ fun List<Periode>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
     return erSammenhengende() && erSortert() && !harDuplikater()
 }
 
-fun <T> Map<Månedsperiode, T>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
+fun <T> Map<Måned, T>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
     return this.keys.toList().erSammenhengendeSortertOgUtenDuplikater()
 }
 
@@ -323,8 +323,8 @@ fun <T> Map<Månedsperiode, T>.erSammenhengendeSortertOgUtenDuplikater(): Boolea
  * @throws IllegalArgumentException dersom listen inneholder duplikate datoer eller en dato ikke er den første i måneden.
  */
 fun <T> List<Pair<LocalDate, T>>.periodisert(
-    endExclusive: Månedsperiode = januar(2030),
-): List<Triple<LocalDate, Månedsperiode, T>> {
+    endExclusive: Måned = januar(2030),
+): List<Triple<LocalDate, Måned, T>> {
     if (this.isEmpty()) return emptyList()
 
     assert(this.all { it.first.erFørsteDagIMåned() }) {
@@ -332,17 +332,17 @@ fun <T> List<Pair<LocalDate, T>>.periodisert(
     }
     assert(this.size == this.map { it.first }.distinct().size)
 
-    val sortedMånedsperioder: List<Triple<LocalDate, Månedsperiode, T>> = this.sortedBy { it.first }
-        .map { Triple(it.first, Månedsperiode(YearMonth.of(it.first.year, it.first.month)), it.second) }
+    val sorterteMåneder: List<Triple<LocalDate, Måned, T>> = this.sortedBy { it.first }
+        .map { Triple(it.first, Måned(YearMonth.of(it.first.year, it.first.month)), it.second) }
 
-    val infixElements = sortedMånedsperioder
+    val infixElements = sorterteMåneder
         .zipWithNext()
         .flatMap { (current, next) ->
             current.second.until(next.second).map {
                 Triple(current.first, it, current.third)
             }
         }
-    val lastElement = sortedMånedsperioder.maxByOrNull { it.first }!!.let { lastElement ->
+    val lastElement = sorterteMåneder.maxByOrNull { it.first }!!.let { lastElement ->
         lastElement.second.until(endExclusive).map {
             Triple(lastElement.first, it, lastElement.third)
         }
@@ -360,18 +360,18 @@ fun List<Periode>.harOverlappende(): Boolean {
     return if (isEmpty()) false else this.any { p1 -> this.minus(p1).any { p2 -> p1 overlapper p2 } }
 }
 
-fun januar(year: Int) = Månedsperiode(YearMonth.of(year, Month.JANUARY))
-fun februar(year: Int) = Månedsperiode(YearMonth.of(year, Month.FEBRUARY))
-fun mars(year: Int) = Månedsperiode(YearMonth.of(year, Month.MARCH))
-fun april(year: Int) = Månedsperiode(YearMonth.of(year, Month.APRIL))
-fun mai(year: Int) = Månedsperiode(YearMonth.of(year, Month.MAY))
-fun juni(year: Int) = Månedsperiode(YearMonth.of(year, Month.JUNE))
-fun juli(year: Int) = Månedsperiode(YearMonth.of(year, Month.JULY))
-fun august(year: Int) = Månedsperiode(YearMonth.of(year, Month.AUGUST))
-fun september(year: Int) = Månedsperiode(YearMonth.of(year, Month.SEPTEMBER))
-fun oktober(year: Int) = Månedsperiode(YearMonth.of(year, Month.OCTOBER))
-fun november(year: Int) = Månedsperiode(YearMonth.of(year, Month.NOVEMBER))
-fun desember(year: Int) = Månedsperiode(YearMonth.of(year, Month.DECEMBER))
+fun januar(year: Int) = Måned(YearMonth.of(year, Month.JANUARY))
+fun februar(year: Int) = Måned(YearMonth.of(year, Month.FEBRUARY))
+fun mars(year: Int) = Måned(YearMonth.of(year, Month.MARCH))
+fun april(year: Int) = Måned(YearMonth.of(year, Month.APRIL))
+fun mai(year: Int) = Måned(YearMonth.of(year, Month.MAY))
+fun juni(year: Int) = Måned(YearMonth.of(year, Month.JUNE))
+fun juli(year: Int) = Måned(YearMonth.of(year, Month.JULY))
+fun august(year: Int) = Måned(YearMonth.of(year, Month.AUGUST))
+fun september(year: Int) = Måned(YearMonth.of(year, Month.SEPTEMBER))
+fun oktober(year: Int) = Måned(YearMonth.of(year, Month.OCTOBER))
+fun november(year: Int) = Måned(YearMonth.of(year, Month.NOVEMBER))
+fun desember(year: Int) = Måned(YearMonth.of(year, Month.DECEMBER))
 fun år(year: Int) = Periode.create(
     fraOgMed = YearMonth.of(year, Month.JANUARY).atDay(1),
     tilOgMed = YearMonth.of(year, Month.DECEMBER).atEndOfMonth(),

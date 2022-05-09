@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.satser
 
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.periode
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
@@ -16,13 +16,13 @@ sealed class FullSupplerendeStønadFactory {
     protected abstract val grunnbeløpFactory: GrunnbeløpFactory
     protected abstract val minsteÅrligYtelseForUføretrygdedeFactory: MinsteÅrligYtelseForUføretrygdedeFactory
 
-    private val månedsperioder: Map<Månedsperiode, FullSupplerendeStønadForMåned> by lazy {
-        grunnbeløpFactory.månedsperioder.entries
+    private val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned> by lazy {
+        grunnbeløpFactory.månedTilGrunnbeløp.entries
             .filter {
                 it.key.inneholder(supplerendeStønadAlderFlyktningIkrafttredelse) || it.key.starterEtter(
                     supplerendeStønadAlderFlyktningIkrafttredelse,
                 )
-            }.associate { x: Map.Entry<Månedsperiode, GrunnbeløpForMåned> ->
+            }.associate { x: Map.Entry<Måned, GrunnbeløpForMåned> ->
                 val minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdedeFactory.forMåned(
                     x.key,
                     satskategori,
@@ -75,8 +75,8 @@ sealed class FullSupplerendeStønadFactory {
         ) : Høy()
     }
 
-    fun forMånedsperiode(måned: Månedsperiode): FullSupplerendeStønadForMåned {
-        return månedsperioder[måned]
-            ?: throw IllegalStateException("Kan ikke avgjøre full supplerende stønad for måned: $måned. Vi har bare data for perioden: ${månedsperioder.periode()}")
+    fun forMåned(måned: Måned): FullSupplerendeStønadForMåned {
+        return månedTilFullSupplerendeStønad[måned]
+            ?: throw IllegalStateException("Kan ikke avgjøre full supplerende stønad for måned: $måned. Vi har bare data for perioden: ${månedTilFullSupplerendeStønad.periode()}")
     }
 }

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.august
 import no.nav.su.se.bakover.common.toTidspunkt
@@ -44,8 +44,8 @@ internal object TestMånedsberegning : Månedsberegning {
 
     override val periode: Periode = august(2020)
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
-    override val måned: Månedsperiode = august(2020)
-    override val fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(august(2021))
+    override val måned: Måned = august(2020)
+    override val fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMåned(august(2021))
 }
 
 internal val TestFradrag = FradragForMåned(

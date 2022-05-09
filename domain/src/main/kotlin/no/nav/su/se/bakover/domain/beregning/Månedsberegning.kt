@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.beregning
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -23,7 +23,7 @@ interface Månedsberegning : PeriodisertInformasjon {
     fun erFradragForEpsBenyttetIBeregning() =
         getFradrag().any { it.fradragstype == Fradragstype.BeregnetFradragEPS }
 
-    val måned: Månedsperiode
+    val måned: Måned
     val fullSupplerendeStønadForMåned: FullSupplerendeStønadForMåned
 
     /**

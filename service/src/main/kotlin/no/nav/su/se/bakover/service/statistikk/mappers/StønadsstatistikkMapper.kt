@@ -102,7 +102,7 @@ private fun mapBeregning(
     clock: Clock,
     formuegrenserFactory: FormuegrenserFactory,
 ): List<Statistikk.Stønad.Månedsbeløp> =
-    vedtak.periode.tilMånedsperioder().map {
+    vedtak.periode.måneder().map {
         sak.hentGjeldendeMånedsberegningForMåned(it, clock, formuegrenserFactory)!!
     }.map {
         tilMånedsbeløp(it, vedtak)

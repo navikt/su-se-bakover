@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.satser
 
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import java.time.LocalDate
 import java.time.Month
 
@@ -25,7 +25,7 @@ enum class Garantipensjonsnivå {
         .sortedByDescending { it.key }
         .first { dato.isAfter(it.key) || dato.isEqual(it.key) }.value.get(this)
 
-    fun periodiser(periode: Månedsperiode): Map<Månedsperiode, Double> {
+    fun periodiser(periode: Måned): Map<Måned, Double> {
         return mapOf((periode to garantipensjonsnivåSomMånedsbeløp(periode.tilOgMed)))
     }
 

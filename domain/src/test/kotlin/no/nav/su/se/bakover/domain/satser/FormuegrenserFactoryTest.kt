@@ -19,7 +19,7 @@ internal class FormuegrenserFactoryTest {
 
     @Test
     fun `januar 2021`() {
-        formuegrense.forMånedsperiode(januar(2021)) shouldBe FormuegrenseForMåned(
+        formuegrense.forMåned(januar(2021)) shouldBe FormuegrenseForMåned(
             grunnbeløpForMåned = GrunnbeløpForMåned(
                 måned = januar(2021),
                 grunnbeløpPerÅr = 101351,
@@ -31,7 +31,7 @@ internal class FormuegrenserFactoryTest {
 
     @Test
     fun `februar 2021`() {
-        formuegrense.forMånedsperiode(februar(2021)) shouldBe FormuegrenseForMåned(
+        formuegrense.forMåned(februar(2021)) shouldBe FormuegrenseForMåned(
             grunnbeløpForMåned = GrunnbeløpForMåned(
                 måned = februar(2021),
                 grunnbeløpPerÅr = 101351,
@@ -43,7 +43,7 @@ internal class FormuegrenserFactoryTest {
 
     @Test
     fun `mars 2021`() {
-        formuegrense.forMånedsperiode(mars(2021)) shouldBe FormuegrenseForMåned(
+        formuegrense.forMåned(mars(2021)) shouldBe FormuegrenseForMåned(
             grunnbeløpForMåned = GrunnbeløpForMåned(
                 måned = mars(2021),
                 grunnbeløpPerÅr = 101351,
@@ -55,7 +55,7 @@ internal class FormuegrenserFactoryTest {
 
     @Test
     fun `april 2021`() {
-        formuegrense.forMånedsperiode(april(2021)) shouldBe FormuegrenseForMåned(
+        formuegrense.forMåned(april(2021)) shouldBe FormuegrenseForMåned(
             grunnbeløpForMåned = GrunnbeløpForMåned(
                 måned = april(2021),
                 grunnbeløpPerÅr = 101351,
@@ -67,7 +67,7 @@ internal class FormuegrenserFactoryTest {
 
     @Test
     fun `mai 2021`() {
-        formuegrense.forMånedsperiode(mai(2021)) shouldBe FormuegrenseForMåned(
+        formuegrense.forMåned(mai(2021)) shouldBe FormuegrenseForMåned(
             grunnbeløpForMåned = GrunnbeløpForMåned(
                 måned = mai(2021),
                 grunnbeløpPerÅr = 106399,
@@ -82,7 +82,7 @@ internal class FormuegrenserFactoryTest {
 
     @Test
     fun `mai 2022`() {
-        formuegrense.forMånedsperiode(mai(2022)) shouldBe FormuegrenseForMåned(
+        formuegrense.forMåned(mai(2022)) shouldBe FormuegrenseForMåned(
             grunnbeløpForMåned = GrunnbeløpForMåned(
                 måned = mai(2022),
                 grunnbeløpPerÅr = 107099,

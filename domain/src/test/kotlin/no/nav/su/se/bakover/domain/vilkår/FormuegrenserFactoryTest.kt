@@ -59,7 +59,7 @@ internal class FormuegrenserFactoryTest {
 
     @Test
     fun `januar 2021`() {
-        formuegrenserFactoryTest.forMånedsperiode(januar(2021)) shouldBe FormuegrenseForMåned(
+        formuegrenserFactoryTest.forMåned(januar(2021)) shouldBe FormuegrenseForMåned(
             grunnbeløpForMåned = GrunnbeløpForMåned(
                 måned = januar(2021),
                 grunnbeløpPerÅr = 101351,

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.beregning
 
-import no.nav.su.se.bakover.common.periode.MånedsperiodeJson
-import no.nav.su.se.bakover.common.periode.MånedsperiodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.periode.MånedJson
+import no.nav.su.se.bakover.common.periode.MånedJson.Companion.toJson
 import no.nav.su.se.bakover.domain.beregning.BeregningForMåned
 import no.nav.su.se.bakover.domain.beregning.Merknader
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -15,15 +15,15 @@ internal data class PersistertMånedsberegning(
     val sats: Satskategori,
     val satsbeløp: Double,
     val fradrag: List<PersistertFradrag>,
-    val periode: MånedsperiodeJson,
+    val periode: MånedJson,
     val fribeløpForEps: Double,
     val merknader: List<PersistertMerknad.Beregning> = emptyList(),
 ) {
     fun toMånedsberegning(satsFactory: SatsFactory): BeregningForMåned {
-        val måned = periode.toMånedsperiode()
+        val måned = periode.tilMåned()
         return BeregningForMåned(
             måned = måned,
-            fullSupplerendeStønadForMåned = satsFactory.fullSupplerendeStønad(sats).forMånedsperiode(måned).also {
+            fullSupplerendeStønadForMåned = satsFactory.fullSupplerendeStønad(sats).forMåned(måned).also {
                 assert(benyttetGrunnbeløp == it.grunnbeløp.grunnbeløpPerÅr) {
                     "Hentet benyttetGrunnbeløp: $benyttetGrunnbeløp fra databasen, mens den utleda verdien for grunnbeløp var: ${it.grunnbeløp.grunnbeløpPerÅr}"
                 }

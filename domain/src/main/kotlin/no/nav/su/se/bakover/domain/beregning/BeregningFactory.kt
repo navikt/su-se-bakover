@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.beregning
 
 import arrow.core.Nel
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -25,13 +25,13 @@ class BeregningFactory(val clock: Clock) {
         beregningsperioder: List<Beregningsperiode>,
     ): BeregningMedFradragBeregnetMånedsvis {
         fun beregnMåned(
-            måned: Månedsperiode,
+            måned: Måned,
             fradrag: List<Fradrag>,
             strategy: BeregningStrategy,
         ): BeregningForMåned {
             return MånedsberegningFactory.ny(
                 måned = måned,
-                fullSupplerendeStønadForMåned = satsFactory.fullSupplerendeStønad(strategy.satskategori).forMånedsperiode(måned),
+                fullSupplerendeStønadForMåned = satsFactory.fullSupplerendeStønad(strategy.satskategori).forMåned(måned),
                 fradrag = strategy.fradragStrategy().beregn(fradrag, måned)[måned] ?: emptyList(),
                 fribeløpForEps = strategy.fradragStrategy().getEpsFribeløp(måned),
             )
@@ -42,7 +42,7 @@ class BeregningFactory(val clock: Clock) {
          * filtrert vekk eventuell sosialstønad for EPS. Etter at fradragene har vært gjennom [FradragStrategy.beregnFradrag]
          * vil alle EPS sine fradrag være bakt sammen til et element av typen [Fradragstype.BeregnetFradragEPS]
          */
-        fun sumYtelseUtenSosialstønad(måned: Månedsperiode, strategy: BeregningStrategy): Int {
+        fun sumYtelseUtenSosialstønad(måned: Måned, strategy: BeregningStrategy): Int {
             return beregnMåned(
                 måned = måned,
                 fradrag = fradrag.utenSosialstønad(),
@@ -50,7 +50,7 @@ class BeregningFactory(val clock: Clock) {
             ).getSumYtelse()
         }
 
-        fun sumYtelseUtenAvkorting(måned: Månedsperiode, strategy: BeregningStrategy): Int {
+        fun sumYtelseUtenAvkorting(måned: Måned, strategy: BeregningStrategy): Int {
             return beregnMåned(
                 måned = måned,
                 fradrag = fradrag.utenAvkorting(),
@@ -107,14 +107,14 @@ class BeregningFactory(val clock: Clock) {
             ),
         )
 
-        fun beregn(): Map<Månedsperiode, Månedsberegning> {
-            val månedsperiodeTilStrategi: Map<Månedsperiode, BeregningStrategy> = beregningsperioder
+        fun beregn(): Map<Måned, Månedsberegning> {
+            val månedTilStrategi: Map<Måned, BeregningStrategy> = beregningsperioder
                 .sortedBy { it.periode() }
                 .fold(emptyMap()) { acc, beregningsperiode ->
                     acc + beregningsperiode.månedsoversikt()
                 }
 
-            return månedsperiodeTilStrategi.mapValues { (måned, strategi) ->
+            return månedTilStrategi.mapValues { (måned, strategi) ->
                 beregnMåned(
                     måned = måned,
                     fradrag = fradrag,
@@ -151,7 +151,7 @@ class BeregningFactory(val clock: Clock) {
             }
         }
 
-        val månedsperiodeTilMånedsberegning: Map<Månedsperiode, Månedsberegning> = beregn()
+        val månedTilMånedsberegning: Map<Måned, Månedsberegning> = beregn()
 
         return BeregningMedFradragBeregnetMånedsvis(
             id = id,
@@ -159,11 +159,11 @@ class BeregningFactory(val clock: Clock) {
             periode = beregningsperioder.map { it.periode() }.minsteAntallSammenhengendePerioder().single(),
             fradrag = fradrag,
             begrunnelse = begrunnelse,
-            sumYtelse = månedsperiodeTilMånedsberegning.values
+            sumYtelse = månedTilMånedsberegning.values
                 .sumOf { it.getSumYtelse() },
-            sumFradrag = månedsperiodeTilMånedsberegning.values
+            sumFradrag = månedTilMånedsberegning.values
                 .sumOf { it.getSumFradrag() },
-            månedsberegninger = Nel.fromListUnsafe(månedsperiodeTilMånedsberegning.values.toList()),
+            månedsberegninger = Nel.fromListUnsafe(månedTilMånedsberegning.values.toList()),
         )
     }
 }

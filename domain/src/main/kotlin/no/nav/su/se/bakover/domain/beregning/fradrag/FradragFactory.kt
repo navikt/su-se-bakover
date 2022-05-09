@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 
 object FradragFactory {
@@ -23,7 +23,7 @@ object FradragFactory {
     fun nyMånedsperiode(
         fradragstype: Fradragstype,
         månedsbeløp: Double,
-        måned: Månedsperiode,
+        måned: Måned,
         utenlandskInntekt: UtenlandskInntekt? = null,
         tilhører: FradragTilhører
     ): FradragForMåned {
@@ -37,7 +37,7 @@ object FradragFactory {
     }
 
     fun periodiser(fradrag: Fradrag): List<FradragForMåned> =
-        fradrag.periode.tilMånedsperioder().map {
+        fradrag.periode.måneder().map {
             FradragForMåned(
                 fradragstype = fradrag.fradragstype,
                 månedsbeløp = fradrag.månedsbeløp,

@@ -19,13 +19,13 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     fun `tilstøtende månedsberegninger hvor alt er likt bortsett fra dato grupperes sammen`() {
         val januar = MånedsberegningFactory.ny(
             måned = januar(2021),
-            fullSupplerendeStønadForMåned = satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(januar(2021)),
+            fullSupplerendeStønadForMåned = satsFactoryTest.fullSupplerendeStønadHøy().forMåned(januar(2021)),
             fradrag = listOf(),
         )
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
-            fullSupplerendeStønadForMåned = satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(februar(2021)),
+            fullSupplerendeStønadForMåned = satsFactoryTest.fullSupplerendeStønadHøy().forMåned(februar(2021)),
             fradrag = listOf(),
         )
 
@@ -41,13 +41,13 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     fun `tilstøtende månedsberegninger som har forskjellige fradrag grupperes hver for seg`() {
         val januar = MånedsberegningFactory.ny(
             måned = januar(2021),
-            fullSupplerendeStønadForMåned = satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(januar(2021)),
+            fullSupplerendeStønadForMåned = satsFactoryTest.fullSupplerendeStønadHøy().forMåned(januar(2021)),
             fradrag = listOf(),
         )
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
-            fullSupplerendeStønadForMåned = satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(februar(2021)),
+            fullSupplerendeStønadForMåned = satsFactoryTest.fullSupplerendeStønadHøy().forMåned(februar(2021)),
             fradrag = listOf(
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
@@ -75,25 +75,25 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     fun `like månedsberegninger som ikke tilstøter hverandre grupperes hver for seg`() {
         val januar = MånedsberegningFactory.ny(
             måned = januar(2021),
-            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(januar(2021)),
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMåned(januar(2021)),
             fradrag = listOf(),
         )
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
-            fullSupplerendeStønadForMåned = fullSupplerendeStønadOrdinærTest.forMånedsperiode(februar(2021)),
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadOrdinærTest.forMåned(februar(2021)),
             fradrag = listOf(),
         )
 
         val mars = MånedsberegningFactory.ny(
             måned = mars(2021),
-            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(mars(2021)),
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMåned(mars(2021)),
             fradrag = listOf(),
         )
 
         val april = MånedsberegningFactory.ny(
             måned = april(2021),
-            fullSupplerendeStønadForMåned = fullSupplerendeStønadOrdinærTest.forMånedsperiode(april(2021)),
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadOrdinærTest.forMåned(april(2021)),
             fradrag = listOf(),
         )
 
@@ -109,7 +109,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     fun `månedsberegninger som har forskjellig antall fradrag grupperes hver for seg`() {
         val januar = MånedsberegningFactory.ny(
             måned = januar(2021),
-            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(januar(2021)),
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMåned(januar(2021)),
             fradrag = listOf(
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
@@ -123,7 +123,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
-            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(februar(2021)),
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMåned(februar(2021)),
             fradrag = listOf(
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
@@ -152,7 +152,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     fun `månedsberegninger med flere fradrag av samme type grupperes sammen`() {
         val januar = MånedsberegningFactory.ny(
             måned = januar(2021),
-            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(januar(2021)),
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMåned(januar(2021)),
             fradrag = listOf(
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
@@ -173,7 +173,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
-            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(februar(2021)),
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMåned(februar(2021)),
             fradrag = listOf(
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
@@ -201,7 +201,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     fun `grupperer like månedsberegninger sammen selv om fradragene i utgangspunktet ikke ligger på nøyaktig samme indeks`() {
         val januar = MånedsberegningFactory.ny(
             måned = januar(2021),
-            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(januar(2021)),
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMåned(januar(2021)),
             fradrag = listOf(
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
@@ -236,7 +236,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
-            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(februar(2021)),
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMåned(februar(2021)),
             fradrag = listOf(
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Arbeidsinntekt,
@@ -278,25 +278,25 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     fun `like månedsberegninger som ikke er tilstøtende grupperes hver for seg`() {
         val januar = MånedsberegningFactory.ny(
             måned = januar(2021),
-            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(januar(2021)),
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMåned(januar(2021)),
             fradrag = listOf(),
         )
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
-            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(februar(2021)),
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMåned(februar(2021)),
             fradrag = listOf(),
         )
 
         val april = MånedsberegningFactory.ny(
             måned = april(2021),
-            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(april(2021)),
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMåned(april(2021)),
             fradrag = listOf(),
         )
 
         val desember = MånedsberegningFactory.ny(
             måned = desember(2021),
-            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(desember(2021)),
+            fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMåned(desember(2021)),
             fradrag = listOf(),
         )
 

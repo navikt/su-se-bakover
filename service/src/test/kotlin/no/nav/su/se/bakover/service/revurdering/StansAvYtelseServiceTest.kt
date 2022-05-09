@@ -502,7 +502,7 @@ internal class StansAvYtelseServiceTest {
         )
         val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             periode = periode,
-            simulering = simuleringFeilutbetaling(*periode.tilMånedsperioder().toTypedArray()),
+            simulering = simuleringFeilutbetaling(*periode.måneder().toTypedArray()),
         ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {

@@ -457,7 +457,7 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
 
     private fun lagBeregning(vararg periodeBeløpMap: Pair<Periode, Int>): Beregning {
         val fradrag = periodeBeløpMap.map {
-            val sats = satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(it.first.tilMånedsperioder().head).satsForMånedAsDouble
+            val sats = satsFactoryTest.fullSupplerendeStønadHøy().forMåned(it.first.måneder().head).satsForMånedAsDouble
             val diff = abs(sats - it.second)
             FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.ForventetInntekt,

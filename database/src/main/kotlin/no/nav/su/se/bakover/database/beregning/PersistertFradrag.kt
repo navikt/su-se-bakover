@@ -26,7 +26,7 @@ internal data class PersistertFradrag(
         return FradragForMåned(
             fradragstype = Fradragstype.from(kategori, beskrivelse),
             månedsbeløp = månedsbeløp,
-            måned = periode.toMånedsperiode(),
+            måned = periode.tilMåned(),
             utenlandskInntekt = utenlandskInntekt,
             tilhører = tilhører,
         )

@@ -57,13 +57,13 @@ internal class AvkortingsplanTest {
                 listOf(
                     MånedBeløp(
                         januar(2021),
-                        Beløp(fullSupplerendeStønadHøy.forMånedsperiode(januar(2021)).satsForMånedAvrundet),
+                        Beløp(fullSupplerendeStønadHøy.forMåned(januar(2021)).satsForMånedAvrundet),
                     ),
                     MånedBeløp(
                         februar(2021),
-                        Beløp(fullSupplerendeStønadHøy.forMånedsperiode(februar(2021)).satsForMånedAvrundet),
+                        Beløp(fullSupplerendeStønadHøy.forMåned(februar(2021)).satsForMånedAvrundet),
                     ),
-                    MånedBeløp(mars(2021), Beløp(fullSupplerendeStønadHøy.forMånedsperiode(mars(2021)).satsForMånedAvrundet)),
+                    MånedBeløp(mars(2021), Beløp(fullSupplerendeStønadHøy.forMåned(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
             beregning = søknadsbehandling.beregning,
@@ -72,19 +72,19 @@ internal class AvkortingsplanTest {
             it shouldHaveSize 3
             it[0].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = fullSupplerendeStønadHøy.forMånedsperiode(januar(2021)).satsForMånedAvrundet,
+                    beløp = fullSupplerendeStønadHøy.forMåned(januar(2021)).satsForMånedAvrundet,
                     periode = januar(2021),
                 ),
             )
             it[1].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = fullSupplerendeStønadHøy.forMånedsperiode(februar(2021)).satsForMånedAvrundet,
+                    beløp = fullSupplerendeStønadHøy.forMåned(februar(2021)).satsForMånedAvrundet,
                     periode = februar(2021),
                 ),
             )
             it[2].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = fullSupplerendeStønadHøy.forMånedsperiode(mars(2021)).satsForMånedAvrundet,
+                    beløp = fullSupplerendeStønadHøy.forMåned(mars(2021)).satsForMånedAvrundet,
                     periode = mars(2021),
                 ),
             )
@@ -102,7 +102,7 @@ internal class AvkortingsplanTest {
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = fullSupplerendeStønadHøy.forMånedsperiode(januar(2021)).satsForMånedAsDouble,
+                            månedsbeløp = fullSupplerendeStønadHøy.forMåned(januar(2021)).satsForMånedAsDouble,
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -113,7 +113,7 @@ internal class AvkortingsplanTest {
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = fullSupplerendeStønadHøy.forMånedsperiode(mai(2021)).satsForMånedAsDouble,
+                            månedsbeløp = fullSupplerendeStønadHøy.forMåned(mai(2021)).satsForMånedAsDouble,
                             periode = Periode.create(1.mai(2021), 30.september(2021)),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -127,9 +127,9 @@ internal class AvkortingsplanTest {
         Avkortingsplan(
             feilutbetaltBeløp = Månedsbeløp(
                 listOf(
-                    MånedBeløp(januar(2021), Beløp(satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(januar(2021)).satsForMånedAvrundet)),
-                    MånedBeløp(februar(2021), Beløp(fullSupplerendeStønadHøy.forMånedsperiode(februar(2021)).satsForMånedAvrundet)),
-                    MånedBeløp(mars(2021), Beløp(fullSupplerendeStønadHøy.forMånedsperiode(mars(2021)).satsForMånedAvrundet)),
+                    MånedBeløp(januar(2021), Beløp(satsFactoryTest.fullSupplerendeStønadHøy().forMåned(januar(2021)).satsForMånedAvrundet)),
+                    MånedBeløp(februar(2021), Beløp(fullSupplerendeStønadHøy.forMåned(februar(2021)).satsForMånedAvrundet)),
+                    MånedBeløp(mars(2021), Beløp(fullSupplerendeStønadHøy.forMåned(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
             beregning = søknadsbehandling.beregning,
@@ -167,7 +167,7 @@ internal class AvkortingsplanTest {
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = fullSupplerendeStønadHøy.forMånedsperiode(januar(2021)).satsForMånedAsDouble,
+                            månedsbeløp = fullSupplerendeStønadHøy.forMåned(januar(2021)).satsForMånedAsDouble,
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -178,7 +178,7 @@ internal class AvkortingsplanTest {
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = fullSupplerendeStønadHøy.forMånedsperiode(mai(2021)).satsForMånedAsDouble,
+                            månedsbeløp = fullSupplerendeStønadHøy.forMåned(mai(2021)).satsForMånedAsDouble,
                             periode = Periode.create(1.mai(2021), 31.desember(2021)),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -194,13 +194,13 @@ internal class AvkortingsplanTest {
                 listOf(
                     MånedBeløp(
                         januar(2021),
-                        Beløp(fullSupplerendeStønadHøy.forMånedsperiode(januar(2021)).satsForMånedAvrundet),
+                        Beløp(fullSupplerendeStønadHøy.forMåned(januar(2021)).satsForMånedAvrundet),
                     ),
                     MånedBeløp(
                         februar(2021),
-                        Beløp(fullSupplerendeStønadHøy.forMånedsperiode(februar(2021)).satsForMånedAvrundet),
+                        Beløp(fullSupplerendeStønadHøy.forMåned(februar(2021)).satsForMånedAvrundet),
                     ),
-                    MånedBeløp(mars(2021), Beløp(fullSupplerendeStønadHøy.forMånedsperiode(mars(2021)).satsForMånedAvrundet)),
+                    MånedBeløp(mars(2021), Beløp(fullSupplerendeStønadHøy.forMåned(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
             beregning = søknadsbehandling.beregning,
@@ -235,13 +235,13 @@ internal class AvkortingsplanTest {
                 listOf(
                     MånedBeløp(
                         januar(2021),
-                        Beløp(fullSupplerendeStønadHøy.forMånedsperiode(januar(2021)).satsForMånedAvrundet),
+                        Beløp(fullSupplerendeStønadHøy.forMåned(januar(2021)).satsForMånedAvrundet),
                     ),
                     MånedBeløp(
                         februar(2021),
-                        Beløp(fullSupplerendeStønadHøy.forMånedsperiode(februar(2021)).satsForMånedAvrundet),
+                        Beløp(fullSupplerendeStønadHøy.forMåned(februar(2021)).satsForMånedAvrundet),
                     ),
-                    MånedBeløp(mars(2021), Beløp(fullSupplerendeStønadHøy.forMånedsperiode(mars(2021)).satsForMånedAvrundet)),
+                    MånedBeløp(mars(2021), Beløp(fullSupplerendeStønadHøy.forMåned(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
             beregning = søknadsbehandling.beregning,

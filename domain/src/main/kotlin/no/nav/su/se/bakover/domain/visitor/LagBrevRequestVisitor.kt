@@ -7,7 +7,7 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.zip
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -731,9 +731,9 @@ class LagBrevRequestVisitor(
                 formuegrunnlag = formuevilkår.hentFormueGrunnlagForSøknadsbehandling(avslagsgrunner),
                 // TODO(satsfactory_formue) jah: Denne er bevart slik den har vært: Grunnbeløp.`0,5G`.påDato(opprettet.toLocalDate(zoneIdOslo)).
                 //  Det kan være en diff i når selve avslaget skjedde og når vi genererte brevet, hvis diffen er stor nokkan  formuegrensen ha endret seg på dette tidspunktet.
-                halvtGrunnbeløpPerÅr = satsFactory.formuegrenserFactory.forMånedsperiode(
-                    månedsperiode = opprettet.toLocalDate(zoneIdOslo).let {
-                        Månedsperiode(YearMonth.of(it.year, it.month))
+                halvtGrunnbeløpPerÅr = satsFactory.formuegrenserFactory.forMåned(
+                    måned = opprettet.toLocalDate(zoneIdOslo).let {
+                        Måned(YearMonth.of(it.year, it.month))
                     },
                 ).formuegrenseMedToDesimaler,
             ),

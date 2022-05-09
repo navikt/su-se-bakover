@@ -203,7 +203,7 @@ class SøknadsbehandlingServiceBeregningTest {
             sak to vilkårsvurdert.leggTilFradragsgrunnlag(
                 fradragsgrunnlag = listOf(
                     fradragsgrunnlagArbeidsinntekt(
-                        periode = vilkårsvurdert.periode.tilMånedsperioder().first(),
+                        periode = vilkårsvurdert.periode.måneder().first(),
                         arbeidsinntekt = 25000.0,
                         tilhører = FradragTilhører.BRUKER,
                     ),

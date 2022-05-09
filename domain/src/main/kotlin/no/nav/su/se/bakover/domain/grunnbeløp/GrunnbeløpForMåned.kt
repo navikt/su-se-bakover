@@ -2,12 +2,12 @@ package no.nav.su.se.bakover.domain.grunnbeløp
 
 import no.nav.su.se.bakover.common.avrund
 import no.nav.su.se.bakover.common.isEqualOrBefore
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import java.math.BigDecimal
 import java.time.LocalDate
 
 data class GrunnbeløpForMåned(
-    val måned: Månedsperiode,
+    val måned: Måned,
     val grunnbeløpPerÅr: Int,
     val ikrafttredelse: LocalDate,
 ) {

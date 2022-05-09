@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
@@ -191,13 +192,12 @@ data class Sak(
      * andre beregnings-beløp som ikke skal ha en påverkan på saken.
      * */
     fun hentGjeldendeMånedsberegningForMåned(
-        månedsperiode: Periode,
+        måned: Måned,
         clock: Clock,
         formuegrenserFactory: FormuegrenserFactory,
     ): Månedsberegning? {
-        assert(månedsperiode.getAntallMåneder() == 1)
         return GjeldendeVedtaksdata(
-            periode = månedsperiode,
+            periode = måned,
             vedtakListe = NonEmptyList.fromListUnsafe(
                 vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
                     .filterNot { it is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse || it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse || it is VedtakSomKanRevurderes.IngenEndringIYtelse }
@@ -207,7 +207,7 @@ data class Sak(
             ),
             clock = clock,
             formuegrenserFactory = formuegrenserFactory,
-        ).gjeldendeVedtakPåDato(månedsperiode.fraOgMed)?.let {
+        ).gjeldendeVedtakPåDato(måned.fraOgMed)?.let {
             when (it) {
                 is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> it.beregning
                 is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> it.beregning
@@ -218,7 +218,7 @@ data class Sak(
                 is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.GjenopptakAvYtelse")
             }
         }?.let { beregning ->
-            beregning.getMånedsberegninger().associateBy { it.periode }[månedsperiode]
+            beregning.getMånedsberegninger().associateBy { it.periode }[måned]
         }
     }
 

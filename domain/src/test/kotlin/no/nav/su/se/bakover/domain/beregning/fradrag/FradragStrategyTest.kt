@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.beregning.fradrag
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.år
@@ -206,7 +206,7 @@ internal fun lagFradrag(
 internal fun lagPeriodisertFradrag(
     type: Fradragstype,
     beløp: Double,
-    måned: Månedsperiode,
+    måned: Måned,
     tilhører: FradragTilhører = FradragTilhører.BRUKER,
 ) = FradragForMåned(
     fradragstype = type,

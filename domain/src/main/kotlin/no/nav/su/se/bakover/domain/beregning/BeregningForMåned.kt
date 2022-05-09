@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadForMåned
 import no.nav.su.se.bakover.domain.satser.Satskategori
@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.satser.Satskategori
  * TODO jah: Slett interfacet Månedsberegning og erstatt med dette.
  */
 data class BeregningForMåned(
-    override val måned: Månedsperiode,
+    override val måned: Måned,
     private val fradrag: List<FradragForMåned>,
     override val fullSupplerendeStønadForMåned: FullSupplerendeStønadForMåned,
     private val fribeløpForEps: Double = 0.0,
@@ -21,7 +21,7 @@ data class BeregningForMåned(
     private val sumFradrag: Double,
 ) : Månedsberegning {
 
-    override val periode: Månedsperiode = måned
+    override val periode: Måned = måned
 
     init {
         require(fradrag.all { it.måned == måned }) { "Fradrag må være gjeldende for aktuell måned" }

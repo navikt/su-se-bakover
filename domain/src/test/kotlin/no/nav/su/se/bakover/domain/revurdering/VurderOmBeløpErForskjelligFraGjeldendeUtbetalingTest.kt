@@ -108,7 +108,7 @@ internal class VurderOmBeløpErForskjelligFraGjeldendeUtbetalingTest {
 
     private fun lagBeregning(vararg periodeBeløpMap: Pair<Periode, Int>): Beregning {
         val fradrag = periodeBeløpMap.map {
-            val sats: Double = satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(it.first.tilMånedsperioder().head).satsForMånedAsDouble
+            val sats: Double = satsFactoryTest.fullSupplerendeStønadHøy().forMåned(it.first.måneder().head).satsForMånedAsDouble
             val diff: Double = abs(sats - it.second)
             FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.ForventetInntekt,

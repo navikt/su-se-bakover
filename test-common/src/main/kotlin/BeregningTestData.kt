@@ -54,11 +54,11 @@ fun beregningAvslagUnderMinstebeløp(
         fradragsgrunnlag = nonEmptyListOf(
             fradragsgrunnlagArbeidsinntekt(
                 periode = Periode.create(1.januar(2021), 30.april(2021)),
-                arbeidsinntekt = (satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(januar(2021)).satsForMånedAsDouble - 100),
+                arbeidsinntekt = (satsFactoryTest.fullSupplerendeStønadHøy().forMåned(januar(2021)).satsForMånedAsDouble - 100),
             ),
             fradragsgrunnlagArbeidsinntekt(
                 periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                arbeidsinntekt = (satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(mai(2021)).satsForMånedAsDouble - 100),
+                arbeidsinntekt = (satsFactoryTest.fullSupplerendeStønadHøy().forMåned(mai(2021)).satsForMånedAsDouble - 100),
             ),
         ),
     )

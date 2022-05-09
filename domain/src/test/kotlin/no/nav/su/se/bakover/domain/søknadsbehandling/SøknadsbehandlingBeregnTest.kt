@@ -40,8 +40,8 @@ internal class SøknadsbehandlingBeregnTest {
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 1
                 etterBeregning.beregning.getSumFradrag() shouldBe 0.0
-                etterBeregning.beregning.getSumYtelse() shouldBe førBeregning.periode.tilMånedsperioder()
-                    .sumOf { satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(it).satsForMånedAvrundet }
+                etterBeregning.beregning.getSumYtelse() shouldBe førBeregning.periode.måneder()
+                    .sumOf { satsFactoryTest.fullSupplerendeStønadHøy().forMåned(it).satsForMånedAvrundet }
                 etterBeregning.beregning.getBegrunnelse() shouldBe "kakota"
                 etterBeregning.grunnlagsdata shouldBe førBeregning.grunnlagsdata
             }
@@ -79,8 +79,8 @@ internal class SøknadsbehandlingBeregnTest {
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 1
                 etterBeregning.beregning.getSumFradrag() shouldBe 0
-                etterBeregning.beregning.getSumYtelse() shouldBe førBeregning.periode.tilMånedsperioder()
-                    .sumOf { satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(it).satsForMånedAvrundet }
+                etterBeregning.beregning.getSumYtelse() shouldBe førBeregning.periode.måneder()
+                    .sumOf { satsFactoryTest.fullSupplerendeStønadHøy().forMåned(it).satsForMånedAvrundet }
                 etterBeregning.grunnlagsdata shouldNotBe førBeregning.grunnlagsdata
             }
         }
@@ -117,8 +117,8 @@ internal class SøknadsbehandlingBeregnTest {
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 2
                 etterBeregning.beregning.getSumFradrag() shouldBe førBeregning.periode.getAntallMåneder() * 15000
-                etterBeregning.beregning.getSumYtelse() shouldBe førBeregning.periode.tilMånedsperioder()
-                    .sumOf { satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(it).satsForMånedAvrundet - 15000 }
+                etterBeregning.beregning.getSumYtelse() shouldBe førBeregning.periode.måneder()
+                    .sumOf { satsFactoryTest.fullSupplerendeStønadHøy().forMåned(it).satsForMånedAvrundet - 15000 }
                 etterBeregning.grunnlagsdata shouldBe førBeregning.grunnlagsdata
             }
         }
@@ -163,8 +163,8 @@ internal class SøknadsbehandlingBeregnTest {
                 etterBeregning.beregning.getFradrag()
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldHaveSize 3
                 etterBeregning.beregning.getSumFradrag() shouldBe expectedAvkortingBeløp.plusOrMinus(0.5)
-                etterBeregning.beregning.getSumYtelse() shouldBe førBeregning.periode.tilMånedsperioder()
-                    .sumOf { satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(it).satsForMånedAvrundet } - expectedAvkortingBeløp
+                etterBeregning.beregning.getSumYtelse() shouldBe førBeregning.periode.måneder()
+                    .sumOf { satsFactoryTest.fullSupplerendeStønadHøy().forMåned(it).satsForMånedAvrundet } - expectedAvkortingBeløp
                 etterBeregning.grunnlagsdata.fradragsgrunnlag
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp } shouldBe expectedAvkortingBeløp.plusOrMinus(0.5)
@@ -226,8 +226,8 @@ internal class SøknadsbehandlingBeregnTest {
                 etterBeregning.beregning.getFradrag()
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldHaveSize 3
                 etterBeregning.beregning.getSumFradrag() shouldBe expectedAvkortingBeløp.plusOrMinus(0.5)
-                etterBeregning.beregning.getSumYtelse() shouldBe vilkårsvurdert.periode.tilMånedsperioder()
-                    .sumOf { satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(it).satsForMånedAvrundet } - expectedAvkortingBeløp
+                etterBeregning.beregning.getSumYtelse() shouldBe vilkårsvurdert.periode.måneder()
+                    .sumOf { satsFactoryTest.fullSupplerendeStønadHøy().forMåned(it).satsForMånedAvrundet } - expectedAvkortingBeløp
                 etterBeregning.grunnlagsdata.fradragsgrunnlag
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp } shouldBe expectedAvkortingBeløp.plusOrMinus(0.5)

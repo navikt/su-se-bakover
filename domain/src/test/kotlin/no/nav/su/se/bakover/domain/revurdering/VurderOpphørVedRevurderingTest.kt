@@ -81,7 +81,7 @@ internal class VurderOpphørVedRevurderingTest {
                 fradragsgrunnlagArbeidsinntekt(
                     periode = november(2021),
                     arbeidsinntekt = satsFactoryTest.fullSupplerendeStønadHøy()
-                        .forMånedsperiode(november(2021)).satsForMånedAsDouble - 100.0,
+                        .forMåned(november(2021)).satsForMånedAsDouble - 100.0,
                 ),
             ),
         )
@@ -101,7 +101,7 @@ internal class VurderOpphørVedRevurderingTest {
                 fradragsgrunnlagArbeidsinntekt(
                     periode = Periode.create(1.juli(2021), 31.desember(2021)),
                     arbeidsinntekt = satsFactoryTest.fullSupplerendeStønadHøy()
-                        .forMånedsperiode(juli(2021)).satsForMånedAsDouble - 100.0,
+                        .forMåned(juli(2021)).satsForMånedAsDouble - 100.0,
                 ),
             ),
         )
@@ -121,7 +121,7 @@ internal class VurderOpphørVedRevurderingTest {
                 fradragsgrunnlagArbeidsinntekt(
                     periode = Periode.create(1.juni(2021), 31.desember(2021)),
                     arbeidsinntekt = satsFactoryTest.fullSupplerendeStønadHøy()
-                        .forMånedsperiode(juni(2021)).satsForMånedAsDouble - 100.0,
+                        .forMåned(juni(2021)).satsForMånedAsDouble - 100.0,
                 ),
             ),
         )

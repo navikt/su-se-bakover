@@ -6,7 +6,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
 
-data class Månedsperiode(
+data class Måned(
     private val årOgMåned: YearMonth,
 ) : Periode(årOgMåned) {
     /** Brukes for å deserialisere fra json */
@@ -21,19 +21,19 @@ data class Månedsperiode(
      * Returns a range from this value up to but excluding the specified to value.
      * If the to value is less than or equal to this value, then the returned range is empty.
      */
-    fun until(endExclusive: Månedsperiode): List<Månedsperiode> {
+    fun until(endExclusive: Måned): List<Måned> {
         return (0 until this.årOgMåned.until(endExclusive.årOgMåned, ChronoUnit.MONTHS)).map {
             this.plusMonths(it)
         }
     }
 
-    fun plusMonths(monthsToAdd: Long): Månedsperiode {
-        return Månedsperiode(årOgMåned.plusMonths(monthsToAdd))
+    fun plusMonths(monthsToAdd: Long): Måned {
+        return Måned(årOgMåned.plusMonths(monthsToAdd))
     }
 
     companion object {
-        fun now(clock: Clock): Månedsperiode {
-            return Månedsperiode(YearMonth.now(clock))
+        fun now(clock: Clock): Måned {
+            return Måned(YearMonth.now(clock))
         }
     }
 
@@ -44,13 +44,13 @@ data class Månedsperiode(
 /**
  * @throws IllegalArgumentException dersom denne perioden er lengre enn 1 måned.
  */
-fun Periode.toMånedsperiode(): Månedsperiode {
+fun Periode.tilMåned(): Måned {
     require(this.getAntallMåneder() == 1)
-    return Månedsperiode(YearMonth.of(this.fraOgMed.year, this.fraOgMed.month))
+    return Måned(YearMonth.of(this.fraOgMed.year, this.fraOgMed.month))
 }
 
 /**
- * Mappet med månedsperioder trenger ikke være sortert eller sammenhengende og kan ha duplikater.
+ * Mappet med måneder trenger ikke være sortert eller sammenhengende og kan ha duplikater.
  * @throws NoSuchElementException dersom mappet er tomt.
  */
-fun <T> Map<Månedsperiode, T>.periode() = this.keys.toList().minAndMaxOf()
+fun <T> Map<Måned, T>.periode() = this.keys.toList().minAndMaxOf()

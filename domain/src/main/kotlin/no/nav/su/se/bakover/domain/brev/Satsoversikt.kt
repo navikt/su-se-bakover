@@ -65,7 +65,7 @@ data class Satsoversikt(
             return bosituasjoner
                 .map { it.fullstendigOrThrow() }
                 .flatMap { bosituasjon ->
-                    bosituasjon.periode.tilMånedsperioder()
+                    bosituasjon.periode.måneder()
                         .map { måned -> måned to bosituasjon }
                         .map { (måned, bosituasjon) ->
                             val beregningsstrategi: BeregningStrategy = bosituasjon.utledBeregningsstrategi(satsFactory)
@@ -74,7 +74,7 @@ data class Satsoversikt(
                                 tilOgMed = måned.tilOgMed.ddMMyyyy(),
                                 sats = beregningsstrategi.satskategori.toJsonstring(),
                                 satsBeløp = beregningsstrategi.fullSupplerendeStønadFactory()
-                                    .forMånedsperiode(måned).satsForMånedAvrundet,
+                                    .forMåned(måned).satsForMånedAvrundet,
                                 satsGrunn = beregningsstrategi.satsgrunn().toString(),
                             )
                         }

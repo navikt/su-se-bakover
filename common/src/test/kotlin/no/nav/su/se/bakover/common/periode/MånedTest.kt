@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
-internal class MånedsperiodeTest {
+internal class MånedTest {
 
     @Nested
     inner class `until()` {
@@ -66,13 +66,13 @@ internal class MånedsperiodeTest {
         januar(2021) shouldBe januar(2021)
         januar(2021) shouldNotBe februar(2021)
 
-        Månedsperiode(1.januar(2021), 31.januar(2021)) shouldBe Månedsperiode(1.januar(2021), 31.januar(2021))
-        Månedsperiode(1.januar(2021), 31.januar(2021)) shouldNotBe Månedsperiode(1.februar(2021), 28.februar(2021))
+        Måned(1.januar(2021), 31.januar(2021)) shouldBe Måned(1.januar(2021), 31.januar(2021))
+        Måned(1.januar(2021), 31.januar(2021)) shouldNotBe Måned(1.februar(2021), 28.februar(2021))
 
-        januar(2021) shouldBe Månedsperiode(1.januar(2021), 31.januar(2021))
+        januar(2021) shouldBe Måned(1.januar(2021), 31.januar(2021))
         januar(2021) shouldBe Periode.create(1.januar(2021), 31.januar(2021))
 
-        februar(2021) shouldNotBe Månedsperiode(1.januar(2021), 31.januar(2021))
+        februar(2021) shouldNotBe Måned(1.januar(2021), 31.januar(2021))
         februar(2021) shouldNotBe Periode.create(1.januar(2021), 31.januar(2021))
     }
 
@@ -84,6 +84,6 @@ internal class MånedsperiodeTest {
 
     @Test
     fun now() {
-        Månedsperiode.now(fixedClock) shouldBe januar(2021)
+        Måned.now(fixedClock) shouldBe januar(2021)
     }
 }

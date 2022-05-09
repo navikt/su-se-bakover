@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.satser
 
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.periode.periode
 import no.nav.su.se.bakover.common.periode.periodisert
@@ -18,8 +18,8 @@ import java.time.LocalDate
  * Dersom det hentes fra databasen, og en ønsker en append-only tabell, kan man legge til en opprettet timestamp i tabellen og la selecten velge den nyeste av de med lik dato f.eks.
  */
 data class MinsteÅrligYtelseForUføretrygdedeFactory(
-    val ordinær: Map<Månedsperiode, MinsteÅrligYtelseForUføretrygdedeForMåned>,
-    val høy: Map<Månedsperiode, MinsteÅrligYtelseForUføretrygdedeForMåned>,
+    val ordinær: Map<Måned, MinsteÅrligYtelseForUføretrygdedeForMåned>,
+    val høy: Map<Måned, MinsteÅrligYtelseForUføretrygdedeForMåned>,
 ) {
     companion object {
         fun createFromFaktorer(
@@ -27,17 +27,17 @@ data class MinsteÅrligYtelseForUføretrygdedeFactory(
             høy: List<Pair<LocalDate, Faktor>>,
         ): MinsteÅrligYtelseForUføretrygdedeFactory {
 
-            fun mapper(satsKategori: Satskategori): Map<Månedsperiode, MinsteÅrligYtelseForUføretrygdedeForMåned> {
+            fun mapper(satsKategori: Satskategori): Map<Måned, MinsteÅrligYtelseForUføretrygdedeForMåned> {
                 val satser = when (satsKategori) {
                     Satskategori.ORDINÆR -> ordinær
                     Satskategori.HØY -> høy
                 }
-                return satser.periodisert().associate { månedsperiode ->
-                    månedsperiode.second to MinsteÅrligYtelseForUføretrygdedeForMåned(
-                        faktor = månedsperiode.third,
+                return satser.periodisert().associate { (ikrafttredelse, måned, faktor) ->
+                    måned to MinsteÅrligYtelseForUføretrygdedeForMåned(
+                        faktor = faktor,
                         satsKategori = satsKategori,
-                        ikrafttredelse = månedsperiode.first,
-                        måned = månedsperiode.second,
+                        ikrafttredelse = ikrafttredelse,
+                        måned = måned,
                     )
                 }
             }
@@ -67,7 +67,7 @@ data class MinsteÅrligYtelseForUføretrygdedeFactory(
     val fraOgMed: LocalDate = ordinær.keys.first().fraOgMed
     val tilOgMed: LocalDate = ordinær.keys.last().tilOgMed
 
-    fun forMåned(måned: Månedsperiode, satsKategori: Satskategori): MinsteÅrligYtelseForUføretrygdedeForMåned {
+    fun forMåned(måned: Måned, satsKategori: Satskategori): MinsteÅrligYtelseForUføretrygdedeForMåned {
         val satser = when (satsKategori) {
             Satskategori.ORDINÆR -> ordinær
             Satskategori.HØY -> høy

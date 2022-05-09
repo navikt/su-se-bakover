@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.beregning
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -39,10 +39,10 @@ internal object TestMånedsberegning : Månedsberegning {
     override fun getFradrag(): List<FradragForMåned> = listOf(TestFradrag)
     override fun getFribeløpForEps(): Double = 0.0
     override fun getMerknader(): List<Merknad.Beregning> = emptyList()
-    override val fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMånedsperiode(januar(2021))
+    override val fullSupplerendeStønadForMåned = fullSupplerendeStønadHøyTest.forMåned(januar(2021))
     override val periode: Periode = januar(2020)
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
-    override val måned: Månedsperiode = januar(2020)
+    override val måned: Måned = januar(2020)
 }
 
 val TestFradrag = FradragForMåned(

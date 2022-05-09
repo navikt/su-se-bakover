@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
-import no.nav.su.se.bakover.common.periode.Månedsperiode
-import no.nav.su.se.bakover.common.periode.toMånedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
+import no.nav.su.se.bakover.common.periode.tilMåned
 import no.nav.su.se.bakover.domain.CopyArgs
 
 /**
@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.CopyArgs
 data class FradragForMåned(
     override val fradragstype: Fradragstype,
     override val månedsbeløp: Double,
-    val måned: Månedsperiode,
+    val måned: Måned,
     override val utenlandskInntekt: UtenlandskInntekt? = null,
     override val tilhører: FradragTilhører
 ) : Fradrag {
@@ -20,9 +20,9 @@ data class FradragForMåned(
     init {
         require(månedsbeløp >= 0.0) { "Fradrag kan ikke være negative" }
     }
-    override val periode: Månedsperiode = måned
+    override val periode: Måned = måned
 
     override fun copy(args: CopyArgs.Snitt): Fradrag? {
-        return args.snittFor(periode)?.let { copy(måned = it.toMånedsperiode()) }
+        return args.snittFor(periode)?.let { copy(måned = it.tilMåned()) }
     }
 }

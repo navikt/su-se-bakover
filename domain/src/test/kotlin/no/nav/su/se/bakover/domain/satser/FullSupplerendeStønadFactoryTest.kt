@@ -30,20 +30,20 @@ internal class FullSupplerendeStønadFactoryTest {
         @Test
         fun `ordinær - desember 2014 er ikke tilgjengelig`() {
             shouldThrow<IllegalStateException> {
-                ordinær.forMånedsperiode(desember(2014))
-            }.message shouldBe "Kan ikke avgjøre full supplerende stønad for måned: Månedsperiode(årOgMåned=2014-12). Vi har bare data for perioden: Periode(fraOgMed=2015-01-01, tilOgMed=2029-12-31)"
+                ordinær.forMåned(desember(2014))
+            }.message shouldBe "Kan ikke avgjøre full supplerende stønad for måned: Måned(årOgMåned=2014-12). Vi har bare data for perioden: Periode(fraOgMed=2015-01-01, tilOgMed=2029-12-31)"
         }
 
         @Test
         fun `høy - desember 2014 er ikke tilgjengelig`() {
             shouldThrow<IllegalStateException> {
-                høy.forMånedsperiode(desember(2014))
-            }.message shouldBe "Kan ikke avgjøre full supplerende stønad for måned: Månedsperiode(årOgMåned=2014-12). Vi har bare data for perioden: Periode(fraOgMed=2015-01-01, tilOgMed=2029-12-31)"
+                høy.forMåned(desember(2014))
+            }.message shouldBe "Kan ikke avgjøre full supplerende stønad for måned: Måned(årOgMåned=2014-12). Vi har bare data for perioden: Periode(fraOgMed=2015-01-01, tilOgMed=2029-12-31)"
         }
 
         @Test
         fun `ordinær - januar 2021`() {
-            ordinær.forMånedsperiode(januar(2021)).let {
+            ordinær.forMåned(januar(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = januar(2021),
                     satskategori = Satskategori.ORDINÆR,
@@ -71,7 +71,7 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `høy - januar 2021`() {
-            høy.forMånedsperiode(januar(2021)).let {
+            høy.forMåned(januar(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = januar(2021),
                     satskategori = Satskategori.HØY,
@@ -99,7 +99,7 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `ordinær - mai 2021`() {
-            ordinær.forMånedsperiode(mai(2021)).let {
+            ordinær.forMåned(mai(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = mai(2021),
                     satskategori = Satskategori.ORDINÆR,
@@ -127,7 +127,7 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `høy - mai 2021`() {
-            høy.forMånedsperiode(mai(2021)).let {
+            høy.forMåned(mai(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = mai(2021),
                     satskategori = Satskategori.HØY,
@@ -155,7 +155,7 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `ordinær - mai 2022`() {
-            ordinær.forMånedsperiode(mai(2022)).let {
+            ordinær.forMåned(mai(2022)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = mai(2022),
                     satskategori = Satskategori.ORDINÆR,
@@ -183,7 +183,7 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `høy - mai 2022`() {
-            høy.forMånedsperiode(mai(2022)).let {
+            høy.forMåned(mai(2022)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = mai(2022),
                     satskategori = Satskategori.HØY,
@@ -212,7 +212,7 @@ internal class FullSupplerendeStønadFactoryTest {
         @Test
         fun `finn siste g-endringsdato for 2021-04-30`() {
             val expectedIkrafttredelse = 1.mai(2020)
-            høy.forMånedsperiode(
+            høy.forMåned(
                 april(2021),
             ).let {
                 it.grunnbeløp.ikrafttredelse shouldBe expectedIkrafttredelse
@@ -223,7 +223,7 @@ internal class FullSupplerendeStønadFactoryTest {
         @Test
         fun `finn siste g-endringsdato for 2021-05-01`() {
             val expectedIkrafttredelse = LocalDate.of(2021, Month.MAY, 1)
-            høy.forMånedsperiode(
+            høy.forMåned(
                 mai(2021),
             ).let {
                 it.grunnbeløp.ikrafttredelse shouldBe expectedIkrafttredelse

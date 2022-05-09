@@ -3,8 +3,6 @@ package no.nav.su.se.bakover.common
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.time.Month
-import java.time.YearMonth
 
 internal class ExtensionsTest {
 

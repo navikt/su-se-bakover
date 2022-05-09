@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
@@ -26,7 +26,7 @@ data class FormuegrenseForMåned(
     val formuegrense: BigDecimal = grunnbeløpForMåned.grunnbeløpPerÅr.toBigDecimal().multiply(faktor.toBigDecimal())
     val formuegrenseMedToDesimaler: Double = grunnbeløpForMåned.grunnbeløpPerÅr.toBigDecimal().multiply(faktor.toBigDecimal()).roundToDecimals(2)
 
-    val måned: Månedsperiode = grunnbeløpForMåned.måned
+    val måned: Måned = grunnbeløpForMåned.måned
 
     init {
         require(grunnbeløpForMåned.måned == måned)

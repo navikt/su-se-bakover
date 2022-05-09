@@ -101,7 +101,7 @@ internal class BeregnRevurderingStrategyDecider(
         revurdering: Revurdering,
         gjeldendeVedtaksdata: GjeldendeVedtaksdata,
     ): List<AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel> {
-        return revurdering.periode.tilMånedsperioder()
+        return revurdering.periode.måneder()
             .map { gjeldendeVedtaksdata.gjeldendeVedtakPåDato(it.fraOgMed) }
             .distinct()
             .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()

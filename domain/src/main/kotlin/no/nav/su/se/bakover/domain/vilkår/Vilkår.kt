@@ -994,8 +994,8 @@ sealed class Vurderingsperiode {
                 return Formue(
                     id = id,
                     opprettet = grunnlag.opprettet,
-                    resultat = if (grunnlag.periode.tilMånedsperioder().all {
-                        grunnlag.sumFormue() <= formuegrenserFactory.forMånedsperiode(it).formuegrense.avrund()
+                    resultat = if (grunnlag.periode.måneder().all {
+                        grunnlag.sumFormue() <= formuegrenserFactory.forMåned(it).formuegrense.avrund()
                     }
                     ) Resultat.Innvilget else Resultat.Avslag,
                     grunnlag = grunnlag,

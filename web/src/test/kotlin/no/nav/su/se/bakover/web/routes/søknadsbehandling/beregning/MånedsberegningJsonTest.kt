@@ -28,7 +28,7 @@ internal class MånedsberegningJsonTest {
 
         internal val månedsberegning = MånedsberegningFactory.ny(
             måned = januar(2020),
-            fullSupplerendeStønadForMåned = satsFactoryTest.fullSupplerendeStønadHøy().forMånedsperiode(januar(2020)),
+            fullSupplerendeStønadForMåned = satsFactoryTest.fullSupplerendeStønadHøy().forMåned(januar(2020)),
             fradrag = emptyList(),
         )
     }

@@ -1,14 +1,14 @@
 package no.nav.su.se.bakover.domain.satser
 
 import no.nav.su.se.bakover.common.avrund
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import java.math.BigDecimal
 import java.math.MathContext
 import java.time.LocalDate
 
 data class FullSupplerendeStønadForMåned(
-    val måned: Månedsperiode,
+    val måned: Måned,
     val satskategori: Satskategori,
     val grunnbeløp: GrunnbeløpForMåned,
     val minsteÅrligYtelseForUføretrygdede: MinsteÅrligYtelseForUføretrygdedeForMåned,
@@ -33,7 +33,7 @@ data class FullSupplerendeStønadForMåned(
 
     val fraOgMed: LocalDate = måned.fraOgMed
     val tilOgMed: LocalDate = måned.tilOgMed
-    val periode: Månedsperiode = måned
+    val periode: Måned = måned
 
     override fun compareTo(other: FullSupplerendeStønadForMåned) = this.måned.compareTo(other.måned)
 }

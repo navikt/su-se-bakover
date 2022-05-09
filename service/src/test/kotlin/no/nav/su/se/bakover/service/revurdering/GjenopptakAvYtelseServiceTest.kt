@@ -485,7 +485,7 @@ internal class GjenopptakAvYtelseServiceTest {
             tilOgMed = år(2021).tilOgMed,
         )
         val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
-            simulering = simuleringFeilutbetaling(*periode.tilMånedsperioder().toTypedArray()),
+            simulering = simuleringFeilutbetaling(*periode.måneder().toTypedArray()),
         ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {

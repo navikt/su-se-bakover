@@ -550,11 +550,11 @@ internal class SakTest {
             ).let { (sak, vedtak) ->
                 vedtak shouldBe beOfType<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
 
-                stønadsperiode.periode.tilMånedsperioder().none {
+                stønadsperiode.periode.måneder().none {
                     sak.ytelseUtløperVedUtløpAv(it)
                 } shouldBe true
 
-                revurderingsperiode.tilMånedsperioder().none {
+                revurderingsperiode.måneder().none {
                     sak.ytelseUtløperVedUtløpAv(it)
                 } shouldBe true
             }
