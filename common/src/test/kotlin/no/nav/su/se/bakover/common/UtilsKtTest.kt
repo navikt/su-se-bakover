@@ -74,13 +74,6 @@ internal class UtilsKtTest {
     }
 
     @Test
-    fun `isEqualOrAfter`() {
-        1.januar(2021).isEqualOrAfter(1.januar(2021)) shouldBe true
-        2.januar(2021).isEqualOrAfter(1.januar(2021)) shouldBe true
-        1.januar(2021).isEqualOrAfter(2.januar(2021)) shouldBe false
-    }
-
-    @Test
     fun `isEqualOrBefore`() {
         1.januar(2021).isEqualOrBefore(1.januar(2021)) shouldBe true
         1.januar(2021).isEqualOrBefore(2.januar(2021)) shouldBe true

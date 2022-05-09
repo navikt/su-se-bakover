@@ -40,7 +40,6 @@ fun LocalDate.erFørsteDagIMåned() = dayOfMonth == 1
 fun LocalDate.erSisteDagIMåned() = dayOfMonth == lengthOfMonth()
 fun LocalDate.erMindreEnnEnMånedSenere(localDate: LocalDate) = this.isBefore(localDate.plusMonths(1))
 infix fun LocalDate.isEqualOrBefore(other: LocalDate) = !this.isAfter(other)
-infix fun LocalDate.isEqualOrAfter(other: LocalDate) = !this.isBefore(other)
 
 fun Tidspunkt.between(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt) =
     (this == fraOgMed || this == tilOgMed) || this.instant.isAfter(fraOgMed.instant) && this.instant.isBefore(tilOgMed.instant)
