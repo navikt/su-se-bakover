@@ -117,13 +117,6 @@ fun Application.susebakover(
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
 ) {
-    /**
-     * TODO(ktor-2.0.0)
-     * Det er noe som virker å ikke fungere helt her, virker ikke som vi får alle exceptions til å havne her.
-     * Ser at det eksisterer et par rapporterte bugs for denne se:
-     * https://youtrack.jetbrains.com/issue/KTOR-4187
-     * https://youtrack.jetbrains.com/issue/KTOR-4231
-     */
     install(StatusPages) {
         exception<Tilgangssjekkfeil> { call, cause ->
             when (cause.feil) {
