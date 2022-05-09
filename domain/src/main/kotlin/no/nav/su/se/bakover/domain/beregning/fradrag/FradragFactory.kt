@@ -1,30 +1,47 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
+import no.nav.su.se.bakover.common.periode.Månedsperiode
 import no.nav.su.se.bakover.common.periode.Periode
 
 object FradragFactory {
-    fun ny(
-        type: Fradragstype,
+    fun nyFradragsperiode(
+        fradragstype: Fradragstype,
         månedsbeløp: Double,
         periode: Periode,
         utenlandskInntekt: UtenlandskInntekt? = null,
         tilhører: FradragTilhører
-    ): Fradrag {
-        return IkkePeriodisertFradrag(
+    ): FradragForPeriode {
+        return FradragForPeriode(
             periode = periode,
-            type = type,
+            fradragstype = fradragstype,
             månedsbeløp = månedsbeløp,
             utenlandskInntekt = utenlandskInntekt,
             tilhører = tilhører
         )
     }
 
-    fun periodiser(fradrag: Fradrag): List<Fradrag> =
+    fun nyMånedsperiode(
+        fradragstype: Fradragstype,
+        månedsbeløp: Double,
+        måned: Månedsperiode,
+        utenlandskInntekt: UtenlandskInntekt? = null,
+        tilhører: FradragTilhører
+    ): FradragForMåned {
+        return FradragForMåned(
+            måned = måned,
+            fradragstype = fradragstype,
+            månedsbeløp = månedsbeløp,
+            utenlandskInntekt = utenlandskInntekt,
+            tilhører = tilhører
+        )
+    }
+
+    fun periodiser(fradrag: Fradrag): List<FradragForMåned> =
         fradrag.periode.tilMånedsperioder().map {
-            PeriodisertFradrag(
-                type = fradrag.fradragstype,
+            FradragForMåned(
+                fradragstype = fradrag.fradragstype,
                 månedsbeløp = fradrag.månedsbeløp,
-                periode = it,
+                måned = it,
                 utenlandskInntekt = fradrag.utenlandskInntekt,
                 tilhører = fradrag.tilhører
             )

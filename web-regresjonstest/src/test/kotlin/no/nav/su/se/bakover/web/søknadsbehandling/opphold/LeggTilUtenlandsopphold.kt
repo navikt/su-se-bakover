@@ -25,11 +25,12 @@ internal fun TestApplicationEngine.leggTilUtenlandsopphold(
     vurdering: String = "SkalHoldeSegINorge",
     begrunnelse: String = "Vurdering av utenlandsopphold er lagt til automatisk av LeggTilUførhet.kt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
+    url: String = "/saker/$sakId/behandlinger/$behandlingId/utenlandsopphold",
 ): String {
     return runBlocking {
         defaultRequest(
             HttpMethod.Post,
-            "/saker/$sakId/behandlinger/$behandlingId/utenlandsopphold",
+            url,
             listOf(brukerrolle),
         ) {
             setBody(

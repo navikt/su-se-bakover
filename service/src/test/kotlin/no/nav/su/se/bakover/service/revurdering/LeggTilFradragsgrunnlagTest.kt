@@ -9,11 +9,13 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
@@ -38,7 +40,7 @@ internal class LeggTilFradragsgrunnlagTest {
 
     @Test
     fun `lagreFradrag happy case`() {
-        val revurderingsperiode = Periode.create(1.januar(2021), 31.desember(2021))
+        val revurderingsperiode = år(2021)
         val eksisterendeRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -94,7 +96,7 @@ internal class LeggTilFradragsgrunnlagTest {
                 lagFradragsgrunnlag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 0.0,
-                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                    periode = år(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -132,7 +134,7 @@ internal class LeggTilFradragsgrunnlagTest {
                 lagFradragsgrunnlag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 0.0,
-                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                    periode = år(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -204,9 +206,8 @@ internal class LeggTilFradragsgrunnlagTest {
             ),
         )
 
-        revurderingService.leggTilFradragsgrunnlag(
-            request,
-        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon)
-            .left()
+        revurderingService.leggTilFradragsgrunnlag(request) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
+            KunneIkkeLageGrunnlagsdata.Konsistenssjekk(Konsistensproblem.BosituasjonOgFradrag.IngenBosituasjonForFradragsperiode),
+        ).left()
     }
 }

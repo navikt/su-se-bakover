@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.toBrevformat
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.getDistinkteParagrafer
@@ -45,7 +44,6 @@ interface LagBrevRequest {
     data class InnvilgetVedtak(
         override val person: Person,
         private val beregning: Beregning,
-        private val satsgrunn: Satsgrunn,
         private val harEktefelle: Boolean,
         private val forventetInntektStørreEnn0: Boolean,
         private val saksbehandlerNavn: String,
@@ -53,24 +51,19 @@ interface LagBrevRequest {
         private val fritekst: String,
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
+        private val satsoversikt: Satsoversikt,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.InnvilgetVedtak(
             personalia = lagPersonalia(),
             fradato = beregning.periode.fraOgMed.formatMonthYear(),
             tildato = beregning.periode.tilOgMed.formatMonthYear(),
-            // TODO CHM 05.05.2021: Wrap sats-tingene i et eget objekt, hent fra beregning?
-            sats = beregning.getSats().toString().lowercase(),
-            satsGrunn = satsgrunn,
-            satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
-            satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed)
-                .ddMMyyyy(),
-            // Innvilgede vedtaker har alltid forventet inntekt
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             harEktefelle = harEktefelle,
             beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = fritekst,
+            satsoversikt = satsoversikt
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
@@ -95,6 +88,7 @@ interface LagBrevRequest {
         private val forventetInntektStørreEnn0: Boolean,
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
+        private val satsoversikt: Satsoversikt?
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.AvslagsBrevInnhold(
             personalia = lagPersonalia(),
@@ -105,12 +99,10 @@ interface LagBrevRequest {
                 ?: emptyList(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
-            sats = avslag.beregning?.getSats()?.name?.lowercase(),
-            satsGjeldendeFraDato = avslag.beregning?.getSats()
-                ?.datoForSisteEndringAvSats(avslag.beregning.periode.tilOgMed)?.ddMMyyyy(),
             fritekst = fritekst,
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             formueVerdier = avslag.formuegrunnlag?.tilFormueForBrev(),
+            satsoversikt = satsoversikt
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
@@ -154,13 +146,12 @@ interface LagBrevRequest {
         override val saksnummer: Saksnummer,
         override val opphørsdato: LocalDate,
         override val avkortingsBeløp: Int?,
+        private val satsoversikt: Satsoversikt
     ) : LagBrevRequest, Opphør {
         override val brevInnhold = BrevInnhold.Opphørsvedtak(
             personalia = lagPersonalia(),
-            sats = beregning.getSats().toString().lowercase(),
-            satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
-            satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed)
-                .ddMMyyyy(),
+            opphørsgrunner = opphørsgrunner,
+            avslagsparagrafer = opphørsgrunner.getDistinkteParagrafer(),
             harEktefelle = harEktefelle,
             beregningsperioder = if (
                 opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT) ||
@@ -168,13 +159,12 @@ interface LagBrevRequest {
             ) LagBrevinnholdForBeregning(beregning).brevInnhold else emptyList(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
-            halvGrunnbeløp = Grunnbeløp.`0,5G`.påDato(beregning.periode.fraOgMed).toInt(),
             fritekst = fritekst,
-            opphørsgrunner = opphørsgrunner,
-            avslagsparagrafer = opphørsgrunner.getDistinkteParagrafer(),
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
+            halvGrunnbeløp = Grunnbeløp.`0,5G`.påDato(beregning.periode.fraOgMed).toInt(),
             opphørsdato = opphørsdato.ddMMyyyy(),
             avkortingsBeløp = avkortingsBeløp,
+            satsoversikt = satsoversikt
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
@@ -201,6 +191,7 @@ interface LagBrevRequest {
         private val gjeldendeMånedsutbetaling: Int,
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
+        private val satsoversikt: Satsoversikt
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.VedtakIngenEndring(
             personalia = lagPersonalia(),
@@ -208,12 +199,10 @@ interface LagBrevRequest {
             attestantNavn = attestantNavn,
             beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
             fritekst = fritekst,
-            sats = beregning.getSats(),
-            satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed)
-                .ddMMyyyy(),
             harEktefelle = harEktefelle,
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             gjeldendeMånedsutbetaling = gjeldendeMånedsutbetaling,
+            satsoversikt = satsoversikt,
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
@@ -340,6 +329,7 @@ interface LagBrevRequest {
         override val forventetInntektStørreEnn0: Boolean,
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
+        private val satsoversikt: Satsoversikt
     ) : LagBrevRequest, Revurdering {
         override val brevInnhold = BrevInnhold.RevurderingAvInntekt(
             personalia = lagPersonalia(),
@@ -347,11 +337,9 @@ interface LagBrevRequest {
             attestantNavn = attestantNavn,
             beregningsperioder = LagBrevinnholdForBeregning(revurdertBeregning).brevInnhold,
             fritekst = fritekst,
-            sats = revurdertBeregning.getSats(),
-            satsGjeldendeFraDato = revurdertBeregning.getSats()
-                .datoForSisteEndringAvSats(revurdertBeregning.periode.tilOgMed).ddMMyyyy(),
             harEktefelle = harEktefelle,
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
+            satsoversikt = satsoversikt
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
@@ -370,6 +358,7 @@ interface LagBrevRequest {
     data class TilbakekrevingAvPenger(
         private val ordinærtRevurderingBrev: Inntekt,
         private val tilbakekreving: Tilbakekreving,
+        private val satsoversikt: Satsoversikt
     ) : LagBrevRequest, Revurdering by ordinærtRevurderingBrev {
         override val brevInnhold: BrevInnhold = BrevInnhold.RevurderingMedTilbakekrevingAvPenger(
             personalia = lagPersonalia(),
@@ -377,14 +366,12 @@ interface LagBrevRequest {
             attestantNavn = attestantNavn,
             beregningsperioder = LagBrevinnholdForBeregning(revurdertBeregning).brevInnhold,
             fritekst = fritekst,
-            sats = revurdertBeregning.getSats(),
-            satsGjeldendeFraDato = revurdertBeregning.getSats()
-                .datoForSisteEndringAvSats(revurdertBeregning.periode.tilOgMed).ddMMyyyy(),
             harEktefelle = harEktefelle,
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             tilbakekreving = tilbakekreving.tilbakekrevingavdrag,
             periodeStart = tilbakekreving.periodeStart,
             periodeSlutt = tilbakekreving.periodeSlutt,
+            satsoversikt = satsoversikt
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {

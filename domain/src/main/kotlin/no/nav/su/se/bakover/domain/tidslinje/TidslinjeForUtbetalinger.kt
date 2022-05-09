@@ -29,7 +29,6 @@ data class TidslinjeForUtbetalinger(
     private val tidslinjeForNyeUtbetalinger = Tidslinje(
         periode = periode,
         objekter = nyeUtbetalingslinjer,
-        clock = clock,
     ).tidslinje
 
     private val utbetalingslinjerForTidslinje = tidslinjeForNyeUtbetalinger.union(andreUtbetalingslinjer)

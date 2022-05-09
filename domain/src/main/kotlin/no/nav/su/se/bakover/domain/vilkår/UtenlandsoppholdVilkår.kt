@@ -8,14 +8,13 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
-import no.nav.su.se.bakover.common.periode.overlappende
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold.Companion.slåSammenVurderingsperioder
 import java.time.LocalDate
 import java.util.UUID
 
@@ -25,6 +24,7 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
 
     abstract override fun lagTidslinje(periode: Periode): UtenlandsoppholdVilkår
     abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UtenlandsoppholdVilkår
+    abstract override fun slåSammenLikePerioder(): UtenlandsoppholdVilkår
 
     object IkkeVurdert : UtenlandsoppholdVilkår() {
         override val resultat: Resultat = Resultat.Uavklart
@@ -36,6 +36,10 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
+        override fun slåSammenLikePerioder(): UtenlandsoppholdVilkår {
+            return this
+        }
+
         override fun hentTidligesteDatoForAvslag(): LocalDate? = null
         override fun erLik(other: Vilkår): Boolean {
             return other is IkkeVurdert
@@ -76,18 +80,14 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
             return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
         }
 
-        fun slåSammenVurderingsperioder(): Either<UgyldigUtenlandsoppholdVilkår, UtenlandsoppholdVilkår> {
-            return tryCreateFromVurderingsperioder(vurderingsperioder = vurderingsperioder.slåSammenVurderingsperioder())
-        }
-
         companion object {
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeUtenlandsopphold>,
             ): Either<UgyldigUtenlandsoppholdVilkår, Vurdert> {
-                if (vurderingsperioder.overlappende()) {
+                if (vurderingsperioder.harOverlappende()) {
                     return UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder.left()
                 }
-                return Vurdert(vurderingsperioder).right()
+                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
 
             fun createFromVilkårsvurderinger(
@@ -98,10 +98,10 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
             fun tryCreateFromVurderingsperioder(
                 vurderingsperioder: Nel<VurderingsperiodeUtenlandsopphold>,
             ): Either<UgyldigUtenlandsoppholdVilkår, Vurdert> {
-                if (vurderingsperioder.overlappende()) {
+                if (vurderingsperioder.harOverlappende()) {
                     return UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder.left()
                 }
-                return Vurdert(vurderingsperioder).right()
+                return Vurdert(vurderingsperioder.kronologisk()).right()
             }
         }
 
@@ -116,6 +116,10 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
                     it.oppdaterStønadsperiode(stønadsperiode)
                 },
             )
+        }
+
+        override fun slåSammenLikePerioder(): UtenlandsoppholdVilkår {
+            return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
     }
 }
@@ -153,6 +157,9 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
                 periode = args.periode,
                 grunnlag = grunnlag?.copy(args),
             )
+        }
+        is CopyArgs.Tidslinje.Maskert -> {
+            copy(args.args).copy(opprettet = opprettet.plusUnits(1))
         }
     }
 

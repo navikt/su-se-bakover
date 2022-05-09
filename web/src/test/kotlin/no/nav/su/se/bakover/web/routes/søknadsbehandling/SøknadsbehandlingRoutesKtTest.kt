@@ -23,6 +23,8 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.PeriodeJson
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -70,7 +72,6 @@ import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -82,7 +83,6 @@ import no.nav.su.se.bakover.web.requestSomAttestant
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.stønadsperiode
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Nested
@@ -361,6 +361,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     val epsFradrag = FradragJson(
                         periode = PeriodeJson("2021-05-01", "2021-12-31"),
                         type = "Arbeidsinntekt",
+                        beskrivelse = null,
                         beløp = 9879.0,
                         utenlandskInntekt = null,
                         tilhører = "EPS",
@@ -368,6 +369,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     val brukerFradrag = FradragJson(
                         periode = PeriodeJson("2021-06-01", "2021-12-31"),
                         type = "Kontantstøtte",
+                        beskrivelse = null,
                         beløp = 10000.0,
                         utenlandskInntekt = null,
                         tilhører = "BRUKER",
@@ -884,7 +886,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         services.søknadsbehandling.leggTilUtenlandsopphold(
             LeggTilUtenlandsoppholdRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                periode = periode2021,
+                periode = år(2021),
                 status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                 begrunnelse = "Skal være her hele tiden",
             ),

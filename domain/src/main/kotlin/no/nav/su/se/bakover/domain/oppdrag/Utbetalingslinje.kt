@@ -159,11 +159,14 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
         override val periode: Periode,
         override val beløp: Int,
     ) : UtbetalingslinjePåTidslinje() {
-        override fun copy(args: CopyArgs.Tidslinje) = when (args) {
+        override fun copy(args: CopyArgs.Tidslinje): Ny = when (args) {
             is CopyArgs.Tidslinje.Full -> this.copy()
             is CopyArgs.Tidslinje.NyPeriode -> this.copy(
                 periode = args.periode,
             )
+            is CopyArgs.Tidslinje.Maskert -> {
+                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+            }
         }
     }
 
@@ -173,11 +176,14 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
         override val periode: Periode,
         override val beløp: Int = 0,
     ) : UtbetalingslinjePåTidslinje() {
-        override fun copy(args: CopyArgs.Tidslinje) = when (args) {
+        override fun copy(args: CopyArgs.Tidslinje): Stans = when (args) {
             is CopyArgs.Tidslinje.Full -> this.copy()
             is CopyArgs.Tidslinje.NyPeriode -> this.copy(
                 periode = args.periode,
             )
+            is CopyArgs.Tidslinje.Maskert -> {
+                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+            }
         }
     }
 
@@ -187,11 +193,14 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
         override val periode: Periode,
         override val beløp: Int = 0,
     ) : UtbetalingslinjePåTidslinje() {
-        override fun copy(args: CopyArgs.Tidslinje) = when (args) {
+        override fun copy(args: CopyArgs.Tidslinje): Opphør = when (args) {
             is CopyArgs.Tidslinje.Full -> this.copy()
             is CopyArgs.Tidslinje.NyPeriode -> this.copy(
                 periode = args.periode,
             )
+            is CopyArgs.Tidslinje.Maskert -> {
+                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+            }
         }
     }
 
@@ -201,11 +210,14 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
         override val periode: Periode,
         override val beløp: Int,
     ) : UtbetalingslinjePåTidslinje() {
-        override fun copy(args: CopyArgs.Tidslinje) = when (args) {
+        override fun copy(args: CopyArgs.Tidslinje): Reaktivering = when (args) {
             is CopyArgs.Tidslinje.Full -> this.copy()
             is CopyArgs.Tidslinje.NyPeriode -> this.copy(
                 periode = args.periode,
             )
+            is CopyArgs.Tidslinje.Maskert -> {
+                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+            }
         }
     }
 }

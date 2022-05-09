@@ -132,7 +132,6 @@ internal fun Route.klageRoutes(
                 val innenforFristen: Svarord?,
                 val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
                 val erUnderskrevet: Svarord?,
-                val begrunnelse: String?,
             )
             call.withKlageId { klageId ->
                 call.withBody<Body> { body ->
@@ -154,7 +153,12 @@ internal fun Route.klageRoutes(
                                 Svarord.NEI -> VilkårsvurderingerTilKlage.Svarord.NEI
                                 null -> null
                             },
-                            begrunnelse = body.begrunnelse,
+                            /**
+                             * https://trello.com/c/XPMsIuNe/1168-klages-formkrav-fjerne-begrunnelsesfeltet
+                             * Usikre om det blir behov for begrunnelse videre, eller om det endres til andre ting.
+                             * Per nå er begrunnelse fjernet helt fra frontend
+                             */
+                            begrunnelse = "",
                         ),
                     ).map {
                         Resultat.json(OK, serialize(it.toJson()))

@@ -49,8 +49,8 @@ internal class SøknadsbehandlingBeregnTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.AvkortingUtenlandsopphold,
                             månedsbeløp = 15000.0,
                             periode = vilkårsvurdert.periode,
                             utenlandskInntekt = null,
@@ -81,8 +81,8 @@ internal class SøknadsbehandlingBeregnTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.Arbeidsinntekt,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 15000.0,
                             periode = vilkårsvurdert.periode,
                             utenlandskInntekt = null,
@@ -161,8 +161,8 @@ internal class SøknadsbehandlingBeregnTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.AvkortingUtenlandsopphold,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.AvkortingUtenlandsopphold,
                             månedsbeløp = 5000.0,
                             periode = vilkårsvurdert.periode,
                             utenlandskInntekt = null,

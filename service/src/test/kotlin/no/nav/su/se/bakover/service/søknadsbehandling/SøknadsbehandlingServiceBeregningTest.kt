@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.common.periode.september
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -60,8 +59,8 @@ class SøknadsbehandlingServiceBeregningTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.Arbeidsinntekt,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 12000.0,
                             periode = vilkårsvurdert.periode,
                             utenlandskInntekt = null,
@@ -89,22 +88,21 @@ class SøknadsbehandlingServiceBeregningTest {
 
             beregnet.beregning.let { beregning ->
                 beregning.getFradrag() shouldBe listOf(
-                    FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
+                    FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 12000.0,
                         periode = vilkårsvurdert.periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
-                    FradragFactory.ny(
-                        type = Fradragstype.ForventetInntekt,
+                    FradragFactory.nyFradragsperiode(
+                        fradragstype = Fradragstype.ForventetInntekt,
                         månedsbeløp = 0.0,
                         periode = vilkårsvurdert.periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 )
-                beregning.getSats() shouldBe Sats.HØY
                 beregning.getBegrunnelse() shouldBe "koko"
             }
 

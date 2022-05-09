@@ -9,26 +9,19 @@ import io.kotest.assertions.fail
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.juni
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -60,8 +53,6 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
-import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
@@ -74,9 +65,7 @@ import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
-import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -497,7 +486,7 @@ internal class OppdaterRevurderingServiceTest {
     @Test
     fun `støtter ikke tilfeller hvor gjeldende vedtaksdata ikke er sammenhengende i tid`() {
         val førsteVedtak = vedtakSøknadsbehandlingIverksattInnvilget().second
-        val periodePlussEtÅr = førsteVedtak.periode.copy(
+        val periodePlussEtÅr = Periode.create(
             periodeNesteMånedOgTreMånederFram.fraOgMed.plusYears(1),
             periodeNesteMånedOgTreMånederFram.tilOgMed.plusYears(1),
         )
@@ -574,183 +563,6 @@ internal class OppdaterRevurderingServiceTest {
         actual shouldBe KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         verify(revurderingRepoMock).hent(opprettetRevurdering.id)
         verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)
-        mocks.verifyNoMoreInteractions()
-    }
-
-    @Test
-    fun `revurdering med flere bosituasjonsperioder må vurderes`() {
-        fun lagBeregning(periode: Periode) = mock<Beregning> {
-            on { getFradrag() } doReturn listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 5000.0,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS,
-                ),
-            )
-        }
-
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn opprettetRevurdering
-        }
-
-        val revurderingsperiode = Periode.create(
-            fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed.plus(1, ChronoUnit.MONTHS),
-            tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
-        )
-        val revurderingBeregning = lagBeregning(revurderingsperiode)
-
-        val revurdering = mock<IverksattRevurdering.Innvilget> {
-            on { attestering } doReturn Attestering.Iverksatt(
-                NavIdentBruker.Attestant("attestantSomIverksatte"),
-                fixedTidspunkt,
-            )
-
-            on { periode } doReturn revurderingsperiode
-            on { beregning } doReturn revurderingBeregning
-            on { simulering } doReturn mock()
-            on { saksbehandler } doReturn mock()
-            on { grunnlagsdata } doReturn Grunnlagsdata.create(
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = periodeNesteMånedOgTreMånederFram,
-                        begrunnelse = null,
-                    ),
-                    Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = periodeNesteMånedOgTreMånederFram,
-                        begrunnelse = null,
-                    ),
-                ),
-            )
-            on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering(
-                uføre = vilkårsvurderingUføre,
-                formue = Vilkår.Formue.IkkeVurdert,
-                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
-            )
-        }
-
-        val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram,
-            vedtakListe = nonEmptyListOf(
-                vedtakSøknadsbehandlingIverksattInnvilget().second.copy(
-                    beregning = lagBeregning(periodeNesteMånedOgTreMånederFram),
-                ),
-                VedtakSomKanRevurderes.from(revurdering, UUID30.randomUUID(), fixedClock),
-            ),
-            clock = fixedClock,
-        )
-
-        val vedtakServiceMock = mock<VedtakService> {
-            on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn gjeldendeVedtaksdata.right()
-        }
-
-        val mocks = RevurderingServiceMocks(
-            vedtakService = vedtakServiceMock,
-            revurderingRepo = revurderingRepoMock,
-        )
-        val actual = mocks.revurderingService.oppdaterRevurdering(
-            OppdaterRevurderingRequest(
-                revurderingId = revurderingId,
-                fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
-            ),
-        )
-
-        actual shouldBe KunneIkkeOppdatereRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
-        verify(revurderingRepoMock).hent(revurderingId)
-        verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)
-        mocks.verifyNoMoreInteractions()
-    }
-
-    @Test
-    fun `revurdering med EPS inntekt og flere bosituasjoner må vurderes`() {
-        val vedtattSøknadsbehandling = vedtakSøknadsbehandlingIverksattInnvilget(
-            grunnlagsdata = Grunnlagsdata.create(
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = stønadsperiode2021.periode,
-                        begrunnelse = null,
-                    ),
-                ),
-            ),
-        )
-
-        val periodeMedEPS = Periode.create(1.juni(2021), 31.desember(2021))
-        val vedtattRevurdering = vedtakRevurderingIverksattInnvilget(
-            revurderingsperiode = periodeMedEPS,
-            sakOgVedtakSomKanRevurderes = vedtattSøknadsbehandling,
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
-                grunnlagsdata = Grunnlagsdata.create(
-                    bosituasjon = listOf(
-                        Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            periode = periodeMedEPS,
-                            fnr = Fnr.generer(),
-                            begrunnelse = "giftet seg",
-                        ),
-                    ),
-                    fradragsgrunnlag = listOf(
-                        fradragsgrunnlagArbeidsinntekt(
-                            periode = periodeMedEPS,
-                            arbeidsinntekt = 5000.0,
-                            tilhører = FradragTilhører.EPS,
-                        ),
-                        fradragsgrunnlagArbeidsinntekt(
-                            periode = periodeMedEPS,
-                            arbeidsinntekt = 5000.0,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
-                    ),
-                ),
-                vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(periodeMedEPS),
-            ),
-        )
-
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn vedtattRevurdering.second.behandling as Revurdering
-        }
-
-        val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = stønadsperiode2021.periode,
-            vedtakListe = NonEmptyList.fromListUnsafe(vedtattRevurdering.first.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()),
-            clock = fixedClock,
-        )
-
-        val vedtakServiceMock = mock<VedtakService> {
-            on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn gjeldendeVedtaksdata.right()
-        }
-
-        val mocks = RevurderingServiceMocks(
-            vedtakService = vedtakServiceMock,
-            revurderingRepo = revurderingRepoMock,
-        )
-        val actual = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = vedtattRevurdering.first.id,
-                fraOgMed = vedtattSøknadsbehandling.second.periode.fraOgMed,
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = listOf(Revurderingsteg.Bosituasjon),
-            ),
-        )
-
-        actual shouldBe KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
-        verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(
-            vedtattRevurdering.first.id,
-            vedtattSøknadsbehandling.second.periode.fraOgMed,
-        )
         mocks.verifyNoMoreInteractions()
     }
 

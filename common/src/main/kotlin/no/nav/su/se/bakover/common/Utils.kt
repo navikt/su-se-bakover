@@ -43,7 +43,8 @@ fun LocalDate.erMindreEnnEnMånedSenere(localDate: LocalDate) = this.isBefore(lo
 fun Tidspunkt.between(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt) =
     (this == fraOgMed || this == tilOgMed) || this.instant.isAfter(fraOgMed.instant) && this.instant.isBefore(tilOgMed.instant)
 
-fun LocalDate.ddMMyyyy(): String = this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+val ddMMyyyyFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+fun LocalDate.ddMMyyyy(): String = this.format(ddMMyyyyFormatter)
 fun LocalDate.toBrevformat(): String = this.format(DateTimeFormatter.ofPattern("d. LLLL yyyy", Locale("nb", "NO")))
 fun ZonedDateTime.next(atTime: LocalTime): Date {
     return if (this.toLocalTime().isAfter(atTime)) {

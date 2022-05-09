@@ -2,12 +2,12 @@ package no.nav.su.se.bakover.database.regulering
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 
 internal class ReguleringPostgresRepoTest {
-
     @Test
     fun `hent reguleringer som ikke er iverksatt`() {
         withMigratedDb { dataSource ->
@@ -20,7 +20,7 @@ internal class ReguleringPostgresRepoTest {
             val hentRegulering = repo.hentReguleringerSomIkkeErIverksatt()
 
             hentRegulering.size shouldBe 1
-            hentRegulering.first() shouldBe regulering.persistertVariant()
+            hentRegulering.first() shouldBe regulering
         }
     }
 
@@ -34,7 +34,7 @@ internal class ReguleringPostgresRepoTest {
             val hentRegulering = repo.hentForSakId(regulering.sakId)
 
             hentRegulering.size shouldBe 1
-            hentRegulering.first() shouldBe regulering.persistertVariant()
+            hentRegulering.first() shouldBe regulering
         }
     }
 
@@ -47,7 +47,7 @@ internal class ReguleringPostgresRepoTest {
             val regulering = testDataHelper.persisterReguleringOpprettet()
             val hentRegulering = repo.hent(regulering.id)
 
-            hentRegulering shouldBe regulering.persistertVariant()
+            hentRegulering shouldBe regulering
         }
     }
 
@@ -60,7 +60,21 @@ internal class ReguleringPostgresRepoTest {
             val regulering = testDataHelper.persisterReguleringIverksatt()
             val hentRegulering = repo.hent(regulering.id)
 
-            hentRegulering shouldBe regulering.persistertVariant()
+            hentRegulering shouldBe regulering
+        }
+    }
+
+    @Test
+    fun `lagre og hent en avsluttet regulering`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.reguleringRepo
+
+            val opprettetRegulering = testDataHelper.persisterReguleringOpprettet()
+            val avsluttetRegulering = Regulering.AvsluttetRegulering(opprettetRegulering, fixedTidspunkt)
+
+            repo.lagre(avsluttetRegulering)
+            repo.hent(avsluttetRegulering.id) shouldBe avsluttetRegulering
         }
     }
 

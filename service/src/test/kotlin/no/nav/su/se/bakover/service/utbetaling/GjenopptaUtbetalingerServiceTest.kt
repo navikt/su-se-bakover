@@ -9,6 +9,7 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
@@ -38,7 +39,6 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.gjenopptakUtbetalingForSimulering
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringGjenopptak
@@ -64,7 +64,7 @@ internal class GjenopptaUtbetalingerServiceTest {
         val klokke = TikkendeKlokke(nåtidForSimuleringStub)
         val periode = Periode.create(
             fraOgMed = LocalDate.now(klokke).plusMonths(1).startOfMonth(),
-            tilOgMed = periode2021.tilOgMed,
+            tilOgMed = år(2021).tilOgMed,
         )
 
         val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(

@@ -1,15 +1,17 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
+import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
@@ -19,7 +21,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
  * forventet inntekt 1 000 000
  */
 fun beregningAvslagForHøyInntekt(
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
 ): Beregning {
     return beregning(
         periode = periode,
@@ -30,7 +32,7 @@ fun beregningAvslagForHøyInntekt(
 }
 
 fun beregningAvslagUnderMinstebeløp(
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
 ): Beregning {
     return beregning(
         periode = periode,
@@ -58,7 +60,7 @@ fun beregningAvslagUnderMinstebeløp(
  * fradrag: ingen
  */
 fun beregning(
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode = periode),
     uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag> = nonEmptyListOf(uføregrunnlagForventetInntekt0(periode = periode)),
     /**
@@ -70,16 +72,15 @@ fun beregning(
     if (fradragsgrunnlag.any { it.fradrag.fradragstype == Fradragstype.ForventetInntekt }) {
         throw IllegalArgumentException("Foreventet inntekt etter uføre populeres via uføregrunnlag")
     }
-    return Beregningsgrunnlag.tryCreate(
+    Beregningsgrunnlag.create(
         beregningsperiode = periode,
         uføregrunnlag = uføregrunnlag,
         fradragFraSaksbehandler = fradragsgrunnlag,
     ).let {
-        bosituasjon.utledBeregningsstrategi().beregn(
-            beregningsgrunnlag = it.getOrHandle {
-                throw IllegalArgumentException("Kunne ikke lage testberegning. Underliggende grunn: $it")
-            },
-            clock = fixedClock,
+        return BeregningFactory(clock = fixedClock).ny(
+            fradrag = it.fradrag,
+            begrunnelse = null,
+            beregningsperioder = listOf(Beregningsperiode(periode, bosituasjon.utledBeregningsstrategi())),
         )
     }
 }

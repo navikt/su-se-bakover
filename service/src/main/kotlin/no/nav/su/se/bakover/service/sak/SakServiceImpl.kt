@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.service.sak
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
@@ -13,6 +15,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
@@ -36,6 +39,18 @@ internal class SakServiceImpl(
 
     override fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak> {
         return sakRepo.hentSak(saksnummer)?.right() ?: FantIkkeSak.left()
+    }
+
+    override fun hentGjeldendeVedtaksdata(
+        sakId: UUID,
+        periode: Periode,
+    ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata?> {
+        return hentSak(sakId)
+            .mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak }
+            .flatMap { sak ->
+                sak.hentGjeldendeVedtaksdata(periode, clock)
+                    .mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak }
+            }
     }
 
     override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakIdSaksnummerFnr> {

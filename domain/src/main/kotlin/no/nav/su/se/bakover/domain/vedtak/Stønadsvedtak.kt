@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
+import no.nav.su.se.bakover.domain.grunnlag.lagTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -37,7 +38,9 @@ sealed interface Stønadsvedtak : Vedtak, Visitable<VedtakVisitor> {
     val periode: Periode
     val behandling: Behandling
 
-    fun erOpphør(): Boolean
+    fun erOpphør() = this is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering
+    fun erStans() = this is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse
+    fun erGjenopptak() = this is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse
 
     fun skalSendeBrev(): Boolean {
         return SkalSendeBrevVisitor().let {
@@ -72,8 +75,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
     override val attestant: NavIdentBruker.Attestant
     override val periode: Periode
     override val behandling: Behandling
-
-    override fun erOpphør(): Boolean
 
     companion object {
         fun fromSøknadsbehandling(
@@ -203,8 +204,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
-            override fun erOpphør() = false
-
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
             override fun accept(visitor: VedtakVisitor) {
@@ -223,8 +222,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
-            override fun erOpphør() = false
-
             override fun harIdentifisertBehovForFremtidigAvkorting() =
                 behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
 
@@ -244,8 +241,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
-            override fun erOpphør() = false
-
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
             override fun accept(visitor: VedtakVisitor) {
@@ -264,10 +259,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
-
             fun utledOpphørsgrunner(clock: Clock) = behandling.utledOpphørsgrunner(clock)
-
-            override fun erOpphør() = true
 
             override fun harIdentifisertBehovForFremtidigAvkorting() =
                 behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
@@ -287,9 +279,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
-
-            override fun erOpphør() = false
-
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
             override fun accept(visitor: VedtakVisitor) {
@@ -307,8 +296,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
-            override fun erOpphør() = false
-
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
             override fun accept(visitor: VedtakVisitor) {
@@ -326,8 +313,6 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         override val periode: Periode,
         val beregning: Beregning,
     ) : VedtakSomKanRevurderes {
-        override fun erOpphør() = false
-
         override fun harIdentifisertBehovForFremtidigAvkorting() =
             behandling.avkorting is AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel
 
@@ -360,11 +345,16 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                     copy(
                         periode = periode,
                         grunnlagsdata = Grunnlagsdata.create(
-                            bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
-                                (it.fullstendigOrThrow()).copy(
-                                    CopyArgs.Snitt(periode),
-                                )
-                            },
+                            bosituasjon = grunnlagsdata.bosituasjon.map {
+                                it.fullstendigOrThrow()
+                            }.lagTidslinje(periode),
+                            /**
+                             * TODO("dette ser ut som en bug, bør vel kvitte oss med forventet inntekt her og")
+                             * Se hva vi gjør for NyPeriode litt lenger ned i denne funksjonen.
+                             * Dersom dette grunnlaget brukes til en ny revurdering ønsker vi vel at forventet inntekt
+                             * utledes på nytt fra grunnlaget i uførevilkåret? Kan vi potensielt ende opp med at vi
+                             * får dobbelt opp med fradrag for forventet inntekt?
+                             */
                             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.mapNotNull {
                                 it.copy(args = CopyArgs.Snitt(periode))
                             },
@@ -377,11 +367,9 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                     copy(
                         periode = args.periode,
                         grunnlagsdata = Grunnlagsdata.create(
-                            bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
-                                (it.fullstendigOrThrow()).copy(
-                                    CopyArgs.Snitt(args.periode),
-                                )
-                            },
+                            bosituasjon = grunnlagsdata.bosituasjon.map {
+                                it.fullstendigOrThrow()
+                            }.lagTidslinje(args.periode),
                             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot {
                                 it.fradragstype == Fradragstype.ForventetInntekt
                             }.mapNotNull {
@@ -392,20 +380,28 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
                         originaltVedtak = originaltVedtak,
                     )
                 }
+                is CopyArgs.Tidslinje.Maskert -> {
+                    copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+                }
             }
 
         fun erOpphør(): Boolean {
             return originaltVedtak.erOpphør()
         }
+
+        fun erStans(): Boolean {
+            return originaltVedtak.erStans()
+        }
+
+        fun erGjenopptak(): Boolean {
+            return originaltVedtak.erGjenopptak()
+        }
     }
 }
 
 sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvslag {
-
     override val periode: Periode
     override val behandling: Søknadsbehandling.Iverksatt.Avslag
-
-    override fun erOpphør(): Boolean
 
     companion object {
         fun fromSøknadsbehandlingMedBeregning(
@@ -462,8 +458,6 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         override val behandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
         override val periode: Periode,
     ) : Avslagsvedtak {
-        override fun erOpphør() = false
-
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
         override fun accept(visitor: VedtakVisitor) {
@@ -481,8 +475,6 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         val beregning: Beregning,
         override val avslagsgrunner: List<Avslagsgrunn>,
     ) : Avslagsvedtak {
-        override fun erOpphør() = false
-
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
         override fun accept(visitor: VedtakVisitor) {

@@ -153,7 +153,14 @@ internal fun Route.forhåndsvarslingRoute(
                         }
                         .fold(
                             { call.svar(it) },
-                            { call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson()))) },
+                            {
+                                call.svar(
+                                    Resultat.json(
+                                        HttpStatusCode.OK,
+                                        serialize(it.toJson())
+                                    )
+                                )
+                            },
                         )
                 }
             }

@@ -2,9 +2,8 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -37,7 +36,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.stønadsperiode
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.TestBeregning
 import org.mockito.kotlin.mock
 import java.util.UUID
 
@@ -46,7 +45,7 @@ object RevurderingRoutesTestData {
     internal val sakId = UUID.randomUUID()
     internal val requestPath = "$sakPath/$sakId/revurderinger"
     internal val testServices = TestServicesBuilder.services()
-    internal val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
+    internal val periode = år(2021)
 
     internal val vedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(
         søknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(

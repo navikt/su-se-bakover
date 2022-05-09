@@ -6,8 +6,10 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -16,9 +18,9 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
+import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
@@ -91,30 +93,38 @@ class ReguleringServiceImpl(
 
             val regulering = sak.opprettEllerOppdaterRegulering(startDato, clock).getOrHandle { feil ->
                 // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
-                log.info("Regulering for saksnummer $saksnummer: Skippet. Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer")
+                when (feil) {
+                    Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
+                        "Regulering for saksnummer $saksnummer: Skippet. Fantes ingen vedtak for valgt periode.",
+                    )
+                    Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
+                        "Regulering for saksnummer $saksnummer: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
+                    )
+                }
+
                 return@map KunneIkkeOppretteRegulering.KunneIkkeHenteEllerOppretteRegulering(feil).left()
             }
 
             if (!blirBeregningEndret(sak, regulering)) {
                 // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
+                log.info("Regulering for saksnummer $saksnummer: Skippet. Lager ikke regulering da den ikke fører til noen endring i utbetaling")
                 return@map KunneIkkeOppretteRegulering.FørerIkkeTilEnEndring.left()
-                    .also { log.info("Regulering for saksnummer $saksnummer: Skippet. Lager ikke regulering for $saksnummer, da den ikke fører til noen endring i utbetaling") }
             }
 
             tilbakekrevingService.hentAvventerKravgrunnlag(sak.id)
                 .ifNotEmpty {
                     log.info("Regulering for saksnummer $saksnummer: Kan ikke sende oppdragslinjer mens vi venter på et kravgrunnlag, siden det kan annulere nåværende kravgrunnlag. Setter reguleringen til manuell.")
                     return@map regulering.copy(
-                        reguleringstype = Reguleringstype.MANUELL,
+                        reguleringstype = Reguleringstype.MANUELL(setOf(ÅrsakTilManuellRegulering.AvventerKravgrunnlag)),
                     ).right().tap {
-                        reguleringRepo.lagre(regulering)
+                        reguleringRepo.lagre(it)
                     }
                 }
 
             reguleringRepo.lagre(regulering)
 
-            if (regulering.reguleringstype == Reguleringstype.AUTOMATISK) {
-                regulerAutomatisk(regulering)
+            if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
+                ferdigstillOgIverksettRegulering(regulering)
                     .tap { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                     .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }
             } else {
@@ -125,14 +135,52 @@ class ReguleringServiceImpl(
             val regulert = it.mapNotNull { regulering ->
                 regulering.fold(ifLeft = { null }, ifRight = { it })
             }
-            val antallAutomatiske = regulert.filter { regulering -> regulering.reguleringstype == Reguleringstype.AUTOMATISK }.size
-            val antallManuelle = regulert.filter { regulering -> regulering.reguleringstype == Reguleringstype.MANUELL }.size
+            val antallAutomatiske =
+                regulert.filter { regulering -> regulering.reguleringstype is Reguleringstype.AUTOMATISK }.size
+            val antallManuelle =
+                regulert.filter { regulering -> regulering.reguleringstype is Reguleringstype.MANUELL }.size
 
             log.info("Totalt antall prosesserte reguleringer: ${regulert.size}, antall automatiske: $antallAutomatiske, antall manuelle: $antallManuelle")
         }
     }
 
-    private fun regulerAutomatisk(regulering: Regulering.OpprettetRegulering): Either<KunneIkkeRegulereAutomatisk, Regulering.IverksattRegulering> {
+    override fun regulerManuelt(
+        reguleringId: UUID,
+        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        fradrag: List<Grunnlag.Fradragsgrunnlag>,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeRegulereManuelt, Regulering.IverksattRegulering> {
+        val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeRegulereManuelt.FantIkkeRegulering.left()
+        if (regulering.erFerdigstilt) return KunneIkkeRegulereManuelt.AlleredeFerdigstilt.left()
+
+        val sak = sakRepo.hentSak(sakId = regulering.sakId) ?: return KunneIkkeRegulereManuelt.FantIkkeSak.left()
+        val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(regulering.periode.fraOgMed, clock)
+            .getOrHandle { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
+
+        if (gjeldendeVedtaksdata.harStans())
+            return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
+
+        if (gjeldendeVedtaksdata.pågåendeAvkortingEllerBehovForFremtidigAvkorting)
+            return KunneIkkeRegulereManuelt.HarPågåendeEllerBehovForAvkorting.left()
+
+        if (tilbakekrevingService.hentAvventerKravgrunnlag(sak.id).isNotEmpty())
+            return KunneIkkeRegulereManuelt.AvventerKravgrunnlag.left()
+
+        val reguleringMedNyttGrunnlag = sak.opprettEllerOppdaterRegulering(regulering.periode.fraOgMed, clock)
+            .getOrHandle { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
+
+        return reguleringMedNyttGrunnlag
+            .copy(reguleringstype = regulering.reguleringstype)
+            .leggTilFradrag(fradrag)
+            .leggTilUføre(uføregrunnlag, clock)
+            .leggTilSaksbehandler(saksbehandler)
+            .let {
+                ferdigstillOgIverksettRegulering(it)
+                    .mapLeft { feil -> KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = feil) }
+            }
+    }
+
+    private fun ferdigstillOgIverksettRegulering(regulering: Regulering.OpprettetRegulering): Either<KunneIkkeFerdigstilleOgIverksette, Regulering.IverksattRegulering> {
         return regulering.beregn(clock = clock, begrunnelse = null)
             .mapLeft { kunneikkeBeregne ->
                 when (kunneikkeBeregne) {
@@ -146,17 +194,17 @@ class ReguleringServiceImpl(
                         log.error("Regulering for saksnummer ${regulering.saksnummer}: Feilet. Beregning feilet. Ikke lov å beregne i denne statusen")
                     }
                 }
-                KunneIkkeRegulereAutomatisk.KunneIkkeBeregne
+                KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne
             }
             .flatMap { beregnetRegulering ->
                 beregnetRegulering.simuler(utbetalingService::simulerUtbetaling)
                     .mapLeft {
                         log.error("Regulering for saksnummer ${regulering.saksnummer}. Simulering feilet.")
-                        KunneIkkeRegulereAutomatisk.KunneIkkeSimulere
+                        KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere
                     }.flatMap {
                         if (it.simulering!!.harFeilutbetalinger()) {
                             log.error("Regulering for saksnummer ${regulering.saksnummer}: Simuleringen inneholdt feilutbetalinger.")
-                            KunneIkkeRegulereAutomatisk.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling.left()
+                            KunneIkkeFerdigstilleOgIverksette.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling.left()
                         } else {
                             it.right()
                         }
@@ -164,7 +212,17 @@ class ReguleringServiceImpl(
             }
             .map { simulertRegulering -> simulertRegulering.tilIverksatt() }
             .flatMap { lagVedtakOgUtbetal(it) }
-            .tapLeft { reguleringRepo.lagre(regulering.copy(reguleringstype = Reguleringstype.MANUELL)) }
+            .tapLeft {
+                reguleringRepo.lagre(
+                    regulering.copy(
+                        reguleringstype = Reguleringstype.MANUELL(
+                            setOf(
+                                ÅrsakTilManuellRegulering.UtbetalingFeilet,
+                            ),
+                        ),
+                    ),
+                )
+            }
             .map {
                 val (iverksattRegulering, vedtak) = it
 
@@ -179,25 +237,6 @@ class ReguleringServiceImpl(
 
                 iverksattRegulering
             }
-    }
-
-    /**
-     * Denne brukes kun i den manuelle flyten som ikke er implementert ferdig enda.
-     */
-    override fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering> {
-        reguleringRepo.hent(request.behandlingId)?.let { regulering ->
-            return when (regulering) {
-                is Regulering.IverksattRegulering -> {
-                    KunneIkkeLeggeTilFradrag.ReguleringErAlleredeIverksatt.left()
-                }
-                is Regulering.OpprettetRegulering -> {
-                    regulering.leggTilFradrag(request.fradragsgrunnlag)
-                    reguleringRepo.lagre(regulering)
-                    regulering.right()
-                }
-            }
-        }
-        return KunneIkkeLeggeTilFradrag.FantIkkeRegulering.left()
     }
 
     /**
@@ -223,6 +262,20 @@ class ReguleringServiceImpl(
             .mapLeft { BeregnOgSimulerFeilet.KunneIkkeSimulere }
     }
 
+    override fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, Regulering.AvsluttetRegulering> {
+        val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeAvslutte.FantIkkeRegulering.left()
+
+        return when (regulering) {
+            is Regulering.AvsluttetRegulering, is Regulering.IverksattRegulering -> KunneIkkeAvslutte.UgyldigTilstand.left()
+            is Regulering.OpprettetRegulering -> {
+                val avsluttetRegulering = regulering.avslutt(clock)
+                reguleringRepo.lagre(avsluttetRegulering)
+
+                avsluttetRegulering.right()
+            }
+        }
+    }
+
     override fun hentStatus(): List<Regulering> {
         return reguleringRepo.hentReguleringerSomIkkeErIverksatt()
     }
@@ -231,26 +284,7 @@ class ReguleringServiceImpl(
         return reguleringRepo.hentSakerMedÅpenBehandlingEllerStans()
     }
 
-    /**
-     * Denne brukes kun i den manuelle flyten som ikke er implementert ferdig enda.
-     */
-    override fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering> {
-        reguleringRepo.hent(reguleringId)?.let { regulering ->
-            return when (regulering) {
-                is Regulering.IverksattRegulering -> {
-                    KunneIkkeIverksetteRegulering.ReguleringErAlleredeIverksatt.left()
-                }
-                is Regulering.OpprettetRegulering -> {
-                    regulering.tilIverksatt().also { iverksattRegulering ->
-                        reguleringRepo.lagre(iverksattRegulering)
-                    }.right()
-                }
-            }
-        }
-        return KunneIkkeIverksetteRegulering.FantIkkeRegulering.left()
-    }
-
-    private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeRegulereAutomatisk.KunneIkkeUtbetale, Pair<Regulering.IverksattRegulering, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering>> {
+    private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, Pair<Regulering.IverksattRegulering, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering>> {
         return utbetalingService.verifiserOgSimulerUtbetaling(
             request = UtbetalRequest.NyUtbetaling(
                 request = SimulerUtbetalingRequest.NyUtbetaling(
@@ -263,7 +297,7 @@ class ReguleringServiceImpl(
             ),
         ).mapLeft {
             log.error("Regulering for saksnummer ${regulering.saksnummer}: Kunne ikke verifisere og simulere utbetaling for regulering med underliggende grunn: $it")
-            KunneIkkeRegulereAutomatisk.KunneIkkeUtbetale
+            KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale
         }.flatMap {
             val vedtak = VedtakSomKanRevurderes.from(regulering, it.id, clock)
 
@@ -283,7 +317,7 @@ class ReguleringServiceImpl(
                     "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering",
                     it,
                 )
-                KunneIkkeRegulereAutomatisk.KunneIkkeUtbetale
+                KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale
             }
         }
     }

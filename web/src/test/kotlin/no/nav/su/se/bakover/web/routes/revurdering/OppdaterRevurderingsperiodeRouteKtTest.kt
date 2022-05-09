@@ -196,20 +196,6 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
         )
     }
 
-    @Test
-    fun `feilmelding hvis det eksisterer flere bosituasjoner`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurdering.BosituasjonMedFlerePerioderMåRevurderes,
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"Bosituasjon og inntekt må revurderes siden det finnes flere bosituasjonsperioder",
-                    "code":"bosituasjon_med_flere_perioder_må_revurderes"
-                }
-            """.trimIndent(),
-        )
-    }
-
     private fun shouldMapErrorCorrectly(
         error: KunneIkkeOppdatereRevurdering,
         expectedStatusCode: HttpStatusCode,

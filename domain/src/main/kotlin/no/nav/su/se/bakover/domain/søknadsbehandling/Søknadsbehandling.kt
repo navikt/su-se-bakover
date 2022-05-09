@@ -63,12 +63,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     val erIverksatt: Boolean by lazy { this is Iverksatt.Avslag || this is Iverksatt.Innvilget }
     val erLukket: Boolean by lazy { this is LukketSøknadsbehandling }
 
-    val grunnlagsdataOgVilkårsvurderinger by lazy {
-        GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling
+        get() = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
         )
-    }
 
     sealed class KunneIkkeLukkeSøknadsbehandling {
         object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
@@ -113,11 +112,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     open fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
         KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(this::class).left()
 
+    /**
+     * TODO("bør vi skille på oppdatering og fullføring (ufullstendig vs fullstendig bosituasjon)")
+     */
     fun oppdaterBosituasjon(
         bosituasjon: Grunnlag.Bosituasjon,
         clock: Clock,
     ): Either<KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
-        val oppdatertGrunnlagsdata = Grunnlagsdata.tryCreate(
+        val oppdatertGrunnlagsdata = Grunnlagsdata.tryCreateTillatUfullstendigBosituasjon(
             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragForEPSHvisEnslig(bosituasjon),
             bosituasjon = listOf(bosituasjon),
         ).getOrHandle {
@@ -127,6 +129,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon -> throw IllegalStateException("Bosituasjonsperioden har blitt satt feil sammenlignet med fradrag")
                 KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag -> throw IllegalStateException("Dette er metoden for å oppdatere bosituasjon. Vi har en implementasjonsfeil ved at fradrag blir lagt til uten bosituasjon")
                 is KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag -> throw IllegalStateException("Eneste endringen vi potensialt har gjort, er å fjerne fradrag for EPS")
+                is KunneIkkeLageGrunnlagsdata.Konsistenssjekk -> throw IllegalStateException("Inkonsistens mellom bosituasjon og fradrag: ${it.feil::class}")
             }
         }
         val oppdatertBehandlingsinformasjon = this.behandlingsinformasjon.copy(
@@ -332,11 +335,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         begrunnelse: String?,
         clock: Clock,
     ): Beregning {
-        return BeregningStrategyFactory(clock).beregn(
-            grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
-            beregningsPeriode = søknadsbehandling.periode,
-            begrunnelse = begrunnelse,
-        )
+        return BeregningStrategyFactory(clock).beregn(søknadsbehandling, begrunnelse)
     }
 
     /**
@@ -523,7 +522,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     fnr,
                     fritekstTilBrev,
                     stønadsperiode,
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
+                    grunnlagsdata = Grunnlagsdata.tryCreateTillatUfullstendigBosituasjon(
                         fradragsgrunnlag = fradragsgrunnlag,
                         bosituasjon = this.grunnlagsdata.bosituasjon,
                     ).getOrHandle {
@@ -573,6 +572,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 )
             }
 
+            // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
             override fun oppdaterStønadsperiode(
                 oppdatertStønadsperiode: Stønadsperiode,
                 clock: Clock,
@@ -2115,7 +2115,8 @@ enum class BehandlingsStatus {
             UNDERKJENT_AVSLAG,
         )
 
-        fun åpneBeregnetSøknadsbehandlingerKommaseparert(): String = åpneBeregnetSøknadsbehandlinger().joinToString(",") { "'$it'" }
+        fun åpneBeregnetSøknadsbehandlingerKommaseparert(): String =
+            åpneBeregnetSøknadsbehandlinger().joinToString(",") { "'$it'" }
     }
 }
 

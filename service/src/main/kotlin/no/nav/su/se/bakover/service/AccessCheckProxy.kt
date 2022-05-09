@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.AktørId
@@ -22,6 +23,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
@@ -101,9 +103,9 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.regulering.BeregnOgSimulerFeilet
 import no.nav.su.se.bakover.service.regulering.BeregnRequest
-import no.nav.su.se.bakover.service.regulering.KunneIkkeIverksetteRegulering
-import no.nav.su.se.bakover.service.regulering.KunneIkkeLeggeTilFradrag
+import no.nav.su.se.bakover.service.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.service.regulering.KunneIkkeOppretteRegulering
+import no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
@@ -130,7 +132,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
-import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjongrunnlagRequest
+import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilFormuegrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.OppdaterTilbakekrevingsbehandlingRequest
@@ -140,6 +142,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
+import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.StatistikkService
@@ -285,6 +288,14 @@ open class AccessCheckProxy(
                         .also {
                             it.map { sak -> assertHarTilgangTilSak(sak.id) }
                         }
+                }
+
+                override fun hentGjeldendeVedtaksdata(
+                    sakId: UUID,
+                    periode: Periode,
+                ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata?> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.sak.hentGjeldendeVedtaksdata(sakId, periode)
                 }
 
                 override fun hentSakidOgSaksnummer(fnr: Fnr) = kastKanKunKallesFraAnnenService()
@@ -658,7 +669,7 @@ open class AccessCheckProxy(
                     return services.revurdering.leggTilFradragsgrunnlag(request)
                 }
 
-                override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjongrunnlagRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse> {
+                override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjonerRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.revurderingId)
                     return services.revurdering.leggTilBosituasjongrunnlag(request)
                 }
@@ -873,16 +884,12 @@ open class AccessCheckProxy(
                     return services.reguleringService.startRegulering(startDato)
                 }
 
-                override fun leggTilFradrag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradrag, Regulering> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun iverksett(reguleringId: UUID): Either<KunneIkkeIverksetteRegulering, Regulering> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
                 override fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering> {
                     kastKanKunKallesFraAnnenService()
+                }
+
+                override fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, Regulering.AvsluttetRegulering> {
+                    return services.reguleringService.avslutt(reguleringId)
                 }
 
                 override fun hentStatus(): List<Regulering> {
@@ -891,6 +898,20 @@ open class AccessCheckProxy(
 
                 override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {
                     return services.reguleringService.hentSakerMedÅpenBehandlingEllerStans()
+                }
+
+                override fun regulerManuelt(
+                    reguleringId: UUID,
+                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+                    fradrag: List<Grunnlag.Fradragsgrunnlag>,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeRegulereManuelt, Regulering.IverksattRegulering> {
+                    return services.reguleringService.regulerManuelt(
+                        reguleringId,
+                        uføregrunnlag,
+                        fradrag,
+                        saksbehandler,
+                    )
                 }
             },
             tilbakekrevingService = object : TilbakekrevingService {

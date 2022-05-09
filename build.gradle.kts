@@ -16,7 +16,7 @@ subprojects {
         maven("https://packages.confluent.io/maven/")
     }
     val junitJupiterVersion = "5.8.2"
-    val kotestVersion = "5.2.3"
+    val kotestVersion = "5.3.0"
     val jacksonVersion = "2.13.2"
     val kotlinVersion: String by this
     dependencies {
@@ -26,20 +26,20 @@ subprojects {
         implementation("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
-        implementation("io.arrow-kt:arrow-core:1.0.1")
+        implementation("io.arrow-kt:arrow-core:1.1.2")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
         implementation("ch.qos.logback:logback-classic:1.2.11")
-        implementation("net.logstash.logback:logstash-logback-encoder:7.1")
+        implementation("net.logstash.logback:logstash-logback-encoder:7.1.1")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:3.1.0")
-        implementation("com.networknt:json-schema-validator:1.0.68")
+        implementation("com.networknt:json-schema-validator:1.0.69")
         implementation("no.finn.unleash:unleash-client-java:4.4.1")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.5.0")
-        implementation("io.confluent:kafka-avro-serializer:6.2.1")
+        implementation("io.confluent:kafka-avro-serializer:7.1.0")
         implementation("org.apache.avro:avro:1.11.0")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
@@ -48,7 +48,7 @@ subprojects {
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
         testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
         testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
-        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.2.4")
+        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.2.5")
         testImplementation("io.kotest:kotest-extensions:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
         testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
@@ -106,7 +106,7 @@ subprojects {
             freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
             freeCompilerArgs += "-Xenable-builder-inference"
             freeCompilerArgs += "-progressive"
-            allWarningsAsErrors = true
+            allWarningsAsErrors = false
         }
     }
 

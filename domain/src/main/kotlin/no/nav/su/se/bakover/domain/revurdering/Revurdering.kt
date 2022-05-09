@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
@@ -25,9 +25,14 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.grunnlag.fjernFradragEPS
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -56,12 +61,12 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 sealed class AbstraktRevurdering : Behandling {
-    val grunnlagsdataOgVilkårsvurderinger by lazy {
-        GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
+        get() = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
         )
-    }
+
     abstract val tilRevurdering: VedtakSomKanRevurderes
     override val sakId by lazy { tilRevurdering.behandling.sakId }
     override val saksnummer by lazy { tilRevurdering.behandling.saksnummer }
@@ -114,11 +119,13 @@ sealed class Revurdering :
     }
 
     sealed class KunneIkkeLeggeTilBosituasjon {
-        data class Valideringsfeil(val feil: KunneIkkeLageGrunnlagsdata) :
-            KunneIkkeLeggeTilBosituasjon()
-
+        data class Valideringsfeil(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilBosituasjon()
         data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
             KunneIkkeLeggeTilBosituasjon()
+
+        data class Konsistenssjekk(val feil: Konsistensproblem.Bosituasjon) : KunneIkkeLeggeTilBosituasjon()
+        data class KunneIkkeOppdatereFormue(val feil: KunneIkkeLeggeTilFormue) : KunneIkkeLeggeTilBosituasjon()
+        object PerioderMangler : KunneIkkeLeggeTilBosituasjon()
     }
 
     open fun oppdaterUføreOgMarkerSomVurdert(uføre: Vilkår.Uførhet.Vurdert): Either<UgyldigTilstand, OpprettetRevurdering> =
@@ -127,8 +134,17 @@ sealed class Revurdering :
     open fun oppdaterUtenlandsoppholdOgMarkerSomVurdert(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilUtenlandsopphold, OpprettetRevurdering> =
         KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
-    open fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert): Either<UgyldigTilstand, OpprettetRevurdering> =
-        UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+    sealed interface KunneIkkeLeggeTilFormue {
+        data class UgyldigTilstand(
+            val fra: KClass<out Revurdering>,
+            val til: KClass<out Revurdering> = OpprettetRevurdering::class,
+        ) : KunneIkkeLeggeTilFormue
+
+        data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFormue) : KunneIkkeLeggeTilFormue
+    }
+
+    open fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
+        KunneIkkeLeggeTilFormue.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
     open fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> =
         KunneIkkeLeggeTilFradrag.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
@@ -137,7 +153,7 @@ sealed class Revurdering :
         return KunneIkkeLeggeTilFradrag.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
-    open fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: Grunnlag.Bosituasjon.Fullstendig): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> =
+    open fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> =
         KunneIkkeLeggeTilBosituasjon.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
     protected fun oppdaterUføreOgMarkerSomVurdertInternal(
@@ -188,13 +204,20 @@ sealed class Revurdering :
         }
     }
 
-    protected fun oppdaterFormueOgMarkerSomVurdertInternal(formue: Vilkår.Formue.Vurdert): Either<Nothing, OpprettetRevurdering> {
+    protected fun oppdaterFormueOgMarkerSomVurdertInternal(formue: Vilkår.Formue.Vurdert): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> {
         return oppdaterFormueInternal(formue)
             .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Formue)) }
     }
 
-    protected fun oppdaterFormueInternal(formue: Vilkår.Formue): Either<Nothing, OpprettetRevurdering> {
-        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(formue)).right()
+    protected fun oppdaterFormueInternal(formue: Vilkår.Formue): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> {
+        return SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
+            bosituasjon = grunnlagsdata.bosituasjon,
+            formue = formue.grunnlag,
+        ).resultat.mapLeft {
+            KunneIkkeLeggeTilFormue.Konsistenssjekk(it.first())
+        }.map {
+            oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(formue))
+        }
     }
 
     protected fun oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
@@ -217,37 +240,50 @@ sealed class Revurdering :
         }
     }
 
-    protected fun oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon: Grunnlag.Bosituasjon.Fullstendig): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
+    protected fun oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
         return oppdaterBosituasjonInternal(bosituasjon)
             .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Bosituasjon)) }
     }
 
-    private fun oppdaterBosituasjonInternal(bosituasjon: Grunnlag.Bosituasjon.Fullstendig): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
-        return if (bosituasjon.harEPS()) {
-            Grunnlagsdata.tryCreate(
-                fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag,
-                bosituasjon = nonEmptyListOf(bosituasjon),
-            ).mapLeft {
-                KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it)
-            }.map {
-                oppdaterGrunnlag(it)
-            }
-        } else {
-            Grunnlagsdata.tryCreate(
-                fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragEPS(),
-                bosituasjon = nonEmptyListOf(bosituasjon),
-            ).mapLeft {
-                KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it)
-            }.map { grunnlagsdata ->
-                oppdaterGrunnlag(grunnlagsdata).let {
-                    it.oppdaterFormueInternal(
-                        formue = it.vilkårsvurderinger.formue.fjernEPSFormue(),
-                    ).getOrHandle {
-                        throw IllegalStateException("""${this::oppdaterFormueInternal} returnerte uvente feil som ikke skal kunne oppstå.""")
+    private fun oppdaterBosituasjonInternal(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
+        if (!periode.fullstendigOverlapp(bosituasjon.minsteAntallSammenhengendePerioder())) {
+            return KunneIkkeLeggeTilBosituasjon.PerioderMangler.left()
+        }
+        return SjekkOmGrunnlagErKonsistent.Bosituasjon(bosituasjon).resultat
+            .mapLeft { KunneIkkeLeggeTilBosituasjon.Konsistenssjekk(it.first()) }
+            .flatMap {
+                Grunnlagsdata.tryCreate(
+                    /**
+                     * Hvis vi går fra "eps" til "ingen eps" må vi fjerne fradragene for EPS for alle periodene
+                     * hvor det eksiterer fradrag for EPS. Ved endring fra "ingen eps" til "eps" er det umulig for
+                     * oss å vite om det skal eksistere fradrag, caset er derfor uhåndtert (opp til saksbehandler).
+                     */
+                    fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragEPS(bosituasjon.perioderUtenEPS()),
+                    bosituasjon = bosituasjon,
+                ).mapLeft {
+                    KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it)
+                }.flatMap { grunnlagsdata ->
+                    oppdaterGrunnlag(grunnlagsdata).let { medOppdatertFradrag ->
+                        val justertForEPS = medOppdatertFradrag.vilkårsvurderinger.formue
+                            /**
+                             * Hvis vi går fra "ingen eps" til "eps" må vi fylle på med tomme verdier for EPS formue for
+                             * periodene hvor vi tidligere ikke hadde eps.
+                             */
+                            .leggTilTomEPSFormueHvisDetMangler(bosituasjon.perioderMedEPS())
+                            /**
+                             * Hvis vi går fra "eps" til "ingen eps" må vi fjerne formue for alle periodene hvor vi
+                             * ikke lenger har eps.
+                             */
+                            .fjernEPSFormue(bosituasjon.perioderUtenEPS())
+                            .slåSammenLikePerioder()
+                        medOppdatertFradrag.oppdaterFormueInternal(
+                            formue = justertForEPS,
+                        ).mapLeft {
+                            KunneIkkeLeggeTilBosituasjon.KunneIkkeOppdatereFormue(it)
+                        }
                     }
                 }
             }
-        }
     }
 
     private fun oppdaterVilkårsvurderinger(
@@ -517,13 +553,13 @@ data class OpprettetRevurdering(
         utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
     ) = oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(utenlandsopphold)
 
-    override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
+    override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
 
     override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) =
         oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag)
 
-    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: Grunnlag.Bosituasjon.Fullstendig) =
+    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
     fun oppdaterInformasjonSomRevurderes(informasjonSomRevurderes: InformasjonSomRevurderes): OpprettetRevurdering {
@@ -567,7 +603,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
     ) = oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(utenlandsopphold)
 
-    override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
+    override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
 
     override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) =
@@ -577,7 +613,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         return oppdaterFradragInternal(fradragsgrunnlag)
     }
 
-    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: Grunnlag.Bosituasjon.Fullstendig) =
+    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
     fun oppdater(
@@ -629,7 +665,11 @@ sealed class BeregnetRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
-        fun toSimulert(simulering: Simulering, clock: Clock, tilbakekrevingTillatt: Boolean): SimulertRevurdering.Innvilget {
+        fun toSimulert(
+            simulering: Simulering,
+            clock: Clock,
+            tilbakekrevingTillatt: Boolean,
+        ): SimulertRevurdering.Innvilget {
             val tilbakekrevingsbehandling = when (tilbakekrevingTillatt && simulering.harFeilutbetalinger()) {
                 true -> {
                     IkkeAvgjort(
@@ -736,7 +776,7 @@ sealed class BeregnetRevurdering : Revurdering() {
 
         fun toSimulert(
             simuler: (sakId: UUID, saksbehandler: NavIdentBruker, opphørsdato: LocalDate) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-            tilbakekrevingTillatt: Boolean
+            tilbakekrevingTillatt: Boolean,
         ): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
             val (simulertUtbetaling, håndtertAvkorting) = simuler(sakId, saksbehandler, periode.fraOgMed)
                 .getOrHandle { return it.left() }
@@ -787,20 +827,21 @@ sealed class BeregnetRevurdering : Revurdering() {
                     }
                 }
 
-            val tilbakekrevingsbehandling = when (tilbakekrevingTillatt && simulertUtbetaling.simulering.harFeilutbetalinger()) {
-                true -> {
-                    IkkeAvgjort(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(),
-                        sakId = sakId,
-                        revurderingId = id,
-                        periode = periode,
-                    )
+            val tilbakekrevingsbehandling =
+                when (tilbakekrevingTillatt && simulertUtbetaling.simulering.harFeilutbetalinger()) {
+                    true -> {
+                        IkkeAvgjort(
+                            id = UUID.randomUUID(),
+                            opprettet = Tidspunkt.now(),
+                            sakId = sakId,
+                            revurderingId = id,
+                            periode = periode,
+                        )
+                    }
+                    false -> {
+                        IkkeBehovForTilbakekrevingUnderBehandling
+                    }
                 }
-                false -> {
-                    IkkeBehovForTilbakekrevingUnderBehandling
-                }
-            }
 
             unngåNyAvkortingOgNyTilbakekrevingPåSammeTid(
                 avkorting = håndtertAvkorting,
@@ -1001,13 +1042,13 @@ sealed class SimulertRevurdering : Revurdering() {
         utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
     ) = oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(utenlandsopphold)
 
-    override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
+    override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
 
     override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) =
         oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag)
 
-    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: Grunnlag.Bosituasjon.Fullstendig) =
+    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
     override fun oppdaterFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
@@ -1738,13 +1779,13 @@ sealed class UnderkjentRevurdering : Revurdering() {
         utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
     ) = oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(utenlandsopphold)
 
-    override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
+    override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert): Either<KunneIkkeLeggeTilFormue, OpprettetRevurdering> =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
 
     override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) =
         oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag)
 
-    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: Grunnlag.Bosituasjon.Fullstendig) =
+    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
     override fun oppdaterFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {

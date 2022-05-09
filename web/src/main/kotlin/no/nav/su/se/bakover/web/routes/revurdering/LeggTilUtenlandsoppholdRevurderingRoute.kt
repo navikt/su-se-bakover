@@ -9,6 +9,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtenlandsopphold
@@ -20,7 +21,7 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
+import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
@@ -49,7 +50,7 @@ private data class UtenlandsoppholdJson(
     fun toRequest(revurderingId: UUID): Either<Resultat, LeggTilUtenlandsoppholdRequest> {
         return LeggTilUtenlandsoppholdRequest(
             behandlingId = revurderingId,
-            periode = periode.toPeriode().getOrHandle { return it.left() },
+            periode = periode.toPeriodeOrResultat().getOrHandle { return it.left() },
             status = UtenlandsoppholdStatus.valueOf(status),
             begrunnelse = begrunnelse,
         ).right()

@@ -27,11 +27,12 @@ internal fun TestApplicationEngine.leggTilUføregrunnlag(
     resultat: String = "VilkårOppfylt",
     begrunnelse: String = "Vurderinger rundt uføretrygd, grad og forventet inntekt etter uførhet per år er lagt til automatisk av LeggTilUførhet.kt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
+    url: String = "/saker/$sakId/behandlinger/$behandlingId/grunnlag/uføre",
 ): String {
     return runBlocking {
         defaultRequest(
             HttpMethod.Post,
-            "/saker/$sakId/behandlinger/$behandlingId/grunnlag/uføre",
+            url,
             listOf(brukerrolle),
         ) {
             setBody(

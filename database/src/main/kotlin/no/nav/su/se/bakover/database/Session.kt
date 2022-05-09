@@ -32,7 +32,7 @@ import kotliquery.sqlType
 import kotliquery.using
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.database.beregning.serialiserBeregning
+import no.nav.su.se.bakover.database.beregning.serialiser
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.vedtak.VedtakType
 import no.nav.su.se.bakover.domain.Fnr
@@ -120,13 +120,13 @@ open class Session(
                 is VedtakType -> this.setString(idx, v.toString())
                 is Utbetalingslinje.Endring.LinjeStatus -> this.setString(idx, v.toString())
                 is RevurderingsType -> this.setString(idx, v.toString())
-                is Fradragstype -> this.setString(idx, v.toString())
+                is Fradragstype.Kategori -> this.setString(idx, v.toString())
                 is FradragTilhører -> this.setString(idx, v.toString())
                 is List<*> -> this.setArray(
                     idx,
                     connection.createArrayOf("text", v.toTypedArray()),
                 )
-                is Beregning -> this.setString(idx, serialiserBeregning(v))
+                is Beregning -> this.setString(idx, v.serialiser())
                 else -> this.setObject(idx, v)
             }
         }

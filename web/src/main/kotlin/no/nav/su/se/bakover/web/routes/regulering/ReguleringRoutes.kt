@@ -8,6 +8,6 @@ internal const val reguleringPath = "/reguleringer"
 internal fun Route.reguleringRoutes(
     reguleringService: ReguleringService,
 ) {
-    regulerAutomatisk(reguleringService)
+    reguler(reguleringService)
     reguleringOversiktRoutes(reguleringService)
 }

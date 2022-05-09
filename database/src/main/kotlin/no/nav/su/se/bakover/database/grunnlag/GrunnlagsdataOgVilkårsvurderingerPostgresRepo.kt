@@ -58,7 +58,10 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
     ): GrunnlagsdataOgVilkårsvurderinger.Revurdering {
         return dbMetrics.timeQuery("hentGrunnlagOgVilkårsvurderingerForRevurderingId") {
             GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-                grunnlagsdata = hentGrunnlagsdata(behandlingId, session),
+                grunnlagsdata = Grunnlagsdata.create(
+                    fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
+                    bosituasjon = bosituasjongrunnlagPostgresRepo.hentBosituasjongrunnlag(behandlingId, session),
+                ),
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
                     uføre = uføreVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
@@ -74,7 +77,10 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
     ): GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling {
         return dbMetrics.timeQuery("hentGrunnlagOgVilkårsvurderingerForSøknadsbehandlingId") {
             GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
-                grunnlagsdata = hentGrunnlagsdata(behandlingId, session),
+                grunnlagsdata = Grunnlagsdata.createTillatUfullstendigBosituasjon(
+                    fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
+                    bosituasjon = bosituasjongrunnlagPostgresRepo.hentBosituasjongrunnlag(behandlingId, session),
+                ),
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                     uføre = uføreVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
@@ -82,12 +88,5 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                 ),
             )
         }
-    }
-
-    private fun hentGrunnlagsdata(behandlingId: UUID, session: Session): Grunnlagsdata {
-        return Grunnlagsdata.create(
-            fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
-            bosituasjon = bosituasjongrunnlagPostgresRepo.hentBosituasjongrunnlag(behandlingId, session),
-        )
     }
 }

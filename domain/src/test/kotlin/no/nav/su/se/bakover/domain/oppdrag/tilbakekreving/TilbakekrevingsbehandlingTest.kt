@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -9,7 +11,6 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.matchendeKravgrunnlag
-import no.nav.su.se.bakover.test.periodeMai2021
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.util.UUID
@@ -20,7 +21,7 @@ internal class TilbakekrevingsbehandlingTest {
         val (sak, revurdering, utbetaling) = iverksattRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periodeMai2021,
+                    periode = mai(2021),
                     arbeidsinntekt = 12500.0,
                 ),
             ),
@@ -49,7 +50,7 @@ internal class TilbakekrevingsbehandlingTest {
             behandler = NavIdentBruker.Saksbehandler("K231B433"), // TODO sannsynligvis tilbakekrevingsbehandling/revurdering
             tilbakekrevingsperioder = listOf(
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
-                    periode = periodeMai2021,
+                    periode = mai(2021),
                     renterBeregnes = false,
                     beløpRenter = BigDecimal.ZERO,
                     tilbakekrevingsbeløp = listOf(
@@ -81,7 +82,7 @@ internal class TilbakekrevingsbehandlingTest {
         val (sak, revurdering, utbetaling) = iverksattRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periodeMai2021,
+                    periode = mai(2021),
                     arbeidsinntekt = 4000.0,
                 ),
             ),
@@ -116,7 +117,7 @@ internal class TilbakekrevingsbehandlingTest {
         val (sak, revurdering, utbetaling) = iverksattRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periodeMai2021,
+                    periode = mai(2021),
                     arbeidsinntekt = 20000.0,
                 ),
             ),
@@ -151,7 +152,7 @@ internal class TilbakekrevingsbehandlingTest {
         val (sak, revurdering, utbetaling) = iverksattRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periodeMai2021,
+                    periode = mai(2021),
                     arbeidsinntekt = 12500.0,
                 ),
             ),
@@ -180,7 +181,7 @@ internal class TilbakekrevingsbehandlingTest {
             behandler = NavIdentBruker.Saksbehandler("K231B433"), // TODO sannsynligvis tilbakekrevingsbehandling/revurdering
             tilbakekrevingsperioder = listOf(
                 Tilbakekrevingsvedtak.Tilbakekrevingsperiode(
-                    periode = periodeMai2021,
+                    periode = mai(2021),
                     renterBeregnes = false,
                     beløpRenter = BigDecimal.ZERO,
                     tilbakekrevingsbeløp = listOf(

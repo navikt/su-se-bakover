@@ -3,23 +3,27 @@ package no.nav.su.se.bakover.domain.grunnlag
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juni
+import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.test.arbeidsinntekt
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.fullstendigMedEPS
+import no.nav.su.se.bakover.test.fullstendigUtenEPS
 import no.nav.su.se.bakover.test.innvilgetFormueVilkår
-import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.ufullstendigEnslig
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 internal class SjekkOmGrunnlagErKonsistentTest {
 
-    private val periode = Periode.create(1.januar(2021), 31.desember(2021))
+    private val periode = år(2021)
 
     @Nested
     inner class Uføre {
@@ -33,93 +37,119 @@ internal class SjekkOmGrunnlagErKonsistentTest {
     inner class Bosituasjon {
         @Test
         fun `bosituasjon er ufullstendig`() {
-            val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = periode,
-            )
-            SjekkOmGrunnlagErKonsistent.Bosituasjon(listOf(bosituasjon)).resultat shouldBe setOf(Konsistensproblem.Bosituasjon.Ufullstendig).left()
-        }
-
-        @Test
-        fun `bosituasjon har flere innslag`() {
-            val bosituasjon1 = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = periode,
-                fnr = Fnr.generer(),
-                begrunnelse = "",
-            )
-            val bosituasjon2 = Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = periode,
-                begrunnelse = "",
-            )
-            SjekkOmGrunnlagErKonsistent.Bosituasjon(listOf(bosituasjon1, bosituasjon2)).resultat shouldBe setOf(
-                Konsistensproblem.Bosituasjon.Flere,
-            ).left()
+            SjekkOmGrunnlagErKonsistent.Bosituasjon(
+                listOf(
+                    ufullstendigEnslig(periode),
+                ),
+            ).resultat shouldBe setOf(Konsistensproblem.Bosituasjon.Ufullstendig).left()
         }
 
         @Test
         fun `bosituasjon mangler`() {
             SjekkOmGrunnlagErKonsistent.Bosituasjon(emptyList()).resultat shouldBe setOf(Konsistensproblem.Bosituasjon.Mangler).left()
         }
+
+        @Test
+        fun `bosituasjon overlapper`() {
+            SjekkOmGrunnlagErKonsistent.Bosituasjon(
+                listOf(
+                    fullstendigUtenEPS(år(2021)),
+                    fullstendigUtenEPS(Periode.create(1.mai(2021), 31.desember(2021))),
+                ),
+            ).resultat shouldBe setOf(Konsistensproblem.Bosituasjon.Overlapp).left()
+        }
+
+        @Test
+        fun `happy path`() {
+            SjekkOmGrunnlagErKonsistent.Bosituasjon(
+                listOf(
+                    fullstendigUtenEPS(Periode.create(1.januar(2021), 30.april(2021))),
+                    fullstendigMedEPS(Periode.create(1.mai(2021), 31.desember(2021))),
+                ),
+            ).resultat shouldBe Unit.right()
+        }
     }
 
     @Nested
     inner class BosituasjonOgFradrag {
+
         @Test
-        fun `bosituasjon har flere innslag og fradrag har inntekter for eps`() {
-            val bosituasjon1 = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = periode,
-                fnr = Fnr.generer(),
-                begrunnelse = "",
-            )
-            val bosituasjon2 = Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = periode,
-                begrunnelse = "",
-            )
-            val arbEps = lagFradragsgrunnlag(
-                type = Fradragstype.Arbeidsinntekt,
-                månedsbeløp = 5000.0,
-                periode = periode,
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.EPS,
-            )
+        fun `ugyldig bosituasjon`() {
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
-                listOf(bosituasjon1, bosituasjon2),
-                listOf(arbEps),
+                listOf(ufullstendigEnslig(periode)),
+                listOf(arbeidsinntekt(periode, FradragTilhører.BRUKER)),
             ).resultat shouldBe setOf(
-                Konsistensproblem.BosituasjonOgFradrag.FlereBosituasjonerOgFradragForEPS,
+                Konsistensproblem.BosituasjonOgFradrag.UgyldigBosituasjon(
+                    setOf(Konsistensproblem.Bosituasjon.Ufullstendig),
+                ),
             ).left()
         }
 
         @Test
-        fun `bosituasjon uten eps men fradrag for eps`() {
-            val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = periode,
-                begrunnelse = "",
-            )
-            val arbEps = lagFradragsgrunnlag(
-                type = Fradragstype.Arbeidsinntekt,
-                månedsbeløp = 5000.0,
-                periode = periode,
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.EPS,
-            )
+        fun `fradragsperioder utenfor bosituasjonsperioder`() {
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
-                listOf(bosituasjon),
-                listOf(arbEps),
+                listOf(fullstendigMedEPS(periode)),
+                listOf(arbeidsinntekt(Periode.create(1.januar(2021), 31.mai(2023)), FradragTilhører.BRUKER)),
             ).resultat shouldBe setOf(
-                Konsistensproblem.BosituasjonOgFradrag.IngenEPSMenFradragForEPS,
+                Konsistensproblem.BosituasjonOgFradrag.IngenBosituasjonForFradragsperiode,
             ).left()
+        }
+
+        @Test
+        fun `ikke samsvar mellom bosituasjon og formue for eps`() {
+            SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
+                listOf(fullstendigUtenEPS(periode)),
+                listOf(arbeidsinntekt(periode, FradragTilhører.EPS)),
+            ).resultat shouldBe setOf(
+                Konsistensproblem.BosituasjonOgFradrag.KombinasjonAvBosituasjonOgFradragErUgyldig,
+            ).left()
+        }
+
+        @Test
+        fun `ikke samsvar mellom bosituasjon og formue for eps variant`() {
+            SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
+                listOf(
+                    fullstendigUtenEPS(Periode.create(1.januar(2021), 31.mai(2021))),
+                    fullstendigMedEPS(Periode.create(1.juni(2021), 31.desember(2021))),
+                ),
+                listOf(arbeidsinntekt(periode, FradragTilhører.EPS)),
+            ).resultat shouldBe setOf(
+                Konsistensproblem.BosituasjonOgFradrag.KombinasjonAvBosituasjonOgFradragErUgyldig,
+            ).left()
+        }
+
+        @Test
+        fun `happy path`() {
+            SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
+                listOf(
+                    fullstendigUtenEPS(Periode.create(1.januar(2021), 31.mai(2021))),
+                    fullstendigMedEPS(Periode.create(1.juni(2021), 31.desember(2021))),
+                ),
+                listOf(
+                    arbeidsinntekt(periode, FradragTilhører.BRUKER),
+                    arbeidsinntekt(Periode.create(1.november(2021), 31.desember(2021)), FradragTilhører.EPS),
+                ),
+            ).resultat shouldBe Unit.right()
+        }
+
+        @Test
+        fun `fravær av fradrag er ok`() {
+            SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
+                listOf(
+                    fullstendigUtenEPS(periode),
+                ),
+                listOf(),
+            ).resultat shouldBe Unit.right()
+        }
+
+        @Test
+        fun `fravær av fradrag er med eps er ok`() {
+            SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
+                listOf(
+                    fullstendigMedEPS(periode),
+                ),
+                listOf(),
+            ).resultat shouldBe Unit.right()
         }
     }
 
@@ -127,35 +157,40 @@ internal class SjekkOmGrunnlagErKonsistentTest {
     inner class Fullstendig {
         @Test
         fun `fullstendig konsistenssjekk`() {
-            val bosituasjon1 = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = periode,
-                fnr = Fnr.generer(),
-                begrunnelse = "",
-            )
-            val bosituasjon2 = Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = periode,
-                begrunnelse = "",
-            )
-            val arbEps = lagFradragsgrunnlag(
-                type = Fradragstype.Arbeidsinntekt,
-                månedsbeløp = 5000.0,
-                periode = periode,
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.EPS,
-            )
             SjekkOmGrunnlagErKonsistent(
                 formuegrunnlag = emptyList(),
                 uføregrunnlag = emptyList(),
-                bosituasjongrunnlag = listOf(bosituasjon1, bosituasjon2),
-                fradragsgrunnlag = listOf(arbEps),
+                bosituasjongrunnlag = listOf(fullstendigMedEPS(periode), fullstendigUtenEPS(periode)),
+                fradragsgrunnlag = listOf(arbeidsinntekt(periode, FradragTilhører.EPS)),
             ).resultat shouldBe setOf(
                 Konsistensproblem.Uføre.Mangler,
-                Konsistensproblem.Bosituasjon.Flere,
-                Konsistensproblem.BosituasjonOgFradrag.FlereBosituasjonerOgFradragForEPS,
+                Konsistensproblem.Formue.Mangler,
+                Konsistensproblem.Bosituasjon.Overlapp,
+                Konsistensproblem.BosituasjonOgFradrag.UgyldigBosituasjon(setOf(Konsistensproblem.Bosituasjon.Overlapp)),
+            ).left()
+        }
+
+        @Test
+        fun `fullstendig sjekk variant`() {
+            SjekkOmGrunnlagErKonsistent(
+                formuegrunnlag = innvilgetFormueVilkår(
+                    periode = periode,
+                    bosituasjon = fullstendigMedEPS(periode),
+                ).grunnlag,
+                uføregrunnlag = emptyList(),
+                bosituasjongrunnlag = listOf(fullstendigUtenEPS(periode)),
+                fradragsgrunnlag = listOf(
+                    arbeidsinntekt(
+                        periode = Periode.create(1.januar(2021), 31.mai(2022)),
+                        FradragTilhører.EPS,
+                    ),
+                ),
+            ).resultat shouldBe setOf(
+                Konsistensproblem.Uføre.Mangler,
+                Konsistensproblem.BosituasjonOgFradrag.KombinasjonAvBosituasjonOgFradragErUgyldig,
+                Konsistensproblem.BosituasjonOgFradrag.IngenBosituasjonForFradragsperiode,
+                Konsistensproblem.BosituasjonOgFormue.KombinasjonAvBosituasjonOgFormueErUyldig,
+                Konsistensproblem.BosituasjonOgFormue.FormueForEPSManglerForBosituasjonsperiode,
             ).left()
         }
     }
@@ -170,26 +205,68 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 forventetInntekt = 0,
                 opprettet = fixedTidspunkt,
             )
-            val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = periode,
-                fnr = Fnr.generer(),
-                begrunnelse = "",
-            )
-            val arbEps = lagFradragsgrunnlag(
-                type = Fradragstype.Arbeidsinntekt,
-                månedsbeløp = 5000.0,
-                periode = periode,
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.EPS,
-            )
+            val bosituasjon = fullstendigMedEPS(periode)
             SjekkOmGrunnlagErKonsistent(
-                formuegrunnlag = innvilgetFormueVilkår(periode = periode).grunnlag,
+                formuegrunnlag = innvilgetFormueVilkår(periode = periode, bosituasjon = bosituasjon).grunnlag,
                 uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjongrunnlag = listOf(bosituasjon),
-                fradragsgrunnlag = listOf(arbEps),
+                fradragsgrunnlag = listOf(arbeidsinntekt(periode, FradragTilhører.EPS)),
             ).resultat shouldBe Unit.right()
+        }
+    }
+
+    @Nested
+    inner class BosituasjonOgFormue {
+        @Test
+        fun `ikke samsvar mellom perioder for bosituasjon og formue`() {
+            val janApr = Periode.create(1.januar(2021), 30.april(2021))
+            val maiDes = Periode.create(1.mai(2021), 31.desember(2021))
+
+            SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
+                bosituasjon = listOf(fullstendigUtenEPS(janApr)),
+                formue = innvilgetFormueVilkår(
+                    periode = maiDes,
+                    bosituasjon = fullstendigUtenEPS(maiDes),
+                ).grunnlag,
+            ).resultat shouldBe setOf(Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode).left()
+        }
+
+        @Test
+        fun `bosituasjon er ugyldig`() {
+            val maiDes = Periode.create(1.mai(2021), 31.desember(2021))
+
+            SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
+                bosituasjon = listOf(),
+                formue = innvilgetFormueVilkår(
+                    periode = maiDes,
+                    bosituasjon = fullstendigUtenEPS(maiDes),
+                ).grunnlag,
+            ).resultat shouldBe setOf(
+                Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode,
+                Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon(
+                    setOf(Konsistensproblem.Bosituasjon.Mangler),
+                ),
+            ).left()
+        }
+
+        @Test
+        fun `formue er ugyldig`() {
+            val maiDes = Periode.create(1.mai(2021), 31.desember(2021))
+
+            SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
+                bosituasjon = listOf(fullstendigUtenEPS(maiDes)),
+                formue = innvilgetFormueVilkår(
+                    periode = maiDes,
+                    bosituasjon = fullstendigUtenEPS(maiDes),
+                ).grunnlag + innvilgetFormueVilkår(
+                    periode = maiDes,
+                    bosituasjon = fullstendigUtenEPS(maiDes),
+                ).grunnlag,
+            ).resultat shouldBe setOf(
+                Konsistensproblem.BosituasjonOgFormue.UgyldigFormue(
+                    setOf(Konsistensproblem.Formue.Overlapp),
+                ),
+            ).left()
         }
     }
 }

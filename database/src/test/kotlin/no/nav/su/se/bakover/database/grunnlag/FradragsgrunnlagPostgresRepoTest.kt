@@ -1,13 +1,11 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withTransaction
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForPeriode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
@@ -26,7 +24,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
             val fradragsgrunnlag1 = lagFradragsgrunnlag(
                 type = Fradragstype.Arbeidsinntekt,
                 månedsbeløp = 5000.0,
-                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                periode = år(2021),
                 utenlandskInntekt = UtenlandskInntekt.create(
                     beløpIUtenlandskValuta = 5, valuta = "DKK", kurs = 10.5,
                 ),
@@ -36,7 +34,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
             val fradragsgrunnlag2 = lagFradragsgrunnlag(
                 type = Fradragstype.Kontantstøtte,
                 månedsbeløp = 15000.0,
-                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                periode = år(2021),
                 tilhører = FradragTilhører.EPS,
             )
 
@@ -52,10 +50,10 @@ internal class FradragsgrunnlagPostgresRepoTest {
 
                 testDataHelper.fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandling.id, tx) shouldBe listOf(
                     fradragsgrunnlag1.copy(
-                        fradrag = PersistertFradrag(
+                        fradrag = FradragForPeriode(
                             fradragstype = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 5000.0,
-                            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                            periode = år(2021),
                             utenlandskInntekt = UtenlandskInntekt.create(
                                 beløpIUtenlandskValuta = 5, valuta = "DKK", kurs = 10.5,
                             ),
@@ -63,10 +61,10 @@ internal class FradragsgrunnlagPostgresRepoTest {
                         ),
                     ),
                     fradragsgrunnlag2.copy(
-                        fradrag = PersistertFradrag(
+                        fradrag = FradragForPeriode(
                             fradragstype = Fradragstype.Kontantstøtte,
                             månedsbeløp = 15000.0,
-                            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                            periode = år(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.EPS,
                         ),
@@ -80,6 +78,42 @@ internal class FradragsgrunnlagPostgresRepoTest {
                 )
 
                 testDataHelper.fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandling.id, tx) shouldBe emptyList()
+            }
+        }
+    }
+
+    @Test
+    fun `lagring og henting av fradrag uten speisfikk type (annet med beskrivelse)`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val grunnlagRepo = testDataHelper.fradragsgrunnlagPostgresRepo
+            val behandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+
+            val grunnlag = lagFradragsgrunnlag(
+                type = Fradragstype.Annet("vet ikke hva dette er"),
+                månedsbeløp = 15000.0,
+                periode = år(2021),
+                tilhører = FradragTilhører.EPS,
+            )
+
+            dataSource.withTransaction { tx ->
+                grunnlagRepo.lagreFradragsgrunnlag(
+                    behandlingId = behandling.id,
+                    fradragsgrunnlag = listOf(grunnlag),
+                    tx,
+                )
+
+                grunnlagRepo.hentFradragsgrunnlag(behandling.id, tx) shouldBe listOf(
+                    grunnlag.copy(
+                        fradrag = FradragForPeriode(
+                            fradragstype = Fradragstype.Annet("vet ikke hva dette er"),
+                            månedsbeløp = 15000.0,
+                            periode = år(2021),
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.EPS,
+                        ),
+                    ),
+                )
             }
         }
     }

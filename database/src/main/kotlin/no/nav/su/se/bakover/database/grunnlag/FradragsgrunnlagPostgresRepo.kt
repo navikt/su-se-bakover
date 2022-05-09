@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
+import arrow.core.getOrHandle
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.objectMapper
@@ -7,11 +8,11 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
-import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForPeriode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -65,8 +66,11 @@ internal class FradragsgrunnlagPostgresRepo(
         return Grunnlag.Fradragsgrunnlag.tryCreate(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
-            fradrag = PersistertFradrag(
-                fradragstype = Fradragstype.valueOf(string("fradragstype")),
+            fradrag = FradragForPeriode(
+                fradragstype = Fradragstype.tryParse(
+                    value = string("fradragstype"),
+                    beskrivelse = stringOrNull("beskrivelse"),
+                ).getOrHandle { throw IllegalArgumentException("$it") },
                 månedsbeløp = double("månedsbeløp"),
                 utenlandskInntekt = stringOrNull("utenlandskInntekt")?.let { deserialize(it) },
                 periode = Periode.create(fraOgMed = localDate("fraOgMed"), tilOgMed = localDate("tilOgMed")),
@@ -85,6 +89,7 @@ internal class FradragsgrunnlagPostgresRepo(
                 fraOgMed,
                 tilOgMed,
                 fradragstype,
+                beskrivelse,
                 månedsbeløp,
                 utenlandskInntekt,
                 tilhører
@@ -96,6 +101,7 @@ internal class FradragsgrunnlagPostgresRepo(
                 :fraOgMed,
                 :tilOgMed,
                 :fradragstype,
+                :beskrivelse,
                 :manedsbelop,
                 to_json(:utenlandskInntekt::json),
                 :tilhorer
@@ -108,7 +114,11 @@ internal class FradragsgrunnlagPostgresRepo(
                     "behandlingId" to behandlingId,
                     "fraOgMed" to fradragsgrunnlag.fradrag.periode.fraOgMed,
                     "tilOgMed" to fradragsgrunnlag.fradrag.periode.tilOgMed,
-                    "fradragstype" to fradragsgrunnlag.fradrag.fradragstype,
+                    "fradragstype" to fradragsgrunnlag.fradrag.fradragstype.kategori,
+                    "beskrivelse" to when (val f = fradragsgrunnlag.fradragstype) {
+                        is Fradragstype.Annet -> f.beskrivelse
+                        else -> null
+                    },
                     "manedsbelop" to fradragsgrunnlag.fradrag.månedsbeløp,
                     "utenlandskInntekt" to objectMapper.writeValueAsString(fradragsgrunnlag.fradrag.utenlandskInntekt),
                     "tilhorer" to fradragsgrunnlag.fradrag.tilhører,

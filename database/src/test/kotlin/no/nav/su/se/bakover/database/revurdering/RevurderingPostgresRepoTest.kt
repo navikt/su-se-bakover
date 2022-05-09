@@ -4,11 +4,9 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.juni
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
@@ -42,7 +40,6 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import org.junit.jupiter.api.Test
@@ -72,14 +69,14 @@ internal class RevurderingPostgresRepoTest {
 
     private fun opprettet(vedtak: VedtakSomKanRevurderes.EndringIYtelse): OpprettetRevurdering {
         val x = GjeldendeVedtaksdata(
-            periode = periode2021,
+            periode = år(2021),
             vedtakListe = nonEmptyListOf(vedtak),
             clock = fixedClock,
         )
 
         return OpprettetRevurdering(
             id = UUID.randomUUID(),
-            periode = periode2021,
+            periode = år(2021),
             opprettet = fixedTidspunkt,
             tilRevurdering = vedtak,
             saksbehandler = saksbehandler,
@@ -208,12 +205,12 @@ internal class RevurderingPostgresRepoTest {
 
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
-            repo.hent(opprettet.id) shouldBe opprettet.persistertVariant()
+            repo.hent(opprettet.id) shouldBe opprettet
 
             val beregnetIngenEndring = beregnetIngenEndring(opprettet, vedtak)
 
             repo.lagre(beregnetIngenEndring)
-            repo.hent(opprettet.id) shouldBe beregnetIngenEndring.persistertVariant()
+            repo.hent(opprettet.id) shouldBe beregnetIngenEndring
         }
     }
 
@@ -232,11 +229,11 @@ internal class RevurderingPostgresRepoTest {
             val innvilgetBeregning = beregnetInnvilget(opprettetRevurdering, vedtak)
 
             repo.lagre(innvilgetBeregning)
-            repo.hent(innvilgetBeregning.id) shouldBe innvilgetBeregning.persistertVariant()
+            repo.hent(innvilgetBeregning.id) shouldBe innvilgetBeregning
 
             val oppdatertRevurdering = innvilgetBeregning.oppdater(
-                Periode.create(1.juni(2020), 30.juni(2020)),
-                Revurderingsårsak(
+                periode = juni(2020),
+                revurderingsårsak = Revurderingsårsak(
                     årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     begrunnelse = Revurderingsårsak.Begrunnelse.create("begrunnelse"),
                 ),
@@ -248,7 +245,7 @@ internal class RevurderingPostgresRepoTest {
             )
 
             repo.lagre(oppdatertRevurdering)
-            repo.hent(innvilgetBeregning.id) shouldBe oppdatertRevurdering.persistertVariant()
+            repo.hent(innvilgetBeregning.id) shouldBe oppdatertRevurdering
         }
     }
 
@@ -278,7 +275,7 @@ internal class RevurderingPostgresRepoTest {
 
             actual shouldNotBe opprettet
             actual shouldNotBe beregnet
-            actual shouldBe nyBeregnet.persistertVariant()
+            actual shouldBe nyBeregnet
         }
     }
 
@@ -301,7 +298,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(simulert)
 
-            repo.hent(opprettet.id) shouldBe simulert.persistertVariant()
+            repo.hent(opprettet.id) shouldBe simulert
         }
     }
 
@@ -324,7 +321,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(simulert)
             repo.lagre(beregnet)
-            repo.hent(opprettet.id) shouldBe beregnet.copy(forhåndsvarsel = simulert.forhåndsvarsel).persistertVariant()
+            repo.hent(opprettet.id) shouldBe beregnet.copy(forhåndsvarsel = simulert.forhåndsvarsel)
         }
     }
 
@@ -356,7 +353,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(tilAttestering)
 
-            repo.hent(opprettet.id) shouldBe tilAttestering.persistertVariant()
+            repo.hent(opprettet.id) shouldBe tilAttestering
         }
     }
 
@@ -387,7 +384,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(tilAttestering)
 
-            repo.hent(opprettet.id) shouldBe tilAttestering.persistertVariant()
+            repo.hent(opprettet.id) shouldBe tilAttestering
 
             tilAttestering.saksbehandler shouldNotBe opprettet.saksbehandler
         }
@@ -400,9 +397,9 @@ internal class RevurderingPostgresRepoTest {
             val repo = testDataHelper.revurderingRepo
             val iverksatt = testDataHelper.persisterRevurderingIverksattInnvilget()
 
-            repo.hent(iverksatt.id) shouldBe iverksatt.persistertVariant()
+            repo.hent(iverksatt.id) shouldBe iverksatt
             dataSource.withSession {
-                repo.hentRevurderingerForSak(iverksatt.sakId, it) shouldBe listOf(iverksatt.persistertVariant())
+                repo.hentRevurderingerForSak(iverksatt.sakId, it) shouldBe listOf(iverksatt)
             }
         }
     }
@@ -444,7 +441,7 @@ internal class RevurderingPostgresRepoTest {
             val underkjent = tilAttestering.underkjenn(attestering, OppgaveId("nyOppgaveId"))
             repo.lagre(underkjent)
 
-            repo.hent(opprettet.id) shouldBe underkjent.persistertVariant()
+            repo.hent(opprettet.id) shouldBe underkjent
         }
     }
 
@@ -460,10 +457,10 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(opprettet)
             val beregnet = beregnetOpphørt(opprettet, vedtak)
             repo.lagre(beregnet)
-            repo.hent(opprettet.id) shouldBe beregnet.persistertVariant()
+            repo.hent(opprettet.id) shouldBe beregnet
             val simulert = simulertOpphørt(beregnet)
             repo.lagre(simulert)
-            repo.hent(opprettet.id) shouldBe simulert.persistertVariant()
+            repo.hent(opprettet.id) shouldBe simulert
             val tilAttestering =
                 simulert.tilAttestering(
                     attesteringsoppgaveId = opprettet.oppgaveId,
@@ -500,7 +497,7 @@ internal class RevurderingPostgresRepoTest {
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id) shouldBe underkjent.persistertVariant()
+            repo.hent(underkjent.id) shouldBe underkjent
         }
     }
 
@@ -538,7 +535,7 @@ internal class RevurderingPostgresRepoTest {
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id) shouldBe underkjent.persistertVariant()
+            repo.hent(underkjent.id) shouldBe underkjent
         }
     }
 
@@ -590,7 +587,7 @@ internal class RevurderingPostgresRepoTest {
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id) shouldBe underkjent.persistertVariant()
+            repo.hent(underkjent.id) shouldBe underkjent
         }
     }
 
@@ -606,7 +603,7 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(opprettet)
             val beregnet = beregnetIngenEndring(opprettet, vedtak)
             repo.lagre(beregnet)
-            repo.hent(opprettet.id) shouldBe beregnet.persistertVariant()
+            repo.hent(opprettet.id) shouldBe beregnet
             val underkjentTilAttestering = RevurderingTilAttestering.IngenEndring(
                 id = opprettet.id,
                 periode = opprettet.periode,
@@ -653,7 +650,7 @@ internal class RevurderingPostgresRepoTest {
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id) shouldBe underkjent.persistertVariant()
+            repo.hent(underkjent.id) shouldBe underkjent
         }
     }
 
@@ -689,7 +686,7 @@ internal class RevurderingPostgresRepoTest {
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id) shouldBe underkjent.persistertVariant()
+            repo.hent(underkjent.id) shouldBe underkjent
         }
     }
 
@@ -749,7 +746,7 @@ internal class RevurderingPostgresRepoTest {
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id) shouldBe underkjent.persistertVariant()
+            repo.hent(underkjent.id) shouldBe underkjent
         }
     }
 
@@ -764,7 +761,7 @@ internal class RevurderingPostgresRepoTest {
             }
 
             val actual = repo.hent(simulert.id) as Revurdering
-            actual shouldBe expected.persistertVariant()
+            actual shouldBe expected
         }
     }
 
@@ -778,7 +775,7 @@ internal class RevurderingPostgresRepoTest {
                 simulert.markerForhåndsvarselSomSendt().getOrFail().also {
                     repo.lagre(it)
                 }
-            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
+            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel
         }
     }
 
@@ -799,7 +796,7 @@ internal class RevurderingPostgresRepoTest {
                     .also {
                         repo.lagre(it)
                     }
-            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
+            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel
         }
     }
 
@@ -813,7 +810,7 @@ internal class RevurderingPostgresRepoTest {
                 simulert.markerForhåndsvarselSomSendt().getOrFail().prøvOvergangTilEndreGrunnlaget("").getOrFail().also {
                     repo.lagre(it)
                 }
-            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
+            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel
         }
     }
 

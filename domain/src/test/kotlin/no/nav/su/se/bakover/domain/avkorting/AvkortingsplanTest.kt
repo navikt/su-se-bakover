@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.oktober
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.MånedBeløp
@@ -31,7 +32,6 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import org.junit.jupiter.api.Test
@@ -92,8 +92,8 @@ internal class AvkortingsplanTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.Sosialstønad,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.Sosialstønad,
                             månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.januar(2021)).toDouble(),
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             utenlandskInntekt = null,
@@ -103,8 +103,8 @@ internal class AvkortingsplanTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.Sosialstønad,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.Sosialstønad,
                             månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.mai(2021)).toDouble(),
                             periode = Periode.create(1.mai(2021), 30.september(2021)),
                             utenlandskInntekt = null,
@@ -112,7 +112,7 @@ internal class AvkortingsplanTest {
                         ),
                     ),
                 ),
-                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = periode2021)),
+                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
             ),
         )
 
@@ -156,8 +156,8 @@ internal class AvkortingsplanTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.Sosialstønad,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.Sosialstønad,
                             månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.januar(2021)).toDouble(),
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             utenlandskInntekt = null,
@@ -167,8 +167,8 @@ internal class AvkortingsplanTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.Sosialstønad,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.Sosialstønad,
                             månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.mai(2021)).toDouble(),
                             periode = Periode.create(1.mai(2021), 31.desember(2021)),
                             utenlandskInntekt = null,
@@ -176,7 +176,7 @@ internal class AvkortingsplanTest {
                         ),
                     ),
                 ),
-                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = periode2021)),
+                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
             ),
         )
 
@@ -201,16 +201,16 @@ internal class AvkortingsplanTest {
                     Grunnlag.Fradragsgrunnlag.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.Kapitalinntekt,
+                        fradrag = FradragFactory.nyFradragsperiode(
+                            fradragstype = Fradragstype.Kapitalinntekt,
                             månedsbeløp = 10000.0,
-                            periode = periode2021,
+                            periode = år(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
                     ),
                 ),
-                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = periode2021)),
+                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
             ),
         )
 
@@ -272,8 +272,8 @@ internal class AvkortingsplanTest {
         return Grunnlag.Fradragsgrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            fradrag = FradragFactory.ny(
-                type = Fradragstype.AvkortingUtenlandsopphold,
+            fradrag = FradragFactory.nyFradragsperiode(
+                fradragstype = Fradragstype.AvkortingUtenlandsopphold,
                 månedsbeløp = beløp.toDouble(),
                 periode = periode,
                 utenlandskInntekt = null,

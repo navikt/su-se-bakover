@@ -5,15 +5,12 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.inneholderAlle
-import no.nav.su.se.bakover.common.periode.minusListe
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.oppdaterFradragsperiode
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.perioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 // TODO: Del inn i tom og utleda grunnlagsdata. F.eks. ved å bruke NonEmptyList
@@ -34,10 +31,12 @@ data class Grunnlagsdata private constructor(
      * Men dersom vi har minst en bosituasjon, betyr det at den lovlig kan iverksettes.
      */
     val erUtfylt: Boolean = bosituasjon.isNotEmpty()
+
+    // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
     fun oppdaterGrunnlagsperioder(
         oppdatertPeriode: Periode,
     ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
-        return tryCreate(
+        return tryCreateTillatUfullstendigBosituasjon(
             fradragsgrunnlag = fradragsgrunnlag.oppdaterFradragsperiode(oppdatertPeriode)
                 .getOrHandle { return KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag(it).left() },
             bosituasjon = bosituasjon.oppdaterBosituasjonsperiode(oppdatertPeriode),
@@ -62,36 +61,61 @@ data class Grunnlagsdata private constructor(
             bosituasjon: List<Bosituasjon> = emptyList(),
         ) = tryCreate(fradragsgrunnlag, bosituasjon).getOrHandle { throw IllegalStateException(it.toString()) }
 
+        fun createTillatUfullstendigBosituasjon(
+            fradragsgrunnlag: List<Fradragsgrunnlag> = emptyList(),
+            bosituasjon: List<Bosituasjon> = emptyList(),
+        ) = tryCreateTillatUfullstendigBosituasjon(fradragsgrunnlag, bosituasjon).getOrHandle { throw IllegalStateException(it.toString()) }
+
         fun tryCreate(
             fradragsgrunnlag: List<Fradragsgrunnlag>,
             bosituasjon: List<Bosituasjon>,
         ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
-
-            val fradragsperiode = fradragsgrunnlag.perioder()
-            val bosituasjonperiode = bosituasjon.perioder()
-
-            if (fradragsperiode.isNotEmpty()) {
-                if (bosituasjonperiode.isEmpty()) {
-                    return KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag.left()
-                }
-
-                if (fradragsperiode.minusListe(bosituasjonperiode).isNotEmpty()) {
-                    return KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon.left()
-                }
-
-                val perioderMedEPS = bosituasjonperiode.minusListe(bosituasjon.filter { !it.harEPS() }.perioder())
-                val perioderMedFradragForEPS =
-                    fradragsperiode.minusListe(fradragsgrunnlag.filter { !it.tilhørerEps() }.perioder())
-
-                if (!perioderMedEPS.inneholderAlle(perioderMedFradragForEPS)) {
-                    return KunneIkkeLageGrunnlagsdata.FradragForEPSMenBosituasjonUtenEPS.left()
-                }
-            }
-
-            return Grunnlagsdata(
-                fradragsgrunnlag = fradragsgrunnlag,
+            return SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
                 bosituasjon = bosituasjon,
-            ).right()
+                fradrag = fradragsgrunnlag,
+            ).resultat.mapLeft {
+                KunneIkkeLageGrunnlagsdata.Konsistenssjekk(it.first())
+            }.map {
+                Grunnlagsdata(
+                    fradragsgrunnlag = fradragsgrunnlag.sortedBy { it.periode },
+                    bosituasjon = bosituasjon.sortedBy { it.periode },
+                )
+            }
+        }
+
+        /**
+         * Tillater at vi oppretter med ufullstendig bosituasjon for å støtte søknadsbehandlinger i tidlige faser,
+         * og/eller avslag før sats er tatt stilling til.
+         */
+        fun tryCreateTillatUfullstendigBosituasjon(
+            fradragsgrunnlag: List<Fradragsgrunnlag>,
+            bosituasjon: List<Bosituasjon>,
+        ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
+            return SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
+                bosituasjon = bosituasjon,
+                fradrag = fradragsgrunnlag,
+            ).resultat.mapLeft { problemer ->
+                when (val feil = problemer.first()) {
+                    is Konsistensproblem.BosituasjonOgFradrag.UgyldigBosituasjon -> {
+                        if (feil.feil.filterNot { it is Konsistensproblem.Bosituasjon.Ufullstendig }.isNotEmpty()) {
+                            KunneIkkeLageGrunnlagsdata.Konsistenssjekk(feil)
+                        } else {
+                            return Grunnlagsdata(
+                                fradragsgrunnlag = fradragsgrunnlag.sortedBy { it.periode },
+                                bosituasjon = bosituasjon.sortedBy { it.periode },
+                            ).right()
+                        }
+                    }
+                    else -> {
+                        KunneIkkeLageGrunnlagsdata.Konsistenssjekk(feil)
+                    }
+                }
+            }.map {
+                Grunnlagsdata(
+                    fradragsgrunnlag = fradragsgrunnlag.sortedBy { it.periode },
+                    bosituasjon = bosituasjon.sortedBy { it.periode },
+                )
+            }
         }
     }
 }
@@ -102,14 +126,23 @@ sealed class KunneIkkeLageGrunnlagsdata {
     object FradragForEPSMenBosituasjonUtenEPS : KunneIkkeLageGrunnlagsdata()
     data class UgyldigFradragsgrunnlag(val feil: Fradragsgrunnlag.UgyldigFradragsgrunnlag) :
         KunneIkkeLageGrunnlagsdata()
+
+    data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFradrag) : KunneIkkeLageGrunnlagsdata()
 }
 
 fun List<Uføregrunnlag>.harForventetInntektStørreEnn0() = this.sumOf { it.forventetInntekt } > 0
 
 fun List<Fradragsgrunnlag>.fjernFradragForEPSHvisEnslig(bosituasjon: Bosituasjon): List<Fradragsgrunnlag> {
-    return if (bosituasjon.harEPS()) this else fjernFradragEPS()
+    return if (bosituasjon.harEPS()) this else fjernFradragEPS(listOf(bosituasjon.periode))
 }
 
-fun List<Fradragsgrunnlag>.fjernFradragEPS(): List<Fradragsgrunnlag> {
-    return filterNot { it.tilhørerEps() }
+fun List<Fradragsgrunnlag>.fjernFradragEPS(perioderUtenEPS: List<Periode>): List<Fradragsgrunnlag> {
+    return flatMap { it.fjernFradragEPS(perioderUtenEPS) }
+}
+
+fun List<Bosituasjon.Fullstendig>.lagTidslinje(periode: Periode): List<Bosituasjon.Fullstendig> {
+    return Tidslinje(
+        periode = periode,
+        objekter = this,
+    ).tidslinje
 }

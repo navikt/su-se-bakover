@@ -3,9 +3,8 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.test.simulertPeriode
@@ -55,20 +54,20 @@ internal class SimuleringJsonTest {
         """.trimIndent()
 
     private val simuleringMedFlereUtbetalingerISammePeriode = simulering(
-        Periode.create(1.januar(2021), 31.januar(2021)),
+        januar(2021),
         simulertePerioder = listOf(
             simulertPeriode(
-                periode = Periode.create(1.januar(2021), 31.januar(2021)),
+                periode = januar(2021),
                 simulerteUtbetalinger = listOf(
-                    simulertUtbetaling(Periode.create(1.januar(2021), 31.januar(2021))),
-                    simulertUtbetaling(Periode.create(1.januar(2021), 31.januar(2021))),
+                    simulertUtbetaling(januar(2021)),
+                    simulertUtbetaling(januar(2021)),
                 ),
             ),
         ),
     )
 
     private val simulering = simulering(
-        Periode.create(1.januar(2020), 31.januar(2020)),
-        Periode.create(1.februar(2020), 29.februar(2020)),
+        januar(2020),
+        februar(2020),
     )
 }

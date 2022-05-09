@@ -57,10 +57,6 @@ internal object Revurderingsfeilresponser {
             "Ugyldig årsak, må være en av: ${Revurderingsårsak.Årsak.values()}",
             "ugyldig_årsak",
         )
-        val bosituasjonMedFlerePerioderMåRevurderes = BadRequest.errorJson(
-            "Bosituasjon og inntekt må revurderes siden det finnes flere bosituasjonsperioder",
-            "bosituasjon_med_flere_perioder_må_revurderes",
-        )
         val formueSomFørerTilOpphørMåRevurderes = BadRequest.errorJson(
             "Formue som fører til opphør må revurderes",
             "formue_som_fører_til_opphør_må_revurderes",

@@ -50,7 +50,12 @@ internal fun Route.sendRevurderingTilAttestering(
                         ifRight = {
                             call.sikkerlogg("Sendt revurdering til attestering med id $revurderingId")
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                            call.svar(
+                                Resultat.json(
+                                    HttpStatusCode.OK,
+                                    serialize(it.toJson())
+                                )
+                            )
                         },
                     )
                 }

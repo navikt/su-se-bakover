@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.domain.beregning.beregning
 
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
+import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -21,10 +21,7 @@ import org.junit.jupiter.api.Test
 internal class BeregningStrategyTest {
     @Test
     fun `videresender korrekte verdier`() {
-        val periode = Periode.create(
-            fraOgMed = 1.januar(2020),
-            tilOgMed = 31.desember(2020)
-        )
+        val periode = år(2020)
         val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             uføregrunnlag = listOf(
@@ -45,14 +42,18 @@ internal class BeregningStrategyTest {
                 ),
             ),
         )
-        BeregningStrategy.BorAlene.beregn(
-            beregningsgrunnlag = beregningsgrunnlag,
-            clock = fixedClock,
+        BeregningFactory(fixedClock).ny(
+            fradrag = beregningsgrunnlag.fradrag,
             begrunnelse = "en begrunnelse",
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = beregningsgrunnlag.beregningsperiode,
+                    strategy = BeregningStrategy.BorAlene,
+                )
+            )
         ).let {
             it.periode.fraOgMed shouldBe periode.fraOgMed
             it.periode.tilOgMed shouldBe periode.tilOgMed
-            it.getSats() shouldBe Sats.HØY
             it.getFradrag() shouldBe beregningsgrunnlag.fradrag
             it.getMånedsberegninger() shouldHaveSize 12
             it.getBegrunnelse() shouldBe "en begrunnelse"

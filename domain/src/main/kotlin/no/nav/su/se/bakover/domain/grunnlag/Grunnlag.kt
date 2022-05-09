@@ -5,18 +5,20 @@ import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import arrow.core.sequenceEither
+import arrow.core.sequence
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
-import no.nav.su.se.bakover.common.periode.reduser
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.Copyable
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
+import no.nav.su.se.bakover.domain.tidslinje.masker
 import org.jetbrains.annotations.TestOnly
 import java.util.UUID
 
@@ -60,6 +62,9 @@ sealed class Grunnlag {
             is CopyArgs.Tidslinje.NyPeriode -> {
                 this.copy(id = UUID.randomUUID(), periode = args.periode)
             }
+            is CopyArgs.Tidslinje.Maskert -> {
+                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+            }
         }
 
         /**
@@ -99,9 +104,9 @@ sealed class Grunnlag {
 
     data class Fradragsgrunnlag private constructor(
         override val id: UUID = UUID.randomUUID(),
-        val opprettet: Tidspunkt,
+        override val opprettet: Tidspunkt,
         val fradrag: Fradrag,
-    ) : Grunnlag(), Fradrag by fradrag {
+    ) : Grunnlag(), Fradrag by fradrag, KanPlasseresPåTidslinjeMedSegSelv<Fradragsgrunnlag> {
         override val periode: Periode = fradrag.periode
 
         fun oppdaterFradragsperiode(
@@ -111,8 +116,8 @@ sealed class Grunnlag {
                 it?.right() ?: tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
-                    fradrag = FradragFactory.ny(
-                        type = this.fradrag.fradragstype,
+                    fradrag = FradragFactory.nyFradragsperiode(
+                        fradragstype = this.fradrag.fradragstype,
                         månedsbeløp = this.fradrag.månedsbeløp,
                         periode = oppdatertPeriode,
                         utenlandskInntekt = this.fradrag.utenlandskInntekt,
@@ -145,6 +150,17 @@ sealed class Grunnlag {
             }.right()
         }
 
+        fun fjernFradragEPS(perioder: List<Periode>): List<Fradragsgrunnlag> {
+            return when (tilhørerEps()) {
+                true -> {
+                    masker(perioder = perioder)
+                }
+                false -> {
+                    listOf(this)
+                }
+            }
+        }
+
         companion object {
             @TestOnly
             fun create(
@@ -165,14 +181,18 @@ sealed class Grunnlag {
                 return Fradragsgrunnlag(id = id, opprettet = opprettet, fradrag = fradrag).right()
             }
 
+            // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
             fun List<Fradragsgrunnlag>.oppdaterFradragsperiode(
                 oppdatertPeriode: Periode,
             ): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
-                return this.map { it.oppdaterFradragsperiode(oppdatertPeriode) }.sequenceEither()
+                return this.map { it.oppdaterFradragsperiode(oppdatertPeriode) }.sequence()
             }
 
             fun List<Fradragsgrunnlag>.harEpsInntekt() = this.any { it.fradrag.tilhørerEps() }
-            fun List<Fradragsgrunnlag>.perioder(): List<Periode> = map { it.periode }.reduser()
+            fun List<Fradragsgrunnlag>.perioder(): List<Periode> = map { it.periode }.minsteAntallSammenhengendePerioder()
+            fun List<Fradragsgrunnlag>.allePerioderMedEPS(): List<Periode> {
+                return filter { it.tilhørerEps() }.map { it.periode }.minsteAntallSammenhengendePerioder()
+            }
 
             fun List<Fradragsgrunnlag>.slåSammenPeriodeOgFradrag(): List<Fradragsgrunnlag> {
                 return this.sortedBy { it.periode.fraOgMed }
@@ -191,8 +211,8 @@ sealed class Grunnlag {
                         tryCreate(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
-                            fradrag = FradragFactory.ny(
-                                type = it.first().fradragstype,
+                            fradrag = FradragFactory.nyFradragsperiode(
+                                fradragstype = it.first().fradragstype,
                                 månedsbeløp = it.first().månedsbeløp,
                                 periode = periode,
                                 utenlandskInntekt = it.first().utenlandskInntekt,
@@ -218,6 +238,26 @@ sealed class Grunnlag {
 
         sealed class UgyldigFradragsgrunnlag {
             object UgyldigFradragstypeForGrunnlag : UgyldigFradragsgrunnlag()
+        }
+
+        override fun copy(args: CopyArgs.Tidslinje): Fradragsgrunnlag = when (args) {
+            CopyArgs.Tidslinje.Full -> {
+                copy(id = UUID.randomUUID())
+            }
+            is CopyArgs.Tidslinje.NyPeriode -> {
+                /**
+                 * TODO
+                 * Sammenhengen mellom Fradrag/Fradragsgrunnlag for å få til å kalle hele veien ned med [CopyArgs].
+                 * Pt lar det seg ikke gjøre pga av dobbelt impl av samme interface med ulik returtype.
+                 * All den tid [Fradragsgrunnlag] likevel ikke er ment å periodiseres i sammenheng med andre enn seg selv
+                 * (se forskjell på [KanPlasseresPåTidslinjeMedSegSelv]/[KanPlasseresPåTidslinje]) bør dette likevel være trygt så lenge
+                 * den som kaller kvitter seg med perioder som ikke overlapper først.
+                 */
+                copy(id = UUID.randomUUID(), fradrag = fradrag.copy(CopyArgs.Snitt(args.periode))!!)
+            }
+            is CopyArgs.Tidslinje.Maskert -> {
+                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+            }
         }
     }
 
@@ -247,6 +287,7 @@ sealed class Grunnlag {
         }
 
         companion object {
+            // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
             fun List<Bosituasjon>.oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): List<Bosituasjon> {
                 return this.map { it.oppdaterBosituasjonsperiode(oppdatertPeriode) }
             }
@@ -275,12 +316,28 @@ sealed class Grunnlag {
             private fun List<Bosituasjon>.sisteBosituasjonsgrunnlagErLikOgTilstøtende(other: Bosituasjon) =
                 this.last().let { it.tilstøter(other) && it.erLik(other) }
 
-            fun List<Bosituasjon>.perioder(): List<Periode> {
-                return map { it.periode }.reduser()
+            fun List<Bosituasjon>.minsteAntallSammenhengendePerioder(): List<Periode> {
+                return map { it.periode }.minsteAntallSammenhengendePerioder()
+            }
+
+            fun List<Bosituasjon>.perioderMedEPS(): List<Periode> {
+                return filter { it.harEPS() }.map { it.periode }.minsteAntallSammenhengendePerioder()
+            }
+
+            fun List<Bosituasjon>.perioderUtenEPS(): List<Periode> {
+                return filter { !it.harEPS() }.map { it.periode }.minsteAntallSammenhengendePerioder()
+            }
+
+            fun List<Bosituasjon>.harOverlappende(): Boolean {
+                return map { it.periode }.harOverlappende()
+            }
+
+            fun List<Bosituasjon>.harEPS(): Boolean {
+                return any { it.harEPS() }
             }
         }
 
-        sealed class Fullstendig : Bosituasjon(), Copyable<CopyArgs.Snitt, Fullstendig?> {
+        sealed class Fullstendig : Bosituasjon(), KanPlasseresPåTidslinje<Fullstendig> {
             abstract val begrunnelse: String?
 
             sealed class EktefellePartnerSamboer : Fullstendig() {
@@ -304,8 +361,16 @@ sealed class Grunnlag {
                             return this.fnr == other.fnr
                         }
 
-                        override fun copy(args: CopyArgs.Snitt): UførFlyktning? {
-                            return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
+                        override fun copy(args: CopyArgs.Tidslinje): UførFlyktning = when (args) {
+                            CopyArgs.Tidslinje.Full -> {
+                                copy(id = UUID.randomUUID())
+                            }
+                            is CopyArgs.Tidslinje.NyPeriode -> {
+                                copy(id = UUID.randomUUID(), periode = args.periode)
+                            }
+                            is CopyArgs.Tidslinje.Maskert -> {
+                                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+                            }
                         }
                     }
 
@@ -323,8 +388,16 @@ sealed class Grunnlag {
                             return this.fnr == other.fnr
                         }
 
-                        override fun copy(args: CopyArgs.Snitt): IkkeUførFlyktning? {
-                            return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
+                        override fun copy(args: CopyArgs.Tidslinje): IkkeUførFlyktning = when (args) {
+                            CopyArgs.Tidslinje.Full -> {
+                                copy(id = UUID.randomUUID())
+                            }
+                            is CopyArgs.Tidslinje.NyPeriode -> {
+                                copy(id = UUID.randomUUID(), periode = args.periode)
+                            }
+                            is CopyArgs.Tidslinje.Maskert -> {
+                                copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+                            }
                         }
                     }
                 }
@@ -343,8 +416,16 @@ sealed class Grunnlag {
                         return this.fnr == other.fnr
                     }
 
-                    override fun copy(args: CopyArgs.Snitt): SektiSyvEllerEldre? {
-                        return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
+                    override fun copy(args: CopyArgs.Tidslinje): SektiSyvEllerEldre = when (args) {
+                        CopyArgs.Tidslinje.Full -> {
+                            copy(id = UUID.randomUUID())
+                        }
+                        is CopyArgs.Tidslinje.NyPeriode -> {
+                            copy(id = UUID.randomUUID(), periode = args.periode)
+                        }
+                        is CopyArgs.Tidslinje.Maskert -> {
+                            copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+                        }
                     }
                 }
             }
@@ -364,8 +445,16 @@ sealed class Grunnlag {
                     return other is Enslig
                 }
 
-                override fun copy(args: CopyArgs.Snitt): Enslig? {
-                    return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
+                override fun copy(args: CopyArgs.Tidslinje): Enslig = when (args) {
+                    CopyArgs.Tidslinje.Full -> {
+                        copy(id = UUID.randomUUID())
+                    }
+                    is CopyArgs.Tidslinje.NyPeriode -> {
+                        copy(id = UUID.randomUUID(), periode = args.periode)
+                    }
+                    is CopyArgs.Tidslinje.Maskert -> {
+                        copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+                    }
                 }
             }
 
@@ -383,8 +472,16 @@ sealed class Grunnlag {
                     return other is DelerBoligMedVoksneBarnEllerAnnenVoksen
                 }
 
-                override fun copy(args: CopyArgs.Snitt): DelerBoligMedVoksneBarnEllerAnnenVoksen? {
-                    return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
+                override fun copy(args: CopyArgs.Tidslinje): DelerBoligMedVoksneBarnEllerAnnenVoksen = when (args) {
+                    CopyArgs.Tidslinje.Full -> {
+                        copy(id = UUID.randomUUID())
+                    }
+                    is CopyArgs.Tidslinje.NyPeriode -> {
+                        copy(id = UUID.randomUUID(), periode = args.periode)
+                    }
+                    is CopyArgs.Tidslinje.Maskert -> {
+                        copy(args.args).copy(opprettet = opprettet.plusUnits(1))
+                    }
                 }
             }
         }
@@ -423,69 +520,21 @@ sealed class Grunnlag {
                 }
             }
         }
-
-        fun harEndretEllerFjernetEktefelle(gjeldendeBosituasjon: Bosituasjon): Boolean {
-            val gjeldendeEpsFnr: Fnr? =
-                (gjeldendeBosituasjon as? Fullstendig.EktefellePartnerSamboer)?.fnr
-                    ?: (gjeldendeBosituasjon as? Ufullstendig.HarEps)?.fnr
-            val nyEpsFnr: Fnr? = (this as? Fullstendig.EktefellePartnerSamboer)?.fnr
-                ?: (this as? Ufullstendig.HarEps)?.fnr
-
-            // begge er null eller samme fnr -> ingen endring
-            if (gjeldendeEpsFnr == nyEpsFnr) {
-                return false
-            }
-            // gjeldende er null -> ingen endring
-            if (gjeldendeEpsFnr == null) {
-                return false
-            }
-            return true
-        }
     }
-}
-
-// Generell kommentar til extension-funksjonene: Disse er lagt til slik at vi enklere skal få kontroll over migreringen fra 1 bosituasjon til fler.
-
-fun List<Grunnlag.Bosituasjon>.harFlerEnnEnBosituasjonsperiode(): Boolean = size > 1
-
-/**
- * Kan være tom under vilkårsvurdering/datainnsamlings-tilstanden.
- * Kan være maks 1 i alle andre tilstander.
- * @throws IllegalStateException hvis size > 1
- * */
-fun List<Grunnlag.Bosituasjon>.harEPS(): Boolean {
-    return singleOrThrow().harEPS()
-}
-
-/**
- * Kan være tom under vilkårsvurdering/datainnsamlings-tilstanden.
- * Kan være maks 1 i alle andre tilstander.
- * @throws IllegalStateException hvis size != 1
- * */
-fun List<Grunnlag.Bosituasjon>.singleOrThrow(): Grunnlag.Bosituasjon {
-    if (size != 1) {
-        throw IllegalStateException("Forventet 1 Grunnlag.Bosituasjon, men var: ${this.size}")
-    }
-    return this.first()
-}
-
-/**
- * Kan være tom under vilkårsvurdering/datainnsamlings-tilstanden.
- * Kan være maks 1 i alle andre tilstander.
- *  * @throws IllegalStateException hvis size != 1
- * */
-fun List<Grunnlag.Bosituasjon>.singleFullstendigOrThrow(): Grunnlag.Bosituasjon.Fullstendig {
-    return singleOrThrow().fullstendigOrThrow()
-}
-
-fun List<Grunnlag.Bosituasjon>.throwIfMultiple(): Grunnlag.Bosituasjon? {
-    if (this.size > 1) {
-        throw IllegalStateException("Det er ikke støtte for flere bosituasjoner")
-    }
-    return this.firstOrNull()
 }
 
 fun Grunnlag.Bosituasjon.fullstendigOrThrow(): Grunnlag.Bosituasjon.Fullstendig {
     return (this as? Grunnlag.Bosituasjon.Fullstendig)
         ?: throw IllegalStateException("Forventet Grunnlag.Bosituasjon type Fullstendig, men var ${this::class.simpleName}")
+}
+
+fun List<Grunnlag.Bosituasjon>.singleFullstendigOrThrow(): Grunnlag.Bosituasjon.Fullstendig {
+    return singleOrThrow().fullstendigOrThrow()
+}
+
+fun List<Grunnlag.Bosituasjon>.singleOrThrow(): Grunnlag.Bosituasjon {
+    if (size != 1) {
+        throw IllegalStateException("Forventet 1 Grunnlag.Bosituasjon, men var: ${this.size}")
+    }
+    return this.first()
 }

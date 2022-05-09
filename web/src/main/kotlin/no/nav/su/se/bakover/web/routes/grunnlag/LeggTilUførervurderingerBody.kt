@@ -7,6 +7,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
+import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
@@ -14,7 +15,7 @@ import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.routes.Feilresponser
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
+import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import java.util.UUID
 
 internal data class LeggTilUførervurderingerBody(val vurderinger: List<Uførevurdering>) {
@@ -45,7 +46,7 @@ internal data class LeggTilUførervurderingerBody(val vurderinger: List<Uførevu
 
         fun toServiceCommand(revurderingId: UUID): Either<Resultat, LeggTilUførevilkårRequest> {
 
-            val periode = periode.toPeriode().getOrHandle {
+            val periode = periode.toPeriodeOrResultat().getOrHandle {
                 return it.left()
             }
             val validUføregrad = uføregrad?.let {

@@ -2,9 +2,7 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -27,6 +25,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.bosituasjon
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.vurderingsperiodeUføre
 import no.nav.su.se.bakover.web.routes.grunnlag.UtenlandsoppholdVilkårJsonTest.Companion.utenlandsopphold
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.TestBeregning
 import java.time.LocalDate
 import java.util.UUID
 
@@ -39,7 +38,7 @@ object BehandlingTestUtils {
     internal val oppgaveId = OppgaveId("o")
     private val journalpostId = JournalpostId("j")
     internal val stønadsperiode =
-        Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)), "begrunnelsen")
+        Stønadsperiode.create(år(2021), "begrunnelsen")
     internal val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave.IkkeLukket(
         sakId = sakId,
         opprettet = Tidspunkt.EPOCH,

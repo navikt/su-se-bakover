@@ -2,8 +2,10 @@ package no.nav.su.se.bakover.database.revurdering
 
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -12,8 +14,6 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
-import no.nav.su.se.bakover.test.periode2021
-import no.nav.su.se.bakover.test.periodeMai2021
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
@@ -31,7 +31,7 @@ internal class StansAvYtelsePostgresRepoTest {
             val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = periode2021,
+                periode = år(2021),
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
                 tilRevurdering = vedtak,
@@ -45,14 +45,14 @@ internal class StansAvYtelsePostgresRepoTest {
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
 
-            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering.persistertVariant()
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
 
             val iverksattRevurdering = simulertRevurdering.iverksett(
                 Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
             ).getOrFail("Feil i oppsett av testdata")
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
-            testDataHelper.revurderingRepo.hent(iverksattRevurdering.id) shouldBe iverksattRevurdering.persistertVariant()
+            testDataHelper.revurderingRepo.hent(iverksattRevurdering.id) shouldBe iverksattRevurdering
         }
     }
 
@@ -66,7 +66,7 @@ internal class StansAvYtelsePostgresRepoTest {
             val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = periode2021,
+                periode = år(2021),
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
                 tilRevurdering = vedtak,
@@ -87,9 +87,9 @@ internal class StansAvYtelsePostgresRepoTest {
             val nyInformasjon = simulertRevurdering.copy(
                 id = simulertRevurdering.id,
                 opprettet = simulertRevurdering.opprettet,
-                periode = periodeMai2021,
-                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(periodeMai2021),
-                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(periode = periodeMai2021),
+                periode = mai(2021),
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(mai(2021)),
+                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(periode = mai(2021)),
                 tilRevurdering = vedtak,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksern"),
                 simulering = simulering().copy(
@@ -119,7 +119,7 @@ internal class StansAvYtelsePostgresRepoTest {
             val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = periode2021,
+                periode = år(2021),
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
                 tilRevurdering = vedtak,

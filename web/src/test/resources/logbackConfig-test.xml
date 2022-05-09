@@ -15,8 +15,9 @@
 
     <!-- KAFKA -->
     <logger name="kafka" level="WARN"/>
-    <logger name="org.apache" level="WARN"/>
-    <logger name="io.confluent" level="WARN"/>
+    <logger name="org.apache" level="ERROR"/>
+    <logger name="org.eclipse" level="ERROR"/>
+    <logger name="io.confluent" level="ERROR"/>
     <logger name="state.change.logger" level="WARN"/>
 
     <!-- WEB -->

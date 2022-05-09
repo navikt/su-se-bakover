@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.PeriodeJson
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -31,7 +31,8 @@ internal class FradragJsonTest {
 
         deserialize<FradragJson>(fradragJson) shouldBe FradragJson(
             periode = PeriodeJson("2020-01-01", "2020-01-31"),
-            type = Fradragstype.Arbeidsinntekt.toString(),
+            type = Fradragstype.Kategori.Arbeidsinntekt.toString(),
+            beskrivelse = null,
             beløp = 10.0,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER.toString(),
@@ -52,7 +53,8 @@ internal class FradragJsonTest {
 
         deserialize<FradragJson>(fradragJson) shouldBe FradragJson(
             periode = null,
-            type = Fradragstype.Arbeidsinntekt.toString(),
+            type = Fradragstype.Kategori.Arbeidsinntekt.toString(),
+            beskrivelse = null,
             beløp = 10.0,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER.toString(),
@@ -63,15 +65,16 @@ internal class FradragJsonTest {
     fun `fradrag som ikke har egen periode bruker den som sendes inn i mappingfunksjonen`() {
         val jsonUtenPeriode = FradragJson(
             periode = null,
-            type = Fradragstype.Arbeidsinntekt.toString(),
+            type = Fradragstype.Kategori.Arbeidsinntekt.toString(),
+            beskrivelse = null,
             beløp = 10.0,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER.toString(),
         )
 
-        val expectedPeriode = Periode.create(1.januar(2020), 31.januar(2020))
-        val expected = FradragFactory.ny(
-            type = Fradragstype.Arbeidsinntekt,
+        val expectedPeriode = januar(2020)
+        val expected = FradragFactory.nyFradragsperiode(
+            fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 10.0,
             periode = expectedPeriode,
             utenlandskInntekt = null,
@@ -85,20 +88,21 @@ internal class FradragJsonTest {
     fun `fradrag som har egen periode bruker benytter denne`() {
         val jsonUtenPeriode = FradragJson(
             periode = PeriodeJson("2021-01-01", "2021-01-31"),
-            type = Fradragstype.Arbeidsinntekt.toString(),
+            type = Fradragstype.Kategori.Arbeidsinntekt.toString(),
+            beskrivelse = null,
             beløp = 10.0,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER.toString(),
         )
 
-        val expected = FradragFactory.ny(
-            type = Fradragstype.Arbeidsinntekt,
+        val expected = FradragFactory.nyFradragsperiode(
+            fradragstype = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 10.0,
-            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            periode = januar(2021),
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )
 
-        jsonUtenPeriode.toFradrag(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe expected.right()
+        jsonUtenPeriode.toFradrag(år(2021)) shouldBe expected.right()
     }
 }

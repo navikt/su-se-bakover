@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -76,7 +77,7 @@ internal class VurderOpphørVedRevurderingTest {
         val beregning = beregning(
             fradragsgrunnlag = nonEmptyListOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = Periode.create(1.november(2021), 30.november(2021)),
+                    periode = november(2021),
                     arbeidsinntekt = Sats.HØY.månedsbeløpSomHeltall(1.november(2021)) - 100.0,
                 ),
             ),

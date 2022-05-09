@@ -1,10 +1,11 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.domain.Boforhold.OppgittAdresse.IngenAdresse.IngenAdresseGrunn
 import java.time.LocalDate
-import java.time.Month.FEBRUARY
 import java.time.Month.JANUARY
-import java.time.Month.JULY
 
 fun fnrUnder67(): Fnr {
     // Bør ikke basere oss på .now() i tester. Dersom vi begynner å validere på dette, bør vi sende inn en klokke hit.
@@ -47,26 +48,18 @@ object SøknadInnholdTestdataBuilder {
         utenlandsopphold: Utenlandsopphold = Utenlandsopphold(
             registrertePerioder = listOf(
                 UtenlandsoppholdPeriode(
-                    LocalDate.of(
-                        2020,
-                        JANUARY,
-                        1
-                    ),
-                    LocalDate.of(2020, JANUARY, 31)
+                    1.januar(2020),
+                    31.januar(2020),
                 ),
                 UtenlandsoppholdPeriode(
-                    LocalDate.of(
-                        2020,
-                        FEBRUARY,
-                        1
-                    ),
-                    LocalDate.of(2020, FEBRUARY, 5)
+                    1.februar(2020),
+                    5.februar(2020),
                 )
             ),
             planlagtePerioder = listOf(
                 UtenlandsoppholdPeriode(
-                    LocalDate.of(2020, JULY, 1),
-                    LocalDate.of(2020, JULY, 31)
+                    1.juli(2020),
+                    31.juli(2020),
                 )
             )
         ),

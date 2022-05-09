@@ -1,10 +1,8 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -18,7 +16,10 @@ internal class UføregrunnlagJsonTest {
 
     @Test
     fun `serialiserer og deserialiserer uføregrunnlag`() {
-        JSONAssert.assertEquals(expectedUføregrunnlagJson, serialize(uføregrunnlag.toJson()), true)
+        JSONAssert.assertEquals(
+            expectedUføregrunnlagJson,
+            serialize(uføregrunnlag.toJson()), true
+        )
         deserialize<UføregrunnlagJson>(expectedUføregrunnlagJson) shouldBe uføregrunnlag.toJson()
     }
 
@@ -43,7 +44,7 @@ internal class UføregrunnlagJsonTest {
         internal val uføregrunnlag = Grunnlag.Uføregrunnlag(
             id = uføregrunnlagId,
             opprettet = uføregrunnlagOpprettet,
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            periode = år(2021),
             uføregrad = Uføregrad.parse(50),
             forventetInntekt = 12000,
         )

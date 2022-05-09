@@ -59,7 +59,12 @@ internal fun Route.stansUtbetaling(
                         ifRight = {
                             call.sikkerlogg("Opprettet revurdering for stans av ytelse for $sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
-                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
+                            call.svar(
+                                Resultat.json(
+                                    HttpStatusCode.Created,
+                                    serialize(it.toJson())
+                                )
+                            )
                         },
                     )
                 }
@@ -92,7 +97,12 @@ internal fun Route.stansUtbetaling(
                             ifRight = {
                                 call.sikkerlogg("Oppdaterer revurdering for stans av ytelse for sak:$sakId")
                                 call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                                call.svar(
+                                    Resultat.json(
+                                        HttpStatusCode.OK,
+                                        serialize(it.toJson())
+                                    )
+                                )
                             },
                         )
                     }
@@ -113,7 +123,12 @@ internal fun Route.stansUtbetaling(
                         ifRight = {
                             call.sikkerlogg("Iverksatt stans av utbetalinger for sak:$sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                            call.svar(
+                                Resultat.json(
+                                    HttpStatusCode.OK,
+                                    serialize(it.toJson())
+                                )
+                            )
                         },
                     )
                 }

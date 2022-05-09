@@ -3,14 +3,13 @@ package no.nav.su.se.bakover.database.revurdering
 import arrow.core.getOrHandle
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -27,8 +26,8 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 innvilget = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                     stønadsperiode = stønadsperiode2021,
                 ).second,
-                periode = periode2021,
-            ).persistertVariant()
+                periode = år(2021),
+            )
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -54,7 +53,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.persisterRevurderingBeregnetInnvilget().persistertVariant()
+            val revurdering = testDataHelper.persisterRevurderingBeregnetInnvilget()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -80,7 +79,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.persisterRevurderingBeregnetOpphørt().persistertVariant()
+            val revurdering = testDataHelper.persisterRevurderingBeregnetOpphørt()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -107,7 +106,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.persisterRevurderingBeregningIngenEndring().persistertVariant()
+            val revurdering = testDataHelper.persisterRevurderingBeregningIngenEndring()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -133,7 +132,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.persisterRevurderingSimulertInnvilget().persistertVariant()
+            val revurdering = testDataHelper.persisterRevurderingSimulertInnvilget()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -163,7 +162,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 simulert.ikkeSendForhåndsvarsel().orNull()!!.also {
                     repo.lagre(it)
                 }
-            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
+            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel
         }
     }
 
@@ -177,7 +176,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 simulert.markerForhåndsvarselSomSendt().orNull()!!.also {
                     repo.lagre(it)
                 }
-            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
+            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel
         }
     }
 
@@ -191,7 +190,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 simulert.markerForhåndsvarselSomSendt().orNull()!!.prøvOvergangTilAvsluttet("").orNull()!!.also {
                     repo.lagre(it)
                 }
-            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel.persistertVariant()
+            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel
         }
     }
 
@@ -201,7 +200,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.persisterRevurderingSimulertInnvilget().persistertVariant()
+            val revurdering = testDataHelper.persisterRevurderingSimulertInnvilget()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -227,7 +226,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.persisterRevurderingUnderkjentInnvilget().persistertVariant()
+            val revurdering = testDataHelper.persisterRevurderingUnderkjentInnvilget()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -243,7 +242,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                         håndtert = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                     ),
                 ),
-            ).persistertVariant()
+            )
         }
     }
 }

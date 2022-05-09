@@ -13,7 +13,7 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -48,7 +47,6 @@ import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
@@ -64,7 +62,7 @@ import javax.sql.DataSource
 internal class BeregnRoutesKtTest {
 
     private val stønadsperiode = Stønadsperiode.create(
-        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+        periode = år(2021),
         begrunnelse = "begrunnelse",
     )
 
@@ -109,7 +107,6 @@ internal class BeregnRoutesKtTest {
                     val behandlingJson = deserialize<BehandlingJson>(body())
                     behandlingJson.beregning!!.fraOgMed shouldBe stønadsperiode.periode.fraOgMed.toString()
                     behandlingJson.beregning.tilOgMed shouldBe stønadsperiode.periode.tilOgMed.toString()
-                    behandlingJson.beregning.sats shouldBe Sats.HØY.name
                     behandlingJson.beregning.månedsberegninger shouldHaveSize 12
                 }
             }
@@ -121,16 +118,8 @@ internal class BeregnRoutesKtTest {
         withMigratedDb { dataSource ->
             val repos = repos(dataSource)
             val services = services(dataSource, repos)
-            val objects = setup(services, repos)
-            services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
-                request = LeggTilBosituasjonEpsRequest(behandlingId = objects.søknadsbehandling.id, epsFnr = null),
-            )
-            services.søknadsbehandling.vilkårsvurder(
-                VilkårsvurderRequest(
-                    objects.søknadsbehandling.id,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                ),
-            )
+            val objects = setupMedAlleVilkårOppfylt(services, repos)
+
             testApplication {
                 defaultRequest(
                     HttpMethod.Post,
@@ -296,7 +285,7 @@ internal class BeregnRoutesKtTest {
         services.søknadsbehandling.leggTilUtenlandsopphold(
             request = LeggTilUtenlandsoppholdRequest(
                 behandlingId = objects.søknadsbehandling.id,
-                periode = periode2021,
+                periode = år(2021),
                 status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                 begrunnelse = "Veldig bra",
             ),

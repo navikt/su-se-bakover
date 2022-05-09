@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
@@ -15,7 +14,6 @@ internal class BeregningJsonTest {
                 "opprettet":"2020-08-01T12:15:15Z",
                 "fraOgMed":"2020-08-01",
                 "tilOgMed":"2020-08-31",
-                "sats":"HØY",
                 "månedsberegninger": [{
                     "fraOgMed":"2020-08-01",
                     "tilOgMed":"2020-08-31",
@@ -29,6 +27,7 @@ internal class BeregningJsonTest {
                         "tilOgMed":"2020-08-31"
                       },
                       "type": "Arbeidsinntekt",
+                      "beskrivelse": null,
                       "beløp": 1000.0,
                       "tilhører": "BRUKER",
                       "utenlandskInntekt": null
@@ -38,6 +37,7 @@ internal class BeregningJsonTest {
                         "tilOgMed":"2020-08-31"
                       },
                       "type": "Arbeidsinntekt",
+                      "beskrivelse": null,
                       "beløp": 20000.0,
                       "tilhører": "EPS",
                       "utenlandskInntekt": null
@@ -49,6 +49,7 @@ internal class BeregningJsonTest {
                         "tilOgMed":"2020-08-31"
                       },
                       "type": "Arbeidsinntekt",
+                      "beskrivelse": null,
                       "beløp": 20000.0,
                       "tilhører": "EPS",
                       "utenlandskInntekt": null
@@ -57,6 +58,7 @@ internal class BeregningJsonTest {
                 }],
                 "fradrag": [{
                   "type": "Arbeidsinntekt",
+                  "beskrivelse": null,
                   "beløp": 1000.0,
                   "utenlandskInntekt": null,
                   "periode" : {
@@ -66,6 +68,7 @@ internal class BeregningJsonTest {
                   "tilhører": "BRUKER"
                 }, {
                   "type": "Arbeidsinntekt",
+                  "beskrivelse": null,
                   "beløp": 20000.0,
                   "utenlandskInntekt": null,
                   "periode" : {
@@ -81,6 +84,9 @@ internal class BeregningJsonTest {
 
     @Test
     fun json() {
-        JSONAssert.assertEquals(expectedBeregningJson.trimIndent(), serialize(TestBeregning.toJson()), true)
+        JSONAssert.assertEquals(
+            expectedBeregningJson.trimIndent(),
+            serialize(TestBeregning.toJson()), true
+        )
     }
 }

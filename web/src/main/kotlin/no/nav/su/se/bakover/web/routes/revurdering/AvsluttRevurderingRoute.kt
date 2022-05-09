@@ -45,7 +45,12 @@ internal fun Route.avsluttRevurderingRoute(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Avsluttet behandling av revurdering med revurderingId $revurderingId")
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                            call.svar(
+                                Resultat.json(
+                                    HttpStatusCode.OK,
+                                    serialize(it.toJson())
+                                )
+                            )
                         },
                     )
                 }

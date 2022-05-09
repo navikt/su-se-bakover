@@ -4,5 +4,5 @@ interface PeriodisertInformasjon {
     val periode: Periode
 }
 
-fun List<PeriodisertInformasjon>.overlappende() =
-    this.all { p1 -> this.minus(p1).any { p2 -> p1.periode overlapper p2.periode } }
+fun List<PeriodisertInformasjon>.harOverlappende() =
+    this.any { p1 -> this.minus(p1).any { p2 -> p1.periode overlapper p2.periode } }

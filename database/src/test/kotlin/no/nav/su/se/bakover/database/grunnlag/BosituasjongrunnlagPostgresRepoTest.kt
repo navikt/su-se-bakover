@@ -2,8 +2,7 @@ package no.nav.su.se.bakover.database.grunnlag
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withTransaction
@@ -21,7 +20,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
             val id = UUID.randomUUID()
-            val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
+            val periode = januar(2021)
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
@@ -41,7 +40,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
             val id = UUID.randomUUID()
-            val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
+            val periode = januar(2021)
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
@@ -61,7 +60,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
             val id = UUID.randomUUID()
-            val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
+            val periode = januar(2021)
             val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
@@ -80,7 +79,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
             val id = UUID.randomUUID()
-            val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
+            val periode = januar(2021)
             val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
@@ -100,7 +99,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
             val id = UUID.randomUUID()
-            val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
+            val periode = januar(2021)
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
@@ -121,7 +120,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
             val id = UUID.randomUUID()
-            val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
+            val periode = januar(2021)
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
@@ -142,7 +141,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
             val id = UUID.randomUUID()
-            val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
+            val periode = januar(2021)
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,

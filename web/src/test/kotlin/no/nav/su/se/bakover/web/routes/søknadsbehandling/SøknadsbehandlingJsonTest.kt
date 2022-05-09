@@ -111,7 +111,7 @@ internal class SøknadsbehandlingJsonTest {
                 "formuegrenser": [
                   {
                       "gyldigFra":"2022-05-01",
-                      "beløp":53400
+                      "beløp":53550
                   },
                   {
                       "gyldigFra": "2021-05-01",
@@ -135,7 +135,10 @@ internal class SøknadsbehandlingJsonTest {
 
     @Test
     fun `should serialize to json string`() {
-        JSONAssert.assertEquals(behandlingJsonString, serialize(søknadsbehandling.toJson()), true)
+        JSONAssert.assertEquals(
+            behandlingJsonString,
+            serialize(søknadsbehandling.toJson()), true
+        )
     }
 
     @Test
@@ -194,7 +197,7 @@ internal class SøknadsbehandlingJsonTest {
                 "formuegrenser": [
                   {
                       "gyldigFra":"2022-05-01",
-                      "beløp":53400
+                      "beløp":53550
                   },
                   {
                       "gyldigFra": "2021-05-01",

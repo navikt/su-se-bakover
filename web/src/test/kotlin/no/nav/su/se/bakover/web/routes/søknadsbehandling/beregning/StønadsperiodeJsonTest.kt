@@ -3,8 +3,11 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 import arrow.core.right
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson.Companion.toJson
@@ -15,10 +18,10 @@ import java.time.LocalDate
 internal class StønadsperiodeJsonTest {
 
     private val fraOgMed = "2021-01-01"
-    private val fraOgMedDato: LocalDate = LocalDate.of(2021, 1, 1)
+    private val fraOgMedDato: LocalDate = 1.januar(2021)
 
     private val tilOgMed = "2021-12-31"
-    private val tilOgMedDato: LocalDate = LocalDate.of(2021, 12, 31)
+    private val tilOgMedDato: LocalDate = 31.desember(2021)
 
     private val json = """
         {

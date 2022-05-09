@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.web.withVedtakId
  * Mulighet for å hente grunnlagene som stod til grunn for revurderingen (før). Dvs, ikke nye grunnlag som er lagt til
  * som en del av revurderingen.
  * //TODO vurder om dette endepunktet burde tilhøre sak
+ * // TODO ai: Byt denne route til å bruke endepunktet som finnes på sak.
  */
 internal fun Route.hentGrunnlagRevurderingRoutes(
     revurderingService: RevurderingService,

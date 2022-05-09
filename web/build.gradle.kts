@@ -19,13 +19,12 @@ dependencies {
     implementation(project(":client"))
     implementation(project(":test-common"))
 
-    //implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion") {
         exclude(group = "junit")
     }
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.8.4")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.8.5")
     implementation("io.ktor:ktor-server-locations:$ktorVersion")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
@@ -43,12 +42,12 @@ dependencies {
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
         exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock
     }
-    testImplementation("no.nav:kafka-embedded-env:2.8.1") {
+    testImplementation("no.nav:kafka-embedded-env:3.1.0") {
         // Breaks build: exclude(group = "org.glassfish.jersey.ext", module = "jersey-bean-validation")
         // Breaks build: exclude(group = "org.glassfish", module = "jakarta.el")
         // Breaks build: exclude(group = "org.eclipse.jetty", module = "jetty-server")
+        // Breaks build: exclude(group = "org.eclipse.jetty", module = "jetty-servlets")
         exclude(group = "org.eclipse.jetty", module = "jetty-webapp")
-        exclude(group = "org.eclipse.jetty", module = "jetty-servlets")
         exclude(group = "log4j") // module = "log4j"
         exclude(group = "io.netty") // module = "netty-handler"
         exclude(group = "io.grpc") // module = "grpc-core"

@@ -9,6 +9,7 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
@@ -44,7 +45,6 @@ import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
@@ -263,7 +263,7 @@ internal class RevurderingSendTilAttesteringTest {
                 on { hent(any()) } doReturn simulertRevurdering(
                     grunnlagsdataOverrides = listOf(
                         fradragsgrunnlagArbeidsinntekt(
-                            periode = periode2021,
+                            periode = år(2021),
                             arbeidsinntekt = 5000.0,
                         ),
                     ),
@@ -297,7 +297,7 @@ internal class RevurderingSendTilAttesteringTest {
                 on { hent(any()) } doReturn simulertRevurdering(
                     grunnlagsdataOverrides = listOf(
                         fradragsgrunnlagArbeidsinntekt(
-                            periode = periode2021,
+                            periode = år(2021),
                             arbeidsinntekt = 5000.0,
                         ),
                     ),
@@ -336,7 +336,7 @@ internal class RevurderingSendTilAttesteringTest {
         val revurdering = simulertRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     arbeidsinntekt = 5000.0,
                 ),
             ),
@@ -386,7 +386,7 @@ internal class RevurderingSendTilAttesteringTest {
         val revurdering = simulertRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     arbeidsinntekt = 5000.0,
                 ),
             ),
@@ -545,7 +545,7 @@ internal class RevurderingSendTilAttesteringTest {
                             opprettet = fixedTidspunkt,
                             sakId = sakId,
                             revurderingId = revurderingId,
-                            periode = periode2021,
+                            periode = år(2021),
                         ),
                     ),
                 )

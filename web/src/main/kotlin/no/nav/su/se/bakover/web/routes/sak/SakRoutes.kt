@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.sak
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.merge
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -11,10 +12,13 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
@@ -23,13 +27,15 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.parameter
 import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
+import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.sak.BehandlingsoversiktJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSakId
 import java.time.Clock
+import java.time.LocalDate
 
 internal const val sakPath = "/saker"
 
@@ -65,7 +71,12 @@ internal fun Route.sakRoutes(
                                     }
                                     .map {
                                         call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                                        call.svar(Resultat.json(OK, serialize(it.toJson(clock))))
+                                        call.svar(
+                                            Resultat.json(
+                                                OK,
+                                                serialize(it.toJson(clock)),
+                                            ),
+                                        )
                                     }
                             },
                         )
@@ -154,6 +165,40 @@ internal fun Route.sakRoutes(
                         },
                     ),
                 )
+            }
+        }
+    }
+
+    data class Body(val fraOgMed: LocalDate, val tilOgMed: LocalDate = LocalDate.MAX) {
+        val periode = Periode.create(fraOgMed, tilOgMed)
+    }
+
+    data class Response(val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson?)
+
+    post("$sakPath/{sakId}/gjeldendeVedtaksdata") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withSakId { sakId ->
+                call.withBody<Body> { body ->
+                    call.svar(
+                        sakService.hentGjeldendeVedtaksdata(sakId, body.periode).fold(
+                            {
+                                when (it) {
+                                    KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak -> Feilresponser.fantIkkeSak
+                                    KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak -> HttpStatusCode.NotFound.errorJson(
+                                        message = "Fant ingen vedtak for ${body.periode}",
+                                        code = "fant_ingen_vedtak_for_periode",
+                                    )
+                                }
+                            },
+                            {
+                                Resultat.json(
+                                    OK,
+                                    serialize((Response(it?.grunnlagsdataOgVilkårsvurderinger?.toJson()))),
+                                )
+                            },
+                        ),
+                    )
+                }
             }
         }
     }
