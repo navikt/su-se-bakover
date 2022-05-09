@@ -12,11 +12,13 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
@@ -43,7 +45,7 @@ class AvkortingKomponentTest {
         val nyBehandlingSluttDato = 31.mai(2022)
 
         withKomptestApplication(
-            clock = clock
+            clock = clock,
         ) { appComponents ->
             val sakId = opprettInnvilgetSøknadsbehandling(
                 fnr = fnr,
@@ -74,23 +76,42 @@ class AvkortingKomponentTest {
 
             saken.vedtakListe.let {
                 it.size shouldBe 3
-                (it[0] as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).periode.fraOgMed shouldBe behandlingStartDato
-                (it[0] as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).periode.tilOgMed shouldBe behandlingSluttDato
-                (it[1] as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering).periode.fraOgMed shouldBe opphørStartDato
-                (it[1] as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering).periode.tilOgMed shouldBe behandlingSluttDato
-                (it[2] as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).periode.fraOgMed shouldBe nyBehandlingStartDato
-                (it[2] as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).periode.tilOgMed shouldBe nyBehandlingSluttDato
+                it[0].shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().periode shouldBe Periode.create(
+                    behandlingStartDato,
+                    behandlingSluttDato,
+                )
+                it[1].shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>().periode shouldBe Periode.create(
+                    opphørStartDato,
+                    behandlingSluttDato,
+                )
+                it[2].shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().periode shouldBe Periode.create(
+                    nyBehandlingStartDato,
+                    nyBehandlingSluttDato,
+                )
             }
 
-            saken.utbetalingstidslinje(Periode.create(behandlingStartDato, nyBehandlingSluttDato)).tidslinje.let {
-                it[0].periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
-                it[0].beløp shouldBe 20946
-                it[1].periode shouldBe Periode.create(1.mai(2021), 31.mai(2021))
-                it[1].beløp shouldBe 0
-                it[2].periode shouldBe Periode.create(1.juni(2021), 30.juni(2021))
-                it[2].beløp shouldBe 1043
-                it[3].periode shouldBe Periode.create(1.juli(2021), 30.april(2022))
-                it[3].beløp shouldBe 21989
+            saken.utbetalingstidslinje(
+                Periode.create(
+                    behandlingStartDato,
+                    nyBehandlingSluttDato,
+                ),
+            ).tidslinje.let { utbetalingstidslinje ->
+                utbetalingstidslinje[0].shouldBeType<UtbetalingslinjePåTidslinje.Ny>().let {
+                    it.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
+                    it.beløp shouldBe 20946
+                }
+                utbetalingstidslinje[1].shouldBeType<UtbetalingslinjePåTidslinje.Opphør>().let {
+                    it.periode shouldBe Periode.create(1.mai(2021), 31.mai(2021))
+                    it.beløp shouldBe 0
+                }
+                utbetalingstidslinje[2].shouldBeType<UtbetalingslinjePåTidslinje.Ny>().let {
+                    it.periode shouldBe Periode.create(1.juni(2021), 30.juni(2021))
+                    it.beløp shouldBe 1043 //(21989-20946=1043)
+                }
+                utbetalingstidslinje[3].shouldBeType<UtbetalingslinjePåTidslinje.Ny>().let {
+                    it.periode shouldBe Periode.create(1.juli(2021), 30.april(2022))
+                    it.beløp shouldBe 21989
+                }
             }
 
             // Sjekk at den nye behandlingen bruker opp det som ligger til avkorting
