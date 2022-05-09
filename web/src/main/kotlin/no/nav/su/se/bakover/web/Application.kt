@@ -79,7 +79,7 @@ fun main() {
     }
     embeddedServer(factory = Netty, port = 8080) {
         susebakover()
-    }
+    }.start(true)
 }
 
 @OptIn(io.ktor.server.locations.KtorExperimentalLocationsAPI::class)
