@@ -315,11 +315,14 @@ fun <T> Map<Måned, T>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
 }
 
 /**
- * Gjør om en liste med key-value par ([LocalDate] - [Any]) til en bounded, sammenhengende tidslinje hvor vært element er gyldig fra sin gitte måned til måneden før neste måned.
+ * Gjør om en liste med key-value par av ([LocalDate] - [Any]) til en avgrenset, sammenhengende liste hvor verdien [Any]
+ * hvert element i [this] ekstrapoleres fra [LocalDate] til [LocalDate] for neste element i listen.
+ * Verdien av [Any] for det siste elementet ekstrapoleres fra sin [LocalDate] frem til [endExclusive]
+ *
  * Eksempelbruk er satser (f.eks. grunnbeløp, garantipensjon o.l.)
  *
  * Garanterer at tidslinjen er sammenhengende, sortert og ikke har duplikater.
- *
+ * @param endExclusive maks måned for ekstrapolering av
  * @throws IllegalArgumentException dersom listen inneholder duplikate datoer eller en dato ikke er den første i måneden.
  */
 fun <T> List<Pair<LocalDate, T>>.periodisert(
@@ -327,27 +330,29 @@ fun <T> List<Pair<LocalDate, T>>.periodisert(
 ): List<Triple<LocalDate, Måned, T>> {
     if (this.isEmpty()) return emptyList()
 
-    assert(this.all { it.first.erFørsteDagIMåned() }) {
-        "Kan kun periodisere datoer som er første dag i måneden."
-    }
+    assert(this.all { it.first.erFørsteDagIMåned() }) { "Kan kun periodisere datoer som er første dag i måneden." }
     assert(this.size == this.map { it.first }.distinct().size)
 
-    val sorterteMåneder: List<Triple<LocalDate, Måned, T>> = this.sortedBy { it.first }
-        .map { Triple(it.first, Måned(YearMonth.of(it.first.year, it.first.month)), it.second) }
+    val sortertStigendeDato: List<Triple<LocalDate, Måned, T>> =
+        this.sortedBy { it.first }
+            .map { Triple(it.first, Måned(YearMonth.of(it.first.year, it.first.month)), it.second) }
 
-    val infixElements = sorterteMåneder
+    val verdierMellomElementer = sortertStigendeDato
         .zipWithNext()
         .flatMap { (current, next) ->
             current.second.until(next.second).map {
                 Triple(current.first, it, current.third)
             }
         }
-    val lastElement = sorterteMåneder.maxByOrNull { it.first }!!.let { lastElement ->
-        lastElement.second.until(endExclusive).map {
-            Triple(lastElement.first, it, lastElement.third)
+
+    val verdierFraSisteElementTilMaks = sortertStigendeDato
+        .maxByOrNull { it.first }!!
+        .let { lastElement ->
+            lastElement.second.until(endExclusive).map {
+                Triple(lastElement.first, it, lastElement.third)
+            }
         }
-    }
-    return (infixElements + lastElement).apply {
+    return (verdierMellomElementer + verdierFraSisteElementTilMaks).apply {
         this.map { it.second }.let {
             assert(it.erSammenhengendeSortertOgUtenDuplikater()) {
                 "Kunne ikke periodisere. Sammenhengende: ${it.erSammenhengende()}, duplikate: ${it.harDuplikater()}, sortert: ${it.erSortert()}"
