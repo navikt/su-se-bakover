@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.søknadsbehandling
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -31,7 +32,6 @@ import no.nav.su.se.bakover.test.behandlingsinformasjonAlleVilkårInnvilget
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.periodeJanuar2021
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
@@ -125,10 +125,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
             val vilkårsvurdert = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart(
-                stønadsperiode = Stønadsperiode.create(periode = periodeJanuar2021),
+                stønadsperiode = Stønadsperiode.create(periode = januar(2021)),
             ).second
             repo.hent(vilkårsvurdert.id).also {
-                it?.stønadsperiode shouldBe Stønadsperiode.create(periode = periodeJanuar2021)
+                it?.stønadsperiode shouldBe Stønadsperiode.create(periode = januar(2021))
             }
 
             repo.lagre(vilkårsvurdert.copy(stønadsperiode = stønadsperiode2021))

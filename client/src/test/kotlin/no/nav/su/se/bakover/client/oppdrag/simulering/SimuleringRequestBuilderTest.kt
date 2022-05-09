@@ -7,10 +7,10 @@ import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequestTest
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.toUtbetalingRequest
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -29,10 +29,7 @@ internal class SimuleringRequestBuilderTest {
     fun `bygger simulering request til bruker uten eksisterende oppdragslinjer`() {
         val utbetalingsRequest = UtbetalingRequestTest.utbetalingRequestFørstegangsutbetaling.oppdragRequest
         SimuleringRequestBuilder(
-            simuleringsperiode = Periode.create(
-                fraOgMed = 1.januar(2020),
-                tilOgMed = 31.desember(2020),
-            ),
+            simuleringsperiode = år(2020),
             mappedRequest = utbetalingsRequest,
         ).build().request.also {
             it.oppdrag.let { oppdrag ->

@@ -8,6 +8,10 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.juli
+import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.BRUKER
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.EPS
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
@@ -16,9 +20,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.ForventetInnte
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Kapitalinntekt
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.PrivatPensjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Sosialstønad
-import no.nav.su.se.bakover.test.månedsperiodeJanuar2020
-import no.nav.su.se.bakover.test.månedsperiodeJuli2020
-import no.nav.su.se.bakover.test.månedsperiodeMars2020
 import org.junit.jupiter.api.Test
 
 /**
@@ -30,7 +31,7 @@ internal class EpsOver67StrategyTest {
 
     @Test
     fun `inkluderer ikke fradrag for EPS som er lavere enn ordinært garantipensjonsnivå for aktuell måned`() {
-        val periode = månedsperiodeJanuar2020
+        val periode = januar(2020)
         val forventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
         val epsArbeidsinntekt = lagPeriodisertFradrag(Arbeidsinntekt, 5000.0, periode, tilhører = EPS)
 
@@ -45,7 +46,7 @@ internal class EpsOver67StrategyTest {
 
     @Test
     fun `inkluderer fradrag for EPS som overstiger ordinært garantipensjonsnivå for aktuell måned`() {
-        val periode = månedsperiodeJanuar2020
+        val periode = januar(2020)
         val forventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
         val epsArbeidsinntekt = lagPeriodisertFradrag(Arbeidsinntekt, 20000.0, periode, tilhører = EPS)
 
@@ -64,59 +65,59 @@ internal class EpsOver67StrategyTest {
     @Test
     fun `varierer mellom å inkludere og ikke inkludere EPS sine fradrag`() {
         val forventetInntekt =
-            lagFradrag(ForventetInntekt, 1000.0, Periode.create(1.januar(2020), 31.desember(2020)), tilhører = BRUKER)
+            lagFradrag(ForventetInntekt, 1000.0, år(2020), tilhører = BRUKER)
         val epsArbeidsinntektJan =
-            lagFradrag(Arbeidsinntekt, 20000.0, månedsperiodeJanuar2020, tilhører = EPS)
+            lagFradrag(Arbeidsinntekt, 20000.0, januar(2020), tilhører = EPS)
         val epsArbeidsinntektJuli =
-            lagFradrag(Arbeidsinntekt, 20000.0, månedsperiodeJuli2020, tilhører = EPS)
+            lagFradrag(Arbeidsinntekt, 20000.0, juli(2020), tilhører = EPS)
 
         val expectedFradragBrukerJan =
             lagPeriodisertFradrag(
                 ForventetInntekt,
                 1000.0,
-                månedsperiodeJanuar2020,
+                januar(2020),
                 tilhører = BRUKER,
             )
         val expectedFradragBrukerMars =
             lagPeriodisertFradrag(
                 ForventetInntekt,
                 1000.0,
-                månedsperiodeMars2020,
+                mars(2020),
                 tilhører = BRUKER,
             )
         val expectedFradragBrukerJuli =
             lagPeriodisertFradrag(
                 ForventetInntekt,
                 1000.0,
-                månedsperiodeJuli2020,
+                juli(2020),
                 tilhører = BRUKER,
             )
         val expectedEpsFradragJan =
             lagPeriodisertFradrag(
                 BeregnetFradragEPS,
                 20000.0 - 14674.916666666666,
-                månedsperiodeJanuar2020,
+                januar(2020),
                 tilhører = EPS,
             )
         val expectedEpsFradragJuli =
             lagPeriodisertFradrag(
                 BeregnetFradragEPS,
                 20000.0 - 14810.333333333334,
-                månedsperiodeJuli2020,
+                juli(2020),
                 tilhører = EPS,
             )
 
         FradragStrategy.EpsOver67År.beregn(
             fradrag = listOf(forventetInntekt, epsArbeidsinntektJan, epsArbeidsinntektJuli),
-            beregningsperiode = Periode.create(1.januar(2020), 31.desember(2020)),
+            beregningsperiode = år(2020),
         ).let {
             it shouldHaveSize 12
-            it[månedsperiodeJanuar2020]!! shouldContainAll listOf(
+            it[januar(2020)]!! shouldContainAll listOf(
                 expectedFradragBrukerJan,
                 expectedEpsFradragJan,
             )
-            it[månedsperiodeMars2020]!! shouldBe listOf(expectedFradragBrukerMars)
-            it[månedsperiodeJuli2020]!! shouldContainAll listOf(
+            it[mars(2020)]!! shouldBe listOf(expectedFradragBrukerMars)
+            it[juli(2020)]!! shouldContainAll listOf(
                 expectedFradragBrukerJuli,
                 expectedEpsFradragJuli,
             )
@@ -149,7 +150,7 @@ internal class EpsOver67StrategyTest {
 
     @Test
     fun `fungerer uavhengig av om EPS har fradrag`() {
-        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+        val periode = år(2020)
         val forventetInntekt = lagFradrag(ForventetInntekt, 1000.0, periode)
         val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 2000.0, periode)
 

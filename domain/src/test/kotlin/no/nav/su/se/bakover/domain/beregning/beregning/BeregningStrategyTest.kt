@@ -2,9 +2,7 @@ package no.nav.su.se.bakover.domain.beregning.beregning
 
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
@@ -23,10 +21,7 @@ import org.junit.jupiter.api.Test
 internal class BeregningStrategyTest {
     @Test
     fun `videresender korrekte verdier`() {
-        val periode = Periode.create(
-            fraOgMed = 1.januar(2020),
-            tilOgMed = 31.desember(2020)
-        )
+        val periode = år(2020)
         val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             uføregrunnlag = listOf(

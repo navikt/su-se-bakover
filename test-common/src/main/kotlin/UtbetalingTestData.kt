@@ -7,6 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -33,7 +34,7 @@ val avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt)
 val utbetalingsRequest = Utbetalingsrequest("<xml></xml>")
 
 fun utbetalingslinje(
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     clock: Clock = fixedClock,
 ) = Utbetalingslinje.Ny(
     opprettet = Tidspunkt.now(clock),
@@ -214,7 +215,7 @@ fun oversendtUtbetalingUtenKvittering(
 
 @Suppress("unused")
 fun oversendtUtbetalingUtenKvittering(
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     revurdering: RevurderingTilAttestering,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     clock: Clock = fixedClock,
@@ -237,7 +238,7 @@ fun oversendtUtbetalingUtenKvittering(
 
 fun oversendtUtbetalingUtenKvittering(
     id: UUID30 = UUID30.randomUUID(),
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
@@ -275,7 +276,7 @@ fun oversendtUtbetalingUtenKvittering(
 
 fun simulertUtbetaling(
     id: UUID30 = UUID30.randomUUID(),
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
@@ -304,7 +305,7 @@ fun simulertUtbetaling(
 
 fun simulertUtbetalingOpphør(
     id: UUID30 = UUID30.randomUUID(),
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     opphørsdato: LocalDate = periode.fraOgMed,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
@@ -342,7 +343,7 @@ fun simulertUtbetalingOpphør(
 
 fun simulertFeilutbetaling(
     id: UUID30 = UUID30.randomUUID(),
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
@@ -376,7 +377,7 @@ fun simulertFeilutbetaling(
  */
 fun oversendtUtbetalingMedKvittering(
     id: UUID30 = UUID30.randomUUID(),
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     utbetalingsstatus: Kvittering.Utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
     type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,

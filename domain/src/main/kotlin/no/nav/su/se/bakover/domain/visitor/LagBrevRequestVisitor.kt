@@ -471,7 +471,7 @@ class LagBrevRequestVisitor(
                     avslagsgrunner,
                 ),
                 saksnummer = søknadsbehandling.saksnummer,
-                bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon
+                bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon,
             )
         }
 
@@ -732,7 +732,8 @@ class LagBrevRequestVisitor(
         forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
         dagensDato = LocalDate.now(clock),
         saksnummer = saksnummer,
-        satsoversikt = Satsoversikt.fra(bosituasjon),
+        // Ikke inkluder satsoversikt dersom beregning ikke er utført
+        satsoversikt = beregning?.let { Satsoversikt.fra(bosituasjon) },
     )
 
     private fun requestForInnvilgelse(
@@ -943,7 +944,7 @@ class LagBrevRequestVisitor(
                     uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
                     gjeldendeMånedsutbetaling = gjeldendeUtbetaling,
                     saksnummer = vedtak.behandling.saksnummer,
-                    bosituasjon = vedtak.behandling.grunnlagsdata.bosituasjon
+                    bosituasjon = vedtak.behandling.grunnlagsdata.bosituasjon,
                 )
             }
 

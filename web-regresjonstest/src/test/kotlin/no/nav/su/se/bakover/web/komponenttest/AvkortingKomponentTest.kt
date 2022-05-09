@@ -106,7 +106,7 @@ class AvkortingKomponentTest {
                 }
                 utbetalingstidslinje[2].shouldBeType<UtbetalingslinjePåTidslinje.Ny>().let {
                     it.periode shouldBe Periode.create(1.juni(2021), 30.juni(2021))
-                    it.beløp shouldBe 1043 //(21989-20946=1043)
+                    it.beløp shouldBe 1043 // (21989-20946=1043)
                 }
                 utbetalingstidslinje[3].shouldBeType<UtbetalingslinjePåTidslinje.Ny>().let {
                     it.periode shouldBe Periode.create(1.juli(2021), 30.april(2022))

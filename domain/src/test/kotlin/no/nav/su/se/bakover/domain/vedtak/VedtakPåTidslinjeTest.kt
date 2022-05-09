@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.juli
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -44,7 +46,7 @@ internal class VedtakPåTidslinjeTest {
         // TODO("endre denne testen til å bruke en faktisk")
         val originaltVedtak = mock<VedtakSomKanRevurderes.EndringIYtelse>()
 
-        val periode = Periode.create(1.januar(2021), 31.desember(2021))
+        val periode = år(2021)
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -193,7 +195,7 @@ internal class VedtakPåTidslinjeTest {
         // TODO("endre denne testen til å bruke en faktisk")
         val originaltVedtak = mock<VedtakSomKanRevurderes.EndringIYtelse>()
 
-        val periode = Periode.create(1.januar(2021), 31.desember(2021))
+        val periode = år(2021)
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -359,7 +361,7 @@ internal class VedtakPåTidslinjeTest {
                     it[1].shouldBeType<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre>()
                         .let {
                             it.id shouldNotBe b1.id
-                            it.periode shouldBe Periode.create(1.juli(2021), 31.juli(2021))
+                            it.periode shouldBe juli(2021)
                             it.begrunnelse shouldBe "Giftet seg"
                         }
                 }
@@ -375,7 +377,7 @@ internal class VedtakPåTidslinjeTest {
                     fradragCopy[1].let {
                         it.fradragstype shouldBe Fradragstype.Arbeidsinntekt
                         it.månedsbeløp shouldBe 2000.0
-                        it.periode shouldBe Periode.create(1.juli(2021), 31.juli(2021))
+                        it.periode shouldBe juli(2021)
                         it.utenlandskInntekt shouldBe null
                         it.tilhører shouldBe FradragTilhører.EPS
                     }

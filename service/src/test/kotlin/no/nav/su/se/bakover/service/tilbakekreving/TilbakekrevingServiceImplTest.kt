@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.tilbakekreving
 import arrow.core.left
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
@@ -10,7 +11,6 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingsvedtakForsendelseFeil
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -31,7 +31,7 @@ internal class TilbakekrevingServiceImplTest {
                             opprettet = fixedTidspunkt,
                             sakId = UUID.randomUUID(),
                             revurderingId = UUID.randomUUID(),
-                            periode = periode2021,
+                            periode = år(2021),
 
                         ),
                         kravgrunnlag = RåttKravgrunnlag("xml"),

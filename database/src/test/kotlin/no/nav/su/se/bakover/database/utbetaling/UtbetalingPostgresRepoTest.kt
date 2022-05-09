@@ -1,14 +1,14 @@
 package no.nav.su.se.bakover.database.utbetaling
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.test.periodeApril2021
-import no.nav.su.se.bakover.test.periodeFebruar2021
-import no.nav.su.se.bakover.test.periodeJanuar2021
-import no.nav.su.se.bakover.test.periodeMars2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -37,14 +37,14 @@ internal class UtbetalingPostgresRepoTest {
             testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 sakId = sakId,
                 stønadsperiode = Stønadsperiode.create(
-                    periodeJanuar2021,
+                    januar(2021),
                 ),
             )
             val utbetalingUtenKvittering1 =
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingUtenKvittering(
                     sakId = sakId,
                     stønadsperiode = Stønadsperiode.create(
-                        periodeFebruar2021,
+                        februar(2021),
                     ),
 
                 ).second
@@ -52,7 +52,7 @@ internal class UtbetalingPostgresRepoTest {
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingUtenKvittering(
                     sakId = sakId,
                     stønadsperiode = Stønadsperiode.create(
-                        periodeMars2021,
+                        mars(2021),
                     ),
                 ).second
             repo.hentUkvitterteUtbetalinger() shouldBe listOf(utbetalingUtenKvittering1, utbetalingUtenKvittering2)
@@ -72,22 +72,22 @@ internal class UtbetalingPostgresRepoTest {
             val utbetalingUtenKvittering1 =
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                     sakId = sakId,
-                    stønadsperiode = Stønadsperiode.create(periodeJanuar2021),
+                    stønadsperiode = Stønadsperiode.create(januar(2021)),
                 ).third
             val utbetalingUtenKvittering2 =
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                     sakId = sakId,
-                    stønadsperiode = Stønadsperiode.create(periodeFebruar2021),
+                    stønadsperiode = Stønadsperiode.create(februar(2021)),
                 ).third
             val utbetalingMedKvittering1 =
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                     sakId = sakId,
-                    stønadsperiode = Stønadsperiode.create(periodeMars2021),
+                    stønadsperiode = Stønadsperiode.create(mars(2021)),
                 ).third
             val utbetalingMedKvittering2 =
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                     sakId = sakId,
-                    stønadsperiode = Stønadsperiode.create(periodeApril2021),
+                    stønadsperiode = Stønadsperiode.create(april(2021)),
                 ).third
             repo.hentUtbetalinger(sakId).sortedBy { it.avstemmingsnøkkel } shouldBe listOf(
                 utbetalingUtenKvittering1,

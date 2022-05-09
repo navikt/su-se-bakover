@@ -10,16 +10,16 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.november
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.beregning.finnMerknaderForPeriode
 import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
-import no.nav.su.se.bakover.test.periode2021
-import no.nav.su.se.bakover.test.periodeDesember2021
-import no.nav.su.se.bakover.test.periodeJuni2021
-import no.nav.su.se.bakover.test.periodeNovember2021
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlleRevurdering
@@ -34,7 +34,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         val beregning = beregning(periode = Periode.create(1.mai(2021), 31.desember(2021)))
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = beregning.periode,
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = periodeJuni2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = juni(2021)),
             tidligereBeregning = beregning,
             nyBeregning = beregning,
             clock = fixedClock,
@@ -45,11 +45,11 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
 
     @Test
     fun `identifiserer at flere vilkår har opphørt`() {
-        val beregning = beregning(periode = periodeDesember2021)
+        val beregning = beregning(periode = desember(2021))
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = beregning.periode,
             vilkårsvurderinger = vilkårsvurderingerAvslåttAlleRevurdering(
-                periodeDesember2021,
+                desember(2021),
             ),
             tidligereBeregning = beregning,
             nyBeregning = beregning,
@@ -62,28 +62,28 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
     @Test
     fun `identifiserer at opphør av uførevilkår skjer i kombinasjon med beløpsendringer`() {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
-            revurderingsperiode = periode2021,
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = periodeJuni2021),
+            revurderingsperiode = år(2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = juni(2021)),
             tidligereBeregning = beregning(
-                periode = periodeDesember2021,
+                periode = desember(2021),
                 uføregrunnlag = nonEmptyListOf(
                     uføregrunnlagForventetInntekt(
-                        periode = periodeDesember2021,
+                        periode = desember(2021),
                         forventetInntekt = 200,
                     ),
                 ),
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt(
-                        periode = periodeDesember2021,
+                        periode = desember(2021),
                         arbeidsinntekt = 100.0,
                     ),
                 ),
             ),
             nyBeregning = beregning(
-                periode = periodeDesember2021,
+                periode = desember(2021),
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt(
-                        periode = periodeDesember2021,
+                        periode = desember(2021),
                         arbeidsinntekt = 101.0,
                     ),
                 ),
@@ -117,7 +117,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         nyBeregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
 
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
-            revurderingsperiode = periode2021,
+            revurderingsperiode = år(2021),
             vilkårsvurderinger = vilkårsvurderinger,
             tidligereBeregning = tidligereBeregning,
             nyBeregning = nyBeregning,
@@ -150,7 +150,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         nyBeregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpErNull)
 
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
-            revurderingsperiode = periode2021,
+            revurderingsperiode = år(2021),
             vilkårsvurderinger = vilkårsvurderinger,
             tidligereBeregning = tidligereBeregning,
             nyBeregning = nyBeregning,
@@ -170,14 +170,14 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         val nyBeregning = beregning(
             fradragsgrunnlag = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     arbeidsinntekt = 34000.0,
                 ),
             ),
         )
 
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
-            revurderingsperiode = periode2021,
+            revurderingsperiode = år(2021),
             vilkårsvurderinger = vilkårsvurderinger,
             tidligereBeregning = tidligereBeregning,
             nyBeregning = nyBeregning,
@@ -203,7 +203,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         nyBeregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
 
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
-            revurderingsperiode = periode2021,
+            revurderingsperiode = år(2021),
             vilkårsvurderinger = vilkårsvurderinger,
             tidligereBeregning = tidligereBeregning,
             nyBeregning = nyBeregning,
@@ -231,7 +231,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         nyBeregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpErNull)
 
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
-            revurderingsperiode = periode2021,
+            revurderingsperiode = år(2021),
             vilkårsvurderinger = vilkårsvurderinger,
             tidligereBeregning = tidligereBeregning,
             nyBeregning = nyBeregning,
@@ -243,11 +243,11 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
 
     @Test
     fun `identifiserer ingen problemer hvis det ikke er opphør`() {
-        val beregning = beregning(periode = periodeNovember2021)
+        val beregning = beregning(periode = november(2021))
 
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
-            revurderingsperiode = periode2021,
-            vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(periodeDesember2021),
+            revurderingsperiode = år(2021),
+            vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(desember(2021)),
             tidligereBeregning = beregning,
             nyBeregning = beregning,
             clock = fixedClock,
@@ -257,33 +257,33 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
     @Test
     fun `identifiserer ingen problemer ved opphør av uførevilkår med endring i forventet inntekt`() {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
-            revurderingsperiode = periodeDesember2021,
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = periodeDesember2021),
+            revurderingsperiode = desember(2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = desember(2021)),
             tidligereBeregning = beregning(
-                periode = periodeDesember2021,
+                periode = desember(2021),
                 uføregrunnlag = nonEmptyListOf(
                     uføregrunnlagForventetInntekt(
-                        periode = periodeDesember2021,
+                        periode = desember(2021),
                         forventetInntekt = 200,
                     ),
                 ),
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt(
-                        periode = periodeDesember2021,
+                        periode = desember(2021),
                         arbeidsinntekt = 100.0,
                     ),
                 ),
             ),
             nyBeregning = beregning(
-                periode = periodeDesember2021,
+                periode = desember(2021),
                 uføregrunnlag = nonEmptyListOf(
                     uføregrunnlagForventetInntekt0(
-                        periode = periodeDesember2021,
+                        periode = desember(2021),
                     ),
                 ),
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt(
-                        periode = periodeDesember2021,
+                        periode = desember(2021),
                         arbeidsinntekt = 100.0,
                     ),
                 ),
@@ -295,14 +295,14 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
     @Test
     fun `skal ikke kunne opphøre og legge til fradrag i kombinasjon`() {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
-            revurderingsperiode = periodeDesember2021,
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = periodeDesember2021),
-            tidligereBeregning = beregning(periode = periodeDesember2021),
+            revurderingsperiode = desember(2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = desember(2021)),
+            tidligereBeregning = beregning(periode = desember(2021)),
             nyBeregning = beregning(
-                periode = periodeDesember2021,
+                periode = desember(2021),
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt(
-                        periode = periodeDesember2021,
+                        periode = desember(2021),
                         arbeidsinntekt = 100.0,
                     ),
                 ),
@@ -316,18 +316,18 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
     @Test
     fun `skal ikke kunne opphøre og fjerne fradrag i kombinasjon`() {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
-            revurderingsperiode = periodeDesember2021,
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = periodeDesember2021),
+            revurderingsperiode = desember(2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = desember(2021)),
             tidligereBeregning = beregning(
-                periode = periodeDesember2021,
+                periode = desember(2021),
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt(
-                        periode = periodeDesember2021,
+                        periode = desember(2021),
                         arbeidsinntekt = 100.0,
                     ),
                 ),
             ),
-            nyBeregning = beregning(periode = periodeDesember2021),
+            nyBeregning = beregning(periode = desember(2021)),
             clock = fixedClock,
         ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
@@ -341,10 +341,10 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
             revurderingsperiode = februarOgUt2021,
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = februarOgUt2021),
             tidligereBeregning = beregning(
-                periode = periode2021,
+                periode = år(2021),
                 fradragsgrunnlag = listOf(
                     fradragsgrunnlagArbeidsinntekt(
-                        periode = periode2021,
+                        periode = år(2021),
                         arbeidsinntekt = 5000.0,
                     ),
                 ),

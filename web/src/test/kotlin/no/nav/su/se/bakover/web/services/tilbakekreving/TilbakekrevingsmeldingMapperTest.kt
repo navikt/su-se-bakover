@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.web.services.tilbakekreving
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.november
+import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
@@ -85,10 +85,7 @@ internal class TilbakekrevingsmeldingMapperTest {
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
             grunnlagsperioder = listOf(
                 Kravgrunnlag.Grunnlagsperiode(
-                    periode = Periode.create(
-                        fraOgMed = 1.oktober(2021),
-                        tilOgMed = 31.oktober(2021),
-                    ),
+                    periode = oktober(2021),
                     beløpSkattMnd = BigDecimal(4395).setScale(2),
                     grunnlagsbeløp = listOf(
                         Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
@@ -107,7 +104,7 @@ internal class TilbakekrevingsmeldingMapperTest {
                             beløpNyUtbetaling = BigDecimal.ZERO.setScale(2),
                             beløpSkalTilbakekreves = BigDecimal(9989).setScale(2),
                             beløpSkalIkkeTilbakekreves = BigDecimal.ZERO.setScale(2),
-                            skatteProsent = BigDecimal(43.9983)
+                            skatteProsent = BigDecimal("43.9983")
                                 .setScale(4, RoundingMode.HALF_UP),
                         ),
                     ),
@@ -210,10 +207,7 @@ internal class TilbakekrevingsmeldingMapperTest {
             utbetalingId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
             grunnlagsperioder = listOf(
                 Kravgrunnlag.Grunnlagsperiode(
-                    periode = Periode.create(
-                        fraOgMed = 1.oktober(2021),
-                        tilOgMed = 31.oktober(2021),
-                    ),
+                    periode = oktober(2021),
                     beløpSkattMnd = BigDecimal(5280).setScale(2),
                     grunnlagsbeløp = listOf(
                         Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
@@ -238,10 +232,7 @@ internal class TilbakekrevingsmeldingMapperTest {
                     ),
                 ),
                 Kravgrunnlag.Grunnlagsperiode(
-                    periode = Periode.create(
-                        fraOgMed = 1.november(2021),
-                        tilOgMed = 30.november(2021),
-                    ),
+                    periode = november(2021),
                     beløpSkattMnd = BigDecimal(5280).setScale(2),
                     grunnlagsbeløp = listOf(
                         Kravgrunnlag.Grunnlagsperiode.Grunnlagsbeløp(
@@ -260,7 +251,7 @@ internal class TilbakekrevingsmeldingMapperTest {
                             beløpNyUtbetaling = BigDecimal(9989).setScale(2),
                             beløpSkalTilbakekreves = BigDecimal(12000).setScale(2),
                             beløpSkalIkkeTilbakekreves = BigDecimal.ZERO.setScale(2),
-                            skatteProsent = BigDecimal(43.9992)
+                            skatteProsent = BigDecimal("43.9992")
                                 .setScale(4, RoundingMode.HALF_UP),
                         ),
                     ),

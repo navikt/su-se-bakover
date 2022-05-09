@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -24,7 +25,6 @@ import no.nav.su.se.bakover.test.fullstendigUtenEPS
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -32,20 +32,20 @@ class LeggTilBosituasjonTest {
     @Test
     fun `fjerner eventuelle fradrag for EPS i perioder hvor bosituasjon endres til å være enslig`() {
         val bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
-            periode = periode2021,
+            periode = år(2021),
         )
         opprettetRevurdering(
             grunnlagsdataOverrides = listOf(
                 bosituasjon,
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     tilhører = FradragTilhører.EPS,
                     arbeidsinntekt = 10_000.0,
                 ),
             ),
             vilkårOverrides = listOf(
                 innvilgetFormueVilkår(
-                    periode = periode2021,
+                    periode = år(2021),
                     bosituasjon = bosituasjon,
                 ),
             ),
@@ -55,7 +55,7 @@ class LeggTilBosituasjonTest {
             revurdering.vilkårsvurderinger.formue.harEPSFormue() shouldBe true
 
             revurdering.oppdaterBosituasjonOgMarkerSomVurdert(
-                listOf(bosituasjongrunnlagEnslig(periode = periode2021)),
+                listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
             ).getOrFail().let { oppdatert ->
                 oppdatert.grunnlagsdata.bosituasjon.harEPS() shouldBe false
                 oppdatert.grunnlagsdata.fradragsgrunnlag.filter { it.tilhørerEps() } shouldHaveSize 0
@@ -93,20 +93,20 @@ class LeggTilBosituasjonTest {
     @Test
     fun `bevarer eventuelle fradrag og formue for EPS dersom bosituasjon endres til EPS`() {
         val bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
-            periode = periode2021,
+            periode = år(2021),
         )
         opprettetRevurdering(
             grunnlagsdataOverrides = listOf(
                 bosituasjon,
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     tilhører = FradragTilhører.EPS,
                     arbeidsinntekt = 10_000.0,
                 ),
             ),
             vilkårOverrides = listOf(
                 innvilgetFormueVilkår(
-                    periode = periode2021,
+                    periode = år(2021),
                     bosituasjon = bosituasjon,
                 ),
             ),
@@ -120,7 +120,7 @@ class LeggTilBosituasjonTest {
                     Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        periode = periode2021,
+                        periode = år(2021),
                         fnr = epsFnr,
                         begrunnelse = null,
                     ),
@@ -135,14 +135,14 @@ class LeggTilBosituasjonTest {
 
     @Test
     fun `legger til tom formue for EPS dersom bosituasjon endres til å ha EPS`() {
-        val bosituasjon = fullstendigUtenEPS(periode2021)
+        val bosituasjon = fullstendigUtenEPS(år(2021))
         opprettetRevurdering(
             grunnlagsdataOverrides = listOf(
                 bosituasjon,
             ),
             vilkårOverrides = listOf(
                 innvilgetFormueVilkår(
-                    periode = periode2021,
+                    periode = år(2021),
                     bosituasjon = bosituasjon,
                 ),
             ),
@@ -151,7 +151,7 @@ class LeggTilBosituasjonTest {
             revurdering.vilkårsvurderinger.formue.harEPSFormue() shouldBe false
             revurdering.oppdaterBosituasjonOgMarkerSomVurdert(
                 bosituasjon = listOf(
-                    fullstendigMedEPS(periode2021),
+                    fullstendigMedEPS(år(2021)),
                 ),
             ).getOrFail().let { oppdatert ->
                 oppdatert.grunnlagsdata.bosituasjon.harEPS() shouldBe true

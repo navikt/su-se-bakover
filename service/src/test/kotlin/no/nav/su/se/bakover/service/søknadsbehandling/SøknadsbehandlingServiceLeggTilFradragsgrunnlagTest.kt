@@ -3,9 +3,8 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.getOrHandle
 import arrow.core.left
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -104,7 +103,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
                 lagFradragsgrunnlag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 0.0,
-                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                    periode = år(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -141,7 +140,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
                 lagFradragsgrunnlag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 0.0,
-                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                    periode = år(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),

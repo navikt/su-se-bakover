@@ -9,6 +9,8 @@ import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -35,8 +37,6 @@ import no.nav.su.se.bakover.test.beregnetRevurderingIngenEndringFraInnvilgetSøk
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oversendtStansUtbetalingUtenKvittering
-import no.nav.su.se.bakover.test.periode2021
-import no.nav.su.se.bakover.test.periodeMars2021
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
@@ -105,7 +105,7 @@ internal class StansAvYtelseServiceTest {
     fun `svarer med feil dersom simulering feiler`() {
         val periode = Periode.create(
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = periode2021.tilOgMed,
+            tilOgMed = år(2021).tilOgMed,
         )
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(periode, "b"),
@@ -177,7 +177,7 @@ internal class StansAvYtelseServiceTest {
     fun `happy path for opprettelse`() {
         val periode = Periode.create(
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = periode2021.tilOgMed,
+            tilOgMed = år(2021).tilOgMed,
         )
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(periode, "b"),
@@ -236,7 +236,7 @@ internal class StansAvYtelseServiceTest {
     fun `svarer med feil dersom oversendelse av stans til oppdrag feiler`() {
         val periode = Periode.create(
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = periode2021.tilOgMed,
+            tilOgMed = år(2021).tilOgMed,
         )
         val simulertStans = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             periode = periode,
@@ -287,7 +287,7 @@ internal class StansAvYtelseServiceTest {
     fun `happy path for iverksettelse`() {
         val periode = Periode.create(
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = periode2021.tilOgMed,
+            tilOgMed = år(2021).tilOgMed,
         )
         val simulertStans = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode).second
         val utbetaling = oversendtStansUtbetalingUtenKvittering(stansDato = periode.fraOgMed)
@@ -348,7 +348,7 @@ internal class StansAvYtelseServiceTest {
     @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `svarer med feil ved forsøk på å oppdatere revurderinger som ikke er av korrekt type`() {
         val enRevurdering = beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
-            stønadsperiode = Stønadsperiode.create(periode2021, "jambo"),
+            stønadsperiode = Stønadsperiode.create(år(2021), "jambo"),
         ).second
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -358,7 +358,7 @@ internal class StansAvYtelseServiceTest {
                     any(),
                 )
             } doReturn GjeldendeVedtaksdata(
-                periode = periode2021,
+                periode = år(2021),
                 vedtakListe = nonEmptyListOf(enRevurdering.tilRevurdering),
                 clock = fixedClock,
             ).right()
@@ -413,7 +413,7 @@ internal class StansAvYtelseServiceTest {
     fun `happy path for oppdatering`() {
         val periode = Periode.create(
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = periode2021.tilOgMed,
+            tilOgMed = år(2021).tilOgMed,
         )
         val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             periode = periode,
@@ -426,7 +426,7 @@ internal class StansAvYtelseServiceTest {
                     any(),
                 )
             } doReturn GjeldendeVedtaksdata(
-                periode = periodeMars2021,
+                periode = mars(2021),
                 vedtakListe = nonEmptyListOf(eksisterende.tilRevurdering),
                 clock = fixedClock,
             ).right()
@@ -449,7 +449,7 @@ internal class StansAvYtelseServiceTest {
                 StansYtelseRequest.Oppdater(
                     sakId = sakId,
                     saksbehandler = NavIdentBruker.Saksbehandler("kjeks"),
-                    fraOgMed = periodeMars2021.fraOgMed,
+                    fraOgMed = mars(2021).fraOgMed,
                     revurderingsårsak = Revurderingsårsak.create(
                         årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
                         begrunnelse = "fjas",
@@ -459,7 +459,7 @@ internal class StansAvYtelseServiceTest {
             ).getOrFail("skulle gått bra")
 
             response.let { oppdatert ->
-                oppdatert.periode shouldBe periodeMars2021
+                oppdatert.periode shouldBe mars(2021)
                 oppdatert.saksbehandler shouldBe NavIdentBruker.Saksbehandler("kjeks")
                 oppdatert.revurderingsårsak shouldBe Revurderingsårsak.create(
                     årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
@@ -469,13 +469,13 @@ internal class StansAvYtelseServiceTest {
 
             verify(it.vedtakService).kopierGjeldendeVedtaksdata(
                 sakId = sakId,
-                fraOgMed = periodeMars2021.fraOgMed,
+                fraOgMed = mars(2021).fraOgMed,
             )
             verify(it.utbetalingService).simulerStans(
                 request = SimulerUtbetalingRequest.Stans(
                     sakId = sakId,
                     saksbehandler = NavIdentBruker.Saksbehandler("kjeks"),
-                    stansdato = periodeMars2021.fraOgMed,
+                    stansdato = mars(2021).fraOgMed,
                 ),
             )
             verify(it.revurderingRepo).hent(eksisterende.id)
@@ -489,7 +489,7 @@ internal class StansAvYtelseServiceTest {
     fun `får ikke iverksatt dersom simulering indikerer feilutbetaling`() {
         val periode = Periode.create(
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = periode2021.tilOgMed,
+            tilOgMed = år(2021).tilOgMed,
         )
         val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             periode = periode,
@@ -519,7 +519,7 @@ internal class StansAvYtelseServiceTest {
     fun `får ikke opprettet ny hvis det allerede eksisterer åpen revurdering for stans`() {
         val periode = Periode.create(
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = periode2021.tilOgMed,
+            tilOgMed = år(2021).tilOgMed,
         )
         val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             periode = periode,

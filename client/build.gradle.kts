@@ -1,5 +1,5 @@
 val fuelVersion = "2.3.1"
-val tjenestespesifikasjonVersion = "2581.14e339e"
+val tjenestespesifikasjonVersion = "2589.e85bf84"
 val cxfVersion = "3.5.2"
 
 dependencies {
@@ -25,7 +25,7 @@ dependencies {
     implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
 
     testImplementation(project(":test-common"))
-    testImplementation("com.github.tomakehurst:wiremock-jre8:2.33.1") {
+    testImplementation("com.github.tomakehurst:wiremock-jre8:2.33.2") {
         exclude(group = "junit")
     }
     testImplementation("org.xmlunit:xmlunit-matchers:2.9.0")
