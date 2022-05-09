@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.satser
 import arrow.core.Nel
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory

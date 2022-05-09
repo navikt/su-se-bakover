@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.NonEmptyList
+import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
+import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -33,6 +35,10 @@ class FormuegrenserFactory(
      */
     fun forMåned(måned: Måned): FormuegrenseForMåned {
         return månedTilFormuegrense[måned]!!
+    }
+
+    fun forDato(dato: LocalDate): FormuegrenseForMåned {
+        return forMåned(Måned(dato.startOfMonth(), dato.endOfMonth()))
     }
 
     /**

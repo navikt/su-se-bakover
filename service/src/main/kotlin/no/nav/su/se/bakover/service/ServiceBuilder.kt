@@ -252,6 +252,7 @@ object ServiceBuilder {
                 brevService = brevService,
                 personService = personService,
                 jobContextRepo = databaseRepos.jobContextRepo,
+                formuegrenserFactory = satsFactory.formuegrenserFactory,
             )
         )
     }
