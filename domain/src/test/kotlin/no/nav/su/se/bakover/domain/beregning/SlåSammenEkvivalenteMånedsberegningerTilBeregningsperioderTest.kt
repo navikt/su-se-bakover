@@ -1,29 +1,29 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.test.månedsperiodeApril2021
-import no.nav.su.se.bakover.test.månedsperiodeDesember2021
-import no.nav.su.se.bakover.test.månedsperiodeFebruar2021
-import no.nav.su.se.bakover.test.månedsperiodeJanuar2021
-import no.nav.su.se.bakover.test.månedsperiodeMars2021
 import org.junit.jupiter.api.Test
 
 internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest {
     @Test
     fun `tilstøtende månedsberegninger hvor alt er likt bortsett fra dato grupperes sammen`() {
         val januar = MånedsberegningFactory.ny(
-            måned = månedsperiodeJanuar2021,
+            måned = januar(2021),
             sats = Sats.HØY,
-            fradrag = listOf()
+            fradrag = listOf(),
         )
 
         val februar = MånedsberegningFactory.ny(
-            måned = månedsperiodeFebruar2021,
+            måned = februar(2021),
             sats = Sats.HØY,
-            fradrag = listOf()
+            fradrag = listOf(),
         )
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar)).beregningsperioder shouldBe listOf(
@@ -37,23 +37,23 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     @Test
     fun `tilstøtende månedsberegninger som har forskjellige fradrag grupperes hver for seg`() {
         val januar = MånedsberegningFactory.ny(
-            måned = månedsperiodeJanuar2021,
+            måned = januar(2021),
             sats = Sats.HØY,
-            fradrag = listOf()
+            fradrag = listOf(),
         )
 
         val februar = MånedsberegningFactory.ny(
-            måned = månedsperiodeFebruar2021,
+            måned = februar(2021),
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
                     månedsbeløp = 2000.0,
-                    måned = månedsperiodeFebruar2021,
+                    måned = februar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         )
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar)).beregningsperioder shouldBe listOf(
@@ -71,27 +71,27 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     @Test
     fun `like månedsberegninger som ikke tilstøter hverandre grupperes hver for seg`() {
         val januar = MånedsberegningFactory.ny(
-            måned = månedsperiodeJanuar2021,
+            måned = januar(2021),
             sats = Sats.HØY,
-            fradrag = listOf()
+            fradrag = listOf(),
         )
 
         val februar = MånedsberegningFactory.ny(
-            måned = månedsperiodeFebruar2021,
+            måned = februar(2021),
             sats = Sats.ORDINÆR,
-            fradrag = listOf()
+            fradrag = listOf(),
         )
 
         val mars = MånedsberegningFactory.ny(
-            måned = månedsperiodeMars2021,
+            måned = mars(2021),
             sats = Sats.HØY,
-            fradrag = listOf()
+            fradrag = listOf(),
         )
 
         val april = MånedsberegningFactory.ny(
-            måned = månedsperiodeApril2021,
+            måned = april(2021),
             sats = Sats.ORDINÆR,
-            fradrag = listOf()
+            fradrag = listOf(),
         )
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar, mars, april)).beregningsperioder shouldBe listOf(
@@ -105,38 +105,38 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     @Test
     fun `månedsberegninger som har forskjellig antall fradrag grupperes hver for seg`() {
         val januar = MånedsberegningFactory.ny(
-            måned = månedsperiodeJanuar2021,
+            måned = januar(2021),
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
                     månedsbeløp = 1000.0,
-                    måned = månedsperiodeJanuar2021,
+                    måned = januar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         )
 
         val februar = MånedsberegningFactory.ny(
-            måned = månedsperiodeFebruar2021,
+            måned = februar(2021),
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
                     månedsbeløp = 500.0,
-                    måned = månedsperiodeFebruar2021,
+                    måned = februar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 500.0,
-                    måned = månedsperiodeFebruar2021,
+                    måned = februar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         )
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar)).beregningsperioder shouldBe listOf(
@@ -148,45 +148,45 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     @Test
     fun `månedsberegninger med flere fradrag av samme type grupperes sammen`() {
         val januar = MånedsberegningFactory.ny(
-            måned = månedsperiodeJanuar2021,
+            måned = januar(2021),
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
                     månedsbeløp = 1000.0,
-                    måned = månedsperiodeJanuar2021,
+                    måned = januar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
                     månedsbeløp = 1000.0,
-                    måned = månedsperiodeJanuar2021,
+                    måned = januar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         )
 
         val februar = MånedsberegningFactory.ny(
-            måned = månedsperiodeFebruar2021,
+            måned = februar(2021),
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
                     månedsbeløp = 1000.0,
-                    måned = månedsperiodeFebruar2021,
+                    måned = februar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
                     månedsbeløp = 1000.0,
-                    måned = månedsperiodeFebruar2021,
+                    måned = februar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         )
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar)).beregningsperioder shouldBe listOf(
@@ -197,73 +197,73 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     @Test
     fun `grupperer like månedsberegninger sammen selv om fradragene i utgangspunktet ikke ligger på nøyaktig samme indeks`() {
         val januar = MånedsberegningFactory.ny(
-            måned = månedsperiodeJanuar2021,
+            måned = januar(2021),
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
                     månedsbeløp = 1000.0,
-                    måned = månedsperiodeJanuar2021,
+                    måned = januar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 1000.0,
-                    måned = månedsperiodeJanuar2021,
+                    måned = januar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 1000.0,
-                    måned = månedsperiodeJanuar2021,
+                    måned = januar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
+                    tilhører = FradragTilhører.EPS,
                 ),
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 2000.0,
-                    måned = månedsperiodeJanuar2021,
+                    måned = januar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         )
 
         val februar = MånedsberegningFactory.ny(
-            måned = månedsperiodeFebruar2021,
+            måned = februar(2021),
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 1000.0,
-                    måned = månedsperiodeFebruar2021,
+                    måned = februar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
+                    tilhører = FradragTilhører.EPS,
                 ),
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 2000.0,
-                    måned = månedsperiodeFebruar2021,
+                    måned = februar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 1000.0,
-                    måned = månedsperiodeFebruar2021,
+                    måned = februar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.nyMånedsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
                     månedsbeløp = 1000.0,
-                    måned = månedsperiodeFebruar2021,
+                    måned = februar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         )
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar)).beregningsperioder shouldBe listOf(
@@ -274,27 +274,27 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     @Test
     fun `like månedsberegninger som ikke er tilstøtende grupperes hver for seg`() {
         val januar = MånedsberegningFactory.ny(
-            måned = månedsperiodeJanuar2021,
+            måned = januar(2021),
             sats = Sats.HØY,
-            fradrag = listOf()
+            fradrag = listOf(),
         )
 
         val februar = MånedsberegningFactory.ny(
-            måned = månedsperiodeFebruar2021,
+            måned = februar(2021),
             sats = Sats.HØY,
-            fradrag = listOf()
+            fradrag = listOf(),
         )
 
         val april = MånedsberegningFactory.ny(
-            måned = månedsperiodeApril2021,
+            måned = april(2021),
             sats = Sats.HØY,
-            fradrag = listOf()
+            fradrag = listOf(),
         )
 
         val desember = MånedsberegningFactory.ny(
-            måned = månedsperiodeDesember2021,
+            måned = desember(2021),
             sats = Sats.HØY,
-            fradrag = listOf()
+            fradrag = listOf(),
         )
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar, april, desember)).beregningsperioder shouldBe listOf(

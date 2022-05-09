@@ -67,6 +67,7 @@ fun Fradragstype.toReadableTypeName(utenlandsk: Boolean) =
         Fradragstype.BidragEtterEkteskapsloven -> "Bidrag etter ekteskapsloven"
         Fradragstype.Dagpenger -> "Dagpenger"
         Fradragstype.ForventetInntekt -> "Forventet inntekt etter uførhet"
+        Fradragstype.Fosterhjemsgodtgjørelse -> "Fosterhjemgodtgjørelse"
         Fradragstype.Gjenlevendepensjon -> "Gjenlevendepensjon"
         Fradragstype.Introduksjonsstønad -> "Introduksjonsstønad"
         Fradragstype.Kapitalinntekt -> "Kapitalinntekt"

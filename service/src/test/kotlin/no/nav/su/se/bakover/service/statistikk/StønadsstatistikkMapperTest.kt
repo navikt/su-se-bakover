@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -17,7 +18,6 @@ import no.nav.su.se.bakover.service.statistikk.mappers.StønadsstatistikkMapper
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.vedtakIverksattAutomatiskRegulering
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -39,11 +39,11 @@ internal class StønadsstatistikkMapperTest {
                             grunnlag = Grunnlag.Uføregrunnlag(
                                 id = java.util.UUID.randomUUID(),
                                 opprettet = fixedTidspunkt,
-                                periode = periode2021,
+                                periode = år(2021),
                                 uføregrad = Uføregrad.parse(50),
                                 forventetInntekt = 36000,
                             ),
-                            periode = periode2021,
+                            periode = år(2021),
                             begrunnelse = "innvilgetUførevilkårForventetInntekt0",
                         ),
                     ),
@@ -68,7 +68,7 @@ internal class StønadsstatistikkMapperTest {
             "2021-12-01",
         )
 
-        StønadsstatistikkMapper(fixedClock).map(vedtak, aktørId, periode2021.fraOgMed, sak) shouldBe
+        StønadsstatistikkMapper(fixedClock).map(vedtak, aktørId, år(2021).fraOgMed, sak) shouldBe
             Statistikk.Stønad(
                 funksjonellTid = fixedTidspunkt,
                 tekniskTid = fixedTidspunkt,
@@ -80,11 +80,11 @@ internal class StønadsstatistikkMapperTest {
                 vedtakstype = Statistikk.Stønad.Vedtakstype.SØKNAD,
                 vedtaksresultat = Statistikk.Stønad.Vedtaksresultat.INNVILGET,
                 behandlendeEnhetKode = "4815",
-                ytelseVirkningstidspunkt = periode2021.fraOgMed,
-                gjeldendeStonadVirkningstidspunkt = periode2021.fraOgMed,
-                gjeldendeStonadStopptidspunkt = periode2021.tilOgMed,
-                gjeldendeStonadUtbetalingsstart = periode2021.fraOgMed,
-                gjeldendeStonadUtbetalingsstopp = periode2021.tilOgMed,
+                ytelseVirkningstidspunkt = år(2021).fraOgMed,
+                gjeldendeStonadVirkningstidspunkt = år(2021).fraOgMed,
+                gjeldendeStonadStopptidspunkt = år(2021).tilOgMed,
+                gjeldendeStonadUtbetalingsstart = år(2021).fraOgMed,
+                gjeldendeStonadUtbetalingsstopp = år(2021).tilOgMed,
                 månedsbeløp = bruttosats1.map
                 {
                     Statistikk.Stønad.Månedsbeløp(

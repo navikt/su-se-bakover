@@ -36,7 +36,7 @@ internal fun Fradragstype.Companion.UgyldigFradragstype.tilResultat(): Resultat 
         Fradragstype.Companion.UgyldigFradragstype.UkjentFradragstype -> {
             HttpStatusCode.BadRequest.errorJson(
                 message = "Ukjent fradragstype",
-                code = "ukjent_fradratstype",
+                code = "ukjent_fradragstype",
             )
         }
     }

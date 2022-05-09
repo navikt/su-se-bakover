@@ -2,9 +2,7 @@ package no.nav.su.se.bakover.database.grunnlag
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withTransaction
@@ -33,7 +31,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Avslag,
                         grunnlag = null,
-                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                        periode = år(2021),
                         begrunnelse = "fåkke lov",
                     ),
                 ),
@@ -54,7 +52,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
             val uføregrunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                periode = år(2021),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 12000,
             )
@@ -66,7 +64,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Avslag,
                         grunnlag = uføregrunnlag,
-                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                        periode = år(2021),
                         begrunnelse = "fåkke lov",
                     ),
                 ),
@@ -87,7 +85,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
             val uføregrunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                periode = år(2021),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 12000,
             )
@@ -99,7 +97,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Avslag,
                         grunnlag = uføregrunnlag,
-                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                        periode = år(2021),
                         begrunnelse = "fåkke lov",
                     ),
                 ),

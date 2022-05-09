@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
@@ -15,8 +17,6 @@ import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.månedsperiodeDesember2021
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -35,7 +35,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Avslag,
                         grunnlag = null,
-                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                        periode = år(2021),
                         begrunnelse = "fåkke lov",
                     ),
                 ),
@@ -77,9 +77,9 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                         grunnlag = Utenlandsoppholdgrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
-                            periode = månedsperiodeDesember2021,
+                            periode = desember(2021),
                         ),
-                        periode = månedsperiodeDesember2021,
+                        periode = desember(2021),
                         begrunnelse = "fåkke lov",
                     ),
                 ),
@@ -109,9 +109,9 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                         grunnlag = Utenlandsoppholdgrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
-                            periode = månedsperiodeDesember2021,
+                            periode = desember(2021),
                         ),
-                        periode = månedsperiodeDesember2021,
+                        periode = desember(2021),
                         begrunnelse = "fåkke lov",
                     ),
                 ),
@@ -161,7 +161,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                 grunnlag = Utenlandsoppholdgrunnlag(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
-                    periode = periode2021,
+                    periode = år(2021),
                 ),
             ).let { it to it.grunnlag }
 

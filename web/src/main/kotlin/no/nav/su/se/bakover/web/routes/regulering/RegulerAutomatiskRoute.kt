@@ -1,5 +1,10 @@
 package no.nav.su.se.bakover.web.routes.regulering
 
+import arrow.core.Either
+import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
+import arrow.core.separateEither
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
@@ -7,21 +12,36 @@ import io.ktor.routing.post
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.service.regulering.KunneIkkeAvslutte
+import no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.web.Resultat
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
+import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.lesUUID
+import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import java.time.LocalDate
+import java.util.UUID
 
-private data class Request(val startDato: LocalDate)
-
-internal fun Route.regulerAutomatisk(
+internal fun Route.reguler(
     reguleringService: ReguleringService,
 ) {
+    /*
+    * Automatisk regulering av alle saker kan kun startes fra driftssiden
+    **/
     authorize(Brukerrolle.Drift) {
         post("$reguleringPath/automatisk") {
+            data class Request(val startDato: LocalDate)
             call.withBody<Request> {
                 CoroutineScope(Dispatchers.IO).launch {
                     reguleringService.startRegulering(it.startDato)
@@ -30,4 +50,138 @@ internal fun Route.regulerAutomatisk(
             }
         }
     }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$reguleringPath/manuell/{reguleringId}") {
+            data class Body(val fradrag: List<FradragJson>, val uføre: List<UføregrunnlagJson>)
+
+            call.lesUUID("reguleringId").fold(
+                ifLeft = {
+                    HttpStatusCode.BadRequest.errorJson(it, "reguleringId_mangler_eller_feil_format")
+                },
+                ifRight = { id ->
+                    call.withBody<Body> { body ->
+                        reguleringService.regulerManuelt(
+                            reguleringId = id,
+                            uføregrunnlag = body.uføre.toDomain().getOrHandle { return@post call.svar(it) },
+                            fradrag = body.fradrag.toDomain().getOrHandle { return@post call.svar(it) },
+                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                        ).fold(
+                            ifLeft = {
+                                when (it) {
+                                    KunneIkkeRegulereManuelt.AlleredeFerdigstilt -> HttpStatusCode.BadRequest.errorJson(
+                                        "Reguleringen er allerede ferdigstilt",
+                                        "regulering_allerede_ferdigstilt",
+                                    )
+                                    KunneIkkeRegulereManuelt.FantIkkeRegulering -> HttpStatusCode.BadRequest.errorJson(
+                                        "Fant ikke regulering",
+                                        "fant_ikke_regulering",
+                                    )
+                                    KunneIkkeRegulereManuelt.BeregningFeilet -> HttpStatusCode.InternalServerError.errorJson(
+                                        "Beregning feilet",
+                                        "beregning_feilet",
+                                    )
+                                    KunneIkkeRegulereManuelt.SimuleringFeilet -> HttpStatusCode.InternalServerError.errorJson(
+                                        "Simulering feilet",
+                                        "simulering_feilet",
+                                    )
+                                    KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson(
+                                        "Stanset ytelse må startes før den kan reguleres",
+                                        "stanset_ytelse_må_startes_før_den_kan_reguleres",
+                                    )
+                                    is KunneIkkeRegulereManuelt.KunneIkkeFerdigstille -> HttpStatusCode.InternalServerError.errorJson(
+                                        "Kunne ikke ferdigstille regulering på grunn av ${it.feil}",
+                                        "kunne_ikke_ferdigstille_regulering",
+                                    )
+                                    KunneIkkeRegulereManuelt.FantIkkeSak -> Feilresponser.fantIkkeSak
+                                    KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres -> HttpStatusCode.BadRequest.errorJson(
+                                        "Kan ikke regulere mens sak avventer kravgrunnlag",
+                                        "Kan_ikke_regulere_mens_sak_avventer_kravgrunnlag",
+                                    )
+                                    KunneIkkeRegulereManuelt.AvventerKravgrunnlag -> HttpStatusCode.BadRequest.errorJson(
+                                        "Avventer kravgrunnlag",
+                                        "regulering_avventer_kravgrunnlag",
+                                    )
+                                    KunneIkkeRegulereManuelt.HarPågåendeEllerBehovForAvkorting -> HttpStatusCode.BadRequest.errorJson(
+                                        "Har pågående eller behov for avkorting",
+                                        "regulering_har_pågående_eller_behov_for_avkorting",
+                                    )
+                                }.let { feilResultat ->
+                                    call.svar(feilResultat)
+                                }
+                            },
+                            ifRight = {
+                                call.svar(Resultat.okJson(HttpStatusCode.OK))
+                            },
+                        )
+                    }
+                },
+            )
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$reguleringPath/avslutt/{reguleringId}") {
+            call.lesUUID("reguleringId").fold(
+                ifLeft = {
+                    HttpStatusCode.BadRequest.errorJson(it, "reguleringId_mangler_eller_feil_format")
+                },
+                ifRight = {
+                    reguleringService.avslutt(it).fold(
+                        ifLeft = { feilmelding ->
+                            when (feilmelding) {
+                                KunneIkkeAvslutte.FantIkkeRegulering -> HttpStatusCode.BadRequest.errorJson(
+                                    "Fant ikke regulering",
+                                    "fant_ikke_regulering",
+                                )
+                                KunneIkkeAvslutte.UgyldigTilstand -> HttpStatusCode.BadRequest.errorJson(
+                                    "Ugyldig tilstand på reguleringen",
+                                    "regulering_ugyldig_tilstand",
+                                )
+                            }
+                        },
+                        ifRight = {
+                            call.svar(Resultat.okJson(HttpStatusCode.OK))
+                        },
+                    )
+                },
+            )
+        }
+    }
+}
+
+private fun List<FradragJson>.toDomain(): Either<Resultat, List<Grunnlag.Fradragsgrunnlag>> {
+    val (resultat, f) = this
+        .map { it.toFradrag() }
+        .separateEither()
+
+    if (resultat.isNotEmpty()) return resultat.first().left()
+
+    return f.map {
+        Grunnlag.Fradragsgrunnlag.tryCreate(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(),
+            fradrag = it,
+        ).getOrHandle {
+            return HttpStatusCode.BadRequest.errorJson(
+                message = "Kunne ikke lage fradrag",
+                code = "kunne_ikke_lage_fradrag",
+            ).left()
+        }
+    }.right()
+}
+
+@JvmName("toDomainUføregrunnlagJson")
+private fun List<UføregrunnlagJson>.toDomain(): Either<Resultat, List<Grunnlag.Uføregrunnlag>> {
+    return this.map {
+        Grunnlag.Uføregrunnlag(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(),
+            periode = it.periode.toPeriode(),
+            uføregrad = Uføregrad.tryParse(it.uføregrad).getOrHandle {
+                return Feilresponser.Uføre.uføregradMåVæreMellomEnOgHundre.left()
+            },
+            forventetInntekt = it.forventetInntekt,
+        )
+    }.right()
 }

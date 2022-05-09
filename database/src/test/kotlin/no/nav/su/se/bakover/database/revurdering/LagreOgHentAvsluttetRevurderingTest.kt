@@ -3,13 +3,13 @@ package no.nav.su.se.bakover.database.revurdering
 import arrow.core.getOrHandle
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -26,7 +26,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 innvilget = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                     stønadsperiode = stønadsperiode2021,
                 ).second,
-                periode = periode2021,
+                periode = år(2021),
             )
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(

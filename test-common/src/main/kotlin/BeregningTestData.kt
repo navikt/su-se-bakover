@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
@@ -20,7 +21,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
  * forventet inntekt 1 000 000
  */
 fun beregningAvslagForHøyInntekt(
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
 ): Beregning {
     return beregning(
         periode = periode,
@@ -31,7 +32,7 @@ fun beregningAvslagForHøyInntekt(
 }
 
 fun beregningAvslagUnderMinstebeløp(
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
 ): Beregning {
     return beregning(
         periode = periode,
@@ -59,7 +60,7 @@ fun beregningAvslagUnderMinstebeløp(
  * fradrag: ingen
  */
 fun beregning(
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode = periode),
     uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag> = nonEmptyListOf(uføregrunnlagForventetInntekt0(periode = periode)),
     /**

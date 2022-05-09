@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -68,17 +68,17 @@ internal class RevurderingTest {
     @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `beregningen gir ikke opphør dersom beløpet er under minstegrense, men endringen er mindre enn 10 prosent`() {
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2020))),
+            stønadsperiode = Stønadsperiode.create(år(2021)),
             grunnlagsdata = grunnlagsdataEnsligMedFradrag(
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt(
-                        periode = Periode.create(1.januar(2020), 30.april(2020)),
+                        periode = Periode.create(1.januar(2021), 30.april(2021)),
                         arbeidsinntekt = Sats.HØY.månedsbeløp(1.januar(2020)) - 440.0,
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     fradragsgrunnlagArbeidsinntekt(
-                        periode = Periode.create(1.mai(2020), 31.desember(2020)),
-                        arbeidsinntekt = Sats.HØY.månedsbeløp(1.mai(2020)) - 440.0,
+                        periode = Periode.create(1.mai(2021), 31.desember(2021)),
+                        arbeidsinntekt = Sats.HØY.månedsbeløp(1.mai(2021)) - 440.0,
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
@@ -119,7 +119,7 @@ internal class RevurderingTest {
         opprettetRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     arbeidsinntekt = 9000.0,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -164,7 +164,7 @@ internal class RevurderingTest {
             ),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     arbeidsinntekt = 25.0,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -213,7 +213,7 @@ internal class RevurderingTest {
             ),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     arbeidsinntekt = 350_000.0,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -238,7 +238,7 @@ internal class RevurderingTest {
         opprettetRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
-                    periode = periode2021,
+                    periode = år(2021),
                     arbeidsinntekt = 350_000.0,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -260,7 +260,7 @@ internal class RevurderingTest {
 
     @Test
     fun `beregning som fører til beløp under minstegrense gir opphør`() {
-        val periode = Periode.create(1.januar(2021), 31.desember(2021))
+        val periode = år(2021)
         opprettetRevurdering(
             stønadsperiode = Stønadsperiode.create(periode, ""),
             revurderingsperiode = periode,

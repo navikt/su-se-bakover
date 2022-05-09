@@ -9,6 +9,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -201,7 +202,7 @@ internal class RevurderingServiceImpl(
         }
 
         val uteståendeAvkorting = hentUteståendeAvkorting(opprettRevurderingRequest.sakId).let {
-            kontrollerPeriodeForUteståendeAvkorting(gjeldendeVedtaksdata.periode, it)
+            kontrollerPeriodeForUteståendeAvkorting(gjeldendeVedtaksdata.periodeFørsteTilOgMedSeneste(), it)
                 .getOrHandle { feil -> return feil.left() }
         }
 
@@ -217,7 +218,7 @@ internal class RevurderingServiceImpl(
             KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave
         }.map { oppgaveId ->
             OpprettetRevurdering(
-                periode = gjeldendeVedtaksdata.periode,
+                periode = gjeldendeVedtaksdata.vedtaksperioder().minsteAntallSammenhengendePerioder().single(),
                 tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
                 saksbehandler = opprettRevurderingRequest.saksbehandler,
                 oppgaveId = oppgaveId,
@@ -557,7 +558,7 @@ internal class RevurderingServiceImpl(
                 ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
         val avkorting = hentUteståendeAvkorting(revurdering.sakId).let {
-            kontrollerPeriodeForUteståendeAvkorting(gjeldendeVedtaksdata.periode, it)
+            kontrollerPeriodeForUteståendeAvkorting(gjeldendeVedtaksdata.periodeFørsteTilOgMedSeneste(), it)
                 .getOrHandle {
                     return KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
                         periode = it.periode,
@@ -565,9 +566,11 @@ internal class RevurderingServiceImpl(
                 }
         }
 
+        val periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode()
+
         return when (revurdering) {
             is OpprettetRevurdering -> revurdering.oppdater(
-                periode = gjeldendeVedtaksdata.periode,
+                periode = periode,
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                 vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
@@ -576,7 +579,7 @@ internal class RevurderingServiceImpl(
                 avkorting = avkorting,
             ).right()
             is BeregnetRevurdering -> revurdering.oppdater(
-                periode = gjeldendeVedtaksdata.periode,
+                periode = periode,
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                 vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
@@ -585,7 +588,7 @@ internal class RevurderingServiceImpl(
                 avkorting = avkorting,
             ).right()
             is SimulertRevurdering -> revurdering.oppdater(
-                periode = gjeldendeVedtaksdata.periode,
+                periode = periode,
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                 vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
@@ -594,7 +597,7 @@ internal class RevurderingServiceImpl(
                 avkorting = avkorting,
             ).right()
             is UnderkjentRevurdering -> revurdering.oppdater(
-                periode = gjeldendeVedtaksdata.periode,
+                periode = periode,
                 revurderingsårsak = revurderingsårsak,
                 grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                 vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,

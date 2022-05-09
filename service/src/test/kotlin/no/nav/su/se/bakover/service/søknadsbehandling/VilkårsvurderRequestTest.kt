@@ -3,9 +3,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -19,12 +17,12 @@ internal class VilkårsvurderRequestTest {
     private val bosituasjonUtenEPS = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
-        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+        periode = år(2021),
     )
     private val bosituasjonMedEPS = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
-        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+        periode = år(2021),
         fnr = Fnr.generer(),
     )
 

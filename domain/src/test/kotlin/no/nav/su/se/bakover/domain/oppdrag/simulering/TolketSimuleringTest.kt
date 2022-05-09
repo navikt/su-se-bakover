@@ -7,11 +7,11 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.april
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.MånedBeløp
@@ -927,7 +927,7 @@ internal class TolketSimuleringTest {
         ).let {
             it.simulertePerioder shouldBe listOf(
                 TolketPeriode(
-                    Periode.create(1.januar(2021), 31.desember(2021)),
+                    år(2021),
                     utbetalinger = listOf(
                         TolketUtbetaling.IngenUtbetaling(
                             tolketDetalj = listOf(

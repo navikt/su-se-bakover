@@ -19,6 +19,8 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -28,9 +30,6 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.periode2021
-import no.nav.su.se.bakover.test.periodeJanuar2021
-import no.nav.su.se.bakover.test.periodeMars2021
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -75,7 +74,7 @@ internal class SakTest {
             val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
 
             sak.hentPerioderMedLøpendeYtelse() shouldBe listOf(
-                Periode.create(1.januar(2021), 31.desember(2021)),
+                år(2021),
             )
         }
 
@@ -148,7 +147,7 @@ internal class SakTest {
 
             val (_, stønadsperiode2) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(
-                    periode = Periode.create(1.januar(2023), 31.desember(2023)),
+                    periode = år(2023),
                     begrunnelse = "ny periode da vett",
                 ),
             )
@@ -158,8 +157,8 @@ internal class SakTest {
                 vedtakListe = sak.vedtakListe + stønadsperiode2,
             ).let {
                 it.hentPerioderMedLøpendeYtelse() shouldBe listOf(
-                    Periode.create(1.januar(2021), 31.desember(2021)),
-                    Periode.create(1.januar(2023), 31.desember(2023)),
+                    år(2021),
+                    år(2023),
                 )
                 it.vedtakListe shouldContainAll listOf(
                     stønadsperiode1,
@@ -180,7 +179,7 @@ internal class SakTest {
             )
 
             val stønadsperiode2023 = Stønadsperiode.create(
-                periode = Periode.create(1.januar(2023), 31.desember(2023)),
+                periode = år(2023),
                 begrunnelse = "ny periode da vett",
             )
 
@@ -201,8 +200,8 @@ internal class SakTest {
                 utbetalinger = sakRevurdering1.utbetalinger + sakRevurdering2.utbetalinger,
             ).let {
                 it.hentPerioderMedLøpendeYtelse() shouldBe listOf(
-                    Periode.create(1.januar(2021), 31.desember(2021)),
-                    Periode.create(1.januar(2023), 31.desember(2023)),
+                    år(2021),
+                    år(2023),
                 )
                 it.vedtakListe shouldContainAll listOf(
                     stønadsperiode1,
@@ -220,7 +219,7 @@ internal class SakTest {
             )
 
             sakFørRevurdering.hentPerioderMedLøpendeYtelse() shouldBe listOf(
-                Periode.create(1.januar(2021), 31.desember(2021)),
+                år(2021),
             )
 
             val (sakEtterStans, stans) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
@@ -230,7 +229,7 @@ internal class SakTest {
             )
 
             sakEtterStans.hentPerioderMedLøpendeYtelse() shouldBe listOf(
-                Periode.create(1.januar(2021), 31.desember(2021)),
+                år(2021),
             )
 
             val (sakEtterGjenopptak, gjenopptak) = vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
@@ -241,7 +240,7 @@ internal class SakTest {
             )
 
             sakEtterGjenopptak.hentPerioderMedLøpendeYtelse() shouldBe listOf(
-                Periode.create(1.januar(2021), 31.desember(2021)),
+                år(2021),
             )
 
             val (sakEtterRevurdering, revurdering) = vedtakRevurderingIverksattInnvilget(
@@ -251,7 +250,7 @@ internal class SakTest {
             )
 
             sakEtterRevurdering.hentPerioderMedLøpendeYtelse() shouldBe listOf(
-                Periode.create(1.januar(2021), 31.desember(2021)),
+                år(2021),
             )
             sakEtterRevurdering.vedtakListe shouldContainAll listOf(
                 søknadsvedtak,
@@ -268,7 +267,7 @@ internal class SakTest {
             )
 
             val stønadsperiode2022 = Stønadsperiode.create(
-                periode = Periode.create(1.januar(2022), 31.desember(2022)),
+                periode = år(2022),
                 begrunnelse = "ny periode da vett",
             )
 
@@ -306,13 +305,13 @@ internal class SakTest {
         fun `utbetalinger kan ikke stanses dersom det er fremtidig hull i stønadsperiodene`() {
             val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(
-                    periode = periodeJanuar2021,
+                    periode = januar(2021),
                 ),
             )
 
             val (sak2, _) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(
-                    periode = periodeMars2021,
+                    periode = mars(2021),
                 ),
             )
 
@@ -328,13 +327,13 @@ internal class SakTest {
             val juni2021 = Clock.fixed(1.juni(2021).atTime(0, 0).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
             val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(
-                    periode = periodeJanuar2021,
+                    periode = januar(2021),
                 ),
             )
 
             val (sak2, _) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(
-                    periode = periodeMars2021,
+                    periode = mars(2021),
                 ),
             )
 
@@ -349,7 +348,7 @@ internal class SakTest {
         fun `harGjeldendeEllerFremtidigStønadsperiode skal returnere true om det man er i en stønadsperiode`() {
             val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(
-                    periode = periodeJanuar2021,
+                    periode = januar(2021),
                 ),
             )
             sak.harGjeldendeEllerFremtidigStønadsperiode(fixedClock) shouldBe true
@@ -359,7 +358,7 @@ internal class SakTest {
         fun `harGjeldendeEllerFremtidigStønadsperiode skal returnere true om det er en stønadsperiode i fremtiden`() {
             val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(
-                    periode = periodeMars2021,
+                    periode = mars(2021),
                 ),
             )
             sak.harGjeldendeEllerFremtidigStønadsperiode(fixedClock) shouldBe true
@@ -370,7 +369,7 @@ internal class SakTest {
             val juni2021 = Clock.fixed(1.juni(2021).atTime(0, 0).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
             val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(
-                    periode = periodeJanuar2021,
+                    periode = januar(2021),
                 ),
             )
             sak.harGjeldendeEllerFremtidigStønadsperiode(juni2021) shouldBe false
@@ -401,7 +400,7 @@ internal class SakTest {
         fun `stønadsperioder skal ikke kunne overlappe`() {
             val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(
-                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                    periode = år(2021),
                     begrunnelse = "kek",
                 ),
             )
@@ -426,7 +425,7 @@ internal class SakTest {
             val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
             val (_, andreStønadsperiode) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = Stønadsperiode.create(
-                    periode = Periode.create(1.januar(2023), 31.desember(2023)),
+                    periode = år(2023),
                     begrunnelse = "ny periode da vett",
                 ),
             )
@@ -437,7 +436,7 @@ internal class SakTest {
                 vedtakListe = sak.vedtakListe + andreStønadsperiode,
             ).let {
                 val nyPeriode = Stønadsperiode.create(
-                    periode = Periode.create(1.januar(2022), 31.desember(2022)),
+                    periode = år(2022),
                     begrunnelse = "ny periode da vett",
                 )
 
@@ -469,7 +468,7 @@ internal class SakTest {
             )
 
             val nyStønadsperiode =
-                Stønadsperiode.create(Periode.create(1.januar(2022), 31.desember(2022)), begrunnelse = "")
+                Stønadsperiode.create(år(2022), begrunnelse = "")
             val (_, nySøknadsbehandling) = søknadsbehandlingVilkårsvurdertUavklart(
                 clock = tikkendeKlokke,
                 stønadsperiode = nyStønadsperiode,
@@ -520,7 +519,7 @@ internal class SakTest {
 
         @Test
         fun `utløp av ytelse`() {
-            val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)), "")
+            val stønadsperiode = Stønadsperiode.create(år(2021), "")
             val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
 
             vedtakSøknadsbehandlingIverksattInnvilget(
@@ -528,7 +527,7 @@ internal class SakTest {
             ).let { (sak, _) ->
                 sak.ytelseUtløperVedUtløpAv(januar(2021)) shouldBe false
                 sak.ytelseUtløperVedUtløpAv(desember(2021)) shouldBe true
-                sak.ytelseUtløperVedUtløpAv(periode2021) shouldBe true
+                sak.ytelseUtløperVedUtløpAv(år(2021)) shouldBe true
                 sak.ytelseUtløperVedUtløpAv(Periode.create(1.januar(2021), 31.desember(2025))) shouldBe false
             }
 

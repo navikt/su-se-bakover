@@ -1,18 +1,18 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.månedsperiodeFebruar2021
-import no.nav.su.se.bakover.test.månedsperiodeJanuar2021
-import no.nav.su.se.bakover.test.månedsperiodeMars2021
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
@@ -79,7 +79,7 @@ internal class BosituasjonTest {
         val gjeldendeBosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            periode = år(2021),
         )
 
         gjeldendeBosituasjon.oppdaterBosituasjonsperiode(oppdatertPeriode) shouldBe gjeldendeBosituasjon.copy(
@@ -92,16 +92,16 @@ internal class BosituasjonTest {
         val b1 = Grunnlag.Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            periode = månedsperiodeJanuar2021,
+            periode = januar(2021),
             begrunnelse = null,
         )
         val b2 = b1.copy(
-            periode = månedsperiodeFebruar2021,
+            periode = februar(2021),
         )
         val b3 = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            periode = månedsperiodeMars2021,
+            periode = mars(2021),
             fnr = Fnr.generer(),
             begrunnelse = null,
         )
@@ -117,7 +117,7 @@ internal class BosituasjonTest {
         actual.last() shouldBe Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
             id = b3.id,
             opprettet = fixedTidspunkt,
-            periode = månedsperiodeMars2021,
+            periode = mars(2021),
             fnr = b3.fnr,
             begrunnelse = null,
         )
@@ -128,13 +128,13 @@ internal class BosituasjonTest {
         val b1 = Grunnlag.Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            periode = månedsperiodeJanuar2021,
+            periode = januar(2021),
             begrunnelse = null,
         )
         val b2 = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            periode = månedsperiodeFebruar2021,
+            periode = februar(2021),
         )
 
         assertThrows<IllegalStateException> {

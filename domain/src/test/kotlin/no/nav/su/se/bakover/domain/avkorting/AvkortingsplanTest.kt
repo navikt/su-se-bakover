@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.oktober
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.MånedBeløp
@@ -31,7 +32,6 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import org.junit.jupiter.api.Test
@@ -112,7 +112,7 @@ internal class AvkortingsplanTest {
                         ),
                     ),
                 ),
-                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = periode2021)),
+                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
             ),
         )
 
@@ -176,7 +176,7 @@ internal class AvkortingsplanTest {
                         ),
                     ),
                 ),
-                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = periode2021)),
+                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
             ),
         )
 
@@ -204,13 +204,13 @@ internal class AvkortingsplanTest {
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Kapitalinntekt,
                             månedsbeløp = 10000.0,
-                            periode = periode2021,
+                            periode = år(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
                     ),
                 ),
-                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = periode2021)),
+                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
             ),
         )
 

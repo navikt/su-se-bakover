@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
@@ -17,7 +18,6 @@ import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.revurderingId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.anyOrNull
@@ -66,7 +66,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
                     request = nonEmptyListOf(
                         LeggTilUtenlandsoppholdRequest(
                             behandlingId = opprettetRevurdering.id,
-                            periode = periode2021,
+                            periode = år(2021),
                             status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                             begrunnelse = "begrunnelse",
                         ),
@@ -107,7 +107,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
                     request = nonEmptyListOf(
                         LeggTilUtenlandsoppholdRequest(
                             behandlingId = opprettetRevurdering.id,
-                            periode = periode2021,
+                            periode = år(2021),
                             status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                             begrunnelse = "begrunnelse",
                         ),
@@ -138,7 +138,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
                     request = nonEmptyListOf(
                         LeggTilUtenlandsoppholdRequest(
                             behandlingId = opprettetRevurdering.id,
-                            periode = periode2021,
+                            periode = år(2021),
                             status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                             begrunnelse = "begrunnelse",
                         ),

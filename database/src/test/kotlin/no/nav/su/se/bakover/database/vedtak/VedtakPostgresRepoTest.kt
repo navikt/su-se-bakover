@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.innvilgetBeregning
@@ -28,7 +29,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.periodeJanuar2021
 import no.nav.su.se.bakover.test.plus
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
@@ -145,7 +145,7 @@ internal class VedtakPostgresRepoTest {
             val vedtakRepo = testDataHelper.vedtakRepo
             // Persisterer et ikke-aktivt vedtak
             testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
-                stønadsperiode = Stønadsperiode.create(periodeJanuar2021),
+                stønadsperiode = Stønadsperiode.create(januar(2021)),
             )
             val vedtakSomErAktivt =
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(

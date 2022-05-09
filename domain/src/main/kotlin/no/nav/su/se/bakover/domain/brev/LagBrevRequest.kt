@@ -88,7 +88,7 @@ interface LagBrevRequest {
         private val forventetInntektStørreEnn0: Boolean,
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
-        private val satsoversikt: Satsoversikt
+        private val satsoversikt: Satsoversikt?
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.AvslagsBrevInnhold(
             personalia = lagPersonalia(),

@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
@@ -113,7 +114,6 @@ import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt0
-import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -133,7 +133,7 @@ internal val journalpostId = JournalpostId("journalpostId")
 internal val innsender = NavIdentBruker.Veileder("navIdent")
 
 internal fun innvilgetBeregning(
-    periode: Periode = periode2021,
+    periode: Periode = år(2021),
 ): Beregning {
     return no.nav.su.se.bakover.test.beregning(periode)
 }
@@ -743,7 +743,7 @@ internal class TestDataHelper(
 
     fun persisterRevurderingOpprettet(
         innvilget: VedtakSomKanRevurderes.EndringIYtelse = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second,
-        periode: Periode = periode2021,
+        periode: Periode = år(2021),
         epsFnr: Fnr? = null,
         grunnlagsdata: Grunnlagsdata = if (epsFnr != null) grunnlagsdataMedEpsMedFradrag(
             periode,

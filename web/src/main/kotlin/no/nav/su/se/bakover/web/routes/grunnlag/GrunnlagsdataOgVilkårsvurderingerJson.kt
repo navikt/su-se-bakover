@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
@@ -67,3 +68,5 @@ internal fun Vilkårsvurderinger.utenlandsoppholdJson(): UtenlandsoppholdVilkår
         }
     }
 }
+
+internal fun GrunnlagsdataOgVilkårsvurderinger.toJson(): GrunnlagsdataOgVilkårsvurderingerJson = GrunnlagsdataOgVilkårsvurderingerJson.create(this.grunnlagsdata, this.vilkårsvurderinger)

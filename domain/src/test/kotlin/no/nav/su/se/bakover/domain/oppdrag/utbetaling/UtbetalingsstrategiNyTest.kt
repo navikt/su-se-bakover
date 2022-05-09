@@ -12,11 +12,14 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -45,7 +48,6 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.time.LocalDate
-import java.time.Month
 import java.util.UUID
 
 internal class UtbetalingsstrategiNyTest {
@@ -112,7 +114,7 @@ internal class UtbetalingsstrategiNyTest {
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
+                periode = år(2020),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 0,
             ),
@@ -211,7 +213,7 @@ internal class UtbetalingsstrategiNyTest {
 
         val first = Utbetaling.OversendtUtbetaling.MedKvittering(
             id = UUID30.randomUUID(),
-            opprettet = LocalDate.of(2020, Month.JANUARY, 1).startOfDay(),
+            opprettet = 1.januar(2020).startOfDay(),
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingsrequest = Utbetalingsrequest(""),
@@ -231,7 +233,7 @@ internal class UtbetalingsstrategiNyTest {
 
         val second = Utbetaling.OversendtUtbetaling.MedKvittering(
             id = UUID30.randomUUID(),
-            opprettet = LocalDate.of(2020, Month.FEBRUARY, 1).startOfDay(),
+            opprettet = 1.februar(2020).startOfDay(),
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingsrequest = Utbetalingsrequest(""),
@@ -251,7 +253,7 @@ internal class UtbetalingsstrategiNyTest {
 
         val third = Utbetaling.OversendtUtbetaling.MedKvittering(
             id = UUID30.randomUUID(),
-            opprettet = LocalDate.of(2020, Month.MARCH, 1).startOfDay(),
+            opprettet = 1.mars(2020).startOfDay(),
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingsrequest = Utbetalingsrequest(""),
@@ -270,7 +272,7 @@ internal class UtbetalingsstrategiNyTest {
         )
         val fourth = Utbetaling.OversendtUtbetaling.MedKvittering(
             id = UUID30.randomUUID(),
-            opprettet = LocalDate.of(2020, Month.JULY, 1).startOfDay(),
+            opprettet = 1.juli(2020).startOfDay(),
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingsrequest = Utbetalingsrequest(""),
@@ -297,7 +299,7 @@ internal class UtbetalingsstrategiNyTest {
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
+                periode = år(2020),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 0,
             ),
@@ -373,7 +375,7 @@ internal class UtbetalingsstrategiNyTest {
                     FradragFactory.nyFradragsperiode(
                         fradragstype = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 4000.0,
-                        periode = Periode.create(fraOgMed = 1.februar(2020), tilOgMed = 29.februar(2020)),
+                        periode = februar(2020),
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
@@ -453,7 +455,7 @@ internal class UtbetalingsstrategiNyTest {
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                periode = år(2021),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 0,
             ),
@@ -524,7 +526,7 @@ internal class UtbetalingsstrategiNyTest {
 
     @Test
     fun `kaster exception hvis det finnes flere månedsberegninger, men uføregrunnlag er tom (mange til 0)`() {
-        val periode = Periode.create(1.januar(2021), 31.desember(2021))
+        val periode = år(2021)
         shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
             Utbetalingsstrategi.Ny(
                 sakId = sakId,
@@ -575,7 +577,7 @@ internal class UtbetalingsstrategiNyTest {
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                periode = år(2021),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 0,
             ),
@@ -667,12 +669,12 @@ internal class UtbetalingsstrategiNyTest {
 
     @Test
     fun `mapper flere beregningsperioder til ufregrunnlag (mange til 1)`() {
-        val periode = Periode.create(1.januar(2021), 31.desember(2021))
+        val periode = år(2021)
         val uføreList = listOf(
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                periode = år(2021),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 0,
             ),
@@ -755,7 +757,7 @@ internal class UtbetalingsstrategiNyTest {
 
     @Test
     fun `mapper flere beregningsperioder til flere ufregrunnlag (mange til mange)`() {
-        val periode = Periode.create(1.januar(2021), 31.desember(2021))
+        val periode = år(2021)
         val uføreList = listOf(
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
