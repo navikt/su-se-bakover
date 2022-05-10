@@ -42,10 +42,10 @@ val applicationConfig = ApplicationConfig(
         wellKnownUrl = "http://localhost/test/wellKnownUrl",
         clientId = "testClientId",
         groups = ApplicationConfig.AzureConfig.AzureGroups(
-            attestant = "Attestant",
-            saksbehandler = "Saksbehandler",
-            veileder = "Veileder",
-            drift = "Drift",
+            attestant = "d3340bf6-a8bd-ATTESTANT-97c3-a2144b9ac34a",
+            saksbehandler = "d3340bf6-a8bd-SAKSBEHANDLER-97c3-a2144b9ac34a",
+            veileder = "d3340bf6-a8bd-VEILEDER-97c3-a2144b9ac34a",
+            drift = "d3340bf6-a8bd-DRIFT-97c3-a2144b9ac34a",
         ),
     ),
     frikort = ApplicationConfig.FrikortConfig(
