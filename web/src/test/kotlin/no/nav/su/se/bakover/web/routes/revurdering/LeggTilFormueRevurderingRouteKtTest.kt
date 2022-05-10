@@ -4,10 +4,11 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
@@ -46,11 +47,11 @@ internal class LeggTilFormueRevurderingRouteKtTest {
     @Test
     fun `ikke tillatte roller`() {
         Brukerrolle.values().filterNot { it == Brukerrolle.Saksbehandler }.forEach { rolle ->
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover()
-                },
-            ) {
+                }
+
                 defaultRequest(
                     HttpMethod.Post,
                     "${RevurderingRoutesTestData.requestPath}/$revurderingId/formuegrunnlag",
@@ -58,14 +59,14 @@ internal class LeggTilFormueRevurderingRouteKtTest {
                 ) {
                     setBody(validBody)
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                     JSONAssert.assertEquals(
                         """
                             {
-                                "message":"Bruker mangler en av de tillatte rollene: Saksbehandler."
+                                "message":"Bruker mangler en av de tillatte rollene: [Saksbehandler]"
                             }
                         """.trimIndent(),
-                        response.content,
+                        bodyAsText(),
                         true,
                     )
                 }
@@ -175,11 +176,10 @@ internal class LeggTilFormueRevurderingRouteKtTest {
             on { leggTilFormuegrunnlag(any()) } doReturn error.left()
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "${RevurderingRoutesTestData.requestPath}/$revurderingId/formuegrunnlag",
@@ -187,10 +187,10 @@ internal class LeggTilFormueRevurderingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe expectStatusCode
+                status shouldBe expectStatusCode
                 JSONAssert.assertEquals(
                     expectErrorJson,
-                    response.content,
+                    bodyAsText(),
                     true,
                 )
             }
@@ -206,11 +206,10 @@ internal class LeggTilFormueRevurderingRouteKtTest {
             ).right()
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "${RevurderingRoutesTestData.requestPath}/$revurderingId/formuegrunnlag",
@@ -218,10 +217,10 @@ internal class LeggTilFormueRevurderingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
-                response.headers.values("Content-Type") shouldBe listOf("application/json; charset=UTF-8")
-                response.headers.values("X-Correlation-ID") shouldBe listOf("her skulle vi sikkert hatt en korrelasjonsid")
-                response.content shouldContain opprettetRevurdering.id.toString()
+                status shouldBe HttpStatusCode.OK
+                this.headers["Content-Type"] shouldBe "application/json; charset=UTF-8"
+                this.headers["X-Correlation-ID"] shouldBe "her skulle vi sikkert hatt en korrelasjonsid"
+                bodyAsText() shouldContain opprettetRevurdering.id.toString()
             }
         }
     }

@@ -3,11 +3,13 @@ package no.nav.su.se.bakover.web.routes.kontrollsamtale
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtale
@@ -33,12 +35,11 @@ internal class KontrollsamtaleRoutesKtTest {
 
     @Test
     fun `må være innlogget for å endre dato på kontrollsamtale`() {
-        withTestApplication(
-            { testSusebakover() },
-        ) {
-            handleRequest(HttpMethod.Post, "/kontrollsamtale/nyDato")
-        }.apply {
-            response.status() shouldBe HttpStatusCode.Unauthorized
+        testApplication {
+            application { testSusebakover() }
+            client.post("/kontrollsamtale/nyDato").apply {
+                status shouldBe HttpStatusCode.Unauthorized
+            }
         }
     }
 
@@ -47,29 +48,27 @@ internal class KontrollsamtaleRoutesKtTest {
         val kontrollsamtaleMock = mock<KontrollsamtaleService> {
             on { nyDato(any(), any()) } doReturn Unit.right()
         }
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = TestServicesBuilder.services(kontrollsamtaleService = kontrollsamtaleMock),
                 )
-            },
-        ) {
+            }
             defaultRequest(HttpMethod.Post, "/kontrollsamtale/nyDato", listOf(Brukerrolle.Saksbehandler)) {
                 setBody(validBody)
+            }.apply {
+                status shouldBe HttpStatusCode.OK
             }
-        }.apply {
-            response.status() shouldBe HttpStatusCode.OK
         }
     }
 
     @Test
     fun `må være innlogget for å hente kontrollsamtale`() {
-        withTestApplication(
-            { testSusebakover() },
-        ) {
-            handleRequest(HttpMethod.Get, "/kontrollsamtale/hent/${UUID.randomUUID()}")
-        }.apply {
-            response.status() shouldBe HttpStatusCode.Unauthorized
+        testApplication {
+            application { testSusebakover() }
+            client.get("/kontrollsamtale/hent/${UUID.randomUUID()}").apply {
+                status shouldBe HttpStatusCode.Unauthorized
+            }
         }
     }
 
@@ -79,16 +78,19 @@ internal class KontrollsamtaleRoutesKtTest {
             on { hentNestePlanlagteKontrollsamtale(any(), anyOrNull()) } doReturn kontrollsamtale().right()
             on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
         }
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = TestServicesBuilder.services(kontrollsamtaleService = kontrollsamtaleMock),
                 )
-            },
-        ) {
-            defaultRequest(HttpMethod.Get, "/kontrollsamtale/hent/${UUID.randomUUID()}", listOf(Brukerrolle.Saksbehandler))
-        }.apply {
-            response.status() shouldBe HttpStatusCode.OK
+            }
+            defaultRequest(
+                HttpMethod.Get,
+                "/kontrollsamtale/hent/${UUID.randomUUID()}",
+                listOf(Brukerrolle.Saksbehandler),
+            ).apply {
+                status shouldBe HttpStatusCode.OK
+            }
         }
     }
 
@@ -103,17 +105,20 @@ internal class KontrollsamtaleRoutesKtTest {
             } doReturn KunneIkkeHenteKontrollsamtale.FantIkkeKontrollsamtale.left()
             on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
         }
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = TestServicesBuilder.services(kontrollsamtaleService = kontrollsamtaleMock),
                 )
-            },
-        ) {
-            defaultRequest(HttpMethod.Get, "/kontrollsamtale/hent/${UUID.randomUUID()}", listOf(Brukerrolle.Saksbehandler))
-        }.apply {
-            response.status() shouldBe HttpStatusCode.OK
-            response.content shouldBe "null"
+            }
+            defaultRequest(
+                HttpMethod.Get,
+                "/kontrollsamtale/hent/${UUID.randomUUID()}",
+                listOf(Brukerrolle.Saksbehandler),
+            ).apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe "null"
+            }
         }
     }
 
@@ -127,16 +132,19 @@ internal class KontrollsamtaleRoutesKtTest {
                 )
             } doReturn KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler.left()
         }
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = TestServicesBuilder.services(kontrollsamtaleService = kontrollsamtaleMock),
                 )
-            },
-        ) {
-            defaultRequest(HttpMethod.Get, "/kontrollsamtale/hent/${UUID.randomUUID()}", listOf(Brukerrolle.Saksbehandler))
-        }.apply {
-            response.status() shouldBe HttpStatusCode.InternalServerError
+            }
+            defaultRequest(
+                HttpMethod.Get,
+                "/kontrollsamtale/hent/${UUID.randomUUID()}",
+                listOf(Brukerrolle.Saksbehandler),
+            ).apply {
+                status shouldBe HttpStatusCode.InternalServerError
+            }
         }
     }
 }

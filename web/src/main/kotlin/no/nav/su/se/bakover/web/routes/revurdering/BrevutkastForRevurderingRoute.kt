@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import io.ktor.application.call
 import io.ktor.http.ContentType
-import io.ktor.response.respondBytes
-import io.ktor.routing.Route
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.response.respondBytes
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.AuditLogEvent
@@ -20,11 +20,10 @@ import no.nav.su.se.bakover.web.withRevurderingId
 internal fun Route.brevutkastForRevurdering(
     revurderingService: RevurderingService
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
+    data class Body(val fritekst: String?)
 
-        data class Body(val fritekst: String?)
-
-        post("$revurderingPath/{revurderingId}/brevutkast") {
+    post("$revurderingPath/{revurderingId}/brevutkast") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<Body> { body ->
                     val revurdering = revurderingService.hentRevurdering(revurderingId)

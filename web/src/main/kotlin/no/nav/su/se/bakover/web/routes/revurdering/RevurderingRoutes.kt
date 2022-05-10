@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import io.ktor.routing.Route
+import io.ktor.server.routing.Route
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.forhåndsvarslingRoute

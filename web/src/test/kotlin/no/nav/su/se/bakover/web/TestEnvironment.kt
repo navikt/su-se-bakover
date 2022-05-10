@@ -1,12 +1,13 @@
 package no.nav.su.se.bakover.web
 
-import io.ktor.application.Application
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.headers
+import io.ktor.client.request.request
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
-import io.ktor.server.testing.TestApplicationCall
-import io.ktor.server.testing.TestApplicationEngine
-import io.ktor.server.testing.TestApplicationRequest
-import io.ktor.server.testing.handleRequest
+import io.ktor.server.application.Application
+import io.ktor.server.testing.ApplicationTestBuilder
 import no.finn.unleash.FakeUnleash
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
@@ -41,10 +42,10 @@ val applicationConfig = ApplicationConfig(
         wellKnownUrl = "http://localhost/test/wellKnownUrl",
         clientId = "testClientId",
         groups = ApplicationConfig.AzureConfig.AzureGroups(
-            attestant = "testAzureGroupAttestant",
-            saksbehandler = "testAzureGroupSaksbehandler",
-            veileder = "testAzureGroupVeileder",
-            drift = "testAzureGroupDrift",
+            attestant = "d3340bf6-a8bd-ATTESTANT-97c3-a2144b9ac34a",
+            saksbehandler = "d3340bf6-a8bd-SAKSBEHANDLER-97c3-a2144b9ac34a",
+            veileder = "d3340bf6-a8bd-VEILEDER-97c3-a2144b9ac34a",
+            drift = "d3340bf6-a8bd-DRIFT-97c3-a2144b9ac34a",
         ),
     ),
     frikort = ApplicationConfig.FrikortConfig(
@@ -147,55 +148,65 @@ internal fun Application.testSusebakover(
     )
 }
 
-fun TestApplicationEngine.defaultRequest(
+suspend fun ApplicationTestBuilder.defaultRequest(
     method: HttpMethod,
     uri: String,
-    roller: List<Brukerrolle>,
-    setup: TestApplicationRequest.() -> Unit = {},
-): TestApplicationCall {
-    return handleRequest(method, uri) {
-        addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-        addHeader(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = roller).asBearerToken())
+    roller: List<Brukerrolle> = emptyList(),
+    setup: HttpRequestBuilder.() -> Unit = {},
+): HttpResponse {
+    return this.client.request(uri) {
+        this.method = method
+        this.headers {
+            append(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+            append(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = roller).asBearerToken())
+        }
         setup()
     }
 }
 
-fun TestApplicationEngine.defaultRequest(
+suspend fun ApplicationTestBuilder.defaultRequest(
     method: HttpMethod,
     uri: String,
-    roller: List<Brukerrolle>,
+    roller: List<Brukerrolle> = emptyList(),
     navIdent: String,
-    setup: TestApplicationRequest.() -> Unit = {},
-): TestApplicationCall {
-    return handleRequest(method, uri) {
-        addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-        addHeader(
-            HttpHeaders.Authorization,
-            jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken(),
-        )
+    setup: HttpRequestBuilder.() -> Unit = {},
+): HttpResponse {
+    return this.client.request(uri) {
+        this.method = method
+        this.headers {
+            append(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+            append(
+                HttpHeaders.Authorization,
+                jwtStub.createJwtToken(
+                    roller = roller,
+                    navIdent = navIdent,
+                ).asBearerToken(),
+            )
+        }
         setup()
     }
 }
 
-fun TestApplicationEngine.requestSomAttestant(
+suspend fun ApplicationTestBuilder.requestSomAttestant(
     method: HttpMethod,
     uri: String,
-    navIdent: String? = null,
-    setup: TestApplicationRequest.() -> Unit = {},
-): TestApplicationCall {
-    return handleRequest(method, uri) {
-        addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-        addHeader(
-            HttpHeaders.Authorization,
-            jwtStub.createJwtToken(roller = listOf(Brukerrolle.Attestant), navIdent = navIdent).asBearerToken(),
-        )
+    navIdent: String? = navIdentAttestant,
+    setup: HttpRequestBuilder.() -> Unit = {},
+): HttpResponse {
+    return this.client.request(uri) {
+        this.method = method
+        this.headers {
+            append(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+            append(
+                HttpHeaders.Authorization,
+                jwtStub.createJwtToken(
+                    roller = listOf(Brukerrolle.Attestant),
+                    navIdent = navIdent,
+                ).asBearerToken(),
+            )
+        }
         setup()
     }
 }
 
-fun TestApplicationEngine.requestSomAttestant(
-    method: HttpMethod,
-    uri: String,
-): TestApplicationCall {
-    return requestSomAttestant(method, uri, null) {}
-}
+val navIdentAttestant = "random-attestant-id"

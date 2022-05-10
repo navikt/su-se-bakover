@@ -5,10 +5,11 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.client.call.body
+import io.ktor.client.request.setBody
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
@@ -88,15 +89,13 @@ internal class BeregnRoutesKtTest {
             val services = services(dataSource, repos)
             val objects = setupMedAlleVilkårOppfylt(services, repos)
 
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(
                         services = services,
                         databaseRepos = repos,
                     )
-                },
-            ) {
-
+                }
                 defaultRequest(
                     HttpMethod.Post,
                     "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
@@ -104,8 +103,8 @@ internal class BeregnRoutesKtTest {
                 ) {
                     setBody("{}")
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.Created
-                    val behandlingJson = deserialize<BehandlingJson>(response.content!!)
+                    status shouldBe HttpStatusCode.Created
+                    val behandlingJson = deserialize<BehandlingJson>(body())
                     behandlingJson.beregning!!.fraOgMed shouldBe stønadsperiode.periode.fraOgMed.toString()
                     behandlingJson.beregning.tilOgMed shouldBe stønadsperiode.periode.tilOgMed.toString()
                     behandlingJson.beregning.månedsberegninger shouldHaveSize 12
@@ -121,22 +120,22 @@ internal class BeregnRoutesKtTest {
             val services = services(dataSource, repos)
             val objects = setupMedAlleVilkårOppfylt(services, repos)
 
-            withTestApplication(
-                {
-                    testSusebakover(
-                        databaseRepos = repos,
-                        services = services,
-                    )
-                },
-            ) {
+            testApplication {
                 defaultRequest(
                     HttpMethod.Post,
                     "$sakPath/${objects.sak.id}/behandlinger/blabla/beregn",
                     listOf(Brukerrolle.Saksbehandler),
-                ) {}.apply {
+                ) {
+                    application {
+                        testSusebakover(
+                            databaseRepos = repos,
+                            services = services,
+                        )
+                    }
+                }.apply {
                     assertSoftly {
-                        response.status() shouldBe HttpStatusCode.BadRequest
-                        response.content shouldContain "ikke en gyldig UUID"
+                        status shouldBe HttpStatusCode.BadRequest
+                        body<String>() shouldContain "ikke en gyldig UUID"
                     }
                 }
                 defaultRequest(
@@ -147,8 +146,8 @@ internal class BeregnRoutesKtTest {
                     setBody("{}")
                 }.apply {
                     assertSoftly {
-                        response.status() shouldBe HttpStatusCode.NotFound
-                        response.content shouldContain "Fant ikke behandling"
+                        status shouldBe HttpStatusCode.NotFound
+                        body<String>() shouldContain "Fant ikke behandling"
                     }
                 }
                 defaultRequest(
@@ -157,8 +156,8 @@ internal class BeregnRoutesKtTest {
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
                     assertSoftly {
-                        response.status() shouldBe HttpStatusCode.BadRequest
-                        response.content shouldContain "Ugyldig body"
+                        status shouldBe HttpStatusCode.BadRequest
+                        body<String>() shouldContain "Ugyldig body"
                     }
                 }
             }
@@ -171,14 +170,13 @@ internal class BeregnRoutesKtTest {
             val repos = repos(dataSource)
             val services = services(dataSource, repos)
             val objects = setup(services, repos)
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(
                         services = services,
                         databaseRepos = repos,
                     )
-                },
-            ) {
+                }
                 services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
                     LeggTilBosituasjonEpsRequest(
                         behandlingId = objects.søknadsbehandling.id,
@@ -205,8 +203,8 @@ internal class BeregnRoutesKtTest {
                         """.trimIndent(),
                     )
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.BadRequest
-                    response.content shouldContain """{"message":"Kan ikke gå fra tilstanden Uavklart til tilstanden Beregnet","code":"ugyldig_tilstand"}"""
+                    status shouldBe HttpStatusCode.BadRequest
+                    this.body<String>() shouldContain """{"message":"Kan ikke gå fra tilstanden Uavklart til tilstanden Beregnet","code":"ugyldig_tilstand"}"""
                 }
             }
         }

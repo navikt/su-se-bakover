@@ -5,10 +5,10 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.routing.Route
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,11 +36,8 @@ import java.util.UUID
 internal fun Route.reguler(
     reguleringService: ReguleringService,
 ) {
-    /*
-    * Automatisk regulering av alle saker kan kun startes fra driftssiden
-    **/
-    authorize(Brukerrolle.Drift) {
-        post("$reguleringPath/automatisk") {
+    post("$reguleringPath/automatisk") {
+        authorize(Brukerrolle.Drift) {
             data class Request(val startDato: LocalDate)
             call.withBody<Request> {
                 CoroutineScope(Dispatchers.IO).launch {
@@ -51,8 +48,8 @@ internal fun Route.reguler(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$reguleringPath/manuell/{reguleringId}") {
+    post("$reguleringPath/manuell/{reguleringId}") {
+        authorize(Brukerrolle.Saksbehandler) {
             data class Body(val fradrag: List<FradragJson>, val uføre: List<UføregrunnlagJson>)
 
             call.lesUUID("reguleringId").fold(
@@ -63,8 +60,8 @@ internal fun Route.reguler(
                     call.withBody<Body> { body ->
                         reguleringService.regulerManuelt(
                             reguleringId = id,
-                            uføregrunnlag = body.uføre.toDomain().getOrHandle { return@post call.svar(it) },
-                            fradrag = body.fradrag.toDomain().getOrHandle { return@post call.svar(it) },
+                            uføregrunnlag = body.uføre.toDomain().getOrHandle { return@authorize call.svar(it) },
+                            fradrag = body.fradrag.toDomain().getOrHandle { return@authorize call.svar(it) },
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                         ).fold(
                             ifLeft = {
@@ -120,8 +117,8 @@ internal fun Route.reguler(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$reguleringPath/avslutt/{reguleringId}") {
+    post("$reguleringPath/avslutt/{reguleringId}") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.lesUUID("reguleringId").fold(
                 ifLeft = {
                     HttpStatusCode.BadRequest.errorJson(it, "reguleringId_mangler_eller_feil_format")

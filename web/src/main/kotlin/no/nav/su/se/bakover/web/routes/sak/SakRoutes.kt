@@ -3,14 +3,14 @@ package no.nav.su.se.bakover.web.routes.sak
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.merge
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.routing.Route
-import io.ktor.routing.get
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
@@ -43,8 +43,8 @@ internal fun Route.sakRoutes(
     sakService: SakService,
     clock: Clock,
 ) {
-    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        post("$sakPath/søk") {
+    post("$sakPath/søk") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             data class Body(
                 val fnr: String?,
                 val saksnummer: String?,
@@ -120,8 +120,8 @@ internal fun Route.sakRoutes(
         }
     }
 
-    authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        get("$sakPath/info/{fnr}") {
+    get("$sakPath/info/{fnr}") {
+        authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.parameter("fnr")
                 .flatMap {
                     Either.catch { Fnr(it) }
@@ -153,8 +153,8 @@ internal fun Route.sakRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        get("$sakPath/{sakId}") {
+    get("$sakPath/{sakId}") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.svar(
                     sakService.hentSak(sakId).fold(
@@ -169,14 +169,14 @@ internal fun Route.sakRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        data class Body(val fraOgMed: LocalDate, val tilOgMed: LocalDate = LocalDate.MAX) {
-            val periode = Periode.create(fraOgMed, tilOgMed)
-        }
+    data class Body(val fraOgMed: LocalDate, val tilOgMed: LocalDate = LocalDate.MAX) {
+        val periode = Periode.create(fraOgMed, tilOgMed)
+    }
 
-        data class Response(val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson?)
+    data class Response(val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson?)
 
-        post("$sakPath/{sakId}/gjeldendeVedtaksdata") {
+    post("$sakPath/{sakId}/gjeldendeVedtaksdata") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<Body> { body ->
                     call.svar(
@@ -203,15 +203,15 @@ internal fun Route.sakRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        get("$sakPath/behandlinger/apne") {
+    get("$sakPath/behandlinger/apne") {
+        authorize(Brukerrolle.Saksbehandler) {
             val åpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
             call.svar(Resultat.json(OK, serialize(åpneBehandlinger.toJson())))
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        get("$sakPath/behandlinger/ferdige") {
+    get("$sakPath/behandlinger/ferdige") {
+        authorize(Brukerrolle.Saksbehandler) {
             val ferdigeBehandlinger = sakService.hentFerdigeBehandlingerForAlleSaker()
             call.svar(Resultat.json(OK, serialize(ferdigeBehandlinger.toJson())))
         }

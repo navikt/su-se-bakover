@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.web.routes.drift
 
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.response.respond
-import io.ktor.routing.Route
-import io.ktor.routing.get
-import io.ktor.routing.patch
+import io.ktor.server.application.call
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.patch
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -17,19 +17,16 @@ internal const val DRIFT_PATH = "/drift"
 internal fun Route.driftRoutes(
     søknadService: SøknadService,
 ) {
-    authorize(Brukerrolle.Drift) {
-        patch("$DRIFT_PATH/søknader/fix") {
+    patch("$DRIFT_PATH/søknader/fix") {
+        authorize(Brukerrolle.Drift) {
             søknadService.opprettManglendeJournalpostOgOppgave().let {
-                call.respond(
-                    HttpStatusCode.OK,
-                    serialize(it.toJson())
-                )
+                call.respond(HttpStatusCode.OK, serialize(it.toJson()))
             }
         }
     }
 
-    authorize(Brukerrolle.Drift) {
-        get("$DRIFT_PATH/isalive") {
+    get("$DRIFT_PATH/isalive") {
+        authorize(Brukerrolle.Drift) {
             call.respond(HttpStatusCode.OK, """{ "Status" : "OK"}""")
         }
     }

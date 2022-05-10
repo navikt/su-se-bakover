@@ -4,10 +4,11 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -49,24 +50,23 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
 
     @Test
     fun `uautoriserte kan ikke sende revurdering til attestering`() {
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/tilAttestering",
                 listOf(Brukerrolle.Veileder),
             ).apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
+                status shouldBe HttpStatusCode.Forbidden
                 JSONAssert.assertEquals(
                     """
                     {
-                        "message":"Bruker mangler en av de tillatte rollene: Saksbehandler."
+                        "message":"Bruker mangler en av de tillatte rollene: [Saksbehandler]"
                     }
                     """.trimIndent(),
-                    response.content,
+                    bodyAsText(),
                     true,
                 )
             }
@@ -108,11 +108,10 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
@@ -120,8 +119,8 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             ) {
                 setBody("""{ "fritekstTilBrev": "Friteksten" }""")
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
-                val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
+                status shouldBe HttpStatusCode.OK
+                val actualResponse = objectMapper.readValue<TilAttesteringJson>(bodyAsText())
                 actualResponse.id shouldBe revurderingTilAttestering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INNVILGET
             }
@@ -156,11 +155,10 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
@@ -168,8 +166,8 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             ) {
                 setBody("""{ "fritekstTilBrev": "", "skalFøreTilBrevutsending": "false" }""")
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
-                val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
+                status shouldBe HttpStatusCode.OK
+                val actualResponse = objectMapper.readValue<TilAttesteringJson>(bodyAsText())
                 actualResponse.id shouldBe revurderingTilAttestering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING
                 actualResponse.fritekstTilBrev shouldBe ""
@@ -206,11 +204,10 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
@@ -218,8 +215,8 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             ) {
                 setBody("""{ "fritekstTilBrev": "Friteksten", "skalFøreTilBrevutsending": "true" }""")
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
-                val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
+                status shouldBe HttpStatusCode.OK
+                val actualResponse = objectMapper.readValue<TilAttesteringJson>(bodyAsText())
                 actualResponse.id shouldBe revurderingTilAttestering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING
                 actualResponse.fritekstTilBrev shouldBe "Friteksten"
@@ -310,11 +307,10 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             on { sendTilAttestering(any()) } doReturn error.left()
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/tilAttestering",
@@ -322,10 +318,10 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             ) {
                 setBody("""{ "fritekstTilBrev": "Dette er friteksten" }""")
             }.apply {
-                response.status() shouldBe expectedStatusCode
+                status shouldBe expectedStatusCode
                 JSONAssert.assertEquals(
                     expectedJsonResponse,
-                    response.content,
+                    bodyAsText(),
                     true,
                 )
             }

@@ -2,9 +2,10 @@ package no.nav.su.se.bakover.web.routes.dokument
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -24,9 +25,10 @@ internal class DokumentRoutesKtTest {
 
     @Test
     fun `sjekker tilganger`() {
-        withTestApplication(
-            ({ testSusebakover(services = TestServicesBuilder.services()) }),
-        ) {
+        testApplication {
+            application {
+                testSusebakover(services = TestServicesBuilder.services())
+            }
             Brukerrolle.values()
                 .filterNot { it == Brukerrolle.Saksbehandler }
                 .forEach { rolle ->
@@ -34,8 +36,8 @@ internal class DokumentRoutesKtTest {
                         Get,
                         "/dokumenter?id=39f05293-39e0-47be-ba35-a7e0b233b630&idType=vedtak",
                         listOf(rolle),
-                    ).response.let {
-                        it.status() shouldBe HttpStatusCode.Forbidden
+                    ).let {
+                        it.status shouldBe HttpStatusCode.Forbidden
                     }
                 }
         }
@@ -43,43 +45,44 @@ internal class DokumentRoutesKtTest {
 
     @Test
     fun `validerer request`() {
-        withTestApplication(
-            ({ testSusebakover(services = TestServicesBuilder.services()) }),
-        ) {
+        testApplication {
+            application {
+                testSusebakover(services = TestServicesBuilder.services())
+            }
             defaultRequest(
                 Get,
                 "/dokumenter",
                 listOf(Brukerrolle.Saksbehandler),
-            ).response.let {
-                it.status() shouldBe HttpStatusCode.BadRequest
-                it.content shouldContain "Parameter 'id' mangler"
+            ).let {
+                it.status shouldBe HttpStatusCode.BadRequest
+                it.bodyAsText() shouldContain "Parameter 'id' mangler"
             }
 
             defaultRequest(
                 Get,
                 "/dokumenter?id=1231231",
                 listOf(Brukerrolle.Saksbehandler),
-            ).response.let {
-                it.status() shouldBe HttpStatusCode.BadRequest
-                it.content shouldContain "Parameter 'idType' mangler"
+            ).let {
+                it.status shouldBe HttpStatusCode.BadRequest
+                it.bodyAsText() shouldContain "Parameter 'idType' mangler"
             }
 
             defaultRequest(
                 Get,
                 "/dokumenter?id=1231231&idType=jess",
                 listOf(Brukerrolle.Saksbehandler),
-            ).response.let {
-                it.status() shouldBe HttpStatusCode.BadRequest
-                it.content shouldContain "Ugyldig parameter 'id'"
+            ).let {
+                it.status shouldBe HttpStatusCode.BadRequest
+                it.bodyAsText() shouldContain "Ugyldig parameter 'id'"
             }
 
             defaultRequest(
                 Get,
                 "/dokumenter?id=39f05293-39e0-47be-ba35-a7e0b233b630&idType=jess",
                 listOf(Brukerrolle.Saksbehandler),
-            ).response.let {
-                it.status() shouldBe HttpStatusCode.BadRequest
-                it.content shouldContain "Ugyldig parameter 'idType'"
+            ).let {
+                it.status shouldBe HttpStatusCode.BadRequest
+                it.bodyAsText() shouldContain "Ugyldig parameter 'idType'"
             }
         }
     }
@@ -100,21 +103,22 @@ internal class DokumentRoutesKtTest {
             },
         )
 
-        withTestApplication(
-            ({ testSusebakover(services = services) }),
-        ) {
+        testApplication {
+            application {
+                testSusebakover(services = services)
+            }
             defaultRequest(
                 method = Get,
                 uri = "/dokumenter?id=39f05293-39e0-47be-ba35-a7e0b233b630&idType=søknad",
                 roller = listOf(Brukerrolle.Saksbehandler),
-            ).response.let {
-                it.status() shouldBe HttpStatusCode.OK
+            ).let {
+                it.status shouldBe HttpStatusCode.OK
                 verify(services.brev).hentDokumenterFor(
                     HentDokumenterForIdType.Søknad(
                         UUID.fromString("39f05293-39e0-47be-ba35-a7e0b233b630"),
                     ),
                 )
-                it.content!!.deserializeList<DokumentJson>().first().let { dokumentJson ->
+                it.bodyAsText().deserializeList<DokumentJson>().first().let { dokumentJson ->
                     dokumentJson.tittel shouldBe "en fin tittel"
                     dokumentJson.opprettet shouldBe "1970-01-01T00:00:00Z"
                     dokumentJson.dokument contentEquals "".toByteArray()
@@ -132,16 +136,17 @@ internal class DokumentRoutesKtTest {
             },
         )
 
-        withTestApplication(
-            ({ testSusebakover(services = services) }),
-        ) {
+        testApplication {
+            application {
+                testSusebakover(services = services)
+            }
             defaultRequest(
                 method = Get,
                 uri = "/dokumenter?id=$sakId&idType=sak",
                 roller = listOf(Brukerrolle.Saksbehandler),
-            ).response.let {
-                it.status() shouldBe HttpStatusCode.OK
-                it.content shouldBe "[]"
+            ).let {
+                it.status shouldBe HttpStatusCode.OK
+                it.bodyAsText() shouldBe "[]"
                 verify(services.brev).hentDokumenterFor(
                     HentDokumenterForIdType.Sak(
                         UUID.fromString(sakId),
