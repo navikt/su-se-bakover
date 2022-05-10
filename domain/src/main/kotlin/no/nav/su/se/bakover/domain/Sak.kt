@@ -17,8 +17,6 @@ import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoM�
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
@@ -35,8 +33,6 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -92,33 +88,6 @@ data class Sak(
         return TidslinjeForUtbetalinger(
             periode = periode,
             utbetalingslinjer = utbetalingslinjer,
-        )
-    }
-
-    // TODO jah: Flytt inn i common testdata som extension function?
-    @TestOnly
-    fun hentGjeldendeVilkårOgGrunnlag(
-        periode: Periode,
-        clock: Clock,
-        formuegrenserFactory: FormuegrenserFactory,
-    ): GrunnlagsdataOgVilkårsvurderinger.Revurdering {
-        return hentGjeldendeVedtaksdata(
-            periode = periode,
-            clock = clock,
-            formuegrenserFactory = formuegrenserFactory,
-        ).fold(
-            {
-                GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-                    Grunnlagsdata.IkkeVurdert,
-                    Vilkårsvurderinger.Revurdering.IkkeVurdert(),
-                )
-            },
-            {
-                GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-                    grunnlagsdata = it.grunnlagsdata,
-                    vilkårsvurderinger = it.vilkårsvurderinger,
-                )
-            },
         )
     }
 
