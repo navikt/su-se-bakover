@@ -9,11 +9,22 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
 import java.util.UUID
 
+enum class SøknadType(val value: String) {
+    ALDER("alder"), UFORE("ufore")
+}
+
 sealed class Søknad {
     abstract val id: UUID
     abstract val opprettet: Tidspunkt
     abstract val sakId: UUID
     abstract val søknadInnhold: Søknadsinnhold
+
+    val type: SøknadType by lazy {
+        when (søknadInnhold) {
+            is SøknadsinnholdAlder -> SøknadType.ALDER
+            is SøknadsinnholdUføre -> SøknadType.UFORE
+        }
+    }
 
     /**
      * Når Nav mottok søknaden:

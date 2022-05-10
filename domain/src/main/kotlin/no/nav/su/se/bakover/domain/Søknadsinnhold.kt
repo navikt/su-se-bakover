@@ -10,9 +10,10 @@ import java.time.LocalDate
     property = "type",
 )
 @JsonSubTypes(
-    JsonSubTypes.Type(value = SøknadsinnholdAlder::class, name = "SøknadsinnholdAlder"),
-    JsonSubTypes.Type(value = SøknadsinnholdUføre::class, name = "SøknadsinnholdUføre"),
+    JsonSubTypes.Type(value = SøknadsinnholdAlder::class, name = "alder"),
+    JsonSubTypes.Type(value = SøknadsinnholdUføre::class, name = "ufore"),
 )
+
 sealed interface Søknadsinnhold {
     val personopplysninger: Personopplysninger
     val boforhold: Boforhold
@@ -25,6 +26,8 @@ sealed interface Søknadsinnhold {
 }
 
 data class SøknadsinnholdAlder(
+    val harSøktAlderspensjon: HarSøktAlderspensjon,
+    val oppholdstillatelseAlder: OppholdstillatelseAlder,
     override val personopplysninger: Personopplysninger,
     override val boforhold: Boforhold,
     override val utenlandsopphold: Utenlandsopphold,
@@ -56,8 +59,17 @@ data class Flyktningsstatus(
     val registrertFlyktning: Boolean
 )
 
+data class HarSøktAlderspensjon(
+    val harSøktAlderspensjon: Boolean
+)
+
 data class Personopplysninger(
     val fnr: Fnr
+)
+
+data class OppholdstillatelseAlder(
+    val eøsborger: Boolean,
+    val familieforening: Boolean
 )
 
 data class Oppholdstillatelse(

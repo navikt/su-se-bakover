@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.SøknadType
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
@@ -42,10 +43,12 @@ import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
+import no.nav.su.se.bakover.web.withStringParam
 import no.nav.su.se.bakover.web.withSøknadId
 import java.time.Clock
 
-internal const val søknadPath = "/soknad"
+internal const val søknadPath = "/soknad/{type}"
+val uføresøknadPath = "/soknad/${SøknadType.UFORE.value}"
 
 internal fun Route.søknadRoutes(
     søknadService: SøknadService,
@@ -55,48 +58,56 @@ internal fun Route.søknadRoutes(
 ) {
     post(søknadPath) {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
-            Either.catch { deserialize<SøknadsinnholdJson>(call) }.fold(
-                ifLeft = {
-                    call.application.environment.log.info(it.message, it)
-                    call.svar(Feilresponser.ugyldigBody)
-                },
-                ifRight = {
-                    val identBruker = when (it.forNav) {
-                        is SøknadsinnholdUføreJson.ForNavJson.DigitalSøknad -> NavIdentBruker.Veileder(call.suUserContext.navIdent)
-                        is SøknadsinnholdUføreJson.ForNavJson.Papirsøknad -> NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
+            call.withStringParam("type") { søknadstype ->
+                Either.catch {
+                    when (søknadstype.lowercase()) {
+                        SøknadType.UFORE.value -> deserialize<SøknadsinnholdUføreJson>(call)
+                        SøknadType.ALDER.value -> deserialize<SøknadsinnholdAlderJson>(call)
+                        else -> throw IllegalArgumentException("Ukjent søknadstype: $søknadstype")
                     }
-                    søknadService.nySøknad(it.toSøknadsinnhold(), identBruker).fold(
-                        { kunneIkkeOppretteSøknad ->
-                            call.svar(
-                                when (kunneIkkeOppretteSøknad) {
-                                    KunneIkkeOppretteSøknad.FantIkkePerson -> Feilresponser.fantIkkePerson
-                                },
-                            )
-                        },
-                        { (saksnummer, søknad) ->
-                            call.audit(søknad.søknadInnhold.personopplysninger.fnr, AuditLogEvent.Action.CREATE, null)
-                            call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
-                            SuMetrics.søknadMottatt(
-                                if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad)
-                                    SuMetrics.Søknadstype.PAPIR
-                                else
-                                    SuMetrics.Søknadstype.DIGITAL,
-                            )
-                            call.svar(
-                                Resultat.json(
-                                    Created,
-                                    serialize(
-                                        OpprettetSøknadJson(
-                                            saksnummer = saksnummer.nummer,
-                                            søknad = søknad.toJson(),
+                }.fold(
+                    ifLeft = {
+                        call.application.environment.log.info(it.message, it)
+                        call.svar(Feilresponser.ugyldigBody)
+                    },
+                    ifRight = {
+                        val identBruker = when (it.forNav) {
+                            is SøknadsinnholdUføreJson.ForNavJson.DigitalSøknad -> NavIdentBruker.Veileder(call.suUserContext.navIdent)
+                            is SøknadsinnholdUføreJson.ForNavJson.Papirsøknad -> NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
+                        }
+                        søknadService.nySøknad(it.toSøknadsinnhold(), identBruker).fold(
+                            { kunneIkkeOppretteSøknad ->
+                                call.svar(
+                                    when (kunneIkkeOppretteSøknad) {
+                                        KunneIkkeOppretteSøknad.FantIkkePerson -> Feilresponser.fantIkkePerson
+                                    },
+                                )
+                            },
+                            { (saksnummer, søknad) ->
+                                call.audit(søknad.søknadInnhold.personopplysninger.fnr, AuditLogEvent.Action.CREATE, null)
+                                call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
+                                SuMetrics.søknadMottatt(
+                                    if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad)
+                                        SuMetrics.Søknadstype.PAPIR
+                                    else
+                                        SuMetrics.Søknadstype.DIGITAL,
+                                )
+                                call.svar(
+                                    Resultat.json(
+                                        Created,
+                                        serialize(
+                                            OpprettetSøknadJson(
+                                                saksnummer = saksnummer.nummer,
+                                                søknad = søknad.toJson(),
+                                            ),
                                         ),
                                     ),
-                                ),
-                            )
-                        },
-                    )
-                },
-            )
+                                )
+                            },
+                        )
+                    },
+                )
+            }
         }
     }
 

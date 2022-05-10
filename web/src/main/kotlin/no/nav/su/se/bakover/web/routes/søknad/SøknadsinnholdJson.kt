@@ -11,10 +11,12 @@ import no.nav.su.se.bakover.domain.Flyktningsstatus
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.Formue
+import no.nav.su.se.bakover.domain.HarSøktAlderspensjon
 import no.nav.su.se.bakover.domain.InnlagtPåInstitusjon
 import no.nav.su.se.bakover.domain.InntektOgPensjon
 import no.nav.su.se.bakover.domain.Kjøretøy
 import no.nav.su.se.bakover.domain.Oppholdstillatelse
+import no.nav.su.se.bakover.domain.OppholdstillatelseAlder
 import no.nav.su.se.bakover.domain.PensjonsOrdningBeløp
 import no.nav.su.se.bakover.domain.Personopplysninger
 import no.nav.su.se.bakover.domain.Søknadsinnhold
@@ -25,6 +27,8 @@ import no.nav.su.se.bakover.domain.Uførevedtak
 import no.nav.su.se.bakover.domain.Utenlandsopphold
 import no.nav.su.se.bakover.domain.UtenlandsoppholdPeriode
 import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdAlderJson.Companion.toSøknadsinnholdAlderJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdAlderJson.HarSøktAlderspensjonJson.Companion.toHarSøktAlderspensjonJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdAlderJson.OppholdstillatelseAlderJson.Companion.toOppholdstillatelseAlderJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson.BoforholdJson.Companion.toBoforholdJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson.Companion.toSøknadsinnholdUføreJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson.EktefelleJson.Companion.toJson
@@ -50,9 +54,10 @@ import java.time.format.DateTimeFormatter
     property = "type",
 )
 @JsonSubTypes(
-    JsonSubTypes.Type(value = SøknadsinnholdAlderJson::class, name = "SøknadsinnholdAlder"),
-    JsonSubTypes.Type(value = SøknadsinnholdUføreJson::class, name = "SøknadsinnholdUføre"),
+    JsonSubTypes.Type(value = SøknadsinnholdAlderJson::class, name = "alder"),
+    JsonSubTypes.Type(value = SøknadsinnholdUføreJson::class, name = "ufore"),
 )
+
 sealed interface SøknadsinnholdJson {
     val personopplysninger: SøknadsinnholdUføreJson.PersonopplysningerJson
     val boforhold: SøknadsinnholdUføreJson.BoforholdJson
@@ -81,6 +86,8 @@ sealed interface SøknadsinnholdJson {
 }
 
 data class SøknadsinnholdAlderJson(
+    val harSøktAlderspensjon: HarSøktAlderspensjonJson,
+    val oppholdstillatelseAlder: OppholdstillatelseAlderJson,
     override val personopplysninger: SøknadsinnholdUføreJson.PersonopplysningerJson,
     override val boforhold: SøknadsinnholdUføreJson.BoforholdJson,
     override val utenlandsopphold: SøknadsinnholdUføreJson.UtenlandsoppholdJson,
@@ -93,6 +100,8 @@ data class SøknadsinnholdAlderJson(
 
     fun toSøknadsinnholdAlder(): SøknadsinnholdAlder {
         return SøknadsinnholdAlder(
+            harSøktAlderspensjon = harSøktAlderspensjon.toHarSøktAlderspensjon(),
+            oppholdstillatelseAlder = oppholdstillatelseAlder.toOppholdstillatelseAlder(),
             personopplysninger = personopplysninger.toPersonopplysninger(),
             boforhold = boforhold.toBoforhold(),
             utenlandsopphold = utenlandsopphold.toUtenlandsopphold(),
@@ -104,9 +113,34 @@ data class SøknadsinnholdAlderJson(
         )
     }
 
+    data class HarSøktAlderspensjonJson(
+        val harSøktAlderspensjon: Boolean,
+    ) {
+        fun toHarSøktAlderspensjon() = HarSøktAlderspensjon(harSøktAlderspensjon)
+
+        companion object {
+            fun HarSøktAlderspensjon.toHarSøktAlderspensjonJson() =
+                HarSøktAlderspensjonJson(this.harSøktAlderspensjon)
+        }
+    }
+
+    data class OppholdstillatelseAlderJson(
+        val eøsborger: Boolean,
+        val familieforening: Boolean
+    ) {
+        fun toOppholdstillatelseAlder() = OppholdstillatelseAlder(eøsborger = eøsborger, familieforening = familieforening)
+
+        companion object {
+            fun OppholdstillatelseAlder.toOppholdstillatelseAlderJson() =
+                OppholdstillatelseAlderJson(eøsborger = this.eøsborger, familieforening = this.familieforening)
+        }
+    }
+
     companion object {
         fun SøknadsinnholdAlder.toSøknadsinnholdAlderJson(): SøknadsinnholdAlderJson {
             return SøknadsinnholdAlderJson(
+                harSøktAlderspensjon = harSøktAlderspensjon.toHarSøktAlderspensjonJson(),
+                oppholdstillatelseAlder = oppholdstillatelseAlder.toOppholdstillatelseAlderJson(),
                 personopplysninger = personopplysninger.toPersonopplysningerJson(),
                 boforhold = boforhold.toBoforholdJson(),
                 utenlandsopphold = utenlandsopphold.toUtenlandsoppholdJson(),

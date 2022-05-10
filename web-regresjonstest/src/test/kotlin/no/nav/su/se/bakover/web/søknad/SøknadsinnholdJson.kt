@@ -50,7 +50,7 @@ private fun søknadsinnholdUføreJson(
     //language=JSON
     return """
     {
-    "type": "SøknadsinnholdUføre",
+      "type": "ufore",
       "uførevedtak":{
         "harUførevedtak":true
       },
