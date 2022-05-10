@@ -42,6 +42,16 @@ medVedtak as (
 	from revurdering b
 		join behandling_vedtak bv on bv.revurderingid = b.id
 		join vedtak v on bv.vedtakid = v.id
+    union
+	    select
+            b.id,
+            v.vedtaktype,
+            null,
+            periode->>'fraOgMed' as fom,
+            periode->>'tilOgMed' as tom,
+            b.opprettet
+    from regulering b join behandling_vedtak bv on b.id = bv.reguleringid join vedtak v on bv.vedtakid = v.id
+
 ),
 utenVedtak as (
 	select
@@ -141,6 +151,8 @@ forventet as (
 		select count(*) as antall from behandling where not lukket
 		union
 		select count(*) as antall from revurdering where avsluttet is null
+        union
+        select count(*) as antall from regulering where regulering.reguleringstatus = 'IVERKSATT'
 	) as antallTotalt
 ),
 nyeGrunnlag as (
