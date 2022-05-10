@@ -5,7 +5,6 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.util.pipeline.PipelineContext
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.ErrorJson
 
@@ -13,26 +12,18 @@ suspend fun PipelineContext<Unit, ApplicationCall>.authorize(
     vararg autoriserteRoller: Brukerrolle,
     build: suspend PipelineContext<Unit, ApplicationCall>.() -> Unit,
 ) {
-    try {
-        /**
-         * Det er løgn at kallet til [suUserContext] alltid er trygt (null-safe) her. Det er en forutsetning at vi har vært innom
-         * [brukerinfoPlugin] og satt den først.
-         */
-        val autorisert = autoriserteRoller.any { call.suUserContext.roller.contains(it) }
+    /**
+     * Det er løgn at kallet til [suUserContext] alltid er trygt (null-safe) her. Det er en forutsetning at vi har vært innom
+     * [brukerinfoPlugin] og satt den først.
+     */
+    val autorisert = autoriserteRoller.any { call.suUserContext.roller.contains(it) }
 
-        if (!autorisert) {
-            call.respond(
-                status = HttpStatusCode.Forbidden,
-                message = ErrorJson("Bruker mangler en av de tillatte rollene: ${autoriserteRoller.toList()}"),
-            )
-        } else {
-            build()
-        }
-    } catch (ex: Throwable) {
-        log.error("Ukjent feil ved tilgangssjekk", ex)
+    if (!autorisert) {
         call.respond(
-            status = HttpStatusCode.InternalServerError,
-            message = ErrorJson("Ukjent feil ved tilgangssjekk"),
+            status = HttpStatusCode.Forbidden,
+            message = ErrorJson("Bruker mangler en av de tillatte rollene: ${autoriserteRoller.toList()}"),
         )
+    } else {
+        build()
     }
 }
