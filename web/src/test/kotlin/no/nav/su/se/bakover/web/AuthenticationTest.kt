@@ -1,9 +1,15 @@
 package no.nav.su.se.bakover.web
 
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.headers
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.testing.testApplication
@@ -38,6 +44,23 @@ internal class AuthenticationTest {
             }
             defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder)).apply {
                 assertEquals(OK, status)
+            }
+        }
+    }
+
+    @Test
+    fun `svarer med 500 hvis brukerinformasjon ikke lar seg hente`() {
+        testApplication {
+            application {
+                testSusebakover()
+            }
+            client.get(secureEndpoint) {
+                headers {
+                    append(HttpHeaders.Authorization, jwtStub.createJwtToken(navIdent = null).asBearerToken())
+                }
+            }.apply {
+                status shouldBe InternalServerError
+                bodyAsText() shouldContain "Ukjent feil ved uthenting av brukerinformasjon"
             }
         }
     }

@@ -63,33 +63,33 @@ fun Route.withUser(applicationConfig: ApplicationConfig, build: Route.() -> Unit
 
 data class BrukerinfoPluginConfig(val applicationConfig: ApplicationConfig)
 
-fun brukerinfoPlugin(
+private fun brukerinfoPlugin(
     config: () -> BrukerinfoPluginConfig,
 ): RouteScopedPlugin<BrukerinfoPluginConfig> {
     return createRouteScopedPlugin("SuBrukerPlugin", config) {
         on(AuthenticationChecked) { call ->
-            try {
-                when {
-                    call.isHandled -> {
-                        /** En annen plugin i pipelinen har allerede gitt en respons på kallet, ikke gjør noe. */
-                    }
-                    call.authentication.principal == null -> {
-                        /**
-                         * Krev at autentiseringen er gjennomført før vi henter ut brukerinfo fra token.
-                         * Rekkefølgen her er viktig, og styres pt av hvor i route-hierarkiet man kaller på [withUser]
-                         */
-                        call.respond(UnauthorizedResponse())
-                    }
-                    else -> {
+            when {
+                call.isHandled -> {
+                    /** En annen plugin i pipelinen har allerede gitt en respons på kallet, ikke gjør noe. */
+                }
+                call.authentication.principal == null -> {
+                    /**
+                     * Krev at autentiseringen er gjennomført før vi henter ut brukerinfo fra token.
+                     * Rekkefølgen her er viktig, og styres pt av hvor i route-hierarkiet man kaller på [withUser]
+                     */
+                    call.respond(UnauthorizedResponse())
+                }
+                else -> {
+                    try {
                         SuUserContext.init(call, pluginConfig.applicationConfig)
+                    } catch (ex: Throwable) {
+                        log.error("Ukjent feil ved uthenting av brukerinformasjon", ex)
+                        call.respond(
+                            status = HttpStatusCode.InternalServerError,
+                            message = ErrorJson("Ukjent feil ved uthenting av brukerinformasjon"),
+                        )
                     }
                 }
-            } catch (ex: Throwable) {
-                log.error("Ukjent feil ved uthenting av brukerinformasjon", ex)
-                call.respond(
-                    status = HttpStatusCode.InternalServerError,
-                    message = ErrorJson("Ukjent feil ved uthenting av brukerinformasjon"),
-                )
             }
         }
     }
