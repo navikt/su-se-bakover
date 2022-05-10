@@ -175,25 +175,12 @@ suspend fun ApplicationTestBuilder.defaultRequest(
         this.method = method
         this.headers {
             append(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-            append(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken())
-        }
-        setup()
-    }
-}
-
-suspend fun ApplicationTestBuilder.requestSomAttestant(
-    method: HttpMethod,
-    uri: String,
-    navIdent: String? = null,
-    setup: HttpRequestBuilder.() -> Unit = {},
-): HttpResponse {
-    return this.client.request(uri) {
-        this.method = method
-        this.headers {
-            append(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
             append(
                 HttpHeaders.Authorization,
-                jwtStub.createJwtToken(roller = listOf(Brukerrolle.Attestant), navIdent = navIdent).asBearerToken(),
+                jwtStub.createJwtToken(
+                    roller = roller,
+                    navIdent = navIdent,
+                ).asBearerToken(),
             )
         }
         setup()
@@ -203,6 +190,23 @@ suspend fun ApplicationTestBuilder.requestSomAttestant(
 suspend fun ApplicationTestBuilder.requestSomAttestant(
     method: HttpMethod,
     uri: String,
+    navIdent: String? = navIdentAttestant,
+    setup: HttpRequestBuilder.() -> Unit = {},
 ): HttpResponse {
-    return requestSomAttestant(method = method, uri = uri, navIdent = null) {}
+    return this.client.request(uri) {
+        this.method = method
+        this.headers {
+            append(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+            append(
+                HttpHeaders.Authorization,
+                jwtStub.createJwtToken(
+                    roller = listOf(Brukerrolle.Attestant),
+                    navIdent = navIdent,
+                ).asBearerToken(),
+            )
+        }
+        setup()
+    }
 }
+
+val navIdentAttestant = "random-attestant-id"

@@ -747,28 +747,30 @@ internal class SøknadsbehandlingRoutesKtTest {
         fun `Feiler dersom man ikke får sendt til utbetaling`() {
             withMigratedDb { dataSource ->
                 val repos = repos(dataSource)
-                val services = services(repos)
+                val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
+                    utbetalingPublisher = object : UtbetalingPublisher {
+                        override fun publish(
+                            utbetaling: Utbetaling.SimulertUtbetaling,
+                        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
+                            UtbetalingPublisher.KunneIkkeSendeUtbetaling(
+                                Utbetalingsrequest(""),
+                            ).left()
+
+                        override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
+                            utbetalingsrequest.right()
+
+                        override fun generateRequest(utbetaling: Utbetaling.SimulertUtbetaling): Utbetalingsrequest =
+                            Utbetalingsrequest("")
+                    },
+                )
+                val services = services(databaseRepos = repos, clients = clients)
+
                 testApplication {
                     application {
                         testSusebakover(
+                            clients = clients,
                             services = services,
                             databaseRepos = repos,
-                            clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
-                                utbetalingPublisher = object : UtbetalingPublisher {
-                                    override fun publish(
-                                        utbetaling: Utbetaling.SimulertUtbetaling,
-                                    ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
-                                        UtbetalingPublisher.KunneIkkeSendeUtbetaling(
-                                            Utbetalingsrequest(""),
-                                        ).left()
-
-                                    override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
-                                        utbetalingsrequest.right()
-
-                                    override fun generateRequest(utbetaling: Utbetaling.SimulertUtbetaling): Utbetalingsrequest =
-                                        Utbetalingsrequest("")
-                                },
-                            ),
                         )
                     }
                     val objects = setupMedAlleVilkårOppfylt(services, repos)
@@ -799,6 +801,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/iverksett",
                     ).apply {
                         status shouldBe HttpStatusCode.InternalServerError
+                        bodyAsText() shouldContain "Kunne ikke utføre utbetaling"
                     }
                 }
             }
