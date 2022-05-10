@@ -19,7 +19,6 @@ data class UserData(
     val roller: List<Brukerrolle>
 )
 
-@OptIn(io.ktor.server.locations.KtorExperimentalLocationsAPI::class)
 internal fun Route.meRoutes(applicationConfig: ApplicationConfig, azureGroupMapper: AzureGroupMapper) {
     get("/me") {
         val roller =

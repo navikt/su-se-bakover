@@ -10,7 +10,6 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.locations.Locations
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.callid.CallId
 import io.ktor.server.plugins.callid.callIdMdc
@@ -82,7 +81,6 @@ fun main() {
     }.start(true)
 }
 
-@OptIn(io.ktor.server.locations.KtorExperimentalLocationsAPI::class)
 fun Application.susebakover(
     clock: Clock = Clock.systemUTC(),
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
@@ -159,8 +157,6 @@ fun Application.susebakover(
 
     configureAuthentication(clients.oauth, applicationConfig, clients.tokenOppslag)
     val azureGroupMapper = AzureGroupMapper(applicationConfig.azure.groups)
-
-    install(Locations)
 
     install(ContentNegotiation) {
         register(ContentType.Application.Json, JacksonConverter(objectMapper))
