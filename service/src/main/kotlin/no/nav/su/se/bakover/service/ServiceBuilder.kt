@@ -176,7 +176,7 @@ object ServiceBuilder {
             oppgaveService = oppgaveService,
             journalpostClient = clients.journalpostClient,
             clock = clock,
-        )
+        ).apply { addObserver(statistikkService) }
         val klageinstanshendelseService = KlageinstanshendelseServiceImpl(
             klageinstanshendelseRepo = databaseRepos.klageinstanshendelseRepo,
             klageRepo = databaseRepos.klageRepo,

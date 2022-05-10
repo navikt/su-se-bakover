@@ -31,20 +31,13 @@ internal class StatistikkServiceImpl(
             is Statistikk.Stønad -> schemaValidator.validerStønad(json)
         }
         if (isValid) {
-            when (statistikk) {
-                is Statistikk.Sak -> publisher.publiser(
-                    topic = "supstonad.aapen-su-sak-statistikk-v1",
-                    melding = json
-                )
-                is Statistikk.Behandling -> publisher.publiser(
-                    topic = "supstonad.aapen-su-behandling-statistikk-v1",
-                    melding = json
-                )
-                is Statistikk.Stønad -> publisher.publiser(
-                    topic = "supstonad.aapen-su-stonad-statistikk-v1",
-                    melding = json
-                )
+            val topic = when (statistikk) {
+                is Statistikk.Sak -> "supstonad.aapen-su-sak-statistikk-v1"
+                is Statistikk.Behandling -> "supstonad.aapen-su-behandling-statistikk-v1"
+                is Statistikk.Stønad -> "supstonad.aapen-su-stonad-statistikk-v1"
             }
+
+            publisher.publiser(topic = topic, melding = json)
         } else {
             log.error("Statistikk-objekt validerer ikke mot json-schema!")
         }
@@ -63,12 +56,8 @@ internal class StatistikkServiceImpl(
                 publiser(BehandlingStatistikkMapper(clock).map(event.søknad, event.saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_MOTTATT))
             is Event.Statistikk.SøknadStatistikk.SøknadLukket ->
                 publiser(BehandlingStatistikkMapper(clock).map(event.søknad, event.saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_LUKKET))
-            is Event.Statistikk.SøknadsbehandlingStatistikk -> {
-                publiser(BehandlingStatistikkMapper(clock).map(event.søknadsbehandling))
-            }
-            is Event.Statistikk.RevurderingStatistikk -> {
-                publiser(BehandlingStatistikkMapper(clock).map(event.revurdering))
-            }
+            is Event.Statistikk.SøknadsbehandlingStatistikk -> publiser(BehandlingStatistikkMapper(clock).map(event.søknadsbehandling))
+            is Event.Statistikk.RevurderingStatistikk -> publiser(BehandlingStatistikkMapper(clock).map(event.revurdering))
             is Event.Statistikk.Vedtaksstatistikk -> {
                 sakRepo.hentSak(event.vedtak.behandling.sakId)!!.let { sak ->
                     personService.hentAktørIdMedSystembruker(sak.fnr).fold(
@@ -85,6 +74,7 @@ internal class StatistikkServiceImpl(
             }
             is Event.Statistikk.RevurderingStatistikk.Gjenoppta -> publiser(BehandlingStatistikkMapper(clock).map(event.gjenoppta))
             is Event.Statistikk.RevurderingStatistikk.Stans -> publiser(BehandlingStatistikkMapper(clock).map(event.stans))
+            is Event.Statistikk.Klagestatistikk -> publiser(BehandlingStatistikkMapper(clock).map(event.klage))
         }
     }
 }

@@ -8,6 +8,8 @@ import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.avsluttetKlage
 import no.nav.su.se.bakover.test.avvistKlage
 import no.nav.su.se.bakover.test.avvistKlageTilAttestering
@@ -15,6 +17,7 @@ import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
@@ -157,6 +160,7 @@ internal class AvsluttKlageTest {
     private fun kanAvslutteKlage(
         klage: Klage,
     ) {
+        val observerMock: EventObserver = mock { on { handle(any()) }.then {} }
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -164,6 +168,7 @@ internal class AvsluttKlageTest {
             oppgaveService = mock {
                 on { lukkOppgave(any()) } doReturn Unit.right()
             },
+            observer = observerMock,
         )
         val saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler som avsluttet klagen")
         val begrunnelse = "Begrunnelse for å avslutte klagen"
@@ -171,7 +176,10 @@ internal class AvsluttKlageTest {
             klageId = klage.id,
             saksbehandler = saksbehandler,
             begrunnelse = begrunnelse,
-        ) shouldBe AvsluttetKlage(klage, saksbehandler, begrunnelse, fixedTidspunkt).right()
+        ).let {
+            it shouldBe AvsluttetKlage(klage, saksbehandler, begrunnelse, fixedTidspunkt).right()
+            verify(observerMock).handle(argThat { actual -> actual shouldBe Event.Statistikk.Klagestatistikk.Avsluttet(it.getOrFail()) })
+        }
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).defaultTransactionContext()

@@ -47,6 +47,9 @@ import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.service.statistikk.notify
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -67,6 +70,11 @@ class KlageServiceImpl(
 ) : KlageService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
+    private val observers: MutableList<EventObserver> = mutableListOf()
+
+    fun addObserver(observer: EventObserver) {
+        observers.add(observer)
+    }
 
     override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
         request.validate().getOrHandle { return it.left() }
@@ -104,6 +112,7 @@ class KlageServiceImpl(
             clock = clock,
         ).also {
             klageRepo.lagre(it)
+            observers.notify(Event.Statistikk.Klagestatistikk.Opprettet(it))
         }.right()
     }
 
@@ -321,6 +330,7 @@ class KlageServiceImpl(
             return KunneIkkeOversendeKlage.KunneIkkeOversendeTilKlageinstans.left()
         }
         oppgaveService.lukkOppgave(oversendtKlage.oppgaveId)
+        observers.notify(Event.Statistikk.Klagestatistikk.Oversendt(oversendtKlage))
         return oversendtKlage.right()
     }
 
@@ -383,6 +393,7 @@ class KlageServiceImpl(
         }
 
         oppgaveService.lukkOppgave(avvistKlage.oppgaveId)
+        observers.notify(Event.Statistikk.Klagestatistikk.Avvist(avvistKlage))
         return avvistKlage.right()
     }
 
@@ -419,15 +430,16 @@ class KlageServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
         begrunnelse: String,
     ): Either<KunneIkkeAvslutteKlage, AvsluttetKlage> {
-        return klageRepo.hentKlage(klageId)
-            ?.avslutt(
-                saksbehandler = saksbehandler,
-                begrunnelse = begrunnelse,
-                tidspunktAvsluttet = Tidspunkt.now(clock),
-            )
-            ?.tap {
-                klageRepo.lagre(it)
-                oppgaveService.lukkOppgave(it.oppgaveId)
-            } ?: return KunneIkkeAvslutteKlage.FantIkkeKlage.left()
+        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeAvslutteKlage.FantIkkeKlage.left()
+
+        return klage.avslutt(
+            saksbehandler = saksbehandler,
+            begrunnelse = begrunnelse,
+            tidspunktAvsluttet = Tidspunkt.now(clock),
+        ).tap {
+            klageRepo.lagre(it)
+            oppgaveService.lukkOppgave(it.oppgaveId)
+            observers.notify(Event.Statistikk.Klagestatistikk.Avsluttet(it))
+        }
     }
 }
