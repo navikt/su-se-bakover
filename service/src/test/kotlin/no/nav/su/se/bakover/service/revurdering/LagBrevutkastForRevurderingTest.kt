@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
@@ -269,7 +268,6 @@ internal class LagBrevutkastForRevurderingTest {
                 } doReturn sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail().right()
             },
         ).beregnOgSimuler(
@@ -328,7 +326,6 @@ internal class LagBrevutkastForRevurderingTest {
                     } doReturn sak.kopierGjeldendeVedtaksdata(
                         fraOgMed = revurdering.periode.fraOgMed,
                         clock = fixedClock,
-                        formuegrenserFactory = formuegrenserFactoryTest,
                     ).getOrFail()
                         .right()
                 },

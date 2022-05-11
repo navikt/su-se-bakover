@@ -52,7 +52,6 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
@@ -257,7 +256,6 @@ internal class OppdaterRevurderingServiceTest {
             periode = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -338,7 +336,6 @@ internal class OppdaterRevurderingServiceTest {
             periode = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -435,7 +432,6 @@ internal class OppdaterRevurderingServiceTest {
             periode = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -542,7 +538,6 @@ internal class OppdaterRevurderingServiceTest {
                 andreVedtak,
             ),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -606,7 +601,6 @@ internal class OppdaterRevurderingServiceTest {
                     periode = revurderingsperiode,
                     vedtakListe = NonEmptyList.fromListUnsafe(sak3.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()),
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).right()
             },
             avkortingsvarselRepo = mock {
@@ -656,7 +650,6 @@ internal class OppdaterRevurderingServiceTest {
                 on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = nyRevurderingsperiode.fraOgMed,
                     clock = clock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail().right()
             },
             personService = mock {

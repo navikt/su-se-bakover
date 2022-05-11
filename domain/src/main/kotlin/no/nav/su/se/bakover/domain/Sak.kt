@@ -94,7 +94,6 @@ data class Sak(
     fun kopierGjeldendeVedtaksdata(
         fraOgMed: LocalDate,
         clock: Clock,
-        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
         return vedtakListe
             .filterIsInstance<VedtakSomKanRevurderes>()
@@ -118,7 +117,6 @@ data class Sak(
                         hentGjeldendeVedtaksdata(
                             periode = it,
                             clock = clock,
-                            formuegrenserFactory = formuegrenserFactory,
                         )
                     }
             }
@@ -127,7 +125,6 @@ data class Sak(
     fun hentGjeldendeVedtaksdata(
         periode: Periode,
         clock: Clock,
-        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes, GjeldendeVedtaksdata> {
         return vedtakListe
             .filterIsInstance<VedtakSomKanRevurderes>()
@@ -137,7 +134,6 @@ data class Sak(
                     periode = periode,
                     vedtakListe = NonEmptyList.fromListUnsafe(vedtakSomKanRevurderes),
                     clock = clock,
-                    formuegrenserFactory = formuegrenserFactory,
                 ).right()
             }
     }
@@ -163,7 +159,6 @@ data class Sak(
     fun hentGjeldendeMånedsberegningForMåned(
         måned: Måned,
         clock: Clock,
-        formuegrenserFactory: FormuegrenserFactory,
     ): Månedsberegning? {
         return GjeldendeVedtaksdata(
             periode = måned,
@@ -175,7 +170,6 @@ data class Sak(
                     },
             ),
             clock = clock,
-            formuegrenserFactory = formuegrenserFactory,
         ).gjeldendeVedtakPåDato(måned.fraOgMed)?.let {
             when (it) {
                 is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> it.beregning
@@ -294,7 +288,6 @@ data class Sak(
         hentGjeldendeVedtaksdata(
             periode = stønadsperiode.periode,
             clock = clock,
-            formuegrenserFactory = formuegrenserFactory,
         ).map {
             if (it.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold()) {
                 val alleUtbetalingerErOpphørt =
@@ -376,7 +369,7 @@ data class Sak(
         }.single()
 
         val gjeldendeVedtaksdata =
-            this.hentGjeldendeVedtaksdata(periode = periode, clock = clock, formuegrenserFactory = formuegrenserFactory)
+            this.hentGjeldendeVedtaksdata(periode = periode, clock = clock)
                 .getOrHandle { feil ->
                     log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
                     return KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()

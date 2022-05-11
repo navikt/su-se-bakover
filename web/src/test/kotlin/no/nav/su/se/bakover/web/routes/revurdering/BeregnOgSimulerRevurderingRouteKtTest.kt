@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -95,7 +94,6 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
                 beregningStrategyFactory = beregningStrategyFactoryTest(),
             ).getOrFail()

@@ -41,7 +41,6 @@ import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
@@ -518,7 +517,6 @@ internal class ReguleringServiceImplTest {
             sak.kopierGjeldendeVedtaksdata(
                 fraOgMed = reguleringsdato,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail(),
             sak.utbetalingstidslinje().gjeldendeForDato(reguleringsdato),
         )

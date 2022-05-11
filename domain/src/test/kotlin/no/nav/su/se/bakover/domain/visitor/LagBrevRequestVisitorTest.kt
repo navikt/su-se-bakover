@@ -1347,7 +1347,6 @@ internal class LagBrevRequestVisitorTest {
             gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                 fraOgMed = revurdering.periode.fraOgMed,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail(),
             beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
         ).getOrFail().let {

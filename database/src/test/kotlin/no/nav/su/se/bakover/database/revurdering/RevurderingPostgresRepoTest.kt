@@ -37,7 +37,6 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksbehandler
@@ -73,7 +72,6 @@ internal class RevurderingPostgresRepoTest {
             periode = år(2021),
             vedtakListe = nonEmptyListOf(vedtak),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
         )
 
         return OpprettetRevurdering(

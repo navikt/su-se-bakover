@@ -37,7 +37,6 @@ import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.satsFactoryTest
@@ -215,7 +214,6 @@ internal class VedtakServiceImplTest {
             periode = år(2021),
             vedtakListe = nonEmptyListOf(sakOgVedtak1.second),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
         ).right()
     }
 
@@ -255,7 +253,6 @@ internal class VedtakServiceImplTest {
             periode = år(2021),
             vedtakListe = nonEmptyListOf(sakOgVedtak1.second, sakOgVedtak2.second),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
         )
     }
 

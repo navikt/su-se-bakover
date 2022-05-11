@@ -50,7 +50,7 @@ internal class SakServiceImpl(
         return hentSak(sakId)
             .mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak }
             .flatMap { sak ->
-                sak.hentGjeldendeVedtaksdata(periode, clock, satsFactory.formuegrenserFactory)
+                sak.hentGjeldendeVedtaksdata(periode, clock)
                     .mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak }
             }
     }

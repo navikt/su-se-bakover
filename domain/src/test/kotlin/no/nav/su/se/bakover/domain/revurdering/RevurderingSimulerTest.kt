@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurderingAvslagSpesifiktVilkår
@@ -38,7 +37,6 @@ class RevurderingSimulerTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
                 beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let { beregnet ->
@@ -83,7 +81,6 @@ class RevurderingSimulerTest {
                     gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                         fraOgMed = revurdering.periode.fraOgMed,
                         clock = fixedClock,
-                        formuegrenserFactory = formuegrenserFactoryTest,
                     ).getOrFail(),
                     beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
                 ).getOrFail().let { beregnet ->
@@ -115,7 +112,6 @@ class RevurderingSimulerTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
                 beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
@@ -158,7 +154,6 @@ class RevurderingSimulerTest {
                     gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                         fraOgMed = revurdering.periode.fraOgMed,
                         clock = fixedClock,
-                        formuegrenserFactory = formuegrenserFactoryTest,
                     ).getOrFail(),
                     beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
                 ).getOrFail().let {

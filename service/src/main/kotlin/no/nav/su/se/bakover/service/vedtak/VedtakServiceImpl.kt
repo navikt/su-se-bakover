@@ -60,7 +60,7 @@ internal class VedtakServiceImpl(
         return sakService.hentSak(sakId)
             .mapLeft { KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak }
             .flatMap { sak ->
-                sak.kopierGjeldendeVedtaksdata(fraOgMed, clock, satsFactory.formuegrenserFactory)
+                sak.kopierGjeldendeVedtaksdata(fraOgMed, clock)
                     .mapLeft {
                         when (it) {
                             is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {
@@ -96,6 +96,6 @@ internal class VedtakServiceImpl(
             .ifEmpty { return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.IngenTidligereVedtak.left() }
             .let { NonEmptyList.fromListUnsafe(it) }
 
-        return GjeldendeVedtaksdata(vedtak.periode, gjeldendeVedtak, clock, satsFactory.formuegrenserFactory).right()
+        return GjeldendeVedtaksdata(vedtak.periode, gjeldendeVedtak, clock).right()
     }
 }

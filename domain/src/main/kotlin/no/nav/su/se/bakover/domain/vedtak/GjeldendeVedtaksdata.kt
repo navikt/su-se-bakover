@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -23,7 +22,6 @@ data class GjeldendeVedtaksdata(
     private val periode: Periode,
     private val vedtakListe: NonEmptyList<VedtakSomKanRevurderes>,
     private val clock: Clock,
-    private val formuegrenserFactory: FormuegrenserFactory,
 ) {
     val grunnlagsdata: Grunnlagsdata
     val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
@@ -39,43 +37,6 @@ data class GjeldendeVedtaksdata(
 
     private val vilkårsvurderingerFraTidslinje: Vilkårsvurderinger = vedtakPåTidslinje.vilkårsvurderinger()
 
-    // Utleder grunnlagstyper som kan knyttes til vilkår via deres respektive vilkårsvurderinger
-    private val uføreGrunnlagOgVilkår: Vilkår.Uførhet =
-        when (val vilkårsvurderinger = vilkårsvurderingerFraTidslinje) {
-            is Vilkårsvurderinger.Revurdering -> when (val vilkår = vilkårsvurderinger.uføre) {
-                Vilkår.Uførhet.IkkeVurdert -> vilkår
-                is Vilkår.Uførhet.Vurdert -> vilkår
-            }
-            is Vilkårsvurderinger.Søknadsbehandling -> when (val vilkår = vilkårsvurderinger.uføre) {
-                Vilkår.Uførhet.IkkeVurdert -> vilkår
-                is Vilkår.Uførhet.Vurdert -> vilkår
-            }
-        }
-
-    private val formuevilkårOgGrunnlag: Vilkår.Formue =
-        when (val vilkårsvurderinger = vilkårsvurderingerFraTidslinje) {
-            is Vilkårsvurderinger.Revurdering -> when (val vilkår = vilkårsvurderinger.formue) {
-                is Vilkår.Formue.IkkeVurdert -> vilkår
-                is Vilkår.Formue.Vurdert -> vilkår
-            }
-            is Vilkårsvurderinger.Søknadsbehandling -> when (val vilkår = vilkårsvurderinger.formue) {
-                is Vilkår.Formue.IkkeVurdert -> vilkår
-                is Vilkår.Formue.Vurdert -> vilkår
-            }
-        }
-
-    private val utlandsoppholdvilkårOgGrunnlag: UtenlandsoppholdVilkår =
-        when (val vilkårsvurderinger = vilkårsvurderingerFraTidslinje) {
-            is Vilkårsvurderinger.Revurdering -> when (val vilkår = vilkårsvurderinger.utenlandsopphold) {
-                UtenlandsoppholdVilkår.IkkeVurdert -> vilkår
-                is UtenlandsoppholdVilkår.Vurdert -> vilkår
-            }
-            is Vilkårsvurderinger.Søknadsbehandling -> when (val vilkår = vilkårsvurderinger.utenlandsopphold) {
-                UtenlandsoppholdVilkår.IkkeVurdert -> vilkår
-                is UtenlandsoppholdVilkår.Vurdert -> vilkår
-            }
-        }
-
     // TODO istedenfor å bruke constructor + init, burde GjeldendeVedtaksdata ha en tryCreate
     init {
         grunnlagsdata = Grunnlagsdata.create(
@@ -87,9 +48,9 @@ data class GjeldendeVedtaksdata(
             }.slåSammenPeriodeOgBosituasjon(),
         )
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-            uføre = uføreGrunnlagOgVilkår,
-            formue = formuevilkårOgGrunnlag,
-            utenlandsopphold = utlandsoppholdvilkårOgGrunnlag,
+            uføre = vilkårsvurderingerFraTidslinje.uføreVilkår(),
+            formue = vilkårsvurderingerFraTidslinje.formueVilkår(),
+            utenlandsopphold = vilkårsvurderingerFraTidslinje.utenlandsoppholdVilkår(),
         )
         grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = grunnlagsdata,

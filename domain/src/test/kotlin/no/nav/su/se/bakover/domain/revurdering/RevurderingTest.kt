@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
@@ -43,7 +42,6 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
                 beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
@@ -63,7 +61,6 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
                 beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
@@ -114,7 +111,6 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
                 beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
@@ -141,7 +137,6 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
                 beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
@@ -160,7 +155,6 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
                 beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
@@ -190,7 +184,6 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
                 beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
@@ -213,7 +206,6 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
                 beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
@@ -243,7 +235,6 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
                 beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
@@ -270,7 +261,6 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
                 beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {
@@ -305,7 +295,6 @@ internal class RevurderingTest {
                 gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
                 beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).getOrFail().let {

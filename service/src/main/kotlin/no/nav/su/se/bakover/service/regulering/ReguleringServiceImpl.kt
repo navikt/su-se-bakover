@@ -166,7 +166,6 @@ class ReguleringServiceImpl(
         val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
             fraOgMed = regulering.periode.fraOgMed,
             clock = clock,
-            formuegrenserFactory = satsFactory.formuegrenserFactory,
         )
             .getOrHandle { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
 

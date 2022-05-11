@@ -83,7 +83,6 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         periode = revurderingsperiode,
         clock = clock,
-        formuegrenserFactory = formuegrenserFactoryTest,
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     avkorting: AvkortingVedRevurdering.Uhåndtert = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
@@ -138,7 +137,6 @@ fun opprettRevurderingFraSaksopplysninger(
     val gjeldendeVedtaksdata = sakOgVedtakSomKanRevurderes.first.kopierGjeldendeVedtaksdata(
         fraOgMed = revurderingsperiode.fraOgMed,
         clock = clock,
-        formuegrenserFactory = formuegrenserFactory,
     ).getOrFail()
 
     val gjeldendeVedtak = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(revurderingsperiode.fraOgMed)
@@ -251,7 +249,6 @@ fun beregnetRevurdering(
             gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
-                formuegrenserFactory = formuegrenserFactory,
             ).getOrFail(),
             beregningStrategyFactory = BeregningStrategyFactory(
                 clock = clock,
@@ -583,7 +580,6 @@ fun opprettetRevurderingAvslagSpesifiktVilkår(
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         periode = revurderingsperiode,
         clock = clock,
-        formuegrenserFactory = formuegrenserFactoryTest,
     ).let {
         it.copy(
             vilkårsvurderinger = it.vilkårsvurderinger.leggTil(avslåttVilkår),
@@ -617,7 +613,6 @@ fun opprettetRevurderingAvslagUføre(
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         periode = revurderingsperiode,
         clock = clock,
-        formuegrenserFactory = formuegrenserFactoryTest,
     ).let {
         it.copy(
             vilkårsvurderinger = it.vilkårsvurderinger.leggTil(avslåttVilkår),
@@ -675,7 +670,6 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
-                formuegrenserFactory = formuegrenserFactory,
             ).getOrFail(),
             beregningStrategyFactory = BeregningStrategyFactory(
                 clock = clock,
@@ -725,7 +719,6 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         periode = revurderingsperiode,
         clock = clock,
-        formuegrenserFactory = formuegrenserFactoryTest,
     ).let {
         it.copy(
             grunnlagsdata = it.grunnlagsdata.copy(
@@ -764,7 +757,6 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
             gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
-                formuegrenserFactory = formuegrenserFactory,
             ).getOrFail(),
             beregningStrategyFactory = BeregningStrategyFactory(
                 clock = clock,
@@ -796,7 +788,6 @@ fun beregnetRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         periode = revurderingsperiode,
         clock = clock,
-        formuegrenserFactory = formuegrenserFactoryTest,
     ).let {
         it.copy(
             vilkårsvurderinger = it.vilkårsvurderinger.leggTil(vilkårSomFørerTilOpphør),
@@ -820,7 +811,6 @@ fun beregnetRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
             gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
-                formuegrenserFactory = formuegrenserFactory,
             ).getOrFail(),
             beregningStrategyFactory = BeregningStrategyFactory(
                 clock = clock,
@@ -855,7 +845,6 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         periode = revurderingsperiode,
         clock = clock,
-        formuegrenserFactory = formuegrenserFactoryTest,
     ).let {
         it.copy(
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
@@ -883,7 +872,6 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
             gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
-                formuegrenserFactory = formuegrenserFactory,
             ).getOrFail(),
             beregningStrategyFactory = BeregningStrategyFactory(
                 clock = clock,
@@ -908,7 +896,6 @@ fun innvilgetGrunnlagsdataOgVilkårsvurderinger(
 ) = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
     periode = revurderingsperiode,
     clock = clock,
-    formuegrenserFactory = formuegrenserFactoryTest,
 ).let {
     it.copy(
         grunnlagsdata = it.grunnlagsdata.copy(
@@ -995,7 +982,6 @@ fun simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         periode = revurderingsperiode,
         clock = clock,
-        formuegrenserFactory = formuegrenserFactoryTest,
     ).let {
         it.copy(vilkårsvurderinger = it.vilkårsvurderinger.leggTil(vilkårSomFørerTilOpphør))
     },
@@ -1087,7 +1073,6 @@ fun simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         periode = revurderingsperiode,
         clock = clock,
-        formuegrenserFactory = formuegrenserFactoryTest,
     ).let {
         it.copy(vilkårsvurderinger = it.vilkårsvurderinger.leggTil(avslåttUførevilkårUtenGrunnlag(periode = revurderingsperiode)))
     },
@@ -1118,7 +1103,6 @@ fun tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         periode = revurderingsperiode,
         clock = clock,
-        formuegrenserFactory = formuegrenserFactoryTest,
     ).let {
         it.copy(
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
@@ -1168,7 +1152,6 @@ fun iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         periode = revurderingsperiode,
         clock = clock,
-        formuegrenserFactory = formuegrenserFactoryTest,
     ).let {
         it.copy(
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(

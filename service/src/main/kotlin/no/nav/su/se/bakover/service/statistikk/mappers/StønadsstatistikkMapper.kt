@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.stønadsklassifisering
 import java.time.Clock
@@ -69,7 +68,6 @@ class StønadsstatistikkMapper(
                     vedtak = vedtak,
                     sak = sak,
                     clock = clock,
-                    formuegrenserFactory = satsFactory.formuegrenserFactory,
                 )
                 is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> mapBeregning(vedtak, vedtak.beregning)
             },
@@ -100,10 +98,9 @@ private fun mapBeregning(
     vedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse,
     sak: Sak,
     clock: Clock,
-    formuegrenserFactory: FormuegrenserFactory,
 ): List<Statistikk.Stønad.Månedsbeløp> =
     vedtak.periode.måneder().map {
-        sak.hentGjeldendeMånedsberegningForMåned(it, clock, formuegrenserFactory)!!
+        sak.hentGjeldendeMånedsberegningForMåned(it, clock)!!
     }.map {
         tilMånedsbeløp(it, vedtak)
     }
