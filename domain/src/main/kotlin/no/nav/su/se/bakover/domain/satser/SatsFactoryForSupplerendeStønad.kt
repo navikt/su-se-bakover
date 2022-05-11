@@ -6,13 +6,14 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
+import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger(SatsFactoryForSupplerendeStønad::class.java)
 
 class SatsFactoryForSupplerendeStønad(
-    override val grunnbeløpFactory: GrunnbeløpFactory = GrunnbeløpFactory.createFromGrunnbeløp(
+    private val grunnbeløpFactory: GrunnbeløpFactory = GrunnbeløpFactory.createFromGrunnbeløp(
         grunnbeløp = listOf(
             1.mai(2005) to 60699,
             1.mai(2006) to 62892,
@@ -53,8 +54,14 @@ class SatsFactoryForSupplerendeStønad(
 ) : SatsFactory {
     override fun fullSupplerendeStønad(satskategori: Satskategori): FullSupplerendeStønadFactory {
         return when (satskategori) {
-            Satskategori.ORDINÆR -> FullSupplerendeStønadFactory.Ordinær.Ufør(grunnbeløpFactory, minsteÅrligYtelseForUføretrygdede)
-            Satskategori.HØY -> FullSupplerendeStønadFactory.Høy.Ufør(grunnbeløpFactory, minsteÅrligYtelseForUføretrygdede)
+            Satskategori.ORDINÆR -> FullSupplerendeStønadFactory.Ordinær.Ufør(
+                grunnbeløpFactory,
+                minsteÅrligYtelseForUføretrygdede,
+            )
+            Satskategori.HØY -> FullSupplerendeStønadFactory.Høy.Ufør(
+                grunnbeløpFactory,
+                minsteÅrligYtelseForUføretrygdede,
+            )
         }
     }
 
@@ -64,5 +71,9 @@ class SatsFactoryForSupplerendeStønad(
 
     override fun ordinær(måned: Måned): FullSupplerendeStønadForMåned {
         return fullSupplerendeStønad(Satskategori.ORDINÆR).forMåned(måned)
+    }
+
+    override fun grunnbeløp(måned: Måned): GrunnbeløpForMåned {
+        return grunnbeløpFactory.forMåned(måned)
     }
 }

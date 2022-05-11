@@ -185,7 +185,7 @@ internal class LagBrevRequestVisitorTest {
                         harEktefelle = false,
                         beregning = null,
                         formuegrunnlag = null,
-                        halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
+                        halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
                     ),
                     saksbehandlerNavn = "-",
                     attestantNavn = "-",
@@ -263,7 +263,7 @@ internal class LagBrevRequestVisitorTest {
                             behandlingsPeriode = søknadsbehandling.periode,
                             bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon.first() as Grunnlag.Bosituasjon.Fullstendig,
                         ),
-                        halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
+                        halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
                     ),
                     saksbehandlerNavn = "-",
                     attestantNavn = "-",
@@ -353,7 +353,7 @@ internal class LagBrevRequestVisitorTest {
                         harEktefelle = false,
                         beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
                         formuegrunnlag = null,
-                        halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
+                        halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
                     ),
                     saksbehandlerNavn = "-",
                     attestantNavn = "-",
@@ -432,7 +432,7 @@ internal class LagBrevRequestVisitorTest {
                             harEktefelle = false,
                             beregning = null,
                             formuegrunnlag = null,
-                            halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
+                            halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = "-",
@@ -487,7 +487,7 @@ internal class LagBrevRequestVisitorTest {
                             harEktefelle = false,
                             beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
                             formuegrunnlag = null,
-                            halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
+                            halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = "-",
@@ -569,7 +569,7 @@ internal class LagBrevRequestVisitorTest {
                             harEktefelle = false,
                             beregning = null,
                             formuegrunnlag = null,
-                            halvtGrunnbeløpPerÅr = 50675.5
+                            halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
@@ -633,7 +633,7 @@ internal class LagBrevRequestVisitorTest {
                             harEktefelle = false,
                             beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
                             formuegrunnlag = null,
-                            halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
+                            halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
@@ -718,7 +718,7 @@ internal class LagBrevRequestVisitorTest {
                             harEktefelle = false,
                             beregning = null,
                             formuegrunnlag = null,
-                            halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
+                            halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
@@ -777,7 +777,7 @@ internal class LagBrevRequestVisitorTest {
                             harEktefelle = false,
                             beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
                             formuegrunnlag = null,
-                            halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
+                            halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
@@ -927,7 +927,7 @@ internal class LagBrevRequestVisitorTest {
                 harEktefelle = false,
                 beregning = expectedAvslagBeregning(søknadsbehandling.beregning.getId()),
                 formuegrunnlag = null,
-                halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
+                halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
             ),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
@@ -981,7 +981,7 @@ internal class LagBrevRequestVisitorTest {
                 harEktefelle = false,
                 beregning = null,
                 formuegrunnlag = null,
-                halvtGrunnbeløpPerÅr = 50675.5, // halvparten av grunnbeløp for 2020-05-01 som er 101351
+                halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
             ),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
@@ -1068,7 +1068,7 @@ internal class LagBrevRequestVisitorTest {
                     bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon.first() as Grunnlag.Bosituasjon.Fullstendig,
                     behandlingsPeriode = søknadsbehandling.periode,
                 ),
-                halvtGrunnbeløpPerÅr = 50675.5,
+                halvtGrunnbeløpPerÅr = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
             ),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
@@ -1264,6 +1264,7 @@ internal class LagBrevRequestVisitorTest {
             opphørsdato = revurdering.periode.fraOgMed,
             avkortingsBeløp = null,
             satsoversikt = satsoversikt2021Enslig,
+            halvtGrunnbeløp = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
         ).right()
 
         brevRevurdering.brevRequest.map { brevRequest ->
@@ -1313,6 +1314,7 @@ internal class LagBrevRequestVisitorTest {
             opphørsdato = revurdering.periode.fraOgMed,
             avkortingsBeløp = null,
             satsoversikt = satsoversikt2021Enslig,
+            halvtGrunnbeløp = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
         ).right()
     }
 
@@ -1409,6 +1411,7 @@ internal class LagBrevRequestVisitorTest {
             opphørsdato = revurdering.periode.fraOgMed,
             avkortingsBeløp = null,
             satsoversikt = satsoversikt2021Enslig,
+            halvtGrunnbeløp = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
         ).right()
     }
 

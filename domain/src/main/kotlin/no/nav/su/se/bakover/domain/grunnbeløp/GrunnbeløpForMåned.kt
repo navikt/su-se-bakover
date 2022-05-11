@@ -19,6 +19,7 @@ data class GrunnbeløpForMåned(
     }
 
     /**
+     * TODO("håndter_formue egentlig knyttet til formuegrenser")
      * Dagens formuegrense er definert til et halvt grunnbeløp og brukes blant annet av brev. På sikt bør denne hentes ut av Formuegrunnlag i stedet.
      *
      * DEPRECATED: Denne er knyttet til formuegrenser og bør heller hentes fra:

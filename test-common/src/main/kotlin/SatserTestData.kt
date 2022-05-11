@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.test
 
-import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
@@ -9,5 +8,3 @@ import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 val satsFactoryTest: SatsFactory = SatsFactoryForSupplerendeStønad()
 
 val formuegrenserFactoryTest: FormuegrenserFactory = satsFactoryTest.formuegrenserFactory
-
-val grunnbeløpFactoryTest: GrunnbeløpFactory = satsFactoryTest.grunnbeløpFactory

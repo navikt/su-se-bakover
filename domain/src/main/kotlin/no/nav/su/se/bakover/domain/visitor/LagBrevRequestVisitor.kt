@@ -7,7 +7,6 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.zip
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -52,7 +51,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.time.LocalDate
-import java.time.YearMonth
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -678,6 +676,8 @@ class LagBrevRequestVisitor(
                 opphørsdato = revurdering.periode.fraOgMed,
                 avkortingsBeløp = avkortingsbeløp,
                 satsoversikt = Satsoversikt.fra(revurdering, satsFactory),
+                // TODO("håndter_formue egentlig knyttet til formuegrenser")
+                halvtGrunnbeløp = satsFactory.grunnbeløp(revurdering.periode.fraOgMed).halvtGrunnbeløpPerÅrAvrundet(),
             )
         }
 
@@ -729,13 +729,9 @@ class LagBrevRequestVisitor(
                 harEktefelle = harEktefelle,
                 beregning = beregning,
                 formuegrunnlag = formuevilkår.hentFormueGrunnlagForSøknadsbehandling(avslagsgrunner),
-                // TODO(satsfactory_formue) jah: Denne er bevart slik den har vært: Grunnbeløp.`0,5G`.påDato(opprettet.toLocalDate(zoneIdOslo)).
-                //  Det kan være en diff i når selve avslaget skjedde og når vi genererte brevet, hvis diffen er stor nokkan  formuegrensen ha endret seg på dette tidspunktet.
-                halvtGrunnbeløpPerÅr = satsFactory.formuegrenserFactory.forMåned(
-                    måned = opprettet.toLocalDate(zoneIdOslo).let {
-                        Måned(YearMonth.of(it.year, it.month))
-                    },
-                ).formuegrenseMedToDesimaler,
+                // TODO("håndter_formue egentlig knyttet til formuegrenser")
+                halvtGrunnbeløpPerÅr = satsFactory.grunnbeløp(opprettet.toLocalDate(zoneIdOslo))
+                    .halvtGrunnbeløpPerÅrAvrundet(),
             ),
             saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
             attestantNavn = personOgNavn.attestantNavn,
@@ -864,6 +860,9 @@ class LagBrevRequestVisitor(
                                 .sum()
                         },
                         satsoversikt = Satsoversikt.fra(vedtak.behandling, satsFactory),
+                        // TODO("håndter_formue egentlig knyttet til formuegrenser")
+                        halvtGrunnbeløp = satsFactory.grunnbeløp(vedtak.periode.fraOgMed)
+                            .halvtGrunnbeløpPerÅrAvrundet(),
                     )
                 },
                 {

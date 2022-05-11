@@ -10,5 +10,5 @@ data class Avslag(
     val harEktefelle: Boolean,
     val beregning: Beregning?,
     val formuegrunnlag: Formuegrunnlag?,
-    val halvtGrunnbeløpPerÅr: Double,
+    val halvtGrunnbeløpPerÅr: Int,
 )

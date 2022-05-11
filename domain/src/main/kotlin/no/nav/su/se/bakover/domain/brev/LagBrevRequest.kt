@@ -93,7 +93,7 @@ interface LagBrevRequest {
             personalia = lagPersonalia(),
             avslagsgrunner = avslag.avslagsgrunner,
             harEktefelle = avslag.harEktefelle,
-            halvGrunnbeløp = avslag.halvtGrunnbeløpPerÅr.toInt(),
+            halvGrunnbeløp = avslag.halvtGrunnbeløpPerÅr,
             beregningsperioder = avslag.beregning?.let { LagBrevinnholdForBeregning(it).brevInnhold }
                 ?: emptyList(),
             saksbehandlerNavn = saksbehandlerNavn,
@@ -145,11 +145,9 @@ interface LagBrevRequest {
         override val saksnummer: Saksnummer,
         override val opphørsdato: LocalDate,
         override val avkortingsBeløp: Int?,
-        private val satsoversikt: Satsoversikt
+        private val satsoversikt: Satsoversikt,
+        private val halvtGrunnbeløp: Int,
     ) : LagBrevRequest, Opphør {
-        // TODO(satsfactory_formuegrense) jah: Satsene kan endre seg måned til måned for en behandlingsperiode. Men vi har valgt første måned i perioden siden vi lanserte SU Ufør.
-        private val månedssats = beregning.getMånedsberegninger().first().fullSupplerendeStønadForMåned
-
         override val brevInnhold = BrevInnhold.Opphørsvedtak(
             personalia = lagPersonalia(),
             opphørsgrunner = opphørsgrunner,
@@ -163,8 +161,7 @@ interface LagBrevRequest {
             attestantNavn = attestantNavn,
             fritekst = fritekst,
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
-            // TODO(satsfactory_formuegrense) jah: Dette er knyttet til formuegrensa og burde sannsynligvis være koblet dithen.
-            halvGrunnbeløp = månedssats.grunnbeløp.halvtGrunnbeløpPerÅrAvrundet(),
+            halvGrunnbeløp = halvtGrunnbeløp,
             opphørsdato = opphørsdato.ddMMyyyy(),
             avkortingsBeløp = avkortingsBeløp,
             satsoversikt = satsoversikt,
