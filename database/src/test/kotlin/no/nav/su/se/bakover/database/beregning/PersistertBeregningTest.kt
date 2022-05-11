@@ -178,6 +178,5 @@ internal class PersistertBeregningTest {
                     strategy = strategy,
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 }

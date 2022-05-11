@@ -281,7 +281,6 @@ internal class VurderAvslagGrunnetBeregningKtTest {
                     strategy = strategy,
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
     }
 

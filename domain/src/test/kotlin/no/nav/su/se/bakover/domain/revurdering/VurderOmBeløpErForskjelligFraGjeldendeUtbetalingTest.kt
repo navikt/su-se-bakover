@@ -129,7 +129,6 @@ internal class VurderOmBeløpErForskjelligFraGjeldendeUtbetalingTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
     }
 }

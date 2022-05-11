@@ -100,7 +100,6 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
                     strategy = BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest),
                 )
             ),
-            satsFactory = satsFactoryTest,
         ).let {
             it.getSumYtelse() shouldBe 86568
             it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr + (epsFolketrydPrÅr + epsAnnenNorskPrÅr - uføreOrdinærSatsbeløp))

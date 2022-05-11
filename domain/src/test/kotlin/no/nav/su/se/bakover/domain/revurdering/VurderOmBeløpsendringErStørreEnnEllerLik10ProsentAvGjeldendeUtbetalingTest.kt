@@ -478,7 +478,6 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
     }
 }

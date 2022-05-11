@@ -1548,7 +1548,6 @@ internal class LagBrevRequestVisitorTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
     }
 
@@ -1578,7 +1577,6 @@ internal class LagBrevRequestVisitorTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
     }
 

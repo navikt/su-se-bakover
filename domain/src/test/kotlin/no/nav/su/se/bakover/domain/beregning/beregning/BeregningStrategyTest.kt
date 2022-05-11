@@ -55,7 +55,6 @@ internal class BeregningStrategyTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         ).let {
             it.periode.fraOgMed shouldBe periode.fraOgMed
             it.periode.tilOgMed shouldBe periode.tilOgMed

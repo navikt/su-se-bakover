@@ -387,7 +387,6 @@ internal class UtbetalingsstrategiNyTest {
                         strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                     )
                 ),
-                satsFactory = satsFactoryTest,
             ),
             clock = fixedClock,
             uføregrunnlagListe,
@@ -567,7 +566,6 @@ internal class UtbetalingsstrategiNyTest {
                             strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                         )
                     ),
-                    satsFactory = satsFactoryTest,
                 ),
                 uføregrunnlag = emptyList(),
             ).generate()
@@ -719,7 +717,6 @@ internal class UtbetalingsstrategiNyTest {
                         strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                     )
                 ),
-                satsFactory = satsFactoryTest,
             ),
             uføregrunnlag = uføreList,
         ).generate()
@@ -815,7 +812,6 @@ internal class UtbetalingsstrategiNyTest {
                         strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                     )
                 ),
-                satsFactory = satsFactoryTest,
             ),
             uføregrunnlag = uføreList,
         ).generate()
@@ -1030,6 +1026,5 @@ internal class UtbetalingsstrategiNyTest {
                 strategy = BeregningStrategy.BorAlene(satsFactoryTest),
             )
         ),
-        satsFactory = satsFactoryTest,
     )
 }

@@ -28,10 +28,6 @@ data class Beregningsperiode(
         return periode
     }
 
-    fun fradragStrategy(): FradragStrategy {
-        return strategy.fradragStrategy()
-    }
-
     fun sats(): Satskategori {
         return strategy.satskategori
     }
@@ -43,7 +39,7 @@ data class Beregningsperiode(
 
 class BeregningStrategyFactory(
     val clock: Clock,
-    val satsFactory: SatsFactory
+    val satsFactory: SatsFactory,
 ) {
     fun beregn(revurdering: Revurdering): Beregning {
         return beregn(
@@ -103,7 +99,6 @@ class BeregningStrategyFactory(
             fradrag = beregningsgrunnlag.fradrag,
             begrunnelse = begrunnelse,
             beregningsperioder = delperioder,
-            satsFactory = satsFactory,
         )
     }
 }

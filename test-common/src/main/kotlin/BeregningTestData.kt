@@ -93,7 +93,6 @@ fun beregning(
             fradrag = it.fradrag,
             begrunnelse = null,
             beregningsperioder = listOf(Beregningsperiode(periode, bosituasjon.utledBeregningsstrategi(satsFactoryTest))),
-            satsFactory = satsFactoryTest,
         )
     }
 }

@@ -77,7 +77,6 @@ internal class EpsUnder67BeregningTest {
                     strategy = BeregningStrategy.EpsUnder67År(satsFactoryTest),
                 )
             ),
-            satsFactory = satsFactoryTest,
         ).let {
             it.getSumYtelse() shouldBe 83700
             it.getSumFradrag() shouldBe (folketrygdPrÅr + folketrygdEpsPrÅr).plusOrMinus(0.5)

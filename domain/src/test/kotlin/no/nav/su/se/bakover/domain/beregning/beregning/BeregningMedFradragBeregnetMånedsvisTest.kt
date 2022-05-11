@@ -68,7 +68,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
         beregning.getSumYtelse() shouldBe 250116
         beregning.getSumFradrag() shouldBe 0
@@ -91,7 +90,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 
         beregning.getSumYtelse() shouldBe 238116
@@ -120,7 +118,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 
         beregning.finnMånederMedMerknad().getOrFail() shouldContainAll listOf(
@@ -147,7 +144,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 
         beregning.harAlleMånederMerknadForAvslag() shouldBe true
@@ -183,7 +179,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 
         beregning.getSumYtelse() shouldBe 238616
@@ -214,7 +209,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 
         beregning.getSumYtelse() shouldBe 238116
@@ -261,7 +255,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 
         val (janAprUnderMinstenivå, janAprAndre) = beregning.getMånedsberegninger()
@@ -330,7 +323,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
         beregning.getId() shouldBe beregning.getId()
         beregning.getOpprettet() shouldBe beregning.getOpprettet()
@@ -363,7 +355,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 
         beregning.getSumYtelse() shouldBe 41274
@@ -404,7 +395,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 
         val beregning2 = BeregningFactory(clock = fixedClock).ny(
@@ -428,7 +418,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 
         beregning.getMånedsberegninger() shouldNotBe beregning2.getMånedsberegninger()
@@ -456,7 +445,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                         strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                     ),
                 ),
-                satsFactory = satsFactoryTest,
             )
         }
 
@@ -477,7 +465,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                         strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                     ),
                 ),
-                satsFactory = satsFactoryTest,
             )
         }
     }
@@ -516,7 +503,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 
         beregning.getSumYtelse() shouldBe periode.getAntallMåneder() * 100
@@ -549,7 +535,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.EpsUnder67År(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 
         beregning.getSumYtelse() shouldBe periode.getAntallMåneder() * 100
@@ -591,7 +576,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         ).let {
             val beløpNull = it.getMånedsberegninger()[5] to listOf(
                 Merknad.Beregning.Avslag.BeløpErNull,
@@ -673,7 +657,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         ).let {
             val avkortingJanuar = it.getMånedsberegninger()[0] to listOf(
                 Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats,
@@ -767,7 +750,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         ).let {
             val sosialstønadJanuar = it.getMånedsberegninger()[0] to listOf(
                 Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
@@ -817,7 +799,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
     }
 }

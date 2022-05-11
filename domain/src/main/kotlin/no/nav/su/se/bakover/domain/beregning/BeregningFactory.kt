@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.utenAvkorting
 import no.nav.su.se.bakover.domain.beregning.fradrag.utenSosialstønad
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import java.time.Clock
 import java.util.UUID
 
@@ -21,7 +20,6 @@ class BeregningFactory(val clock: Clock) {
         opprettet: Tidspunkt = Tidspunkt.now(clock),
         fradrag: List<Fradrag>,
         begrunnelse: String? = null,
-        satsFactory: SatsFactory,
         beregningsperioder: List<Beregningsperiode>,
     ): BeregningMedFradragBeregnetMånedsvis {
         fun beregnMåned(
@@ -31,7 +29,7 @@ class BeregningFactory(val clock: Clock) {
         ): BeregningForMåned {
             return MånedsberegningFactory.ny(
                 måned = måned,
-                fullSupplerendeStønadForMåned = satsFactory.fullSupplerendeStønad(strategy.satskategori).forMåned(måned),
+                fullSupplerendeStønadForMåned = strategy.fullSupplerendeStønadFactory().forMåned(måned),
                 fradrag = strategy.fradragStrategy().beregn(fradrag, måned)[måned] ?: emptyList(),
                 fribeløpForEps = strategy.fradragStrategy().getEpsFribeløp(måned),
             )

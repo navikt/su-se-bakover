@@ -78,7 +78,6 @@ internal class EnsligBeregningTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         ).let {
             it.getSumYtelse() shouldBe 5028
             it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr).plusOrMinus(0.5)

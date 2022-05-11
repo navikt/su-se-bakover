@@ -96,7 +96,6 @@ internal class EnsligBorMedVoksneBeregningTest {
                     strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
                 )
             ),
-            satsFactory = satsFactoryTest,
         ).let {
             it.getSumYtelse() shouldBe 155892
             it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr + utenlandskInntektPrÅr).plusOrMinus(0.5)

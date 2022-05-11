@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.brev.beregning
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.objectMapper
@@ -41,7 +40,6 @@ internal class LagBrevinnholdForBeregningTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
@@ -99,7 +97,6 @@ internal class LagBrevinnholdForBeregningTest {
                     strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
@@ -203,7 +200,6 @@ internal class LagBrevinnholdForBeregningTest {
 
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
@@ -435,7 +431,6 @@ internal class LagBrevinnholdForBeregningTest {
                     strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTest),
                 )
             ),
-            satsFactory = satsFactoryTest,
 
         )
 
@@ -504,7 +499,6 @@ internal class LagBrevinnholdForBeregningTest {
                     strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTest),
                 ),
             ),
-            satsFactory = satsFactoryTest,
         )
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
