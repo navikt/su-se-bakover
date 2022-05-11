@@ -1,9 +1,10 @@
 package no.nav.su.se.bakover.web.routes.drift
 
 import io.kotest.matchers.shouldBe
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -18,18 +19,17 @@ internal class IsAliveTest {
     @Test
     fun `Kun Drift har tilgang til isAlive-endepunktet`() {
         Brukerrolle.values().filterNot { it == Brukerrolle.Drift }.forEach {
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(services = services)
-                },
-            ) {
+                }
                 defaultRequest(
                     method = HttpMethod.Get,
                     uri = "$DRIFT_PATH/isalive",
                     roller = listOf(it),
                 ) {
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
@@ -37,21 +37,20 @@ internal class IsAliveTest {
 
     @Test
     fun `isAlive-endepunktet gir status ok`() {
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Get,
                 "$DRIFT_PATH/isalive",
                 listOf(Brukerrolle.Drift),
             ) {
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
                 JSONAssert.assertEquals(
                     """{ "Status" : "OK"}""".trimIndent(),
-                    response.content!!,
+                    this.bodyAsText(),
                     true,
                 )
             }

@@ -2,15 +2,15 @@ package no.nav.su.se.bakover.web
 
 import arrow.core.Either
 import com.auth0.jwt.interfaces.Payload
-import io.ktor.application.ApplicationCall
-import io.ktor.auth.Principal
-import io.ktor.auth.jwt.JWTCredential
-import io.ktor.auth.jwt.JWTPrincipal
-import io.ktor.features.callId
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.request.header
-import io.ktor.request.receiveStream
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.auth.Principal
+import io.ktor.server.auth.jwt.JWTCredential
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.plugins.callid.callId
+import io.ktor.server.request.header
+import io.ktor.server.request.receiveStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.su.se.bakover.common.ApplicationConfig
@@ -30,7 +30,11 @@ internal fun ApplicationCall.sikkerlogg(msg: String) {
  * Logg til audit.nais (som går videre til ArcSight)
  * @see AuditLogger
  */
-internal fun ApplicationCall.audit(berørtBruker: Fnr, action: AuditLogEvent.Action, behandlingId: UUID?) {
+internal fun ApplicationCall.audit(
+    berørtBruker: Fnr,
+    action: AuditLogEvent.Action,
+    behandlingId: UUID?
+) {
     AuditLogger.log(
         AuditLogEvent(
             suUserContext.navIdent,

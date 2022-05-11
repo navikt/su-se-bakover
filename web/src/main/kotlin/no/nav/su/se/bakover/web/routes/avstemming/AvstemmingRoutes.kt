@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.web.routes.avstemming
 
 import arrow.core.Either
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.response.respond
-import io.ktor.routing.Route
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.mapBoth
 import no.nav.su.se.bakover.common.startOfDay
@@ -25,8 +25,8 @@ internal fun Route.avstemmingRoutes(
     service: AvstemmingService,
     clock: Clock,
 ) {
-    authorize(Brukerrolle.Drift) {
-        post("$AVSTEMMING_PATH/grensesnitt") {
+    post("$AVSTEMMING_PATH/grensesnitt") {
+        authorize(Brukerrolle.Drift) {
             val fraOgMed = call.parameters["fraOgMed"] // YYYY-MM-DD
             val tilOgMed = call.parameters["tilOgMed"] // YYYY-MM-DD
 
@@ -42,14 +42,14 @@ internal fun Route.avstemmingRoutes(
                             ).mapBoth { LocalDate.parse(it, DateTimeFormatter.ISO_DATE) }
                         }
                             .mapLeft {
-                                return@post call.respond(
+                                return@authorize call.respond(
                                     HttpStatusCode.BadRequest,
                                     "Ugyldig(e) dato(er). Må være på ${DateTimeFormatter.ISO_DATE}",
                                 )
                             }
                             .map {
                                 if (!isValidAvstemmingsperiode(it, clock)) {
-                                    return@post call.respond(
+                                    return@authorize call.respond(
                                         HttpStatusCode.BadRequest,
                                         "fraOgMed må være <= tilOgMed. Og tilOgMed må være tidligere enn dagens dato!",
                                     )
@@ -57,7 +57,7 @@ internal fun Route.avstemmingRoutes(
                                 it
                             }
                     else ->
-                        return@post call.respond(HttpStatusCode.BadRequest, "Ugyldig as")
+                        return@authorize call.respond(HttpStatusCode.BadRequest, "Ugyldig as")
                 }
 
             periode.fold(
@@ -73,8 +73,8 @@ internal fun Route.avstemmingRoutes(
         }
     }
 
-    authorize(Brukerrolle.Drift) {
-        post("$AVSTEMMING_PATH/konsistens") {
+    post("$AVSTEMMING_PATH/konsistens") {
+        authorize(Brukerrolle.Drift) {
             val fraOgMed = call.parameters["fraOgMed"]
 
             if (fraOgMed == null) call.svar(

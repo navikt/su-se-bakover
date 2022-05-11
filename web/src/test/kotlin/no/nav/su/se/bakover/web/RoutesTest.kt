@@ -3,6 +3,10 @@ package no.nav.su.se.bakover.web
 import arrow.core.Either
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.XCorrelationId
@@ -10,10 +14,8 @@ import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.testing.contentType
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.http.contentType
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
@@ -37,44 +39,44 @@ class RoutesTest {
 
     @Test
     fun `should add provided X-Correlation-ID header to response`() {
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
-            defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder))
-        }.apply {
-            response.status() shouldBe OK
-            response.headers[XCorrelationId] shouldBe DEFAULT_CALL_ID
+            }
+            defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder)).apply {
+                this.status shouldBe OK
+                this.headers[XCorrelationId] shouldBe DEFAULT_CALL_ID
+            }
         }
     }
 
     @Test
     fun `should generate X-Correlation-ID header if not present`() {
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
-            handleRequest(Get, secureEndpoint) {
-                addHeader(
+            }
+            client.get(secureEndpoint) {
+                header(
                     HttpHeaders.Authorization,
                     jwtStub.createJwtToken(roller = listOf(Brukerrolle.Veileder)).asBearerToken(),
                 )
+            }.apply {
+                this.status shouldBe OK
+                this.headers[XCorrelationId] shouldNotBe null
+                this.headers[XCorrelationId] shouldNotBe DEFAULT_CALL_ID
             }
-        }.apply {
-            response.status() shouldBe OK
-            response.headers[XCorrelationId] shouldNotBe null
-            response.headers[XCorrelationId] shouldNotBe DEFAULT_CALL_ID
         }
     }
 
     @Test
     fun `should transform exceptions to appropriate error responses`() {
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
-                    clients = TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig).copy(
+                    clients = TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(
+                        applicationConfig,
+                    ).copy(
                         personOppslag = object :
                             PersonOppslag {
                             override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =
@@ -92,28 +94,25 @@ class RoutesTest {
                         },
                     ),
                 )
-            },
-        ) {
+            }
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"${Fnr.generer()}"}""")
+            }.apply {
+                this.status shouldBe InternalServerError
+                JSONAssert.assertEquals("""{"message":"Ukjent feil"}""", this.bodyAsText(), true)
             }
-        }.apply {
-            response.status() shouldBe InternalServerError
-            JSONAssert.assertEquals("""{"message":"Ukjent feil"}""", response.content, true)
         }
     }
 
     @Test
     fun `should use content-type application-json by default`() {
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
-            defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+            }
+            val response = defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"${Fnr.generer()}"}""")
             }
-        }.apply {
             response.contentType().toString() shouldBe "${ContentType.Application.Json}; charset=${Charsets.UTF_8}"
         }
     }

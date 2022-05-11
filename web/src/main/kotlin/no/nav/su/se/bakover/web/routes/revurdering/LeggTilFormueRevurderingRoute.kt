@@ -5,10 +5,10 @@ import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.routing.Route
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -90,8 +90,8 @@ internal fun Route.leggTilFormueRevurderingRoute(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/{revurderingId}/formuegrunnlag") {
+    post("$revurderingPath/{revurderingId}/formuegrunnlag") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<List<FormueBody>> { body ->

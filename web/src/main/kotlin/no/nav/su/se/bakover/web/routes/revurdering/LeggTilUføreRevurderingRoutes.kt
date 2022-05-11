@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.flatMap
 import arrow.core.getOrHandle
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.routing.Route
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.satser.SatsFactory
@@ -25,8 +25,8 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/{revurderingId}/uføregrunnlag") {
+    post("$revurderingPath/{revurderingId}/uføregrunnlag") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<LeggTilUførervurderingerBody> { body ->
                     call.svar(
@@ -49,33 +49,34 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
     }
 }
 
+internal fun LeggTilUførevurderingerRequest.UgyldigUførevurdering.tilResultat() =
+    when (this) {
+        LeggTilUførevurderingerRequest.UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat -> {
+            Feilresponser.alleVurderingsperioderMåHaSammeResultat
+        }
+        LeggTilUførevurderingerRequest.UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger -> {
+            Feilresponser.heleBehandlingsperiodeMåHaVurderinger
+        }
+        LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> {
+            Feilresponser.overlappendeVurderingsperioder
+        }
+        LeggTilUførevurderingerRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+            periodeForGrunnlagOgVurderingErForskjellig
+        }
+        LeggTilUførevurderingerRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> {
+            Feilresponser.Uføre.uføregradOgForventetInntektMangler
+        }
+        LeggTilUførevurderingerRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
+            Feilresponser.utenforBehandlingsperioden
+        }
+    }
+
 private fun KunneIkkeLeggeTilUføreVilkår.mapFeil(): Resultat {
     return when (this) {
         KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling
         }
-        is KunneIkkeLeggeTilUføreVilkår.UgyldigInput -> {
-            when (this.originalFeil) {
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat -> {
-                    Feilresponser.alleVurderingsperioderMåHaSammeResultat
-                }
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger -> {
-                    Feilresponser.heleBehandlingsperiodeMåHaVurderinger
-                }
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> {
-                    Feilresponser.overlappendeVurderingsperioder
-                }
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> {
-                    periodeForGrunnlagOgVurderingErForskjellig
-                }
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> {
-                    Feilresponser.Uføre.uføregradOgForventetInntektMangler
-                }
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
-                    Feilresponser.utenforBehandlingsperioden
-                }
-            }
-        }
+        is KunneIkkeLeggeTilUføreVilkår.UgyldigInput -> this.originalFeil.tilResultat()
         is KunneIkkeLeggeTilUføreVilkår.UgyldigTilstand -> {
             Feilresponser.ugyldigTilstand(
                 fra = fra,

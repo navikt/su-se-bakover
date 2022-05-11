@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.routing.Route
-import io.ktor.routing.put
+import io.ktor.server.application.call
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.put
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -47,8 +47,8 @@ internal fun Route.oppdaterRevurderingRoute(
         val informasjonSomRevurderes: List<Revurderingsteg>,
     )
 
-    authorize(Brukerrolle.Saksbehandler) {
-        put("$revurderingPath/{revurderingId}") {
+    put("$revurderingPath/{revurderingId}") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<Body> { body ->
                     val navIdent = call.suUserContext.navIdent

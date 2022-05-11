@@ -4,10 +4,11 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
@@ -93,11 +94,10 @@ internal class LeggTilFradragRevurderingRouteKtTest {
             ).right()
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/fradrag",
@@ -105,8 +105,9 @@ internal class LeggTilFradragRevurderingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
                 // skal vi sjekke JSON ?
+                // kanskje ?
             }
         }
     }
@@ -117,11 +118,10 @@ internal class LeggTilFradragRevurderingRouteKtTest {
             on { leggTilFradragsgrunnlag(any()) } doReturn KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/fradrag",
@@ -129,8 +129,8 @@ internal class LeggTilFradragRevurderingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-                response.content shouldContain "fant_ikke_revurdering"
+                status shouldBe HttpStatusCode.NotFound
+                bodyAsText() shouldContain "fant_ikke_revurdering"
             }
         }
     }
@@ -144,11 +144,10 @@ internal class LeggTilFradragRevurderingRouteKtTest {
             ).left()
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/fradrag",
@@ -156,8 +155,8 @@ internal class LeggTilFradragRevurderingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "ugyldig_tilstand"
+                status shouldBe HttpStatusCode.BadRequest
+                bodyAsText() shouldContain "ugyldig_tilstand"
             }
         }
     }
@@ -166,11 +165,10 @@ internal class LeggTilFradragRevurderingRouteKtTest {
     fun `feilmelding hvis vi mangler periode i et fradrag`() {
         val revurderingServiceMock = mock<RevurderingService>()
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/fradrag",
@@ -199,8 +197,8 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "Fradrag mangler periode"
+                status shouldBe HttpStatusCode.BadRequest
+                bodyAsText() shouldContain "Fradrag mangler periode"
             }
             verifyNoMoreInteractions(revurderingServiceMock)
         }

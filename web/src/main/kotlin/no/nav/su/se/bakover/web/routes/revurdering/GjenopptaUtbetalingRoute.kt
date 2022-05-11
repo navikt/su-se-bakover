@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.getOrHandle
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
-import io.ktor.routing.Route
-import io.ktor.routing.patch
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.patch
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -39,8 +39,8 @@ internal fun Route.gjenopptaUtbetaling(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/gjenoppta") {
+    post("$revurderingPath/gjenoppta") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<GjenopptaUtbetalingBody> { body ->
                     val navIdent = call.suUserContext.navIdent
@@ -74,8 +74,8 @@ internal fun Route.gjenopptaUtbetaling(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        patch("$revurderingPath/gjenoppta/{revurderingId}") {
+    patch("$revurderingPath/gjenoppta/{revurderingId}") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<GjenopptaUtbetalingBody> { body ->
@@ -112,8 +112,8 @@ internal fun Route.gjenopptaUtbetaling(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        post("$revurderingPath/gjenoppta/{revurderingId}/iverksett") {
+    post("$revurderingPath/gjenoppta/{revurderingId}/iverksett") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     revurderingService.iverksettGjenopptakAvYtelse(

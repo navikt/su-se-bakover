@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSø
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
@@ -465,6 +466,50 @@ internal class BehandlingStatistikkMapperTest {
             resultatBeskrivelse = null,
             beslutter = "attestant",
             saksbehandler = null,
+            behandlingOpprettetAv = null,
+            behandlingOpprettetType = null,
+            behandlingOpprettetTypeBeskrivelse = null,
+            datoForUttak = null,
+            datoForUtbetaling = null,
+            avsluttet = false,
+        )
+    }
+
+    @Test
+    fun `mapper oversendt klage`() {
+        val klage = oversendtKlage(opprettet = fixedTidspunkt).second
+        BehandlingStatistikkMapper(fixedClock).map(klage) shouldBe Statistikk.Behandling(
+            funksjonellTid = klage.opprettet,
+            tekniskTid = fixedTidspunkt,
+            mottattDato = klage.opprettet.toLocalDate(zoneIdOslo),
+            registrertDato = klage.opprettet.toLocalDate(zoneIdOslo),
+            behandlingId = klage.id,
+            relatertBehandlingId = klage.vilkårsvurderinger.vedtakId,
+            sakId = klage.sakId,
+            søknadId = null,
+            saksnummer = klage.saksnummer.nummer,
+            behandlingType = Statistikk.Behandling.BehandlingType.KLAGE,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.KLAGE.beskrivelse,
+            behandlingStatus = "OVERSENDT",
+            behandlingStatusBeskrivelse = "Klagen er oversendt til klageinstans",
+            behandlingYtelseDetaljer = null,
+            utenlandstilsnitt = "NASJONAL",
+            utenlandstilsnittBeskrivelse = null,
+            ansvarligEnhetKode = "4815",
+            ansvarligEnhetType = "NORG",
+            behandlendeEnhetKode = "4815",
+            behandlendeEnhetType = "NORG",
+            totrinnsbehandling = true,
+            avsender = "su-se-bakover",
+            versjon = fixedClock.millis(),
+            vedtaksDato = null,
+            vedtakId = null,
+            resultat = "Opprettholdt",
+            resultatBegrunnelse = "Opprettholdt i henhold til lov om supplerende stønad kapittel 2 - § 3, kapittel 2 - § 4.",
+            resultatBegrunnelseBeskrivelse = null,
+            resultatBeskrivelse = null,
+            beslutter = "attestant",
+            saksbehandler = "saksbehandler",
             behandlingOpprettetAv = null,
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,

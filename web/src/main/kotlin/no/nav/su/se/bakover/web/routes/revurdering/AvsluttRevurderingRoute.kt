@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.response.respondBytes
-import io.ktor.routing.Route
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.response.respondBytes
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -31,14 +31,12 @@ internal fun Route.avsluttRevurderingRoute(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-
-        data class AvsluttRevurderingBody(
-            val begrunnelse: String,
-            val fritekst: String?,
-        )
-
-        post("$revurderingPath/{revurderingId}/avslutt") {
+    data class AvsluttRevurderingBody(
+        val begrunnelse: String,
+        val fritekst: String?,
+    )
+    post("$revurderingPath/{revurderingId}/avslutt") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withBody<AvsluttRevurderingBody> { body ->
                 call.withRevurderingId { revurderingId ->
                     revurderingService.avsluttRevurdering(
@@ -60,12 +58,13 @@ internal fun Route.avsluttRevurderingRoute(
                 }
             }
         }
+    }
 
-        data class BrevutkastForAvslutting(
-            val fritekst: String?,
-        )
-
-        post("$revurderingPath/{revurderingId}/brevutkastForAvslutting") {
+    data class BrevutkastForAvslutting(
+        val fritekst: String?,
+    )
+    post("$revurderingPath/{revurderingId}/brevutkastForAvslutting") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<BrevutkastForAvslutting> { body ->
                     revurderingService.lagBrevutkastForAvslutting(revurderingId, body.fritekst).fold(

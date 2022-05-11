@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.getOrHandle
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.routing.Route
-import io.ktor.routing.patch
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.patch
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -38,8 +38,8 @@ internal fun Route.stansUtbetaling(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/stans") {
+    post("$revurderingPath/stans") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBody<StansUtbetalingBody> { body ->
                     val navIdent = call.suUserContext.navIdent
@@ -74,8 +74,8 @@ internal fun Route.stansUtbetaling(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        patch("$revurderingPath/stans/{revurderingId}") {
+    patch("$revurderingPath/stans/{revurderingId}") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<StansUtbetalingBody> { body ->
@@ -113,8 +113,8 @@ internal fun Route.stansUtbetaling(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        post("$revurderingPath/stans/{revurderingId}/iverksett") {
+    post("$revurderingPath/stans/{revurderingId}/iverksett") {
+        authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     revurderingService.iverksettStansAvYtelse(

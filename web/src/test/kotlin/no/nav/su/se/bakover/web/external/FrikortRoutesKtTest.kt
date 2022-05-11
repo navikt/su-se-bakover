@@ -2,11 +2,13 @@ package no.nav.su.se.bakover.web.external
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
@@ -14,6 +16,7 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.web.DEFAULT_CALL_ID
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.applicationConfig
+import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import no.nav.su.se.bakover.web.testSusebakover
@@ -30,12 +33,13 @@ internal class FrikortRoutesKtTest {
 
     @Test
     fun `secure endpoint krever autentisering`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
-            handleRequest(HttpMethod.Get, frikortPath)
-        }.apply {
-            response.status() shouldBe HttpStatusCode.Unauthorized
+        testApplication {
+            application {
+                testSusebakover()
+            }
+            defaultRequest(HttpMethod.Get, frikortPath).apply {
+                this.status shouldBe HttpStatusCode.Unauthorized
+            }
         }
     }
 
@@ -45,36 +49,38 @@ internal class FrikortRoutesKtTest {
             on { hentAktiveFnr(any()) } doReturn emptyList()
         }
 
-        withTestApplication({
-            testSusebakover(services = testServices.copy(vedtakService = vedtakServiceMock))
-        }) {
-            handleRequest(HttpMethod.Get, frikortPath) {
-                addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-                addHeader(
-                    HttpHeaders.Authorization,
-                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername).asBearerToken()
-                )
+        testApplication {
+            application {
+                testSusebakover(services = testServices.copy(vedtakService = vedtakServiceMock))
             }
-        }.apply {
-            response.status() shouldBe HttpStatusCode.OK
+            client.get(frikortPath) {
+                header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+                header(
+                    HttpHeaders.Authorization,
+                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername).asBearerToken(),
+                )
+            }.apply {
+                this.status shouldBe HttpStatusCode.OK
+            }
         }
     }
 
     @Test
     fun `sjekk feilmelding ved ugyldig dato`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
-            handleRequest(HttpMethod.Get, "$frikortPath/202121") {
-                addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-                addHeader(
-                    HttpHeaders.Authorization,
-                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername).asBearerToken()
-                )
+        testApplication {
+            application {
+                testSusebakover()
             }
-        }.apply {
-            response.status() shouldBe HttpStatusCode.BadRequest
-            response.content shouldContain ("Ugyldig dato - dato må være på format YYYY-MM")
+            client.get("$frikortPath/202121") {
+                header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+                header(
+                    HttpHeaders.Authorization,
+                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername).asBearerToken(),
+                )
+            }.apply {
+                this.status shouldBe HttpStatusCode.BadRequest
+                bodyAsText() shouldContain ("Ugyldig dato - dato må være på format YYYY-MM")
+            }
         }
     }
 
@@ -86,18 +92,21 @@ internal class FrikortRoutesKtTest {
             on { hentAktiveFnr(any()) } doReturn listOf(Fnr("42920322544"))
         }
 
-        withTestApplication({
-            testSusebakover(services = testServices.copy(vedtakService = vedtakServiceMock), clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC))
-        }) {
-            handleRequest(HttpMethod.Get, frikortPath) {
-                addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-                addHeader(
-                    HttpHeaders.Authorization,
-                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername).asBearerToken()
+        testApplication {
+            application {
+                testSusebakover(
+                    services = testServices.copy(vedtakService = vedtakServiceMock),
+                    clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC),
                 )
             }
-        }.apply {
-            JSONAssert.assertEquals(frikortJsonString, response.content, true)
+            val response = client.get(frikortPath) {
+                header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+                header(
+                    HttpHeaders.Authorization,
+                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername).asBearerToken(),
+                )
+            }
+            JSONAssert.assertEquals(frikortJsonString, response.bodyAsText(), true)
         }
     }
 
@@ -109,18 +118,22 @@ internal class FrikortRoutesKtTest {
             on { hentAktiveFnr(any()) } doReturn listOf(Fnr("42920322544"))
         }
 
-        withTestApplication({
-            testSusebakover(services = testServices.copy(vedtakService = vedtakServiceMock), clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC))
-        }) {
-            handleRequest(HttpMethod.Get, "$frikortPath/2021-02") {
-                addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-                addHeader(
-                    HttpHeaders.Authorization,
-                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername).asBearerToken()
+        testApplication {
+            application {
+                testSusebakover(
+                    services = testServices.copy(vedtakService = vedtakServiceMock),
+                    clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC),
                 )
             }
-        }.apply {
-            JSONAssert.assertEquals(frikortJsonString, response.content, true)
+
+            val response = client.get("$frikortPath/2021-02") {
+                header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+                header(
+                    HttpHeaders.Authorization,
+                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername).asBearerToken(),
+                )
+            }
+            JSONAssert.assertEquals(frikortJsonString, response.bodyAsText(), true)
         }
     }
 
@@ -132,18 +145,21 @@ internal class FrikortRoutesKtTest {
             on { hentAktiveFnr(any()) } doReturn emptyList()
         }
 
-        withTestApplication({
-            testSusebakover(services = testServices.copy(vedtakService = vedtakServiceMock), clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC))
-        }) {
-            handleRequest(HttpMethod.Get, "$frikortPath/2021-02") {
-                addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-                addHeader(
-                    HttpHeaders.Authorization,
-                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername).asBearerToken()
+        testApplication {
+            application {
+                testSusebakover(
+                    services = testServices.copy(vedtakService = vedtakServiceMock),
+                    clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC),
                 )
             }
-        }.apply {
-            JSONAssert.assertEquals(frikortJsonString, response.content, true)
+            val response = client.get("$frikortPath/2021-02") {
+                header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+                header(
+                    HttpHeaders.Authorization,
+                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername).asBearerToken(),
+                )
+            }
+            JSONAssert.assertEquals(frikortJsonString, response.bodyAsText(), true)
         }
     }
 }

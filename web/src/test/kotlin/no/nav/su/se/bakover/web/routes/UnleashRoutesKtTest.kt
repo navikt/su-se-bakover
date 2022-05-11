@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.routes
 
-import io.ktor.http.HttpMethod.Companion.Get
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.testSusebakover
@@ -21,17 +21,15 @@ internal class UnleashRoutesKtTest {
             on { isEnabled("supstonad.enToggle") } doReturn true
             on { isEnabled("supstonad.annenToggle") } doReturn false
         }
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
-                    services = TestServicesBuilder.services().copy(toggles = toggleMock)
+                    services = TestServicesBuilder.services().copy(toggles = toggleMock),
                 )
             }
-        ) {
-            handleRequest(Get, "/toggles/supstonad.enToggle").apply {
-                assertEquals(HttpStatusCode.OK, response.status())
-                JSONAssert.assertEquals("""{"supstonad.enToggle": true}""".trimIndent(), response.content!!, true)
-            }
+            val res = client.get("/toggles/supstonad.enToggle")
+            assertEquals(HttpStatusCode.OK, res.status)
+            JSONAssert.assertEquals("""{"supstonad.enToggle": true}""".trimIndent(), res.bodyAsText(), true)
         }
     }
 }

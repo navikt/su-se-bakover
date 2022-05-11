@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.web.sak.hent
 
 import io.kotest.matchers.shouldBe
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.TestApplicationEngine
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 import org.json.JSONObject
@@ -16,15 +16,15 @@ import org.json.JSONObject
  *  I tillegg er visse personer/saker beskyttet. Kode 6/7/Egen ansatt.
  */
 internal fun TestApplicationEngine.hentSak(sakId: String): String {
-    return defaultRequest(
-        HttpMethod.Get,
-        "/saker/$sakId",
-        listOf(Brukerrolle.Saksbehandler),
-    ) {
-        addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-    }.apply {
-        response.status() shouldBe HttpStatusCode.OK
-    }.response.content!!
+    return runBlocking {
+        defaultRequest(
+            HttpMethod.Get,
+            "/saker/$sakId",
+            listOf(Brukerrolle.Saksbehandler),
+        ).apply {
+            status shouldBe HttpStatusCode.OK
+        }.bodyAsText()
+    }
 }
 
 /**

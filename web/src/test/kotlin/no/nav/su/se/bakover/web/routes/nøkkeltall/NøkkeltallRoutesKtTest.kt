@@ -1,10 +1,11 @@
 package no.nav.su.se.bakover.web.routes.nøkkeltall
 
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
@@ -19,14 +20,13 @@ import org.skyscreamer.jsonassert.JSONAssert
 internal class NøkkeltallRoutesKtTest {
     @Test
     fun `må være innlogget for å få nøkkeltall`() {
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
-            handleRequest(HttpMethod.Get, nøkkeltallPath)
-        }.apply {
-            response.status() shouldBe HttpStatusCode.Unauthorized
+            }
+            client.get(nøkkeltallPath).apply {
+                status shouldBe HttpStatusCode.Unauthorized
+            }
         }
     }
 
@@ -49,14 +49,12 @@ internal class NøkkeltallRoutesKtTest {
             )
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = TestServicesBuilder.services().copy(nøkkeltallService = nøkkelServiceMock))
-            },
-        ) {
-            defaultRequest(HttpMethod.Get, nøkkeltallPath, listOf(Brukerrolle.Saksbehandler))
-        }.apply {
-            val expected = """
+            }
+            defaultRequest(HttpMethod.Get, nøkkeltallPath, listOf(Brukerrolle.Saksbehandler)).apply {
+                val expected = """
                 {
                     "søknader": {
                         "totaltAntall": 2,
@@ -71,11 +69,12 @@ internal class NøkkeltallRoutesKtTest {
                     "antallUnikePersoner": 1,
                     "løpendeSaker": 0
                 }
-            """.trimIndent()
-            val actual = response.content
+                """.trimIndent()
+                val actual = bodyAsText()
 
-            response.status() shouldBe HttpStatusCode.OK
-            JSONAssert.assertEquals(expected, actual, true)
+                status shouldBe HttpStatusCode.OK
+                JSONAssert.assertEquals(expected, actual, true)
+            }
         }
     }
 }

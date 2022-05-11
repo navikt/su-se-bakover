@@ -4,10 +4,10 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.routing.Route
-import io.ktor.routing.get
+import io.ktor.server.application.call
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -26,11 +26,11 @@ private const val idTypeParameter = "idType"
 internal fun Route.dokumentRoutes(
     brevService: BrevService,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        get("/dokumenter") {
+    get("/dokumenter") {
+        authorize(Brukerrolle.Saksbehandler) {
             val id = call.parameter(idParameter)
                 .getOrHandle {
-                    return@get call.svar(
+                    return@authorize call.svar(
                         HttpStatusCode.BadRequest.errorJson(
                             "Parameter '$idParameter' mangler",
                             "mangler_$idParameter",
@@ -39,7 +39,7 @@ internal fun Route.dokumentRoutes(
                 }
             val type = call.parameter(idTypeParameter)
                 .getOrHandle {
-                    return@get call.svar(
+                    return@authorize call.svar(
                         HttpStatusCode.BadRequest.errorJson(
                             "Parameter '$idTypeParameter' mangler",
                             "mangler_$idTypeParameter",
@@ -49,7 +49,7 @@ internal fun Route.dokumentRoutes(
 
             val parameters = HentDokumentParameters.tryCreate(id, type)
                 .getOrHandle { error ->
-                    return@get when (error) {
+                    return@authorize when (error) {
                         HentDokumentParameters.Companion.UgyldigParameter.UgyldigType -> {
                             call.svar(
                                 HttpStatusCode.BadRequest.errorJson(

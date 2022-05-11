@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.revurdering
 
 import io.ktor.server.testing.TestApplicationEngine
+import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.web.revurdering.attestering.sendTilAttestering
 import no.nav.su.se.bakover.web.revurdering.bosituasjon.leggTilBosituasjon
 import no.nav.su.se.bakover.web.revurdering.forhåndsvarsel.leggTilIngenForhåndsvarsel
@@ -8,12 +9,14 @@ import no.nav.su.se.bakover.web.revurdering.formue.leggTilFormue
 import no.nav.su.se.bakover.web.revurdering.fradrag.leggTilFradrag
 import no.nav.su.se.bakover.web.revurdering.iverksett.iverksett
 import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
+import no.nav.su.se.bakover.web.revurdering.utenlandsopphold.leggTilUtenlandsoppholdRevurdering
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
 
 internal fun TestApplicationEngine.opprettIverksattRevurdering(
     sakId: String,
     fraOgMed: String,
     tilOgMed: String,
+    utenlandsOpphold: UtenlandsoppholdStatus = UtenlandsoppholdStatus.SkalHoldeSegINorge,
 ): String {
     return opprettRevurdering(
         sakId = sakId,
@@ -41,6 +44,13 @@ internal fun TestApplicationEngine.opprettIverksattRevurdering(
             behandlingId = revurderingId,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
+        )
+        leggTilUtenlandsoppholdRevurdering(
+            sakId = sakId,
+            behandlingId = revurderingId,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+            vurdering = utenlandsOpphold.toString(),
         )
         leggTilFradrag(
             sakId = sakId,

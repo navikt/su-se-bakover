@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
-import io.ktor.routing.Route
+import io.ktor.server.routing.Route
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import java.time.Clock

@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.getOrHandle
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.routing.Route
-import io.ktor.routing.get
+import io.ktor.server.application.call
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.satser.SatsFactory
@@ -32,8 +32,8 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
     vedtakService: VedtakService, // TODO ai: Flytte denne til "VedtakRoutes" når vi får något sånt
     satsFactory: SatsFactory,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        get("$revurderingPath/{revurderingId}/grunnlagsdataOgVilkårsvurderinger") {
+    get("$revurderingPath/{revurderingId}/grunnlagsdataOgVilkårsvurderinger") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
 
                 call.svar(
@@ -66,8 +66,8 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        get("$revurderingPath/historisk/vedtak/{vedtakId}/grunnlagsdataOgVilkårsvurderinger") {
+    get("$revurderingPath/historisk/vedtak/{vedtakId}/grunnlagsdataOgVilkårsvurderinger") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withVedtakId { vedtakId ->
                     vedtakService.historiskGrunnlagForVedtaksperiode(sakId, vedtakId).fold(

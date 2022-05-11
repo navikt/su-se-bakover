@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
-import io.ktor.routing.Route
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -38,8 +38,8 @@ internal fun Route.beregnOgSimulerRevurdering(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/{revurderingId}/beregnOgSimuler") {
+    post("$revurderingPath/{revurderingId}/beregnOgSimuler") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     revurderingService.beregnOgSimuler(

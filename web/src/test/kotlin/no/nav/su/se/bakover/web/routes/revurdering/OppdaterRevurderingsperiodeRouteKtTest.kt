@@ -4,10 +4,11 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -52,11 +53,10 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
 
     @Test
     fun `uautoriserte kan ikke oppdatere revurderingsperioden`() {
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Put,
                 "$requestPath/$revurderingId",
@@ -64,14 +64,14 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
+                status shouldBe HttpStatusCode.Forbidden
                 JSONAssert.assertEquals(
                     """
                     {
-                        "message":"Bruker mangler en av de tillatte rollene: Saksbehandler."
+                        "message":"Bruker mangler en av de tillatte rollene: [Saksbehandler]"
                     }
                     """.trimIndent(),
-                    response.content,
+                    bodyAsText(),
                     true,
                 )
             }
@@ -103,11 +103,10 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             on { oppdaterRevurdering(any()) } doReturn opprettetRevurdering.right()
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Put,
                 "$requestPath/$revurderingId",
@@ -125,8 +124,8 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                     """.trimMargin(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
-                val actualResponse = objectMapper.readValue<OpprettetRevurderingJson>(response.content!!)
+                status shouldBe HttpStatusCode.OK
+                val actualResponse = objectMapper.readValue<OpprettetRevurderingJson>(bodyAsText())
                 actualResponse.id shouldBe opprettetRevurdering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.OPPRETTET
             }
@@ -206,11 +205,10 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             on { oppdaterRevurdering(any()) } doReturn error.left()
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Put,
                 "$requestPath/$revurderingId",
@@ -218,10 +216,10 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe expectedStatusCode
+                status shouldBe expectedStatusCode
                 JSONAssert.assertEquals(
                     expectedJsonResponse,
-                    response.content,
+                    bodyAsText(),
                     true,
                 )
             }

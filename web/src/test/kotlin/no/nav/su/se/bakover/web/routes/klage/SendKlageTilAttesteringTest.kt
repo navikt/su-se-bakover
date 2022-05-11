@@ -3,11 +3,12 @@ package no.nav.su.se.bakover.web.routes.klage
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.contentType
-import io.ktor.server.testing.withTestApplication
+import io.ktor.http.contentType
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -32,18 +33,17 @@ internal class SendKlageTilAttesteringTest {
 
     @Test
     fun `ingen tilgang gir unauthorized`() {
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 uri,
                 emptyList(),
             ).apply {
-                response.status() shouldBe HttpStatusCode.Unauthorized
-                response.content shouldBe null
+                status shouldBe HttpStatusCode.Unauthorized
+                bodyAsText() shouldBe ""
             }
         }
     }
@@ -55,18 +55,17 @@ internal class SendKlageTilAttesteringTest {
             listOf(Brukerrolle.Attestant),
             listOf(Brukerrolle.Drift),
         ).forEach {
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover()
-                },
-            ) {
+                }
                 defaultRequest(
                     HttpMethod.Post,
                     uri,
                     it,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
-                    response.content shouldBe "{\"message\":\"Bruker mangler en av de tillatte rollene: Saksbehandler.\"}"
+                    status shouldBe HttpStatusCode.Forbidden
+                    bodyAsText() shouldBe "{\"message\":\"Bruker mangler en av de tillatte rollene: [Saksbehandler]\"}"
                 }
             }
         }
@@ -98,18 +97,17 @@ internal class SendKlageTilAttesteringTest {
         val klageServiceMock = mock<KlageService> {
             on { sendTilAttestering(any(), any()) } doReturn feilkode.left()
         }
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = TestServicesBuilder.services()
                         .copy(klageService = klageServiceMock),
                 )
-            },
-        ) {
+            }
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)).apply {
-                response.status() shouldBe status
-                response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-                response.content shouldBe body
+                status shouldBe status
+                this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                bodyAsText() shouldBe body
             }
         }
     }
@@ -120,17 +118,16 @@ internal class SendKlageTilAttesteringTest {
         val klageServiceMock = mock<KlageService> {
             on { sendTilAttestering(any(), any()) } doReturn klageTilAttestering.right()
         }
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = TestServicesBuilder.services()
                         .copy(klageService = klageServiceMock),
                 )
-            },
-        ) {
+            }
             defaultRequest(HttpMethod.Post, uri, listOf(Brukerrolle.Saksbehandler)).apply {
-                response.status() shouldBe HttpStatusCode.OK
-                response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                status shouldBe HttpStatusCode.OK
+                this.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
                 JSONAssert.assertEquals(
                     //language=JSON
                     """
@@ -163,7 +160,7 @@ internal class SendKlageTilAttesteringTest {
                   "avsluttet": "KAN_IKKE_AVSLUTTES"
                 }
                     """.trimIndent(),
-                    response.content,
+                    this.bodyAsText(),
                     true,
                 )
             }

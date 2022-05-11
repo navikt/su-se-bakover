@@ -59,7 +59,7 @@ class AvslagsBrevInnholdTest {
               "halvGrunnbeløp": 10,
               "harEktefelle": false,
               "beregningsperioder": [],
-              "avslagsparagrafer": [1,2],
+              "avslagsparagrafer": [3],
               "saksbehandlerNavn": "Sak Sakesen",
               "attestantNavn": "Att Attestantsen",
               "fritekst": "Fritekst til brevet",
@@ -85,7 +85,7 @@ class AvslagsBrevInnholdTest {
     fun `mapper avslagsgrunn til korrekt paragraf`() {
         mapOf(
             Avslagsgrunn.UFØRHET to listOf(1, 2),
-            Avslagsgrunn.FLYKTNING to listOf(1, 2),
+            Avslagsgrunn.FLYKTNING to listOf(3),
             Avslagsgrunn.OPPHOLDSTILLATELSE to listOf(1, 2),
             Avslagsgrunn.PERSONLIG_OPPMØTE to listOf(17),
             Avslagsgrunn.FORMUE to listOf(8),
@@ -100,7 +100,7 @@ class AvslagsBrevInnholdTest {
 
     @Test
     fun `plukker ut distinkte paragrafer for tilfeller hvor flere grunner benytter samme paragraf`() {
-        listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FLYKTNING).getDistinkteParagrafer() shouldBe listOf(1, 2)
+        listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FLYKTNING).getDistinkteParagrafer() shouldBe listOf(1, 2, 3)
         listOf(
             Avslagsgrunn.UFØRHET,
             Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE,

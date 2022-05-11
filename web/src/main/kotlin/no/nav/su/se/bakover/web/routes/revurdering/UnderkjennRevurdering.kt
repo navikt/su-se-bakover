@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.routing.Route
-import io.ktor.routing.patch
+import io.ktor.server.application.call
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.patch
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.serialize
@@ -56,8 +56,8 @@ internal fun Route.underkjennRevurdering(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    authorize(Brukerrolle.Attestant) {
-        patch("$revurderingPath/{revurderingId}/underkjenn") {
+    patch("$revurderingPath/{revurderingId}/underkjenn") {
+        authorize(Brukerrolle.Attestant) {
             val navIdent = call.suUserContext.navIdent
 
             call.withRevurderingId { revurderingId ->
@@ -100,7 +100,7 @@ internal fun Route.underkjennRevurdering(
                                 )
                             }
                         )
-                    }
+                    },
                 )
             }
         }
