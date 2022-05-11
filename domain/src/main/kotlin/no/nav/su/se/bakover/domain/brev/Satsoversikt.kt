@@ -4,7 +4,6 @@ import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.ddMMyyyyFormatter
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
@@ -68,17 +67,21 @@ data class Satsoversikt(
                     bosituasjon.periode.måneder()
                         .map { måned -> måned to bosituasjon }
                         .map { (måned, bosituasjon) ->
-                            val beregningsstrategi: BeregningStrategy = bosituasjon.utledBeregningsstrategi(satsFactory)
+                            val (strategi, sats) = bosituasjon.utledBeregningsstrategi(satsFactory)
+                                .let { it to it.beregn(måned) }
                             Satsperiode(
                                 fraOgMed = måned.fraOgMed.ddMMyyyy(),
                                 tilOgMed = måned.tilOgMed.ddMMyyyy(),
-                                sats = beregningsstrategi.satskategori().toJsonstring(),
-                                satsBeløp = beregningsstrategi.beregn(måned).satsForMånedAvrundet,
-                                satsGrunn = beregningsstrategi.satsgrunn().toString(),
+                                sats = sats.satskategori.toJsonstring(),
+                                satsBeløp = sats.satsForMånedAvrundet,
+                                satsGrunn = strategi.satsgrunn().toString(),
                             )
                         }
                 }.let {
-                    Satsoversikt(it.slåSammenLikePerioder().sortedBy { LocalDate.parse(it.fraOgMed, ddMMyyyyFormatter) })
+                    Satsoversikt(
+                        it.slåSammenLikePerioder()
+                            .sortedBy { LocalDate.parse(it.fraOgMed, ddMMyyyyFormatter) },
+                    )
                 }
         }
 

@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.test.fullSupplerendeStønadOrdinærTest
+import no.nav.su.se.bakover.test.satsFactoryTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -90,7 +90,7 @@ internal class FradragStrategyTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(fullSupplerendeStønadOrdinærTest).beregn(
+            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest).beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -105,7 +105,7 @@ internal class FradragStrategyTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(fullSupplerendeStønadOrdinærTest).beregn(
+            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest).beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -172,7 +172,7 @@ internal class FradragStrategyTest {
 
         @Test
         fun `EPS under 67 år ufør flyktning bruker ordinær SU-sats`() {
-            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(fullSupplerendeStønadOrdinærTest)
+            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest)
                 .getEpsFribeløp(periode) shouldBe 18973.0.plusOrMinus(0.5)
         }
 

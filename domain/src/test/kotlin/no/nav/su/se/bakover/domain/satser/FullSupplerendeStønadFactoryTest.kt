@@ -22,28 +22,23 @@ internal class FullSupplerendeStønadFactoryTest {
     @Nested
     inner class UførFlyktning {
 
-        // TODO jah: På et tidspunkt kan [satsFactoryTest] slutte å peke på produksjonsdata og da vil den ikke endre seg lenger.
-        //  Alternativt kan test og prod peke på et felles sett. Også kan prod peke på en kopi hvor den har custom ting for preprod (regulerings-testdata)
-        private val ordinær = satsFactoryTest.fullSupplerendeStønadOrdinær()
-        private val høy = satsFactoryTest.fullSupplerendeStønadHøy()
-
         @Test
         fun `ordinær - desember 2014 er ikke tilgjengelig`() {
             shouldThrow<IllegalStateException> {
-                ordinær.forMåned(desember(2014))
+                satsFactoryTest.ordinær(desember(2014))
             }.message shouldBe "Kan ikke avgjøre full supplerende stønad for måned: Måned(årOgMåned=2014-12). Vi har bare data for perioden: Periode(fraOgMed=2015-01-01, tilOgMed=2029-12-31)"
         }
 
         @Test
         fun `høy - desember 2014 er ikke tilgjengelig`() {
             shouldThrow<IllegalStateException> {
-                høy.forMåned(desember(2014))
+                satsFactoryTest.høy(desember(2014))
             }.message shouldBe "Kan ikke avgjøre full supplerende stønad for måned: Måned(årOgMåned=2014-12). Vi har bare data for perioden: Periode(fraOgMed=2015-01-01, tilOgMed=2029-12-31)"
         }
 
         @Test
         fun `ordinær - januar 2021`() {
-            ordinær.forMåned(januar(2021)).let {
+            satsFactoryTest.ordinær(januar(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = januar(2021),
                     satskategori = Satskategori.ORDINÆR,
@@ -71,7 +66,7 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `høy - januar 2021`() {
-            høy.forMåned(januar(2021)).let {
+            satsFactoryTest.høy(januar(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = januar(2021),
                     satskategori = Satskategori.HØY,
@@ -99,7 +94,7 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `ordinær - mai 2021`() {
-            ordinær.forMåned(mai(2021)).let {
+            satsFactoryTest.ordinær(mai(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = mai(2021),
                     satskategori = Satskategori.ORDINÆR,
@@ -127,7 +122,7 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `høy - mai 2021`() {
-            høy.forMåned(mai(2021)).let {
+            satsFactoryTest.høy(mai(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = mai(2021),
                     satskategori = Satskategori.HØY,
@@ -155,7 +150,7 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `ordinær - mai 2022`() {
-            ordinær.forMåned(mai(2022)).let {
+            satsFactoryTest.ordinær(mai(2022)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = mai(2022),
                     satskategori = Satskategori.ORDINÆR,
@@ -183,7 +178,7 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `høy - mai 2022`() {
-            høy.forMåned(mai(2022)).let {
+            satsFactoryTest.høy(mai(2022)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = mai(2022),
                     satskategori = Satskategori.HØY,
@@ -212,9 +207,7 @@ internal class FullSupplerendeStønadFactoryTest {
         @Test
         fun `finn siste g-endringsdato for 2021-04-30`() {
             val expectedIkrafttredelse = 1.mai(2020)
-            høy.forMåned(
-                april(2021),
-            ).let {
+            satsFactoryTest.høy(april(2021)).let {
                 it.grunnbeløp.ikrafttredelse shouldBe expectedIkrafttredelse
                 it.ikrafttredelse shouldBe expectedIkrafttredelse
             }
@@ -223,9 +216,7 @@ internal class FullSupplerendeStønadFactoryTest {
         @Test
         fun `finn siste g-endringsdato for 2021-05-01`() {
             val expectedIkrafttredelse = LocalDate.of(2021, Month.MAY, 1)
-            høy.forMåned(
-                mai(2021),
-            ).let {
+            satsFactoryTest.høy(mai(2021)).let {
                 it.grunnbeløp.ikrafttredelse shouldBe expectedIkrafttredelse
                 it.ikrafttredelse shouldBe expectedIkrafttredelse
             }

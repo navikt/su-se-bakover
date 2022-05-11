@@ -492,7 +492,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 ),
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
-                    månedsbeløp = satsFactoryTest.fullSupplerendeStønadHøy().forMåned(juni(2021)).satsForMånedAsDouble - 100,
+                    månedsbeløp = satsFactoryTest.høy(juni(2021)).satsForMånedAsDouble - 100,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -524,7 +524,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 ),
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
-                    månedsbeløp = satsFactoryTest.fullSupplerendeStønadHøy().forMåned(juni(2021)).satsForMånedAsDouble - 100,
+                    månedsbeløp = satsFactoryTest.høy(juni(2021)).satsForMånedAsDouble - 100,
                     periode = periode,
                     tilhører = FradragTilhører.EPS,
                 ),

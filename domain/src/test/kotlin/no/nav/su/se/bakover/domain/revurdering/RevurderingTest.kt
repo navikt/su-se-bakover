@@ -81,14 +81,12 @@ internal class RevurderingTest {
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt(
                         periode = Periode.create(1.januar(2021), 30.april(2021)),
-                        arbeidsinntekt = satsFactoryTest.fullSupplerendeStønadHøy()
-                            .forMåned(januar(2020)).satsForMånedAsDouble - 440.0,
+                        arbeidsinntekt = satsFactoryTest.høy(januar(2020)).satsForMånedAsDouble - 440.0,
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     fradragsgrunnlagArbeidsinntekt(
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                        arbeidsinntekt = satsFactoryTest.fullSupplerendeStønadHøy()
-                            .forMåned(mai(2021)).satsForMånedAsDouble - 440.0,
+                        arbeidsinntekt = satsFactoryTest.høy(mai(2021)).satsForMånedAsDouble - 440.0,
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 ),

@@ -2,18 +2,11 @@ package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadFactory
 import no.nav.su.se.bakover.domain.satser.Garantipensjonsnivå
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import java.lang.Double.max
 
-enum class FradragStrategyName {
-    Enslig,
-    EpsOver67År,
-    EpsUnder67ÅrOgUførFlyktning,
-    EpsUnder67År
-}
-
-sealed class FradragStrategy(private val name: FradragStrategyName) {
+sealed class FradragStrategy {
 
     fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Måned, List<FradragForMåned>> {
         val periodiserteFradrag = fradrag
@@ -34,7 +27,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
 
     abstract fun getEpsFribeløp(måned: Måned): Double
 
-    object Enslig : FradragStrategy(FradragStrategyName.Enslig) {
+    object Enslig : FradragStrategy() {
         override fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>> {
             return fradrag.mapValues { it.value.filter { fradrag -> fradrag.tilhører == FradragTilhører.BRUKER } }
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -43,7 +36,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         override fun getEpsFribeløp(måned: Måned): Double = 0.0
     }
 
-    object EpsOver67År : FradragStrategy(FradragStrategyName.EpsOver67År) {
+    object EpsOver67År : FradragStrategy() {
         override fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>> {
             return fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -66,15 +59,15 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         }
     }
 
-    data class EpsUnder67ÅrOgUførFlyktning(val fullSupplerendeStønadFactoryOrdinær: FullSupplerendeStønadFactory.Ordinær) :
-        FradragStrategy(FradragStrategyName.EpsUnder67ÅrOgUførFlyktning) {
+    data class EpsUnder67ÅrOgUførFlyktning(val satsfactory: SatsFactory) :
+        FradragStrategy() {
         override fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>> {
             return fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
                 .`fjern EPS fradrag opp til satsbeløp`()
         }
 
-        override fun getEpsFribeløp(måned: Måned): Double = fullSupplerendeStønadFactoryOrdinær.forMåned(måned).satsForMånedAsDouble
+        override fun getEpsFribeløp(måned: Måned): Double = satsfactory.ordinær(måned).satsForMånedAsDouble
 
         private fun Map<Måned, List<FradragForMåned>>.`fjern EPS fradrag opp til satsbeløp`(): Map<Måned, List<FradragForMåned>> {
             return mapValues {
@@ -87,7 +80,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         }
     }
 
-    object EpsUnder67År : FradragStrategy(FradragStrategyName.EpsUnder67År) {
+    object EpsUnder67År : FradragStrategy() {
         override fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>> =
             fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()

@@ -38,14 +38,7 @@ sealed class Merknader {
             merknader.any { it is Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats }
 
         override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as Beregningsmerknad
-
-            if (merknader != other.merknader) return false
-
-            return true
+            return other is Beregningsmerknad && merknader == other.merknader
         }
 
         override fun hashCode(): Int {

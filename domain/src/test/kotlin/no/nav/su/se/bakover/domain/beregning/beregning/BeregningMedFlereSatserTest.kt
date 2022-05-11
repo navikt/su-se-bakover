@@ -16,8 +16,6 @@ import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fullSupplerendeStønadHøyTest
-import no.nav.su.se.bakover.test.fullSupplerendeStønadOrdinærTest
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.satsFactoryTest
 import org.junit.jupiter.api.Test
@@ -48,7 +46,7 @@ internal class BeregningMedFlereSatserTest {
                         1.januar(2021),
                         30.april(2021),
                     )
-                    månedsberegninger.all { it.getSumYtelse() == fullSupplerendeStønadHøyTest.forMåned(januar(2021)).satsForMånedAvrundet } shouldBe true
+                    månedsberegninger.all { it.getSumYtelse() == satsFactoryTest.høy(januar(2021)).satsForMånedAvrundet } shouldBe true
                     månedsberegninger.all { it.getSumFradrag() == 0.0 } shouldBe true
                     månedsberegninger.all { it.getFribeløpForEps() == 0.0 } shouldBe true
                     månedsberegninger.all { it.erFradragForEpsBenyttetIBeregning() } shouldBe false
@@ -59,9 +57,9 @@ internal class BeregningMedFlereSatserTest {
                         1.mai(2021),
                         31.desember(2021),
                     )
-                    månedsberegninger.all { it.getSumYtelse() == fullSupplerendeStønadOrdinærTest.forMåned(mai(2021)).satsForMånedAvrundet } shouldBe true
+                    månedsberegninger.all { it.getSumYtelse() == satsFactoryTest.ordinær(mai(2021)).satsForMånedAvrundet } shouldBe true
                     månedsberegninger.all { it.getSumFradrag() == 0.0 } shouldBe true
-                    månedsberegninger.all { it.getFribeløpForEps() == fullSupplerendeStønadOrdinærTest.forMåned(mai(2021)).satsForMånedAsDouble } shouldBe true
+                    månedsberegninger.all { it.getFribeløpForEps() == satsFactoryTest.ordinær(mai(2021)).satsForMånedAsDouble } shouldBe true
                     månedsberegninger.all { it.erFradragForEpsBenyttetIBeregning() } shouldBe false
                 }
             }

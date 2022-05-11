@@ -43,7 +43,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     fun `beregning med sum ytelse nøyaktig lik null skal gi avslag`() {
         val periode = januar(2021)
         val fradrag =
-            lagFradrag(satsFactoryTest.fullSupplerendeStønadHøy().forMåned(periode).satsForMånedAsDouble, periode)
+            lagFradrag(satsFactoryTest.høy(periode).satsForMånedAsDouble, periode)
         val beregning = lagBeregningMedFradrag(fradrag, strategy = BeregningStrategy.BorAlene(satsFactoryTest))
 
         beregning.getSumYtelse() shouldBe 0

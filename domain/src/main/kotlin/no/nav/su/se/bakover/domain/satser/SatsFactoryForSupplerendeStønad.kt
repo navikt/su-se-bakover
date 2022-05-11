@@ -4,6 +4,7 @@ import arrow.core.Nel
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import org.slf4j.LoggerFactory
@@ -48,13 +49,22 @@ class SatsFactoryForSupplerendeStønad(
     ),
     override val formuegrenserFactory: FormuegrenserFactory = FormuegrenserFactory.createFromGrunnbeløp(
         Nel.fromListUnsafe(
-            grunnbeløpFactory.månedTilGrunnbeløp.values.toList()
-        )
+            grunnbeløpFactory.månedTilGrunnbeløp.values.toList(),
+        ),
     ),
 ) : SatsFactory {
-    override fun fullSupplerendeStønadOrdinær(): FullSupplerendeStønadFactory.Ordinær =
-        FullSupplerendeStønadFactory.Ordinær.Ufør(grunnbeløpFactory, minsteÅrligYtelseForUføretrygdede)
+    override fun fullSupplerendeStønad(satskategori: Satskategori): FullSupplerendeStønadFactory {
+        return when (satskategori) {
+            Satskategori.ORDINÆR -> FullSupplerendeStønadFactory.Ordinær.Ufør(grunnbeløpFactory, minsteÅrligYtelseForUføretrygdede)
+            Satskategori.HØY -> FullSupplerendeStønadFactory.Høy.Ufør(grunnbeløpFactory, minsteÅrligYtelseForUføretrygdede)
+        }
+    }
 
-    override fun fullSupplerendeStønadHøy(): FullSupplerendeStønadFactory.Høy =
-        FullSupplerendeStønadFactory.Høy.Ufør(grunnbeløpFactory, minsteÅrligYtelseForUføretrygdede)
+    override fun høy(måned: Måned): FullSupplerendeStønadForMåned {
+        return fullSupplerendeStønad(Satskategori.HØY).forMåned(måned)
+    }
+
+    override fun ordinær(måned: Måned): FullSupplerendeStønadForMåned {
+        return fullSupplerendeStønad(Satskategori.ORDINÆR).forMåned(måned)
+    }
 }

@@ -326,12 +326,12 @@ internal class RevurderingBeregnTest {
                 fradragsgrunnlag = listOf(
                     fradragsgrunnlagArbeidsinntekt(
                         periode = Periode.create(1.januar(2021), 30.april(2021)),
-                        arbeidsinntekt = (satsFactoryTest.fullSupplerendeStønadHøy().forMåned(januar(2021)).satsForMånedAsDouble - 250),
+                        arbeidsinntekt = (satsFactoryTest.høy(januar(2021)).satsForMånedAsDouble - 250),
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     fradragsgrunnlagArbeidsinntekt(
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                        arbeidsinntekt = (satsFactoryTest.fullSupplerendeStønadHøy().forMåned(mai(2021)).satsForMånedAsDouble - 250),
+                        arbeidsinntekt = (satsFactoryTest.høy(mai(2021)).satsForMånedAsDouble - 250),
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
@@ -394,7 +394,7 @@ internal class RevurderingBeregnTest {
                     .sumOf { it.månedsbeløp } shouldBe 21989
                 beregnet.beregning.getMånedsberegninger()[1].getSumYtelse() shouldBe 0
                 beregnet.beregning.getMånedsberegninger()[2].getSumYtelse() shouldBe
-                    (3 * satsFactoryTest.fullSupplerendeStønadHøy().forMåned(mai(2021)).satsForMånedAvrundet) - expectedTotalAvkorting
+                    (3 * satsFactoryTest.høy(mai(2021)).satsForMånedAvrundet) - expectedTotalAvkorting
                 beregnet.beregning.getFradrag()
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp } shouldBe expectedTotalAvkorting
@@ -499,7 +499,7 @@ internal class RevurderingBeregnTest {
                 beregnet.beregning.getMånedsberegninger()[1].getSumYtelse() shouldBe 0
                 beregnet.beregning.getMånedsberegninger()[2].getSumYtelse() shouldBe 0
                 beregnet.beregning.getMånedsberegninger()[3].getSumYtelse() shouldBe
-                    (4 * satsFactoryTest.fullSupplerendeStønadHøy().forMåned(mai(2021)).satsForMånedAvrundet) - (4 * arbeidsinntekt) - expectedTotalAvkorting
+                    (4 * satsFactoryTest.høy(mai(2021)).satsForMånedAvrundet) - (4 * arbeidsinntekt) - expectedTotalAvkorting
                 beregnet.beregning.getFradrag()
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp } shouldBe expectedTotalAvkorting

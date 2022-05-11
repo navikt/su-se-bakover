@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.satser
 
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 
@@ -10,12 +11,10 @@ import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
  * - alder) garantipensjon
  */
 interface SatsFactory {
-    fun fullSupplerendeStønadHøy(): FullSupplerendeStønadFactory.Høy
-    fun fullSupplerendeStønadOrdinær(): FullSupplerendeStønadFactory.Ordinær
-    fun fullSupplerendeStønad(satskategori: Satskategori): FullSupplerendeStønadFactory = when (satskategori) {
-        Satskategori.ORDINÆR -> fullSupplerendeStønadOrdinær()
-        Satskategori.HØY -> fullSupplerendeStønadHøy()
-    }
+    fun fullSupplerendeStønad(satskategori: Satskategori): FullSupplerendeStønadFactory
     val grunnbeløpFactory: GrunnbeløpFactory
     val formuegrenserFactory: FormuegrenserFactory
+
+    fun høy(måned: Måned): FullSupplerendeStønadForMåned
+    fun ordinær(måned: Måned): FullSupplerendeStønadForMåned
 }
