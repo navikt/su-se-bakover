@@ -154,7 +154,6 @@ data class Formue(
     val verdiPåBolig: Number? = null,
     val boligBrukesTil: String? = null,
     val depositumsBeløp: Number? = null,
-    val kontonummer: String? = null,
     val verdiPåEiendom: Number? = null,
     val eiendomBrukesTil: String? = null,
     val kjøretøy: List<Kjøretøy>? = null,
