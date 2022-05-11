@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
@@ -35,7 +34,7 @@ internal class UtenlandsoppholdVilkårTest {
                     begrunnelse = "jabadoo",
                 ).getOrFail(),
             ),
-        ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(juli(2021), "")).erLik(
+        ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(juli(2021))).erLik(
             UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
                     VurderingsperiodeUtenlandsopphold.tryCreate(

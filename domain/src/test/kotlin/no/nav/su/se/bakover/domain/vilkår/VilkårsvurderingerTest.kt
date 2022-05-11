@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.mai
@@ -174,7 +173,7 @@ internal class VilkårsvurderingerTest {
             vilkårsvurderingerSøknadsbehandlingInnvilget(periode = gammel)
                 .let {
                     it.periode shouldBe gammel
-                    it.oppdaterStønadsperiode(Stønadsperiode.create(ny, ""), formuegrenserFactoryTest).periode shouldBe ny
+                    it.oppdaterStønadsperiode(Stønadsperiode.create(ny), formuegrenserFactoryTest).periode shouldBe ny
                 }
         }
 
@@ -213,7 +212,7 @@ internal class VilkårsvurderingerTest {
             innvilget.resultat shouldBe beOfType<Vilkårsvurderingsresultat.Innvilget>()
 
             innvilget.oppdater(
-                stønadsperiode = Stønadsperiode.create(år(2021), ""),
+                stønadsperiode = Stønadsperiode.create(år(2021)),
                 behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
                 grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = emptyList(),
@@ -388,7 +387,7 @@ internal class VilkårsvurderingerTest {
             vilkårsvurderingerRevurderingInnvilget(periode = gammel)
                 .let {
                     it.periode shouldBe gammel
-                    it.oppdaterStønadsperiode(Stønadsperiode.create(ny, ""), formuegrenserFactoryTest).periode shouldBe ny
+                    it.oppdaterStønadsperiode(Stønadsperiode.create(ny), formuegrenserFactoryTest).periode shouldBe ny
                 }
         }
 

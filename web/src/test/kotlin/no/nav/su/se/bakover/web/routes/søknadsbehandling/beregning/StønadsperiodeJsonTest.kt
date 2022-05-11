@@ -28,8 +28,7 @@ internal class StønadsperiodeJsonTest {
             "periode": {
                 "fraOgMed":"$fraOgMed",
                 "tilOgMed":"$tilOgMed"
-            },
-            "begrunnelse": ""
+            }
         }
     """.trimIndent()
 
@@ -51,7 +50,6 @@ internal class StønadsperiodeJsonTest {
                     fraOgMed = fraOgMed,
                     tilOgMed = tilOgMed,
                 ),
-                begrunnelse = "",
             )
             stønadsperiodeJson.toStønadsperiode() shouldBe stønadsperiode.right()
         }

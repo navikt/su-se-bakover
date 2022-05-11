@@ -348,7 +348,7 @@ internal class RevurderingBeregnTest {
 
         opprettetRevurdering(
             sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
-                stønadsperiode = Stønadsperiode.create(revurderingsperiode, ""),
+                stønadsperiode = Stønadsperiode.create(revurderingsperiode),
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
                     avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
                         objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
@@ -435,7 +435,7 @@ internal class RevurderingBeregnTest {
 
         opprettetRevurdering(
             sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
-                stønadsperiode = Stønadsperiode.create(revurderingsperiode, ""),
+                stønadsperiode = Stønadsperiode.create(revurderingsperiode),
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
                     avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
                         objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(

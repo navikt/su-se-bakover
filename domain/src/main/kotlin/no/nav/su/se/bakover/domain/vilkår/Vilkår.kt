@@ -594,19 +594,13 @@ sealed class Vilkår {
                             if (tidligere != null) {
                                 acc.add(
                                     periode to tidligere.oppdaterStønadsperiode(
-                                        Stønadsperiode.create(
-                                            periode = periode,
-                                            begrunnelse = stønadsperiode.begrunnelse,
-                                        ),
+                                        Stønadsperiode.create(periode = periode),
                                     ),
                                 )
                             } else if (senere != null) {
                                 acc.add(
                                     periode to senere.oppdaterStønadsperiode(
-                                        Stønadsperiode.create(
-                                            periode = periode,
-                                            begrunnelse = stønadsperiode.begrunnelse,
-                                        ),
+                                        Stønadsperiode.create(periode = periode),
                                     ),
                                 )
                             }

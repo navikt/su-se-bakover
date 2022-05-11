@@ -59,7 +59,7 @@ class SøknadsbehandlingServiceAttesteringTest {
     private val nyOppgaveId = OppgaveId("999")
     private val aktørId = AktørId("12345")
     private val periode = år(2021)
-    private val stønadsperiode = Stønadsperiode.create(periode, "")
+    private val stønadsperiode = Stønadsperiode.create(periode)
     private val simulertBehandling = Søknadsbehandling.Simulert(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,

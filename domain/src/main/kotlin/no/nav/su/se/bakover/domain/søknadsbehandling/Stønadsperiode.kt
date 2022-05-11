@@ -9,7 +9,6 @@ import org.jetbrains.annotations.TestOnly
 
 data class Stønadsperiode private constructor(
     val periode: Periode,
-    val begrunnelse: String,
 ) : Comparable<Stønadsperiode> {
 
     infix fun inneholder(periode: Periode) = this.periode.inneholder(periode)
@@ -18,11 +17,11 @@ data class Stønadsperiode private constructor(
     companion object {
 
         @TestOnly
-        fun create(periode: Periode, begrunnelse: String = ""): Stønadsperiode {
-            return tryCreate(periode, begrunnelse).getOrHandle { throw IllegalArgumentException(it.toString()) }
+        fun create(periode: Periode): Stønadsperiode {
+            return tryCreate(periode).getOrHandle { throw IllegalArgumentException(it.toString()) }
         }
 
-        fun tryCreate(periode: Periode, begrunnelse: String): Either<UgyldigStønadsperiode, Stønadsperiode> {
+        fun tryCreate(periode: Periode): Either<UgyldigStønadsperiode, Stønadsperiode> {
             if (periode.fraOgMed.year < 2021) {
                 return UgyldigStønadsperiode.FraOgMedDatoKanIkkeVæreFør2021.left()
             }
@@ -30,7 +29,7 @@ data class Stønadsperiode private constructor(
                 return UgyldigStønadsperiode.PeriodeKanIkkeVæreLengreEnn12Måneder.left()
             }
 
-            return Stønadsperiode(periode, begrunnelse).right()
+            return Stønadsperiode(periode).right()
         }
     }
 

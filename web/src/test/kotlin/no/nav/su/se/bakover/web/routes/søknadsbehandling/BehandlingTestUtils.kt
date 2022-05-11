@@ -42,7 +42,7 @@ object BehandlingTestUtils {
     internal val oppgaveId = OppgaveId("o")
     private val journalpostId = JournalpostId("j")
     internal val stønadsperiode =
-        Stønadsperiode.create(år(2021), "begrunnelsen")
+        Stønadsperiode.create(år(2021))
     internal val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave.IkkeLukket(
         sakId = sakId,
         opprettet = Tidspunkt.EPOCH,

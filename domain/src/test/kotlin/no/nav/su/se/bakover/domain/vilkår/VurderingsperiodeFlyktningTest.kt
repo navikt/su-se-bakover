@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
@@ -35,10 +34,7 @@ internal class VurderingsperiodeFlyktningTest {
         ).getOrFail()
             .let {
                 it.oppdaterStønadsperiode(
-                    Stønadsperiode.create(
-                        februar(2021),
-                        "",
-                    ),
+                    Stønadsperiode.create(februar(2021)),
                 ) shouldBe VurderingsperiodeFlyktning.tryCreate(
                     id = vilkårId,
                     opprettet = fixedTidspunkt,

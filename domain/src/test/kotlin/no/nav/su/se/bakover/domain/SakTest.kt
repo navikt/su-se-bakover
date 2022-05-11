@@ -109,10 +109,7 @@ internal class SakTest {
             )
 
             val (sakEtterNyPeriode, nyPeriode) = vedtakSøknadsbehandlingIverksattInnvilget(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = Periode.create(1.juni(2021), 31.desember(2021)),
-                    begrunnelse = "beg",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = Periode.create(1.juni(2021), 31.desember(2021))),
                 clock = fixedClock.plus(2, ChronoUnit.SECONDS),
             )
 
@@ -148,10 +145,7 @@ internal class SakTest {
             val (sak, stønadsperiode1) = vedtakSøknadsbehandlingIverksattInnvilget()
 
             val (_, stønadsperiode2) = vedtakSøknadsbehandlingIverksattInnvilget(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = år(2023),
-                    begrunnelse = "ny periode da vett",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = år(2023)),
             )
 
             sak.copy(
@@ -180,10 +174,7 @@ internal class SakTest {
                 sakOgVedtakSomKanRevurderes = sakStønadsperiode1 to stønadsperiode1,
             )
 
-            val stønadsperiode2023 = Stønadsperiode.create(
-                periode = år(2023),
-                begrunnelse = "ny periode da vett",
-            )
+            val stønadsperiode2023 = Stønadsperiode.create(periode = år(2023))
 
             val (sakStønadsperiode2, stønadsperiode2) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = stønadsperiode2023,
@@ -268,10 +259,7 @@ internal class SakTest {
                 stønadsperiode = stønadsperiode2021,
             )
 
-            val stønadsperiode2022 = Stønadsperiode.create(
-                periode = år(2022),
-                begrunnelse = "ny periode da vett",
-            )
+            val stønadsperiode2022 = Stønadsperiode.create(periode = år(2022))
 
             val (sakStønadsperiode2, stønadsperiode2) = vedtakSøknadsbehandlingIverksattInnvilget(
                 stønadsperiode = stønadsperiode2022,
@@ -387,7 +375,7 @@ internal class SakTest {
 
             val nyPeriode = Periode.create(1.februar(2022), 31.mars(2022))
             val actual = vilkårsvurdert.oppdaterStønadsperiode(
-                oppdatertStønadsperiode = Stønadsperiode.create(nyPeriode, ""),
+                oppdatertStønadsperiode = Stønadsperiode.create(nyPeriode),
                 clock = fixedClock,
                 formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail()
@@ -402,10 +390,7 @@ internal class SakTest {
         @Test
         fun `stønadsperioder skal ikke kunne overlappe`() {
             val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = år(2021),
-                    begrunnelse = "kek",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = år(2021)),
             )
 
             val opprettetSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
@@ -417,7 +402,7 @@ internal class SakTest {
 
                 it.oppdaterStønadsperiodeForSøknadsbehandling(
                     søknadsbehandlingId = opprettetSøknadsbehandling.id,
-                    stønadsperiode = Stønadsperiode.create(nyPeriode, ""),
+                    stønadsperiode = Stønadsperiode.create(nyPeriode),
                     clock = fixedClock,
                     formuegrenserFactory = formuegrenserFactoryTest,
                 ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode.left()
@@ -428,10 +413,7 @@ internal class SakTest {
         fun `stønadsperioder skal ikke kunne legges forut for eksisterende stønadsperioder`() {
             val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
             val (_, andreStønadsperiode) = vedtakSøknadsbehandlingIverksattInnvilget(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = år(2023),
-                    begrunnelse = "ny periode da vett",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = år(2023)),
             )
             val mellomToAndrePerioder = søknadsbehandlingVilkårsvurdertUavklart().second
 
@@ -439,10 +421,7 @@ internal class SakTest {
                 søknadsbehandlinger = sak.søknadsbehandlinger + andreStønadsperiode.behandling + mellomToAndrePerioder,
                 vedtakListe = sak.vedtakListe + andreStønadsperiode,
             ).let {
-                val nyPeriode = Stønadsperiode.create(
-                    periode = år(2022),
-                    begrunnelse = "ny periode da vett",
-                )
+                val nyPeriode = Stønadsperiode.create(periode = år(2022))
 
                 it.oppdaterStønadsperiodeForSøknadsbehandling(
                     søknadsbehandlingId = mellomToAndrePerioder.id,
@@ -473,7 +452,7 @@ internal class SakTest {
             )
 
             val nyStønadsperiode =
-                Stønadsperiode.create(år(2022), begrunnelse = "")
+                Stønadsperiode.create(år(2022))
             val (_, nySøknadsbehandling) = søknadsbehandlingVilkårsvurdertUavklart(
                 clock = tikkendeKlokke,
                 stønadsperiode = nyStønadsperiode,
@@ -533,7 +512,7 @@ internal class SakTest {
 
         @Test
         fun `utløp av ytelse`() {
-            val stønadsperiode = Stønadsperiode.create(år(2021), "")
+            val stønadsperiode = Stønadsperiode.create(år(2021))
             val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
 
             vedtakSøknadsbehandlingIverksattInnvilget(

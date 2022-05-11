@@ -102,7 +102,7 @@ internal class FastOppholdINorgeVilkårTest {
                     begrunnelse = "jabadoo",
                 ).getOrFail(),
             ),
-        ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(juli(2021), "")).erLik(
+        ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(juli(2021))).erLik(
             FastOppholdINorgeVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
                     VurderingsperiodeFastOppholdINorge.tryCreate(

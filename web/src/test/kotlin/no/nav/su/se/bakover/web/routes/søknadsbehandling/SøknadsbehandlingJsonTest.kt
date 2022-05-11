@@ -100,8 +100,7 @@ internal class SøknadsbehandlingJsonTest {
             "periode": {
               "fraOgMed": "2021-01-01",
               "tilOgMed": "2021-12-31"
-            },
-            "begrunnelse": "begrunnelsen"
+            }
           },
           "grunnlagsdataOgVilkårsvurderinger": {
             "uføre": $expectedVurderingUføreJson,

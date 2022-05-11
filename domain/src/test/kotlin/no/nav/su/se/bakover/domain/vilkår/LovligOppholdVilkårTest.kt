@@ -102,7 +102,7 @@ internal class LovligOppholdVilkårTest {
                     begrunnelse = "jabadoo",
                 ).getOrFail(),
             ),
-        ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(juli(2021), "")).erLik(
+        ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(juli(2021))).erLik(
             LovligOppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
                     VurderingsperiodeLovligOpphold.tryCreate(

@@ -108,7 +108,7 @@ internal class StansAvYtelseServiceTest {
             tilOgMed = år(2021).tilOgMed,
         )
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(periode, "b"),
+            stønadsperiode = Stønadsperiode.create(periode),
         )
 
         val sakServiceMock = mock<SakService> {
@@ -180,7 +180,7 @@ internal class StansAvYtelseServiceTest {
             tilOgMed = år(2021).tilOgMed,
         )
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(periode, "b"),
+            stønadsperiode = Stønadsperiode.create(periode),
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
@@ -352,7 +352,7 @@ internal class StansAvYtelseServiceTest {
     @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `svarer med feil ved forsøk på å oppdatere revurderinger som ikke er av korrekt type`() {
         val enRevurdering = beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
-            stønadsperiode = Stønadsperiode.create(år(2021), "jambo"),
+            stønadsperiode = Stønadsperiode.create(år(2021)),
         ).second
 
         val vedtakServiceMock = mock<VedtakService> {

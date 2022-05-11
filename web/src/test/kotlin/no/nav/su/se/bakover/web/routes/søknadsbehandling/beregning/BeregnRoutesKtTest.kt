@@ -60,10 +60,7 @@ import javax.sql.DataSource
 
 internal class BeregnRoutesKtTest {
 
-    private val stønadsperiode = Stønadsperiode.create(
-        periode = år(2021),
-        begrunnelse = "begrunnelse",
-    )
+    private val stønadsperiode = Stønadsperiode.create(periode = år(2021))
 
     private fun repos(dataSource: DataSource) = DatabaseBuilder.build(
         embeddedDatasource = dataSource,

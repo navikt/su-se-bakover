@@ -401,7 +401,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
         formue = formuevilkårIkkeVurdert(),
         opplysningsplikt = opplysningsplikt,
     ).oppdater(
-        stønadsperiode = Stønadsperiode.create(periode = periode, begrunnelse = ""),
+        stønadsperiode = Stønadsperiode.create(periode = periode),
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.tryCreate(
             fradragsgrunnlag = emptyList(),
@@ -466,10 +466,7 @@ fun vilkårsvurderingerAvslåttAlle(
         formue = formuevilkårIkkeVurdert(),
         opplysningsplikt = utilstrekkeligDokumentert(periode = periode)
     ).oppdater(
-        stønadsperiode = Stønadsperiode.create(
-            periode = periode,
-            begrunnelse = "",
-        ),
+        stønadsperiode = Stønadsperiode.create(periode = periode),
         behandlingsinformasjon = behandlingsinformasjonAlleVilkårAvslått,
         grunnlagsdata = Grunnlagsdata.tryCreate(
             fradragsgrunnlag = listOf(),

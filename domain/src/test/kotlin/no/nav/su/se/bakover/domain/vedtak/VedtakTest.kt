@@ -426,10 +426,7 @@ internal class VedtakTest {
                     ),
                 ),
                 fritekstTilBrev = "",
-                stønadsperiode = Stønadsperiode.create(
-                    periode = Periode.create(fraDato, tilDato),
-                    begrunnelse = "begrunnelsen for perioden",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = Periode.create(fraDato, tilDato)),
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,

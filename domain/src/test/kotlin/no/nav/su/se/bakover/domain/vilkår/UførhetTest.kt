@@ -125,10 +125,7 @@ internal class UførhetTest {
             nonEmptyListOf(januar, februar),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = januar(2021),
-                    begrunnelse = "ville endre",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = januar(2021)),
             ).let {
                 it.vurderingsperioder shouldHaveSize 1
                 it.vurderingsperioder.first().erLik(januar) shouldBe true
@@ -150,10 +147,7 @@ internal class UførhetTest {
             nonEmptyListOf(janMars, aprAug),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = Periode.create(1.mars(2021), 31.mai(2021)),
-                    begrunnelse = "ville endre",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = Periode.create(1.mars(2021), 31.mai(2021))),
             ).let {
                 it.vurderingsperioder shouldHaveSize 2
                 it.vurderingsperioder.first().erLik(
@@ -191,10 +185,7 @@ internal class UførhetTest {
             nonEmptyListOf(februar, april),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = Periode.create(1.januar(2021), 31.mai(2021)),
-                    begrunnelse = "ville endre",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = Periode.create(1.januar(2021), 31.mai(2021))),
             ).let {
                 it.vurderingsperioder shouldHaveSize 2
                 it.vurderingsperioder.first().erLik(
@@ -235,10 +226,7 @@ internal class UførhetTest {
             nonEmptyListOf(februar, mars),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = februar(2021),
-                    begrunnelse = "ville endre",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = februar(2021)),
             ).let {
                 it.vurderingsperioder shouldHaveSize 1
                 it.vurderingsperioder.first().erLik(
@@ -266,10 +254,7 @@ internal class UførhetTest {
             nonEmptyListOf(februar, mars),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = februar(2023),
-                    begrunnelse = "ville endre",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = februar(2023)),
             ).let {
                 it.vurderingsperioder shouldHaveSize 1
                 it.vurderingsperioder.first().erLik(

@@ -33,10 +33,7 @@ internal class VurderingsperiodeLovligOppholdTest {
         ).getOrFail()
             .let {
                 it.oppdaterStønadsperiode(
-                    Stønadsperiode.create(
-                        februar(2021),
-                        "",
-                    ),
+                    Stønadsperiode.create(februar(2021)),
                 ) shouldBe VurderingsperiodeLovligOpphold.tryCreate(
                     id = vilkårId,
                     opprettet = fixedTidspunkt,

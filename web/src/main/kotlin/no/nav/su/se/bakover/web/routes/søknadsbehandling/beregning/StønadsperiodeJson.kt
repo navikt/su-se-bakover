@@ -11,12 +11,11 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 
 internal data class StønadsperiodeJson(
-    val periode: PeriodeJson,
-    val begrunnelse: String,
+    val periode: PeriodeJson
 ) {
     fun toStønadsperiode(): Either<Resultat, Stønadsperiode> {
         return periode.toPeriodeOrResultat().flatMap { periode ->
-            Stønadsperiode.tryCreate(periode, begrunnelse).mapLeft {
+            Stønadsperiode.tryCreate(periode).mapLeft {
                 when (it) {
                     Stønadsperiode.UgyldigStønadsperiode.FraOgMedDatoKanIkkeVæreFør2021 -> BadRequest.errorJson(
                         "En stønadsperiode kan ikke starte før 2021",
@@ -32,6 +31,6 @@ internal data class StønadsperiodeJson(
     }
 
     companion object {
-        fun Stønadsperiode.toJson() = StønadsperiodeJson(periode.toJson(), begrunnelse)
+        fun Stønadsperiode.toJson() = StønadsperiodeJson(periode.toJson())
     }
 }
