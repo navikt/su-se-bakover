@@ -341,6 +341,7 @@ sealed class Grunnlag {
 
         sealed class Fullstendig : Bosituasjon(), KanPlasseresPåTidslinje<Fullstendig> {
             abstract val begrunnelse: String?
+            abstract override val satskategori: Satskategori
 
             sealed class EktefellePartnerSamboer : Fullstendig() {
                 abstract val fnr: Fnr

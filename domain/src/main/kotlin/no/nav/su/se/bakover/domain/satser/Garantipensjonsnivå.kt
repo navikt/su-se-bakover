@@ -25,11 +25,7 @@ enum class Garantipensjonsnivå {
         .sortedByDescending { it.key }
         .first { dato.isAfter(it.key) || dato.isEqual(it.key) }.value.get(this)
 
-    fun periodiser(periode: Måned): Map<Måned, Double> {
-        return mapOf((periode to garantipensjonsnivåSomMånedsbeløp(periode.tilOgMed)))
-    }
-
-    private fun garantipensjonsnivåSomMånedsbeløp(dato: LocalDate) = this.forDato(dato) / 12.0
+    fun forMåned(måned: Måned) = this.forDato(måned.fraOgMed) / 12.0
 
     private inner class Pensjonsnivåverdier(val ordinær: Int) {
         fun get(nivå: Garantipensjonsnivå) =

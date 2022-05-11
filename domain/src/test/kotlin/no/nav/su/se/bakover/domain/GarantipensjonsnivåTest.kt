@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.satser.Garantipensjonsnivå
@@ -49,13 +48,5 @@ internal class GarantipensjonsnivåTest {
 
         Garantipensjonsnivå.Ordinær
             .forDato(1.juli(2021)) shouldBe 187252
-    }
-
-    @Test
-    fun `periodiserer garantipensjonsnivå`() {
-        val januar = januar(2020)
-        Garantipensjonsnivå.Ordinær.periodiser(januar) shouldBe mapOf(januar to 14674.916666666666)
-        val desember = desember(2020)
-        Garantipensjonsnivå.Ordinær.periodiser(desember) shouldBe mapOf(desember to 14810.333333333334)
     }
 }

@@ -48,9 +48,7 @@ class SatsFactoryForSupplerendeStønad(
         ),
     ),
     override val formuegrenserFactory: FormuegrenserFactory = FormuegrenserFactory.createFromGrunnbeløp(
-        Nel.fromListUnsafe(
-            grunnbeløpFactory.månedTilGrunnbeløp.values.toList(),
-        ),
+        Nel.fromListUnsafe(grunnbeløpFactory.alle()),
     ),
 ) : SatsFactory {
     override fun fullSupplerendeStønad(satskategori: Satskategori): FullSupplerendeStønadFactory {

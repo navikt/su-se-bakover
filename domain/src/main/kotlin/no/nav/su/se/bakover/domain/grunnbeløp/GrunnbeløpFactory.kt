@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikat
 import no.nav.su.se.bakover.common.periode.periodisert
 import no.nav.su.se.bakover.domain.satser.supplerendeStønadAlderFlyktningIkrafttredelse
 import java.time.LocalDate
+import java.time.YearMonth
 
 /**
  * Fra lov om supplerende stønad (https://lovdata.no/dokument/NL/lov/2005-04-29-21):
@@ -13,7 +14,7 @@ import java.time.LocalDate
  * - Grunnbeløpet fastsettes av Kongen og reguleres årlig med virkning fra 1. mai i samsvar med lønnsveksten.
  */
 class GrunnbeløpFactory(
-    val månedTilGrunnbeløp: Map<Måned, GrunnbeløpForMåned>,
+    private val månedTilGrunnbeløp: Map<Måned, GrunnbeløpForMåned>,
 ) {
     init {
         assert(månedTilGrunnbeløp.any { it.key.inneholder(supplerendeStønadAlderFlyktningIkrafttredelse) })
@@ -40,5 +41,20 @@ class GrunnbeløpFactory(
 
     fun forMåned(måned: Måned): GrunnbeløpForMåned {
         return månedTilGrunnbeløp[måned]!!
+    }
+
+    fun alleGrunnbeløp(fraOgMed: LocalDate): List<GrunnbeløpForMåned> {
+        return månedTilGrunnbeløp.filterValues {
+            it.måned starterSamtidigEllerSenere Måned(
+                YearMonth.of(
+                    fraOgMed.year,
+                    fraOgMed.month,
+                ),
+            )
+        }.values.toList()
+    }
+
+    fun alle(): List<GrunnbeløpForMåned> {
+        return alleGrunnbeløp(månedTilGrunnbeløp.minOf { it.key.fraOgMed })
     }
 }

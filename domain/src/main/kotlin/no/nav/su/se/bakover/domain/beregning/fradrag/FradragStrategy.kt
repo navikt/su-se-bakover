@@ -45,15 +45,14 @@ sealed class FradragStrategy {
 
         override fun getEpsFribeløp(måned: Måned): Double = periodisertSumGarantipensjonsnivå(måned)
 
-        private fun periodisertSumGarantipensjonsnivå(måned: Måned) =
-            Garantipensjonsnivå.Ordinær.periodiser(måned).values.sumOf { it }
+        private fun periodisertSumGarantipensjonsnivå(måned: Måned) = Garantipensjonsnivå.Ordinær.forMåned(måned)
 
         private fun Map<Måned, List<FradragForMåned>>.`fjern EPS fradrag opp til garantipensjonsnivå`(): Map<Måned, List<FradragForMåned>> {
-            return mapValues {
+            return mapValues { (måned, fradrag) ->
                 `fjern EPS fradrag opp til beløpsgrense`(
-                    måned = it.key,
-                    beløpsgrense = periodisertSumGarantipensjonsnivå(it.key),
-                    fradrag = it.value,
+                    måned = måned,
+                    beløpsgrense = periodisertSumGarantipensjonsnivå(måned),
+                    fradrag = fradrag,
                 )
             }
         }
@@ -70,11 +69,11 @@ sealed class FradragStrategy {
         override fun getEpsFribeløp(måned: Måned): Double = satsfactory.ordinær(måned).satsForMånedAsDouble
 
         private fun Map<Måned, List<FradragForMåned>>.`fjern EPS fradrag opp til satsbeløp`(): Map<Måned, List<FradragForMåned>> {
-            return mapValues {
+            return mapValues { (måned, fradrag) ->
                 `fjern EPS fradrag opp til beløpsgrense`(
-                    måned = it.key,
-                    beløpsgrense = getEpsFribeløp(it.key),
-                    fradrag = it.value,
+                    måned = måned,
+                    beløpsgrense = getEpsFribeløp(måned),
+                    fradrag = fradrag,
                 )
             }
         }

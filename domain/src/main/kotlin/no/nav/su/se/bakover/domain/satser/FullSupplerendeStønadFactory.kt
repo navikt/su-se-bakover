@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.satser
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.periode
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
-import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import java.math.BigDecimal
 import java.math.MathContext
 import java.time.LocalDate
@@ -17,25 +16,20 @@ sealed class FullSupplerendeStønadFactory {
     protected abstract val minsteÅrligYtelseForUføretrygdedeFactory: MinsteÅrligYtelseForUføretrygdedeFactory
 
     private val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned> by lazy {
-        grunnbeløpFactory.månedTilGrunnbeløp.entries
-            .filter {
-                it.key.inneholder(supplerendeStønadAlderFlyktningIkrafttredelse) || it.key.starterEtter(
-                    supplerendeStønadAlderFlyktningIkrafttredelse,
-                )
-            }.associate { x: Map.Entry<Måned, GrunnbeløpForMåned> ->
+        grunnbeløpFactory.alleGrunnbeløp(supplerendeStønadAlderFlyktningIkrafttredelse)
+            .associate { grunnbeløp ->
                 val minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdedeFactory.forMåned(
-                    x.key,
+                    grunnbeløp.måned,
                     satskategori,
                 )
                 val minsteÅrligYtelseForUføretrygdedeHøy = minsteÅrligYtelseForUføretrygdedeFactory.forMåned(
-                    x.key,
+                    grunnbeløp.måned,
                     Satskategori.HØY,
                 )
-                val grunnbeløp = grunnbeløpFactory.forMåned(x.key)
                 Pair(
-                    x.key,
+                    grunnbeløp.måned,
                     FullSupplerendeStønadForMåned(
-                        måned = x.key,
+                        måned = grunnbeløp.måned,
                         satskategori = satskategori,
                         grunnbeløp = grunnbeløp,
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
