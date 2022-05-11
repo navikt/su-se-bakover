@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.fullSupplerendeStønadHøyTest
 import no.nav.su.se.bakover.test.fullSupplerendeStønadOrdinærTest
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.satsFactoryTest
@@ -67,29 +66,24 @@ internal class BeregningStrategyTest {
     @Test
     fun `bor alene inneholder korrekte verdier`() {
         BeregningStrategy.BorAlene(satsFactoryTest).fradragStrategy() shouldBe FradragStrategy.Enslig
-        BeregningStrategy.BorAlene(satsFactoryTest).fullSupplerendeStønadFactory() shouldBe fullSupplerendeStønadHøyTest
         BeregningStrategy.BorAlene(satsFactoryTest).satsgrunn() shouldBe Satsgrunn.ENSLIG
-        BeregningStrategy.BorAlene(satsFactoryTest).satskategori shouldBe Satskategori.HØY
+        BeregningStrategy.BorAlene(satsFactoryTest).satskategori() shouldBe Satskategori.HØY
     }
 
     @Test
     fun `bor med voksne inneholder korrekte verdier`() {
         BeregningStrategy.BorMedVoksne(satsFactoryTest).fradragStrategy() shouldBe FradragStrategy.Enslig
         BeregningStrategy.BorMedVoksne(satsFactoryTest)
-            .fullSupplerendeStønadFactory() shouldBe fullSupplerendeStønadOrdinærTest
-        BeregningStrategy.BorMedVoksne(satsFactoryTest)
             .satsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
-        BeregningStrategy.BorMedVoksne(satsFactoryTest).satskategori shouldBe Satskategori.ORDINÆR
+        BeregningStrategy.BorMedVoksne(satsFactoryTest).satskategori() shouldBe Satskategori.ORDINÆR
     }
 
     @Test
     fun `eps over 67 år inneholder korrekte verdier`() {
         BeregningStrategy.Eps67EllerEldre(satsFactoryTest).fradragStrategy() shouldBe FradragStrategy.EpsOver67År
         BeregningStrategy.Eps67EllerEldre(satsFactoryTest)
-            .fullSupplerendeStønadFactory() shouldBe fullSupplerendeStønadOrdinærTest
-        BeregningStrategy.Eps67EllerEldre(satsFactoryTest)
             .satsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
-        BeregningStrategy.Eps67EllerEldre(satsFactoryTest).satskategori shouldBe Satskategori.ORDINÆR
+        BeregningStrategy.Eps67EllerEldre(satsFactoryTest).satskategori() shouldBe Satskategori.ORDINÆR
     }
 
     @Test
@@ -97,19 +91,15 @@ internal class BeregningStrategyTest {
         BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest)
             .fradragStrategy() shouldBe FradragStrategy.EpsUnder67ÅrOgUførFlyktning(fullSupplerendeStønadOrdinærTest)
         BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest)
-            .fullSupplerendeStønadFactory() shouldBe fullSupplerendeStønadOrdinærTest
-        BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest)
             .satsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
-        BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest).satskategori shouldBe Satskategori.ORDINÆR
+        BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest).satskategori() shouldBe Satskategori.ORDINÆR
     }
 
     @Test
     fun `eps under 67 år inneholder korrekte verdier`() {
         BeregningStrategy.EpsUnder67År(satsFactoryTest).fradragStrategy() shouldBe FradragStrategy.EpsUnder67År
         BeregningStrategy.EpsUnder67År(satsFactoryTest)
-            .fullSupplerendeStønadFactory() shouldBe fullSupplerendeStønadHøyTest
-        BeregningStrategy.EpsUnder67År(satsFactoryTest)
             .satsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
-        BeregningStrategy.EpsUnder67År(satsFactoryTest).satskategori shouldBe Satskategori.HØY
+        BeregningStrategy.EpsUnder67År(satsFactoryTest).satskategori() shouldBe Satskategori.HØY
     }
 }

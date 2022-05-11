@@ -29,9 +29,8 @@ class BeregningFactory(val clock: Clock) {
         ): BeregningForMåned {
             return MånedsberegningFactory.ny(
                 måned = måned,
-                fullSupplerendeStønadForMåned = strategy.fullSupplerendeStønadFactory().forMåned(måned),
-                fradrag = strategy.fradragStrategy().beregn(fradrag, måned)[måned] ?: emptyList(),
-                fribeløpForEps = strategy.fradragStrategy().getEpsFribeløp(måned),
+                strategy = strategy,
+                fradrag = fradrag,
             )
         }
 
@@ -67,7 +66,7 @@ class BeregningFactory(val clock: Clock) {
             if (sumYtelseUtenAvkorting(måned = måned, strategy = strategy) < toProsentAvHøy &&
                 sumYtelseUtenSosialstønad(
                         måned = måned,
-                        strategy = strategy
+                        strategy = strategy,
                     ) != getSumYtelse() // se om det finnes sosialstønad
             ) return true
 
@@ -86,7 +85,7 @@ class BeregningFactory(val clock: Clock) {
             if (sumYtelseUtenAvkorting(måned = måned, strategy = strategy) < toProsentAvHøy &&
                 sumYtelseUtenSosialstønad(
                         måned = måned,
-                        strategy = strategy
+                        strategy = strategy,
                     ) != getSumYtelse() // se om det finnes sosialstønad
             ) return false
 

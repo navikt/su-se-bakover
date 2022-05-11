@@ -4,12 +4,15 @@ import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadFactory
+import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadForMåned
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -20,16 +23,8 @@ data class Beregningsperiode(
     private val periode: Periode,
     private val strategy: BeregningStrategy,
 ) {
-    fun strategy(): BeregningStrategy {
-        return strategy
-    }
-
     fun periode(): Periode {
         return periode
-    }
-
-    fun sats(): Satskategori {
-        return strategy.satskategori
     }
 
     fun månedsoversikt(): Map<Måned, BeregningStrategy> {
@@ -105,29 +100,41 @@ class BeregningStrategyFactory(
 
 sealed class BeregningStrategy {
     abstract fun fradragStrategy(): FradragStrategy
-    abstract fun fullSupplerendeStønadFactory(): FullSupplerendeStønadFactory
+    protected abstract fun fullSupplerendeStønadFactory(): FullSupplerendeStønadFactory
     abstract fun satsgrunn(): Satsgrunn
-    abstract val satskategori: Satskategori
+
+    fun beregn(måned: Måned): FullSupplerendeStønadForMåned {
+        return fullSupplerendeStønadFactory().forMåned(måned)
+    }
+
+    fun beregnFradrag(måned: Måned, fradrag: List<Fradrag>): List<FradragForMåned> {
+        return fradragStrategy().beregn(fradrag, måned)[måned] ?: emptyList()
+    }
+
+    fun beregnFribeløpEPS(måned: Måned): Double {
+        return fradragStrategy().getEpsFribeløp(måned)
+    }
+
+    fun satskategori(): Satskategori {
+        return fullSupplerendeStønadFactory().satskategori()
+    }
 
     data class BorAlene(val satsFactory: SatsFactory) : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.Enslig
         override fun fullSupplerendeStønadFactory() = satsFactory.fullSupplerendeStønadHøy()
         override fun satsgrunn(): Satsgrunn = Satsgrunn.ENSLIG
-        override val satskategori = Satskategori.HØY
     }
 
     data class BorMedVoksne(val satsFactory: SatsFactory) : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.Enslig
         override fun fullSupplerendeStønadFactory() = satsFactory.fullSupplerendeStønadOrdinær()
         override fun satsgrunn(): Satsgrunn = Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
-        override val satskategori = Satskategori.ORDINÆR
     }
 
     data class Eps67EllerEldre(val satsFactory: SatsFactory) : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.EpsOver67År
         override fun fullSupplerendeStønadFactory() = satsFactory.fullSupplerendeStønadOrdinær()
         override fun satsgrunn(): Satsgrunn = Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
-        override val satskategori = Satskategori.ORDINÆR
     }
 
     data class EpsUnder67ÅrOgUførFlyktning(val satsFactory: SatsFactory) : BeregningStrategy() {
@@ -136,14 +143,12 @@ sealed class BeregningStrategy {
 
         override fun fullSupplerendeStønadFactory() = satsFactory.fullSupplerendeStønadOrdinær()
         override fun satsgrunn(): Satsgrunn = Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
-        override val satskategori = Satskategori.ORDINÆR
     }
 
     data class EpsUnder67År(val satsFactory: SatsFactory) : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.EpsUnder67År
         override fun fullSupplerendeStønadFactory() = satsFactory.fullSupplerendeStønadHøy()
         override fun satsgrunn(): Satsgrunn = Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
-        override val satskategori = Satskategori.HØY
     }
 }
 

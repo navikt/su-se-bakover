@@ -3,28 +3,38 @@ package no.nav.su.se.bakover.domain.beregning
 import no.nav.su.se.bakover.common.limitedUpwardsTo
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.positiveOrZero
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
-import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadForMåned
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.sum
 import kotlin.math.roundToInt
 
 object MånedsberegningFactory {
+    /**
+     * Beregner ytelsen for en spesifiskert måned i henhold til angitt strategi.
+     *
+     * @param måned måned det skal beregnes for
+     * @param strategy strategien som skal benyttes for beregningen
+     * @param fradrag en liste med fradrag som skal trekkes fra ytelsen. Kun fradrag som er aktuelle for [måned] tas med i beregningen.
+     */
     fun ny(
         måned: Måned,
-        fullSupplerendeStønadForMåned: FullSupplerendeStønadForMåned,
-        fradrag: List<FradragForMåned>,
-        fribeløpForEps: Double = 0.0,
+        strategy: BeregningStrategy,
+        fradrag: List<Fradrag>,
     ): BeregningForMåned {
 
-        val satsbeløp: Double = fullSupplerendeStønadForMåned.satsForMånedAsDouble
-        val sumFradrag = fradrag.sumOf { it.månedsbeløp }.limitedUpwardsTo(satsbeløp)
+        val ytelseFørFradrag = strategy.beregn(måned)
+        val fradragForMåned = strategy.beregnFradrag(måned, fradrag)
+        val fribeløpForEps = strategy.beregnFribeløpEPS(måned)
+
+        val satsbeløp: Double = ytelseFørFradrag.satsForMånedAsDouble
+        val sumFradrag = fradragForMåned.sum().limitedUpwardsTo(satsbeløp)
         val sumYtelse: Int = (satsbeløp - sumFradrag)
             .positiveOrZero()
             .roundToInt()
 
         return BeregningForMåned(
             måned = måned,
-            fullSupplerendeStønadForMåned = fullSupplerendeStønadForMåned,
-            fradrag = fradrag,
+            fullSupplerendeStønadForMåned = ytelseFørFradrag,
+            fradrag = fradragForMåned,
             fribeløpForEps = fribeløpForEps,
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,

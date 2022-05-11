@@ -15,8 +15,6 @@ enum class FradragStrategyName {
 
 sealed class FradragStrategy(private val name: FradragStrategyName) {
 
-    fun getName() = name
-
     fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Måned, List<FradragForMåned>> {
         val periodiserteFradrag = fradrag
             .flatMap { FradragFactory.periodiser(it) }

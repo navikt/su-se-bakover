@@ -48,6 +48,10 @@ sealed class FullSupplerendeStønadFactory {
             }
     }
 
+    fun satskategori(): Satskategori {
+        return satskategori
+    }
+
     sealed class Ordinær : FullSupplerendeStønadFactory() {
         override val satskategori: Satskategori
             get() = Satskategori.ORDINÆR

@@ -72,9 +72,8 @@ data class Satsoversikt(
                             Satsperiode(
                                 fraOgMed = måned.fraOgMed.ddMMyyyy(),
                                 tilOgMed = måned.tilOgMed.ddMMyyyy(),
-                                sats = beregningsstrategi.satskategori.toJsonstring(),
-                                satsBeløp = beregningsstrategi.fullSupplerendeStønadFactory()
-                                    .forMåned(måned).satsForMånedAvrundet,
+                                sats = beregningsstrategi.satskategori().toJsonstring(),
+                                satsBeløp = beregningsstrategi.beregn(måned).satsForMånedAvrundet,
                                 satsGrunn = beregningsstrategi.satsgrunn().toString(),
                             )
                         }
