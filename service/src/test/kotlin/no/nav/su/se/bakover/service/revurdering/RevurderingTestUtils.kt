@@ -167,5 +167,4 @@ internal fun Vurderingsperiode.Uf√∏re.ekvivalentMed(other: Vurderingsperiode.Uf√
     resultat shouldBe other.resultat
     grunnlag!!.ekvivalentMed(other.grunnlag!!)
     periode shouldBe other.periode
-    begrunnelse shouldBe other.begrunnelse
 }

@@ -78,7 +78,6 @@ internal class VilkårsvurderingerTest {
                                 forventetInntekt = 50_000,
                             ),
                             vurderingsperiode = Periode.create(1.januar(2021), 31.august(2021)),
-                            begrunnelse = "ja",
                         ).getOrFail(),
                         Vurderingsperiode.Uføre.tryCreate(
                             id = UUID.randomUUID(),
@@ -86,7 +85,6 @@ internal class VilkårsvurderingerTest {
                             resultat = Resultat.Avslag,
                             grunnlag = null,
                             vurderingsperiode = Periode.create(1.september(2021), 31.desember(2021)),
-                            begrunnelse = "nei",
                         ).getOrFail(),
                     ),
                 ).getOrFail(),
@@ -308,7 +306,6 @@ internal class VilkårsvurderingerTest {
                                 forventetInntekt = 50_000,
                             ),
                             vurderingsperiode = Periode.create(1.januar(2021), 31.august(2021)),
-                            begrunnelse = "ja",
                         ).getOrFail(),
                         Vurderingsperiode.Uføre.tryCreate(
                             id = UUID.randomUUID(),
@@ -316,7 +313,6 @@ internal class VilkårsvurderingerTest {
                             resultat = Resultat.Avslag,
                             grunnlag = null,
                             vurderingsperiode = Periode.create(1.september(2021), 31.desember(2021)),
-                            begrunnelse = "nei",
                         ).getOrFail(),
                     ),
                 ).getOrFail(),

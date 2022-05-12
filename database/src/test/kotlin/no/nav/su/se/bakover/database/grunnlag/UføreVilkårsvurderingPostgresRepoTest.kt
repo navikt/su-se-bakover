@@ -32,7 +32,6 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                         resultat = Resultat.Avslag,
                         grunnlag = null,
                         periode = år(2021),
-                        begrunnelse = "fåkke lov",
                     ),
                 ),
             )
@@ -65,7 +64,6 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                         resultat = Resultat.Avslag,
                         grunnlag = uføregrunnlag,
                         periode = år(2021),
-                        begrunnelse = "fåkke lov",
                     ),
                 ),
             )
@@ -98,7 +96,6 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                         resultat = Resultat.Avslag,
                         grunnlag = uføregrunnlag,
                         periode = år(2021),
-                        begrunnelse = "fåkke lov",
                     ),
                 ),
             )

@@ -107,7 +107,6 @@ fun innvilgetUførevilkårForventetInntekt0(
                 resultat = Resultat.Innvilget,
                 grunnlag = uføregrunnlag,
                 periode = periode,
-                begrunnelse = "innvilgetUførevilkårForventetInntekt0",
             ),
         ),
     )
@@ -208,7 +207,6 @@ fun innvilgetUførevilkårForventetInntekt12000(
                 resultat = Resultat.Innvilget,
                 grunnlag = uføregrunnlagForventetInntekt12000(opprettet = opprettet, periode = periode),
                 periode = periode,
-                begrunnelse = "innvilgetUførevilkårForventetInntekt12000",
             ),
         ),
     )
@@ -237,7 +235,6 @@ fun innvilgetUførevilkår(
                     uføregrad = uføregrad,
                 ),
                 periode = periode,
-                begrunnelse = begrunnelse,
             ),
         ),
     )
@@ -255,7 +252,6 @@ fun avslåttUførevilkårUtenGrunnlag(
                 resultat = Resultat.Avslag,
                 grunnlag = null,
                 periode = periode,
-                begrunnelse = "avslåttUførevilkårUtenGrunnlag",
             ),
         ),
     )

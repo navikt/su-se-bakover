@@ -44,7 +44,6 @@ internal class StønadsstatistikkMapperTest {
                                 forventetInntekt = 36000,
                             ),
                             periode = år(2021),
-                            begrunnelse = "innvilgetUførevilkårForventetInntekt0",
                         ),
                     ),
                 ),

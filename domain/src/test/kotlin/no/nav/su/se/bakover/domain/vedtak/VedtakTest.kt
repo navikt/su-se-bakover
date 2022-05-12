@@ -80,7 +80,6 @@ internal class VedtakTest {
                 forventetInntekt = 0,
             ),
             periode = vurderingsperiode,
-            begrunnelse = null,
         )
     }
 
@@ -348,7 +347,6 @@ internal class VedtakTest {
             resultat = Resultat.Avslag,
             grunnlag = null,
             periode = p2,
-            begrunnelse = "denne personen får et avslag fordi john ikke liker han",
         )
 
         val b = lagVedtak(

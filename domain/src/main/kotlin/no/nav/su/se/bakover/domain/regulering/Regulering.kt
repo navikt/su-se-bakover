@@ -161,7 +161,6 @@ sealed interface Regulering : Reguleringsfelter {
                                         resultat = Resultat.Innvilget,
                                         grunnlag = it,
                                         vurderingsperiode = it.periode,
-                                        begrunnelse = null,
                                     ).getOrHandle { throw RuntimeException("$it") }
                                 },
                             ),

@@ -47,8 +47,7 @@ class UføreVilkårJsonTest {
             "periode": {
               "fraOgMed": "2021-01-01",
               "tilOgMed": "2021-12-31"
-            },
-            "begrunnelse": "text"
+            }
           }],
           "resultat": "VilkårOppfylt"
         }
@@ -60,7 +59,6 @@ class UføreVilkårJsonTest {
             resultat = Resultat.Innvilget,
             grunnlag = uføregrunnlag,
             periode = år(2021),
-            begrunnelse = "text",
         )
 
         internal val uførevurdering = Vilkår.Uførhet.Vurdert.create(

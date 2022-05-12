@@ -37,14 +37,12 @@ internal class UførhetTest {
                     opprettet = fixedTidspunkt,
                     grunnlag = null,
                     periode = år(2021),
-                    begrunnelse = "",
                 ),
                 Vurderingsperiode.Uføre.create(
                     resultat = Resultat.Avslag,
                     opprettet = fixedTidspunkt,
                     grunnlag = null,
                     periode = år(2021),
-                    begrunnelse = "",
                 ),
             ),
         ) shouldBe Vilkår.Uførhet.Vurdert.UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
@@ -65,7 +63,6 @@ internal class UførhetTest {
             resultat = Resultat.Innvilget,
             grunnlag = null,
             periode = Periode.create(1.januar(2021), 28.februar(2021)),
-            begrunnelse = null,
         )
         actual.last() shouldBe Vurderingsperiode.Uføre.create(
             id = actual.last().id,
@@ -73,7 +70,6 @@ internal class UførhetTest {
             resultat = Resultat.Avslag,
             grunnlag = null,
             periode = mars(2021),
-            begrunnelse = null,
         )
     }
 
@@ -273,14 +269,12 @@ internal class UførhetTest {
         tidspunkt: Tidspunkt = fixedTidspunkt,
         resultat: Resultat = Resultat.Innvilget,
         grunnlag: Grunnlag.Uføregrunnlag? = null,
-        begrunnelse: String? = null,
     ): Vurderingsperiode.Uføre {
         return Vurderingsperiode.Uføre.create(
             opprettet = tidspunkt,
             resultat = resultat,
             grunnlag = grunnlag,
             periode = periode,
-            begrunnelse = begrunnelse,
         )
     }
 }

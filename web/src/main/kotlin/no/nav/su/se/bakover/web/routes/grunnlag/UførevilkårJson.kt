@@ -26,7 +26,6 @@ internal fun Vurderingsperiode.Uføre.toJson() = VurderingsperiodeUføreJson(
     resultat = resultat.toUførhetStatusString(),
     grunnlag = grunnlag?.toJson(),
     periode = periode.toJson(),
-    begrunnelse = begrunnelse,
 )
 
 internal fun Vilkår.Uførhet.Vurdert.toJson() = UføreVilkårJson(
@@ -46,5 +45,4 @@ internal data class VurderingsperiodeUføreJson(
     val resultat: UførevilkårStatus,
     val grunnlag: UføregrunnlagJson?,
     val periode: PeriodeJson,
-    val begrunnelse: String?,
 )

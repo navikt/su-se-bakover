@@ -793,7 +793,6 @@ internal class OpprettRevurderingServiceTest {
                     resultat = Resultat.Innvilget,
                     grunnlag = uføregrunnlag,
                     periode = periodePlussEtÅr,
-                    begrunnelse = "ok",
                     opprettet = fixedTidspunkt,
                 ),
             ),

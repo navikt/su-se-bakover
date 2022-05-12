@@ -520,7 +520,6 @@ internal class OppdaterRevurderingServiceTest {
                                     opprettet = fixedTidspunkt,
                                 ),
                                 periode = periodePlussEtÅr,
-                                begrunnelse = "ok",
                                 opprettet = fixedTidspunkt,
                             ),
                         ),

@@ -51,7 +51,6 @@ internal class VurderOpphørVedRevurderingTest {
                         resultat = Resultat.Innvilget,
                         grunnlag = null,
                         periode = Periode.create(1.januar(2021), 31.mai(2021)),
-                        begrunnelse = "",
                     ),
                     Vurderingsperiode.Uføre.create(
                         id = UUID.randomUUID(),
@@ -59,7 +58,6 @@ internal class VurderOpphørVedRevurderingTest {
                         resultat = Resultat.Avslag,
                         grunnlag = null,
                         periode = Periode.create(1.juni(2021), 31.desember(2021)),
-                        begrunnelse = "",
                     ),
                 ),
             ),

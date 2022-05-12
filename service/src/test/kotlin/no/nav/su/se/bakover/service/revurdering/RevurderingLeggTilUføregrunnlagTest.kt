@@ -60,7 +60,6 @@ internal class RevurderingLeggTilUføregrunnlagTest {
                                 resultat = Resultat.Innvilget,
                                 grunnlag = null,
                                 periode = stønadsperiode2021.periode,
-                                begrunnelse = ":)",
                             ),
                         ),
                     ),

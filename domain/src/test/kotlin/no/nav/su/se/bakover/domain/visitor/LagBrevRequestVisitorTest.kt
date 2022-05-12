@@ -1218,7 +1218,6 @@ internal class LagBrevRequestVisitorTest {
                             resultat = Resultat.Innvilget,
                             grunnlag = null,
                             periode = revurderingsperiode,
-                            begrunnelse = null,
                             opprettet = fixedTidspunkt,
                         ),
                     ),

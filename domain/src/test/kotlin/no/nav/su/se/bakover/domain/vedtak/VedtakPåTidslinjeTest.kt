@@ -62,7 +62,6 @@ internal class VedtakPåTidslinjeTest {
             resultat = Resultat.Innvilget,
             grunnlag = uføregrunnlag,
             periode = periode,
-            begrunnelse = "hei",
         )
 
         val f1 = lagFradragsgrunnlag(
@@ -126,7 +125,6 @@ internal class VedtakPåTidslinjeTest {
                             vilkårcopy.vurderingsperioder shouldHaveSize 1
                             vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
                                 vurderingsperiodecopy.id shouldNotBe uføreVurderingsperiode.id
-                                vurderingsperiodecopy.begrunnelse shouldBe uføreVurderingsperiode.begrunnelse
                                 vurderingsperiodecopy.resultat shouldBe uføreVurderingsperiode.resultat
                                 vurderingsperiodecopy.periode shouldBe uføreVurderingsperiode.periode
                                 vurderingsperiodecopy.grunnlag!!.let {
@@ -228,7 +226,6 @@ internal class VedtakPåTidslinjeTest {
             resultat = Resultat.Innvilget,
             grunnlag = uføregrunnlag,
             periode = periode,
-            begrunnelse = "hei",
         )
 
         val f1 = lagFradragsgrunnlag(
@@ -306,7 +303,6 @@ internal class VedtakPåTidslinjeTest {
                                 vilkårcopy.vurderingsperioder shouldHaveSize 1
                                 vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
                                     vurderingsperiodecopy.id shouldNotBe vurderingsperiode.id
-                                    vurderingsperiodecopy.begrunnelse shouldBe vurderingsperiode.begrunnelse
                                     vurderingsperiodecopy.resultat shouldBe vurderingsperiode.resultat
                                     vurderingsperiodecopy.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
                                     vurderingsperiodecopy.grunnlag!!.let {

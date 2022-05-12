@@ -36,7 +36,6 @@ internal class VurderingsperiodeTest {
                 forventetInntekt = 500,
             ),
             periode = år(2021),
-            begrunnelse = "begrunnelsen",
         )
         original.copy(
             CopyArgs.Tidslinje.Full,
@@ -45,7 +44,6 @@ internal class VurderingsperiodeTest {
             vurderingsperiodeCopy.opprettet shouldBe original.opprettet
             vurderingsperiodeCopy.periode shouldBe original.periode
             vurderingsperiodeCopy.periode shouldBe original.periode
-            vurderingsperiodeCopy.begrunnelse shouldBe original.begrunnelse
             vurderingsperiodeCopy.grunnlag!!.let { grunnlagCopy ->
                 grunnlagCopy.id shouldNotBe original.grunnlag!!.id
                 grunnlagCopy.opprettet shouldBe original.grunnlag!!.opprettet
@@ -70,7 +68,6 @@ internal class VurderingsperiodeTest {
                 forventetInntekt = 500,
             ),
             periode = år(2021),
-            begrunnelse = "begrunnelsen",
         )
         original.copy(
             CopyArgs.Tidslinje.NyPeriode(periode = Periode.create(1.januar(2021), 30.april(2021))),
@@ -78,7 +75,6 @@ internal class VurderingsperiodeTest {
             vurderingsperiodeCopy.id shouldNotBe original.id
             vurderingsperiodeCopy.opprettet shouldBe original.opprettet
             vurderingsperiodeCopy.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
-            vurderingsperiodeCopy.begrunnelse shouldBe original.begrunnelse
             vurderingsperiodeCopy.grunnlag!!.let { grunnlagCopy ->
                 grunnlagCopy.id shouldNotBe original.grunnlag!!.id
                 grunnlagCopy.opprettet shouldBe original.grunnlag!!.opprettet
@@ -103,7 +99,6 @@ internal class VurderingsperiodeTest {
                 forventetInntekt = 500,
             ),
             periode = år(2021),
-            begrunnelse = "begrunnelsen a",
         )
 
         val b = Vurderingsperiode.Uføre.create(
@@ -118,7 +113,6 @@ internal class VurderingsperiodeTest {
                 forventetInntekt = 0,
             ),
             periode = Periode.create(1.mai(2021), 31.desember(2021)),
-            begrunnelse = "begrunnelsen b",
         )
 
         val c = Vurderingsperiode.Uføre.create(
@@ -127,7 +121,6 @@ internal class VurderingsperiodeTest {
             resultat = Resultat.Innvilget,
             grunnlag = null,
             periode = desember(2021),
-            begrunnelse = "begrunnelsen b",
         )
 
         Tidslinje(
@@ -138,7 +131,6 @@ internal class VurderingsperiodeTest {
                 copy.id shouldNotBe a.id
                 copy.id shouldNotBe b.id
                 copy.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
-                copy.begrunnelse shouldBe a.begrunnelse
                 copy.grunnlag!!.let { grunnlagCopy ->
                     grunnlagCopy.id shouldNotBe a.grunnlag!!.id
                     grunnlagCopy.periode shouldBe copy.periode
@@ -150,7 +142,6 @@ internal class VurderingsperiodeTest {
                 copy.id shouldNotBe a.id
                 copy.id shouldNotBe b.id
                 copy.periode shouldBe Periode.create(1.mai(2021), 30.november(2021))
-                copy.begrunnelse shouldBe b.begrunnelse
                 copy.grunnlag!!.let { grunnlagCopy ->
                     grunnlagCopy.id shouldNotBe b.grunnlag!!.id
                     grunnlagCopy.periode shouldBe copy.periode
@@ -163,7 +154,6 @@ internal class VurderingsperiodeTest {
                 copy.id shouldNotBe b.id
                 copy.id shouldNotBe c.id
                 copy.periode shouldBe desember(2021)
-                copy.begrunnelse shouldBe b.begrunnelse
                 copy.grunnlag shouldBe null
             }
         }
@@ -183,7 +173,6 @@ internal class VurderingsperiodeTest {
                 forventetInntekt = 500,
             ),
             vurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
-            begrunnelse = "begrunnelsen",
         ) shouldBe Vurderingsperiode.Uføre.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
     }
 
@@ -195,7 +184,6 @@ internal class VurderingsperiodeTest {
             resultat = Resultat.Innvilget,
             grunnlag = null,
             vurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
-            begrunnelse = "begrunnelsen",
         ).isRight() shouldBe true
     }
 }

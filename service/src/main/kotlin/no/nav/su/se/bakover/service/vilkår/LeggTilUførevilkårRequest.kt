@@ -53,7 +53,6 @@ data class LeggTilUførevilkårRequest(
                         opprettet = Tidspunkt.now(clock),
                     ),
                     vurderingsperiode = periode,
-                    begrunnelse = begrunnelse,
                     opprettet = Tidspunkt.now(clock),
                 )
             }
@@ -61,14 +60,12 @@ data class LeggTilUførevilkårRequest(
                 resultat = Resultat.Avslag,
                 grunnlag = null,
                 vurderingsperiode = periode,
-                begrunnelse = begrunnelse,
                 opprettet = Tidspunkt.now(clock),
             )
             UførevilkårStatus.HarUføresakTilBehandling -> Vurderingsperiode.Uføre.tryCreate(
                 resultat = Resultat.Uavklart,
                 grunnlag = null,
                 vurderingsperiode = periode,
-                begrunnelse = begrunnelse,
                 opprettet = Tidspunkt.now(clock),
             )
         }.mapLeft {
