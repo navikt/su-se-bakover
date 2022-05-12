@@ -263,7 +263,7 @@ sealed class Vilkårsvurderinger {
         )
 
         companion object {
-            fun IkkeVurdert() =
+            fun ikkeVurdert() =
                 Søknadsbehandling(
                     uføre = Vilkår.Uførhet.IkkeVurdert,
                     formue = Vilkår.Formue.IkkeVurdert,
@@ -344,7 +344,7 @@ sealed class Vilkårsvurderinger {
         )
 
         companion object {
-            fun IkkeVurdert() = Revurdering(
+            fun ikkeVurdert() = Revurdering(
                 uføre = Vilkår.Uførhet.IkkeVurdert,
                 formue = Vilkår.Formue.IkkeVurdert,
                 utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,

@@ -21,7 +21,7 @@ fun Sak.hentGjeldendeVilkårOgGrunnlag(
         {
             GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                 Grunnlagsdata.IkkeVurdert,
-                Vilkårsvurderinger.Revurdering.IkkeVurdert(),
+                Vilkårsvurderinger.Revurdering.ikkeVurdert(),
             )
         },
         {

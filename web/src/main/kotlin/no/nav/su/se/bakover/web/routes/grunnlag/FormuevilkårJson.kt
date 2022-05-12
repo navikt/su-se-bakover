@@ -35,6 +35,7 @@ internal fun Vilkår.Formue.toJson(satsFactory: SatsFactory): FormuevilkårJson 
             is Vilkår.Formue.Vurdert -> vurderingsperioder.map { it.toJson() }
         },
         resultat = resultat.toFormueStatusString(),
+        // TODO("håndter_formue egentlig knyttet til formuegrenser")
         // TODO jah + jacob:  Denne bør flyttes til et eget endepunkt i de tilfellene vi ikke har fylt ut formuegrunnlaget/vilkåret enda.
         //  I de tilfellene vi har fylt ut formue og det har blitt lagret i databasen, bør grunnlaget innholde grensene og frontend bør bruke de derfra.
         // jah: For ufør trenger vi fra 2021-01-01 og da gjelder grunnbeløpet med ikrafttredelse 2020-05-01 fram til og med 2021-04-30

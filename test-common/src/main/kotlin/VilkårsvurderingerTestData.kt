@@ -267,11 +267,11 @@ fun formueGrunnlagUtenEpsAvslått(
 }
 
 fun vilkårsvurderingSøknadsbehandlingIkkeVurdert(): Vilkårsvurderinger.Søknadsbehandling {
-    return Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert()
+    return Vilkårsvurderinger.Søknadsbehandling.ikkeVurdert()
 }
 
 fun vilkårsvurderingRevurderingIkkeVurdert(): Vilkårsvurderinger.Revurdering {
-    return Vilkårsvurderinger.Revurdering.IkkeVurdert()
+    return Vilkårsvurderinger.Revurdering.ikkeVurdert()
 }
 
 fun formuevilkårIkkeVurdert(): Vilkår.Formue {
