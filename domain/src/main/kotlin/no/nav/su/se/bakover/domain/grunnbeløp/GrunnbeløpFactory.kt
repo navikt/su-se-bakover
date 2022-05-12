@@ -57,4 +57,16 @@ class GrunnbeløpFactory(
     fun alle(): List<GrunnbeløpForMåned> {
         return alleGrunnbeløp(månedTilGrunnbeløp.minOf { it.key.fraOgMed })
     }
+
+    /**
+     * Konstruerer en factory med grunnbeløpene som var gjeldende på [påDato] ved å fjerne alle grunnbeløp som har
+     * en [GrunnbeløpForMåned.ikrafttredelse] senere enn [påDato].
+     */
+    fun gjeldende(påDato: LocalDate): GrunnbeløpFactory {
+        return alle()
+            .filterNot { it.ikrafttredelse > påDato }
+            .map { it.ikrafttredelse to it.grunnbeløpPerÅr }
+            .distinct()
+            .let { createFromGrunnbeløp(it) }
+    }
 }

@@ -33,7 +33,14 @@ private data class PersistertBeregning(
             begrunnelse = begrunnelse,
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
-            månedsberegninger = Nel.fromListUnsafe(månedsberegninger.map { it.toMånedsberegning(satsFactory) }),
+            månedsberegninger = Nel.fromListUnsafe(
+                månedsberegninger.map {
+                    it.toMånedsberegning(
+                        satsFactory = satsFactory,
+                        opprettet = opprettet,
+                    )
+                },
+            ),
         )
     }
 }

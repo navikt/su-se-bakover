@@ -221,5 +221,39 @@ internal class FullSupplerendeStønadFactoryTest {
                 it.ikrafttredelse shouldBe expectedIkrafttredelse
             }
         }
+
+        @Test
+        fun `verdi for mai 2022 i januar 2020`() {
+            satsFactoryTest.forSatskategori(mai(2022), Satskategori.HØY, 1.januar(2020)).let {
+                it shouldBe FullSupplerendeStønadForMåned(
+                    måned = mai(2022),
+                    satskategori = Satskategori.HØY,
+                    grunnbeløp = GrunnbeløpForMåned(
+                        måned = mai(2022),
+                        grunnbeløpPerÅr = 99858,
+                        ikrafttredelse = 1.mai(2019),
+                    ),
+                    minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                        faktor = Faktor(2.48),
+                        satsKategori = Satskategori.HØY,
+                        ikrafttredelse = 1.januar(2015),
+                        måned = mai(2022),
+                    ),
+                    toProsentAvHøyForMåned = BigDecimal("412.7464"), // 2.48 * G2022-5 * 0.02 / 12
+                )
+                it.satsPerÅr shouldBe BigDecimal("247647.84") // 2.48 * G2022-5
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("20637.3200") // 2.48 * G2022-5 / 12
+                it.satsForMånedAvrundet shouldBe 20637
+                it.satsForMånedAsDouble shouldBe 20637.3200
+                it.ikrafttredelse shouldBe 1.mai(2019)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 412.7464
+            }
+        }
+
+        @Test
+        fun `historisk med dagens dato er lik seg selv`() {
+            satsFactoryTest.forSatskategori(mai(2022), Satskategori.HØY, LocalDate.now()) shouldBe
+                satsFactoryTest.forSatskategori(mai(2022), Satskategori.HØY)
+        }
     }
 }

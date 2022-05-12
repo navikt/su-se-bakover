@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 
 private val log = LoggerFactory.getLogger(SatsFactoryForSupplerendeStønad::class.java)
 
@@ -52,25 +53,45 @@ class SatsFactoryForSupplerendeStønad(
         Nel.fromListUnsafe(grunnbeløpFactory.alle()),
     ),
 ) : SatsFactory {
-    override fun fullSupplerendeStønad(satskategori: Satskategori): FullSupplerendeStønadFactory {
+    private val uføreOrdiær: FullSupplerendeStønadFactory.Ordinær = FullSupplerendeStønadFactory.Ordinær.Ufør(
+        grunnbeløpFactory,
+        minsteÅrligYtelseForUføretrygdede,
+    )
+    private val uføreHøy: FullSupplerendeStønadFactory.Høy = FullSupplerendeStønadFactory.Høy.Ufør(
+        grunnbeløpFactory,
+        minsteÅrligYtelseForUføretrygdede,
+    )
+
+    private fun factoryForSatskategori(satskategori: Satskategori): FullSupplerendeStønadFactory {
         return when (satskategori) {
-            Satskategori.ORDINÆR -> FullSupplerendeStønadFactory.Ordinær.Ufør(
-                grunnbeløpFactory,
-                minsteÅrligYtelseForUføretrygdede,
-            )
-            Satskategori.HØY -> FullSupplerendeStønadFactory.Høy.Ufør(
-                grunnbeløpFactory,
-                minsteÅrligYtelseForUføretrygdede,
-            )
+            Satskategori.ORDINÆR -> uføreOrdiær
+            Satskategori.HØY -> uføreHøy
         }
     }
 
+    override fun forSatskategori(måned: Måned, satskategori: Satskategori): FullSupplerendeStønadForMåned {
+        return factoryForSatskategori(satskategori).forMåned(måned)
+    }
+
+    override fun forSatskategori(
+        måned: Måned,
+        satskategori: Satskategori,
+        påDato: LocalDate,
+    ): FullSupplerendeStønadForMåned {
+        return gjeldende(påDato = påDato)
+            .forSatskategori(måned = måned, satskategori = satskategori)
+    }
+
+    override fun gjeldende(påDato: LocalDate): SatsFactory {
+        return SatsFactoryForSupplerendeStønad(grunnbeløpFactory.gjeldende(påDato))
+    }
+
     override fun høy(måned: Måned): FullSupplerendeStønadForMåned {
-        return fullSupplerendeStønad(Satskategori.HØY).forMåned(måned)
+        return factoryForSatskategori(Satskategori.HØY).forMåned(måned)
     }
 
     override fun ordinær(måned: Måned): FullSupplerendeStønadForMåned {
-        return fullSupplerendeStønad(Satskategori.ORDINÆR).forMåned(måned)
+        return factoryForSatskategori(Satskategori.ORDINÆR).forMåned(måned)
     }
 
     override fun grunnbeløp(måned: Måned): GrunnbeløpForMåned {

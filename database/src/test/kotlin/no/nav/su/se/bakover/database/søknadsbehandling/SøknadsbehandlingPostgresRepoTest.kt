@@ -163,8 +163,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 .beregn(
                     begrunnelse = null,
                     clock = fixedClock,
-                    beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
-                    formuegrenserFactory = formuegrenserFactoryTest,
+                    beregningStrategyFactory = BeregningStrategyFactory(testDataHelper.clock, testDataHelper.satsFactory),
+                    formuegrenserFactory = testDataHelper.satsFactory.formuegrenserFactory,
                 ).getOrFail()
                 .also {
                     repo.lagre(it)

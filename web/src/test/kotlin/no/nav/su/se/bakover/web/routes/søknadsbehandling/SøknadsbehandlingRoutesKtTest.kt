@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -69,7 +70,6 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
-import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
@@ -92,6 +92,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -99,11 +100,13 @@ internal class SøknadsbehandlingRoutesKtTest {
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
 
+    private val satsFactory = satsFactoryTest.gjeldende(LocalDate.now(fixedClock))
+
     private fun repos(dataSource: DataSource) = DatabaseBuilder.build(
         embeddedDatasource = dataSource,
         dbMetrics = dbMetricsStub,
         clock = fixedClock,
-        satsFactory = satsFactoryTest,
+        satsFactory = satsFactory,
     )
 
     private fun services(
@@ -117,8 +120,11 @@ internal class SøknadsbehandlingRoutesKtTest {
             søknadMetrics = mock(),
             clock = fixedClock,
             unleash = mock(),
-            satsFactory = satsFactoryTest,
-            beregningStrategyFactory = beregningStrategyFactoryTest(),
+            satsFactory = satsFactory,
+            beregningStrategyFactory = BeregningStrategyFactory(
+                clock = fixedClock,
+                satsFactory = satsFactory,
+            ),
         )
 
     @Nested

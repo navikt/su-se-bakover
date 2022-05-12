@@ -3,10 +3,16 @@ package no.nav.su.se.bakover.database.beregning
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
@@ -14,6 +20,8 @@ import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
+import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.satsFactoryTest
@@ -26,7 +34,11 @@ internal class PersistertBeregningTest {
 
     @Test
     fun `serialiserer og derserialiserer beregning`() {
-        val actualBeregning = createBeregning(periode = mai(2021), strategy = BeregningStrategy.BorAlene(satsFactoryTest))
+        val actualBeregning = createBeregning(
+            opprettet = mai(2021).fraOgMed.startOfDay(zoneIdOslo),
+            periode = mai(2021),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+        )
         //language=json
         val expectedJson = """
             {
@@ -179,4 +191,44 @@ internal class PersistertBeregningTest {
                 ),
             ),
         )
+
+    @Test
+    fun `må kunne hente opp og berike persisterte månedsberegninger selv om g-har endret seg`() {
+        val gammeltGrunnbeløp = SatsFactoryForSupplerendeStønad(
+            grunnbeløpFactory = GrunnbeløpFactory.createFromGrunnbeløp(
+                listOf(
+                    1.mai(2014) to 88370,
+                    1.mai(2015) to 90068,
+                    1.mai(2016) to 92576,
+                    1.mai(2017) to 93634,
+                    1.mai(2018) to 96883,
+                    1.mai(2019) to 99858,
+                    1.mai(2020) to 101351,
+                ),
+            ),
+        )
+        val beregningMedGammelG = createBeregning(
+            periode = Periode.create(1.januar(2020), 31.desember(2022)),
+            opprettet = 3.mars(2021).startOfDay(zoneIdOslo),
+            begrunnelse = "davai",
+            strategy = BeregningStrategy.BorAlene(gammeltGrunnbeløp),
+        )
+
+        val nyttGrunnbeløp = SatsFactoryForSupplerendeStønad(
+            grunnbeløpFactory = GrunnbeløpFactory.createFromGrunnbeløp(
+                listOf(
+                    1.mai(2014) to 88370,
+                    1.mai(2015) to 90068,
+                    1.mai(2016) to 92576,
+                    1.mai(2017) to 93634,
+                    1.mai(2018) to 96883,
+                    1.mai(2019) to 99858,
+                    1.mai(2020) to 101351,
+                    1.mai(2021) to 106399,
+                ),
+            ),
+        )
+
+        beregningMedGammelG.serialiser().deserialiserBeregning(nyttGrunnbeløp) shouldBe beregningMedGammelG
+    }
 }

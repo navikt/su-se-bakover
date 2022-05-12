@@ -92,6 +92,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -125,6 +126,7 @@ import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import java.time.Clock
+import java.time.LocalDate
 import java.util.LinkedList
 import java.util.UUID
 import javax.sql.DataSource
@@ -246,7 +248,12 @@ internal val sessionCounterStub: SessionCounter = SessionCounter {
 internal class TestDataHelper(
     internal val dataSource: DataSource,
     internal val dbMetrics: DbMetrics = dbMetricsStub,
-    private val clock: Clock = fixedClock,
+    internal val clock: Clock = fixedClock,
+    /**
+     * OBS: Setter satsfactory til å returnere verdier slik de så ut på [fixedClock] som følge av at de fleste
+     * tester baserer seg på [fixedClock].
+     */
+    internal val satsFactory: SatsFactory = satsFactoryTest.gjeldende(påDato = LocalDate.now(fixedClock)),
 ) {
     internal val sessionFactory: PostgresSessionFactory =
         PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub)
@@ -279,7 +286,7 @@ internal class TestDataHelper(
     internal val formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(
         dbMetrics = dbMetrics,
         formuegrunnlagPostgresRepo = formuegrunnlagPostgresRepo,
-        satsFactory = satsFactoryTest,
+        satsFactory = satsFactory,
     )
     internal val grunnlagsdataOgVilkårsvurderingerPostgresRepo = GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         dbMetrics = dbMetrics,
@@ -295,7 +302,7 @@ internal class TestDataHelper(
         grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
         avkortingsvarselRepo = avkortingsvarselRepo,
         clock = clock,
-        satsFactory = satsFactoryTest,
+        satsFactory = satsFactory,
     )
     internal val klageinstanshendelsePostgresRepo = KlageinstanshendelsePostgresRepo(sessionFactory, dbMetrics)
     internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory, dbMetrics, klageinstanshendelsePostgresRepo)
@@ -304,7 +311,7 @@ internal class TestDataHelper(
         sessionFactory = sessionFactory,
         grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
         dbMetrics = dbMetrics,
-        satsFactory = satsFactoryTest,
+        satsFactory = satsFactory,
     )
     internal val revurderingRepo = RevurderingPostgresRepo(
         sessionFactory = sessionFactory,
@@ -315,7 +322,7 @@ internal class TestDataHelper(
         avkortingsvarselRepo = avkortingsvarselRepo,
         tilbakekrevingRepo = tilbakekrevingRepo,
         reguleringPostgresRepo = reguleringRepo,
-        satsFactory = satsFactoryTest,
+        satsFactory = satsFactory,
     )
     internal val vedtakRepo = VedtakPostgresRepo(
         sessionFactory = sessionFactory,
@@ -324,7 +331,7 @@ internal class TestDataHelper(
         revurderingRepo = revurderingRepo,
         klageRepo = klagePostgresRepo,
         reguleringRepo = reguleringRepo,
-        satsFactory = satsFactoryTest,
+        satsFactory = satsFactory,
     )
     internal val personRepo = PersonPostgresRepo(
         sessionFactory = sessionFactory,
@@ -743,7 +750,7 @@ internal class TestDataHelper(
     fun persisterReguleringIverksatt() =
         persisterReguleringOpprettet().let {
             it.beregn(
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactory),
                 begrunnelse = "Begrunnelse",
             ).getOrFail()
                 .simuler { simulertUtbetaling().right() }
@@ -797,7 +804,7 @@ internal class TestDataHelper(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
             gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(stønadsperiode2021),
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactory),
         ).getOrHandle {
             throw IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -825,7 +832,7 @@ internal class TestDataHelper(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
             gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(stønadsperiode2021),
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactory),
         ).getOrHandle {
             throw IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -848,7 +855,7 @@ internal class TestDataHelper(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
             gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(stønadsperiode2021),
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactory),
         ).getOrHandle {
             throw IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -1271,7 +1278,7 @@ internal class TestDataHelper(
         ).second.beregn(
             begrunnelse = null,
             clock = fixedClock,
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactory),
             formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail().let {
             søknadsbehandlingRepo.lagre(it)
@@ -1303,7 +1310,7 @@ internal class TestDataHelper(
         ).second.beregn(
             begrunnelse = null,
             clock = fixedClock,
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactory),
             formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail().let {
             søknadsbehandlingRepo.lagre(it as Søknadsbehandling.Beregnet.Avslag)

@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.database.beregning
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.MånedJson
 import no.nav.su.se.bakover.common.periode.MånedJson.Companion.toJson
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.beregning.BeregningForMåned
 import no.nav.su.se.bakover.domain.beregning.Merknader
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -19,11 +21,15 @@ internal data class PersistertMånedsberegning(
     val fribeløpForEps: Double,
     val merknader: List<PersistertMerknad.Beregning> = emptyList(),
 ) {
-    fun toMånedsberegning(satsFactory: SatsFactory): BeregningForMåned {
+    fun toMånedsberegning(satsFactory: SatsFactory, opprettet: Tidspunkt): BeregningForMåned {
         val måned = periode.tilMåned()
         return BeregningForMåned(
             måned = måned,
-            fullSupplerendeStønadForMåned = satsFactory.fullSupplerendeStønad(sats).forMåned(måned).also {
+            fullSupplerendeStønadForMåned = satsFactory.forSatskategori(
+                måned = måned,
+                satskategori = sats,
+                påDato = opprettet.toLocalDate(zoneIdOslo),
+            ).also {
                 assert(benyttetGrunnbeløp == it.grunnbeløp.grunnbeløpPerÅr) {
                     "Hentet benyttetGrunnbeløp: $benyttetGrunnbeløp fra databasen, mens den utleda verdien for grunnbeløp var: ${it.grunnbeløp.grunnbeløpPerÅr}"
                 }
