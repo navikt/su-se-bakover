@@ -49,7 +49,6 @@ object BehandlingTestUtils {
         ),
         fastOppholdINorge = FastOppholdINorge(
             status = FastOppholdINorge.Status.VilkårOppfylt,
-            begrunnelse = null
         ),
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,

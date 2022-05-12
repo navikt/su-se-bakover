@@ -32,11 +32,9 @@ object BehandlingsinformasjonTestData {
     object FastOppholdINorge {
         val Oppfylt = Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-            begrunnelse = "det stemmer"
         )
         val Uavklart = Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.Uavklart,
-            begrunnelse = "det stemmer"
         )
     }
 

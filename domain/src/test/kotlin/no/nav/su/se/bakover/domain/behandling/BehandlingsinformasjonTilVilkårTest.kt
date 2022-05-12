@@ -126,7 +126,6 @@ class BehandlingsinformasjonTilVilkårTest {
     fun `konverterer fast opphold til vilkår`() {
         Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.Uavklart,
-            begrunnelse = "jambo",
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -134,7 +133,6 @@ class BehandlingsinformasjonTilVilkårTest {
 
         Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-            begrunnelse = "jambo",
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -142,7 +140,6 @@ class BehandlingsinformasjonTilVilkårTest {
             vilkår shouldBe beOfType<FastOppholdINorgeVilkår.Vurdert>()
             (vilkår as FastOppholdINorgeVilkår.Vurdert).let {
                 it.resultat shouldBe Resultat.Innvilget
-                it.vurderingsperioder.single().begrunnelse shouldBe "jambo"
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     FastOppholdINorgeGrunnlag(
                         id = UUID.randomUUID(),
@@ -156,7 +153,6 @@ class BehandlingsinformasjonTilVilkårTest {
 
         Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårIkkeOppfylt,
-            begrunnelse = "jambo",
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -164,7 +160,6 @@ class BehandlingsinformasjonTilVilkårTest {
             vilkår shouldBe beOfType<FastOppholdINorgeVilkår.Vurdert>()
             (vilkår as FastOppholdINorgeVilkår.Vurdert).let {
                 it.resultat shouldBe Resultat.Avslag
-                it.vurderingsperioder.single().begrunnelse shouldBe "jambo"
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     FastOppholdINorgeGrunnlag(
                         id = UUID.randomUUID(),

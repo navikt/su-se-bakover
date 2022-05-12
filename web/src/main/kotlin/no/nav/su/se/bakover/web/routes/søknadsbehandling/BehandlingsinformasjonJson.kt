@@ -38,7 +38,6 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
         fastOppholdINorge = b.fastOppholdINorge?.let { f ->
             Behandlingsinformasjon.FastOppholdINorge(
                 status = Behandlingsinformasjon.FastOppholdINorge.Status.valueOf(f.status),
-                begrunnelse = f.begrunnelse,
             )
         },
         institusjonsopphold = b.institusjonsopphold?.let { i ->
@@ -90,10 +89,7 @@ internal fun Behandlingsinformasjon.LovligOpphold.toJson() =
     LovligOppholdJson(status = status.name)
 
 internal fun Behandlingsinformasjon.FastOppholdINorge.toJson() =
-    FastOppholdINorgeJson(
-        status = status.name,
-        begrunnelse = begrunnelse,
-    )
+    FastOppholdINorgeJson(status = status.name)
 
 internal fun Behandlingsinformasjon.Institusjonsopphold.toJson() =
     InstitusjonsoppholdJson(
@@ -133,10 +129,7 @@ internal data class FlyktningJson(val status: String)
 
 internal data class LovligOppholdJson(val status: String)
 
-internal data class FastOppholdINorgeJson(
-    val status: String,
-    val begrunnelse: String?,
-)
+internal data class FastOppholdINorgeJson(val status: String)
 
 internal data class InstitusjonsoppholdJson(
     val status: String,
