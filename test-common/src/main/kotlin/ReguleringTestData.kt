@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.time.LocalDate
@@ -88,7 +87,6 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     ),
     clock: Clock = TikkendeKlokke(),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
-    formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTest,
 ): Pair<Sak, Regulering.OpprettetRegulering> {
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -100,7 +98,7 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
         avkorting = avkorting,
     )
     val sak = sakOgVedtak.first
-    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock, formuegrenserFactory).getOrFail()
+    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, clock).getOrFail()
 
     return Pair(
         sak.copy(
@@ -121,7 +119,6 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     val regulering = sak.opprettEllerOppdaterRegulering(
         startDato = regulerFraOgMed,
         clock = fixedClock,
-        formuegrenserFactory = formuegrenserFactoryTest,
     ).getOrFail()
 
     return Pair(

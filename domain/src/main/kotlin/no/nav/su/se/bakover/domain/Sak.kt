@@ -339,7 +339,6 @@ data class Sak(
         // TODO jah: Bytt til YearMonth (Da slipper vi en unødvendig left)
         startDato: LocalDate,
         clock: Clock,
-        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeOppretteEllerOppdatereRegulering, Regulering.OpprettetRegulering> {
 
         val (reguleringsId, opprettet, _startDato) = reguleringer.filterIsInstance<Regulering.OpprettetRegulering>()

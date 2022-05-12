@@ -43,7 +43,6 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import java.time.Clock
 import java.time.LocalDate
@@ -132,7 +131,6 @@ fun opprettRevurderingFraSaksopplysninger(
     avkorting: AvkortingVedRevurdering.Uhåndtert = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
-    formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTest,
 ): Pair<Sak, OpprettetRevurdering> {
     val gjeldendeVedtaksdata = sakOgVedtakSomKanRevurderes.first.kopierGjeldendeVedtaksdata(
         fraOgMed = revurderingsperiode.fraOgMed,
@@ -230,7 +228,6 @@ fun beregnetRevurdering(
     clock: Clock = fixedClock,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
-    formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTest,
 ): Pair<Sak, BeregnetRevurdering> {
     return opprettetRevurdering(
         saksnummer = saksnummer,
@@ -283,8 +280,8 @@ fun simulertRevurdering(
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
-        clock = clock,
         revurderingsårsak = revurderingsårsak,
+        clock = clock,
         vilkårOverrides = vilkårOverrides,
         grunnlagsdataOverrides = grunnlagsdataOverrides,
     ).let { (sak, beregnet) ->
@@ -599,40 +596,6 @@ fun opprettetRevurderingAvslagSpesifiktVilkår(
     )
 }
 
-fun opprettetRevurderingAvslagUføre(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    revurderingsperiode: Periode = år(2021),
-    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
-    ),
-    avslåttVilkår: Vilkår.Uførhet.Vurdert = avslåttUførevilkårUtenGrunnlag(periode = revurderingsperiode),
-    clock: Clock = fixedClock,
-    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
-        periode = revurderingsperiode,
-        clock = clock,
-    ).let {
-        it.copy(
-            vilkårsvurderinger = it.vilkårsvurderinger.leggTil(avslåttVilkår),
-        )
-    },
-    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-): Pair<Sak, OpprettetRevurdering> {
-    return opprettetRevurderingAvslagSpesifiktVilkår(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
-        revurderingsperiode = revurderingsperiode,
-        informasjonSomRevurderes = informasjonSomRevurderes,
-        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
-        clock = clock,
-        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-        revurderingsårsak = revurderingsårsak,
-        avslåttVilkår = avslåttVilkår,
-    )
-}
-
 /**
  * En innvilget beregnet revurdering med utgangspunkt i et vedtak fra en innvilget søknadsbehandling.
  */
@@ -652,7 +615,6 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         clock = clock,
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTest,
 ): Pair<Sak, BeregnetRevurdering.Innvilget> {
 
     return opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
@@ -740,7 +702,6 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
             clock = clock,
         ),
     ),
-    formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTest,
 ): Pair<Sak, BeregnetRevurdering.IngenEndring> {
     return opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
@@ -794,7 +755,6 @@ fun beregnetRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
         )
     },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTest,
 ): Pair<Sak, BeregnetRevurdering.Opphørt> {
     return opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
@@ -854,7 +814,6 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         )
     },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTest,
 ): Pair<Sak, BeregnetRevurdering.Opphørt> {
 
     return opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
@@ -996,9 +955,9 @@ fun simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        vilkårSomFørerTilOpphør = vilkårSomFørerTilOpphør,
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
-        vilkårSomFørerTilOpphør = vilkårSomFørerTilOpphør,
     ).let { (sak, revurdering) ->
         val opphørtSimulertRevurdering = revurdering.toSimulert(
             { sakId, _, opphørsdato ->

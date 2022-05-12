@@ -99,7 +99,6 @@ class ReguleringServiceImpl(
             val regulering = sak.opprettEllerOppdaterRegulering(
                 startDato = startDato,
                 clock = clock,
-                formuegrenserFactory = satsFactory.formuegrenserFactory,
             ).getOrHandle { feil ->
                 // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
                 when (feil) {
@@ -179,7 +178,7 @@ class ReguleringServiceImpl(
             return KunneIkkeRegulereManuelt.AvventerKravgrunnlag.left()
 
         val reguleringMedNyttGrunnlag =
-            sak.opprettEllerOppdaterRegulering(regulering.periode.fraOgMed, clock, satsFactory.formuegrenserFactory)
+            sak.opprettEllerOppdaterRegulering(regulering.periode.fraOgMed, clock)
                 .getOrHandle { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
 
         return reguleringMedNyttGrunnlag

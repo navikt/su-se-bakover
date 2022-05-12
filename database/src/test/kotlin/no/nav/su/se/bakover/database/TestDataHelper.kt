@@ -735,7 +735,6 @@ internal class TestDataHelper(
             sak.opprettEllerOppdaterRegulering(
                 startDato = 1.mai(2021),
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail().also {
                 reguleringRepo.lagre(it)
             }
