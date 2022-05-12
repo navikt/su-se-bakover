@@ -9,12 +9,14 @@ import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder.EkvivalenteMånedsberegninger
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.lagFradrag
 import no.nav.su.se.bakover.test.satsFactoryTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest {
 
@@ -45,7 +47,12 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                 februar,
             ),
         ).beregningsperioder shouldBe listOf(
-            EkvivalenteMånedsberegninger(listOf(januar, februar)).also {
+            EkvivalenteMånedsberegninger(
+                listOf(
+                    januar,
+                    februar,
+                ),
+            ).also {
                 it.periode.fraOgMed shouldBe januar.periode.fraOgMed
                 it.periode.tilOgMed shouldBe februar.periode.tilOgMed
             },
@@ -361,5 +368,90 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
             EkvivalenteMånedsberegninger(listOf(april)),
             EkvivalenteMånedsberegninger(listOf(desember)),
         )
+    }
+
+    @Test
+    fun `kaster for utrygge operasjoner`() {
+        assertThrows<EkvivalenteMånedsberegninger.UtryggOperasjonException> {
+            SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
+                listOf(
+                    MånedsberegningFactory.ny(
+                        måned = januar(2021),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                        fradrag = listOf(forventetInntekt),
+                    ),
+                ),
+            ).beregningsperioder.first().måned
+        }
+
+        assertThrows<EkvivalenteMånedsberegninger.UtryggOperasjonException> {
+            SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
+                listOf(
+                    MånedsberegningFactory.ny(
+                        måned = januar(2021),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                        fradrag = listOf(forventetInntekt),
+                    ),
+                ),
+            ).beregningsperioder.first().fullSupplerendeStønadForMåned
+        }
+
+        assertThrows<EkvivalenteMånedsberegninger.UtryggOperasjonException> {
+            SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
+                listOf(
+                    MånedsberegningFactory.ny(
+                        måned = januar(2021),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                        fradrag = listOf(forventetInntekt),
+                    ),
+                ),
+            ).beregningsperioder.first().getFradrag()
+        }
+    }
+
+    @Test
+    fun `tryner hvis måendene ikke er ekvivalent`() {
+        assertThrows<IllegalArgumentException> {
+            EkvivalenteMånedsberegninger(
+                listOf(
+                    MånedsberegningFactory.ny(
+                        måned = januar(2021),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                        fradrag = listOf(forventetInntekt),
+                    ),
+                    MånedsberegningFactory.ny(
+                        måned = januar(2021),
+                        strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
+                        fradrag = listOf(forventetInntekt),
+                    ),
+                ),
+            )
+        }
+
+        assertThrows<IllegalArgumentException> {
+            EkvivalenteMånedsberegninger(
+                listOf(
+                    MånedsberegningFactory.ny(
+                        måned = januar(2021),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                        fradrag = listOf(forventetInntekt),
+                    ),
+                    MånedsberegningFactory.ny(
+                        måned = februar(2021),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                        fradrag = listOf(
+                            forventetInntekt,
+                            FradragFactory.nyMånedsperiode(
+                                fradragstype = Fradragstype.Sosialstønad,
+                                månedsbeløp = 1000.0,
+                                måned = februar(2021),
+                                utenlandskInntekt = null,
+                                tilhører = FradragTilhører.BRUKER,
+                            ),
+                        ),
+                    ),
+                ),
+            )
+        }
     }
 }

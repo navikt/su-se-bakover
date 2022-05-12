@@ -41,9 +41,8 @@ interface Månedsberegning : PeriodisertInformasjon {
         if (getSatsbeløp() != other.getSatsbeløp()) return false
         if (getFradrag() != other.getFradrag()) return false
         if (getFribeløpForEps() != other.getFribeløpForEps()) return false
-        // TODO jah + jacob: Disse er ikke i master, siden da feiler ekvivalente månedsberegningstestene
-        // if (måned != other.måned) return false
-        // if (periode != other.periode) return false
+        if (måned != other.måned) return false
+        if (periode != other.periode) return false
         return true
     }
 
