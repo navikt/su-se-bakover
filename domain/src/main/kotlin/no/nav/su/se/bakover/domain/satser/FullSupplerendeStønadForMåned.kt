@@ -29,7 +29,7 @@ data class FullSupplerendeStønadForMåned(
     /** Nyeste ikraftredelsen av grunnbeløpet og minsteÅrligYtelseForUføretrygdede som gjelder for denne måneden. */
     val ikrafttredelse: LocalDate = maxOf(grunnbeløp.ikrafttredelse, minsteÅrligYtelseForUføretrygdede.ikrafttredelse)
 
-    val toProsentAvHøyForMånedAvrundet: Int = toProsentAvHøyForMåned.avrund()
+    val toProsentAvHøyForMånedAsDouble = toProsentAvHøyForMåned.toDouble()
 
     val fraOgMed: LocalDate = måned.fraOgMed
     val tilOgMed: LocalDate = måned.tilOgMed

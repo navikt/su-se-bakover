@@ -53,6 +53,6 @@ data class BeregningForMåned(
     }
 
     fun beløpStørreEnn0MenMindreEnnToProsentAvHøySats(): Boolean {
-        return getSumYtelse() > 0 && getSumYtelse() < fullSupplerendeStønadForMåned.toProsentAvHøyForMåned.toDouble()
+        return getSumYtelse() > 0 && getSumYtelse() < fullSupplerendeStønadForMåned.toProsentAvHøyForMånedAsDouble
     }
 }

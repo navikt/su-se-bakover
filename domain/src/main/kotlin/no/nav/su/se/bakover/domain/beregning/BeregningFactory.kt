@@ -57,7 +57,7 @@ class BeregningFactory(val clock: Clock) {
 
         fun Månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): Boolean {
 
-            val toProsentAvHøy: Int = fullSupplerendeStønadForMåned.toProsentAvHøyForMånedAvrundet
+            val toProsentAvHøy = fullSupplerendeStønadForMåned.toProsentAvHøyForMånedAsDouble
 
             // hvis sum er mer enn 2%, er alt good
             if (getSumYtelse() >= toProsentAvHøy) return false
@@ -76,7 +76,7 @@ class BeregningFactory(val clock: Clock) {
 
         fun Månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats(strategy: BeregningStrategy): Boolean {
 
-            val toProsentAvHøy: Int = fullSupplerendeStønadForMåned.toProsentAvHøyForMånedAvrundet
+            val toProsentAvHøy = fullSupplerendeStønadForMåned.toProsentAvHøyForMånedAsDouble
 
             // hvis sum er mer enn 2%, er alt good
             if (getSumYtelse() >= toProsentAvHøy) return false

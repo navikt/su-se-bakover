@@ -60,7 +60,7 @@ internal class FullSupplerendeStønadFactoryTest {
                 it.satsForMånedAvrundet shouldBe 19257
                 it.satsForMånedAsDouble shouldBe 19256.69
                 it.ikrafttredelse shouldBe 1.mai(2020)
-                it.toProsentAvHøyForMånedAvrundet shouldBe 419
+                it.toProsentAvHøyForMånedAsDouble shouldBe 418.9174666666666666666666666666667
             }
         }
 
@@ -88,7 +88,7 @@ internal class FullSupplerendeStønadFactoryTest {
                 it.satsForMånedAvrundet shouldBe 20946
                 it.satsForMånedAsDouble shouldBe 20945.873333333333
                 it.ikrafttredelse shouldBe 1.mai(2020)
-                it.toProsentAvHøyForMånedAvrundet shouldBe 419
+                it.toProsentAvHøyForMånedAsDouble shouldBe 418.9174666666666666666666666666667
             }
         }
 
@@ -116,7 +116,7 @@ internal class FullSupplerendeStønadFactoryTest {
                 it.satsForMånedAvrundet shouldBe 20216
                 it.satsForMånedAsDouble shouldBe 20215.81
                 it.ikrafttredelse shouldBe 1.mai(2021)
-                it.toProsentAvHøyForMånedAvrundet shouldBe 440
+                it.toProsentAvHøyForMånedAsDouble shouldBe 439.7825333333333333333333333333333
             }
         }
 
@@ -144,7 +144,7 @@ internal class FullSupplerendeStønadFactoryTest {
                 it.satsForMånedAvrundet shouldBe 21989
                 it.satsForMånedAsDouble shouldBe 21989.126666666667
                 it.ikrafttredelse shouldBe 1.mai(2021)
-                it.toProsentAvHøyForMånedAvrundet shouldBe 440
+                it.toProsentAvHøyForMånedAsDouble shouldBe 439.7825333333333333333333333333333
             }
         }
 
@@ -172,7 +172,7 @@ internal class FullSupplerendeStønadFactoryTest {
                 it.satsForMånedAvrundet shouldBe 20349
                 it.satsForMånedAsDouble shouldBe 20348.81
                 it.ikrafttredelse shouldBe 1.mai(2022)
-                it.toProsentAvHøyForMånedAvrundet shouldBe 443
+                it.toProsentAvHøyForMånedAsDouble shouldBe 442.6758666666666666666666666666667
             }
         }
 
@@ -200,7 +200,7 @@ internal class FullSupplerendeStønadFactoryTest {
                 it.satsForMånedAvrundet shouldBe 22134
                 it.satsForMånedAsDouble shouldBe 22133.793333333335
                 it.ikrafttredelse shouldBe 1.mai(2022)
-                it.toProsentAvHøyForMånedAvrundet shouldBe 443
+                it.toProsentAvHøyForMånedAsDouble shouldBe 442.6758666666666666666666666666667
             }
         }
 
