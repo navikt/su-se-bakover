@@ -33,7 +33,6 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
         lovligOpphold = b.lovligOpphold?.let { l ->
             Behandlingsinformasjon.LovligOpphold(
                 status = Behandlingsinformasjon.LovligOpphold.Status.valueOf(l.status),
-                begrunnelse = l.begrunnelse,
             )
         },
         fastOppholdINorge = b.fastOppholdINorge?.let { f ->
@@ -85,15 +84,10 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
     )
 
 internal fun Behandlingsinformasjon.Flyktning.toJson() =
-    FlyktningJson(
-        status = status.name,
-    )
+    FlyktningJson(status = status.name)
 
 internal fun Behandlingsinformasjon.LovligOpphold.toJson() =
-    LovligOppholdJson(
-        status = status.name,
-        begrunnelse = begrunnelse,
-    )
+    LovligOppholdJson(status = status.name)
 
 internal fun Behandlingsinformasjon.FastOppholdINorge.toJson() =
     FastOppholdINorgeJson(
@@ -135,14 +129,9 @@ internal fun Behandlingsinformasjon.PersonligOppmøte.toJson() =
 
 internal inline fun <reified T : Enum<T>> enumContains(s: String) = enumValues<T>().any { it.name == s }
 
-internal data class FlyktningJson(
-    val status: String,
-)
+internal data class FlyktningJson(val status: String)
 
-internal data class LovligOppholdJson(
-    val status: String,
-    val begrunnelse: String?,
-)
+internal data class LovligOppholdJson(val status: String)
 
 internal data class FastOppholdINorgeJson(
     val status: String,

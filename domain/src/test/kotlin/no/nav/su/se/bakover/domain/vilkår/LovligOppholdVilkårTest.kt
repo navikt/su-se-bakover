@@ -22,7 +22,6 @@ internal class LovligOppholdVilkårTest {
     fun `mapper behandlingsinformasjon for oppfylt til vilkår og grunnlag`() {
         Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-            begrunnelse = "jabadoo",
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -39,7 +38,6 @@ internal class LovligOppholdVilkårTest {
                             periode = år(2021),
                         ),
                         vurderingsperiode = år(2021),
-                        begrunnelse = "jabadoo",
                     ).getOrFail(),
                 ),
             ).getOrFail(),
@@ -50,7 +48,6 @@ internal class LovligOppholdVilkårTest {
     fun `mapper behandlingsinformasjon for avslag til vilkår og grunnlag`() {
         Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt,
-            begrunnelse = null,
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -67,7 +64,6 @@ internal class LovligOppholdVilkårTest {
                             periode = år(2021),
                         ),
                         vurderingsperiode = år(2021),
-                        begrunnelse = "",
                     ).getOrFail(),
                 ),
             ).getOrFail(),
@@ -78,7 +74,6 @@ internal class LovligOppholdVilkårTest {
     fun `mapper behandlingsinformasjon for uavklart til vilkår og grunnlag`() {
         Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.Uavklart,
-            begrunnelse = null,
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -99,7 +94,6 @@ internal class LovligOppholdVilkårTest {
                         periode = år(2021),
                     ),
                     vurderingsperiode = år(2021),
-                    begrunnelse = "jabadoo",
                 ).getOrFail(),
             ),
         ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(juli(2021))).erLik(
@@ -115,7 +109,6 @@ internal class LovligOppholdVilkårTest {
                             periode = juli(2021),
                         ),
                         vurderingsperiode = juli(2021),
-                        begrunnelse = "jabadoo",
                     ).getOrFail(),
                 ),
             ).getOrFail(),
@@ -136,7 +129,6 @@ internal class LovligOppholdVilkårTest {
                         periode = år(2021),
                     ),
                     vurderingsperiode = år(2021),
-                    begrunnelse = "jabadoo",
                 ).getOrFail(),
                 VurderingsperiodeLovligOpphold.tryCreate(
                     id = UUID.randomUUID(),
@@ -148,7 +140,6 @@ internal class LovligOppholdVilkårTest {
                         periode = år(2021),
                     ),
                     vurderingsperiode = år(2021),
-                    begrunnelse = "jabadoo",
                 ).getOrFail(),
             ),
         ) shouldBe LovligOppholdVilkår.Vurdert.UgyldigLovligOppholdVilkår.OverlappendeVurderingsperioder.left()
@@ -166,7 +157,6 @@ internal class LovligOppholdVilkårTest {
                 periode = mai(2021),
             ),
             vurderingsperiode = mai(2021),
-            begrunnelse = "jabadoo",
         ).getOrFail()
 
         val v2 = VurderingsperiodeLovligOpphold.tryCreate(
@@ -179,7 +169,6 @@ internal class LovligOppholdVilkårTest {
                 periode = juni(2021),
             ),
             vurderingsperiode = juni(2021),
-            begrunnelse = null,
         ).getOrFail()
 
         LovligOppholdVilkår.Vurdert.tryCreate(

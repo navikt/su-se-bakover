@@ -23,11 +23,9 @@ object BehandlingsinformasjonTestData {
     object LovligOpphold {
         val Oppfylt = Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-            begrunnelse = "det stemmer"
         )
         val Uavklart = Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.Uavklart,
-            begrunnelse = "det stemmer"
         )
     }
 

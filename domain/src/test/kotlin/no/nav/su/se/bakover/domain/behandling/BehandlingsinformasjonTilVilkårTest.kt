@@ -76,7 +76,6 @@ class BehandlingsinformasjonTilVilkårTest {
     fun `konverterer lovlig opphold til lovlig vilkår`() {
         Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.Uavklart,
-            begrunnelse = "jambo",
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -84,7 +83,6 @@ class BehandlingsinformasjonTilVilkårTest {
 
         Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-            begrunnelse = "jambo",
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -92,7 +90,6 @@ class BehandlingsinformasjonTilVilkårTest {
             vilkår shouldBe beOfType<LovligOppholdVilkår.Vurdert>()
             (vilkår as LovligOppholdVilkår.Vurdert).let {
                 it.resultat shouldBe Resultat.Innvilget
-                it.vurderingsperioder.single().begrunnelse shouldBe "jambo"
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     LovligOppholdGrunnlag(
                         id = UUID.randomUUID(),
@@ -106,7 +103,6 @@ class BehandlingsinformasjonTilVilkårTest {
 
         Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt,
-            begrunnelse = "jambo",
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -114,7 +110,6 @@ class BehandlingsinformasjonTilVilkårTest {
             vilkår shouldBe beOfType<LovligOppholdVilkår.Vurdert>()
             (vilkår as LovligOppholdVilkår.Vurdert).let {
                 it.resultat shouldBe Resultat.Avslag
-                it.vurderingsperioder.single().begrunnelse shouldBe "jambo"
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     LovligOppholdGrunnlag(
                         id = UUID.randomUUID(),

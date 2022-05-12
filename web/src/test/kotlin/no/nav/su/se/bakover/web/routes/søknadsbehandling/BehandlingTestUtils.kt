@@ -66,7 +66,6 @@ object BehandlingTestUtils {
             ),
             lovligOpphold = Behandlingsinformasjon.LovligOpphold(
                 status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-                begrunnelse = null,
             ),
             fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
                 status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,

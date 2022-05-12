@@ -45,8 +45,7 @@ internal class SøknadsbehandlingJsonTest {
                     "status" : "VilkårOppfylt"
                 },
                 "lovligOpphold": {
-                    "status" : "VilkårOppfylt",
-                    "begrunnelse" : null
+                    "status" : "VilkårOppfylt"
                 },
                 "fastOppholdINorge": {
                     "status": "VilkårOppfylt",

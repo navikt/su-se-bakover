@@ -114,7 +114,6 @@ data class Behandlingsinformasjon(
 
     data class LovligOpphold(
         val status: Status,
-        val begrunnelse: String?,
     ) : Base() {
         enum class Status {
             VilkårOppfylt,
@@ -150,7 +149,6 @@ data class Behandlingsinformasjon(
                                     throw IllegalArgumentException("Kunne ikke instansiere ${LovligOppholdGrunnlag::class.simpleName}. Melding: $it")
                                 },
                                 vurderingsperiode = stønadsperiode.periode,
-                                begrunnelse = begrunnelse ?: "",
                             ).getOrHandle {
                                 throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeLovligOpphold::class.simpleName}. Melding: $it")
                             },

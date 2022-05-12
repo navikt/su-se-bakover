@@ -14,7 +14,6 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         ),
         lovligOpphold = Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-            begrunnelse = lovligOpphold?.begrunnelse,
         ),
         fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
@@ -53,7 +52,6 @@ fun Behandlingsinformasjon.withAlleVilkårAvslått() =
         ),
         lovligOpphold = Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt,
-            begrunnelse = lovligOpphold?.begrunnelse,
         ),
         fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårIkkeOppfylt,

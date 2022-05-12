@@ -133,7 +133,7 @@ internal class VilkårsvurderingerTest {
                 behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt().patch(
                     Behandlingsinformasjon(
                         lovligOpphold = Behandlingsinformasjon.LovligOpphold(
-                            status = Behandlingsinformasjon.LovligOpphold.Status.Uavklart, begrunnelse = "",
+                            status = Behandlingsinformasjon.LovligOpphold.Status.Uavklart,
                         ),
                     ),
                 ),
