@@ -14,11 +14,9 @@ object BehandlingsinformasjonTestData {
     object Flyktning {
         val Oppfylt = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-            begrunnelse = "det stemmer"
         )
         val Uavklart = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.Uavklart,
-            begrunnelse = "det stemmer"
         )
     }
 

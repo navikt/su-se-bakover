@@ -63,7 +63,6 @@ object BehandlingTestUtils {
         behandlingsinformasjon = Behandlingsinformasjon(
             flyktning = Behandlingsinformasjon.Flyktning(
                 status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-                begrunnelse = null,
             ),
             lovligOpphold = Behandlingsinformasjon.LovligOpphold(
                 status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,

@@ -26,7 +26,6 @@ class BehandlingsinformasjonTilVilkårTest {
     fun `konverterer flyktning til vilkår`() {
         Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.Uavklart,
-            begrunnelse = "jambo",
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -34,7 +33,6 @@ class BehandlingsinformasjonTilVilkårTest {
 
         Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-            begrunnelse = "jambo",
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -42,7 +40,6 @@ class BehandlingsinformasjonTilVilkårTest {
             vilkår shouldBe beOfType<FlyktningVilkår.Vurdert>()
             (vilkår as FlyktningVilkår.Vurdert).let {
                 it.resultat shouldBe Resultat.Innvilget
-                it.vurderingsperioder.single().begrunnelse shouldBe "jambo"
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     FlyktningGrunnlag(
                         id = UUID.randomUUID(),
@@ -56,7 +53,6 @@ class BehandlingsinformasjonTilVilkårTest {
 
         Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
-            begrunnelse = "jambo",
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -64,7 +60,6 @@ class BehandlingsinformasjonTilVilkårTest {
             vilkår shouldBe beOfType<FlyktningVilkår.Vurdert>()
             (vilkår as FlyktningVilkår.Vurdert).let {
                 it.resultat shouldBe Resultat.Avslag
-                it.vurderingsperioder.single().begrunnelse shouldBe "jambo"
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     FlyktningGrunnlag(
                         id = UUID.randomUUID(),

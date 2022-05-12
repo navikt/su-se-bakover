@@ -11,7 +11,6 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
     Behandlingsinformasjon(
         flyktning = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-            begrunnelse = flyktning?.begrunnelse,
         ),
         lovligOpphold = Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
@@ -51,7 +50,6 @@ fun Behandlingsinformasjon.withAlleVilkårAvslått() =
     Behandlingsinformasjon(
         flyktning = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
-            begrunnelse = flyktning?.begrunnelse,
         ),
         lovligOpphold = Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt,
@@ -92,7 +90,6 @@ fun Behandlingsinformasjon.withAvslåttFlyktning(): Behandlingsinformasjon {
         Behandlingsinformasjon(
             flyktning = Behandlingsinformasjon.Flyktning(
                 status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
-                begrunnelse = flyktning?.begrunnelse,
             ),
         ),
     )

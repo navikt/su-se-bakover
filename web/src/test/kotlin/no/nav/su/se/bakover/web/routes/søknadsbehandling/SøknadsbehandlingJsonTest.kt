@@ -42,8 +42,7 @@ internal class SøknadsbehandlingJsonTest {
           "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(søknadsbehandling.opprettet)}",
           "behandlingsinformasjon": {
                 "flyktning": {
-                    "status" : "VilkårOppfylt",
-                    "begrunnelse" : null
+                    "status" : "VilkårOppfylt"
                 },
                 "lovligOpphold": {
                     "status" : "VilkårOppfylt",

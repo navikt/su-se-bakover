@@ -9,7 +9,6 @@ internal class FlyktningTest {
     fun `er ikke ferdigbehandlet hvis status er uavklart`() {
         Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.Uavklart,
-            begrunnelse = "neh"
         ).let {
             it.erVilkårOppfylt() shouldBe false
             it.erVilkårIkkeOppfylt() shouldBe false
@@ -20,7 +19,6 @@ internal class FlyktningTest {
     fun `er oppfylt hvis status er oppfylt`() {
         Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-            begrunnelse = "neh"
         ).erVilkårOppfylt() shouldBe true
     }
 }

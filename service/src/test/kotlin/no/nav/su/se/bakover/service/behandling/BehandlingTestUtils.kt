@@ -43,7 +43,6 @@ object BehandlingTestUtils {
     internal val behandlingsinformasjon = Behandlingsinformasjon(
         flyktning = Flyktning(
             status = Status.VilkårOppfylt,
-            begrunnelse = null
         ),
         lovligOpphold = LovligOpphold(
             status = LovligOpphold.Status.VilkårOppfylt,
