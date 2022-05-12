@@ -51,8 +51,7 @@ internal class SøknadsbehandlingJsonTest {
                     "status": "VilkårOppfylt"
                 },
                 "institusjonsopphold": {
-                    "status": "VilkårOppfylt",
-                    "begrunnelse": null
+                    "status": "VilkårOppfylt"
                 },
                 "formue": {
                     "status": "VilkårOppfylt",

@@ -176,7 +176,6 @@ class BehandlingsinformasjonTilVilkårTest {
     fun `konverterer institusjonsopphold til vilkår`() {
         Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.Uavklart,
-            begrunnelse = "jambo",
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -184,7 +183,6 @@ class BehandlingsinformasjonTilVilkårTest {
 
         Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
-            begrunnelse = "jambo",
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -192,7 +190,6 @@ class BehandlingsinformasjonTilVilkårTest {
             vilkår shouldBe beOfType<InstitusjonsoppholdVilkår.Vurdert>()
             (vilkår as InstitusjonsoppholdVilkår.Vurdert).let {
                 it.resultat shouldBe Resultat.Innvilget
-                it.vurderingsperioder.single().begrunnelse shouldBe "jambo"
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     InstitusjonsoppholdGrunnlag(
                         id = UUID.randomUUID(),
@@ -206,7 +203,6 @@ class BehandlingsinformasjonTilVilkårTest {
 
         Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårIkkeOppfylt,
-            begrunnelse = "jambo",
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -214,7 +210,6 @@ class BehandlingsinformasjonTilVilkårTest {
             vilkår shouldBe beOfType<InstitusjonsoppholdVilkår.Vurdert>()
             (vilkår as InstitusjonsoppholdVilkår.Vurdert).let {
                 it.resultat shouldBe Resultat.Avslag
-                it.vurderingsperioder.single().begrunnelse shouldBe "jambo"
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     InstitusjonsoppholdGrunnlag(
                         id = UUID.randomUUID(),

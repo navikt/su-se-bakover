@@ -20,7 +20,6 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         ),
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
-            begrunnelse = institusjonsopphold?.begrunnelse,
         ),
         formue = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
@@ -57,7 +56,6 @@ fun Behandlingsinformasjon.withAlleVilkårAvslått() =
         ),
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårIkkeOppfylt,
-            begrunnelse = institusjonsopphold?.begrunnelse,
         ),
         formue = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,

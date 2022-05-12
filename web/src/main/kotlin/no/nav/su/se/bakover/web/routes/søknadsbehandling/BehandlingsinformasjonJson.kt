@@ -43,7 +43,6 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
         institusjonsopphold = b.institusjonsopphold?.let { i ->
             Behandlingsinformasjon.Institusjonsopphold(
                 status = Behandlingsinformasjon.Institusjonsopphold.Status.valueOf(i.status),
-                begrunnelse = i.begrunnelse,
             )
         },
         formue = b.formue?.let { f ->
@@ -82,20 +81,13 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
         },
     )
 
-internal fun Behandlingsinformasjon.Flyktning.toJson() =
-    FlyktningJson(status = status.name)
+internal fun Behandlingsinformasjon.Flyktning.toJson() = FlyktningJson(status = status.name)
 
-internal fun Behandlingsinformasjon.LovligOpphold.toJson() =
-    LovligOppholdJson(status = status.name)
+internal fun Behandlingsinformasjon.LovligOpphold.toJson() = LovligOppholdJson(status = status.name)
 
-internal fun Behandlingsinformasjon.FastOppholdINorge.toJson() =
-    FastOppholdINorgeJson(status = status.name)
+internal fun Behandlingsinformasjon.FastOppholdINorge.toJson() = FastOppholdINorgeJson(status = status.name)
 
-internal fun Behandlingsinformasjon.Institusjonsopphold.toJson() =
-    InstitusjonsoppholdJson(
-        status = status.name,
-        begrunnelse = begrunnelse,
-    )
+internal fun Behandlingsinformasjon.Institusjonsopphold.toJson() = InstitusjonsoppholdJson(status = status.name)
 
 internal fun Behandlingsinformasjon.Formue.toJson() =
     FormueJson(
@@ -131,10 +123,7 @@ internal data class LovligOppholdJson(val status: String)
 
 internal data class FastOppholdINorgeJson(val status: String)
 
-internal data class InstitusjonsoppholdJson(
-    val status: String,
-    val begrunnelse: String?,
-)
+internal data class InstitusjonsoppholdJson(val status: String)
 
 internal data class FormueJson(
     val status: String,

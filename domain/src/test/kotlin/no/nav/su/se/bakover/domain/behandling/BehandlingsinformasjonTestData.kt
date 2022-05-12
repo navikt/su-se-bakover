@@ -41,11 +41,9 @@ object BehandlingsinformasjonTestData {
     object Institusjonsopphold {
         val Oppfylt = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
-            begrunnelse = "det stemmer"
         )
         val Uavklart = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.Uavklart,
-            begrunnelse = "det stemmer"
         )
     }
 

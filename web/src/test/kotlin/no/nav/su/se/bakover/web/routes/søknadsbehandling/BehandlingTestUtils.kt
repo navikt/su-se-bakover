@@ -72,7 +72,6 @@ object BehandlingTestUtils {
             ),
             institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
                 status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
-                begrunnelse = null,
             ),
             formue = Behandlingsinformasjon.Formue(
                 status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,

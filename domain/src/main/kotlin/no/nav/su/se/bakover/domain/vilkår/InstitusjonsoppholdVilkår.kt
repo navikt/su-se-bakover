@@ -114,7 +114,6 @@ data class VurderingsperiodeInstitusjonsopphold private constructor(
     override val resultat: Resultat,
     override val grunnlag: InstitusjonsoppholdGrunnlag?,
     override val periode: Periode,
-    val begrunnelse: String?,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeInstitusjonsopphold> {
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeInstitusjonsopphold {
@@ -124,7 +123,6 @@ data class VurderingsperiodeInstitusjonsopphold private constructor(
             resultat = resultat,
             periode = stønadsperiode.periode,
             grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
-            begrunnelse = begrunnelse,
         )
     }
 
@@ -164,9 +162,8 @@ data class VurderingsperiodeInstitusjonsopphold private constructor(
             resultat: Resultat,
             grunnlag: InstitusjonsoppholdGrunnlag?,
             periode: Periode,
-            begrunnelse: String?,
         ): VurderingsperiodeInstitusjonsopphold {
-            return tryCreate(id, opprettet, resultat, grunnlag, periode, begrunnelse).getOrHandle {
+            return tryCreate(id, opprettet, resultat, grunnlag, periode).getOrHandle {
                 throw IllegalArgumentException(it.toString())
             }
         }
@@ -177,7 +174,6 @@ data class VurderingsperiodeInstitusjonsopphold private constructor(
             resultat: Resultat,
             grunnlag: InstitusjonsoppholdGrunnlag?,
             vurderingsperiode: Periode,
-            begrunnelse: String?,
         ): Either<UgyldigVurderingsperiode, VurderingsperiodeInstitusjonsopphold> {
 
             grunnlag?.let {
@@ -190,7 +186,6 @@ data class VurderingsperiodeInstitusjonsopphold private constructor(
                 resultat = resultat,
                 grunnlag = grunnlag,
                 periode = vurderingsperiode,
-                begrunnelse = begrunnelse,
             ).right()
         }
     }
