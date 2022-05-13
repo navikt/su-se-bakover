@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.grunnlag
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
@@ -36,7 +35,6 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                         resultat = Resultat.Avslag,
                         grunnlag = null,
                         periode = år(2021),
-                        begrunnelse = "fåkke lov",
                     ),
                 ),
             ).getOrFail()
@@ -68,7 +66,6 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                             periode = Periode.create(1.januar(2021), 30.november(2021)),
                         ),
                         periode = Periode.create(1.januar(2021), 30.november(2021)),
-                        begrunnelse = "fåkke lov",
                     ),
                     VurderingsperiodeUtenlandsopphold.create(
                         id = UUID.randomUUID(),
@@ -80,7 +77,6 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                             periode = desember(2021),
                         ),
                         periode = desember(2021),
-                        begrunnelse = "fåkke lov",
                     ),
                 ),
             ).getOrFail()
@@ -112,7 +108,6 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                             periode = desember(2021),
                         ),
                         periode = desember(2021),
-                        begrunnelse = "fåkke lov",
                     ),
                 ),
             ).getOrFail()
@@ -129,7 +124,6 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                             periode = Periode.create(1.januar(2021), 30.november(2021)),
                         ),
                         periode = Periode.create(1.januar(2021), 30.november(2021)),
-                        begrunnelse = "fåkke lov",
                     ),
                 ),
             ).getOrFail()

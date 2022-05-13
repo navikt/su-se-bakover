@@ -48,7 +48,6 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
                             resultat = Resultat.Innvilget,
                             grunnlag = null,
                             vurderingsperiode = opprettetRevurdering.periode,
-                            begrunnelse = "begrunnelse",
                         ).getOrFail(),
                     ),
                 ).getOrFail(),

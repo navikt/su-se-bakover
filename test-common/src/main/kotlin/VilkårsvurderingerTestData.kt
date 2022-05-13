@@ -126,7 +126,6 @@ fun utenlandsoppholdInnvilget(
                 resultat = Resultat.Innvilget,
                 grunnlag = grunnlag,
                 periode = periode,
-                begrunnelse = "begrunnelse",
             ),
         ),
     ).getOrFail()
@@ -189,7 +188,6 @@ fun utenlandsoppholdAvslag(
                 resultat = Resultat.Avslag,
                 grunnlag = null,
                 periode = periode,
-                begrunnelse = "begrunnelse",
             ),
         ),
     ).getOrFail()
@@ -217,7 +215,6 @@ fun innvilgetUførevilkår(
     grunnlagsId: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    begrunnelse: String? = "innvilgetUførevilkårForventetInntekt0",
     forventetInntekt: Int = 0,
     uføregrad: Uføregrad = Uføregrad.parse(100),
 ): Vilkår.Uførhet.Vurdert {

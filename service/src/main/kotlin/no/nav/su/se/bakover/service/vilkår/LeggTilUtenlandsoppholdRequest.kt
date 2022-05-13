@@ -99,7 +99,6 @@ data class LeggTilUtenlandsoppholdRequest(
             resultat = resultat,
             grunnlag = null,
             vurderingsperiode = periode,
-            begrunnelse = begrunnelse,
         ).getOrHandle {
             return when (it) {
                 VurderingsperiodeUtenlandsopphold.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()

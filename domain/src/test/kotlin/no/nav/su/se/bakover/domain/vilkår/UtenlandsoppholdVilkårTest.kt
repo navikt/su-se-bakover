@@ -31,7 +31,6 @@ internal class UtenlandsoppholdVilkårTest {
                         periode = år(2021),
                     ),
                     vurderingsperiode = år(2021),
-                    begrunnelse = "jabadoo",
                 ).getOrFail(),
             ),
         ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(juli(2021))).erLik(
@@ -47,7 +46,6 @@ internal class UtenlandsoppholdVilkårTest {
                             periode = juli(2021),
                         ),
                         vurderingsperiode = juli(2021),
-                        begrunnelse = "jabadoo",
                     ).getOrFail(),
                 ),
             ).getOrFail(),
@@ -68,7 +66,6 @@ internal class UtenlandsoppholdVilkårTest {
                         periode = år(2021),
                     ),
                     vurderingsperiode = år(2021),
-                    begrunnelse = "jabadoo",
                 ).getOrFail(),
                 VurderingsperiodeUtenlandsopphold.tryCreate(
                     id = UUID.randomUUID(),
@@ -80,7 +77,6 @@ internal class UtenlandsoppholdVilkårTest {
                         periode = år(2021),
                     ),
                     vurderingsperiode = år(2021),
-                    begrunnelse = "jabadoo",
                 ).getOrFail(),
             ),
         ) shouldBe UtenlandsoppholdVilkår.Vurdert.UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder.left()
@@ -98,7 +94,6 @@ internal class UtenlandsoppholdVilkårTest {
                 periode = mai(2021),
             ),
             vurderingsperiode = mai(2021),
-            begrunnelse = "jabadoo",
         ).getOrFail()
 
         val v2 = VurderingsperiodeUtenlandsopphold.tryCreate(
@@ -111,7 +106,6 @@ internal class UtenlandsoppholdVilkårTest {
                 periode = juni(2021),
             ),
             vurderingsperiode = juni(2021),
-            begrunnelse = null,
         ).getOrFail()
 
         UtenlandsoppholdVilkår.Vurdert.tryCreate(
