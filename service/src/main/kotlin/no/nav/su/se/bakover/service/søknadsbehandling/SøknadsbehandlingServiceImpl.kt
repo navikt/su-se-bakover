@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -679,10 +678,6 @@ internal class SøknadsbehandlingServiceImpl(
 
     override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext) {
         søknadsbehandlingRepo.lagre(lukketSøknadbehandling, tx)
-    }
-
-    override fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext) {
-        return søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(avslag, tx)
     }
 
     override fun leggTilUtenlandsopphold(request: LeggTilUtenlandsoppholdRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold, Søknadsbehandling.Vilkårsvurdert> {

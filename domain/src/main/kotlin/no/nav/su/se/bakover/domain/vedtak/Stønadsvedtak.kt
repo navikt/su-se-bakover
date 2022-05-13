@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -451,21 +450,6 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
                 periode = avslag.periode,
                 avslagsgrunner = avslag.avslagsgrunner,
             )
-
-        fun fromAvslagManglendeDokumentasjon(
-            avslag: AvslagManglendeDokumentasjon,
-            clock: Clock,
-        ): AvslagVilkår {
-            return AvslagVilkår(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(clock),
-                behandling = avslag.søknadsbehandling,
-                saksbehandler = avslag.søknadsbehandling.saksbehandler,
-                attestant = avslag.søknadsbehandling.attesteringer.hentSisteAttestering().attestant,
-                periode = avslag.søknadsbehandling.periode,
-                avslagsgrunner = avslag.avslagsgrunner,
-            )
-        }
     }
 
     data class AvslagVilkår(
