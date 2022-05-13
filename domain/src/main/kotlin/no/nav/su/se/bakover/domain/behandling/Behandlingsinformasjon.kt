@@ -390,7 +390,6 @@ data class Behandlingsinformasjon(
 
     data class PersonligOppmøte(
         val status: Status,
-        val begrunnelse: String?,
     ) : Base() {
         enum class Status {
             MøttPersonlig,
@@ -442,7 +441,6 @@ data class Behandlingsinformasjon(
                                     throw IllegalArgumentException("Kunne ikke instansiere ${PersonligOppmøteGrunnlag::class.simpleName}. Melding: $it")
                                 },
                                 vurderingsperiode = stønadsperiode.periode,
-                                begrunnelse = begrunnelse ?: "",
                             ).getOrHandle {
                                 throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodePersonligOppmøte::class.simpleName}. Melding: $it")
                             },

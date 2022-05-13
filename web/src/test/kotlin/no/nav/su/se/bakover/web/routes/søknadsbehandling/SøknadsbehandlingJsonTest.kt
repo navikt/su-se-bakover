@@ -78,8 +78,7 @@ internal class SøknadsbehandlingJsonTest {
                     "begrunnelse": null
                 },
                 "personligOppmøte": {
-                    "status": "MøttPersonlig",
-                    "begrunnelse": null
+                    "status": "MøttPersonlig"
                 }
           },
           "søknad": $søknadJsonString,

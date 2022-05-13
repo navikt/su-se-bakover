@@ -99,7 +99,6 @@ object BehandlingTestUtils {
             ),
             personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
                 status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-                begrunnelse = null,
             ),
         ),
         fnr = fnr,

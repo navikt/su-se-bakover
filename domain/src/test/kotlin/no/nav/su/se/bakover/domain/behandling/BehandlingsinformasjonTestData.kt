@@ -98,11 +98,9 @@ object BehandlingsinformasjonTestData {
     object PersonligOppmøte {
         val Oppfylt = Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-            begrunnelse = "det stemmer"
         )
         val Uavklart = Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.Uavklart,
-            begrunnelse = "det stemmer"
         )
     }
 }

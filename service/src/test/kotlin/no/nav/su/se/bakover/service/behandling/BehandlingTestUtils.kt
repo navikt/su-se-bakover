@@ -79,7 +79,6 @@ object BehandlingTestUtils {
         ),
         personligOppmøte = PersonligOppmøte(
             status = MøttPersonlig,
-            begrunnelse = null
         ),
     )
 }

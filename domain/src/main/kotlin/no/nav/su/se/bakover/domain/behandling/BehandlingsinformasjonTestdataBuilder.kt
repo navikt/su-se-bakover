@@ -38,7 +38,6 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         ),
         personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-            begrunnelse = personligOppmøte?.begrunnelse,
         ),
     )
 
@@ -74,7 +73,6 @@ fun Behandlingsinformasjon.withAlleVilkårAvslått() =
         ),
         personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
-            begrunnelse = personligOppmøte?.begrunnelse,
         ),
     )
 

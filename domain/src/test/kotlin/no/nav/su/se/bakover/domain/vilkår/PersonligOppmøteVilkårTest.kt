@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
@@ -27,7 +26,6 @@ internal class PersonligOppmøteVilkårTest {
             .forEach {
                 Behandlingsinformasjon.PersonligOppmøte(
                     status = it,
-                    begrunnelse = "jabadoo",
                 ).tilVilkår(
                     stønadsperiode = stønadsperiode2021,
                     clock = fixedClock,
@@ -44,7 +42,6 @@ internal class PersonligOppmøteVilkårTest {
                                     periode = år(2021),
                                 ),
                                 vurderingsperiode = år(2021),
-                                begrunnelse = "jabadoo",
                             ).getOrFail(),
                         ),
                     ).getOrFail(),
@@ -56,7 +53,6 @@ internal class PersonligOppmøteVilkårTest {
     fun `mapper behandlingsinformasjon for avslag til vilkår og grunnlag`() {
         Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
-            begrunnelse = null,
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -73,7 +69,6 @@ internal class PersonligOppmøteVilkårTest {
                             periode = år(2021),
                         ),
                         vurderingsperiode = år(2021),
-                        begrunnelse = "",
                     ).getOrFail(),
                 ),
             ).getOrFail(),
@@ -84,7 +79,6 @@ internal class PersonligOppmøteVilkårTest {
     fun `mapper behandlingsinformasjon for uavklart til vilkår og grunnlag`() {
         Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.Uavklart,
-            begrunnelse = null,
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -105,7 +99,6 @@ internal class PersonligOppmøteVilkårTest {
                         periode = år(2021),
                     ),
                     vurderingsperiode = år(2021),
-                    begrunnelse = "jabadoo",
                 ).getOrFail(),
             ),
         ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(juli(2021))).erLik(
@@ -121,7 +114,6 @@ internal class PersonligOppmøteVilkårTest {
                             periode = juli(2021),
                         ),
                         vurderingsperiode = juli(2021),
-                        begrunnelse = "jabadoo",
                     ).getOrFail(),
                 ),
             ).getOrFail(),
@@ -142,7 +134,6 @@ internal class PersonligOppmøteVilkårTest {
                         periode = år(2021),
                     ),
                     vurderingsperiode = år(2021),
-                    begrunnelse = "jabadoo",
                 ).getOrFail(),
                 VurderingsperiodePersonligOppmøte.tryCreate(
                     id = UUID.randomUUID(),
@@ -154,7 +145,6 @@ internal class PersonligOppmøteVilkårTest {
                         periode = år(2021),
                     ),
                     vurderingsperiode = år(2021),
-                    begrunnelse = "jabadoo",
                 ).getOrFail(),
             ),
         ) shouldBe PersonligOppmøteVilkår.Vurdert.UgyldigPersonligOppmøteVilkår.OverlappendeVurderingsperioder.left()
@@ -172,7 +162,6 @@ internal class PersonligOppmøteVilkårTest {
                 periode = mai(2021),
             ),
             vurderingsperiode = mai(2021),
-            begrunnelse = "jabadoo",
         ).getOrFail()
 
         val v2 = VurderingsperiodePersonligOppmøte.tryCreate(
@@ -185,7 +174,6 @@ internal class PersonligOppmøteVilkårTest {
                 periode = juni(2021),
             ),
             vurderingsperiode = juni(2021),
-            begrunnelse = null,
         ).getOrFail()
 
         PersonligOppmøteVilkår.Vurdert.tryCreate(
