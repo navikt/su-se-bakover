@@ -91,7 +91,6 @@ object SøknadInnholdTestdataBuilder {
             verdiPåBolig = 600000,
             boligBrukesTil = "Mine barn bor der",
             depositumsBeløp = 1000.0,
-            kontonummer = "12345678912",
             verdiPåEiendom = 3,
             eiendomBrukesTil = "",
             kjøretøy = listOf(
@@ -116,7 +115,6 @@ object SøknadInnholdTestdataBuilder {
                 verdiPåBolig = 0,
                 boligBrukesTil = "",
                 depositumsBeløp = 0,
-                kontonummer = "11111111111",
                 verdiPåEiendom = 0,
                 eiendomBrukesTil = "",
                 kjøretøy = listOf(),
