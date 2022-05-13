@@ -85,7 +85,6 @@ internal class VedtakPåTidslinjeTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = periode,
-            begrunnelse = "Begrunnelse",
         )
 
         val formuevilkår = innvilgetFormueVilkår(periode = periode)
@@ -207,14 +206,12 @@ internal class VedtakPåTidslinjeTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
-            begrunnelse = "Bor med barn",
         )
 
         val b2 = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 31.desember(2021)),
-            begrunnelse = "Giftet seg",
             fnr = epsFnr,
         )
 
@@ -354,13 +351,11 @@ internal class VedtakPåTidslinjeTest {
                     it[0].shouldBeType<Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen>().let {
                         it.id shouldNotBe b1.id
                         it.periode shouldBe Periode.create(1.mai(2021), 30.juni(2021))
-                        it.begrunnelse shouldBe "Bor med barn"
                     }
                     it[1].shouldBeType<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre>()
                         .let {
                             it.id shouldNotBe b1.id
                             it.periode shouldBe juli(2021)
-                            it.begrunnelse shouldBe "Giftet seg"
                         }
                 }
                 vedtakPåTidslinje.grunnlagsdata.fradragsgrunnlag.let { fradragCopy ->

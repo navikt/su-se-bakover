@@ -919,7 +919,6 @@ internal class SøknadsbehandlingRoutesKtTest {
             FullførBosituasjonRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
                 bosituasjon = if (epsFnr == null) BosituasjonValg.BOR_ALENE else BosituasjonValg.EPS_IKKE_UFØR_FLYKTNING,
-                begrunnelse = "fullførBosituasjongrunnlag begrunnelse",
             ),
         )
         services.søknadsbehandling.vilkårsvurder(

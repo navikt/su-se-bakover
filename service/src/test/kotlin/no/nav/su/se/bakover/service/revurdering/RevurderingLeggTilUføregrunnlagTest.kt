@@ -42,7 +42,6 @@ internal class RevurderingLeggTilUføregrunnlagTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = stønadsperiode2021.periode,
-            begrunnelse = ":)",
         )
         val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(

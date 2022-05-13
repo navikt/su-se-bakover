@@ -340,7 +340,6 @@ sealed class Grunnlag {
         }
 
         sealed class Fullstendig : Bosituasjon(), KanPlasseresPåTidslinje<Fullstendig> {
-            abstract val begrunnelse: String?
             abstract override val satskategori: Satskategori
 
             sealed class EktefellePartnerSamboer : Fullstendig() {
@@ -355,7 +354,6 @@ sealed class Grunnlag {
                         override val opprettet: Tidspunkt,
                         override val periode: Periode,
                         override val fnr: Fnr,
-                        override val begrunnelse: String?,
                     ) : EktefellePartnerSamboer() {
 
                         override val satskategori: Satskategori = Satskategori.ORDINÆR
@@ -385,7 +383,6 @@ sealed class Grunnlag {
                         override val opprettet: Tidspunkt,
                         override val periode: Periode,
                         override val fnr: Fnr,
-                        override val begrunnelse: String?,
                     ) : EktefellePartnerSamboer() {
 
                         override val satskategori: Satskategori = Satskategori.HØY
@@ -416,7 +413,6 @@ sealed class Grunnlag {
                     override val opprettet: Tidspunkt,
                     override val periode: Periode,
                     override val fnr: Fnr,
-                    override val begrunnelse: String?,
                 ) : EktefellePartnerSamboer() {
 
                     override val satskategori: Satskategori = Satskategori.ORDINÆR
@@ -447,7 +443,6 @@ sealed class Grunnlag {
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
-                override val begrunnelse: String?,
             ) : Fullstendig() {
 
                 override val satskategori: Satskategori = Satskategori.HØY
@@ -477,7 +472,6 @@ sealed class Grunnlag {
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
-                override val begrunnelse: String?,
             ) : Fullstendig() {
 
                 override val satskategori: Satskategori = Satskategori.ORDINÆR

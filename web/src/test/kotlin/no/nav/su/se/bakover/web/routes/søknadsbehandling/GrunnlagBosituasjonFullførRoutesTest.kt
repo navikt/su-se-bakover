@@ -102,7 +102,6 @@ class GrunnlagBosituasjonFullførRoutesTest {
                         it shouldBe FullførBosituasjonRequest(
                             behandlingId = søknadsbehandling.id,
                             bosituasjon = BosituasjonValg.DELER_BOLIG_MED_VOKSNE,
-                            begrunnelse = null,
                         )
                     }
                 )
@@ -134,7 +133,6 @@ class GrunnlagBosituasjonFullførRoutesTest {
                         it shouldBe FullførBosituasjonRequest(
                             behandlingId = søknadsbehandling.id,
                             bosituasjon = BosituasjonValg.BOR_ALENE,
-                            begrunnelse = null,
                         )
                     }
                 )
@@ -166,7 +164,6 @@ class GrunnlagBosituasjonFullførRoutesTest {
                         it shouldBe FullførBosituasjonRequest(
                             behandlingId = søknadsbehandling.id,
                             bosituasjon = BosituasjonValg.EPS_UFØR_FLYKTNING,
-                            begrunnelse = null,
                         )
                     }
                 )
@@ -198,7 +195,6 @@ class GrunnlagBosituasjonFullførRoutesTest {
                         it shouldBe FullførBosituasjonRequest(
                             behandlingId = søknadsbehandling.id,
                             bosituasjon = BosituasjonValg.EPS_IKKE_UFØR_FLYKTNING,
-                            begrunnelse = null,
                         )
                     }
                 )
@@ -230,7 +226,6 @@ class GrunnlagBosituasjonFullførRoutesTest {
                         it shouldBe FullførBosituasjonRequest(
                             behandlingId = søknadsbehandling.id,
                             bosituasjon = BosituasjonValg.EPS_67_ELLER_OVER,
-                            begrunnelse = null,
                         )
                     }
                 )
@@ -262,7 +257,6 @@ class GrunnlagBosituasjonFullførRoutesTest {
                         it shouldBe FullførBosituasjonRequest(
                             behandlingId = søknadsbehandling.id,
                             bosituasjon = BosituasjonValg.EPS_67_ELLER_OVER,
-                            begrunnelse = "Begrunnelse",
                         )
                     }
                 )

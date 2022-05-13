@@ -49,7 +49,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import java.util.*
+import java.util.UUID
 
 internal class RevurderingLeggTilFormueServiceTest {
 
@@ -79,7 +79,6 @@ internal class RevurderingLeggTilFormueServiceTest {
                             fnr = epsFnr,
                             opprettet = fixedTidspunkt,
                             periode = år(2021),
-                            begrunnelse = null,
                         ),
                     ),
                 ).second
@@ -125,7 +124,6 @@ internal class RevurderingLeggTilFormueServiceTest {
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             periode = år(2021),
-                            begrunnelse = null,
                         ),
                     ),
                 ).second
@@ -245,7 +243,6 @@ internal class RevurderingLeggTilFormueServiceTest {
                             fnr = epsFnr,
                             opprettet = fixedTidspunkt,
                             periode = år(2021),
-                            begrunnelse = null,
                         ),
                     ),
                 ).second
@@ -320,7 +317,6 @@ internal class RevurderingLeggTilFormueServiceTest {
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(), opprettet = fixedTidspunkt,
                             periode = stønadsperiode2021.periode,
-                            begrunnelse = ":)",
                         ),
                     ),
                     vilkårOverrides = listOf(

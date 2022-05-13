@@ -21,7 +21,6 @@ enum class BosituasjonValg {
 data class FullførBosituasjonRequest(
     val behandlingId: UUID,
     val bosituasjon: BosituasjonValg,
-    val begrunnelse: String?,
 ) {
     sealed class KunneIkkeFullføreBosituasjon {
         object HarIkkeValgtEps : KunneIkkeFullføreBosituasjon()
@@ -49,33 +48,28 @@ data class FullførBosituasjonRequest(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 periode = ufullstendigBosituasjon.periode,
-                begrunnelse = begrunnelse,
             )
             BosituasjonValg.BOR_ALENE -> Grunnlag.Bosituasjon.Fullstendig.Enslig(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 periode = ufullstendigBosituasjon.periode,
-                begrunnelse = begrunnelse,
             )
             BosituasjonValg.EPS_UFØR_FLYKTNING -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 periode = ufullstendigBosituasjon.periode,
-                begrunnelse = begrunnelse,
                 fnr = hentFnrForUnder67(ufullstendigBosituasjon).getOrHandle { return it.left() },
             )
             BosituasjonValg.EPS_IKKE_UFØR_FLYKTNING -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 periode = ufullstendigBosituasjon.periode,
-                begrunnelse = begrunnelse,
                 fnr = hentFnrForUnder67(ufullstendigBosituasjon).getOrHandle { return it.left() },
             )
             BosituasjonValg.EPS_67_ELLER_OVER -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 periode = ufullstendigBosituasjon.periode,
-                begrunnelse = begrunnelse,
                 fnr = when (ufullstendigBosituasjon) {
                     is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen,
                     is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning,

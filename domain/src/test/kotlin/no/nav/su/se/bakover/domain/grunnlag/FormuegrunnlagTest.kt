@@ -92,7 +92,6 @@ internal class FormuegrunnlagTest {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
             periode = januar(2021),
-            begrunnelse = null,
         )
 
         private val formueUtenEPS = Formuegrunnlag.create(
@@ -150,7 +149,6 @@ internal class FormuegrunnlagTest {
                     fnr = Fnr.generer(),
                     opprettet = Tidspunkt.EPOCH,
                     periode = januar(2021),
-                    begrunnelse = null,
                 ),
                 behandlingsPeriode = januar(2021),
             )
@@ -258,7 +256,6 @@ internal class FormuegrunnlagTest {
             opprettet = fixedTidspunkt,
             periode = år(2021),
             fnr = Fnr.generer(),
-            begrunnelse = null,
         )
         val f1 = lagFormuegrunnlag(
             periodeInnenfor2021 = januar(2021),
@@ -287,7 +284,6 @@ internal class FormuegrunnlagTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = periodeInnenfor2021,
-            begrunnelse = null,
         ),
     ): Formuegrunnlag {
         return Formuegrunnlag.create(

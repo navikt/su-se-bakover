@@ -451,7 +451,6 @@ internal class OpprettRevurderingServiceTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         periode = vedtaksperiode,
-                        begrunnelse = null,
                     ),
                 ),
             )
@@ -802,7 +801,6 @@ internal class OpprettRevurderingServiceTest {
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = periodePlussEtÅr,
-                begrunnelse = null,
             ),
         )
         val andreVedtak = createSøknadsbehandlingVedtak().copy(

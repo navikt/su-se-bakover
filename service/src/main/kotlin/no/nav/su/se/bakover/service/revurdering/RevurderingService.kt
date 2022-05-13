@@ -539,7 +539,6 @@ data class LeggTilBosituasjonRequest(
                     opprettet = Tidspunkt.now(clock),
                     periode = periode,
                     fnr = eps.ident.fnr,
-                    begrunnelse = begrunnelse,
                 ).right()
                 else -> when (ektemakeEllerSamboerUførFlyktning) {
                     true -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
@@ -547,14 +546,12 @@ data class LeggTilBosituasjonRequest(
                         opprettet = Tidspunkt.now(clock),
                         periode = periode,
                         fnr = eps.ident.fnr,
-                        begrunnelse = begrunnelse,
                     ).right()
                     false -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(clock),
                         periode = periode,
                         fnr = eps.ident.fnr,
-                        begrunnelse = begrunnelse,
                     ).right()
                     null -> return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
                 }
@@ -567,13 +564,11 @@ data class LeggTilBosituasjonRequest(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
                     periode = periode,
-                    begrunnelse = begrunnelse,
                 ).right()
                 false -> Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
                     periode = periode,
-                    begrunnelse = begrunnelse,
                 ).right()
             }
         }

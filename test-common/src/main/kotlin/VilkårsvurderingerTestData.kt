@@ -497,7 +497,6 @@ fun avslåttFormueVilkår(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         periode = periode,
-        begrunnelse = null,
     ),
 ): Vilkår.Formue.Vurdert {
     val (søkerVerdi, epsVerdi) = when (bosituasjon.harEPS()) {
@@ -533,7 +532,6 @@ fun innvilgetFormueVilkår(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         periode = periode,
-        begrunnelse = null,
     ),
 ): Vilkår.Formue.Vurdert {
     val (søkerVerdi, epsVerdi) = when (bosituasjon.harEPS()) {

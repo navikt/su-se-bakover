@@ -27,7 +27,6 @@ internal fun formuegrunnlag(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         periode = periode,
-        begrunnelse = null,
     ),
     behandlingsPeriode = periode,
 )

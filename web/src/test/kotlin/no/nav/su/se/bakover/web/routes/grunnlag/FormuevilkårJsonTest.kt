@@ -33,13 +33,11 @@ internal class FormuevilkårJsonTest {
             opprettet = fixedTidspunkt,
             periode = janDes,
             fnr = Fnr("12312312345"),
-            begrunnelse = "bosituasjonJanJun",
         )
         val bosituasjonJulDes = Grunnlag.Bosituasjon.Fullstendig.Enslig(
             id = UUID.fromString("5441d6ef-08c7-4a4f-8e4c-d17e1ab95790"),
             opprettet = fixedTidspunkt,
             periode = janDes,
-            begrunnelse = "bosituasjonJulDes",
         )
         val vilkår = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
             nonEmptyListOf(

@@ -171,7 +171,6 @@ internal class LeggTilFradragsgrunnlagTest {
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             periode = revurderingsperiode,
-                            begrunnelse = null,
                         ),
                     ),
                 ),

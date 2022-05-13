@@ -122,7 +122,6 @@ class LeggTilBosituasjonTest {
                         opprettet = fixedTidspunkt,
                         periode = år(2021),
                         fnr = epsFnr,
-                        begrunnelse = null,
                     ),
                 ),
             ).getOrFail().let { oppdatert ->

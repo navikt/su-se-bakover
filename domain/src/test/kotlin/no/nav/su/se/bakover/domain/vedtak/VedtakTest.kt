@@ -51,7 +51,6 @@ internal class VedtakTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = periode,
-            begrunnelse = null,
         )
     }
 

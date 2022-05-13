@@ -112,7 +112,6 @@ object RevurderingRoutesTestData {
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     periode = periode,
-                    begrunnelse = null,
                 ),
             ),
         ),

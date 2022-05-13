@@ -9,7 +9,6 @@ internal data class BosituasjonJson(
     val fnr: String?,
     val delerBolig: Boolean?,
     val ektemakeEllerSamboerUførFlyktning: Boolean?,
-    val begrunnelse: String?,
     val sats: String?,
     val periode: PeriodeJson,
 )
@@ -28,7 +27,6 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 fnr = null,
                 delerBolig = true,
                 ektemakeEllerSamboerUførFlyktning = null,
-                begrunnelse = this.begrunnelse,
                 sats = this.satskategori.toString(),
                 periode = this.periode.toJson(),
             )
@@ -38,7 +36,6 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 fnr = this.fnr.toString(),
                 delerBolig = null,
                 ektemakeEllerSamboerUførFlyktning = false,
-                begrunnelse = this.begrunnelse,
                 sats = this.satskategori.toString(),
                 periode = this.periode.toJson(),
             )
@@ -48,7 +45,6 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 fnr = this.fnr.toString(),
                 delerBolig = null,
                 ektemakeEllerSamboerUførFlyktning = null,
-                begrunnelse = this.begrunnelse,
                 sats = this.satskategori.toString(),
                 periode = this.periode.toJson(),
             )
@@ -58,7 +54,6 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 fnr = this.fnr.toString(),
                 delerBolig = null,
                 ektemakeEllerSamboerUførFlyktning = true,
-                begrunnelse = this.begrunnelse,
                 sats = this.satskategori.toString(),
                 periode = this.periode.toJson(),
             )
@@ -68,7 +63,6 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 fnr = null,
                 delerBolig = false,
                 ektemakeEllerSamboerUførFlyktning = null,
-                begrunnelse = this.begrunnelse,
                 sats = this.satskategori.toString(),
                 periode = this.periode.toJson(),
             )
@@ -78,7 +72,6 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 fnr = this.fnr.toString(),
                 delerBolig = true,
                 ektemakeEllerSamboerUførFlyktning = null,
-                begrunnelse = null,
                 sats = null,
                 periode = this.periode.toJson(),
             )
@@ -88,7 +81,6 @@ internal fun Grunnlag.Bosituasjon.toJson(): BosituasjonJson {
                 fnr = null,
                 delerBolig = null,
                 ektemakeEllerSamboerUførFlyktning = null,
-                begrunnelse = null,
                 sats = null,
                 periode = this.periode.toJson(),
             )
