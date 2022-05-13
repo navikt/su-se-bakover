@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.Oppholdstillatelse
 import no.nav.su.se.bakover.domain.OppholdstillatelseAlder
 import no.nav.su.se.bakover.domain.PensjonsOrdningBeløp
 import no.nav.su.se.bakover.domain.Personopplysninger
-import no.nav.su.se.bakover.domain.Søknadsinnhold
+import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.TrygdeytelseIUtlandet
@@ -68,7 +68,7 @@ sealed interface SøknadsinnholdJson {
     val forNav: SøknadsinnholdUføreJson.ForNavJson
     val ektefelle: SøknadsinnholdUføreJson.EktefelleJson?
 
-    fun toSøknadsinnhold(): Søknadsinnhold {
+    fun toSøknadsinnhold(): SøknadInnhold {
         return when (this) {
             is SøknadsinnholdAlderJson -> toSøknadsinnholdAlder()
             is SøknadsinnholdUføreJson -> toSøknadsinnholdUføre()
@@ -76,7 +76,7 @@ sealed interface SøknadsinnholdJson {
     }
 
     companion object {
-        fun Søknadsinnhold.toSøknadsinnholdJson(): SøknadsinnholdJson {
+        fun SøknadInnhold.toSøknadsinnholdJson(): SøknadsinnholdJson {
             return when (this) {
                 is SøknadsinnholdAlder -> toSøknadsinnholdAlderJson()
                 is SøknadsinnholdUføre -> toSøknadsinnholdUføreJson()

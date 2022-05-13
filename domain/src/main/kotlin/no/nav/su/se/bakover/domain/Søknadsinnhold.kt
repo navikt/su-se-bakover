@@ -14,7 +14,7 @@ import java.time.LocalDate
     JsonSubTypes.Type(value = SøknadsinnholdUføre::class, name = "ufore"),
 )
 
-sealed interface Søknadsinnhold {
+sealed interface SøknadInnhold {
     val personopplysninger: Personopplysninger
     val boforhold: Boforhold
     val utenlandsopphold: Utenlandsopphold
@@ -36,7 +36,7 @@ data class SøknadsinnholdAlder(
     override val formue: Formue,
     override val forNav: ForNav,
     override val ektefelle: Ektefelle?,
-) : Søknadsinnhold
+) : SøknadInnhold
 
 data class SøknadsinnholdUføre(
     val uførevedtak: Uførevedtak,
@@ -49,7 +49,7 @@ data class SøknadsinnholdUføre(
     override val formue: Formue,
     override val forNav: ForNav,
     override val ektefelle: Ektefelle?,
-) : Søknadsinnhold
+) : SøknadInnhold
 
 data class Uførevedtak(
     val harUførevedtak: Boolean

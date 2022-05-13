@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.Søknadsinnhold
+import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
@@ -324,7 +324,7 @@ open class AccessCheckProxy(
                 }
             },
             søknad = object : SøknadService {
-                override fun nySøknad(søknadInnhold: Søknadsinnhold, identBruker: NavIdentBruker): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
+                override fun nySøknad(søknadInnhold: SøknadInnhold, identBruker: NavIdentBruker): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
                     assertHarTilgangTilPerson(søknadInnhold.personopplysninger.fnr)
 
                     return services.søknad.nySøknad(søknadInnhold, identBruker)

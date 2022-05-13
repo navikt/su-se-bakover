@@ -17,7 +17,7 @@ sealed class Søknad {
     abstract val id: UUID
     abstract val opprettet: Tidspunkt
     abstract val sakId: UUID
-    abstract val søknadInnhold: Søknadsinnhold
+    abstract val søknadInnhold: SøknadInnhold
 
     val type: SøknadType by lazy {
         when (søknadInnhold) {
@@ -43,7 +43,7 @@ sealed class Søknad {
         override val id: UUID,
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
-        override val søknadInnhold: Søknadsinnhold,
+        override val søknadInnhold: SøknadInnhold,
     ) : Søknad() {
 
         fun journalfør(
@@ -66,7 +66,7 @@ sealed class Søknad {
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
-            override val søknadInnhold: Søknadsinnhold,
+            override val søknadInnhold: SøknadInnhold,
             override val journalpostId: JournalpostId,
         ) : Journalført() {
 
@@ -91,7 +91,7 @@ sealed class Søknad {
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val sakId: UUID,
-                override val søknadInnhold: Søknadsinnhold,
+                override val søknadInnhold: SøknadInnhold,
                 override val journalpostId: JournalpostId,
                 override val oppgaveId: OppgaveId,
             ) : MedOppgave() {
@@ -119,7 +119,7 @@ sealed class Søknad {
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val sakId: UUID,
-                override val søknadInnhold: Søknadsinnhold,
+                override val søknadInnhold: SøknadInnhold,
                 override val journalpostId: JournalpostId,
                 override val oppgaveId: OppgaveId,
                 val lukketTidspunkt: Tidspunkt,

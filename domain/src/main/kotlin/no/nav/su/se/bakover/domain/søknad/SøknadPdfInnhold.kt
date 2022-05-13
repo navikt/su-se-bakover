@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknadsinnhold
+import no.nav.su.se.bakover.domain.SøknadInnhold
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -17,7 +17,7 @@ data class SøknadPdfInnhold private constructor(
     val navn: Person.Navn,
     val dagensDatoOgTidspunkt: String = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
     val søknadOpprettet: String,
-    val søknadInnhold: Søknadsinnhold,
+    val søknadInnhold: SøknadInnhold,
 ) {
     companion object {
         fun create(
@@ -25,7 +25,7 @@ data class SøknadPdfInnhold private constructor(
             søknadsId: UUID,
             navn: Person.Navn,
             søknadOpprettet: Tidspunkt,
-            søknadInnhold: Søknadsinnhold,
+            søknadInnhold: SøknadInnhold,
             clock: Clock,
         ) = SøknadPdfInnhold(
             saksnummer = saksnummer,
