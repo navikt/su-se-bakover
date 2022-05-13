@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.revurdering
 
-import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.web.revurdering.attestering.sendTilAttestering
 import no.nav.su.se.bakover.web.revurdering.bosituasjon.leggTilBosituasjon
@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.web.revurdering.utenlandsopphold.leggTilUtenlandsoppholdRevurdering
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
 
-internal fun TestApplicationEngine.opprettIverksattRevurdering(
+internal fun ApplicationTestBuilder.opprettIverksattRevurdering(
     sakId: String,
     fraOgMed: String,
     tilOgMed: String,

@@ -7,7 +7,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 /**
 - [resultat] se [no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning.Status]
  */
-internal fun TestApplicationEngine.leggTilFlyktningstatus(
+internal fun ApplicationTestBuilder.leggTilFlyktningstatus(
     sakId: String,
     behandlingId: String,
     resultat: String = "VilkårOppfylt",

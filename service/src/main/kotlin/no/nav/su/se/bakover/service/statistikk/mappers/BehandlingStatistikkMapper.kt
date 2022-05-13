@@ -279,7 +279,7 @@ class BehandlingStatistikkMapper(
             funksjonellTid = nå,
             tekniskTid = nå,
             registrertDato = klage.opprettet.toLocalDate(zoneIdOslo),
-            mottattDato = klage.opprettet.toLocalDate(zoneIdOslo),
+            mottattDato = klage.datoKlageMottatt,
             behandlingId = klage.id,
             sakId = klage.sakId,
             saksnummer = klage.saksnummer.nummer,

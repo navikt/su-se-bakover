@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
@@ -15,7 +15,7 @@ import org.json.JSONObject
  *  Denne skal f.eks. kun være tilgjengelig for saksbehandler/attestant.
  *  I tillegg er visse personer/saker beskyttet. Kode 6/7/Egen ansatt.
  */
-internal fun TestApplicationEngine.hentSak(sakId: String): String {
+internal fun ApplicationTestBuilder.hentSak(sakId: String): String {
     return runBlocking {
         defaultRequest(
             HttpMethod.Get,
