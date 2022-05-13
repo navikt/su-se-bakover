@@ -6,7 +6,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -20,7 +20,7 @@ import org.skyscreamer.jsonassert.comparator.CustomComparator
 /**
  * Dersom det allerede finnes en sak knyttet til [fnr] opprettes det en ny søknad på den eksisterende saken
  */
-fun TestApplicationEngine.nyDigitalSøknad(
+fun ApplicationTestBuilder.nyDigitalSøknad(
     fnr: String = SharedRegressionTestData.fnr,
 ): String {
     return nySøknad(
@@ -34,7 +34,7 @@ fun TestApplicationEngine.nyDigitalSøknad(
 /**
  * Emulerer at en veileder sender inn en digital søknad
  */
-fun TestApplicationEngine.nyDigitalSøknadOgVerifiser(
+fun ApplicationTestBuilder.nyDigitalSøknadOgVerifiser(
     fnr: String = SharedRegressionTestData.fnr,
     expectedSaksnummerInResponse: Long,
 ): String {
@@ -54,7 +54,7 @@ fun TestApplicationEngine.nyDigitalSøknadOgVerifiser(
  * Emulerer at en saksbehandler sender inn en papirsøknad
  * TODO jah: Bør teste at veiledere ikke har tilgang til å sende papirsøknader. Og bør vi teste det her eller i web?
  */
-fun TestApplicationEngine.nyPapirsøknadOgVerifiser(
+fun ApplicationTestBuilder.nyPapirsøknadOgVerifiser(
     fnr: String = SharedRegressionTestData.fnr,
     expectedSaksnummerInResponse: Long,
     mottaksdato: String = fixedLocalDate.toString(),
@@ -73,7 +73,7 @@ fun TestApplicationEngine.nyPapirsøknadOgVerifiser(
     )
 }
 
-private fun TestApplicationEngine.nySøknadOgVerifiser(
+private fun ApplicationTestBuilder.nySøknadOgVerifiser(
     requestJson: String,
     expectedResponseJson: String,
     brukerrolle: Brukerrolle, // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
@@ -101,7 +101,7 @@ private fun TestApplicationEngine.nySøknadOgVerifiser(
 /**
  * Ny søknad har en deterministisk respons, så vi gjør bare assertingen inline.
  */
-private fun TestApplicationEngine.nySøknad(
+private fun ApplicationTestBuilder.nySøknad(
     requestJson: String,
     brukerrolle: Brukerrolle, // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
 ): String {
