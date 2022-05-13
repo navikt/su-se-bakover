@@ -7,7 +7,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
  * Legger til virkningstidspunkt (stønadsperiode); start (fra og med) og slutt (til og med)  med en begrunnelse på en søknadsbehanding.
  * Kan kalles flere ganger. Nyeste data vil overskrive de gamle.
  */
-internal fun TestApplicationEngine.leggTilVirkningstidspunkt(
+internal fun ApplicationTestBuilder.leggTilVirkningstidspunkt(
     sakId: String,
     behandlingId: String,
     fraOgMed: String = "2021-01-01",

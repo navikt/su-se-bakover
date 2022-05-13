@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import io.ktor.server.application.Application
-import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import no.finn.unleash.FakeUnleash
 import no.finn.unleash.Unleash
@@ -64,7 +64,7 @@ class AppComponents private constructor(
 
 internal fun withKomptestApplication(
     clock: Clock = fixedClock,
-    test: TestApplicationEngine.(appComponents: AppComponents) -> Unit,
+    test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
 ) {
     withMigratedDb { dataSource ->
         val appComponents = AppComponents.instance(clock, dataSource)
@@ -89,13 +89,12 @@ private fun Application.testSusebakover(appComponents: AppComponents) {
 
 fun testApplication(
     appComponents: AppComponents,
-    test: TestApplicationEngine.(appComponents: AppComponents) -> Unit,
+    test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
 ) {
     testApplication {
         application {
             testSusebakover(appComponents)
         }
-        @Suppress("UNUSED_EXPRESSION")
-        test
+        test(appComponents)
     }
 }
