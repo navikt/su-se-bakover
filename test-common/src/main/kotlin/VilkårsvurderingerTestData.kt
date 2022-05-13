@@ -274,7 +274,6 @@ fun formueGrunnlagUtenEps0Innvilget(
             kontanter = 0,
             depositumskonto = 0,
         ),
-        begrunnelse = null,
         bosituasjon = bosituasjon,
         behandlingsPeriode = periode,
     )
@@ -301,7 +300,6 @@ fun formueGrunnlagUtenEpsAvslått(
             kontanter = 0,
             depositumskonto = 0,
         ),
-        begrunnelse = null,
         bosituasjon = bosituasjon,
         behandlingsPeriode = periode,
     )
@@ -520,7 +518,6 @@ fun avslåttFormueVilkår(
                 periode = periode,
                 epsFormue = epsVerdi,
                 søkersFormue = søkerVerdi,
-                begrunnelse = null,
                 bosituasjon = bosituasjon,
                 behandlingsPeriode = periode,
             ),
@@ -557,7 +554,6 @@ fun innvilgetFormueVilkår(
                 periode = periode,
                 epsFormue = epsVerdi,
                 søkersFormue = søkerVerdi,
-                begrunnelse = null,
                 bosituasjon = bosituasjon,
                 behandlingsPeriode = periode,
             ),

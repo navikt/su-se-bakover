@@ -80,7 +80,6 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             periode = periode,
             epsFormue = epsFormue,
             søkersFormue = søkersFormue,
-            begrunnelse = "dfgdfgdfgsdfgdfg",
             bosituasjon = bosituasjon,
             behandlingsPeriode = periode,
         )

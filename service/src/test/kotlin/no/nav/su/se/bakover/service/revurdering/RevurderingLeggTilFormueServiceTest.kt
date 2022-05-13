@@ -104,7 +104,6 @@ internal class RevurderingLeggTilFormueServiceTest {
                     it.grunnlag.single().periode shouldBe nyFormue.periode
                     it.grunnlag.single().epsFormue shouldBe nyFormue.epsFormue
                     it.grunnlag.single().søkersFormue shouldBe nyFormue.søkersFormue
-                    it.grunnlag.single().begrunnelse shouldBe nyFormue.begrunnelse
                 }
             }
             verify(serviceAndMocks.revurderingRepo).hent(revurderingId)

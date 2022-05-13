@@ -142,7 +142,6 @@ internal class VedtakPåTidslinjeTest {
                         it.periode shouldBe expectedFormuegrunnlag.periode
                         it.epsFormue shouldBe expectedFormuegrunnlag.epsFormue
                         it.søkersFormue shouldBe expectedFormuegrunnlag.søkersFormue
-                        it.begrunnelse shouldBe expectedFormuegrunnlag.begrunnelse
                     }
                     vilkårsvurdering.formue.shouldBeType<Vilkår.Formue.Vurdert>()
                         .let { vilkårcopy ->
@@ -158,7 +157,6 @@ internal class VedtakPåTidslinjeTest {
                                     it.periode shouldBe expectedFormuegrunnlag.periode
                                     it.epsFormue shouldBe expectedFormuegrunnlag.epsFormue
                                     it.søkersFormue shouldBe expectedFormuegrunnlag.søkersFormue
-                                    it.begrunnelse shouldBe expectedFormuegrunnlag.begrunnelse
                                 }
                             }
                         }
@@ -296,7 +294,6 @@ internal class VedtakPåTidslinjeTest {
                             it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
                             it.epsFormue shouldBe expectedFormuegrunnlag.epsFormue
                             it.søkersFormue shouldBe expectedFormuegrunnlag.søkersFormue
-                            it.begrunnelse shouldBe expectedFormuegrunnlag.begrunnelse
                         }
                         vilkårsvurdering.uføre.shouldBeType<Vilkår.Uførhet.Vurdert>()
                             .let { vilkårcopy ->
@@ -327,7 +324,6 @@ internal class VedtakPåTidslinjeTest {
                                         it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
                                         it.epsFormue shouldBe expectedFormuegrunnlag.epsFormue
                                         it.søkersFormue shouldBe expectedFormuegrunnlag.søkersFormue
-                                        it.begrunnelse shouldBe expectedFormuegrunnlag.begrunnelse
                                     }
                                 }
                             }

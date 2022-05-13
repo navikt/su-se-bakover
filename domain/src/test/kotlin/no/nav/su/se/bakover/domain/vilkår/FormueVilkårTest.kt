@@ -110,7 +110,6 @@ internal class FormueVilkårTest {
                 søkersFormue = Formuegrunnlag.Verdier.empty().copy(
                     verdiEiendommer = 100,
                 ),
-                begrunnelse = null,
                 bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
@@ -135,7 +134,6 @@ internal class FormueVilkårTest {
                 periode = februar(2021),
                 epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
-                begrunnelse = "",
                 bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
@@ -319,7 +317,6 @@ internal class FormueVilkårTest {
             opprettet = tidspunkt,
             epsFormue = null,
             søkersFormue = Formuegrunnlag.Verdier.empty(),
-            begrunnelse = null,
             behandlingsPeriode = år(2021),
             bosituasjon = bosituasjon,
         ),

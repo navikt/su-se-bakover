@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 data class FormuegrunnlagJson(
     val epsFormue: VerdierJson?,
     val søkersFormue: VerdierJson,
-    val begrunnelse: String?,
 ) {
     data class VerdierJson(
         val verdiIkkePrimærbolig: Int,
@@ -45,5 +44,4 @@ fun Formuegrunnlag.toJson() = FormuegrunnlagJson(
             depositumskonto = it.depositumskonto,
         )
     },
-    begrunnelse = this.begrunnelse,
 )

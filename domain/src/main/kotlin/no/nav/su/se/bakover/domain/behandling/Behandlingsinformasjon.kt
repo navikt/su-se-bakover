@@ -375,7 +375,6 @@ data class Behandlingsinformasjon(
                                 throw IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
                             }
                         },
-                        begrunnelse = this.begrunnelse,
                         bosituasjon = bosituasjon,
                         behandlingsPeriode = stønadsperiode.periode,
                     ).getOrHandle {

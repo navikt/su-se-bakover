@@ -110,7 +110,6 @@ internal class FormuegrunnlagTest {
                 kontanter = 1,
                 depositumskonto = 1,
             ),
-            begrunnelse = null,
             bosituasjon = enslig,
             behandlingsPeriode = januar(2021),
         )
@@ -146,7 +145,6 @@ internal class FormuegrunnlagTest {
                     kontanter = 1,
                     depositumskonto = 1,
                 ),
-                begrunnelse = null,
                 bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                     id = UUID.randomUUID(),
                     fnr = Fnr.generer(),
@@ -175,7 +173,6 @@ internal class FormuegrunnlagTest {
                 periode = år(2021),
                 opprettet = Tidspunkt.EPOCH, epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
-                begrunnelse = null,
                 bosituasjon = listOf(enslig),
                 behandlingsPeriode = år(2021),
             ) shouldBe KunneIkkeLageFormueGrunnlag.Konsistenssjekk(
@@ -192,7 +189,6 @@ internal class FormuegrunnlagTest {
                 periode = periode,
                 opprettet = Tidspunkt.EPOCH, epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
-                begrunnelse = null,
                 bosituasjon = listOf(enslig),
                 behandlingsPeriode = Periode.create(1.januar(2021), 31.mars(2021)),
             ) shouldBe KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
@@ -210,7 +206,6 @@ internal class FormuegrunnlagTest {
                 opprettet = Tidspunkt.EPOCH,
                 epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
-                begrunnelse = null,
                 bosituasjon = listOf(enslig),
                 behandlingsPeriode = år(2021),
             )
@@ -221,7 +216,6 @@ internal class FormuegrunnlagTest {
                 opprettet = Tidspunkt.EPOCH,
                 epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
-                begrunnelse = null,
                 bosituasjon = enslig,
                 behandlingsPeriode = år(2021),
             ).right()
@@ -252,17 +246,6 @@ internal class FormuegrunnlagTest {
             søkersFormue = Formuegrunnlag.Verdier.empty().copy(
                 verdiEiendommer = 100,
             ),
-        )
-
-        f1.tilstøterOgErLik(f2) shouldBe false
-    }
-
-    @Test
-    fun `2 formue grunnlag som tilstøter, begrunnelse er ulik`() {
-        val f1 = lagFormuegrunnlag(periodeInnenfor2021 = januar(2021))
-        val f2 = lagFormuegrunnlag(
-            periodeInnenfor2021 = februar(2021),
-            begrunnelse = "denne er ikke lik den første",
         )
 
         f1.tilstøterOgErLik(f2) shouldBe false
@@ -300,7 +283,6 @@ internal class FormuegrunnlagTest {
         periodeInnenfor2021: Periode,
         søkersFormue: Formuegrunnlag.Verdier = Formuegrunnlag.Verdier.empty(),
         epsFormue: Formuegrunnlag.Verdier? = null,
-        begrunnelse: String? = null,
         bosiutasjon: Grunnlag.Bosituasjon.Fullstendig = Grunnlag.Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -313,7 +295,6 @@ internal class FormuegrunnlagTest {
             periode = periodeInnenfor2021,
             epsFormue = epsFormue,
             søkersFormue = søkersFormue,
-            begrunnelse = begrunnelse,
             bosituasjon = bosiutasjon,
             behandlingsPeriode = år(2021),
         )

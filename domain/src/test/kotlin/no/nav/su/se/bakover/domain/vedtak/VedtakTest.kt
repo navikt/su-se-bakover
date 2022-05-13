@@ -115,7 +115,6 @@ internal class VedtakTest {
                 periode = vurderingsperiode,
                 epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
-                begrunnelse = null,
                 bosituasjon = bosituasjon,
                 behandlingsPeriode = behandlingsperiode,
             ),
