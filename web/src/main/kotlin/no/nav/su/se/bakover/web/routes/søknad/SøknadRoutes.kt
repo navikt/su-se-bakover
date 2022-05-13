@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
-import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
@@ -38,6 +37,8 @@ import no.nav.su.se.bakover.web.receiveTextUTF8
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson.ForNavJson.DigitalSøknad
+import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson.ForNavJson.Papirsøknad
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadErrorHandler
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -60,11 +61,10 @@ internal fun Route.søknadRoutes(
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withStringParam("type") { søknadstype ->
                 Either.catch {
-                    when (søknadstype.lowercase()) {
-                        SøknadType.UFORE.value -> deserialize<SøknadsinnholdUføreJson>(call)
-                        SøknadType.ALDER.value -> deserialize<SøknadsinnholdAlderJson>(call)
-                        else -> throw IllegalArgumentException("Ukjent søknadstype: $søknadstype")
-                    }
+                    if (søknadstype.lowercase() == SøknadType.UFORE.value || søknadstype.lowercase() == SøknadType.ALDER.value)
+                        deserialize<SøknadsinnholdJson>(call)
+                    else
+                        throw IllegalArgumentException("Ukjent søknadstype: $søknadstype")
                 }.fold(
                     ifLeft = {
                         call.application.environment.log.info(it.message, it)
@@ -72,17 +72,11 @@ internal fun Route.søknadRoutes(
                     },
                     ifRight = {
                         val identBruker = when (it.forNav) {
-                            is SøknadsinnholdUføreJson.ForNavJson.DigitalSøknad -> NavIdentBruker.Veileder(call.suUserContext.navIdent)
-                            is SøknadsinnholdUføreJson.ForNavJson.Papirsøknad -> NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
+                            is DigitalSøknad -> NavIdentBruker.Veileder(call.suUserContext.navIdent)
+                            is Papirsøknad -> NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
                         }
                         søknadService.nySøknad(it.toSøknadsinnhold(), identBruker).fold(
-                            { kunneIkkeOppretteSøknad ->
-                                call.svar(
-                                    when (kunneIkkeOppretteSøknad) {
-                                        KunneIkkeOppretteSøknad.FantIkkePerson -> Feilresponser.fantIkkePerson
-                                    },
-                                )
-                            },
+                            { call.svar(Feilresponser.fantIkkePerson) },
                             { (saksnummer, søknad) ->
                                 call.audit(søknad.søknadInnhold.personopplysninger.fnr, AuditLogEvent.Action.CREATE, null)
                                 call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
