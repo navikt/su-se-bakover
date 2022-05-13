@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt
 
 import arrow.core.Either
 import arrow.core.getOrHandle
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.routing.Route
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
@@ -26,11 +26,11 @@ internal fun Route.opplysningspliktRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
     revurderingService: RevurderingService,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        post("/vilkar/opplysningsplikt") {
+    post("/vilkar/opplysningsplikt") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withBody<LeggTilOpplysningspliktVilkårBody> { body ->
 
-                val request = body.toDomain().getOrHandle { return@post call.svar(it.tilResultat()) }
+                val request = body.toDomain().getOrHandle { return@authorize call.svar(it.tilResultat()) }
 
                 call.svar(
                     when (request) {

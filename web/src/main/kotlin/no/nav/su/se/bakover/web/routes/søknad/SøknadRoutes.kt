@@ -1,18 +1,18 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
 import arrow.core.Either
-import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.response.respond
-import io.ktor.response.respondBytes
-import io.ktor.routing.Route
-import io.ktor.routing.get
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondBytes
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.ForNav
@@ -53,8 +53,8 @@ internal fun Route.søknadRoutes(
     avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService,
     clock: Clock,
 ) {
-    authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
-        post(søknadPath) {
+    post(søknadPath) {
+        authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             Either.catch { deserialize<SøknadInnholdJson>(call) }.fold(
                 ifLeft = {
                     call.application.environment.log.info(it.message, it)
@@ -100,8 +100,8 @@ internal fun Route.søknadRoutes(
         }
     }
 
-    authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
-        get("$søknadPath/{søknadId}/utskrift") {
+    get("$søknadPath/{søknadId}/utskrift") {
+        authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 søknadService.hentSøknadPdf(søknadId).fold(
                     {
@@ -130,8 +130,8 @@ internal fun Route.søknadRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$søknadPath/{søknadId}/lukk") {
+    post("$søknadPath/{søknadId}/lukk") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 LukkSøknadInputHandler.handle(
                     body = call.receiveTextUTF8(),
@@ -155,8 +155,8 @@ internal fun Route.søknadRoutes(
 
     data class WithFritekstBody(val fritekst: String)
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$søknadPath/{søknadId}/avslag") {
+    post("$søknadPath/{søknadId}/avslag") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 call.withBody<WithFritekstBody> { body ->
                     avslåSøknadManglendeDokumentasjonService.avslå(
@@ -189,8 +189,8 @@ internal fun Route.søknadRoutes(
         }
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$søknadPath/{søknadId}/lukk/brevutkast") {
+    post("$søknadPath/{søknadId}/lukk/brevutkast") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSøknadId { søknadId ->
                 LukkSøknadInputHandler.handle(
                     body = call.receiveTextUTF8(),

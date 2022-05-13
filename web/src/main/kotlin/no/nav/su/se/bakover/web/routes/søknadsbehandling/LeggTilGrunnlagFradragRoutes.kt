@@ -5,10 +5,10 @@ import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.routing.Route
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
@@ -77,8 +77,8 @@ internal fun Route.leggTilGrunnlagFradrag(
             ).right()
     }
 
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$behandlingPath/{behandlingId}/grunnlag/fradrag") {
+    post("$behandlingPath/{behandlingId}/grunnlag/fradrag") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
                     call.withBody<Body> { body ->

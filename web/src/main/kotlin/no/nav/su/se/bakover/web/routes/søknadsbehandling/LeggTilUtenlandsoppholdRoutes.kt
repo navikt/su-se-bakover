@@ -4,10 +4,10 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.routing.Route
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -41,11 +41,14 @@ private data class UtenlandsoppholdBody(
 internal fun Route.leggTilUtenlandsopphold(
     søknadsbehandlingService: SøknadsbehandlingService,
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$behandlingPath/{behandlingId}/utenlandsopphold") {
+    post("$behandlingPath/{behandlingId}/utenlandsopphold") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<UtenlandsoppholdBody> { body ->
-                    søknadsbehandlingService.leggTilUtenlandsopphold(body.toRequest(behandlingId).getOrHandle { return@withBehandlingId call.svar(it) })
+                    søknadsbehandlingService.leggTilUtenlandsopphold(
+                        body.toRequest(behandlingId)
+                            .getOrHandle { return@withBehandlingId call.svar(it) },
+                    )
                         .mapLeft {
                             call.svar(it.tilResultat())
                         }.map {

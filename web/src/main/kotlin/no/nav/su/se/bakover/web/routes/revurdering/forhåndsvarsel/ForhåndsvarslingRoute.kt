@@ -2,12 +2,12 @@ package no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel
 
 import arrow.core.Either
 import arrow.core.flatMap
-import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.response.respondBytes
-import io.ktor.routing.Route
-import io.ktor.routing.post
+import io.ktor.server.application.call
+import io.ktor.server.response.respondBytes
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -39,10 +39,8 @@ internal fun Route.forhåndsvarslingRoute(
 ) {
 
     data class ForhåndsvarsleBody(val forhåndsvarselhandling: Forhåndsvarselhandling, val fritekst: String)
-    data class ForhåndsvarselBrevutkastBody(val fritekst: String)
-
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/{revurderingId}/forhandsvarsel") {
+    post("$revurderingPath/{revurderingId}/forhandsvarsel") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withBody<ForhåndsvarsleBody> { body ->
                 call.withRevurderingId { revurderingId ->
                     revurderingService.lagreOgSendForhåndsvarsel(
@@ -59,8 +57,11 @@ internal fun Route.forhåndsvarslingRoute(
                 }
             }
         }
+    }
 
-        post("$revurderingPath/{revurderingId}/brevutkastForForhandsvarsel") {
+    data class ForhåndsvarselBrevutkastBody(val fritekst: String)
+    post("$revurderingPath/{revurderingId}/brevutkastForForhandsvarsel") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<ForhåndsvarselBrevutkastBody> { body ->
                     val revurdering = revurderingService.hentRevurdering(revurderingId)
@@ -77,17 +78,19 @@ internal fun Route.forhåndsvarslingRoute(
                 }
             }
         }
+    }
 
-        data class FortsettEtterForhåndsvarslingBody(
-            val begrunnelse: String,
-            /**
-             * @see BeslutningEtterForhåndsvarsling
-             */
-            val valg: String,
-            val fritekstTilBrev: String?,
-        )
+    data class FortsettEtterForhåndsvarslingBody(
+        val begrunnelse: String,
+        /**
+         * @see BeslutningEtterForhåndsvarsling
+         */
+        val valg: String,
+        val fritekstTilBrev: String?,
+    )
 
-        post("$revurderingPath/{revurderingId}/fortsettEtterForhåndsvarsel") {
+    post("$revurderingPath/{revurderingId}/fortsettEtterForhåndsvarsel") {
+        authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<FortsettEtterForhåndsvarslingBody> { body ->
                     when (body.valg) {

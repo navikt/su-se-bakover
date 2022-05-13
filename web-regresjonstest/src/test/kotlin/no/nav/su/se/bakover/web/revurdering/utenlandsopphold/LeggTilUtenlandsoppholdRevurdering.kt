@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.revurdering.attestering
+package no.nav.su.se.bakover.web.revurdering.utenlandsopphold
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
@@ -12,12 +12,15 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-internal fun TestApplicationEngine.sendTilAttestering(
+internal fun TestApplicationEngine.leggTilUtenlandsoppholdRevurdering(
     sakId: String,
     behandlingId: String,
-    fritekst: String = "Lagt til automatisk av Attestering.kt#sendTilAttestering()",
+    fraOgMed: String = "2021-01-01",
+    tilOgMed: String = "2021-12-31",
+    vurdering: String = "SkalHoldeSegINorge",
+    begrunnelse: String = "Revurdering av utenlandsopphold",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
-    url: String = "/saker/$sakId/revurderinger/$behandlingId/tilAttestering",
+    url: String = "/saker/$sakId/revurderinger/$behandlingId/utenlandsopphold",
 ): String {
     return runBlocking {
         defaultRequest(
@@ -28,10 +31,18 @@ internal fun TestApplicationEngine.sendTilAttestering(
             setBody(
                 //language=JSON
                 """
-              {
-                "fritekstTilBrev": "$fritekst",
-                "skalFøreTilBrevutsending": true
-              }
+                {
+                    "utenlandsopphold" : [ 
+                       {
+                            "periode": {
+                                "fraOgMed": "$fraOgMed", 
+                                "tilOgMed": "$tilOgMed"
+                              },
+                            "status": "$vurdering",
+                            "begrunnelse": "$begrunnelse"
+                        }
+                    ]
+                }
                 """.trimIndent(),
             )
         }.apply {

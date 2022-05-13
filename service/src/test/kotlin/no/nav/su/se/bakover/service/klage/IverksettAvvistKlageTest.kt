@@ -14,6 +14,8 @@ import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.avvistKlageTilAttestering
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
@@ -228,6 +230,7 @@ internal class IverksettAvvistKlageTest {
         val attestant = NavIdentBruker.Attestant("attestant")
         val person = person(fnr = klage.fnr)
         val dokument = "myDoc".toByteArray()
+        val observerMock: EventObserver = mock { on { handle(any()) }.then {} }
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -248,7 +251,8 @@ internal class IverksettAvvistKlageTest {
             },
             vedtakServiceMock = mock {
                 doNothing().whenever(it).lagre(any())
-            }
+            },
+            observer = observerMock
         )
 
         val actual = mocks.service.iverksettAvvistKlage(klage.id, attestant).getOrFail()
@@ -319,6 +323,7 @@ internal class IverksettAvvistKlageTest {
             argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe expected.oppgaveId })
+        verify(observerMock).handle(argThat { it shouldBe Event.Statistikk.Klagestatistikk.Avvist(actual) })
         mocks.verifyNoMoreInteractions()
     }
 }

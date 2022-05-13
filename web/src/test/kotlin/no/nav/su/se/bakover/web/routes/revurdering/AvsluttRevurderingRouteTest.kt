@@ -2,12 +2,13 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.readBytes
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.contentType
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.http.contentType
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -32,11 +33,10 @@ internal class AvsluttRevurderingRouteTest {
             on { avsluttRevurdering(anyOrNull(), anyOrNull(), anyOrNull()) } doReturn avsluttet.right()
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$revurderingPath/${avsluttet.id}/avslutt",
@@ -52,7 +52,7 @@ internal class AvsluttRevurderingRouteTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
             }
         }
     }
@@ -68,11 +68,10 @@ internal class AvsluttRevurderingRouteTest {
             ).right()
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "${RevurderingRoutesTestData.requestPath}/$revurderingId/brevutkastForAvslutting",
@@ -87,9 +86,9 @@ internal class AvsluttRevurderingRouteTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
-                response.byteContent shouldBe "byteArray".toByteArray()
-                response.contentType() shouldBe ContentType.Application.Pdf
+                status shouldBe HttpStatusCode.OK
+                this.readBytes() shouldBe "byteArray".toByteArray()
+                this.contentType() shouldBe ContentType.Application.Pdf
             }
         }
     }

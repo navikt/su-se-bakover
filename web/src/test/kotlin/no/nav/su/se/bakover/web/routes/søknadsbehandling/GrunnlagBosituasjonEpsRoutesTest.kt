@@ -4,10 +4,11 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
@@ -62,11 +63,8 @@ class GrunnlagBosituasjonEpsRoutesTest {
     @Test
     fun `andre roller enn saksbehandler skal ikke ha tilgang til bosituasjon`() {
         Brukerrolle.values().filterNot { it == Brukerrolle.Saksbehandler }.forEach { rolle ->
-            withTestApplication(
-                {
-                    testSusebakover()
-                },
-            ) {
+            testApplication {
+                application { testSusebakover() }
                 defaultRequest(
                     HttpMethod.Post,
                     "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon/eps",
@@ -74,7 +72,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
                 ) {
                     setBody("""{ "epsFnr": null}""".trimIndent())
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
@@ -86,11 +84,8 @@ class GrunnlagBosituasjonEpsRoutesTest {
             on { leggTilBosituasjonEpsgrunnlag(any()) } doReturn søknadsbehandling.right()
         }
 
-        withTestApplication(
-            {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
-            },
-        ) {
+        testApplication {
+            application { testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock)) }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon/eps",
@@ -98,14 +93,14 @@ class GrunnlagBosituasjonEpsRoutesTest {
             ) {
                 setBody("""{ "epsFnr": null}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
                 verify(søknadsbehandlingServiceMock).leggTilBosituasjonEpsgrunnlag(
                     argThat {
                         it shouldBe LeggTilBosituasjonEpsRequest(
                             behandlingId = søknadsbehandling.id,
                             epsFnr = null,
                         )
-                    }
+                    },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -118,11 +113,8 @@ class GrunnlagBosituasjonEpsRoutesTest {
             on { leggTilBosituasjonEpsgrunnlag(any()) } doReturn søknadsbehandling.right()
         }
 
-        withTestApplication(
-            {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
-            },
-        ) {
+        testApplication {
+            application { testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock)) }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon/eps",
@@ -130,14 +122,14 @@ class GrunnlagBosituasjonEpsRoutesTest {
             ) {
                 setBody("""{ "epsFnr": "$fnr"}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.Created
                 verify(søknadsbehandlingServiceMock).leggTilBosituasjonEpsgrunnlag(
                     argThat {
                         it shouldBe LeggTilBosituasjonEpsRequest(
                             behandlingId = søknadsbehandling.id,
                             epsFnr = fnr,
                         )
-                    }
+                    },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -150,11 +142,8 @@ class GrunnlagBosituasjonEpsRoutesTest {
             on { leggTilBosituasjonEpsgrunnlag(any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
         }
 
-        withTestApplication(
-            {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
-            },
-        ) {
+        testApplication {
+            application { testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock)) }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon/eps",
@@ -162,8 +151,8 @@ class GrunnlagBosituasjonEpsRoutesTest {
             ) {
                 setBody("""{ "epsFnr": "$fnr"}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-                response.content shouldContain ("fant_ikke_behandling")
+                status shouldBe HttpStatusCode.NotFound
+                bodyAsText() shouldContain ("fant_ikke_behandling")
             }
         }
     }
@@ -174,11 +163,8 @@ class GrunnlagBosituasjonEpsRoutesTest {
             on { leggTilBosituasjonEpsgrunnlag(any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
         }
 
-        withTestApplication(
-            {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
-            },
-        ) {
+        testApplication {
+            application { testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock)) }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon/eps",
@@ -186,8 +172,8 @@ class GrunnlagBosituasjonEpsRoutesTest {
             ) {
                 setBody("""{ "epsFnr": "$fnr"}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-                response.content shouldContain ("fant_ikke_person")
+                status shouldBe HttpStatusCode.NotFound
+                bodyAsText() shouldContain ("fant_ikke_person")
             }
         }
     }

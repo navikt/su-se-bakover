@@ -7,10 +7,10 @@ import ch.qos.logback.core.read.ListAppender
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.LoggingTest.Companion.konfigurerLogback
 import no.nav.su.se.bakover.web.stubs.asBearerToken
@@ -48,16 +48,15 @@ class MDCLogTest {
         val rootAppender =
             ((LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger).getAppender("STDOUT_JSON")) as ConsoleAppender
         val appender = ListAppender<ILoggingEvent>().apply { start() }
-        lateinit var applog: Logger
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-                applog = environment.log as Logger
-            },
-        ) {
-            applog.apply { addAppender(appender) }
-            handleRequest(HttpMethod.Get, secureEndpoint) {
-                addHeader(
+                (environment.log as Logger).also {
+                    it.apply { addAppender(appender) }
+                }
+            }
+            client.get(secureEndpoint) {
+                header(
                     HttpHeaders.Authorization,
                     jwtStub.createJwtToken(roller = listOf(Brukerrolle.Veileder)).asBearerToken(),
                 )

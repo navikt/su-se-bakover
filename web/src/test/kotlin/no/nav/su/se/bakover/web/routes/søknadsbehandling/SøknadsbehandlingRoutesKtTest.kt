@@ -8,13 +8,15 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.client.request.header
+import io.ktor.client.request.patch
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.TestApplicationEngine
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
@@ -120,11 +122,8 @@ internal class SøknadsbehandlingRoutesKtTest {
     inner class `Henting av behandling` {
         @Test
         fun `Forbidden når bruker er veileder eller driftspersonell`() {
-            withTestApplication(
-                {
-                    testSusebakover()
-                },
-            ) {
+            testApplication {
+                application { testSusebakover() }
                 repeat(
                     Brukerrolle.values().filterNot { it == Brukerrolle.Veileder || it == Brukerrolle.Drift }.size,
                 ) {
@@ -133,7 +132,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}",
                         listOf(Brukerrolle.Veileder),
                     ).apply {
-                        response.status() shouldBe HttpStatusCode.Forbidden
+                        status shouldBe HttpStatusCode.Forbidden
                     }
                 }
             }
@@ -141,8 +140,8 @@ internal class SøknadsbehandlingRoutesKtTest {
 
         @Test
         fun `OK når bruker er saksbehandler eller attestant`() {
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(
                         services = TestServicesBuilder.services(
                             søknadsbehandling = mock {
@@ -150,8 +149,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                             },
                         ),
                     )
-                },
-            ) {
+                }
                 repeat(
                     Brukerrolle.values().filterNot { it == Brukerrolle.Veileder || it == Brukerrolle.Drift }.size,
                 ) {
@@ -160,7 +158,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}",
                         listOf(Brukerrolle.Saksbehandler),
                     ).apply {
-                        response.status() shouldBe HttpStatusCode.OK
+                        status shouldBe HttpStatusCode.OK
                     }
                 }
             }
@@ -172,14 +170,13 @@ internal class SøknadsbehandlingRoutesKtTest {
         withMigratedDb { dataSource ->
             val repos = repos(dataSource)
             val services = services(repos)
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(
                         services = services,
                         databaseRepos = repos,
                     )
-                },
-            ) {
+                }
                 val objects = setupMedAlleVilkårOppfylt(services, repos)
 
                 services.søknadsbehandling.beregn(
@@ -196,8 +193,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                 ) {
                     setBody("""{ "fritekst": "Fritekst!" }""")
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.OK
-                    val behandlingJson = deserialize<BehandlingJson>(response.content!!)
+                    status shouldBe HttpStatusCode.OK
+                    val behandlingJson = deserialize<BehandlingJson>(bodyAsText())
                     behandlingJson.status shouldBe "TIL_ATTESTERING_INNVILGET"
                 }
             }
@@ -233,15 +230,14 @@ internal class SøknadsbehandlingRoutesKtTest {
                 },
             )
             val services = services(repos, clients)
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(
                         clients = clients,
                         services = services,
                         databaseRepos = repos,
                     )
-                },
-            ) {
+                }
                 val objects = setupMedAlleVilkårOppfylt(services, repos)
                 services.søknadsbehandling.beregn(
                     BeregnRequest(
@@ -261,8 +257,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                 ) {
                     setBody("""{ "fritekst": "Fritekst!" }""")
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.InternalServerError
-                    response.content shouldContain "Kunne ikke opprette oppgave"
+                    status shouldBe HttpStatusCode.InternalServerError
+                    bodyAsText() shouldContain "Kunne ikke opprette oppgave"
                 }
             }
         }
@@ -273,14 +269,13 @@ internal class SøknadsbehandlingRoutesKtTest {
         withMigratedDb { dataSource ->
             val repos = repos(dataSource)
             val services = services(repos)
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(
                         services = services,
                         databaseRepos = repos,
                     )
-                },
-            ) {
+                }
                 val uavklartVilkårsvurdertSøknadsbehandling = setup(services, repos)
 
                 defaultRequest(
@@ -289,8 +284,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
                     assertSoftly {
-                        response.status() shouldBe HttpStatusCode.BadRequest
-                        response.content shouldContain "ikke en gyldig UUID"
+                        status shouldBe HttpStatusCode.BadRequest
+                        bodyAsText() shouldContain "ikke en gyldig UUID"
                     }
                 }
                 defaultRequest(
@@ -299,8 +294,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
                     assertSoftly {
-                        response.status() shouldBe HttpStatusCode.NotFound
-                        response.content shouldContain "Fant ikke behandling"
+                        status shouldBe HttpStatusCode.NotFound
+                        bodyAsText() shouldContain "Fant ikke behandling"
                     }
                 }
 
@@ -325,7 +320,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$sakPath/${innvilgetVilkårsvurdertSøknadsbehandling.sak.id}/behandlinger/${innvilgetVilkårsvurdertSøknadsbehandling.søknadsbehandling.id}/simuler",
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.OK
+                    status shouldBe HttpStatusCode.OK
                 }
             }
         }
@@ -336,14 +331,13 @@ internal class SøknadsbehandlingRoutesKtTest {
         withMigratedDb { dataSource ->
             val repos = repos(dataSource)
             val services = services(repos)
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(
                         services = services,
                         databaseRepos = repos,
                     )
-                },
-            ) {
+                }
                 val objects = setupMedAlleVilkårOppfylt(services, repos, epsFnr = Fnr("12345678910"))
                 services.søknadsbehandling.beregn(
                     BeregnRequest(
@@ -364,8 +358,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                         """.trimIndent(),
                     )
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.Created
-                    val behandlingJson = deserialize<BehandlingJson>(response.content!!)
+                    status shouldBe HttpStatusCode.Created
+                    val behandlingJson = deserialize<BehandlingJson>(bodyAsText())
                     val epsFradrag = FradragJson(
                         periode = PeriodeJson("2021-05-01", "2021-12-31"),
                         type = "Arbeidsinntekt",
@@ -393,7 +387,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         private fun <R> withFerdigbehandletSakForBruker(
             services: Services,
             repos: DatabaseRepos,
-            test: TestApplicationEngine.(objects: InnvilgetVilkårsvurdertSøknadsbehandling) -> R,
+            test: suspend ApplicationTestBuilder.(objects: InnvilgetVilkårsvurdertSøknadsbehandling) -> R,
         ) =
             withInnvilgetVilkårsvurdertForBruker(
                 services,
@@ -422,8 +416,8 @@ internal class SøknadsbehandlingRoutesKtTest {
 
         @Test
         fun `Forbidden når bruker ikke er attestant`() {
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(
                         services = TestServicesBuilder.services(
                             søknadsbehandling = mock {
@@ -431,15 +425,14 @@ internal class SøknadsbehandlingRoutesKtTest {
                             },
                         ),
                     )
-                },
-            ) {
+                }
                 defaultRequest(
                     HttpMethod.Patch,
                     "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett",
                     listOf(Brukerrolle.Saksbehandler),
                     navIdentSaksbehandler,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
 
                 defaultRequest(
@@ -447,15 +440,15 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
 
         @Test
         fun `BadRequest når behandlingId er ugyldig uuid eller NotFound når den ikke finnes`() {
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(
                         services = TestServicesBuilder.services(
                             søknadsbehandling = mock {
@@ -463,14 +456,13 @@ internal class SøknadsbehandlingRoutesKtTest {
                             },
                         ),
                     )
-                },
-            ) {
+                }
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
                     navIdentSaksbehandler,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.NotFound
+                    status shouldBe HttpStatusCode.NotFound
                 }
 
                 requestSomAttestant(
@@ -478,15 +470,15 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$sakPath/rubbish/behandlinger/rubbish/iverksett",
                     navIdentSaksbehandler,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.BadRequest
+                    status shouldBe HttpStatusCode.BadRequest
                 }
             }
         }
 
         @Test
         fun `NotFound når behandling ikke eksisterer`() {
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(
                         services = TestServicesBuilder.services(
                             søknadsbehandling = mock {
@@ -494,14 +486,13 @@ internal class SøknadsbehandlingRoutesKtTest {
                             },
                         ),
                     )
-                },
-            ) {
+                }
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
                     navIdentSaksbehandler,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.NotFound
+                    status shouldBe HttpStatusCode.NotFound
                 }
             }
         }
@@ -512,20 +503,20 @@ internal class SøknadsbehandlingRoutesKtTest {
                 val repos = repos(dataSource)
                 val services = services(repos)
                 withFerdigbehandletSakForBruker(services, repos) {
-                    handleRequest(
-                        HttpMethod.Patch,
-                        "$sakPath/${it.sak.id}/behandlinger/${it.søknadsbehandling.id}/iverksett",
-                    ) {
-                        addHeader(
-                            HttpHeaders.Authorization,
-                            jwtStub.createJwtToken(
-                                subject = "random",
-                                roller = listOf(Brukerrolle.Attestant),
-                                navIdent = navIdentSaksbehandler,
-                            ).asBearerToken(),
-                        )
-                    }.apply {
-                        response.status() shouldBe HttpStatusCode.Forbidden
+                    testApplication {
+                        application { testSusebakover(databaseRepos = repos, services = services) }
+                        client.patch("$sakPath/${it.sak.id}/behandlinger/${it.søknadsbehandling.id}/iverksett") {
+                            header(
+                                HttpHeaders.Authorization,
+                                jwtStub.createJwtToken(
+                                    subject = "random",
+                                    roller = listOf(Brukerrolle.Attestant),
+                                    navIdent = navIdentSaksbehandler,
+                                ).asBearerToken(),
+                            )
+                        }.apply {
+                            status shouldBe HttpStatusCode.Forbidden
+                        }
                     }
                 }
             }
@@ -543,8 +534,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                         navIdentAttestant,
                     )
                         .apply {
-                            response.status() shouldBe HttpStatusCode.OK
-                            deserialize<BehandlingJson>(response.content!!).let { behandlingJson ->
+                            status shouldBe HttpStatusCode.OK
+                            deserialize<BehandlingJson>(bodyAsText()).let { behandlingJson ->
                                 behandlingJson.attesteringer.last().attestant shouldBe navIdentAttestant
                                 behandlingJson.status shouldBe "IVERKSATT_INNVILGET"
                                 behandlingJson.saksbehandler shouldBe navIdentSaksbehandler
@@ -560,7 +551,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         private fun <R> withFerdigbehandletSakForBruker(
             services: Services,
             repos: DatabaseRepos,
-            test: TestApplicationEngine.(objects: InnvilgetVilkårsvurdertSøknadsbehandling) -> R,
+            test: suspend ApplicationTestBuilder.(objects: InnvilgetVilkårsvurdertSøknadsbehandling) -> R,
         ) =
             withInnvilgetVilkårsvurdertForBruker(
                 services,
@@ -592,18 +583,17 @@ internal class SøknadsbehandlingRoutesKtTest {
 
         @Test
         fun `Forbidden når bruker ikke er attestant`() {
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover()
-                },
-            ) {
+                }
                 defaultRequest(
                     HttpMethod.Patch,
                     "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/underkjenn",
                     listOf(Brukerrolle.Saksbehandler),
                     navIdentSaksbehandler,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
 
                 defaultRequest(
@@ -611,7 +601,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$sakPath/${UUID.randomUUID()}/behandlinger/rubbish/underkjenn",
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
 
                 defaultRequest(
@@ -619,24 +609,23 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
                     listOf(Brukerrolle.Saksbehandler),
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
 
         @Test
         fun `BadRequest når sakId eller behandlingId er ugyldig`() {
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover()
-                },
-            ) {
+                }
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/underkjenn",
                     navIdentSaksbehandler,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.BadRequest
+                    status shouldBe HttpStatusCode.BadRequest
                 }
 
                 requestSomAttestant(
@@ -644,15 +633,15 @@ internal class SøknadsbehandlingRoutesKtTest {
                     "$sakPath/${UUID.randomUUID()}/behandlinger/rubbish/underkjenn",
                     navIdentSaksbehandler,
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.BadRequest
+                    status shouldBe HttpStatusCode.BadRequest
                 }
             }
         }
 
         @Test
         fun `NotFound når behandling ikke finnes`() {
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(
                         services = TestServicesBuilder.services(
                             søknadsbehandling = mock {
@@ -660,8 +649,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                             },
                         ),
                     )
-                },
-            ) {
+                }
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
@@ -669,8 +657,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                 ) {
                     setBody("""{"kommentar":"b", "grunn": "BEREGNINGEN_ER_FEIL"}""")
                 }.apply {
-                    response.content shouldContain "Fant ikke behandling"
-                    response.status() shouldBe HttpStatusCode.NotFound
+                    bodyAsText() shouldContain "Fant ikke behandling"
+                    status shouldBe HttpStatusCode.NotFound
                 }
             }
         }
@@ -695,8 +683,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                             """.trimIndent(),
                         )
                     }.apply {
-                        response.status() shouldBe HttpStatusCode.BadRequest
-                        response.content shouldContain "Må angi en begrunnelse"
+                        status shouldBe HttpStatusCode.BadRequest
+                        bodyAsText() shouldContain "Må angi en begrunnelse"
                     }
                 }
             }
@@ -708,28 +696,28 @@ internal class SøknadsbehandlingRoutesKtTest {
                 val repos = repos(dataSource)
                 val services = services(repos)
                 withFerdigbehandletSakForBruker(services, repos) { objects ->
-                    handleRequest(
-                        HttpMethod.Patch,
-                        "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
-                    ) {
-                        addHeader(
-                            HttpHeaders.Authorization,
-                            jwtStub.createJwtToken(
-                                subject = "S123456",
-                                roller = listOf(Brukerrolle.Attestant),
-                                navIdent = navIdentSaksbehandler,
-                            ).asBearerToken(),
-                        )
-                        setBody(
-                            """
+                    testApplication {
+                        application { testSusebakover(services = services, databaseRepos = repos) }
+                        client.patch("$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn") {
+                            header(
+                                HttpHeaders.Authorization,
+                                jwtStub.createJwtToken(
+                                    subject = "S123456",
+                                    roller = listOf(Brukerrolle.Attestant),
+                                    navIdent = navIdentSaksbehandler,
+                                ).asBearerToken(),
+                            )
+                            setBody(
+                                """
                     {
                         "grunn": "BEREGNINGEN_ER_FEIL",
                         "kommentar": "Ser fel ut. Men denna borde bli forbidden eftersom attestant og saksbehandler er samme."
                     }
-                            """.trimIndent(),
-                        )
-                    }.apply {
-                        response.status() shouldBe HttpStatusCode.Forbidden
+                                """.trimIndent(),
+                            )
+                        }.apply {
+                            status shouldBe HttpStatusCode.Forbidden
+                        }
                     }
                 }
             }
@@ -748,8 +736,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                     ) {
                         setBody("""{"kommentar":"kommentar", "grunn": "BEREGNINGEN_ER_FEIL" }""")
                     }.apply {
-                        response.status() shouldBe HttpStatusCode.OK
-                        deserialize<BehandlingJson>(response.content!!).let {
+                        status shouldBe HttpStatusCode.OK
+                        deserialize<BehandlingJson>(bodyAsText()).let {
                             it.status shouldBe "UNDERKJENT_INNVILGET"
                         }
                     }
@@ -761,31 +749,32 @@ internal class SøknadsbehandlingRoutesKtTest {
         fun `Feiler dersom man ikke får sendt til utbetaling`() {
             withMigratedDb { dataSource ->
                 val repos = repos(dataSource)
-                val services = services(repos)
-                withTestApplication(
-                    {
+                val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
+                    utbetalingPublisher = object : UtbetalingPublisher {
+                        override fun publish(
+                            utbetaling: Utbetaling.SimulertUtbetaling,
+                        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
+                            UtbetalingPublisher.KunneIkkeSendeUtbetaling(
+                                Utbetalingsrequest(""),
+                            ).left()
+
+                        override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
+                            utbetalingsrequest.right()
+
+                        override fun generateRequest(utbetaling: Utbetaling.SimulertUtbetaling): Utbetalingsrequest =
+                            Utbetalingsrequest("")
+                    },
+                )
+                val services = services(databaseRepos = repos, clients = clients)
+
+                testApplication {
+                    application {
                         testSusebakover(
+                            clients = clients,
                             services = services,
                             databaseRepos = repos,
-                            clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
-                                utbetalingPublisher = object : UtbetalingPublisher {
-                                    override fun publish(
-                                        utbetaling: Utbetaling.SimulertUtbetaling,
-                                    ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
-                                        UtbetalingPublisher.KunneIkkeSendeUtbetaling(
-                                            Utbetalingsrequest(""),
-                                        ).left()
-
-                                    override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
-                                        utbetalingsrequest.right()
-
-                                    override fun generateRequest(utbetaling: Utbetaling.SimulertUtbetaling): Utbetalingsrequest =
-                                        Utbetalingsrequest("")
-                                },
-                            ),
                         )
-                    },
-                ) {
+                    }
                     val objects = setupMedAlleVilkårOppfylt(services, repos)
                     services.søknadsbehandling.beregn(
                         BeregnRequest(
@@ -813,7 +802,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                         HttpMethod.Patch,
                         "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/iverksett",
                     ).apply {
-                        response.status() shouldBe HttpStatusCode.InternalServerError
+                        status shouldBe HttpStatusCode.InternalServerError
+                        bodyAsText() shouldContain "Kunne ikke utføre utbetaling"
                     }
                 }
             }
@@ -1002,17 +992,16 @@ internal class SøknadsbehandlingRoutesKtTest {
         services: Services,
         repos: DatabaseRepos,
         s: InnvilgetVilkårsvurdertSøknadsbehandling.() -> Unit,
-        test: TestApplicationEngine.(objects: InnvilgetVilkårsvurdertSøknadsbehandling) -> R,
+        test: suspend ApplicationTestBuilder.(objects: InnvilgetVilkårsvurdertSøknadsbehandling) -> R,
     ) =
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig),
                     services = services,
                     databaseRepos = repos,
                 )
-            },
-        ) {
+            }
             val objects = setupMedAlleVilkårOppfylt(services, repos)
             s(objects)
             test(objects)

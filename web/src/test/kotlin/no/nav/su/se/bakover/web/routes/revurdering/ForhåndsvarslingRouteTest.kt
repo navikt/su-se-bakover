@@ -3,10 +3,11 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
@@ -49,24 +50,23 @@ internal class ForhåndsvarslingRouteTest {
     inner class `lagre forhåndsvarselvalg` {
         @Test
         fun `uautoriserte kan ikke forhåndsvarsle eller sende til attestering`() {
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover()
-                },
-            ) {
+                }
                 defaultRequest(
                     HttpMethod.Post,
                     "${RevurderingRoutesTestData.requestPath}/$revurderingId/forhandsvarsel",
                     listOf(Brukerrolle.Veileder),
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                     JSONAssert.assertEquals(
                         """
                     {
-                        "message":"Bruker mangler en av de tillatte rollene: Saksbehandler."
+                        "message":"Bruker mangler en av de tillatte rollene: [Saksbehandler]"
                     }
                         """.trimIndent(),
-                        response.content,
+                        bodyAsText(),
                         true,
                     )
                 }
@@ -92,13 +92,12 @@ internal class ForhåndsvarslingRouteTest {
                 } doReturn simulertRevurdering.right()
             }
 
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(
                         services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock),
                     )
-                },
-            ) {
+                }
                 defaultRequest(
                     HttpMethod.Post,
                     "${RevurderingRoutesTestData.requestPath}/${simulertRevurdering.id}/forhandsvarsel",
@@ -114,8 +113,8 @@ internal class ForhåndsvarslingRouteTest {
                         """.trimIndent(),
                     )
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.OK
-                    val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(response.content!!)
+                    status shouldBe HttpStatusCode.OK
+                    val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(bodyAsText())
                     actualResponse.id shouldBe simulertRevurdering.id.toString()
                     actualResponse.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
                     actualResponse.fritekstTilBrev shouldBe ""
@@ -129,24 +128,23 @@ internal class ForhåndsvarslingRouteTest {
     inner class `fortsett etter forhåndsvarsel` {
         @Test
         fun `uautoriserte kan ikke sende revurdering til attestering`() {
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover()
-                },
-            ) {
+                }
                 defaultRequest(
                     HttpMethod.Post,
                     "${RevurderingRoutesTestData.requestPath}/$revurderingId/fortsettEtterForhåndsvarsel",
                     listOf(Brukerrolle.Veileder),
                 ).apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                     JSONAssert.assertEquals(
                         """
                     {
-                        "message":"Bruker mangler en av de tillatte rollene: Saksbehandler."
+                        "message":"Bruker mangler en av de tillatte rollene: [Saksbehandler]"
                     }
                         """.trimIndent(),
-                        response.content,
+                        bodyAsText(),
                         true,
                     )
                 }
@@ -163,11 +161,10 @@ internal class ForhåndsvarslingRouteTest {
                 on { fortsettEtterForhåndsvarsling(any()) } doReturn simulertRevurdering.right()
             }
 
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
-                },
-            ) {
+                }
                 defaultRequest(
                     HttpMethod.Post,
                     "${RevurderingRoutesTestData.requestPath}/${simulertRevurdering.id}/fortsettEtterForhåndsvarsel",
@@ -185,8 +182,8 @@ internal class ForhåndsvarslingRouteTest {
                         """.trimIndent(),
                     )
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.OK
-                    val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(response.content!!)
+                    status shouldBe HttpStatusCode.OK
+                    val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(bodyAsText())
                     actualResponse.id shouldBe simulertRevurdering.id.toString()
                     actualResponse.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
                     actualResponse.fritekstTilBrev shouldBe ""
@@ -233,11 +230,10 @@ internal class ForhåndsvarslingRouteTest {
                 on { fortsettEtterForhåndsvarsling(any()) } doReturn simulertRevurdering.right()
             }
 
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
-                },
-            ) {
+                }
                 defaultRequest(
                     HttpMethod.Post,
                     "${RevurderingRoutesTestData.requestPath}/${simulertRevurdering.id}/fortsettEtterForhåndsvarsel",
@@ -254,8 +250,8 @@ internal class ForhåndsvarslingRouteTest {
                         """.trimIndent(),
                     )
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.OK
-                    val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(response.content!!)
+                    status shouldBe HttpStatusCode.OK
+                    val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(bodyAsText())
                     actualResponse.id shouldBe simulertRevurdering.id.toString()
                     actualResponse.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
                     actualResponse.fritekstTilBrev shouldBe "Friteksten"
@@ -302,11 +298,10 @@ internal class ForhåndsvarslingRouteTest {
                 on { fortsettEtterForhåndsvarsling(any()) } doReturn simulertRevurdering.right()
             }
 
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
-                },
-            ) {
+                }
                 defaultRequest(
                     HttpMethod.Post,
                     "${RevurderingRoutesTestData.requestPath}/${simulertRevurdering.id}/fortsettEtterForhåndsvarsel",
@@ -323,8 +318,8 @@ internal class ForhåndsvarslingRouteTest {
                         """.trimIndent(),
                     )
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.OK
-                    val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(response.content!!)
+                    status shouldBe HttpStatusCode.OK
+                    val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(bodyAsText())
                     actualResponse.id shouldBe simulertRevurdering.id.toString()
                     actualResponse.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
                     actualResponse.fritekstTilBrev shouldBe "Friteksten"

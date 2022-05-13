@@ -4,10 +4,11 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -52,11 +53,10 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
 
     @Test
     fun `uautoriserte kan ikke beregne og simulere revurdering`() {
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/beregnOgSimuler",
@@ -64,14 +64,14 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
+                status shouldBe HttpStatusCode.Forbidden
                 JSONAssert.assertEquals(
                     """
                     {
-                        "message":"Bruker mangler en av de tillatte rollene: Saksbehandler."
+                        "message":"Bruker mangler en av de tillatte rollene: [Saksbehandler]"
                     }
                     """.trimIndent(),
-                    response.content,
+                    bodyAsText(),
                     true,
                 )
             }
@@ -124,11 +124,10 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             } doReturn RevurderingOgFeilmeldingerResponse(simulertRevurdering).right()
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/${simulertRevurdering.id}/beregnOgSimuler",
@@ -136,8 +135,8 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
-                val actualResponse = objectMapper.readValue<Map<String, Any>>(response.content!!)
+                status shouldBe HttpStatusCode.Created
+                val actualResponse = objectMapper.readValue<Map<String, Any>>(bodyAsText())
                 val revurdering =
                     objectMapper.readValue<SimulertRevurderingJson>(objectMapper.writeValueAsString(actualResponse["revurdering"]))
                 verify(revurderingServiceMock).beregnOgSimuler(
@@ -222,11 +221,10 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             on { beregnOgSimuler(any(), any()) } doReturn error.left()
         }
 
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/beregnOgSimuler",
@@ -234,10 +232,10 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe expectedStatusCode
+                status shouldBe expectedStatusCode
                 JSONAssert.assertEquals(
                     expectedJsonResponse,
-                    response.content,
+                    bodyAsText(),
                     true,
                 )
             }

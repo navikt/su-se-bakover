@@ -3,9 +3,10 @@ package no.nav.su.se.bakover.web.routes.drift
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpMethod
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpMethod.Companion.Patch
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Søknad
@@ -32,16 +33,16 @@ internal class FixSøknaderTest {
     @Test
     fun `Kun Drift har tilgang til fix-søknader-endepunktet`() {
         Brukerrolle.values().filterNot { it == Brukerrolle.Drift }.forEach {
-            withTestApplication({
-                testSusebakover(services = services)
-            }) {
+            testApplication {
+                application {
+                    testSusebakover(services = services)
+                }
                 defaultRequest(
-                    HttpMethod.Patch,
+                    Patch,
                     "$DRIFT_PATH/søknader/fix",
-                    listOf(it)
-                ) {
-                }.apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    listOf(it),
+                ).apply {
+                    status shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
@@ -52,19 +53,20 @@ internal class FixSøknaderTest {
         val søknadServiceMock = mock<SøknadService> {
             on { opprettManglendeJournalpostOgOppgave() } doReturn OpprettManglendeJournalpostOgOppgaveResultat(
                 journalpostResultat = emptyList(),
-                oppgaveResultat = emptyList()
+                oppgaveResultat = emptyList(),
             )
         }
-        withTestApplication({
-            testSusebakover(services = services.copy(søknad = søknadServiceMock))
-        }) {
+        testApplication {
+            application {
+                testSusebakover(services = services.copy(søknad = søknadServiceMock))
+            }
             defaultRequest(
-                HttpMethod.Patch,
+                Patch,
                 "$DRIFT_PATH/søknader/fix",
-                listOf(Brukerrolle.Drift)
+                listOf(Brukerrolle.Drift),
             ) {
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
                 JSONAssert.assertEquals(
                     """
                         {
@@ -78,8 +80,8 @@ internal class FixSøknaderTest {
                             }
                         }
                     """.trimIndent(),
-                    response.content!!,
-                    true
+                    this.bodyAsText(),
+                    true,
                 )
             }
         }
@@ -114,20 +116,27 @@ internal class FixSøknaderTest {
                 ),
                 oppgaveResultat = listOf(
                     journalførtSøknadMedOppgave.right(),
-                    KunneIkkeOppretteOppgave(sakId, søknadIdOppgave, JournalpostId("1"), "Kunne ikke opprette oppgave").left(),
-                )
+                    KunneIkkeOppretteOppgave(
+                        sakId,
+                        søknadIdOppgave,
+                        JournalpostId("1"),
+                        "Kunne ikke opprette oppgave",
+                    ).left(),
+                ),
             )
         }
-        withTestApplication({
-            testSusebakover(services = services.copy(søknad = søknadServiceMock))
-        }) {
+        testApplication {
+            application {
+                testSusebakover(services = services.copy(søknad = søknadServiceMock))
+            }
+
             defaultRequest(
-                HttpMethod.Patch,
+                Patch,
                 "$DRIFT_PATH/søknader/fix",
-                listOf(Brukerrolle.Drift)
+                listOf(Brukerrolle.Drift),
             ) {
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
                 //language=JSON
                 JSONAssert.assertEquals(
                     """
@@ -166,8 +175,8 @@ internal class FixSøknaderTest {
                            }
                         }
                     """.trimIndent(),
-                    response.content!!,
-                    true
+                    this.bodyAsText(),
+                    true,
                 )
             }
         }

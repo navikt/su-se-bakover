@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.web.søknad.ny
 
 import io.kotest.matchers.shouldBe
-import io.ktor.http.ContentType.Application.Json
-import io.ktor.http.HttpHeaders.ContentType
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import io.ktor.server.testing.TestApplicationEngine
-import io.ktor.server.testing.contentType
-import io.ktor.server.testing.setBody
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.web.SharedRegressionTestData
@@ -105,15 +105,16 @@ private fun TestApplicationEngine.nySøknad(
     requestJson: String,
     brukerrolle: Brukerrolle, // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
 ): String {
-    return defaultRequest(
-        HttpMethod.Post,
-        "/soknad",
-        listOf(brukerrolle),
-    ) {
-        addHeader(ContentType, Json.toString())
-        setBody(requestJson)
-    }.apply {
-        response.status() shouldBe HttpStatusCode.Created
-        response.contentType() shouldBe io.ktor.http.ContentType.parse("application/json; charset=UTF-8")
-    }.response.content!!
+    return runBlocking {
+        defaultRequest(
+            HttpMethod.Post,
+            "/soknad",
+            listOf(brukerrolle),
+        ) {
+            setBody(requestJson)
+        }.apply {
+            status shouldBe HttpStatusCode.Created
+            contentType() shouldBe io.ktor.http.ContentType.parse("application/json; charset=UTF-8")
+        }.bodyAsText()
+    }
 }

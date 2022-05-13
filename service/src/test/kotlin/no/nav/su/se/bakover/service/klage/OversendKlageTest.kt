@@ -24,6 +24,8 @@ import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
@@ -455,6 +457,7 @@ internal class OversendKlageTest {
         val journalpostIdForVedtak = JournalpostId(UUID.randomUUID().toString())
         val person = person(fnr = sak.fnr)
         val pdfAsBytes = "brevbytes".toByteArray()
+        val observerMock: EventObserver = mock { on { handle(any()) }.then {} }
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -478,7 +481,8 @@ internal class OversendKlageTest {
             },
             oppgaveService = mock {
                 on { lukkOppgave(any()) } doReturn Unit.right()
-            }
+            },
+            observer = observerMock
         )
         val attestant = NavIdentBruker.Attestant("s2")
 
@@ -500,6 +504,7 @@ internal class OversendKlageTest {
                 klageinstanshendelser = Klageinstanshendelser.empty(),
             )
             it shouldBe expectedKlage
+            verify(observerMock).handle(argThat { actual -> Event.Statistikk.Klagestatistikk.Oversendt(it) shouldBe actual })
         }
 
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })

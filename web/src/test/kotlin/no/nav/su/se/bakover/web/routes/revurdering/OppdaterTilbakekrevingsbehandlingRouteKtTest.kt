@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -24,8 +24,8 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
 
     @Test
     fun `oppdaterer tilbakekrevingsbehandling`() {
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
                         revurdering = mock {
@@ -43,8 +43,7 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
                         },
                     ),
                 )
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "${RevurderingRoutesTestData.requestPath}/$revurderingId/tilbakekreving",
@@ -58,7 +57,7 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK
             }
         }
     }
@@ -66,11 +65,10 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
     @Test
     fun `sjekker tilgang`() {
         (Brukerrolle.values().toList() - Brukerrolle.Saksbehandler).forEach {
-            withTestApplication(
-                {
+            testApplication {
+                application {
                     testSusebakover()
-                },
-            ) {
+                }
                 defaultRequest(
                     HttpMethod.Post,
                     "${RevurderingRoutesTestData.requestPath}/$revurderingId/tilbakekreving",
@@ -84,7 +82,7 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
                         """.trimIndent(),
                     )
                 }.apply {
-                    response.status() shouldBe HttpStatusCode.Forbidden
+                    status shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
@@ -92,11 +90,10 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
 
     @Test
     fun `ugyldig input`() {
-        withTestApplication(
-            {
+        testApplication {
+            application {
                 testSusebakover()
-            },
-        ) {
+            }
             defaultRequest(
                 HttpMethod.Post,
                 "${RevurderingRoutesTestData.requestPath}/$revurderingId/tilbakekreving",
@@ -110,7 +107,7 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
                     """.trimIndent(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
+                status shouldBe HttpStatusCode.BadRequest
             }
         }
     }
