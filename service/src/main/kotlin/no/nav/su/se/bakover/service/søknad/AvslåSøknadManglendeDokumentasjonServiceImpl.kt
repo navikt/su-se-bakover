@@ -77,6 +77,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
         request: AvslåManglendeDokumentasjonRequest,
         søknadsbehandling: Søknadsbehandling,
     ): Either<KunneIkkeAvslåSøknad, Sak> {
+        /**
+         * //TODO skulle ideelt sett at denne bare kunne bruke søknadsbehandlingservice for å få utført disse oppgavene, bør i såfall få plass transkasjoner på tvers av servicer.
+         */
         val avslåttSøknadsbehandling = søknadsbehandling
             .leggTilStønadsperiodeHvisNull()
             .avslåPgaManglendeDok()
