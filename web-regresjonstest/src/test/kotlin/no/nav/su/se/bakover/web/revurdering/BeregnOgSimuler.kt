@@ -6,12 +6,12 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-internal fun TestApplicationEngine.beregnOgSimuler(
+internal fun ApplicationTestBuilder.beregnOgSimuler(
     sakId: String,
     behandlingId: String,
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,

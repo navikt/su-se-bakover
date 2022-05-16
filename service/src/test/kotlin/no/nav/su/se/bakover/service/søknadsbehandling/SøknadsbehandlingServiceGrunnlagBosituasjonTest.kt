@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
@@ -205,6 +206,9 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 ),
             ),
             behandlingsinformasjon = uavklart.behandlingsinformasjon,
+            vilkårsvurderinger = uavklart.vilkårsvurderinger.copy(
+                opplysningsplikt = tilstrekkeligDokumentert()
+            )
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -259,6 +263,9 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 ),
             ),
             behandlingsinformasjon = uavklart.behandlingsinformasjon,
+            vilkårsvurderinger = uavklart.vilkårsvurderinger.copy(
+                opplysningsplikt = tilstrekkeligDokumentert()
+            )
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -391,6 +398,9 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 ),
             ),
             behandlingsinformasjon = uavklart.behandlingsinformasjon,
+            vilkårsvurderinger = uavklart.vilkårsvurderinger.copy(
+                opplysningsplikt = tilstrekkeligDokumentert(),
+            ),
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {

@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -478,15 +479,21 @@ internal class SakTest {
                 stønadsperiode = nyStønadsperiode,
             )
 
+            val nySøknadsbehandlingMedOpplysningsplikt = nySøknadsbehandling.copy(
+                vilkårsvurderinger = nySøknadsbehandling.vilkårsvurderinger.copy(
+                    opplysningsplikt = tilstrekkeligDokumentert(),
+                ),
+            )
+
             sakMedRevurderingOgSøknadVedtak.copy(
                 søknadsbehandlinger = sakMedRevurderingOgSøknadVedtak.søknadsbehandlinger + nySøknadsbehandling,
             ).let { sak ->
                 sak.oppdaterStønadsperiodeForSøknadsbehandling(
-                    søknadsbehandlingId = nySøknadsbehandling.id,
+                    søknadsbehandlingId = nySøknadsbehandlingMedOpplysningsplikt.id,
                     stønadsperiode = nyStønadsperiode,
                     clock = tikkendeKlokke,
                     formuegrenserFactory = formuegrenserFactoryTest,
-                ).getOrFail() shouldBe nySøknadsbehandling
+                ).getOrFail() shouldBe nySøknadsbehandlingMedOpplysningsplikt
 
                 listOf(
                     1.mai(2021),
@@ -495,7 +502,7 @@ internal class SakTest {
                     Stønadsperiode.create(Periode.create(fraOgMed = it, tilOgMed = 31.desember(2021)))
                 }.forEach { stønadsperiode ->
                     sak.oppdaterStønadsperiodeForSøknadsbehandling(
-                        søknadsbehandlingId = nySøknadsbehandling.id,
+                        søknadsbehandlingId = nySøknadsbehandlingMedOpplysningsplikt.id,
                         stønadsperiode = stønadsperiode,
                         clock = tikkendeKlokke,
                         formuegrenserFactory = formuegrenserFactoryTest,
@@ -513,11 +520,11 @@ internal class SakTest {
                     Stønadsperiode.create(Periode.create(fraOgMed = it, tilOgMed = 31.desember(2021)))
                 }.forEach { stønadsperiode ->
                     sak.oppdaterStønadsperiodeForSøknadsbehandling(
-                        søknadsbehandlingId = nySøknadsbehandling.id,
+                        søknadsbehandlingId = nySøknadsbehandlingMedOpplysningsplikt.id,
                         stønadsperiode = stønadsperiode,
                         clock = tikkendeKlokke,
                         formuegrenserFactory = formuegrenserFactoryTest,
-                    ).getOrFail() shouldBe nySøknadsbehandling.copy(
+                    ).getOrFail() shouldBe nySøknadsbehandlingMedOpplysningsplikt.copy(
                         stønadsperiode = stønadsperiode,
                     )
                 }

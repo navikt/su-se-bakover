@@ -125,7 +125,18 @@ internal class SøknadsbehandlingJsonTest {
                 ],
                 "vurderinger": []
               },
-              "utenlandsopphold": $expectedUtenlandsoppholdVurdert
+              "utenlandsopphold": $expectedUtenlandsoppholdVurdert,
+              "opplysningsplikt": {
+                 "vurderinger": [
+                  {
+                    "periode": {
+                      "fraOgMed": "2021-01-01",
+                      "tilOgMed": "2021-12-31"
+                    },
+                    "beskrivelse": "TilstrekkeligDokumentasjon"
+                  }
+                 ]     
+              }
           },
           "fritekstTilBrev": "",
           "erLukket": false,
@@ -211,7 +222,8 @@ internal class SøknadsbehandlingJsonTest {
                 ],
                 "vurderinger": []
             },
-            "utenlandsopphold": null
+            "utenlandsopphold": null,
+            "opplysningsplikt":null
           },
           "fritekstTilBrev": "",
           "erLukket": false,

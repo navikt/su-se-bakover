@@ -4,12 +4,12 @@ import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.headers
 import io.ktor.client.request.request
 import io.ktor.client.statement.HttpResponse
-import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.application.Application
-import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import kotlinx.coroutines.runBlocking
 import no.finn.unleash.FakeUnleash
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
@@ -166,7 +166,7 @@ internal object SharedRegressionTestData {
      */
     internal fun withTestApplicationAndDockerDb(
         clock: Clock = Clock.systemUTC(),
-        test: TestApplicationEngine.() -> Unit,
+        test: ApplicationTestBuilder.() -> Unit,
     ) {
         val dataSource = DatabaseBuilder.newLocalDataSource()
         DatabaseBuilder.migrateDatabase(dataSource)
@@ -174,33 +174,33 @@ internal object SharedRegressionTestData {
         testApplication {
             application {
                 testSusebakover(
+                    clock = clock,
                     databaseRepos = databaseRepos(
                         dataSource = dataSource,
                         clock = clock,
                     ),
                 )
             }
-            @Suppress("UNUSED_EXPRESSION")
-            test
+            test()
         }
     }
 
     internal fun withTestApplicationAndEmbeddedDb(
         clock: Clock = fixedClock,
-        test: TestApplicationEngine.() -> Unit,
+        test: ApplicationTestBuilder.() -> Unit,
     ) {
         withMigratedDb { dataSource ->
             testApplication {
                 application {
                     testSusebakover(
+                        clock = clock,
                         databaseRepos = databaseRepos(
                             dataSource = dataSource,
                             clock = clock,
                         ),
                     )
                 }
-                @Suppress("UNUSED_EXPRESSION")
-                test
+                test()
             }
         }
     }
@@ -232,19 +232,18 @@ internal object SharedRegressionTestData {
         )
     }
 
-    fun TestApplicationEngine.defaultRequest(
+    fun ApplicationTestBuilder.defaultRequest(
         method: HttpMethod,
         uri: String,
         roller: List<Brukerrolle> = emptyList(),
         navIdent: String = "Z990Lokal",
         setup: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return kotlinx.coroutines.runBlocking {
+        return runBlocking {
             client.request(uri) {
                 this.method = method
                 this.headers {
                     append(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-                    append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                     append(
                         HttpHeaders.Authorization,
                         jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken(),

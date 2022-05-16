@@ -360,6 +360,21 @@ internal class RevurderingServiceImpl(
         }
     }
 
+    override fun leggTilOpplysningspliktVilkår(request: LeggTilOpplysningspliktRequest.Revurdering): Either<KunneIkkeLeggeTilOpplysningsplikt, RevurderingOgFeilmeldingerResponse> {
+        return hent(request.behandlingId).mapLeft {
+            KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling
+        }.flatMap { revurdering ->
+            revurdering.oppdaterOpplysningspliktOgMarkerSomVurdert(request.vilkår)
+                .mapLeft {
+                    KunneIkkeLeggeTilOpplysningsplikt.Revurdering(it)
+                }
+                .map {
+                    revurderingRepo.lagre(it)
+                    identifiserFeilOgLagResponse(it)
+                }
+        }
+    }
+
     override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, RevurderingOgFeilmeldingerResponse> {
         val revurdering = hent(request.behandlingId)
             .getOrHandle { return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left() }

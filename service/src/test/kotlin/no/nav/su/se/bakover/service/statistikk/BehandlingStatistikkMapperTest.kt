@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.zoneIdOslo
@@ -481,7 +482,7 @@ internal class BehandlingStatistikkMapperTest {
         BehandlingStatistikkMapper(fixedClock).map(klage) shouldBe Statistikk.Behandling(
             funksjonellTid = klage.opprettet,
             tekniskTid = fixedTidspunkt,
-            mottattDato = klage.opprettet.toLocalDate(zoneIdOslo),
+            mottattDato = 1.desember(2021),
             registrertDato = klage.opprettet.toLocalDate(zoneIdOslo),
             behandlingId = klage.id,
             relatertBehandlingId = klage.vilkårsvurderinger.vedtakId,

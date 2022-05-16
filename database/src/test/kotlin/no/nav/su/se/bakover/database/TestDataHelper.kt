@@ -20,6 +20,8 @@ import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRep
 import no.nav.su.se.bakover.database.grunnlag.FormuegrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.OpplysningspliktGrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.OpplysningspliktVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
@@ -288,6 +290,11 @@ internal class TestDataHelper(
         formuegrunnlagPostgresRepo = formuegrunnlagPostgresRepo,
         satsFactory = satsFactory,
     )
+    internal val opplysningspliktGrunnlagPostgresRepo = OpplysningspliktGrunnlagPostgresRepo(dbMetrics)
+    internal val opplysningspliktVilkårsvurderingPostgresRepo = OpplysningspliktVilkårsvurderingPostgresRepo(
+        dbMetrics = dbMetrics,
+        opplysningspliktGrunnlagRepo = opplysningspliktGrunnlagPostgresRepo,
+    )
     internal val grunnlagsdataOgVilkårsvurderingerPostgresRepo = GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         dbMetrics = dbMetrics,
         bosituasjongrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
@@ -295,6 +302,7 @@ internal class TestDataHelper(
         uføreVilkårsvurderingPostgresRepo = uføreVilkårsvurderingRepo,
         formueVilkårsvurderingPostgresRepo = formueVilkårsvurderingPostgresRepo,
         utenlandsoppholdVilkårsvurderingPostgresRepo = utenlandsoppholdVilkårsvurderingRepo,
+        opplysningspliktVilkårsvurderingPostgresRepo = opplysningspliktVilkårsvurderingPostgresRepo,
     )
     internal val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,

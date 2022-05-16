@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -69,7 +70,8 @@ class UføreVilkårJsonTest {
         internal val vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
             uføre = uførevurdering,
             formue = formuevilkårIkkeVurdert(),
-            utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert
+            utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
+            opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
         )
     }
 }

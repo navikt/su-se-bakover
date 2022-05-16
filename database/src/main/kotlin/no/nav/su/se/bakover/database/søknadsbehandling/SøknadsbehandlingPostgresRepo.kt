@@ -157,6 +157,12 @@ internal class SøknadsbehandlingPostgresRepo(
                     },
                     session = tx,
                 )
+
+                grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
+                    behandlingId = avslag.søknadsbehandling.id,
+                    grunnlagsdataOgVilkårsvurderinger = avslag.søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
+                    tx = tx,
+                )
             }
         }
     }

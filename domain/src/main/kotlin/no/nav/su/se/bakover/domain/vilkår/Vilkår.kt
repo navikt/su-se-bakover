@@ -48,6 +48,7 @@ sealed class Inngangsvilkår {
     object Utenlandsopphold : Inngangsvilkår()
     object PersonligOppmøte : Inngangsvilkår()
     object FastOppholdINorge : Inngangsvilkår()
+    object Opplysningsplikt : Inngangsvilkår()
 }
 
 fun Set<Vilkår>.erLik(other: Set<Vilkår>): Boolean {
@@ -68,7 +69,36 @@ sealed class Vilkårsvurderinger {
     abstract val uføre: Vilkår.Uførhet
     abstract val formue: Vilkår.Formue
     abstract val utenlandsopphold: UtenlandsoppholdVilkår
+    abstract val opplysningsplikt: OpplysningspliktVilkår
     abstract val erVurdert: Boolean
+
+    fun uføreVilkår(): Vilkår.Uførhet {
+        return when (this) {
+            is Revurdering -> uføre
+            is Søknadsbehandling -> uføre
+        }
+    }
+
+    fun formueVilkår(): Vilkår.Formue {
+        return when (this) {
+            is Revurdering -> formue
+            is Søknadsbehandling -> formue
+        }
+    }
+
+    fun utenlandsoppholdVilkår(): UtenlandsoppholdVilkår {
+        return when (this) {
+            is Revurdering -> utenlandsopphold
+            is Søknadsbehandling -> utenlandsopphold
+        }
+    }
+
+    fun opplysningspliktVilkår(): OpplysningspliktVilkår {
+        return when (this) {
+            is Revurdering -> opplysningsplikt
+            is Søknadsbehandling -> opplysningsplikt
+        }
+    }
 
     val periode: Periode?
         get() {
@@ -136,6 +166,7 @@ sealed class Vilkårsvurderinger {
         val institusjonsopphold: InstitusjonsoppholdVilkår = InstitusjonsoppholdVilkår.IkkeVurdert,
         override val utenlandsopphold: UtenlandsoppholdVilkår = UtenlandsoppholdVilkår.IkkeVurdert,
         val personligOppmøte: PersonligOppmøteVilkår = PersonligOppmøteVilkår.IkkeVurdert,
+        override val opplysningsplikt: OpplysningspliktVilkår = OpplysningspliktVilkår.IkkeVurdert,
     ) : Vilkårsvurderinger() {
         override val vilkår: Set<Vilkår>
             get() {
@@ -148,6 +179,7 @@ sealed class Vilkårsvurderinger {
                     institusjonsopphold,
                     utenlandsopphold,
                     personligOppmøte,
+                    opplysningsplikt,
                 )
             }
 
@@ -163,6 +195,7 @@ sealed class Vilkårsvurderinger {
                 institusjonsopphold = institusjonsopphold.lagTidslinje(periode),
                 utenlandsopphold = utenlandsopphold.lagTidslinje(periode),
                 personligOppmøte = personligOppmøte.lagTidslinje(periode),
+                opplysningsplikt = opplysningsplikt.lagTidslinje(periode),
             )
         }
 
@@ -176,6 +209,7 @@ sealed class Vilkårsvurderinger {
                 is UtenlandsoppholdVilkår -> copy(utenlandsopphold = vilkår)
                 is PersonligOppmøteVilkår -> copy(personligOppmøte = vilkår)
                 is Vilkår.Uførhet -> copy(uføre = vilkår)
+                is OpplysningspliktVilkår -> copy(opplysningsplikt = vilkår)
             }
         }
 
@@ -184,6 +218,7 @@ sealed class Vilkårsvurderinger {
                 uføre = uføre,
                 formue = formue,
                 utenlandsopphold = utenlandsopphold,
+                opplysningsplikt = opplysningsplikt,
             )
         }
 
@@ -273,7 +308,8 @@ sealed class Vilkårsvurderinger {
                     institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
                     utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                     personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
-                )
+                opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+            )
         }
     }
 
@@ -281,6 +317,7 @@ sealed class Vilkårsvurderinger {
         override val uføre: Vilkår.Uførhet,
         override val formue: Vilkår.Formue,
         override val utenlandsopphold: UtenlandsoppholdVilkår,
+        override val opplysningsplikt: OpplysningspliktVilkår,
     ) : Vilkårsvurderinger() {
         override val vilkår: Set<Vilkår>
             get() {
@@ -288,6 +325,7 @@ sealed class Vilkårsvurderinger {
                     uføre,
                     formue,
                     utenlandsopphold,
+                    opplysningsplikt,
                 )
             }
 
@@ -298,7 +336,15 @@ sealed class Vilkårsvurderinger {
                 is Vilkår.Formue -> copy(formue = vilkår)
                 is Vilkår.Uførhet -> copy(uføre = vilkår)
                 is UtenlandsoppholdVilkår -> copy(utenlandsopphold = vilkår)
-                else -> throw IllegalArgumentException("Ukjent vilkår for revurdering: ${vilkår::class}")
+                is OpplysningspliktVilkår -> copy(opplysningsplikt = vilkår)
+                is FastOppholdINorgeVilkår,
+                is FlyktningVilkår,
+                is InstitusjonsoppholdVilkår,
+                is LovligOppholdVilkår,
+                is PersonligOppmøteVilkår,
+                -> {
+                    throw IllegalArgumentException("Ukjent vilkår for revurdering: ${vilkår::class}")
+                }
             }
         }
 
@@ -311,6 +357,7 @@ sealed class Vilkårsvurderinger {
                 uføre = uføre,
                 formue = formue,
                 utenlandsopphold = utenlandsopphold,
+                opplysningsplikt = opplysningsplikt,
             )
         }
 
@@ -331,6 +378,7 @@ sealed class Vilkårsvurderinger {
                 uføre = uføre.lagTidslinje(periode),
                 formue = formue.lagTidslinje(periode),
                 utenlandsopphold = utenlandsopphold.lagTidslinje(periode),
+                opplysningsplikt = opplysningsplikt.lagTidslinje(periode),
             )
         }
 
@@ -341,6 +389,7 @@ sealed class Vilkårsvurderinger {
             uføre = uføre.oppdaterStønadsperiode(stønadsperiode),
             formue = formue.oppdaterStønadsperiode(stønadsperiode, formuegrenserFactory),
             utenlandsopphold = utenlandsopphold.oppdaterStønadsperiode(stønadsperiode),
+            opplysningsplikt = opplysningsplikt.oppdaterStønadsperiode(stønadsperiode),
         )
 
         companion object {
@@ -348,6 +397,7 @@ sealed class Vilkårsvurderinger {
                 uføre = Vilkår.Uførhet.IkkeVurdert,
                 formue = Vilkår.Formue.IkkeVurdert,
                 utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
+                opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
             )
         }
     }
@@ -364,19 +414,38 @@ sealed class Vilkårsvurderingsresultat {
     data class Avslag(
         val vilkår: Set<Vilkår>,
     ) : Vilkårsvurderingsresultat() {
-        val avslagsgrunner = vilkår.map { it.vilkår.tilAvslagsgrunn() }
+        val avslagsgrunner = vilkår.map { it.avslagsgrunn() }
         val dato = vilkår.minOf { it.hentTidligesteDatoForAvslag()!! }
 
-        private fun Inngangsvilkår.tilAvslagsgrunn(): Avslagsgrunn {
+        private fun Vilkår.avslagsgrunn(): Avslagsgrunn {
             return when (this) {
-                Inngangsvilkår.FastOppholdINorge -> Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
-                Inngangsvilkår.Flyktning -> Avslagsgrunn.FLYKTNING
-                Inngangsvilkår.Formue -> Avslagsgrunn.FORMUE
-                Inngangsvilkår.Institusjonsopphold -> Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON
-                Inngangsvilkår.LovligOpphold -> Avslagsgrunn.OPPHOLDSTILLATELSE
-                Inngangsvilkår.Utenlandsopphold -> Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
-                Inngangsvilkår.PersonligOppmøte -> Avslagsgrunn.PERSONLIG_OPPMØTE
-                Inngangsvilkår.Uførhet -> Avslagsgrunn.UFØRHET
+                is FastOppholdINorgeVilkår -> {
+                    Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
+                }
+                is FlyktningVilkår -> {
+                    Avslagsgrunn.FLYKTNING
+                }
+                is Vilkår.Formue -> {
+                    Avslagsgrunn.FORMUE
+                }
+                is InstitusjonsoppholdVilkår -> {
+                    Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON
+                }
+                is LovligOppholdVilkår -> {
+                    Avslagsgrunn.OPPHOLDSTILLATELSE
+                }
+                is OpplysningspliktVilkår -> {
+                    Avslagsgrunn.MANGLENDE_DOKUMENTASJON
+                }
+                is PersonligOppmøteVilkår -> {
+                    Avslagsgrunn.PERSONLIG_OPPMØTE
+                }
+                is Vilkår.Uførhet -> {
+                    Avslagsgrunn.UFØRHET
+                }
+                is UtenlandsoppholdVilkår -> {
+                    Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
+                }
             }
         }
 
@@ -675,7 +744,11 @@ sealed class Vilkår {
             }
 
             override fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Formue {
-                return copy(vurderingsperioder = vurderingsperioder.flatMap { it.leggTilTomEPSFormueHvisDetMangler(perioder) })
+                return copy(
+                    vurderingsperioder = vurderingsperioder.flatMap {
+                        it.leggTilTomEPSFormueHvisDetMangler(perioder)
+                    },
+                )
             }
 
             override fun fjernEPSFormue(perioder: List<Periode>): Vurdert {
@@ -922,7 +995,10 @@ sealed class Vurderingsperiode {
 
         fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Nel<Formue> {
             val uendret = masker(perioder)
-            val endret = leggTilTomEPSFormueHvisDetMangler().masker(perioder = uendret.map { it.periode }.minsteAntallSammenhengendePerioder())
+            val endret = leggTilTomEPSFormueHvisDetMangler().masker(
+                perioder = uendret.map { it.periode }
+                    .minsteAntallSammenhengendePerioder(),
+            )
             return Nel.fromListUnsafe(Tidslinje(periode, uendret + endret).tidslinje)
         }
 
@@ -938,7 +1014,8 @@ sealed class Vurderingsperiode {
          */
         fun fjernEPSFormue(perioder: List<Periode>): Nel<Formue> {
             val uendret = masker(perioder = perioder)
-            val endret = fjernEPSFormue().masker(perioder = uendret.map { it.periode }.minsteAntallSammenhengendePerioder())
+            val endret =
+                fjernEPSFormue().masker(perioder = uendret.map { it.periode }.minsteAntallSammenhengendePerioder())
             return Nel.fromListUnsafe(Tidslinje(periode, uendret + endret).tidslinje)
         }
 

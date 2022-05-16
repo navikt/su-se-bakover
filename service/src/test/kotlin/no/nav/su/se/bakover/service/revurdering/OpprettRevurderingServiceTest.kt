@@ -69,6 +69,7 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt12000
 import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
@@ -455,9 +456,10 @@ internal class OpprettRevurderingServiceTest {
                 ),
             )
             on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering(
-                vilkårsvurderingUføre,
-                formueVilkår(periode = vedtaksperiode),
-                utenlandsoppholdInnvilget(periode = vedtaksperiode),
+                uføre = vilkårsvurderingUføre,
+                formue = formueVilkår(periode = vedtaksperiode),
+                utenlandsopphold = utenlandsoppholdInnvilget(periode = vedtaksperiode),
+                opplysningsplikt = tilstrekkeligDokumentert(periode = vedtaksperiode),
             )
         }
         val vedtakForFørsteJanuarLagetNå = mock<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {

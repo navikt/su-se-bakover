@@ -1,10 +1,11 @@
 package no.nav.su.se.bakover.web.søknadsbehandling
 
-import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.web.leggTilOpplysningsplikt
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.beregning.beregn
@@ -30,7 +31,7 @@ import java.time.LocalDate
  * @param fnr Dersom det finnes en sak for dette fødselsnumret fra før, vil det knyttes til den eksisterende saken.
  * @return Den nylig opprettede søknadsbehandlingen
  */
-internal fun TestApplicationEngine.opprettInnvilgetSøknadsbehandling(
+internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
     fnr: String = Fnr.generer().toString(),
     fraOgMed: String = LocalDate.now().startOfMonth().toString(),
     tilOgMed: String = LocalDate.now().startOfMonth().plusMonths(11).endOfMonth().toString(),
@@ -50,7 +51,7 @@ internal fun TestApplicationEngine.opprettInnvilgetSøknadsbehandling(
  * Oppretter en innvilget søknadbehandling på en eksisterende sak og søknad
  * @return Den nylig opprettede søknadsbehandlingen
  */
-internal fun TestApplicationEngine.opprettInnvilgetSøknadsbehandling(
+internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
     sakId: String,
     søknadId: String,
     fraOgMed: String = LocalDate.now().startOfMonth().toString(),
@@ -65,6 +66,12 @@ internal fun TestApplicationEngine.opprettInnvilgetSøknadsbehandling(
     leggTilVirkningstidspunkt(
         sakId = sakId,
         behandlingId = behandlingId,
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+    )
+    leggTilOpplysningsplikt(
+        behandlingId = behandlingId,
+        type = "SØKNADSBEHANDLING",
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
     )

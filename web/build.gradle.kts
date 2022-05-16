@@ -24,7 +24,7 @@ dependencies {
         exclude(group = "junit")
     }
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.8.5")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.9.0")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-server-call-id:$ktorVersion")
@@ -41,7 +41,7 @@ dependencies {
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
         exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock
     }
-    testImplementation("no.nav:kafka-embedded-env:3.1.0") {
+    testImplementation("no.nav:kafka-embedded-env:3.1.4") {
         // Breaks build: exclude(group = "org.glassfish.jersey.ext", module = "jersey-bean-validation")
         // Breaks build: exclude(group = "org.glassfish", module = "jakarta.el")
         // Breaks build: exclude(group = "org.eclipse.jetty", module = "jetty-server")

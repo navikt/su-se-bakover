@@ -124,6 +124,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurd
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilOpplysningsplikt
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
@@ -134,6 +135,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilFormuegrunnlagRequest
+import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.OppdaterTilbakekrevingsbehandlingRequest
 import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
@@ -521,6 +523,11 @@ open class AccessCheckProxy(
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.leggTilUtenlandsopphold(request)
                 }
+
+                override fun leggTilOpplysningspliktVilkår(request: LeggTilOpplysningspliktRequest.Søknadsbehandling): Either<KunneIkkeLeggeTilOpplysningsplikt, Søknadsbehandling.Vilkårsvurdert> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
+                    return services.søknadsbehandling.leggTilOpplysningspliktVilkår(request)
+                }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
                 override fun ferdigstillVedtakEtterUtbetaling(
@@ -691,6 +698,11 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.avsluttRevurdering(revurderingId, begrunnelse, fritekst)
+                }
+
+                override fun leggTilOpplysningspliktVilkår(request: LeggTilOpplysningspliktRequest.Revurdering): Either<KunneIkkeLeggeTilOpplysningsplikt, RevurderingOgFeilmeldingerResponse> {
+                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    return services.revurdering.leggTilOpplysningspliktVilkår(request)
                 }
 
                 override fun lagBrevutkastForAvslutting(

@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -108,6 +109,7 @@ internal class OppdaterRevurderingServiceTest {
             uføre = vilkårsvurderingUføre,
             formue = formuevilkårIkkeVurdert(),
             utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
+            opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
         ),
         informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert)),
     )

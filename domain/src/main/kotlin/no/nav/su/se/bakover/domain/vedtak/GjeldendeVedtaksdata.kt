@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -51,6 +52,7 @@ data class GjeldendeVedtaksdata(
             uføre = vilkårsvurderingerFraTidslinje.uføreVilkår(),
             formue = vilkårsvurderingerFraTidslinje.formueVilkår(),
             utenlandsopphold = vilkårsvurderingerFraTidslinje.utenlandsoppholdVilkår(),
+            opplysningsplikt = vilkårsvurderingerFraTidslinje.opplysningspliktVilkår(),
         )
         grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = grunnlagsdata,
@@ -112,7 +114,7 @@ data class GjeldendeVedtaksdata(
 
 private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger.Revurdering {
     return Vilkårsvurderinger.Revurdering(
-        uføre = this.map { it.vilkårsvurderinger.uføreVilkår() }
+        uføre = this.map { it.uføreVilkår() }
             .filterIsInstance<Vilkår.Uførhet.Vurdert>()
             .flatMap { it.vurderingsperioder }
             .let {
@@ -124,7 +126,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.vilkårsvurderinger(
                     Vilkår.Uførhet.IkkeVurdert
                 }
             },
-        formue = this.map { it.vilkårsvurderinger.formueVilkår() }
+        formue = this.map { it.formueVilkår() }
             .filterIsInstance<Vilkår.Formue.Vurdert>()
             .flatMap { it.vurderingsperioder }
             .let {
@@ -135,7 +137,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.vilkårsvurderinger(
                     Vilkår.Formue.IkkeVurdert
                 }
             },
-        utenlandsopphold = this.map { it.vilkårsvurderinger.utenlandsoppholdVilkår() }
+        utenlandsopphold = this.map { it.utenlandsoppholdVilkår() }
             .filterIsInstance<UtenlandsoppholdVilkår.Vurdert>()
             .flatMap { it.vurderingsperioder }
             .let {
@@ -146,26 +148,16 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.vilkårsvurderinger(
                     UtenlandsoppholdVilkår.IkkeVurdert
                 }
             },
+        opplysningsplikt = this.map { it.opplysningspliktVilkår() }
+            .filterIsInstance<OpplysningspliktVilkår.Vurdert>()
+            .flatMap { it.vurderingsperioder }
+            .let {
+                if (it.isNotEmpty()) {
+                    OpplysningspliktVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+                        .slåSammenLikePerioder()
+                } else {
+                    OpplysningspliktVilkår.IkkeVurdert
+                }
+            },
     )
-}
-
-private fun Vilkårsvurderinger.uføreVilkår(): Vilkår.Uførhet {
-    return when (this) {
-        is Vilkårsvurderinger.Revurdering -> uføre
-        is Vilkårsvurderinger.Søknadsbehandling -> uføre
-    }
-}
-
-private fun Vilkårsvurderinger.formueVilkår(): Vilkår.Formue {
-    return when (this) {
-        is Vilkårsvurderinger.Revurdering -> formue
-        is Vilkårsvurderinger.Søknadsbehandling -> formue
-    }
-}
-
-private fun Vilkårsvurderinger.utenlandsoppholdVilkår(): UtenlandsoppholdVilkår {
-    return when (this) {
-        is Vilkårsvurderinger.Revurdering -> utenlandsopphold
-        is Vilkårsvurderinger.Søknadsbehandling -> utenlandsopphold
-    }
 }

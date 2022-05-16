@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -65,6 +66,7 @@ internal class RevurderingLeggTilUføregrunnlagTest {
                     ),
                     formue = formuevilkårAvslåttPgrBrukersformue(bosituasjon = bosituasjon),
                     utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
+                    opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
                 ),
             ),
         ).second
@@ -101,7 +103,7 @@ internal class RevurderingLeggTilUføregrunnlagTest {
             argThat {
                 it shouldBe actual.revurdering
             },
-            anyOrNull()
+            anyOrNull(),
         )
         verifyNoMoreInteractions(revurderingRepoMock)
     }
