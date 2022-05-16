@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.web.søknad
 
 import no.nav.su.se.bakover.test.fixedLocalDate
 
-fun digitalSøknadsinnholdJson(
+fun digitalSøknadsinnholdUføreJson(
     fnr: String,
 ): String {
-    return søknadsinnholdJson(
+    return søknadsinnholdUføreJson(
         fnr = fnr,
         // language=JSON
         forNav = """
@@ -17,11 +17,11 @@ fun digitalSøknadsinnholdJson(
     )
 }
 
-fun papirsøknadsinnholdJson(
+fun papirsøknadsinnholdUføreJson(
     fnr: String,
     mottaksdato: String = fixedLocalDate.toString(),
 ): String {
-    return søknadsinnholdJson(
+    return søknadsinnholdUføreJson(
         fnr = fnr,
         // language=JSON
         forNav = """
@@ -36,20 +36,21 @@ fun papirsøknadsinnholdJson(
 }
 
 /**
- * Mapper til [no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson]
+ * Mapper til [no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson]
  *
  * Foreløpig spiller det ikke så veldig mye for domenemodellen hva søknaden inneholder, siden vi i all hovedsak bare bruker den til visning.
  * Visse ting valideres og visse har en direkte påvirkning:
  * @param fnr Dette er fødselsnummeret vi slår opp i PDL og knytter en sak mot. Merk at vi benytter fødselsnummeret som kommer fra PDL (da vil oppslagsfødselsnummeret være historisk).
  * @param forNav Bestemmer mottaksdato avhengig om det er en digital eller papirsøknad. Eksterne integrasjoner som statistikk og metrikker.
  */
-private fun søknadsinnholdJson(
+private fun søknadsinnholdUføreJson(
     fnr: String,
     forNav: String,
 ): String {
     //language=JSON
     return """
     {
+      "type": "uføre",
       "uførevedtak":{
         "harUførevedtak":true
       },

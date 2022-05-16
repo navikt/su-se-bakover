@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.service.argThat
@@ -35,7 +35,7 @@ class HentSøknadPdfTest {
 
     private val sakId = UUID.randomUUID()
     private val søknadId = UUID.randomUUID()
-    private val søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()
+    private val søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build()
     private val søknad = Søknad.Ny(
         id = søknadId,
         opprettet = Tidspunkt.EPOCH,

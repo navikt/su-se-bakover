@@ -46,8 +46,8 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -360,7 +360,7 @@ internal class TestDataHelper(
         sakId: UUID = UUID.randomUUID(),
         søknadId: UUID = UUID.randomUUID(),
         fnr: Fnr = Fnr.generer(),
-        søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build(),
     ): NySak {
         return SakFactory(
             clock = clock,
@@ -382,7 +382,7 @@ internal class TestDataHelper(
     fun persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(
         sakId: UUID,
         søknadId: UUID = UUID.randomUUID(),
-        søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build(),
         identBruker: NavIdentBruker = innsender,
     ): Søknad.Ny {
         return Søknad.Ny(
@@ -402,7 +402,7 @@ internal class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         fnr: Fnr = Fnr.generer(),
         journalpostId: JournalpostId = no.nav.su.se.bakover.database.journalpostId,
-        søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build(),
     ): Søknad.Journalført.MedOppgave.Lukket {
         return persisterJournalførtSøknadMedOppgave(
             sakId = sakId,
@@ -427,7 +427,7 @@ internal class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         fnr: Fnr = Fnr.generer(),
         journalpostId: JournalpostId = no.nav.su.se.bakover.database.journalpostId,
-        søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build(),
     ): Pair<Sak, Søknad.Journalført.UtenOppgave> {
         val nySak: NySak = persisterSakMedSøknadUtenJournalføringOgOppgave(
             fnr = fnr,
@@ -448,7 +448,7 @@ internal class TestDataHelper(
         sakId: UUID,
         søknadId: UUID = UUID.randomUUID(),
         journalpostId: JournalpostId = no.nav.su.se.bakover.database.journalpostId,
-        søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build(),
     ): Søknad.Journalført.UtenOppgave {
         return persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(
             sakId = sakId,
@@ -469,7 +469,7 @@ internal class TestDataHelper(
         fnr: Fnr = Fnr.generer(),
         oppgaveId: OppgaveId = no.nav.su.se.bakover.database.oppgaveId,
         journalpostId: JournalpostId = no.nav.su.se.bakover.database.journalpostId,
-        søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build(),
     ): Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> {
         return sakRepo.hentSak(sakId).let {
             if (it == null) {

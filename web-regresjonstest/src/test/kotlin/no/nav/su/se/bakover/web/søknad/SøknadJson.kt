@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData
 /**
  * @param lukket defaulter til ikke lukket (null)
  */
-fun digitalSøknadJson(
+fun digitalUføreSøknadJson(
     id: String = "ignored-by-some-matchers",
     sakId: String = "ignored-by-some-matchers",
     fnr: String = SharedRegressionTestData.fnr,
@@ -15,7 +15,7 @@ fun digitalSøknadJson(
     return søknadJson(
         id = id,
         sakId = sakId,
-        søknadInnhold = digitalSøknadsinnholdJson(fnr),
+        søknadInnhold = digitalSøknadsinnholdUføreJson(fnr),
         lukket = lukket,
     )
 }
@@ -33,7 +33,7 @@ fun papirsøknadJson(
     return søknadJson(
         id = id,
         sakId = sakId,
-        søknadInnhold = papirsøknadsinnholdJson(fnr, mottaksdato),
+        søknadInnhold = papirsøknadsinnholdUføreJson(fnr, mottaksdato),
         lukket = lukket,
     )
 }
