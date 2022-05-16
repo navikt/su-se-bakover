@@ -147,7 +147,7 @@ fun forNavDigitalSøknad() = ForNav.DigitalSøknad(
 
 fun søknadsinnholdAlder(
     harSøktAlderspensjon: HarSøktAlderspensjon = HarSøktAlderspensjon(false),
-    oppholdstillatelseAlder: OppholdstillatelseAlder = OppholdstillatelseAlder(eøsborger = false, familieforening = false),
+    oppholdstillatelseAlder: OppholdstillatelseAlder = OppholdstillatelseAlder(eøsborger = false, familiegjenforening = false),
     oppholdstillatelse: Oppholdstillatelse = oppholdstillatelse(),
     personopplysninger: Personopplysninger = Personopplysninger(fnrOver67),
     boforhold: Boforhold = boforhold(),

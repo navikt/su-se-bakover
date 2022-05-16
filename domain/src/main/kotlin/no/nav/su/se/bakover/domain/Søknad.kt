@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
 import java.util.UUID
 
-enum class SøknadType(val value: String) {
-    ALDER("alder"), UFORE("ufore")
+enum class Søknadstype(val value: String) {
+    ALDER("alder"), UFØRE("uføre")
 }
 
 sealed class Søknad {
@@ -19,10 +19,10 @@ sealed class Søknad {
     abstract val sakId: UUID
     abstract val søknadInnhold: SøknadInnhold
 
-    val type: SøknadType by lazy {
+    val type: Søknadstype by lazy {
         when (søknadInnhold) {
-            is SøknadsinnholdAlder -> SøknadType.ALDER
-            is SøknadsinnholdUføre -> SøknadType.UFORE
+            is SøknadsinnholdAlder -> Søknadstype.ALDER
+            is SøknadsinnholdUføre -> Søknadstype.UFØRE
         }
     }
 

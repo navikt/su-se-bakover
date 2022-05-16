@@ -19,8 +19,6 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.SøknadsinnholdAlder
-import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -61,20 +59,7 @@ internal class SøknadServiceImpl(
             return KunneIkkeOppretteSøknad.FantIkkePerson.left()
         }
         val fnr = person.ident.fnr
-        val søknadsinnholdMedNyesteFødselsnummer = when (søknadInnhold) {
-            is SøknadsinnholdAlder -> søknadInnhold.copy(
-                personopplysninger = søknadInnhold.personopplysninger.copy(
-                    // Ønsker alltid å bruke det nyeste fødselsnummeret
-                    fnr = fnr,
-                ),
-            )
-            is SøknadsinnholdUføre -> søknadInnhold.copy(
-                personopplysninger = søknadInnhold.personopplysninger.copy(
-                    // Ønsker alltid å bruke det nyeste fødselsnummeret
-                    fnr = fnr,
-                ),
-            )
-        }
+        val søknadsinnholdMedNyesteFødselsnummer = søknadInnhold.oppdaterFnr(fnr)
 
         if (fnr != innsendtFødselsnummer) {
             log.error("Ny søknad: Personen har et nyere fødselsnummer i PDL enn det som ble sendt inn. Bruker det nyeste fødselsnummeret istedet. Personoppslaget burde ha returnert det nyeste fødselsnummeret og bør sjekkes opp.")

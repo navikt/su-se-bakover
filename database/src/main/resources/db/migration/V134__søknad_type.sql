@@ -1,1 +1,0 @@
-update søknad SET søknadinnhold = '{"type":"ufore"}' || søknadinnhold::jsonb;

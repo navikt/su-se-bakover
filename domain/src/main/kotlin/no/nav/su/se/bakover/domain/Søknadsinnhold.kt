@@ -11,7 +11,7 @@ import java.time.LocalDate
 )
 @JsonSubTypes(
     JsonSubTypes.Type(value = SøknadsinnholdAlder::class, name = "alder"),
-    JsonSubTypes.Type(value = SøknadsinnholdUføre::class, name = "ufore"),
+    JsonSubTypes.Type(value = SøknadsinnholdUføre::class, name = "uføre"),
 )
 
 sealed interface SøknadInnhold {
@@ -23,6 +23,15 @@ sealed interface SøknadInnhold {
     val formue: Formue
     val forNav: ForNav
     val ektefelle: Ektefelle?
+
+    fun oppdaterFnr(fnr: Fnr) = when (this) {
+        is SøknadsinnholdAlder -> this.copy(
+            personopplysninger = personopplysninger.copy(fnr = fnr),
+        )
+        is SøknadsinnholdUføre -> this.copy(
+            personopplysninger = personopplysninger.copy(fnr = fnr),
+        )
+    }
 }
 
 data class SøknadsinnholdAlder(
@@ -69,7 +78,7 @@ data class Personopplysninger(
 
 data class OppholdstillatelseAlder(
     val eøsborger: Boolean,
-    val familieforening: Boolean
+    val familiegjenforening: Boolean
 )
 
 data class Oppholdstillatelse(

@@ -42,7 +42,7 @@ class SøknadPdfInnholdJsonTest {
                   "dagensDatoOgTidspunkt": "01.01.2021 02:02",
                   "søknadOpprettet": "01.01.2021",
                   "søknadInnhold": {
-                      "type": "ufore",
+                      "type": "uføre",
                       "uførevedtak":{
                           "harUførevedtak":true
                       },
@@ -213,7 +213,7 @@ class SøknadPdfInnholdJsonTest {
                   "dagensDatoOgTidspunkt": "01.01.2021 02:02",
                   "søknadOpprettet": "01.01.2021",
                   "søknadInnhold": {
-                      "type": "ufore",
+                      "type": "uføre",
                       "uførevedtak":{
                           "harUførevedtak":true
                       },
@@ -389,7 +389,7 @@ class SøknadPdfInnholdJsonTest {
                   "dagensDatoOgTidspunkt": "01.01.2021 02:02",
                   "søknadOpprettet": "01.01.2021",
                   "søknadInnhold": {
-                      "type": "ufore",
+                      "type": "uføre",
                       "uførevedtak":{
                           "harUførevedtak":true
                       },

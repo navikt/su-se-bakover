@@ -37,7 +37,7 @@ internal class UføresøknadJsonTest {
           "sakId": "$sakId",
           "opprettet": "$opprettetTidspunkt",
           "søknadInnhold": {
-            "type": "ufore",
+            "type": "uføre",
             "uførevedtak":{
                 "harUførevedtak":true
             },

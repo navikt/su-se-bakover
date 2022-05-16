@@ -55,7 +55,7 @@ import java.time.format.DateTimeFormatter
 )
 @JsonSubTypes(
     JsonSubTypes.Type(value = SøknadsinnholdAlderJson::class, name = "alder"),
-    JsonSubTypes.Type(value = SøknadsinnholdUføreJson::class, name = "ufore"),
+    JsonSubTypes.Type(value = SøknadsinnholdUføreJson::class, name = "uføre"),
 )
 
 sealed interface SøknadsinnholdJson {
@@ -128,11 +128,11 @@ data class SøknadsinnholdAlderJson(
         val eøsborger: Boolean,
         val familieforening: Boolean
     ) {
-        fun toOppholdstillatelseAlder() = OppholdstillatelseAlder(eøsborger = eøsborger, familieforening = familieforening)
+        fun toOppholdstillatelseAlder() = OppholdstillatelseAlder(eøsborger = eøsborger, familiegjenforening = familieforening)
 
         companion object {
             fun OppholdstillatelseAlder.toOppholdstillatelseAlderJson() =
-                OppholdstillatelseAlderJson(eøsborger = this.eøsborger, familieforening = this.familieforening)
+                OppholdstillatelseAlderJson(eøsborger = this.eøsborger, familieforening = this.familiegjenforening)
         }
     }
 

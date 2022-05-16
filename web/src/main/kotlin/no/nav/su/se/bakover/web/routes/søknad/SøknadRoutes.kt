@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.SøknadType
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
@@ -48,8 +47,12 @@ import no.nav.su.se.bakover.web.withStringParam
 import no.nav.su.se.bakover.web.withSøknadId
 import java.time.Clock
 
+internal enum class Søknadstype(val value: String) {
+    ALDER("alder"), UFØRE("ufore")
+}
+
 internal const val søknadPath = "/soknad/{type}"
-val uføresøknadPath = "/soknad/${SøknadType.UFORE.value}"
+val uføresøknadPath = "/soknad/${Søknadstype.UFØRE.value}"
 
 internal fun Route.søknadRoutes(
     søknadService: SøknadService,
@@ -59,13 +62,8 @@ internal fun Route.søknadRoutes(
 ) {
     post(søknadPath) {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
-            call.withStringParam("type") { søknadstype ->
-                Either.catch {
-                    if (søknadstype.lowercase() == SøknadType.UFORE.value || søknadstype.lowercase() == SøknadType.ALDER.value)
-                        deserialize<SøknadsinnholdJson>(call)
-                    else
-                        throw IllegalArgumentException("Ukjent søknadstype: $søknadstype")
-                }.fold(
+            call.withStringParam("type") {
+                Either.catch { deserialize<SøknadsinnholdJson>(call) }.fold(
                     ifLeft = {
                         call.application.environment.log.info(it.message, it)
                         call.svar(Feilresponser.ugyldigBody)
