@@ -4,19 +4,18 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.juni
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -25,6 +24,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -101,16 +101,6 @@ internal class GrensesnittavstemmingDataBuilderTest {
 internal val saksnummer = Saksnummer(2021)
 internal val sakId = UUID.randomUUID()
 
-internal fun lagUtbetalingLinje(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int, uføregrad: Uføregrad) = Utbetalingslinje.Ny(
-    id = UUID30.randomUUID(),
-    opprettet = fraOgMed.atStartOfDay(zoneIdOslo).toTidspunkt(),
-    fraOgMed = fraOgMed,
-    tilOgMed = tilOgMed,
-    forrigeUtbetalingslinjeId = null,
-    beløp = beløp,
-    uføregrad = uføregrad
-)
-
 internal fun lagUtbetaling(
     id: UUID30 = UUID30.randomUUID(),
     opprettet: LocalDate,
@@ -171,8 +161,8 @@ internal fun alleUtbetalinger() = listOf(
         opprettet = 1.mars(2020),
         status = Kvittering.Utbetalingsstatus.OK,
         linjer = nonEmptyListOf(
-            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 100, Uføregrad.parse(50)),
-            lagUtbetalingLinje(1.april(2020), 30.april(2020), 200, Uføregrad.parse(50)),
+            utbetalingslinje(periode = mars(2020), beløp = 100),
+            utbetalingslinje(periode = april(2020), beløp = 200),
         ),
     ),
     lagUtbetaling(
@@ -180,8 +170,8 @@ internal fun alleUtbetalinger() = listOf(
         opprettet = 1.mars(2020),
         status = Kvittering.Utbetalingsstatus.OK,
         linjer = nonEmptyListOf(
-            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 600, Uføregrad.parse(60)),
-            lagUtbetalingLinje(1.april(2020), 30.april(2020), 700, Uføregrad.parse(60)),
+            utbetalingslinje(periode = mars(2020), beløp = 600, uføregrad = 60),
+            utbetalingslinje(periode = april(2020), beløp = 700, uføregrad = 60),
         ),
     ),
     lagUtbetaling(
@@ -189,9 +179,9 @@ internal fun alleUtbetalinger() = listOf(
         opprettet = 2.mars(2020),
         status = Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
         linjer = nonEmptyListOf(
-            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 400, Uføregrad.parse(70)),
-            lagUtbetalingLinje(1.april(2020), 30.april(2020), 500, Uføregrad.parse(70)),
-            lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 500, Uføregrad.parse(75)),
+            utbetalingslinje(periode = mars(2020), beløp = 400, uføregrad = 70),
+            utbetalingslinje(periode = april(2020), beløp = 500, uføregrad = 70),
+            utbetalingslinje(periode = mai(2020), beløp = 500, uføregrad = 75),
         ),
     ),
     lagUtbetaling(
@@ -199,10 +189,10 @@ internal fun alleUtbetalinger() = listOf(
         opprettet = 1.mars(2020),
         status = Kvittering.Utbetalingsstatus.FEIL,
         linjer = nonEmptyListOf(
-            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000, Uføregrad.parse(10)),
-            lagUtbetalingLinje(1.april(2020), 30.april(2020), 2000, Uføregrad.parse(20)),
-            lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 3000, Uføregrad.parse(30)),
-            lagUtbetalingLinje(1.juni(2020), 30.juni(2020), 4000, Uføregrad.parse(50)),
+            utbetalingslinje(periode = mars(2020), beløp = 1000, uføregrad = 10),
+            utbetalingslinje(periode = april(2020), beløp = 2000, uføregrad = 20),
+            utbetalingslinje(periode = mai(2020), beløp = 3000, uføregrad = 30),
+            utbetalingslinje(periode = juni(2020), beløp = 4000, uføregrad = 50),
         ),
     ),
     lagUtbetaling(
@@ -210,7 +200,7 @@ internal fun alleUtbetalinger() = listOf(
         opprettet = 2.mars(2020),
         status = null,
         linjer = nonEmptyListOf(
-            lagUtbetalingLinje(1.januar(2020), 31.desember(2020), 5000, Uføregrad.parse(15)),
+            utbetalingslinje(periode = år(2020), beløp = 5000, uføregrad = 15),
         ),
     ),
 )

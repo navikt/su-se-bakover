@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.client.oppdrag.OppdragslinjeDefaults
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.client.oppdrag.toOppdragDate
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.OppdragForKonsistensavstemming
 
@@ -93,7 +94,10 @@ internal fun OppdragForKonsistensavstemming.toOppdragdata(): Konsistensavstemmin
                 sats = it.beløp.toBigDecimal(),
                 satstypeKode = OppdragslinjeDefaults.typeSats.value,
                 fradragTillegg = OppdragslinjeDefaults.fradragEllerTillegg.toString(),
-                brukKjoreplan = OppdragslinjeDefaults.BRUK_KJOREPLAN,
+                brukKjoreplan = when (it.kjøreplan) {
+                    Utbetalingskjøreplan.JA -> "J"
+                    Utbetalingskjøreplan.NEI -> "N"
+                },
                 utbetalesTilId = fnr.toString(),
                 attestantListe = it.attestanter.map { attestant ->
                     KonsistensavstemmingData.Attestant(attestantId = attestant.navIdent)

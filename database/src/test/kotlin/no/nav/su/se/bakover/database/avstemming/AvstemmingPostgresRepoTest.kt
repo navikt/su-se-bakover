@@ -15,6 +15,10 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.oktober
+import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -22,8 +26,6 @@ import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -363,25 +365,20 @@ internal class AvstemmingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
-            val første = Utbetalingslinje.Ny(
-                opprettet = fixedTidspunkt,
-                fraOgMed = 1.januar(2020),
-                tilOgMed = 30.april(2020),
-                forrigeUtbetalingslinjeId = null,
+            val første = no.nav.su.se.bakover.test.utbetalingslinje(
+                periode = januar(2020)..april(2020),
                 beløp = 15000,
-                uføregrad = Uføregrad.parse(50),
             )
-            val andre = Utbetalingslinje.Ny(
-                opprettet = fixedTidspunkt,
-                fraOgMed = 1.mai(2020),
-                tilOgMed = 31.desember(2020),
+            val andre = no.nav.su.se.bakover.test.utbetalingslinje(
+                periode = mai(2020)..desember(2020),
                 forrigeUtbetalingslinjeId = første.id,
                 beløp = 17000,
-                uføregrad = Uføregrad.parse(40),
+                uføregrad = 40,
             )
-            val oversendtUtbetalingMedKvittering = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
-                utbetalingslinjer = nonEmptyListOf(første, andre),
-            ).second
+            val oversendtUtbetalingMedKvittering =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+                    utbetalingslinjer = nonEmptyListOf(første, andre),
+                ).second
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = 1.januar(2020).startOfDay(),

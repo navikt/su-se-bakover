@@ -13,11 +13,11 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
@@ -72,14 +73,10 @@ internal class StansUtbetalingServiceTest {
         value = "",
     )
     private val førsteUtbetalingslinjeId = UUID30.randomUUID()
-    private val førsteUtbetalingslinje = Utbetalingslinje.Ny(
+    private val førsteUtbetalingslinje = utbetalingslinje(
         id = førsteUtbetalingslinjeId,
-        opprettet = Tidspunkt.EPOCH,
-        fraOgMed = 1.januar(2021),
-        tilOgMed = 31.desember(2021),
-        forrigeUtbetalingslinjeId = null,
+        periode = år(2021),
         beløp = 5,
-        uføregrad = Uføregrad.parse(50),
     )
     private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
         id = UUID30.randomUUID(),

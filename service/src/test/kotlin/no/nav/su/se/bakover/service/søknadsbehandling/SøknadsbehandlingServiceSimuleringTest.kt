@@ -5,9 +5,9 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
@@ -20,11 +20,10 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -38,6 +37,7 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -91,6 +91,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
                 saksbehandler = saksbehandler,
                 beregning = beregnetBehandling.beregning,
                 uføregrunnlag = emptyList(),
+                kjøreplan = Utbetalingskjøreplan.NEI,
             ),
         )
         verify(søknadsbehandlingRepoMock).lagre(expected)
@@ -143,6 +144,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
                 saksbehandler = saksbehandler,
                 beregning = beregnetBehandling.beregning,
                 uføregrunnlag = emptyList(),
+                kjøreplan = Utbetalingskjøreplan.NEI,
             ),
         )
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, utbetalingServiceMock)
@@ -192,14 +194,9 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         sakId = sakId,
         saksnummer = saksnummer,
         utbetalingslinjer = nonEmptyListOf(
-            Utbetalingslinje.Ny(
-                id = UUID30.randomUUID(),
-                opprettet = fixedTidspunkt,
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.januar(2021),
-                forrigeUtbetalingslinjeId = null,
+            utbetalingslinje(
+                periode = januar(2021),
                 beløp = 0,
-                uføregrad = Uføregrad.parse(50),
             ),
         ),
         fnr = fnr,

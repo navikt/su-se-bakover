@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
@@ -510,6 +511,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                             saksbehandler = attestant,
                             beregning = innvilgetTilAttestering.beregning,
                             uføregrunnlag = innvilgetTilAttestering.vilkårsvurderinger.uføre.grunnlag,
+                            kjøreplan = Utbetalingskjøreplan.NEI,
                         ),
                         simulering = innvilgetTilAttestering.simulering,
                     )

@@ -9,18 +9,15 @@ import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
 
 internal class UtbetalingPublisherTest {
@@ -66,15 +63,10 @@ internal class UtbetalingPublisherTest {
         saksnummer = saksnummer,
         fnr = Fnr("12345678910"),
         utbetalingslinjer = nonEmptyListOf(
-            Utbetalingslinje.Ny(
-                id = UUID30.randomUUID(),
-                opprettet = Tidspunkt.EPOCH,
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.januar(2021),
-                forrigeUtbetalingslinjeId = null,
+            utbetalingslinje(
+                periode = januar(2020),
                 beløp = 0,
-                uføregrad = Uføregrad.parse(50),
-            )
+            ),
         ),
         type = Utbetaling.UtbetalingsType.NY,
         simulering = Simulering(
@@ -83,6 +75,6 @@ internal class UtbetalingPublisherTest {
             ),
             gjelderNavn = "navn", datoBeregnet = idag(fixedClock), nettoBeløp = 0, periodeList = listOf()
         ),
-        behandler = NavIdentBruker.Saksbehandler("Z123")
+        behandler = NavIdentBruker.Saksbehandler("Z123"),
     )
 }

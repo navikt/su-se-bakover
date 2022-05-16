@@ -3,8 +3,9 @@ package no.nav.su.se.bakover.client.oppdrag.avstemming
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.mars
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
 
 internal class GrunnlagBuilderTest {
@@ -42,7 +43,7 @@ internal class GrunnlagBuilderTest {
                     opprettet = 1.mars(2020),
                     status = Kvittering.Utbetalingsstatus.OK,
                     linjer = nonEmptyListOf(
-                        lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000, Uføregrad.parse(50)),
+                        utbetalingslinje(periode = mars(2020), beløp = 1000),
                     ),
                 ),
             ),
@@ -66,14 +67,14 @@ internal class GrunnlagBuilderTest {
                     opprettet = 1.mars(2020),
                     status = Kvittering.Utbetalingsstatus.OK,
                     linjer = nonEmptyListOf(
-                        lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000, Uføregrad.parse(50)),
+                        utbetalingslinje(periode = mars(2020), beløp = 1000),
                     ),
                 ),
                 lagUtbetaling(
                     opprettet = 1.mars(2020),
                     status = Kvittering.Utbetalingsstatus.FEIL,
                     linjer = nonEmptyListOf(
-                        lagUtbetalingLinje(1.mars(2020), 31.mars(2020), -1000, Uføregrad.parse(50)),
+                        utbetalingslinje(periode = mars(2020), beløp = -1000, uføregrad = 100),
                     ),
                 ),
             ),

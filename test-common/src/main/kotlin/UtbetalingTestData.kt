@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
@@ -34,15 +35,22 @@ val avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt)
 val utbetalingsRequest = Utbetalingsrequest("<xml></xml>")
 
 fun utbetalingslinje(
+    id: UUID30 = UUID30.randomUUID(),
     periode: Periode = år(2021),
     clock: Clock = fixedClock,
+    beløp: Int = 15000,
+    forrigeUtbetalingslinjeId: UUID30? = null,
+    uføregrad: Int = 50,
+    kjøreplan: Utbetalingskjøreplan = Utbetalingskjøreplan.NEI,
 ) = Utbetalingslinje.Ny(
+    id = id,
     opprettet = Tidspunkt.now(clock),
     fraOgMed = periode.fraOgMed,
     tilOgMed = periode.tilOgMed,
-    forrigeUtbetalingslinjeId = null,
-    beløp = 15000,
-    uføregrad = Uføregrad.parse(50),
+    forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
+    beløp = beløp,
+    uføregrad = Uføregrad.parse(uføregrad),
+    kjøreplan = kjøreplan,
 )
 
 fun nyUtbetalingForSimulering(
@@ -67,6 +75,7 @@ fun nyUtbetalingForSimulering(
                     vilkår.uføre.grunnlag
                 }
             },
+            kjøreplan = Utbetalingskjøreplan.NEI,
         ).generate()
     }
 }

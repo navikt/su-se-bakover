@@ -5,9 +5,13 @@ import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 
-// Ref: https://github.com/navikt/tjenestespesifikasjoner/blob/master/nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon/src/main/xsd/no/trygdeetaten/skjema/oppdrag/oppdragskjema-1.xsd
+/**
+ * Se også: https://github.com/navikt/tjenestespesifikasjoner/blob/master/nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon/src/main/xsd/no/trygdeetaten/skjema/oppdrag/oppdragskjema-1.xsd
+ * Se også: https://confluence.adeo.no/display/OKSY/Inputdata+fra+fagrutinen+til+Oppdragssystemet
+ */
 @JacksonXmlRootElement(localName = "Oppdrag")
 data class UtbetalingRequest(
     @field:JacksonXmlProperty(localName = "oppdrag-110")
@@ -56,6 +60,7 @@ data class UtbetalingRequest(
 
     enum class KodeAksjon(@JsonValue val value: Int) {
         UTBETALING(1),
+        @Suppress("unused")
         SIMULERING(3);
 
         override fun toString() = value.toString()
@@ -64,16 +69,21 @@ data class UtbetalingRequest(
     enum class KodeEndring(@JsonValue val value: String) {
         NY("NY"),
         ENDRING("ENDR"),
+        @Suppress("unused")
         UENDRET("UEND");
 
         override fun toString() = value
     }
 
     enum class Utbetalingsfrekvens(@JsonValue val value: String) {
+        @Suppress("unused")
         DAG("DAG"),
+        @Suppress("unused")
         UKE("UKE"),
         MND("MND"),
+        @Suppress("unused")
         FJORTEN_DAGER("14DG"),
+        @Suppress("unused")
         ENGANGSUTBETALING("ENG");
 
         override fun toString() = value
@@ -138,7 +148,7 @@ data class UtbetalingRequest(
         val fradragTillegg: FradragTillegg,
         val typeSats: TypeSats,
         /** Lengde 1 tegn */
-        val brukKjoreplan: String,
+        val brukKjoreplan: Kjøreplan,
         /** saksbehandlerId - Makslengde 8 tegn */
         val saksbehId: String,
         /** Fødselsnummer eller Organisasjonsnummer [9,11] tegn */
@@ -194,16 +204,25 @@ data class UtbetalingRequest(
                         is Utbetalingslinje.Ny -> NY
                     }
                 }
+
+                internal fun Utbetalingslinje.tilKjøreplan(): Kjøreplan {
+                    return when (this.kjøreplan) {
+                        Utbetalingskjøreplan.JA -> Kjøreplan.JA
+                        Utbetalingskjøreplan.NEI -> Kjøreplan.NEI
+                    }
+                }
             }
         }
 
         enum class FradragTillegg(@JsonValue val value: String) {
+            @Suppress("unused")
             FRADRAG("F"),
             TILLEGG("T");
 
             override fun toString() = value
         }
 
+        @Suppress("unused")
         enum class TypeSats(@JsonValue val value: String) {
             DAG("DAG"),
             UKE("UKE"),
@@ -231,5 +250,19 @@ data class UtbetalingRequest(
             /** [1,8] tegn */
             val attestantId: String,
         )
+
+        /**
+         * Fra doc: Bruk-kjoreplan gjør det mulig å velge om delytelsen skal beregnes/utbetales i henhold til kjøreplanen eller om dette skal skje idag.
+         * Verdien 'N' medfører at beregningen kjøres idag. Beregningen vil bare gjelde beregningsperioder som allerede er forfalt.
+         *
+         * - JA: Dersom man ønsker å utbetale ved neste oppsatte kjøreplan (typisk rundt den 20. for Supplerende Stønad). Et eksempel når dette ønskes er i forbindelse med etterbetaling av regulering.
+         * - NEI: Dersom man ønsker å utbetale etterbetalinger snarest. Dette er Supplerende Stønad sin default.
+         */
+        enum class Kjøreplan(@JsonValue val value: String) {
+            JA("J"),
+            NEI("N");
+
+            override fun toString() = value
+        }
     }
 }

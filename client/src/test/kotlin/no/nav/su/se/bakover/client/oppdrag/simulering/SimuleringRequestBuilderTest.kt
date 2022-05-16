@@ -141,7 +141,7 @@ internal class SimuleringRequestBuilderTest {
         kodeKlassifik shouldBe oppdragslinje.kodeKlassifik
         fradragTillegg.value() shouldBe oppdragslinje.fradragTillegg.value
         saksbehId shouldBe oppdragslinje.saksbehId
-        brukKjoreplan shouldBe oppdragslinje.brukKjoreplan
+        brukKjoreplan shouldBe oppdragslinje.brukKjoreplan.value
         attestant[0].attestantId shouldBe oppdragslinje.saksbehId
         kodeStatusLinje?.value() shouldBe oppdragslinje.kodeStatusLinje?.value
         datoStatusFom shouldBe oppdragslinje.datoStatusFom

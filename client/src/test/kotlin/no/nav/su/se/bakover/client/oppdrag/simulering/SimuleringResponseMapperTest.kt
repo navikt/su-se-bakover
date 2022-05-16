@@ -5,16 +5,13 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -27,6 +24,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.utbetalingslinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -52,15 +50,7 @@ internal class SimuleringResponseMapperTest {
             fnr = fnr,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
-                    utbetalingslinje = Utbetalingslinje.Ny(
-                        id = UUID30.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        fraOgMed = 1.januar(2021),
-                        tilOgMed = 31.desember(2021),
-                        forrigeUtbetalingslinjeId = null,
-                        beløp = 5000,
-                        uføregrad = Uføregrad.parse(50),
-                    ),
+                    utbetalingslinje = utbetalingslinje(),
                     virkningstidspunkt = 1.mai(2021),
                     clock = Clock.systemUTC(),
                 ),

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -102,6 +103,7 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
         forrigeUtbetalingslinjeId = stringOrNull("forrigeUtbetalingslinjeId")?.let { uuid30("forrigeUtbetalingslinjeId") },
         beløp = int("beløp"),
         uføregrad = intOrNull("uføregrad")?.let { Uføregrad.parse(it) },
+        kjøreplan = toKjøreplan(),
     )
 
     return if (status != null && statusFraOgMed != null) {
@@ -116,6 +118,7 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
                     beløp = linje.beløp,
                     virkningstidspunkt = statusFraOgMed,
                     uføregrad = linje.uføregrad,
+                    kjøreplan = toKjøreplan(),
                 )
             }
             Utbetalingslinje.Endring.LinjeStatus.STANS -> {
@@ -128,6 +131,7 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
                     beløp = linje.beløp,
                     virkningstidspunkt = statusFraOgMed,
                     uføregrad = linje.uføregrad,
+                    kjøreplan = toKjøreplan(),
                 )
             }
             Utbetalingslinje.Endring.LinjeStatus.REAKTIVERING -> {
@@ -140,10 +144,16 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
                     beløp = linje.beløp,
                     virkningstidspunkt = statusFraOgMed,
                     uføregrad = linje.uføregrad,
+                    kjøreplan = toKjøreplan(),
                 )
             }
         }
     } else {
         linje
     }
+}
+
+private fun Row.toKjøreplan() = when (boolean("kjøreplan")) {
+    true -> Utbetalingskjøreplan.JA
+    false -> Utbetalingskjøreplan.NEI
 }
