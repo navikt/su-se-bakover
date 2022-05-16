@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.service.ServiceBuilder
-import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.satsFactoryTest
@@ -60,7 +59,6 @@ internal class SakRoutesKtTest {
         clock = fixedClock,
         unleash = FakeUnleash().apply { enableAll() },
         satsFactory = satsFactoryTest,
-        beregningStrategyFactory = beregningStrategyFactoryTest(),
     )
 
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()

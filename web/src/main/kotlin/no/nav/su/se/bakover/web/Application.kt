@@ -36,7 +36,6 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
@@ -92,10 +91,6 @@ fun Application.susebakover(
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     unleash: Unleash = UnleashBuilder.build(applicationConfig),
     satsFactory: SatsFactory = SatsFactoryForSupplerendeStønad(),
-    beregningStrategyFactory: BeregningStrategyFactory = BeregningStrategyFactory(
-        clock = clock,
-        satsFactory = satsFactory,
-    ),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(
         databaseConfig = applicationConfig.database,
         dbMetrics = DbMicrometerMetrics(),
@@ -123,7 +118,6 @@ fun Application.susebakover(
         clock = clock,
         unleash = unleash,
         satsFactory = satsFactory,
-        beregningStrategyFactory = beregningStrategyFactory,
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
 ) {

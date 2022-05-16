@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attesteringUnderkjent
-import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -73,7 +72,7 @@ internal class StatusovergangTest {
             begrunnelse = null,
             clock = fixedClock,
             formuegrenserFactory = formuegrenserFactoryTest,
-            beregningStrategyFactory = beregningStrategyFactoryTest(),
+            satsFactory = satsFactoryTest,
         ).getOrFail() as Søknadsbehandling.Beregnet.Innvilget
 
     private val beregnetAvslag: Søknadsbehandling.Beregnet.Avslag =
@@ -85,7 +84,7 @@ internal class StatusovergangTest {
             begrunnelse = null,
             clock = fixedClock,
             formuegrenserFactory = formuegrenserFactoryTest,
-            beregningStrategyFactory = beregningStrategyFactoryTest(),
+            satsFactory = satsFactoryTest,
         ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
 
     private val simulert: Søknadsbehandling.Simulert =
@@ -447,7 +446,7 @@ internal class StatusovergangTest {
                 begrunnelse = null,
                 clock = fixedClock,
                 formuegrenserFactory = formuegrenserFactoryTest,
-                beregningStrategyFactory = beregningStrategyFactoryTest(),
+                satsFactory = satsFactoryTest,
             ).getOrFail() shouldBe beregnetInnvilget
         }
 
@@ -457,7 +456,7 @@ internal class StatusovergangTest {
                 begrunnelse = null,
                 clock = fixedClock,
                 formuegrenserFactory = formuegrenserFactoryTest,
-                beregningStrategyFactory = beregningStrategyFactoryTest(),
+                satsFactory = satsFactoryTest,
             ).getOrFail() shouldBe beregnetInnvilget
         }
 
@@ -467,7 +466,7 @@ internal class StatusovergangTest {
                 begrunnelse = null,
                 clock = fixedClock,
                 formuegrenserFactory = formuegrenserFactoryTest,
-                beregningStrategyFactory = beregningStrategyFactoryTest(),
+                satsFactory = satsFactoryTest,
             ).getOrFail() shouldBe beregnetAvslag
         }
 
@@ -477,7 +476,7 @@ internal class StatusovergangTest {
                 begrunnelse = null,
                 clock = fixedClock,
                 formuegrenserFactory = formuegrenserFactoryTest,
-                beregningStrategyFactory = beregningStrategyFactoryTest(),
+                satsFactory = satsFactoryTest,
             ).getOrFail() shouldBe beregnetInnvilget
         }
 
@@ -487,7 +486,7 @@ internal class StatusovergangTest {
                 begrunnelse = null,
                 clock = fixedClock,
                 formuegrenserFactory = formuegrenserFactoryTest,
-                beregningStrategyFactory = beregningStrategyFactoryTest(),
+                satsFactory = satsFactoryTest,
             ).getOrFail() shouldBe beregnetAvslag
                 .medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
                 .copy(attesteringer = Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
@@ -499,7 +498,7 @@ internal class StatusovergangTest {
                 begrunnelse = null,
                 clock = fixedClock,
                 formuegrenserFactory = formuegrenserFactoryTest,
-                beregningStrategyFactory = beregningStrategyFactoryTest(),
+                satsFactory = satsFactoryTest,
             ).getOrFail() shouldBe beregnetInnvilget
                 .medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
                 .copy(attesteringer = Attesteringshistorikk.create(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
@@ -523,7 +522,7 @@ internal class StatusovergangTest {
                     begrunnelse = null,
                     clock = fixedClock,
                     formuegrenserFactory = formuegrenserFactoryTest,
-                    beregningStrategyFactory = beregningStrategyFactoryTest(),
+                    satsFactory = satsFactoryTest,
                 ) shouldBe Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand(it::class).left()
             }
         }

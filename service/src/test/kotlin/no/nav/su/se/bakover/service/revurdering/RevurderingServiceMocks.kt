@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
@@ -17,10 +18,10 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
-import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTest
 import org.mockito.kotlin.mock
 import java.time.Clock
 
@@ -41,7 +42,8 @@ internal data class RevurderingServiceMocks(
     val observer: EventObserver = mock(),
     val toggleService: ToggleService = mock(),
     val clock: Clock = fixedClock,
-    val tilbakekrevingService: TilbakekrevingService = defaultMock()
+    val tilbakekrevingService: TilbakekrevingService = defaultMock(),
+    val satsFactory: SatsFactory = satsFactoryTest,
 ) {
     val revurderingService = RevurderingServiceImpl(
         utbetalingService = utbetalingService,
@@ -53,14 +55,14 @@ internal data class RevurderingServiceMocks(
         clock = clock,
         vedtakRepo = vedtakRepo,
         vedtakService = vedtakService,
-        sakService = sakService,
         kontrollsamtaleService = kontrollsamtaleService,
         sessionFactory = sessionFactory,
+        formuegrenserFactory = formuegrenserFactoryTest,
+        sakService = sakService,
         avkortingsvarselRepo = avkortingsvarselRepo,
         toggleService = toggleService,
         tilbakekrevingService = tilbakekrevingService,
-        formuegrenserFactory = formuegrenserFactoryTest,
-        beregningStrategyFactory = beregningStrategyFactoryTest(),
+        satsFactory = satsFactory,
     ).apply { addObserver(observer) }
 
     fun all() = listOf(

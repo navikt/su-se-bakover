@@ -50,7 +50,6 @@ import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
-import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.satsFactoryTest
@@ -219,7 +218,6 @@ internal class SøknadRoutesKtTest {
                 clock = fixedClock,
                 unleash = mock(),
                 satsFactory = satsFactoryTest,
-                beregningStrategyFactory = beregningStrategyFactoryTest(),
             )
 
             testApplication {

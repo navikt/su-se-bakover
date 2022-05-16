@@ -37,7 +37,6 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.beregning
-import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -492,11 +491,10 @@ internal class ReguleringServiceImplTest {
                 on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn testData.second.right()
             },
             sessionFactory = TestSessionFactory(),
+            clock = fixedClock,
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
-            clock = fixedClock,
-            beregningStrategyFactory = beregningStrategyFactoryTest(),
             satsFactory = satsFactoryTest,
         )
     }

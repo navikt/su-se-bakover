@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.service.kontrollsamtale.OpprettPlanlagtKontrollsamta
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.avkortingsvarselUtenlandsopphold
-import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -38,6 +37,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.kontrollsamtale
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simuleringNy
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
@@ -115,7 +115,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                beregningStrategyFactory = beregningStrategyFactoryTest(),
+                satsFactory = satsFactoryTest,
                 formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail().let {
                 it.tilSimulert(simuleringNy(it.beregning))

@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -33,7 +32,6 @@ import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.behandlingsinformasjonAlleVilkårInnvilget
 import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.satsFactoryTest
@@ -165,7 +163,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 .beregn(
                     begrunnelse = null,
                     clock = fixedClock,
-                    beregningStrategyFactory = BeregningStrategyFactory(testDataHelper.clock, testDataHelper.satsFactory),
+                    satsFactory = testDataHelper.satsFactory,
                     formuegrenserFactory = testDataHelper.satsFactory.formuegrenserFactory,
                 ).getOrFail()
                 .also {

@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -56,6 +55,7 @@ import no.nav.su.se.bakover.domain.revurdering.VurderOmVilkårGirOpphørVedRevur
 import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.harSendtForhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -95,11 +95,11 @@ internal class RevurderingServiceImpl(
     private val kontrollsamtaleService: KontrollsamtaleService,
     private val sessionFactory: SessionFactory,
     private val formuegrenserFactory: FormuegrenserFactory,
-    private val beregningStrategyFactory: BeregningStrategyFactory,
     sakService: SakService,
     private val avkortingsvarselRepo: AvkortingsvarselRepo,
     private val toggleService: ToggleService,
     private val tilbakekrevingService: TilbakekrevingService,
+    private val satsFactory: SatsFactory,
 ) : RevurderingService {
     private val stansAvYtelseService = StansAvYtelseService(
         utbetalingService = utbetalingService,
@@ -656,7 +656,7 @@ internal class RevurderingServiceImpl(
                     eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                     clock = clock,
                     gjeldendeVedtaksdata = gjeldendeVedtaksdata,
-                    beregningStrategyFactory = beregningStrategyFactory,
+                    satsFactory = satsFactory,
                 ).getOrHandle {
                     return when (it) {
                         is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> {

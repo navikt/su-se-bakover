@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -247,10 +246,7 @@ fun beregnetRevurdering(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
-            beregningStrategyFactory = BeregningStrategyFactory(
-                clock = clock,
-                satsFactory = satsFactoryTest,
-            ),
+            satsFactory = satsFactoryTest,
         ).getOrFail()
 
         sak.copy(
@@ -633,10 +629,7 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
-            beregningStrategyFactory = BeregningStrategyFactory(
-                clock = clock,
-                satsFactory = satsFactoryTest,
-            ),
+            satsFactory = satsFactoryTest,
         ).getOrFail() as BeregnetRevurdering.Innvilget
         Pair(
             sak.copy(
@@ -719,10 +712,7 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
-            beregningStrategyFactory = BeregningStrategyFactory(
-                clock = clock,
-                satsFactory = satsFactoryTest,
-            ),
+            satsFactory = satsFactoryTest,
         ).getOrFail() as BeregnetRevurdering.IngenEndring
         Pair(
             sak.copy(
@@ -772,10 +762,7 @@ fun beregnetRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
-            beregningStrategyFactory = BeregningStrategyFactory(
-                clock = clock,
-                satsFactory = satsFactoryTest,
-            ),
+            satsFactory = satsFactoryTest,
         ).getOrFail() as BeregnetRevurdering.Opphørt
         Pair(
             sak.copy(
@@ -832,10 +819,7 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
-            beregningStrategyFactory = BeregningStrategyFactory(
-                clock = clock,
-                satsFactory = satsFactoryTest,
-            ),
+            satsFactory = satsFactoryTest,
         ).getOrFail() as BeregnetRevurdering.Opphørt
         Pair(
             sak.copy(

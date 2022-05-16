@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -113,7 +112,7 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.beregn(
             begrunnelse = null,
             clock = fixedClock,
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            satsFactory = satsFactoryTest,
             formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail()
             .tilSimulert(simulering)
@@ -290,7 +289,7 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.beregn(
             begrunnelse = null,
             clock = fixedClock,
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            satsFactory = satsFactoryTest,
             formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail()
             .let { søknadsbehandling ->
@@ -336,7 +335,7 @@ internal class LagBrevRequestVisitorTest {
         ).getOrFail().beregn(
             begrunnelse = null,
             clock = fixedClock,
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            satsFactory = satsFactoryTest,
             formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail().let { søknadsbehandling ->
             LagBrevRequestVisitor(
@@ -373,7 +372,7 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.beregn(
             begrunnelse = null,
             clock = fixedClock,
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            satsFactory = satsFactoryTest,
             formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail()
             .tilSimulert(simulering).let { søknadsbehandling ->
@@ -467,7 +466,7 @@ internal class LagBrevRequestVisitorTest {
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
                 formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
@@ -507,7 +506,7 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.beregn(
             begrunnelse = null,
             clock = fixedClock,
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            satsFactory = satsFactoryTest,
             formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail()
             .tilSimulert(simulering)
@@ -604,7 +603,7 @@ internal class LagBrevRequestVisitorTest {
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
                 formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
@@ -653,7 +652,7 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.beregn(
             begrunnelse = null,
             clock = fixedClock,
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            satsFactory = satsFactoryTest,
             formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail()
             .tilSimulert(simulering)
@@ -754,7 +753,7 @@ internal class LagBrevRequestVisitorTest {
                 .beregn(
                     begrunnelse = null,
                     clock = fixedClock,
-                    beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                    satsFactory = satsFactoryTest,
                     formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
@@ -797,7 +796,7 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.beregn(
             begrunnelse = null,
             clock = fixedClock,
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            satsFactory = satsFactoryTest,
             formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail()
             .tilSimulert(simulering)
@@ -834,7 +833,7 @@ internal class LagBrevRequestVisitorTest {
             .beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
                 formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail()
             .tilSimulert(simulering)
@@ -894,7 +893,7 @@ internal class LagBrevRequestVisitorTest {
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
                 formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
@@ -1088,7 +1087,7 @@ internal class LagBrevRequestVisitorTest {
             vilkårsvurdertInnvilget.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
                 formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail()
                 .tilSimulert(simulering)
@@ -1177,7 +1176,7 @@ internal class LagBrevRequestVisitorTest {
                 .beregn(
                     begrunnelse = null,
                     clock = fixedClock,
-                    beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                    satsFactory = satsFactoryTest,
                     formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail()
                 .tilSimulert(simulering)
@@ -1352,7 +1351,7 @@ internal class LagBrevRequestVisitorTest {
                 fraOgMed = revurdering.periode.fraOgMed,
                 clock = fixedClock,
             ).getOrFail(),
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+            satsFactory = satsFactoryTest,
         ).getOrFail().let {
             (it as BeregnetRevurdering.Opphørt).toSimulert(
                 { sakId, _, opphørsdato ->
@@ -1424,7 +1423,7 @@ internal class LagBrevRequestVisitorTest {
             vilkårsvurdertInnvilget.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
                 formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail()
                 .tilSimulert(simulering)

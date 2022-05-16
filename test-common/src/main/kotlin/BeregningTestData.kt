@@ -12,22 +12,11 @@ import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.satser.SatsFactory
-import java.time.Clock
-
-fun beregningStrategyFactoryTest(
-    clock: Clock = fixedClock,
-    satsFactory: SatsFactory = satsFactoryTest,
-) = BeregningStrategyFactory(
-    clock = clock,
-    satsFactory = satsFactory,
-)
 
 /**
  * forventet inntekt 1 000 000

@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
-import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.web.SharedRegressionTestData
@@ -47,8 +46,7 @@ class AppComponents private constructor(
                 søknadMetrics = mock(),
                 clock = clock,
                 unleash = unleash,
-                satsFactory = satsFactoryTest,
-                beregningStrategyFactory = beregningStrategyFactoryTest(clock)
+                satsFactory = satsFactoryTest
             )
             val accessCheckProxy = AccessCheckProxy(
                 personRepo = databaseRepos.person,
@@ -82,12 +80,12 @@ internal fun withKomptestApplication(
 private fun Application.testSusebakover(appComponents: AppComponents) {
     return susebakover(
         clock = appComponents.clock,
+        applicationConfig = SharedRegressionTestData.applicationConfig,
+        unleash = appComponents.unleash,
         databaseRepos = appComponents.databaseRepos,
         clients = appComponents.clients,
         services = appComponents.services,
-        unleash = appComponents.unleash,
         accessCheckProxy = appComponents.accessCheckProxy,
-        applicationConfig = SharedRegressionTestData.applicationConfig,
     )
 }
 

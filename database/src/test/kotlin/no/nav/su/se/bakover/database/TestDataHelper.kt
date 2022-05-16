@@ -55,7 +55,6 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -758,8 +757,9 @@ internal class TestDataHelper(
     fun persisterReguleringIverksatt() =
         persisterReguleringOpprettet().let {
             it.beregn(
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactory),
+                satsFactory = satsFactory,
                 begrunnelse = "Begrunnelse",
+                clock = clock,
             ).getOrFail()
                 .simuler { simulertUtbetaling().right() }
                 .getOrFail().tilIverksatt()
@@ -812,7 +812,7 @@ internal class TestDataHelper(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
             gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(stønadsperiode2021),
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactory),
+            satsFactory = satsFactory,
         ).getOrHandle {
             throw IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -840,7 +840,7 @@ internal class TestDataHelper(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
             gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(stønadsperiode2021),
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactory),
+            satsFactory = satsFactory,
         ).getOrHandle {
             throw IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -863,7 +863,7 @@ internal class TestDataHelper(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
             gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(stønadsperiode2021),
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactory),
+            satsFactory = satsFactory,
         ).getOrHandle {
             throw IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -1286,7 +1286,7 @@ internal class TestDataHelper(
         ).second.beregn(
             begrunnelse = null,
             clock = fixedClock,
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactory),
+            satsFactory = satsFactory,
             formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail().let {
             søknadsbehandlingRepo.lagre(it)
@@ -1318,7 +1318,7 @@ internal class TestDataHelper(
         ).second.beregn(
             begrunnelse = null,
             clock = fixedClock,
-            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactory),
+            satsFactory = satsFactory,
             formuegrenserFactory = formuegrenserFactoryTest,
         ).getOrFail().let {
             søknadsbehandlingRepo.lagre(it as Søknadsbehandling.Beregnet.Avslag)

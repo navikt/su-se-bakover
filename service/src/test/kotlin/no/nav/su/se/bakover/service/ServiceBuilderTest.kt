@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
-import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.satsFactoryTest
 import org.junit.jupiter.api.Test
@@ -63,7 +62,6 @@ internal class ServiceBuilderTest {
             clock = Clock.systemUTC(),
             unleash = mock(),
             satsFactory = satsFactoryTest,
-            beregningStrategyFactory = beregningStrategyFactoryTest(),
         ).let {
             (it.sak as SakServiceImpl).observers shouldContain it.statistikk
             (it.søknadsbehandling as SøknadsbehandlingServiceImpl).getObservers() shouldContain it.statistikk

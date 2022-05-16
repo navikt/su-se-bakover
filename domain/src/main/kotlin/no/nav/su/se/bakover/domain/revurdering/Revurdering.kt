@@ -47,6 +47,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandl
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.tilbakekrevingErVurdert
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.beregning.BeregnRevurderingStrategyDecider
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
@@ -392,13 +393,16 @@ sealed class Revurdering :
         eksisterendeUtbetalinger: List<Utbetaling>,
         clock: Clock,
         gjeldendeVedtaksdata: GjeldendeVedtaksdata,
-        beregningStrategyFactory: BeregningStrategyFactory,
+        satsFactory: SatsFactory,
     ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         val (revurdering, beregning) = BeregnRevurderingStrategyDecider(
             revurdering = this,
             gjeldendeVedtaksdata = gjeldendeVedtaksdata,
             clock = clock,
-            beregningStrategyFactory = beregningStrategyFactory,
+            beregningStrategyFactory = BeregningStrategyFactory(
+                clock = clock,
+                satsFactory = satsFactory
+            ),
         ).decide().beregn().getOrHandle { return it.left() }
 
         fun opphør(revurdering: OpprettetRevurdering, revurdertBeregning: Beregning): BeregnetRevurdering.Opphørt =
@@ -1597,7 +1601,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         eksisterendeUtbetalinger: List<Utbetaling>,
         clock: Clock,
         gjeldendeVedtaksdata: GjeldendeVedtaksdata,
-        beregningStrategyFactory: BeregningStrategyFactory
+        satsFactory: SatsFactory
     ) = throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
 
     sealed class KunneIkkeIverksetteRevurdering {
@@ -1802,7 +1806,7 @@ sealed class IverksattRevurdering : Revurdering() {
         eksisterendeUtbetalinger: List<Utbetaling>,
         clock: Clock,
         gjeldendeVedtaksdata: GjeldendeVedtaksdata,
-        beregningStrategyFactory: BeregningStrategyFactory,
+        satsFactory: SatsFactory,
     ) = throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
 }
 

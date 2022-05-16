@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -33,7 +34,8 @@ import java.time.Clock
 import java.util.UUID
 import kotlin.reflect.KClass
 
-fun Regulering.inneholderAvslag(): Boolean = this.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.resultat is Vilkårsvurderingsresultat.Avslag
+fun Regulering.inneholderAvslag(): Boolean =
+    this.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.resultat is Vilkårsvurderingsresultat.Avslag
 
 interface Reguleringsfelter : Behandling {
     val beregning: Beregning?
@@ -42,6 +44,7 @@ interface Reguleringsfelter : Behandling {
     val reguleringstype: Reguleringstype
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger
 }
+
 sealed interface Regulering : Reguleringsfelter {
 
     /**
@@ -143,6 +146,7 @@ sealed interface Regulering : Reguleringsfelter {
                     vilkårsvurderinger = vilkårsvurderinger,
                 ),
             )
+
         fun leggTilUføre(uføregrunnlag: List<Grunnlag.Uføregrunnlag>, clock: Clock): OpprettetRegulering =
             this.copy(
                 grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
@@ -158,7 +162,7 @@ sealed interface Regulering : Reguleringsfelter {
                                         vurderingsperiode = it.periode,
                                         begrunnelse = null,
                                     ).getOrHandle { throw RuntimeException("$it") }
-                                }
+                                },
                             ),
                         ).getOrHandle { throw RuntimeException("$it") },
                         formue = vilkårsvurderinger.formue,
@@ -166,24 +170,26 @@ sealed interface Regulering : Reguleringsfelter {
                     ),
                 ),
             )
+
         fun leggTilSaksbehandler(saksbehandler: NavIdentBruker.Saksbehandler): OpprettetRegulering =
             this.copy(
                 saksbehandler = saksbehandler,
             )
 
         fun beregn(
-            beregningStrategyFactory: BeregningStrategyFactory,
-            begrunnelse: String? =
-                null
+            satsFactory: SatsFactory,
+            begrunnelse: String? = null,
+            clock: Clock,
         ): Either<KunneIkkeBeregne, OpprettetRegulering> {
             return this.gjørBeregning(
+                satsFactory = satsFactory,
                 begrunnelse = begrunnelse,
-                beregningStrategyFactory = beregningStrategyFactory,
+                clock = clock,
             ).map { this.copy(beregning = it) }
         }
 
         fun simuler(
-            callback: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
+            callback: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
         ): Either<KunneIkkeSimulere, OpprettetRegulering> {
             if (beregning == null) {
                 return KunneIkkeSimulere.FantIngenBeregning.left()
@@ -204,19 +210,26 @@ sealed interface Regulering : Reguleringsfelter {
         fun avslutt(clock: Clock): AvsluttetRegulering {
             return AvsluttetRegulering(
                 opprettetRegulering = this,
-                avsluttetTidspunkt = Tidspunkt.now(clock)
+                avsluttetTidspunkt = Tidspunkt.now(clock),
             )
         }
 
-        fun tilIverksatt(): IverksattRegulering = IverksattRegulering(opprettetRegulering = this, beregning!!, simulering!!)
+        fun tilIverksatt(): IverksattRegulering =
+            IverksattRegulering(opprettetRegulering = this, beregning!!, simulering!!)
 
         private fun gjørBeregning(
+            satsFactory: SatsFactory,
             begrunnelse: String?,
-            beregningStrategyFactory: BeregningStrategyFactory,
+            clock: Clock,
         ): Either<KunneIkkeBeregne.BeregningFeilet, Beregning> {
             return Either.catch {
-                beregningStrategyFactory.beregn(this, begrunnelse)
-            }.mapLeft { KunneIkkeBeregne.BeregningFeilet(feil = it) }
+                BeregningStrategyFactory(
+                    clock = clock,
+                    satsFactory = satsFactory,
+                ).beregn(this, begrunnelse)
+            }.mapLeft {
+                KunneIkkeBeregne.BeregningFeilet(feil = it)
+            }
         }
     }
 
@@ -224,7 +237,7 @@ sealed interface Regulering : Reguleringsfelter {
         /**
          * Denne er gjort public pga å gjøre den testbar fra databasen siden vi må kunne gjøre den persistert
          */
-        val opprettetRegulering: OpprettetRegulering,
+        val opprettetRegulering: Regulering.OpprettetRegulering,
         override val beregning: Beregning,
         override val simulering: Simulering,
     ) : Regulering, Reguleringsfelter by opprettetRegulering {
@@ -232,8 +245,8 @@ sealed interface Regulering : Reguleringsfelter {
     }
 
     data class AvsluttetRegulering(
-        val opprettetRegulering: OpprettetRegulering,
-        val avsluttetTidspunkt: Tidspunkt
+        val opprettetRegulering: Regulering.OpprettetRegulering,
+        val avsluttetTidspunkt: Tidspunkt,
     ) : Regulering by opprettetRegulering {
         override val erFerdigstilt = true
     }

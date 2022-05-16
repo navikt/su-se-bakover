@@ -38,7 +38,6 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -121,10 +120,6 @@ internal class SøknadsbehandlingRoutesKtTest {
             clock = fixedClock,
             unleash = mock(),
             satsFactory = satsFactory,
-            beregningStrategyFactory = BeregningStrategyFactory(
-                clock = fixedClock,
-                satsFactory = satsFactory,
-            ),
         )
 
     @Nested
@@ -182,8 +177,8 @@ internal class SøknadsbehandlingRoutesKtTest {
             testApplication {
                 application {
                     testSusebakover(
-                        services = services,
                         databaseRepos = repos,
+                        services = services,
                     )
                 }
                 val objects = setupMedAlleVilkårOppfylt(services, repos)
@@ -242,9 +237,9 @@ internal class SøknadsbehandlingRoutesKtTest {
             testApplication {
                 application {
                     testSusebakover(
+                        databaseRepos = repos,
                         clients = clients,
                         services = services,
-                        databaseRepos = repos,
                     )
                 }
                 val objects = setupMedAlleVilkårOppfylt(services, repos)
@@ -281,8 +276,8 @@ internal class SøknadsbehandlingRoutesKtTest {
             testApplication {
                 application {
                     testSusebakover(
-                        services = services,
                         databaseRepos = repos,
+                        services = services,
                     )
                 }
                 val uavklartVilkårsvurdertSøknadsbehandling = setup(services, repos)
@@ -343,8 +338,8 @@ internal class SøknadsbehandlingRoutesKtTest {
             testApplication {
                 application {
                     testSusebakover(
-                        services = services,
                         databaseRepos = repos,
+                        services = services,
                     )
                 }
                 val objects = setupMedAlleVilkårOppfylt(services, repos, epsFnr = Fnr("12345678910"))
@@ -706,7 +701,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 val services = services(repos)
                 withFerdigbehandletSakForBruker(services, repos) { objects ->
                     testApplication {
-                        application { testSusebakover(services = services, databaseRepos = repos) }
+                        application { testSusebakover(databaseRepos = repos, services = services) }
                         client.patch("$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn") {
                             header(
                                 HttpHeaders.Authorization,
@@ -779,9 +774,9 @@ internal class SøknadsbehandlingRoutesKtTest {
                 testApplication {
                     application {
                         testSusebakover(
+                            databaseRepos = repos,
                             clients = clients,
                             services = services,
-                            databaseRepos = repos,
                         )
                     }
                     val objects = setupMedAlleVilkårOppfylt(services, repos)
@@ -1009,9 +1004,9 @@ internal class SøknadsbehandlingRoutesKtTest {
         testApplication {
             application {
                 testSusebakover(
+                    databaseRepos = repos,
                     clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig),
                     services = services,
-                    databaseRepos = repos,
                 )
             }
             val objects = setupMedAlleVilkårOppfylt(services, repos)

@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.grunnlag.fjernFradragForEPSHvisEnslig
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.Vilkårsvurdert.Companion.opprett
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
@@ -218,7 +219,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     open fun beregn(
         begrunnelse: String?,
         clock: Clock,
-        beregningStrategyFactory: BeregningStrategyFactory,
+        satsFactory: SatsFactory,
         formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeBeregne, Beregnet> {
         return KunneIkkeBeregne.UgyldigTilstand(this::class).left()
@@ -664,14 +665,17 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun beregn(
                 begrunnelse: String?,
                 clock: Clock,
-                beregningStrategyFactory: BeregningStrategyFactory,
+                satsFactory: SatsFactory,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeBeregne, Beregnet> {
                 return beregnInternal(
                     søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock, formuegrenserFactory),
                     begrunnelse = begrunnelse,
                     clock = clock,
-                    beregningStrategyFactory = beregningStrategyFactory,
+                    beregningStrategyFactory = BeregningStrategyFactory(
+                        clock = clock,
+                        satsFactory = satsFactory,
+                    ),
                     formuegrenserFactory = formuegrenserFactory,
                 )
             }
@@ -943,7 +947,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract override fun beregn(
             begrunnelse: String?,
             clock: Clock,
-            beregningStrategyFactory: BeregningStrategyFactory,
+            satsFactory: SatsFactory,
             formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeBeregne, Beregnet>
 
@@ -1056,14 +1060,17 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun beregn(
                 begrunnelse: String?,
                 clock: Clock,
-                beregningStrategyFactory: BeregningStrategyFactory,
+                satsFactory: SatsFactory,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeBeregne, Beregnet> {
                 return beregnInternal(
                     søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock, formuegrenserFactory),
                     begrunnelse = begrunnelse,
                     clock = clock,
-                    beregningStrategyFactory = beregningStrategyFactory,
+                    beregningStrategyFactory = BeregningStrategyFactory(
+                        clock = clock,
+                        satsFactory = satsFactory,
+                    ),
                     formuegrenserFactory = formuegrenserFactory,
                 )
             }
@@ -1225,14 +1232,17 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun beregn(
                 begrunnelse: String?,
                 clock: Clock,
-                beregningStrategyFactory: BeregningStrategyFactory,
+                satsFactory: SatsFactory,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeBeregne, Beregnet> {
                 return beregnInternal(
                     søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock, formuegrenserFactory),
                     begrunnelse = begrunnelse,
                     clock = clock,
-                    beregningStrategyFactory = beregningStrategyFactory,
+                    beregningStrategyFactory = BeregningStrategyFactory(
+                        clock = clock,
+                        satsFactory = satsFactory,
+                    ),
                     formuegrenserFactory = formuegrenserFactory,
                 )
             }
@@ -1352,14 +1362,17 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override fun beregn(
             begrunnelse: String?,
             clock: Clock,
-            beregningStrategyFactory: BeregningStrategyFactory,
+            satsFactory: SatsFactory,
             formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeBeregne, Beregnet> {
             return beregnInternal(
                 søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock, formuegrenserFactory),
                 begrunnelse = begrunnelse,
                 clock = clock,
-                beregningStrategyFactory = beregningStrategyFactory,
+                beregningStrategyFactory = BeregningStrategyFactory(
+                    clock = clock,
+                    satsFactory = satsFactory,
+                ),
                 formuegrenserFactory = formuegrenserFactory,
             )
         }
@@ -1838,14 +1851,17 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun beregn(
                 begrunnelse: String?,
                 clock: Clock,
-                beregningStrategyFactory: BeregningStrategyFactory,
+                satsFactory: SatsFactory,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeBeregne, Beregnet> {
                 return beregnInternal(
                     søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock, formuegrenserFactory),
                     begrunnelse = begrunnelse,
                     clock = clock,
-                    beregningStrategyFactory = beregningStrategyFactory,
+                    beregningStrategyFactory = BeregningStrategyFactory(
+                        clock = clock,
+                        satsFactory = satsFactory,
+                    ),
                     formuegrenserFactory = formuegrenserFactory,
                 )
             }
@@ -2031,14 +2047,17 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun beregn(
                     begrunnelse: String?,
                     clock: Clock,
-                    beregningStrategyFactory: BeregningStrategyFactory,
+                    satsFactory: SatsFactory,
                     formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeBeregne, Beregnet> {
                     return beregnInternal(
                         søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock, formuegrenserFactory),
                         begrunnelse = begrunnelse,
                         clock = clock,
-                        beregningStrategyFactory = beregningStrategyFactory,
+                        beregningStrategyFactory = BeregningStrategyFactory(
+                            clock = clock,
+                            satsFactory = satsFactory,
+                        ),
                         formuegrenserFactory = formuegrenserFactory,
                     )
                 }

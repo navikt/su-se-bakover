@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
@@ -38,7 +37,7 @@ class RevurderingSimulerTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let { beregnet ->
                 (beregnet as BeregnetRevurdering.Opphørt)
                     .toSimulert(
@@ -82,7 +81,7 @@ class RevurderingSimulerTest {
                         fraOgMed = revurdering.periode.fraOgMed,
                         clock = fixedClock,
                     ).getOrFail(),
-                    beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                    satsFactory = satsFactoryTest,
                 ).getOrFail().let { beregnet ->
                     (beregnet as BeregnetRevurdering.Opphørt)
                         .toSimulert(
@@ -113,7 +112,7 @@ class RevurderingSimulerTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 (it as BeregnetRevurdering.Opphørt)
                     .toSimulert(
@@ -155,7 +154,7 @@ class RevurderingSimulerTest {
                         fraOgMed = revurdering.periode.fraOgMed,
                         clock = fixedClock,
                     ).getOrFail(),
-                    beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                    satsFactory = satsFactoryTest,
                 ).getOrFail().let {
                     (it as BeregnetRevurdering.Opphørt)
                         .toSimulert(

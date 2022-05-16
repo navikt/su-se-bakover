@@ -4,8 +4,8 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
@@ -22,10 +22,10 @@ import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
-import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTest
 import org.mockito.kotlin.mock
 import java.time.Clock
 
@@ -57,7 +57,7 @@ internal fun createSøknadsbehandlingService(
     avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
     tilbakekrevingService: TilbakekrevingService = mock(),
     formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTest,
-    beregningStrategyFactory: BeregningStrategyFactory = beregningStrategyFactoryTest(clock = clock),
+    satsFactory: SatsFactory = satsFactoryTest,
 ) = SøknadsbehandlingServiceImpl(
     søknadService = søknadService,
     søknadsbehandlingRepo = søknadsbehandlingRepo,
@@ -75,7 +75,7 @@ internal fun createSøknadsbehandlingService(
     avkortingsvarselRepo = avkortingsvarselRepo,
     tilbakekrevingService = tilbakekrevingService,
     formuegrenserFactory = formuegrenserFactory,
-    beregningStrategyFactory = beregningStrategyFactory,
+    satsFactory = satsFactory,
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
@@ -96,7 +96,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
     val tilbakekrevingService: TilbakekrevingService = defaultMock(),
     val formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTest,
-    val beregningStrategyFactory: BeregningStrategyFactory = beregningStrategyFactoryTest(clock = clock),
+    val satsFactory: SatsFactory = satsFactoryTest,
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadService = søknadService,
@@ -115,7 +115,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
         avkortingsvarselRepo = avkortingsvarselRepo,
         tilbakekrevingService = tilbakekrevingService,
         formuegrenserFactory = formuegrenserFactory,
-        beregningStrategyFactory = beregningStrategyFactory,
+        satsFactory = satsFactory,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

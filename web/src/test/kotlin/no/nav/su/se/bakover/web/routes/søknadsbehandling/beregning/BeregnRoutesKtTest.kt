@@ -43,7 +43,6 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
-import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.satsFactoryTest
@@ -82,7 +81,6 @@ internal class BeregnRoutesKtTest {
             clock = fixedClock,
             unleash = mock(),
             satsFactory = satsFactoryTest,
-            beregningStrategyFactory = beregningStrategyFactoryTest(),
         )
 
     @Test
@@ -176,8 +174,8 @@ internal class BeregnRoutesKtTest {
             testApplication {
                 application {
                     testSusebakover(
-                        services = services,
                         databaseRepos = repos,
+                        services = services,
                     )
                 }
                 services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(

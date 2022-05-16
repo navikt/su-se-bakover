@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -72,7 +71,7 @@ fun iverksattAutomatiskRegulering(
     reguleringstype = reguleringstype,
     saksbehandler = saksbehandler,
 )
-    .beregn(BeregningStrategyFactory(clock, satsFactoryTest), null).getOrFail()
+    .beregn(satsFactoryTest, null, clock).getOrFail()
     .simuler { simulertUtbetaling().right() }.getOrFail()
     .tilIverksatt()
 

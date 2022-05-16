@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -27,6 +26,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
@@ -89,7 +89,7 @@ internal class SøknadsbehandlingServiceImpl(
     private val avkortingsvarselRepo: AvkortingsvarselRepo,
     private val tilbakekrevingService: TilbakekrevingService,
     private val formuegrenserFactory: FormuegrenserFactory,
-    private val beregningStrategyFactory: BeregningStrategyFactory,
+    private val satsFactory: SatsFactory,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -205,7 +205,7 @@ internal class SøknadsbehandlingServiceImpl(
         return søknadsbehandling.beregn(
             begrunnelse = request.begrunnelse,
             clock = clock,
-            beregningStrategyFactory = beregningStrategyFactory,
+            satsFactory = satsFactory,
             formuegrenserFactory = formuegrenserFactory,
         ).mapLeft { feil ->
             when (feil) {

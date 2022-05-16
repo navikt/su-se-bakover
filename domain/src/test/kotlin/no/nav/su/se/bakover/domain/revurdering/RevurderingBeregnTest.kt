@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -78,7 +77,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
@@ -105,7 +104,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
@@ -139,7 +138,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
                 it.beregning.harAlleMånederMerknadForAvslag() shouldBe true
@@ -165,7 +164,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
@@ -192,7 +191,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe false
                 it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
@@ -221,7 +220,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe false
                 it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
@@ -243,7 +242,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe false
                 it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
@@ -273,7 +272,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
@@ -300,7 +299,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
@@ -332,7 +331,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
@@ -372,7 +371,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let { beregnet ->
                 beregnet shouldBe beOfType<BeregnetRevurdering.Innvilget>()
                 beregnet.beregning.getSumYtelse() shouldBeGreaterThan 0
@@ -472,7 +471,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let { beregnet ->
                 beregnet shouldBe beOfType<BeregnetRevurdering.Innvilget>()
                 beregnet.beregning.getSumYtelse() shouldBeGreaterThan 0
@@ -578,7 +577,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ) shouldBe Revurdering.KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes.left()
         }
     }
@@ -612,7 +611,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
+                satsFactory = satsFactoryTest,
             ) shouldBe Revurdering.KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes.left()
         }
     }

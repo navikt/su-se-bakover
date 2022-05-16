@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -199,7 +198,7 @@ internal class VedtakPostgresRepoTest {
                     fraOgMed = nyRevurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, testDataHelper.satsFactory)
+                satsFactory = testDataHelper.satsFactory,
             ).getOrFail().beregning
 
             val attestertRevurdering = RevurderingTilAttestering.IngenEndring(

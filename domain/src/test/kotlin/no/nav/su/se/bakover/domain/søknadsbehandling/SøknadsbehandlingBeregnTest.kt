@@ -7,7 +7,6 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -33,10 +32,7 @@ internal class SøknadsbehandlingBeregnTest {
                 begrunnelse = "kakota",
                 clock = fixedClock,
                 formuegrenserFactory = formuegrenserFactoryTest,
-                beregningStrategyFactory = BeregningStrategyFactory(
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTest,
-                ),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 1
                 etterBeregning.beregning.getSumFradrag() shouldBe 0.0
@@ -72,10 +68,7 @@ internal class SøknadsbehandlingBeregnTest {
                 begrunnelse = "kakota",
                 clock = fixedClock,
                 formuegrenserFactory = formuegrenserFactoryTest,
-                beregningStrategyFactory = BeregningStrategyFactory(
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTest,
-                ),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 1
                 etterBeregning.beregning.getSumFradrag() shouldBe 0
@@ -110,10 +103,7 @@ internal class SøknadsbehandlingBeregnTest {
                 begrunnelse = "kakota",
                 clock = fixedClock,
                 formuegrenserFactory = formuegrenserFactoryTest,
-                beregningStrategyFactory = BeregningStrategyFactory(
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTest,
-                ),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 2
                 etterBeregning.beregning.getSumFradrag() shouldBe førBeregning.periode.getAntallMåneder() * 15000
@@ -154,10 +144,7 @@ internal class SøknadsbehandlingBeregnTest {
                 begrunnelse = "kakota",
                 clock = fixedClock,
                 formuegrenserFactory = formuegrenserFactoryTest,
-                beregningStrategyFactory = BeregningStrategyFactory(
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTest,
-                ),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 4
                 etterBeregning.beregning.getFradrag()
@@ -216,10 +203,7 @@ internal class SøknadsbehandlingBeregnTest {
             ).beregn(
                 begrunnelse = "kakota",
                 clock = fixedClock,
-                beregningStrategyFactory = BeregningStrategyFactory(
-                    clock = fixedClock,
-                    satsFactory = satsFactoryTest,
-                ),
+                satsFactory = satsFactoryTest,
                 formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 4

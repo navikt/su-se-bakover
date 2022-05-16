@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
@@ -41,7 +40,6 @@ object ServiceBuilder {
         clock: Clock,
         unleash: Unleash,
         satsFactory: SatsFactory,
-        beregningStrategyFactory: BeregningStrategyFactory,
     ): Services {
         val personService = PersonServiceImpl(clients.personOppslag)
         val statistikkService = StatistikkServiceImpl(
@@ -133,14 +131,14 @@ object ServiceBuilder {
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
             vedtakService = vedtakService,
-            sakService = sakService,
             kontrollsamtaleService = kontrollsamtaleService,
             sessionFactory = databaseRepos.sessionFactory,
+            formuegrenserFactory = satsFactory.formuegrenserFactory,
+            sakService = sakService,
             avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
             toggleService = toggleService,
             tilbakekrevingService = tilbakekrevingService,
-            formuegrenserFactory = satsFactory.formuegrenserFactory,
-            beregningStrategyFactory = beregningStrategyFactory,
+            satsFactory = satsFactory,
         ).apply { addObserver(statistikkService) }
 
         val reguleringService = ReguleringServiceImpl(
@@ -149,9 +147,8 @@ object ServiceBuilder {
             utbetalingService = utbetalingService,
             vedtakService = vedtakService,
             sessionFactory = databaseRepos.sessionFactory,
-            tilbakekrevingService = tilbakekrevingService,
             clock = clock,
-            beregningStrategyFactory = beregningStrategyFactory,
+            tilbakekrevingService = tilbakekrevingService,
             satsFactory = satsFactory,
         ).apply { addObserver(statistikkService) }
 
@@ -174,7 +171,7 @@ object ServiceBuilder {
             avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
             tilbakekrevingService = tilbakekrevingService,
             formuegrenserFactory = satsFactory.formuegrenserFactory,
-            beregningStrategyFactory = beregningStrategyFactory,
+            satsFactory = satsFactory,
         ).apply {
             addObserver(statistikkService)
         }

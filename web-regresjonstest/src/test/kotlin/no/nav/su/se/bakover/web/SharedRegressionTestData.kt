@@ -42,7 +42,6 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
-import no.nav.su.se.bakover.test.beregningStrategyFactoryTest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.satsFactoryTest
@@ -218,17 +217,16 @@ internal object SharedRegressionTestData {
             clock = clock,
             unleash = unleash,
             satsFactory = satsFactoryTest,
-            beregningStrategyFactory = beregningStrategyFactoryTest(clock),
         ),
         accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
     ) {
         return susebakover(
+            clock = clock,
+            applicationConfig = applicationConfig,
             databaseRepos = databaseRepos,
             clients = clients,
             services = services,
             accessCheckProxy = accessCheckProxy,
-            applicationConfig = applicationConfig,
-            clock = clock,
         )
     }
 

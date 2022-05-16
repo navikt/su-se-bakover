@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -160,10 +159,7 @@ fun søknadsbehandlingBeregnetInnvilget(
             begrunnelse = null,
             clock = clock,
             formuegrenserFactory = formuegrenserFactoryTest,
-            beregningStrategyFactory = BeregningStrategyFactory(
-                clock = clock,
-                satsFactory = satsFactoryTest,
-            ),
+            satsFactory = satsFactoryTest,
         ).getOrFail() as Søknadsbehandling.Beregnet.Innvilget
         Pair(
             sak.copy(
@@ -209,10 +205,7 @@ fun søknadsbehandlingBeregnetAvslag(
             begrunnelse = null,
             clock = clock,
             formuegrenserFactory = formuegrenserFactoryTest,
-            beregningStrategyFactory = BeregningStrategyFactory(
-                clock = clock,
-                satsFactory = satsFactoryTest,
-            ),
+            satsFactory = satsFactoryTest,
         ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
         Pair(
             sak.copy(
