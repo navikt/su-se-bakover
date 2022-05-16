@@ -23,6 +23,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.SkalSendeBrevVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
@@ -395,6 +398,22 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
 
         fun erGjenopptak(): Boolean {
             return originaltVedtak.erGjenopptak()
+        }
+
+        fun uføreVilkår(): Vilkår.Uførhet {
+            return vilkårsvurderinger.uføreVilkår()
+        }
+
+        fun formueVilkår(): Vilkår.Formue {
+            return vilkårsvurderinger.formueVilkår()
+        }
+
+        fun utenlandsoppholdVilkår(): UtenlandsoppholdVilkår {
+            return vilkårsvurderinger.utenlandsoppholdVilkår()
+        }
+
+        fun opplysningspliktVilkår(): OpplysningspliktVilkår {
+            return vilkårsvurderinger.opplysningspliktVilkår()
         }
     }
 }

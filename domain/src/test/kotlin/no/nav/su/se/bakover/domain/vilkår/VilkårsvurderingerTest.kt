@@ -52,6 +52,7 @@ internal class VilkårsvurderingerTest {
                         it.institusjonsopphold,
                         it.utenlandsopphold,
                         it.personligOppmøte,
+                        it.opplysningsplikt,
                     ),
                 )
             }
@@ -110,6 +111,7 @@ internal class VilkårsvurderingerTest {
                             Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON,
                             Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER,
                             Avslagsgrunn.PERSONLIG_OPPMØTE,
+                            Avslagsgrunn.MANGLENDE_DOKUMENTASJON
                         )
                         it.dato shouldBe 1.januar(2021)
                     }
@@ -155,6 +157,7 @@ internal class VilkårsvurderingerTest {
                     InstitusjonsoppholdVilkår.IkkeVurdert,
                     UtenlandsoppholdVilkår.IkkeVurdert,
                     PersonligOppmøteVilkår.IkkeVurdert,
+                    OpplysningspliktVilkår.IkkeVurdert
                 ),
             )
         }
@@ -234,6 +237,7 @@ internal class VilkårsvurderingerTest {
                 InstitusjonsoppholdVilkår.IkkeVurdert,
                 UtenlandsoppholdVilkår.IkkeVurdert,
                 PersonligOppmøteVilkår.IkkeVurdert,
+                OpplysningspliktVilkår.IkkeVurdert,
             )
 
             val uavklartMedUføre = uavklart.leggTil(innvilget.uføre)
@@ -247,6 +251,7 @@ internal class VilkårsvurderingerTest {
                 InstitusjonsoppholdVilkår.IkkeVurdert,
                 UtenlandsoppholdVilkår.IkkeVurdert,
                 PersonligOppmøteVilkår.IkkeVurdert,
+                OpplysningspliktVilkår.IkkeVurdert
             )
 
             val uavklartUtenUføreIgjen = uavklartMedUføre.leggTil(uavklart.uføre)
@@ -260,6 +265,7 @@ internal class VilkårsvurderingerTest {
                 InstitusjonsoppholdVilkår.IkkeVurdert,
                 UtenlandsoppholdVilkår.IkkeVurdert,
                 PersonligOppmøteVilkår.IkkeVurdert,
+                OpplysningspliktVilkår.IkkeVurdert
             )
         }
     }
@@ -275,6 +281,7 @@ internal class VilkårsvurderingerTest {
                         it.uføre,
                         it.formue,
                         it.utenlandsopphold,
+                        it.opplysningsplikt,
                     ),
                 )
             }
@@ -328,6 +335,7 @@ internal class VilkårsvurderingerTest {
                             Avslagsgrunn.UFØRHET,
                             Avslagsgrunn.FORMUE,
                             Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER,
+                            Avslagsgrunn.MANGLENDE_DOKUMENTASJON
                         )
                         it.dato shouldBe 1.januar(2021)
                     }
@@ -362,6 +370,7 @@ internal class VilkårsvurderingerTest {
                     Vilkår.Uførhet.IkkeVurdert,
                     Vilkår.Formue.IkkeVurdert,
                     UtenlandsoppholdVilkår.IkkeVurdert,
+                    OpplysningspliktVilkår.IkkeVurdert,
                 ),
             )
         }

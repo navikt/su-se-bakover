@@ -15,6 +15,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
     private val uføreVilkårsvurderingPostgresRepo: UføreVilkårsvurderingPostgresRepo,
     private val formueVilkårsvurderingPostgresRepo: FormueVilkårsvurderingPostgresRepo,
     private val utenlandsoppholdVilkårsvurderingPostgresRepo: UtenlandsoppholdVilkårsvurderingPostgresRepo,
+    private val opplysningspliktVilkårsvurderingPostgresRepo: OpplysningspliktVilkårsvurderingPostgresRepo,
 ) {
     fun lagre(
         behandlingId: UUID,
@@ -24,19 +25,19 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         dbMetrics.timeQuery("lagreGrunnlagsdataOgVilkårsvurderinger") {
             uføreVilkårsvurderingPostgresRepo.lagre(
                 behandlingId = behandlingId,
-                vilkår = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.uføre,
+                vilkår = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.uføreVilkår(),
                 tx = tx,
             )
 
             formueVilkårsvurderingPostgresRepo.lagre(
                 behandlingId = behandlingId,
-                vilkår = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.formue,
+                vilkår = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.formueVilkår(),
                 tx = tx,
             )
 
             utenlandsoppholdVilkårsvurderingPostgresRepo.lagre(
                 behandlingId = behandlingId,
-                vilkår = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.utenlandsopphold,
+                vilkår = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.utenlandsoppholdVilkår(),
                 tx = tx,
             )
             bosituasjongrunnlagPostgresRepo.lagreBosituasjongrunnlag(
@@ -47,6 +48,11 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
             fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(
                 behandlingId = behandlingId,
                 fradragsgrunnlag = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag,
+                tx = tx,
+            )
+            opplysningspliktVilkårsvurderingPostgresRepo.lagre(
+                behandlingId = behandlingId,
+                vilkår = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.opplysningspliktVilkår(),
                 tx = tx,
             )
         }
@@ -66,6 +72,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                     uføre = uføreVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                    opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                 ),
             )
         }
@@ -85,6 +92,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                     uføre = uføreVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                    opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                 ),
             )
         }

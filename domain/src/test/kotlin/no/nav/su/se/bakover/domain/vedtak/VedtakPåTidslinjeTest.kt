@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -104,6 +105,7 @@ internal class VedtakPåTidslinjeTest {
                 ),
                 formue = formuevilkår,
                 utenlandsopphold = utenlandsoppholdInnvilget(periode = periode),
+                opplysningsplikt = tilstrekkeligDokumentert(periode = periode),
             ),
             originaltVedtak = originaltVedtak,
         )
@@ -180,6 +182,7 @@ internal class VedtakPåTidslinjeTest {
                             vilkårsvurdering.uføre,
                             vilkårsvurdering.formue,
                             vilkårsvurdering.utenlandsopphold,
+                            vilkårsvurdering.opplysningsplikt,
                         ),
                     )
                 }
@@ -253,6 +256,7 @@ internal class VedtakPåTidslinjeTest {
         )
 
         val formuevilkår = innvilgetFormueVilkår(periode = periode)
+
         val original = VedtakSomKanRevurderes.VedtakPåTidslinje(
             opprettet = fixedTidspunkt,
             periode = periode,
@@ -268,6 +272,7 @@ internal class VedtakPåTidslinjeTest {
                 ),
                 formue = formuevilkår,
                 utenlandsopphold = utenlandsoppholdInnvilget(periode = periode),
+                opplysningsplikt = tilstrekkeligDokumentert(periode = periode),
             ),
             originaltVedtak = originaltVedtak,
         )
@@ -348,6 +353,7 @@ internal class VedtakPåTidslinjeTest {
                                 vilkårsvurdering.uføre,
                                 vilkårsvurdering.formue,
                                 vilkårsvurdering.utenlandsopphold,
+                                vilkårsvurdering.opplysningsplikt,
                             ),
                         )
                     }

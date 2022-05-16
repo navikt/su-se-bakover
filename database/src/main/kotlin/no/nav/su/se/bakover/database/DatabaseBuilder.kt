@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRep
 import no.nav.su.se.bakover.database.grunnlag.FormuegrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.OpplysningspliktGrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.OpplysningspliktVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
@@ -123,6 +125,10 @@ object DatabaseBuilder {
                 dbMetrics = dbMetrics,
                 utenlandsoppholdgrunnlagRepo = UtenlandsoppholdgrunnlagPostgresRepo(dbMetrics),
             ),
+            opplysningspliktVilkårsvurderingPostgresRepo = OpplysningspliktVilkårsvurderingPostgresRepo(
+                dbMetrics = dbMetrics,
+                opplysningspliktGrunnlagRepo = OpplysningspliktGrunnlagPostgresRepo(dbMetrics),
+            )
         )
 
         val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(

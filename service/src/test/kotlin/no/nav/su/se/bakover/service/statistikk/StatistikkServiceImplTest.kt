@@ -240,7 +240,7 @@ internal class StatistikkServiceImplTest {
             resultat = "Avslått",
             saksbehandler = behandling.saksbehandler.navIdent,
             beslutter = behandling.attesteringer.hentSisteAttestering().attestant.navIdent,
-            resultatBegrunnelse = "UFØRHET,FORMUE,FLYKTNING,OPPHOLDSTILLATELSE,BOR_OG_OPPHOLDER_SEG_I_NORGE,INNLAGT_PÅ_INSTITUSJON,UTENLANDSOPPHOLD_OVER_90_DAGER,PERSONLIG_OPPMØTE",
+            resultatBegrunnelse = "UFØRHET,FORMUE,FLYKTNING,OPPHOLDSTILLATELSE,BOR_OG_OPPHOLDER_SEG_I_NORGE,INNLAGT_PÅ_INSTITUSJON,UTENLANDSOPPHOLD_OVER_90_DAGER,PERSONLIG_OPPMØTE,MANGLENDE_DOKUMENTASJON",
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
             behandlingYtelseDetaljer = listOf(Statistikk.BehandlingYtelseDetaljer(Statistikk.Stønadsklassifisering.BOR_ALENE)),

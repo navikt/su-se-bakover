@@ -74,6 +74,7 @@ import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
+import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
@@ -1122,7 +1123,7 @@ internal class LagBrevRequestVisitorTest {
                 ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                Vilkår.Uførhet.Vurdert.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             resultat = Resultat.Innvilget,
@@ -1133,8 +1134,9 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
-                innvilgetFormueVilkår(periode = revurderingsperiode),
-                utenlandsoppholdInnvilget(periode = revurderingsperiode),
+                formue = innvilgetFormueVilkår(periode = revurderingsperiode),
+                utenlandsopphold = utenlandsoppholdInnvilget(periode = revurderingsperiode),
+                opplysningsplikt = tilstrekkeligDokumentert(periode = revurderingsperiode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,

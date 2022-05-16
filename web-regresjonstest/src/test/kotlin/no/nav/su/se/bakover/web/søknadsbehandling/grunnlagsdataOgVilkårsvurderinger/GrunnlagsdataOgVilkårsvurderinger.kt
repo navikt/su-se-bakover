@@ -25,7 +25,8 @@ fun tomGrunnlagsdataOgVilkårsvurderingerResponse(): String {
           }
         ]
      },
-      "utenlandsopphold":null
+      "utenlandsopphold":null,
+      "opplysningsplikt":null
     }
     """.trimIndent()
 }

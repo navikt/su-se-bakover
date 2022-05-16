@@ -1,5 +1,3 @@
-package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
-
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -267,6 +265,15 @@ internal class BeregnRoutesKtTest {
         val objects = setup(services, repos)
 
         val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+        /**
+         *  Legges til automatisk dersom det ikke er eksplisitt lagt til fra før.
+         services.søknadsbehandling.leggTilOpplysningspliktVilkår(
+         request = LeggTilOpplysningspliktRequest.Søknadsbehandling(
+         behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+         vilkår = tilstrekkeligDokumentert(periode = år(2021))
+         )
+         )
+         */
         services.søknadsbehandling.leggTilUførevilkår(
             LeggTilUførevurderingerRequest(
                 behandlingId = objects.søknadsbehandling.id,

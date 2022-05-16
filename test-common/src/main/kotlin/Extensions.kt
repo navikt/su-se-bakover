@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.test
 
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.beOfType
+import io.kotest.matchers.types.shouldBeTypeOf
 import org.mockito.kotlin.argThat
 
 /**
@@ -27,5 +27,5 @@ inline fun <reified T> requireType(any: Any): T {
 }
 
 inline fun <reified T : Any> Any.shouldBeType(): T {
-    return (this as T).also { this shouldBe beOfType<T>() }
+    return (this as T).also { this.shouldBeTypeOf<T>() }
 }
