@@ -7,12 +7,12 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.server.testing.TestApplicationEngine
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-internal fun ApplicationTestBuilder.leggTilOpplysningsplikt(
+internal fun TestApplicationEngine.leggTilOpplysningsplikt(
     behandlingId: String,
     type: String = "SØKNADSBEHANDLING",
     beskrivelse: String = "TilstrekkeligDokumentasjon",

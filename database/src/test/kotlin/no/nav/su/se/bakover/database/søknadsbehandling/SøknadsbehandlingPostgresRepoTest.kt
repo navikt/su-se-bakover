@@ -17,15 +17,20 @@ import no.nav.su.se.bakover.database.sessionCounterStub
 import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.test.argThat
+import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.behandlingsinformasjonAlleVilkårInnvilget
+import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
@@ -352,6 +357,46 @@ internal class SøknadsbehandlingPostgresRepoTest {
             testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second.let {
                 søknadsbehandlingRepo.hentForSøknad(it.søknad.id) shouldBe it
             }
+        }
+    }
+
+    @Test
+    fun `kan lagre og hente avslag manglende dokumentasjon`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val opprettetMedStønadsperiode =
+                testDataHelper.persisterSøknadsbehandlingIverksattAvslagUtenBeregning().second
+
+            testDataHelper.søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(
+                avslag = AvslagManglendeDokumentasjon(søknadsbehandling = opprettetMedStønadsperiode),
+            )
+
+            testDataHelper.søknadsbehandlingRepo.hent(opprettetMedStønadsperiode.id) shouldBe Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
+                id = opprettetMedStønadsperiode.id,
+                opprettet = opprettetMedStønadsperiode.opprettet,
+                sakId = opprettetMedStønadsperiode.sakId,
+                saksnummer = opprettetMedStønadsperiode.saksnummer,
+                søknad = opprettetMedStønadsperiode.søknad,
+                oppgaveId = opprettetMedStønadsperiode.oppgaveId,
+                behandlingsinformasjon = opprettetMedStønadsperiode.behandlingsinformasjon,
+                fnr = opprettetMedStønadsperiode.fnr,
+                saksbehandler = saksbehandler,
+                attesteringer = Attesteringshistorikk.create(
+                    attesteringer = listOf(
+                        Attestering.Iverksatt(
+                            attestant = NavIdentBruker.Attestant(attestant.navIdent),
+                            opprettet = enUkeEtterFixedTidspunkt,
+                        ),
+                    ),
+                ),
+                fritekstTilBrev = "",
+                stønadsperiode = opprettetMedStønadsperiode.stønadsperiode,
+                grunnlagsdata = opprettetMedStønadsperiode.grunnlagsdata,
+                vilkårsvurderinger = opprettetMedStønadsperiode.vilkårsvurderinger,
+                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
+                    håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
+                ),
+            )
         }
     }
 

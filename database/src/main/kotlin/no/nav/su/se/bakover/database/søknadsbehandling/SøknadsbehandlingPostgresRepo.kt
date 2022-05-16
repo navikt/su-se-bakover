@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -112,6 +113,47 @@ internal class SøknadsbehandlingPostgresRepo(
                         "avkorting" to objectMapper.writeValueAsString(søknadsbehandling.avkorting.toDb()),
                     ),
                     session = session,
+                )
+            }
+        }
+    }
+
+    override fun lagreAvslagManglendeDokumentasjon(
+        avslag: AvslagManglendeDokumentasjon,
+        sessionContext: TransactionContext,
+    ) {
+        dbMetrics.timeQuery("lagreAvslagManglendeDokumentasjon") {
+            sessionContext.withTransaction { tx ->
+                (
+                    """
+                    update behandling set
+                        behandlingsinformasjon = to_json(:behandlingsinformasjon::json),
+                        saksbehandler = :saksbehandler,
+                        attestering = to_json(:attestering::json),
+                        fritekstTilBrev = :fritekstTilBrev,
+                        stønadsperiode = to_json(:stonadsperiode::json),
+                        status = :status,
+                        beregning = :beregning,
+                        simulering = :simulering,
+                        avkorting = to_json(:avkorting::json)
+                    where id = :id
+                    """.trimIndent()
+                    ).insert(
+                    params = avslag.søknadsbehandling.let {
+                        mapOf(
+                            "behandlingsinformasjon" to objectMapper.writeValueAsString(it.behandlingsinformasjon),
+                            "saksbehandler" to it.saksbehandler,
+                            "attestering" to it.attesteringer.serialize(),
+                            "fritekstTilBrev" to it.fritekstTilBrev,
+                            "stonadsperiode" to objectMapper.writeValueAsString(it.stønadsperiode),
+                            "status" to it.status.toString(),
+                            "id" to it.id,
+                            "beregning" to null,
+                            "simulering" to null,
+                            "avkorting" to objectMapper.writeValueAsString(it.avkorting.toDb()),
+                        )
+                    },
+                    session = tx,
                 )
             }
         }
