@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
-import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
@@ -46,7 +45,6 @@ import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
@@ -267,12 +265,15 @@ internal class BeregnRoutesKtTest {
         val objects = setup(services, repos)
 
         val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
-        services.søknadsbehandling.leggTilOpplysningspliktVilkår(
-            request = LeggTilOpplysningspliktRequest.Søknadsbehandling(
-                behandlingId = objects.søknadsbehandling.id,
-                vilkår = tilstrekkeligDokumentert(periode = objects.søknadsbehandling.periode)
-            )
-        )
+        /**
+         *  Legges til automatisk dersom det ikke er eksplisitt lagt til fra før.
+         services.søknadsbehandling.leggTilOpplysningspliktVilkår(
+         request = LeggTilOpplysningspliktRequest.Søknadsbehandling(
+         behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+         vilkår = tilstrekkeligDokumentert(periode = år(2021))
+         )
+         )
+         */
         services.søknadsbehandling.leggTilUførevilkår(
             LeggTilUførevurderingerRequest(
                 behandlingId = objects.søknadsbehandling.id,

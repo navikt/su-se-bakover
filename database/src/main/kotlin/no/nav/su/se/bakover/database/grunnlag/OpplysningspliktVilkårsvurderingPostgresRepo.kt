@@ -25,7 +25,7 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepo(
         vilkår: OpplysningspliktVilkår,
         tx: TransactionalSession,
     ) {
-        dbMetrics.timeQuery("lagreVilkårsvurderingUtlandsopphold") {
+        dbMetrics.timeQuery("lagreVilkårsvurderingOpplysningsplikt") {
             slettForBehandlingId(behandlingId, tx)
             when (vilkår) {
                 OpplysningspliktVilkår.IkkeVurdert -> {
@@ -94,7 +94,7 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepo(
     }
 
     internal fun hent(behandlingId: UUID, session: Session): OpplysningspliktVilkår {
-        return dbMetrics.timeQuery("hentVilkårsvurderingUtlandsopphold") {
+        return dbMetrics.timeQuery("hentVilkårsvurderingOpplysningsplikt") {
             """
                     select * from vilkårsvurdering_opplysningsplikt where behandlingId = :behandlingId
             """.trimIndent()

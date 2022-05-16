@@ -362,17 +362,7 @@ internal class RevurderingServiceImpl(
         }.flatMap { revurdering ->
             revurdering.oppdaterOpplysningspliktOgMarkerSomVurdert(request.vilkår)
                 .mapLeft {
-                    when (it) {
-                        is Revurdering.KunneIkkeLeggeTilOpplysninsplikt.HeleRevurderingsperiodenErIkkeVurdert -> {
-                            KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenMåVurderes
-                        }
-                        is Revurdering.KunneIkkeLeggeTilOpplysninsplikt.UgyldigTilstand -> {
-                            KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand(
-                                fra = it.fra::simpleName.toString(),
-                                til = it.til::simpleName.toString(),
-                            )
-                        }
-                    }
+                    KunneIkkeLeggeTilOpplysningsplikt.Revurdering(it)
                 }
                 .map {
                     revurderingRepo.lagre(it)

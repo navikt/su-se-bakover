@@ -722,14 +722,7 @@ internal class SøknadsbehandlingServiceImpl(
 
         return søknadsbehandling.leggTilOpplysningspliktVilkår(request.vilkår, clock)
             .mapLeft {
-                when (it) {
-                    is Søknadsbehandling.KunneIkkeLeggeTilOpplysnigsplikt.HeleRevurderingsperiodenErIkkeVurdert -> {
-                        KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenMåVurderes
-                    }
-                    is Søknadsbehandling.KunneIkkeLeggeTilOpplysnigsplikt.UgyldigTilstand -> {
-                        KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand(it.fra.toString(), it.til.toString())
-                    }
-                }
+                KunneIkkeLeggeTilOpplysningsplikt.Søknadsbehandling(it)
             }.map {
                 søknadsbehandlingRepo.lagre(it)
                 it

@@ -193,17 +193,17 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     open fun leggTilOpplysningspliktVilkår(
         opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
         clock: Clock,
-    ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
-        return KunneIkkeLeggeTilOpplysnigsplikt.UgyldigTilstand(this::class).left()
+    ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
+        return KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand(this::class).left()
     }
 
-    sealed interface KunneIkkeLeggeTilOpplysnigsplikt {
+    sealed interface KunneIkkeLeggeTilOpplysningsplikt {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling> = Vilkårsvurdert::class,
-        ) : KunneIkkeLeggeTilOpplysnigsplikt
+        ) : KunneIkkeLeggeTilOpplysningsplikt
 
-        object HeleRevurderingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysnigsplikt
+        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysningsplikt
     }
 
     open fun beregn(
@@ -259,10 +259,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
     }
 
-    protected open fun valider(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysnigsplikt, Unit> {
+    protected open fun valider(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, Unit> {
         return when {
             !periode.fullstendigOverlapp(opplysningspliktVilkår.minsteAntallSammenhengendePerioder()) -> {
-                KunneIkkeLeggeTilOpplysnigsplikt.HeleRevurderingsperiodenErIkkeVurdert.left()
+                KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenErIkkeVurdert.left()
             }
             else -> Unit.right()
         }
@@ -455,12 +455,16 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     if (vilkårsvurderinger.opplysningspliktVilkår() !is OpplysningspliktVilkår.Vurdert) {
                         it.leggTil(
                             /**
-                             * Vi legger til implisitt oppfylt for søknadsbehandling
+                             * Legger til implisitt vilkår for oppfylt opplysningsplikt dersom dette ikke er vurdert fra før.
+                             * Tar enn så lenge ikke stilling til dette vilkåret fra frontend ved søknadsbehandling, men brukes
+                             * av [no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon]
                              */
                             OpplysningspliktVilkår.Vurdert.tryCreate(
                                 vurderingsperioder = nonEmptyListOf(
                                     VurderingsperiodeOpplysningsplikt.create(
-                                        id = UUID.randomUUID(), opprettet = opprettet, periode = stønadsperiode.periode,
+                                        id = UUID.randomUUID(),
+                                        opprettet = opprettet,
+                                        periode = stønadsperiode.periode,
                                         grunnlag = Opplysningspliktgrunnlag(
                                             id = UUID.randomUUID(),
                                             opprettet = opprettet,
@@ -599,7 +603,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
-            ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+            ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
@@ -719,7 +723,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
-            ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+            ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
@@ -799,7 +803,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
-            ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+            ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
@@ -965,7 +969,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
-            ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+            ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
@@ -1119,7 +1123,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
-            ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+            ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
@@ -1322,7 +1326,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override fun leggTilOpplysningspliktVilkår(
             opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
             clock: Clock,
-        ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+        ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
             return valider(opplysningspliktVilkår)
                 .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
         }
@@ -1788,7 +1792,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
-            ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+            ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
@@ -1945,7 +1949,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun leggTilOpplysningspliktVilkår(
                     opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                     clock: Clock,
-                ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+                ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                     return valider(opplysningspliktVilkår)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
                 }
@@ -2054,7 +2058,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun leggTilOpplysningspliktVilkår(
                     opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                     clock: Clock,
-                ): Either<KunneIkkeLeggeTilOpplysnigsplikt, Vilkårsvurdert> {
+                ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                     return valider(opplysningspliktVilkår)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
                 }

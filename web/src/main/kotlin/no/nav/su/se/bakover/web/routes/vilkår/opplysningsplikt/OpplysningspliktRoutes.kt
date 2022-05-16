@@ -8,6 +8,8 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilOpplysningsplikt
 import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
@@ -71,11 +73,8 @@ internal fun Route.opplysningspliktRoutes(
 
 internal fun KunneIkkeLeggeTilOpplysningsplikt.tilResultat(): Resultat {
     return when (this) {
-        KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling -> {
+        is KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling
-        }
-        KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenMåVurderes -> {
-            Feilresponser.vilkårMåVurderesForHeleBehandlingsperioden
         }
         is KunneIkkeLeggeTilOpplysningsplikt.UgyldigOpplysningspliktVilkår -> {
             when (this.feil) {
@@ -87,8 +86,25 @@ internal fun KunneIkkeLeggeTilOpplysningsplikt.tilResultat(): Resultat {
                 }
             }
         }
-        is KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand -> {
-            Feilresponser.ugyldigTilstand(fra, til)
+        is KunneIkkeLeggeTilOpplysningsplikt.Revurdering -> {
+            when (val feil = this.feil) {
+                Revurdering.KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenErIkkeVurdert -> {
+                    Feilresponser.vilkårMåVurderesForHeleBehandlingsperioden
+                }
+                is Revurdering.KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand -> {
+                    Feilresponser.ugyldigTilstand(feil.fra, feil.til)
+                }
+            }
+        }
+        is KunneIkkeLeggeTilOpplysningsplikt.Søknadsbehandling -> {
+            when (val feil = this.feil) {
+                Søknadsbehandling.KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenErIkkeVurdert -> {
+                    Feilresponser.vilkårMåVurderesForHeleBehandlingsperioden
+                }
+                is Søknadsbehandling.KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand -> {
+                    Feilresponser.ugyldigTilstand(feil.fra, feil.til)
+                }
+            }
         }
     }
 }

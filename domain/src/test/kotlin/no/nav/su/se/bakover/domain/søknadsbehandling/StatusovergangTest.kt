@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.utilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -45,11 +46,7 @@ internal class StatusovergangTest {
         stønadsperiode = stønadsperiode,
     )
 
-    private val opprettet = sakOgUavklart.second.copy(
-        vilkårsvurderinger = sakOgUavklart.second.vilkårsvurderinger.copy(
-            opplysningsplikt = tilstrekkeligDokumentert(),
-        ),
-    )
+    private val opprettet = sakOgUavklart.second
 
     private val simulering = no.nav.su.se.bakover.test.simuleringNy()
 
@@ -149,7 +146,26 @@ internal class StatusovergangTest {
                     Behandlingsinformasjon(),
                     fixedClock,
                 ),
-            ) shouldBe opprettet
+            ) shouldBe opprettet.copy(
+                vilkårsvurderinger = opprettet.vilkårsvurderinger.copy(
+                    // legges til automatisk
+                    opplysningsplikt = tilstrekkeligDokumentert(),
+                ),
+            )
+        }
+
+        @Test
+        fun `vurdert opplysningsplikt forblir vurdert`() {
+            statusovergang(
+                opprettet.leggTilOpplysningspliktVilkår(
+                    opplysningspliktVilkår = utilstrekkeligDokumentert(),
+                    clock = fixedClock,
+                ).getOrFail(),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon(),
+                    fixedClock,
+                ),
+            ).shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
         @Test

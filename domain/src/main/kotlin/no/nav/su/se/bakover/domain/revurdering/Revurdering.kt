@@ -154,31 +154,31 @@ sealed class Revurdering :
         return KunneIkkeLeggeTilFradrag.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
-    open fun oppdaterOpplysningsplikt(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysninsplikt, OpprettetRevurdering> {
-        return KunneIkkeLeggeTilOpplysninsplikt.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+    open fun oppdaterOpplysningsplikt(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
+        return KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
-    open fun oppdaterOpplysningspliktOgMarkerSomVurdert(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysninsplikt, OpprettetRevurdering> {
-        return KunneIkkeLeggeTilOpplysninsplikt.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+    open fun oppdaterOpplysningspliktOgMarkerSomVurdert(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
+        return KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
-    sealed interface KunneIkkeLeggeTilOpplysninsplikt {
+    sealed interface KunneIkkeLeggeTilOpplysningsplikt {
         data class UgyldigTilstand(
             val fra: KClass<out Revurdering>,
             val til: KClass<out Revurdering> = OpprettetRevurdering::class,
-        ) : KunneIkkeLeggeTilOpplysninsplikt
+        ) : KunneIkkeLeggeTilOpplysningsplikt
 
-        object HeleRevurderingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysninsplikt
+        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysningsplikt
     }
 
-    private fun oppdaterOpplysnigspliktInternal(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysninsplikt, OpprettetRevurdering> {
+    private fun oppdaterOpplysnigspliktInternal(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
         if (!periode.fullstendigOverlapp(opplysningspliktVilkår.minsteAntallSammenhengendePerioder())) {
-            return KunneIkkeLeggeTilOpplysninsplikt.HeleRevurderingsperiodenErIkkeVurdert.left()
+            return KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenErIkkeVurdert.left()
         }
         return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(opplysningspliktVilkår)).right()
     }
 
-    protected fun oppdaterOpplysnigspliktOgMarkerSomVurdertInternal(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysninsplikt, OpprettetRevurdering> {
+    protected fun oppdaterOpplysnigspliktOgMarkerSomVurdertInternal(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
         return oppdaterOpplysnigspliktInternal(opplysningspliktVilkår).map {
             it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Opplysningsplikt))
         }
@@ -593,7 +593,7 @@ data class OpprettetRevurdering(
     override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
-    override fun oppdaterOpplysningspliktOgMarkerSomVurdert(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysninsplikt, OpprettetRevurdering> {
+    override fun oppdaterOpplysningspliktOgMarkerSomVurdert(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
         return oppdaterOpplysnigspliktOgMarkerSomVurdertInternal(opplysningspliktVilkår)
     }
 
@@ -651,7 +651,7 @@ sealed class BeregnetRevurdering : Revurdering() {
     override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
-    override fun oppdaterOpplysningspliktOgMarkerSomVurdert(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysninsplikt, OpprettetRevurdering> {
+    override fun oppdaterOpplysningspliktOgMarkerSomVurdert(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
         return oppdaterOpplysnigspliktOgMarkerSomVurdertInternal(opplysningspliktVilkår)
     }
 
@@ -1090,7 +1090,7 @@ sealed class SimulertRevurdering : Revurdering() {
     override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
-    override fun oppdaterOpplysningspliktOgMarkerSomVurdert(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysninsplikt, OpprettetRevurdering> {
+    override fun oppdaterOpplysningspliktOgMarkerSomVurdert(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
         return oppdaterOpplysnigspliktOgMarkerSomVurdertInternal(opplysningspliktVilkår)
     }
 
@@ -1831,7 +1831,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
     override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
-    override fun oppdaterOpplysningspliktOgMarkerSomVurdert(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysninsplikt, OpprettetRevurdering> {
+    override fun oppdaterOpplysningspliktOgMarkerSomVurdert(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
         return oppdaterOpplysnigspliktOgMarkerSomVurdertInternal(opplysningspliktVilkår)
     }
 
