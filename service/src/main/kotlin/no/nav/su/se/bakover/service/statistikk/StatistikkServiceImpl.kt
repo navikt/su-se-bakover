@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.statistikk
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.person.PersonService
@@ -19,7 +18,6 @@ internal class StatistikkServiceImpl(
     private val sakRepo: SakRepo,
     private val vedtakRepo: VedtakRepo,
     private val clock: Clock,
-    private val satsFactory: SatsFactory,
 ) : StatistikkService, EventObserver {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val schemaValidator = StatistikkSchemaValidator
@@ -70,7 +68,7 @@ internal class StatistikkServiceImpl(
                                 .minOf { it.periode.fraOgMed }
 
                             publiser(
-                                StønadsstatistikkMapper(clock, satsFactory).map(
+                                StønadsstatistikkMapper(clock).map(
                                     event.vedtak,
                                     aktørId,
                                     ytelseVirkningstidspunkt,

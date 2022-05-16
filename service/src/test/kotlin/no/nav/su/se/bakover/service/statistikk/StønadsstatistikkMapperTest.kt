@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.service.statistikk.mappers.StønadsstatistikkMapper
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.vedtakIverksattAutomatiskRegulering
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -69,7 +68,7 @@ internal class StønadsstatistikkMapperTest {
             "2021-12-01",
         )
 
-        StønadsstatistikkMapper(fixedClock, satsFactoryTest).map(vedtak, aktørId, år(2021).fraOgMed, sak) shouldBe
+        StønadsstatistikkMapper(fixedClock).map(vedtak, aktørId, år(2021).fraOgMed, sak) shouldBe
             Statistikk.Stønad(
                 funksjonellTid = fixedTidspunkt,
                 tekniskTid = fixedTidspunkt,
@@ -127,7 +126,7 @@ internal class StønadsstatistikkMapperTest {
     @Test
     fun `serialiserer riktig`() {
         val actual = objectMapper.writeValueAsString(
-            StønadsstatistikkMapper(fixedClock, satsFactoryTest).map(
+            StønadsstatistikkMapper(fixedClock).map(
                 vedtak = vedtak,
                 aktørId = aktørId,
                 ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,
@@ -323,7 +322,7 @@ internal class StønadsstatistikkMapperTest {
             periode = Periode.create(1.januar(2021), 28.februar(2021)),
         )
         val actual = objectMapper.writeValueAsString(
-            StønadsstatistikkMapper(clock = fixedClock, satsFactoryTest).map(
+            StønadsstatistikkMapper(clock = fixedClock).map(
                 vedtak = vedtak,
                 aktørId = aktørId,
                 ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,
@@ -365,7 +364,7 @@ internal class StønadsstatistikkMapperTest {
             ),
         )
         val actual = objectMapper.writeValueAsString(
-            StønadsstatistikkMapper(fixedClock, satsFactoryTest).map(
+            StønadsstatistikkMapper(fixedClock).map(
                 vedtak = vedtak,
                 aktørId = aktørId,
                 ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,
@@ -430,7 +429,7 @@ internal class StønadsstatistikkMapperTest {
         val (sak, regulering) = vedtakIverksattAutomatiskRegulering(stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 28.februar(2021))))
 
         val actual = objectMapper.writeValueAsString(
-            StønadsstatistikkMapper(fixedClock, satsFactoryTest).map(
+            StønadsstatistikkMapper(fixedClock).map(
                 vedtak = regulering,
                 aktørId = aktørId,
                 ytelseVirkningstidspunkt = sak.søknadsbehandlinger.first().periode.fraOgMed,

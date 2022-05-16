@@ -48,7 +48,6 @@ object ServiceBuilder {
             sakRepo = databaseRepos.sak,
             vedtakRepo = databaseRepos.vedtakRepo,
             clock = clock,
-            satsFactory = satsFactory,
         )
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak,

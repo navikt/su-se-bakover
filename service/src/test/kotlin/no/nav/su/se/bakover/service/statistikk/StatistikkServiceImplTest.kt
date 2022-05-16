@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.nySakMedNySøknad
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagUtenBeregning
@@ -58,7 +57,6 @@ internal class StatistikkServiceImplTest {
             sakRepo = mock(),
             vedtakRepo = mock(),
             clock = fixedClock,
-            satsFactory = satsFactoryTest,
         ).publiser(StatistikkSchemaValidatorTest.gyldigSak)
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe sakTopicName },
@@ -76,7 +74,6 @@ internal class StatistikkServiceImplTest {
             sakRepo = mock(),
             vedtakRepo = mock(),
             clock = fixedClock,
-            satsFactory = satsFactoryTest,
         ).publiser(StatistikkSchemaValidatorTest.gyldigBehandling)
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe behandlingTopicName },
@@ -110,7 +107,6 @@ internal class StatistikkServiceImplTest {
             sakRepo = mock(),
             vedtakRepo = mock(),
             clock = clock,
-            satsFactory = satsFactoryTest,
         ).handle(
             Event.Statistikk.SakOpprettet(sak),
         )
@@ -159,7 +155,6 @@ internal class StatistikkServiceImplTest {
             sakRepo = mock(),
             vedtakRepo = mock(),
             clock = clock,
-            satsFactory = satsFactoryTest,
         ).handle(
             Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(søknadsbehandling),
         )
@@ -201,7 +196,6 @@ internal class StatistikkServiceImplTest {
             sakRepo = mock(),
             vedtakRepo = mock(),
             clock = clock,
-            satsFactory = satsFactoryTest,
         ).handle(
             Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(behandling),
         )
@@ -245,7 +239,6 @@ internal class StatistikkServiceImplTest {
             sakRepo = mock(),
             vedtakRepo = mock(),
             clock = clock,
-            satsFactory = satsFactoryTest,
         ).handle(
             Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(behandling),
         )
@@ -284,7 +277,7 @@ internal class StatistikkServiceImplTest {
             avsluttet = true,
         )
 
-        StatistikkServiceImpl(kafkaPublisherMock, mock(), mock(), mock(), clock, satsFactoryTest).handle(
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), mock(), mock(), clock).handle(
             Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(behandling),
         )
 
@@ -319,7 +312,7 @@ internal class StatistikkServiceImplTest {
             avsluttet = false,
         )
 
-        StatistikkServiceImpl(kafkaPublisherMock, mock(), mock(), mock(), clock, satsFactoryTest).handle(
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), mock(), mock(), clock).handle(
             Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingUnderkjent(underkjent),
         )
 
@@ -352,7 +345,7 @@ internal class StatistikkServiceImplTest {
             avsluttet = false,
         )
 
-        StatistikkServiceImpl(kafkaPublisherMock, mock(), mock(), mock(), clock, satsFactoryTest).handle(
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), mock(), mock(), clock).handle(
             Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(opprettetRevurdering),
         )
 
@@ -385,7 +378,7 @@ internal class StatistikkServiceImplTest {
             avsluttet = false,
         )
 
-        StatistikkServiceImpl(kafkaPublisherMock, mock(), mock(), mock(), clock, satsFactoryTest).handle(
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), mock(), mock(), clock).handle(
             Event.Statistikk.RevurderingStatistikk.RevurderingTilAttestering(revurderingTilAttestering),
         )
 
@@ -422,7 +415,7 @@ internal class StatistikkServiceImplTest {
             avsluttet = true,
         )
 
-        StatistikkServiceImpl(kafkaPublisherMock, mock(), mock(), mock(), clock, satsFactoryTest).handle(
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), mock(), mock(), clock).handle(
             Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering),
         )
 
@@ -456,7 +449,7 @@ internal class StatistikkServiceImplTest {
             avsluttet = false,
         )
 
-        StatistikkServiceImpl(kafkaPublisherMock, mock(), mock(), mock(), clock, satsFactoryTest).handle(
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), mock(), mock(), clock).handle(
             Event.Statistikk.SøknadStatistikk.SøknadMottatt(søknad, saksnummer),
         )
 
@@ -502,7 +495,7 @@ internal class StatistikkServiceImplTest {
             saksbehandler = søknad.lukketAv.toString(),
         )
 
-        StatistikkServiceImpl(kafkaPublisherMock, mock(), mock(), mock(), clock, satsFactoryTest).handle(
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), mock(), mock(), clock).handle(
             Event.Statistikk.SøknadStatistikk.SøknadLukket(søknad, saksnummer),
         )
 

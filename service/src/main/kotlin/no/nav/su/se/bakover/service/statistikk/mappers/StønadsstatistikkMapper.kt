@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.stønadsklassifisering
@@ -18,7 +17,6 @@ import kotlin.math.roundToInt
 
 class StønadsstatistikkMapper(
     private val clock: Clock,
-    private val satsFactory: SatsFactory,
 ) {
     fun map(
         vedtak: VedtakSomKanRevurderes.EndringIYtelse,
