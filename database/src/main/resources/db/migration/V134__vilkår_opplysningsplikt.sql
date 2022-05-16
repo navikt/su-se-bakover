@@ -149,9 +149,9 @@ vilkår as (
 forventet as (
 	select sum(antall) as antall from (
 		select count(*) as antall from behandling where not lukket
-		union
+		union all
 		select count(*) as antall from revurdering where avsluttet is null
-        union
+        union all
         select count(*) as antall from regulering where regulering.reguleringstatus = 'IVERKSATT'
 	) as antallTotalt
 ),
