@@ -239,6 +239,7 @@ object ServiceBuilder {
                 brevService = brevService,
                 sessionFactory = databaseRepos.sessionFactory,
                 sakService = sakService,
+                satsFactory = satsFactory,
             ),
             kontrollsamtale = kontrollsamtaleService,
             klageService = klageService,

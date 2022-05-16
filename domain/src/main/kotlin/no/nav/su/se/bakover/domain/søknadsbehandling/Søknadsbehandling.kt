@@ -201,6 +201,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     open fun leggTilOpplysningspliktVilkår(
         opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
         clock: Clock,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
         return KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand(this::class).left()
     }
@@ -632,9 +633,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock, formuegrenserFactory) }
             }
 
             private fun vilkårsvurder(
@@ -763,9 +765,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock, formuegrenserFactory) }
             }
 
             private fun vilkårsvurder(
@@ -850,9 +853,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock, formuegrenserFactory) }
             }
 
             private fun vilkårsvurder(
@@ -1030,9 +1034,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock, formuegrenserFactory) }
             }
 
             private fun vilkårsvurder(
@@ -1198,9 +1203,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock, formuegrenserFactory) }
             }
 
             private fun vilkårsvurder(
@@ -1421,9 +1427,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override fun leggTilOpplysningspliktVilkår(
             opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
             clock: Clock,
+            formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
             return valider(opplysningspliktVilkår)
-                .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+                .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock, formuegrenserFactory) }
         }
 
         private fun vilkårsvurder(
@@ -1903,9 +1910,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock, formuegrenserFactory) }
             }
 
             private fun vilkårsvurder(
@@ -2074,9 +2082,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun leggTilOpplysningspliktVilkår(
                     opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                     clock: Clock,
+                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                     return valider(opplysningspliktVilkår)
-                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock, formuegrenserFactory) }
                 }
 
                 private fun vilkårsvurder(
@@ -2190,9 +2199,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun leggTilOpplysningspliktVilkår(
                     opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                     clock: Clock,
+                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                     return valider(opplysningspliktVilkår)
-                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock, formuegrenserFactory) }
                 }
 
                 private fun vilkårsvurder(

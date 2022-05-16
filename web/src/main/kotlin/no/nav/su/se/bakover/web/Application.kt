@@ -230,7 +230,8 @@ fun Application.susebakover(
                     reguleringRoutes(accessProtectedServices.reguleringService, satsFactory)
                     opplysningspliktRoutes(
                         søknadsbehandlingService = accessProtectedServices.søknadsbehandling,
-                        revurderingService = accessProtectedServices.revurdering
+                        revurderingService = accessProtectedServices.revurdering,
+                        satsFactory = satsFactory,
                     )
                 }
             }

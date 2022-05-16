@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -171,10 +172,12 @@ internal class StatusovergangTest {
                 opprettet.leggTilOpplysningspliktVilkår(
                     opplysningspliktVilkår = utilstrekkeligDokumentert(),
                     clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail(),
                 Statusovergang.TilVilkårsvurdert(
-                    Behandlingsinformasjon(),
-                    fixedClock,
+                    behandlingsinformasjon = Behandlingsinformasjon(),
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ).shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
@@ -371,7 +374,7 @@ internal class StatusovergangTest {
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
                         utenlandsopphold = utenlandsoppholdInnvilget(),
-                        formue = formuevilkårIkkeVurdert()
+                        formue = formuevilkårIkkeVurdert(),
                         opplysningsplikt = tilstrekkeligDokumentert(),
                     ),
                 ),

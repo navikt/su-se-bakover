@@ -727,7 +727,7 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilOpplysningspliktVilkår(request.vilkår, clock)
+        return søknadsbehandling.leggTilOpplysningspliktVilkår(request.vilkår, clock, formuegrenserFactory)
             .mapLeft {
                 KunneIkkeLeggeTilOpplysningsplikt.Søknadsbehandling(it)
             }.map {

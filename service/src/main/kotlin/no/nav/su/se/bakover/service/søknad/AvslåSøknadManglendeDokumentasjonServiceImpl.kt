@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjo
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
@@ -40,6 +41,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
     private val brevService: BrevService,
     private val sessionFactory: SessionFactory,
     private val sakService: SakService,
+    private val satsFactory: SatsFactory,
 ) : AvslåSøknadManglendeDokumentasjonService {
     override fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Sak> {
         return søknadsbehandlingService.hentForSøknad(request.søknadId)
@@ -143,6 +145,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
                     begrunnelse = "",
                 ),
             clock = clock,
+            formuegrenserFactory = satsFactory.formuegrenserFactory,
         ).getOrHandle { throw IllegalArgumentException(it.toString()) }
     }
 
@@ -164,6 +167,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
                 ),
             ).getOrHandle { throw IllegalArgumentException(it.toString()) },
             clock = clock,
+            formuegrenserFactory = satsFactory.formuegrenserFactory,
         ).getOrHandle { throw IllegalArgumentException(it.toString()) } as Søknadsbehandling.Vilkårsvurdert.Avslag
     }
 }

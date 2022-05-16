@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
@@ -39,6 +40,7 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -508,6 +510,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         val brevService: BrevService = mock(),
         val sakService: SakService = mock(),
         val sessionFactory: SessionFactory = TestSessionFactory(),
+        val satsFactory: SatsFactory = satsFactoryTest,
     ) {
         val service = AvslåSøknadManglendeDokumentasjonServiceImpl(
             clock = clock,
@@ -517,6 +520,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             brevService = brevService,
             sessionFactory = sessionFactory,
             sakService = sakService,
+            satsFactory = satsFactory,
         )
 
         fun verifyNoMoreInteractions() {
