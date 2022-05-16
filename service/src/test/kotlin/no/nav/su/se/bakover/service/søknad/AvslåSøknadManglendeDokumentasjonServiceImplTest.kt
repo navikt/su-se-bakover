@@ -125,7 +125,6 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 fritekstTilBrev = "finfin tekst",
                 stønadsperiode = Stønadsperiode.create(
                     periode = expectedPeriode,
-                    begrunnelse = "",
                 ),
                 grunnlagsdata = uavklart.grunnlagsdata,
                 vilkårsvurderinger = uavklart.vilkårsvurderinger.copy(
