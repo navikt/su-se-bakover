@@ -5,7 +5,6 @@ import java.util.UUID
 
 interface RevurderingRepo {
     fun hent(id: UUID): AbstraktRevurdering?
-    fun hentAlle(): List<AbstraktRevurdering>
     fun lagre(revurdering: AbstraktRevurdering, transactionContext: TransactionContext = defaultTransactionContext())
     fun defaultTransactionContext(): TransactionContext
 }

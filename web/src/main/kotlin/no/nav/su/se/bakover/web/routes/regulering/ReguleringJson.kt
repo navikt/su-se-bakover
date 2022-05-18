@@ -43,7 +43,6 @@ internal data class ReguleringJson(
             return this.name
         }
     }
-
 }
 
 internal fun Regulering.toJson(satsFactory: SatsFactory) = ReguleringJson(
@@ -82,5 +81,5 @@ internal fun Set<ÅrsakTilManuellRegulering>.toJson(): Set<String> {
     return map { it.name }.toSet()
 }
 
-internal fun Pair<Regulering, List<ReguleringMerknad>>.toJson() = ReguleringStatusJson(this.first.toJson(), this.second.toString())
-internal data class ReguleringStatusJson(val regulering: ReguleringJson, val merknad: String)
+internal fun Pair<Regulering, List<ReguleringMerknad>>.toJson() = ReguleringStatusJson(this.first.toJson(), this.second.map { it.name })
+internal data class ReguleringStatusJson(val regulering: ReguleringJson, val merknad: List<String>)

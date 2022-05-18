@@ -142,7 +142,6 @@ object ServiceBuilder {
 
         val reguleringService = ReguleringServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
-            revurderingRepo = databaseRepos.revurderingRepo,
             sakRepo = databaseRepos.sak,
             utbetalingService = utbetalingService,
             vedtakService = vedtakService,

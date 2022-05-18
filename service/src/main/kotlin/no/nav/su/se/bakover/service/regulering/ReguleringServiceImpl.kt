@@ -22,9 +22,6 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
-import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -41,7 +38,6 @@ import java.util.UUID
 
 class ReguleringServiceImpl(
     private val reguleringRepo: ReguleringRepo,
-    private val revurderingRepo: RevurderingRepo,
     private val sakRepo: SakRepo,
     private val utbetalingService: UtbetalingService,
     private val vedtakService: VedtakService,
@@ -277,16 +273,12 @@ class ReguleringServiceImpl(
 
     override fun hentStatus(): List<Pair<Regulering, List<ReguleringMerknad>>> {
         val reguleringer = reguleringRepo.hentReguleringerSomIkkeErIverksatt()
-        val sakerSomAvventerForhåndsvarsel = revurderingRepo
-            .hentAlle()
-            .filterIsInstance<Revurdering>()
-            .filter { it.forhåndsvarsel is Forhåndsvarsel.UnderBehandling.Sendt }
-            .map { it.saksnummer }
+        val sakerSomAvventerForhåndsvarsel = sakRepo.hentSakerSomVenterPåForhåndsvarsling()
 
         return reguleringer.map {
             val tilhørendeMerknader = listOfNotNull(
                 if (it.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.any { it.fradragstype == Fradragstype.Fosterhjemsgodtgjørelse }) ReguleringMerknad.Fosterhjemsgodtgjørelse else null,
-                if  (sakerSomAvventerForhåndsvarsel.contains(it.saksnummer)) ReguleringMerknad.VenterPåSvarFraForhåndsvarsel else null,
+                if (sakerSomAvventerForhåndsvarsel.contains(it.saksnummer)) ReguleringMerknad.VenterPåSvarFraForhåndsvarsel else null,
             )
 
             Pair(it, tilhørendeMerknader)
