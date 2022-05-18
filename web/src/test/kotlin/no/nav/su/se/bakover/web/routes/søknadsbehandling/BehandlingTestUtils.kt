@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsinnholdAlder
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.create
@@ -37,6 +38,7 @@ object BehandlingTestUtils {
     internal val søknadId = UUID.randomUUID()
     internal val behandlingId = UUID.randomUUID()
     internal val søknadInnhold = SøknadInnholdTestdataBuilder.build()
+    internal val alderssøknadInnhold = søknadsinnholdAlder()
     internal val oppgaveId = OppgaveId("o")
     private val journalpostId = JournalpostId("j")
     internal val stønadsperiode =

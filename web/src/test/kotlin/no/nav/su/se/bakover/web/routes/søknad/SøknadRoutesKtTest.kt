@@ -35,9 +35,9 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
+import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -64,7 +64,7 @@ import no.nav.su.se.bakover.web.embeddedPostgres
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson.Companion.toSøknadsinnholdUføreJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukketJson
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -79,7 +79,7 @@ import kotlin.random.Random
 
 internal class SøknadRoutesKtTest {
 
-    private fun søknadInnhold(fnr: Fnr): SøknadInnhold = build(
+    private fun søknadInnhold(fnr: Fnr): SøknadsinnholdUføre = build(
         personopplysninger = SøknadInnholdTestdataBuilder.personopplysninger(
             fnr = fnr.toString(),
         ),
@@ -116,8 +116,8 @@ internal class SøknadRoutesKtTest {
     @Test
     fun `lagrer og henter søknad`() {
         val fnr = Fnr.generer()
-        val søknadInnhold: SøknadInnhold = søknadInnhold(fnr)
-        val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
+        val søknadInnhold: SøknadsinnholdUføre = søknadInnhold(fnr)
+        val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadsinnholdUføreJson())
         withMigratedDb { dataSource ->
             val repos = databaseRepos(dataSource)
             testApplication {
@@ -126,7 +126,7 @@ internal class SøknadRoutesKtTest {
                 }
                 val createResponse = defaultRequest(
                     Post,
-                    søknadPath,
+                    uføresøknadPath,
                     listOf(Brukerrolle.Veileder),
                 ) {
                     header(ContentType, Json.toString())
@@ -153,9 +153,9 @@ internal class SøknadRoutesKtTest {
                 testSusebakover(databaseRepos = embeddedPostgres())
             }
             val fnr = Fnr.generer()
-            val søknadInnhold: SøknadInnhold = søknadInnhold(fnr)
-            val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
-            defaultRequest(Post, søknadPath, listOf(Brukerrolle.Veileder)) {
+            val søknadInnhold: SøknadsinnholdUføre = søknadInnhold(fnr)
+            val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadsinnholdUføreJson())
+            defaultRequest(Post, uføresøknadPath, listOf(Brukerrolle.Veileder)) {
                 header("Content-type", Json.toString())
                 setBody(soknadJson)
             }.apply {
@@ -177,8 +177,8 @@ internal class SøknadRoutesKtTest {
     @Test
     fun `skal opprette journalpost og oppgave ved opprettelse av søknad`() {
         val fnr = Fnr.generer()
-        val søknadInnhold: SøknadInnhold = søknadInnhold(fnr)
-        val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
+        val søknadInnhold: SøknadsinnholdUføre = søknadInnhold(fnr)
+        val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadsinnholdUføreJson())
 
         val pdfGenerator: PdfGenerator = mock {
             on { genererPdf(any<SøknadPdfInnhold>()) } doReturn "pdf innhold".toByteArray().right()
@@ -230,7 +230,7 @@ internal class SøknadRoutesKtTest {
                 }
                 defaultRequest(
                     Post,
-                    søknadPath,
+                    uføresøknadPath,
                     listOf(Brukerrolle.Veileder),
                 ) {
                     header(ContentType, Json.toString())
@@ -259,7 +259,7 @@ internal class SøknadRoutesKtTest {
             }
             defaultRequest(
                 method = Post,
-                uri = "$søknadPath/$søknadId/lukk",
+                uri = "$uføresøknadPath/$søknadId/lukk",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 header(ContentType, Json.toString())
@@ -289,7 +289,7 @@ internal class SøknadRoutesKtTest {
             application { testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)) }
             defaultRequest(
                 method = Post,
-                uri = "$søknadPath/$søknadId/lukk",
+                uri = "$uføresøknadPath/$søknadId/lukk",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 header(ContentType, Json.toString())
@@ -319,7 +319,7 @@ internal class SøknadRoutesKtTest {
             application { testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)) }
             defaultRequest(
                 method = Post,
-                uri = "$søknadPath/$søknadId/lukk",
+                uri = "$uføresøknadPath/$søknadId/lukk",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 header(ContentType, Json.toString())
@@ -350,7 +350,7 @@ internal class SøknadRoutesKtTest {
             application { testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)) }
             defaultRequest(
                 method = Post,
-                uri = "$søknadPath/$søknadId/lukk",
+                uri = "$uføresøknadPath/$søknadId/lukk",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 header(ContentType, Json.toString())
@@ -381,7 +381,7 @@ internal class SøknadRoutesKtTest {
             }
             defaultRequest(
                 method = Post,
-                uri = "$søknadPath/$søknadId/lukk/brevutkast",
+                uri = "$uføresøknadPath/$søknadId/lukk/brevutkast",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -413,7 +413,7 @@ internal class SøknadRoutesKtTest {
             }
             defaultRequest(
                 method = Post,
-                uri = "$søknadPath/$søknadId/avslag",
+                uri = "$uføresøknadPath/$søknadId/avslag",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(

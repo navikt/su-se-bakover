@@ -5,16 +5,16 @@ package no.nav.su.se.bakover.web.søknad.ny
  * Da vil vi plukke opp kontraktsendringer mellom bakover/fremover; både tilsiktede og utilsiktede.
  */
 import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.web.søknad.digitalSøknadJson
-import no.nav.su.se.bakover.web.søknad.digitalSøknadsinnholdJson
+import no.nav.su.se.bakover.web.søknad.digitalSøknadsinnholdUføreJson
+import no.nav.su.se.bakover.web.søknad.digitalUføreSøknadJson
 import no.nav.su.se.bakover.web.søknad.papirsøknadJson
-import no.nav.su.se.bakover.web.søknad.papirsøknadsinnholdJson
+import no.nav.su.se.bakover.web.søknad.papirsøknadsinnholdUføreJson
 import org.json.JSONObject
 
 object NySøknadJson {
     /**
      * Henger tett sammen med [no.nav.su.se.bakover.web.søknad.ny.NySøknadJson.Response].
-     * En forskjell er at requesten tar inn et rent [no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson] objekt,
+     * En forskjell er at requesten tar inn et rent [no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson] objekt,
      * mens responsen wrapper dette i [no.nav.su.se.bakover.web.routes.søknad.SøknadJson]
      */
     object Request {
@@ -24,7 +24,7 @@ object NySøknadJson {
         internal fun nyDigitalSøknad(
             fnr: String = no.nav.su.se.bakover.web.SharedRegressionTestData.fnr,
         ): String {
-            return digitalSøknadsinnholdJson(
+            return digitalSøknadsinnholdUføreJson(
                 fnr = fnr,
             )
         }
@@ -36,7 +36,7 @@ object NySøknadJson {
             fnr: String = no.nav.su.se.bakover.web.SharedRegressionTestData.fnr,
             mottaksdato: String = fixedLocalDate.toString(),
         ): String {
-            return papirsøknadsinnholdJson(
+            return papirsøknadsinnholdUføreJson(
                 fnr = fnr,
                 mottaksdato = mottaksdato,
             )
@@ -45,7 +45,7 @@ object NySøknadJson {
 
     /**
      * Henger tett sammen med [no.nav.su.se.bakover.web.søknad.ny.NySøknadJson.Request].
-     * En forskjell er at requesten mapper til et [no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson] objekt,
+     * En forskjell er at requesten mapper til et [no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson] objekt,
      * mens responsen wrapper en [no.nav.su.se.bakover.web.routes.søknad.SøknadJson] og et saksnummer
      */
     object Response {
@@ -57,7 +57,7 @@ object NySøknadJson {
             fnr: String = no.nav.su.se.bakover.web.SharedRegressionTestData.fnr,
             saksnummer: Long = 2021,
         ): String {
-            val søknadJson = digitalSøknadJson(fnr = fnr)
+            val søknadJson = digitalUføreSøknadJson(fnr = fnr)
             //language=JSON
             return """
             {

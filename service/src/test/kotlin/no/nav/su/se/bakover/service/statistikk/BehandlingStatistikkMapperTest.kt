@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.SøknadsinnholdAlder
+import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -544,13 +546,22 @@ internal class BehandlingStatistikkMapperTest {
         fun `registrert dato settes til dato for mottak av papirsøknad`() {
             val expected = 1.februar(2021)
             val papirsøknad = søknad.copy(
-                søknadInnhold = søknad.søknadInnhold.copy(
-                    forNav = ForNav.Papirsøknad(
-                        mottaksdatoForSøknad = expected,
-                        grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,
-                        annenGrunn = "",
-                    ),
-                ),
+                søknadInnhold = when (søknad.søknadInnhold) {
+                    is SøknadsinnholdAlder -> (søknad.søknadInnhold as SøknadsinnholdAlder).copy(
+                        forNav = ForNav.Papirsøknad(
+                            mottaksdatoForSøknad = expected,
+                            grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,
+                            annenGrunn = "",
+                        ),
+                    )
+                    is SøknadsinnholdUføre -> (søknad.søknadInnhold as SøknadsinnholdUføre).copy(
+                        forNav = ForNav.Papirsøknad(
+                            mottaksdatoForSøknad = expected,
+                            grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,
+                            annenGrunn = "",
+                        ),
+                    )
+                },
             )
             BehandlingStatistikkMapper.MottattDatoMapper.map(uavklartSøknadsbehandling.copy(søknad = papirsøknad)) shouldBe expected
         }

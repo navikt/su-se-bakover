@@ -17,7 +17,7 @@ data class SøknadPdfInnhold private constructor(
     val navn: Person.Navn,
     val dagensDatoOgTidspunkt: String = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
     val søknadOpprettet: String,
-    val søknadInnhold: SøknadInnhold
+    val søknadInnhold: SøknadInnhold,
 ) {
     companion object {
         fun create(
