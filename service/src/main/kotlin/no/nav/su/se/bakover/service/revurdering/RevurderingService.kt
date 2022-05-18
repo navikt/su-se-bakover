@@ -511,7 +511,6 @@ data class LeggTilBosituasjonRequest(
     val epsFnr: String?,
     val delerBolig: Boolean?,
     val ektemakeEllerSamboerUførFlyktning: Boolean?,
-    val begrunnelse: String?,
 ) {
     fun toDomain(
         clock: Clock,

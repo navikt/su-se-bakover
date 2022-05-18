@@ -25,7 +25,6 @@ internal fun ApplicationTestBuilder.leggTilUføregrunnlag(
     uføregrad: Int = 100,
     forventetInntekt: Int = 0,
     resultat: String = "VilkårOppfylt",
-    begrunnelse: String = "Vurderinger rundt uføretrygd, grad og forventet inntekt etter uførhet per år er lagt til automatisk av LeggTilUførhet.kt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     url: String = "/saker/$sakId/behandlinger/$behandlingId/grunnlag/uføre",
 ): String {
@@ -47,8 +46,7 @@ internal fun ApplicationTestBuilder.leggTilUføregrunnlag(
                         },
                         "uføregrad":$uføregrad,
                         "forventetInntekt":$forventetInntekt,
-                        "resultat":"$resultat",
-                        "begrunnelse":"$begrunnelse"
+                        "resultat":"$resultat"
                       }
                     ]
                   }
