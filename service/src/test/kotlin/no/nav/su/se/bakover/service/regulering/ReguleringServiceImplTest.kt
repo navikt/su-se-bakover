@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
+import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
@@ -471,6 +472,7 @@ internal class ReguleringServiceImplTest {
                 on { hentForSakId(any(), any()) } doReturn _sak.reguleringer
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
+            revurderingRepo = defaultMock(),
             sakRepo = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(
                     SakIdSaksnummerFnr(

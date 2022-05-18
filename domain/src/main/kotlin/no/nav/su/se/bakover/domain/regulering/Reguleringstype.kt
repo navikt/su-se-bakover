@@ -24,7 +24,7 @@ enum class ÅrsakTilManuellRegulering {
     VedtakstidslinjeErIkkeSammenhengende,
     PågåendeAvkortingEllerBehovForFremtidigAvkorting,
     AvventerKravgrunnlag,
-    UtbetalingFeilet;
+    UtbetalingFeilet,
 }
 
 fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {

@@ -168,6 +168,17 @@ internal class RevurderingPostgresRepo(
         }
     }
 
+    override fun hentAlle(): List<AbstraktRevurdering> {
+        return dbMetrics.timeQuery("hentAlleRevurderinger") {
+            sessionFactory.withSession { session ->
+                """
+                    SELECT *
+                    FROM REVURDERING
+                """.trimIndent().hentListe(mapOf(), session) { it.toRevurdering(session) }
+            }
+        }
+    }
+
     internal fun hent(id: UUID, session: Session): AbstraktRevurdering? {
         return """
                     SELECT *

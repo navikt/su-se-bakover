@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
@@ -16,10 +17,14 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -36,6 +41,7 @@ import java.util.UUID
 
 class ReguleringServiceImpl(
     private val reguleringRepo: ReguleringRepo,
+    private val revurderingRepo: RevurderingRepo,
     private val sakRepo: SakRepo,
     private val utbetalingService: UtbetalingService,
     private val vedtakService: VedtakService,
@@ -269,8 +275,22 @@ class ReguleringServiceImpl(
         }
     }
 
-    override fun hentStatus(): List<Regulering> {
-        return reguleringRepo.hentReguleringerSomIkkeErIverksatt()
+    override fun hentStatus(): List<Pair<Regulering, List<ReguleringMerknad>>> {
+        val reguleringer = reguleringRepo.hentReguleringerSomIkkeErIverksatt()
+        val sakerSomAvventerForhåndsvarsel = revurderingRepo
+            .hentAlle()
+            .filterIsInstance<Revurdering>()
+            .filter { it.forhåndsvarsel is Forhåndsvarsel.UnderBehandling.Sendt }
+            .map { it.saksnummer }
+
+        return reguleringer.map {
+            val tilhørendeMerknader = listOfNotNull(
+                if (it.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.any { it.fradragstype == Fradragstype.Fosterhjemsgodtgjørelse }) ReguleringMerknad.Fosterhjemsgodtgjørelse else null,
+                if  (sakerSomAvventerForhåndsvarsel.contains(it.saksnummer)) ReguleringMerknad.VenterPåSvarFraForhåndsvarsel else null,
+            )
+
+            Pair(it, tilhørendeMerknader)
+        }
     }
 
     override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {

@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.satser.SatsFactory
@@ -42,6 +43,7 @@ internal data class ReguleringJson(
             return this.name
         }
     }
+
 }
 
 internal fun Regulering.toJson(satsFactory: SatsFactory) = ReguleringJson(
@@ -79,3 +81,6 @@ internal fun Regulering.toJson(satsFactory: SatsFactory) = ReguleringJson(
 internal fun Set<ÅrsakTilManuellRegulering>.toJson(): Set<String> {
     return map { it.name }.toSet()
 }
+
+internal fun Pair<Regulering, List<ReguleringMerknad>>.toJson() = ReguleringStatusJson(this.first.toJson(), this.second.toString())
+internal data class ReguleringStatusJson(val regulering: ReguleringJson, val merknad: String)
