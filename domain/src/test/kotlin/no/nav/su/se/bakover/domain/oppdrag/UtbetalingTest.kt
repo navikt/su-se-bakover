@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -108,13 +110,11 @@ internal class UtbetalingTest {
         beløp: Int = 500,
         forrigeUtbetalingslinjeId: UUID30? = null,
         uføregrad: Uføregrad = Uføregrad.parse(50),
-    ) = Utbetalingslinje.Ny(
-        opprettet = fixedTidspunkt,
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
+    ) = utbetalingslinje(
+        periode = Periode.create(fraOgMed, tilOgMed),
         beløp = beløp,
         forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
-        uføregrad = uføregrad
+        uføregrad = uføregrad.value
     )
 
     private fun createUtbetalingslinjer() = nonEmptyListOf(

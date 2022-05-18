@@ -52,8 +52,7 @@ internal enum class Søknadstype(val value: String) {
     ALDER("alder"), UFØRE("ufore")
 }
 
-internal const val søknadPath = "/soknad/{type}"
-val uføresøknadPath = "/soknad/${Søknadstype.UFØRE.value}"
+private const val søknadPath = "/soknad"
 
 internal fun Route.søknadRoutes(
     søknadService: SøknadService,
@@ -62,7 +61,7 @@ internal fun Route.søknadRoutes(
     clock: Clock,
     satsFactory: SatsFactory,
 ) {
-    post(søknadPath) {
+    post("$søknadPath/{type}") {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withStringParam("type") {
                 Either.catch { deserialize<SøknadsinnholdJson>(call) }.fold(

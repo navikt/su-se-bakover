@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.utbetaling
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.periode.april
 import no.nav.su.se.bakover.common.periode.februar
@@ -8,7 +9,9 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -105,6 +108,23 @@ internal class UtbetalingPostgresRepoTest {
             val repo = testDataHelper.utbetalingRepo
             val utbetalingMedKvittering: Utbetaling.OversendtUtbetaling.MedKvittering =
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
+            repo.hentUtbetaling(utbetalingMedKvittering.id) shouldBe utbetalingMedKvittering
+        }
+    }
+
+    @Test
+    fun `Lagrer og henter med kjøreplan`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.utbetalingRepo
+            val utbetalingMedKvittering: Utbetaling.OversendtUtbetaling.MedKvittering =
+                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+                    utbetalingslinjer = nonEmptyListOf(
+                        utbetalingslinje(
+                            kjøreplan = Utbetalingskjøreplan.JA,
+                        )
+                    )
+                ).third
             repo.hentUtbetaling(utbetalingMedKvittering.id) shouldBe utbetalingMedKvittering
         }
     }

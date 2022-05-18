@@ -56,7 +56,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
@@ -75,6 +74,7 @@ import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -164,14 +164,14 @@ internal val underkjentAttestering =
 internal val iverksattAttestering = Attestering.Iverksatt(attestant, enUkeEtterFixedTidspunkt)
 internal val avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt)
 
-internal fun utbetalingslinje(periode: Periode = stønadsperiode2021.periode): Utbetalingslinje.Ny {
-    return Utbetalingslinje.Ny(
-        opprettet = fixedTidspunkt,
-        fraOgMed = periode.fraOgMed,
-        tilOgMed = periode.tilOgMed,
-        forrigeUtbetalingslinjeId = null,
+internal fun utbetalingslinje(
+    periode: Periode = stønadsperiode2021.periode,
+    kjøreplan: Utbetalingskjøreplan = Utbetalingskjøreplan.NEI
+): Utbetalingslinje.Ny {
+    return no.nav.su.se.bakover.test.utbetalingslinje(
+        periode = periode,
         beløp = 25000,
-        uføregrad = Uføregrad.parse(50),
+        kjøreplan = kjøreplan,
     )
 }
 

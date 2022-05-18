@@ -10,10 +10,8 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -37,6 +35,7 @@ import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.utbetalingslinje
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
@@ -241,13 +240,9 @@ internal class LagBrevutkastForRevurderingTest {
         }
         val utbetalingMock = mock<Utbetaling> {
             on { utbetalingslinjer } doReturn nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
-                    fraOgMed = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram.fraOgMed,
-                    tilOgMed = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram.tilOgMed,
-                    forrigeUtbetalingslinjeId = null,
+                utbetalingslinje(
+                    periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
                     beløp = 20000,
-                    uføregrad = Uføregrad.parse(50),
                 ),
             )
         }

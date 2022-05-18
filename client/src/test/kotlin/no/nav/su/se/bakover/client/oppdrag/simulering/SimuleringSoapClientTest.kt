@@ -6,15 +6,15 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.utbetalingslinje
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import no.nav.system.os.entiteter.beregningskjema.Beregning
@@ -245,13 +246,9 @@ internal class SimuleringSoapClientTest {
             sakId = sakId,
             fnr = FNR,
             utbetalingslinjer = nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
-                    fraOgMed = 1.oktober(2020),
-                    tilOgMed = 31.desember(2020),
-                    forrigeUtbetalingslinjeId = null,
+                utbetalingslinje(
+                    periode = oktober(2020)..desember(2020),
                     beløp = 0,
-                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -261,10 +258,7 @@ internal class SimuleringSoapClientTest {
 
         simuleringService.simulerUtbetaling(
             request = SimulerUtbetalingForPeriode(
-                simuleringsperiode = Periode.create(
-                    fraOgMed = 1.oktober(2020),
-                    tilOgMed = 31.desember(2020),
-                ),
+                simuleringsperiode = oktober(2020)..desember(2020),
                 utbetaling = utenBeløp,
             ),
         ) shouldBe Simulering(
@@ -287,14 +281,9 @@ internal class SimuleringSoapClientTest {
         sakId = sakId,
         saksnummer = saksnummer,
         utbetalingslinjer = nonEmptyListOf(
-            Utbetalingslinje.Ny(
-                opprettet = fixedTidspunkt,
-                id = UUID30.randomUUID(),
-                fraOgMed = 1.januar(2020),
-                tilOgMed = 31.desember(2020),
+            utbetalingslinje(
+                periode = år(2020),
                 beløp = 405,
-                forrigeUtbetalingslinjeId = null,
-                uføregrad = Uføregrad.parse(50),
             ),
         ),
         fnr = Fnr("12345678910"),

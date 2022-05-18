@@ -5,18 +5,19 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDate
@@ -37,23 +38,17 @@ internal class UtbetalingRequestTest {
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingslinjer = nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
+                utbetalingslinje(
                     id = nyOppdragslinjeId1,
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 30.april(2020),
+                    periode = januar(2020)..april(2020),
                     beløp = BELØP,
-                    forrigeUtbetalingslinjeId = null,
-                    uføregrad = Uføregrad.parse(50),
                 ),
-                Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
+                utbetalingslinje(
                     id = nyOppdragslinjeId2,
-                    fraOgMed = 1.mai(2020),
-                    tilOgMed = 31.desember(2020),
+                    periode = mai(2020)..desember(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeId1,
-                    uføregrad = Uføregrad.parse(70),
+                    uføregrad = 70,
                 ),
             ),
             fnr = FNR,
@@ -96,7 +91,7 @@ internal class UtbetalingRequestTest {
                         sats = BELØP.toString(),
                         fradragTillegg = UtbetalingRequest.Oppdragslinje.FradragTillegg.TILLEGG,
                         typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND,
-                        brukKjoreplan = "N",
+                        brukKjoreplan = UtbetalingRequest.Oppdragslinje.Kjøreplan.NEI,
                         saksbehId = "SU",
                         utbetalesTilId = FNR.toString(),
                         refDelytelseId = null,
@@ -117,7 +112,7 @@ internal class UtbetalingRequestTest {
                         sats = BELØP.toString(),
                         fradragTillegg = UtbetalingRequest.Oppdragslinje.FradragTillegg.TILLEGG,
                         typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND,
-                        brukKjoreplan = "N",
+                        brukKjoreplan = UtbetalingRequest.Oppdragslinje.Kjøreplan.NEI,
                         saksbehId = "SU",
                         utbetalesTilId = FNR.toString(),
                         refDelytelseId = nyUtbetaling.utbetalingslinjer[0].id.toString(),
@@ -155,23 +150,17 @@ internal class UtbetalingRequestTest {
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingslinjer = nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
+                utbetalingslinje(
                     id = nyOppdragslinjeid1,
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 30.april(2020),
+                    periode = januar(2020)..april(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeId,
-                    uføregrad = Uføregrad.parse(50),
                 ),
-                Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
+                utbetalingslinje(
                     id = nyOppdragslinjeid2,
-                    fraOgMed = 1.mai(2020),
-                    tilOgMed = 31.desember(2020),
+                    periode = mai(2020)..desember(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeid1,
-                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
             fnr = FNR,
@@ -213,7 +202,7 @@ internal class UtbetalingRequestTest {
                         sats = BELØP.toString(),
                         fradragTillegg = UtbetalingRequest.Oppdragslinje.FradragTillegg.TILLEGG,
                         typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND,
-                        brukKjoreplan = "N",
+                        brukKjoreplan = UtbetalingRequest.Oppdragslinje.Kjøreplan.NEI,
                         saksbehId = "SU",
                         utbetalesTilId = FNR.toString(),
                         refDelytelseId = eksisterendeOppdragslinjeId.toString(),
@@ -238,7 +227,7 @@ internal class UtbetalingRequestTest {
                         sats = BELØP.toString(),
                         fradragTillegg = UtbetalingRequest.Oppdragslinje.FradragTillegg.TILLEGG,
                         typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND,
-                        brukKjoreplan = "N",
+                        brukKjoreplan = UtbetalingRequest.Oppdragslinje.Kjøreplan.NEI,
                         saksbehId = "SU",
                         utbetalesTilId = FNR.toString(),
                         refDelytelseId = nyOppdragslinjeid1.toString(),
@@ -334,7 +323,7 @@ internal class UtbetalingRequestTest {
                     sats = BELØP.toString(),
                     fradragTillegg = UtbetalingRequest.Oppdragslinje.FradragTillegg.TILLEGG,
                     typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND,
-                    brukKjoreplan = "N",
+                    brukKjoreplan = UtbetalingRequest.Oppdragslinje.Kjøreplan.NEI,
                     saksbehId = "SU",
                     utbetalesTilId = FNR.toString(),
                     refDelytelseId = null,

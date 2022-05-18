@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
@@ -245,6 +246,7 @@ internal class RevurderingBeregnOgSimulerTest {
                         saksbehandler = saksbehandler,
                         beregning = (actual.revurdering as SimulertRevurdering).beregning,
                         uføregrunnlag = opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag,
+                        kjøreplan = Utbetalingskjøreplan.NEI,
                     )
                 },
             )
@@ -327,6 +329,7 @@ internal class RevurderingBeregnOgSimulerTest {
                         saksbehandler = saksbehandler,
                         beregning = beregnet.beregning,
                         uføregrunnlag = beregnet.vilkårsvurderinger.uføre.grunnlag,
+                        kjøreplan = Utbetalingskjøreplan.NEI,
                     )
                 },
             )
@@ -380,6 +383,7 @@ internal class RevurderingBeregnOgSimulerTest {
                         saksbehandler = saksbehandler,
                         beregning = (actual.revurdering as SimulertRevurdering).beregning,
                         uføregrunnlag = underkjent.vilkårsvurderinger.uføre.grunnlag,
+                        kjøreplan = Utbetalingskjøreplan.NEI,
                     )
                 },
             )

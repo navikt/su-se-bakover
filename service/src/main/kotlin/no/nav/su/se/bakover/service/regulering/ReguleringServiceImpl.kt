@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
@@ -254,33 +255,6 @@ class ReguleringServiceImpl(
             }
     }
 
-    /**
-     * Denne brukes kun i den manuelle flyten som ikke er implementert ferdig enda.
-     */
-    override fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering> {
-        val regulering =
-            (reguleringRepo.hent(request.behandlingId) as? Regulering.OpprettetRegulering)
-                ?: return BeregnOgSimulerFeilet.FantIkkeRegulering.left()
-
-        val beregnetRegulering = regulering.beregn(
-            satsFactory = satsFactory,
-            begrunnelse = request.begrunnelse,
-            clock = clock,
-        ).getOrHandle {
-            when (it) {
-                is Regulering.KunneIkkeBeregne.BeregningFeilet -> log.error(
-                    "Regulering for saksnummer ${regulering.saksnummer}: Feilet. Kunne ikke beregne",
-                    it.feil,
-                )
-                is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> log.error("Regulering for saksnummer ${regulering.saksnummer}: Feilet. Kan ikke beregne i status ${it.status}")
-            }
-            return BeregnOgSimulerFeilet.KunneIkkeBeregne.left()
-        }
-
-        return beregnetRegulering.simuler(utbetalingService::simulerUtbetaling)
-            .mapLeft { BeregnOgSimulerFeilet.KunneIkkeSimulere }
-    }
-
     override fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, Regulering.AvsluttetRegulering> {
         val regulering = reguleringRepo.hent(reguleringId) ?: return KunneIkkeAvslutte.FantIkkeRegulering.left()
 
@@ -311,6 +285,8 @@ class ReguleringServiceImpl(
                     saksbehandler = regulering.saksbehandler,
                     beregning = regulering.beregning,
                     uføregrunnlag = regulering.vilkårsvurderinger.tilVilkårsvurderingerRevurdering().uføre.grunnlag,
+                    // Spesielt for regulering, ved etterbetaling, ønsker vi å utbetale disse sammen med neste kjøring, da disse beløpene bruker å være relativt små.
+                    kjøreplan = Utbetalingskjøreplan.JA,
                 ),
                 simulering = regulering.simulering,
             ),

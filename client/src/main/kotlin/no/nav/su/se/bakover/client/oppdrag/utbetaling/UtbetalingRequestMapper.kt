@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.client.oppdrag.OppdragDefaults
 import no.nav.su.se.bakover.client.oppdrag.OppdragslinjeDefaults
 import no.nav.su.se.bakover.client.oppdrag.toOppdragDate
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.KodeStatusLinje.Companion.tilKjøreplan
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.KodeStatusLinje.Companion.tilKodeStatusLinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -51,7 +52,7 @@ internal fun toUtbetalingRequest(
                                 sats = it.beløp.toString(),
                                 fradragTillegg = OppdragslinjeDefaults.fradragEllerTillegg,
                                 typeSats = OppdragslinjeDefaults.typeSats,
-                                brukKjoreplan = OppdragslinjeDefaults.BRUK_KJOREPLAN,
+                                brukKjoreplan = it.tilKjøreplan(),
                                 saksbehId = OppdragslinjeDefaults.SAKSBEHANDLER_ID,
                                 utbetalesTilId = utbetaling.fnr.toString(),
                                 refDelytelseId = null,
@@ -79,7 +80,7 @@ internal fun toUtbetalingRequest(
                                 sats = it.beløp.toString(),
                                 fradragTillegg = OppdragslinjeDefaults.fradragEllerTillegg,
                                 typeSats = OppdragslinjeDefaults.typeSats,
-                                brukKjoreplan = OppdragslinjeDefaults.BRUK_KJOREPLAN,
+                                brukKjoreplan = it.tilKjøreplan(),
                                 saksbehId = OppdragslinjeDefaults.SAKSBEHANDLER_ID,
                                 utbetalesTilId = utbetaling.fnr.toString(),
                                 refDelytelseId = it.forrigeUtbetalingslinjeId?.toString(),

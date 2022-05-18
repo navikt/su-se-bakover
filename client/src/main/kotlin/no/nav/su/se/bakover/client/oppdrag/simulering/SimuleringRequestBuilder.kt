@@ -101,7 +101,7 @@ internal class SimuleringRequestBuilder(
         fradragTillegg = FradragTillegg.fromValue(oppdragslinje.fradragTillegg.value)
         typeSats = oppdragslinje.typeSats.value
         saksbehId = oppdragslinje.saksbehId
-        brukKjoreplan = oppdragslinje.brukKjoreplan
+        brukKjoreplan = oppdragslinje.brukKjoreplan.value
         attestant.add(
             Attestant().apply {
                 attestantId = oppdragslinje.saksbehId
