@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.common.periode
 
 import arrow.core.Either
+import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
@@ -15,7 +16,7 @@ import java.time.Month
 import java.time.Period
 import java.time.YearMonth
 
-open class Periode private constructor(
+open class Periode protected constructor(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
 ) : Comparable<Periode> {
@@ -27,11 +28,11 @@ open class Periode private constructor(
     @JsonIgnore
     fun getAntallMåneder(): Int = Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths().toInt()
 
-    fun tilMånedsperioder(): NonEmptyList<Månedsperiode> {
+    fun måneder(): NonEmptyList<Måned> {
         return NonEmptyList.fromListUnsafe(
             (0L until getAntallMåneder()).map {
                 val currentMonth = fraOgMed.plusMonths(it)
-                Månedsperiode(YearMonth.of(currentMonth.year, currentMonth.month))
+                Måned(YearMonth.of(currentMonth.year, currentMonth.month))
             },
         )
     }
@@ -56,10 +57,10 @@ open class Periode private constructor(
         this fullstendigOverlapp listOf(other)
     /**
      * Alle månedene i denne perioden overlapper fullstendig med settet av alle månedene i lista.
-     * Dvs. at de må inneholde de nøyaktige samme månedsperioder.
+     * Dvs. at de må inneholde de nøyaktige samme måneder.
      */
     infix fun fullstendigOverlapp(other: List<Periode>): Boolean =
-        this.tilMånedsperioder().toSet() == other.flatMap { it.tilMånedsperioder() }.toSet()
+        this.måneder().toSet() == other.flatMap { it.måneder() }.toSet()
 
     /**
      * true: Det finnes minst en måned som overlapper
@@ -92,6 +93,9 @@ open class Periode private constructor(
         ) else null
     }
 
+    /**
+     * Slår sammen to perioder dersom minst en måned overlapper eller periodene er tilstøtende.
+     */
     infix fun slåSammen(other: Periode): Either<PerioderKanIkkeSlåsSammen, Periode> {
         return if (overlapper(other) || tilstøter(other)) {
             create(
@@ -122,7 +126,7 @@ open class Periode private constructor(
     infix fun før(other: Periode) = tilOgMed.isBefore(other.fraOgMed)
     infix fun etter(other: Periode) = fraOgMed.isAfter(other.tilOgMed)
     infix fun minus(other: Periode): List<Periode> {
-        return (tilMånedsperioder() - other.tilMånedsperioder().toSet()).minsteAntallSammenhengendePerioder()
+        return (måneder() - other.måneder().toSet()).minsteAntallSammenhengendePerioder()
     }
 
     /**
@@ -194,6 +198,10 @@ open class Periode private constructor(
     }
 }
 
+/**
+ * Aksepterer at lista er usortert og usammenhengende.
+ * @throws IndexOutOfBoundsException dersom lista med periode er tom.
+ */
 fun List<Periode>.minAndMaxOf(): Periode {
     return Periode.create(
         fraOgMed = this.minOf { it.fraOgMed },
@@ -224,18 +232,18 @@ fun List<Periode>.minsteAntallSammenhengendePerioder(): List<Periode> {
  * perioder i [this] til en minimum antall sammenhengende perioder.
  */
 operator fun List<Periode>.minus(other: List<Periode>): List<Periode> {
-    return (flatMap { it.tilMånedsperioder() }.toSet() - other.flatMap { it.tilMånedsperioder() }.toSet())
+    return (flatMap { it.måneder() }.toSet() - other.flatMap { it.måneder() }.toSet())
         .toList()
         .minsteAntallSammenhengendePerioder()
 }
 
 fun Periode.inneholderAlle(other: List<Periode>): Boolean {
-    return tilMånedsperioder().inneholderAlle(other)
+    return måneder().inneholderAlle(other)
 }
 
 fun List<Periode>.inneholderAlle(other: List<Periode>): Boolean {
-    val denne = flatMap { it.tilMånedsperioder() }.toSet()
-    val andre = other.flatMap { it.tilMånedsperioder() }.toSet()
+    val denne = flatMap { it.måneder() }.toSet()
+    val andre = other.flatMap { it.måneder() }.toSet()
     return when {
         other.isEmpty() -> {
             true
@@ -249,22 +257,128 @@ fun List<Periode>.inneholderAlle(other: List<Periode>): Boolean {
     }
 }
 
+/**
+ * Listen med perioder trenger ikke være sortert eller sammenhengende og kan ha duplikater.
+ *
+ * @return En sortert liste med måneder uten duplikater som kan være usammenhengende.
+ */
+fun List<Periode>.måneder(): List<Måned> {
+    if (this.isEmpty()) return emptyList()
+    return Nel.fromListUnsafe(this).måneder()
+}
+
+/**
+ * Listen med perioder trenger ikke være sortert eller sammenhengende og kan ha duplikater.
+ *
+ * @return En sortert liste med måneder uten duplikater som kan være usammenhengende.
+ */
+fun NonEmptyList<Periode>.måneder(): NonEmptyList<Måned> {
+    return Nel.fromListUnsafe(this.flatMap { it.måneder() }.distinct().sorted())
+}
+
+/**
+ * Sjekker om periodene er sortert.
+ * Listen med perioder kan være usammenhengende og ha duplikator.
+ */
+fun List<Periode>.erSortert(): Boolean {
+    return this.sorted() == this
+}
+
+/**
+ * Sjekker om en liste med perioder har duplikater.
+ * Listen trenger ikke være sortert og kan være usammenhengende.
+ */
+fun List<Periode>.harDuplikater(): Boolean {
+    return this.flatMap { it.måneder() }.let {
+        it.distinct().size != it.size
+    }
+}
+
+/**
+ * Sjekker om det ikke er hull i periodene.
+ * Listen med perioder trenger ikke å være sortert og kan inneholde duplikater
+ * En tom liste gir `true`
+ */
+fun List<Periode>.erSammenhengende(): Boolean {
+    return if (this.isEmpty()) true
+    else this.flatMap { it.måneder() }.distinct().size == NonEmptyList.fromListUnsafe(this).minAndMaxOf()
+        .getAntallMåneder()
+}
+
+/**
+ * Sjekker om en liste med perioder er sammenhengende, sortert og uten duplikater.
+ */
+fun List<Periode>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
+    return erSammenhengende() && erSortert() && !harDuplikater()
+}
+
+fun <T> Map<Måned, T>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
+    return this.keys.toList().erSammenhengendeSortertOgUtenDuplikater()
+}
+
+/**
+ * Gjør om en liste med key-value par av ([LocalDate] - [Any]) til en avgrenset, sammenhengende liste hvor verdien [Any]
+ * hvert element i [this] ekstrapoleres fra [LocalDate] til [LocalDate] for neste element i listen.
+ * Verdien av [Any] for det siste elementet ekstrapoleres fra sin [LocalDate] frem til [endExclusive]
+ *
+ * Eksempelbruk er satser (f.eks. grunnbeløp, garantipensjon o.l.)
+ *
+ * Garanterer at tidslinjen er sammenhengende, sortert og ikke har duplikater.
+ * @param endExclusive maks måned for ekstrapolering av
+ * @throws IllegalArgumentException dersom listen inneholder duplikate datoer eller en dato ikke er den første i måneden.
+ */
+fun <T> List<Pair<LocalDate, T>>.periodisert(
+    endExclusive: Måned = januar(2030),
+): List<Triple<LocalDate, Måned, T>> {
+    if (this.isEmpty()) return emptyList()
+
+    assert(this.all { it.first.erFørsteDagIMåned() }) { "Kan kun periodisere datoer som er første dag i måneden." }
+    assert(this.size == this.map { it.first }.distinct().size)
+
+    val sortertStigendeDato: List<Triple<LocalDate, Måned, T>> =
+        this.sortedBy { it.first }
+            .map { Triple(it.first, Måned(YearMonth.of(it.first.year, it.first.month)), it.second) }
+
+    val verdierMellomElementer = sortertStigendeDato
+        .zipWithNext()
+        .flatMap { (current, next) ->
+            current.second.until(next.second).map {
+                Triple(current.first, it, current.third)
+            }
+        }
+
+    val verdierFraSisteElementTilMaks = sortertStigendeDato
+        .maxByOrNull { it.first }!!
+        .let { lastElement ->
+            lastElement.second.until(endExclusive).map {
+                Triple(lastElement.first, it, lastElement.third)
+            }
+        }
+    return (verdierMellomElementer + verdierFraSisteElementTilMaks).apply {
+        this.map { it.second }.let {
+            assert(it.erSammenhengendeSortertOgUtenDuplikater()) {
+                "Kunne ikke periodisere. Sammenhengende: ${it.erSammenhengende()}, duplikate: ${it.harDuplikater()}, sortert: ${it.erSortert()}"
+            }
+        }
+    }
+}
+
 fun List<Periode>.harOverlappende(): Boolean {
     return if (isEmpty()) false else this.any { p1 -> this.minus(p1).any { p2 -> p1 overlapper p2 } }
 }
 
-fun januar(year: Int) = Månedsperiode(YearMonth.of(year, Month.JANUARY))
-fun februar(year: Int) = Månedsperiode(YearMonth.of(year, Month.FEBRUARY))
-fun mars(year: Int) = Månedsperiode(YearMonth.of(year, Month.MARCH))
-fun april(year: Int) = Månedsperiode(YearMonth.of(year, Month.APRIL))
-fun mai(year: Int) = Månedsperiode(YearMonth.of(year, Month.MAY))
-fun juni(year: Int) = Månedsperiode(YearMonth.of(year, Month.JUNE))
-fun juli(year: Int) = Månedsperiode(YearMonth.of(year, Month.JULY))
-fun august(year: Int) = Månedsperiode(YearMonth.of(year, Month.AUGUST))
-fun september(year: Int) = Månedsperiode(YearMonth.of(year, Month.SEPTEMBER))
-fun oktober(year: Int) = Månedsperiode(YearMonth.of(year, Month.OCTOBER))
-fun november(year: Int) = Månedsperiode(YearMonth.of(year, Month.NOVEMBER))
-fun desember(year: Int) = Månedsperiode(YearMonth.of(year, Month.DECEMBER))
+fun januar(year: Int) = Måned(YearMonth.of(year, Month.JANUARY))
+fun februar(year: Int) = Måned(YearMonth.of(year, Month.FEBRUARY))
+fun mars(year: Int) = Måned(YearMonth.of(year, Month.MARCH))
+fun april(year: Int) = Måned(YearMonth.of(year, Month.APRIL))
+fun mai(year: Int) = Måned(YearMonth.of(year, Month.MAY))
+fun juni(year: Int) = Måned(YearMonth.of(year, Month.JUNE))
+fun juli(year: Int) = Måned(YearMonth.of(year, Month.JULY))
+fun august(year: Int) = Måned(YearMonth.of(year, Month.AUGUST))
+fun september(year: Int) = Måned(YearMonth.of(year, Month.SEPTEMBER))
+fun oktober(year: Int) = Måned(YearMonth.of(year, Month.OCTOBER))
+fun november(year: Int) = Måned(YearMonth.of(year, Month.NOVEMBER))
+fun desember(year: Int) = Måned(YearMonth.of(year, Month.DECEMBER))
 fun år(year: Int) = Periode.create(
     fraOgMed = YearMonth.of(year, Month.JANUARY).atDay(1),
     tilOgMed = YearMonth.of(year, Month.DECEMBER).atEndOfMonth(),

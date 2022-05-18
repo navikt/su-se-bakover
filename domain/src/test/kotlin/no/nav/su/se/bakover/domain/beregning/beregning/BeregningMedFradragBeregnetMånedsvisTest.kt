@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mars
-import no.nav.su.se.bakover.common.periode.toMånedsperiode
+import no.nav.su.se.bakover.common.periode.tilMåned
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.IngenMerknaderForAvslag
 import no.nav.su.se.bakover.domain.beregning.Merknad
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvslag
 import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknad
 import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknadForAvslag
@@ -42,6 +41,7 @@ import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.satsFactoryTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.temporal.ChronoUnit
@@ -65,7 +65,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         )
@@ -87,7 +87,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         )
@@ -115,7 +115,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         )
@@ -141,7 +141,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         )
@@ -176,7 +176,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         )
@@ -206,7 +206,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         )
@@ -252,7 +252,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         )
@@ -267,7 +267,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             it shouldBe FradragForMåned(
                 fradragstype = Fradragstype.UnderMinstenivå,
                 månedsbeløp = 211.0,
-                måned = it.periode.toMånedsperiode(),
+                måned = it.periode.tilMåned(),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             )
@@ -277,7 +277,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             it shouldBe FradragForMåned(
                 fradragstype = Fradragstype.ForventetInntekt,
                 månedsbeløp = 20426.42,
-                måned = it.periode.toMånedsperiode(),
+                måned = it.periode.tilMåned(),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             )
@@ -294,7 +294,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             it shouldBe FradragForMåned(
                 fradragstype = Fradragstype.ForventetInntekt,
                 månedsbeløp = 20426.42,
-                måned = it.periode.toMånedsperiode(),
+                måned = it.periode.tilMåned(),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             )
@@ -320,7 +320,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         )
@@ -352,7 +352,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         )
@@ -392,7 +392,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         )
@@ -415,7 +415,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         )
@@ -442,7 +442,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 beregningsperioder = listOf(
                     Beregningsperiode(
                         periode = beregningsperiode,
-                        strategy = BeregningStrategy.BorAlene,
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                     ),
                 ),
             )
@@ -462,7 +462,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 beregningsperioder = listOf(
                     Beregningsperiode(
                         periode = beregningsperiode,
-                        strategy = BeregningStrategy.BorAlene,
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                     ),
                 ),
             )
@@ -492,7 +492,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 ),
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
-                    månedsbeløp = Sats.HØY.månedsbeløp(periode.fraOgMed) - 100,
+                    månedsbeløp = satsFactoryTest.høy(juni(2021)).satsForMånedAsDouble - 100,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -500,7 +500,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         )
@@ -524,7 +524,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 ),
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
-                    månedsbeløp = Sats.HØY.månedsbeløp(periode.fraOgMed) - 100,
+                    månedsbeløp = satsFactoryTest.høy(juni(2021)).satsForMånedAsDouble - 100,
                     periode = periode,
                     tilhører = FradragTilhører.EPS,
                 ),
@@ -532,7 +532,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.EpsUnder67År,
+                    strategy = BeregningStrategy.EpsUnder67År(satsFactoryTest),
                 ),
             ),
         )
@@ -564,7 +564,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 ),
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.Kapitalinntekt,
-                    månedsbeløp = 21750.0,
+                    månedsbeløp = 20750.0,
                     periode = desember(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
@@ -573,7 +573,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = år(2021),
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         ).let {
@@ -654,7 +654,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = år(2021),
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         ).let {
@@ -747,7 +747,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = år(2021),
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         ).let {
@@ -796,7 +796,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene,
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
                 ),
             ),
         )

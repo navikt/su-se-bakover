@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -101,6 +102,7 @@ internal class SøknadRoutesKtTest {
         embeddedDatasource = dataSource,
         dbMetrics = dbMetricsStub,
         clock = fixedClock,
+        satsFactory = satsFactoryTest,
     )
 
     private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
@@ -198,6 +200,7 @@ internal class SøknadRoutesKtTest {
                 embeddedDatasource = dataSource,
                 dbMetrics = dbMetricsStub,
                 clock = fixedClock,
+                satsFactory = satsFactoryTest,
             )
 
             val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
@@ -214,6 +217,7 @@ internal class SøknadRoutesKtTest {
                 søknadMetrics = mock(),
                 clock = fixedClock,
                 unleash = mock(),
+                satsFactory = satsFactoryTest,
             )
 
             testApplication {
@@ -432,7 +436,7 @@ internal class SøknadRoutesKtTest {
                     },
                 )
 
-                bodyAsText() shouldBe serialize(sak.toJson(fixedClock))
+                bodyAsText() shouldBe serialize(sak.toJson(fixedClock, satsFactoryTest))
             }
         }
     }

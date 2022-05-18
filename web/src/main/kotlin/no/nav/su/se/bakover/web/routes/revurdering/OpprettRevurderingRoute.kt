@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIkkeAktørId
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIkkeSak
@@ -45,6 +46,7 @@ import java.time.LocalDate
 
 internal fun Route.opprettRevurderingRoute(
     revurderingService: RevurderingService,
+    satsFactory: SatsFactory,
 ) {
     data class Body(
         val fraOgMed: LocalDate,
@@ -76,7 +78,7 @@ internal fun Route.opprettRevurderingRoute(
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.Created,
-                                    serialize(it.toJson())
+                                    serialize(it.toJson(satsFactory))
                                 )
                             )
                         },

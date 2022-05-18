@@ -81,7 +81,7 @@ data class GjeldendeVedtaksdata(
     }
 
     fun inneholderOpphørsvedtakMedAvkortingUtenlandsopphold(): Boolean {
-        return periode.tilMånedsperioder()
+        return periode.måneder()
             .mapNotNull { gjeldendeVedtakPåDato(it.fraOgMed) }
             .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
             .any { it.harIdentifisertBehovForFremtidigAvkorting() }

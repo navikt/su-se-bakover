@@ -74,8 +74,8 @@ data class Beregningsgrunnlag private constructor(
                 ) {
                     return UgyldigBeregningsgrunnlag.OverlappendePerioderMedForventetInntekt.left()
                 }
-                if (!beregningsperiode.tilMånedsperioder().all { it ->
-                    forventedeInntekter.flatMap { it.periode.tilMånedsperioder() }.contains(it)
+                if (!beregningsperiode.måneder().all { it ->
+                    forventedeInntekter.flatMap { it.periode.måneder() }.contains(it)
                 }
                 ) {
                     return UgyldigBeregningsgrunnlag.ManglerForventetInntektForEnkelteMåneder.left()

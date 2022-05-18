@@ -4,7 +4,6 @@ import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -22,8 +21,8 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.test.create
-import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuevilkårAvslåttPgrBrukersformue
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -39,15 +38,17 @@ internal class RevurderingLeggTilUføregrunnlagTest {
 
     @Test
     fun `avslår uførhet, med avslått formue, gir feilmelding om at utfallet ikke støttes`() {
+        val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = stønadsperiode2021.periode,
+            begrunnelse = ":)",
+        )
         val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                 grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = listOf(
-                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                            id = UUID.randomUUID(), opprettet = fixedTidspunkt,
-                            periode = stønadsperiode2021.periode,
-                            begrunnelse = ":)",
-                        ),
+                        bosituasjon,
                     ),
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
@@ -63,29 +64,7 @@ internal class RevurderingLeggTilUføregrunnlagTest {
                             ),
                         ),
                     ),
-                    formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
-                        vurderingsperioder = nonEmptyListOf(
-                            Vurderingsperiode.Formue.create(
-                                id = UUID.randomUUID(), opprettet = fixedTidspunkt, resultat = Resultat.Avslag,
-                                grunnlag = Formuegrunnlag.create(
-                                    id = UUID.randomUUID(),
-                                    periode = stønadsperiode2021.periode,
-                                    opprettet = fixedTidspunkt,
-                                    epsFormue = null,
-                                    søkersFormue = Formuegrunnlag.Verdier.empty(),
-                                    begrunnelse = null,
-                                    bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                                        id = UUID.randomUUID(),
-                                        opprettet = fixedTidspunkt,
-                                        periode = stønadsperiode2021.periode,
-                                        begrunnelse = ":>",
-                                    ),
-                                    behandlingsPeriode = stønadsperiode2021.periode,
-                                ),
-                                periode = stønadsperiode2021.periode,
-                            ),
-                        ),
-                    ),
+                    formue = formuevilkårAvslåttPgrBrukersformue(bosituasjon = bosituasjon),
                     utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                     opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
                 ),

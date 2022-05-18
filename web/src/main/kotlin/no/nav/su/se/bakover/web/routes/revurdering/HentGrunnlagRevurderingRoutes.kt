@@ -7,6 +7,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
@@ -29,6 +30,7 @@ import no.nav.su.se.bakover.web.withVedtakId
 internal fun Route.hentGrunnlagRevurderingRoutes(
     revurderingService: RevurderingService,
     vedtakService: VedtakService, // TODO ai: Flytte denne til "VedtakRoutes" når vi får något sånt
+    satsFactory: SatsFactory,
 ) {
     get("$revurderingPath/{revurderingId}/grunnlagsdataOgVilkårsvurderinger") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -50,8 +52,9 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
                                 HttpStatusCode.OK,
                                 serialize(
                                     GrunnlagsdataOgVilkårsvurderingerJson.create(
-                                        it.grunnlagsdata,
-                                        it.vilkårsvurderinger,
+                                        grunnlagsdata = it.grunnlagsdata,
+                                        vilkårsvurderinger = it.vilkårsvurderinger,
+                                        satsFactory = satsFactory,
                                     ),
                                 ),
                             )
@@ -90,6 +93,7 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
                                         GrunnlagsdataOgVilkårsvurderingerJson.create(
                                             it.grunnlagsdata,
                                             it.vilkårsvurderinger,
+                                            satsFactory = satsFactory,
                                         ),
                                     ),
                                 ),

@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
-import arrow.core.orNull
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
@@ -33,11 +32,13 @@ import no.nav.su.se.bakover.test.avkortingsvarselUtenlandsopphold
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.kontrollsamtale
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simuleringNy
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
@@ -111,9 +112,12 @@ internal class SøknadsbehandlingServiceIverksettTest {
         fun `feiler hvis utestående avkortinger ikke kunne avkortes fullstendig`() {
             val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second.leggTilFradragsgrunnlag(
                 fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 20000.0)),
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
+                satsFactory = satsFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail().let {
                 it.tilSimulert(simuleringNy(it.beregning))
             }.tilAttestering(

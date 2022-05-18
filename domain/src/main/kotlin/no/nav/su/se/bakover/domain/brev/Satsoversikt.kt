@@ -8,9 +8,14 @@ import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.time.LocalDate
 
+/**
+ * DTO for brev til su-pdfgen
+ */
 data class Satsoversikt(
     val perioder: List<Satsperiode>,
 ) {
@@ -47,33 +52,44 @@ data class Satsoversikt(
     }
 
     companion object {
-        fun fra(søknadsbehandling: Søknadsbehandling): Satsoversikt {
-            return fra(søknadsbehandling.grunnlagsdata.bosituasjon)
+        fun fra(søknadsbehandling: Søknadsbehandling, satsFactory: SatsFactory): Satsoversikt {
+            return fra(søknadsbehandling.grunnlagsdata.bosituasjon, satsFactory)
         }
 
-        fun fra(revurdering: Revurdering): Satsoversikt {
-            return fra(revurdering.grunnlagsdata.bosituasjon)
+        fun fra(revurdering: Revurdering, satsFactory: SatsFactory): Satsoversikt {
+            return fra(revurdering.grunnlagsdata.bosituasjon, satsFactory)
         }
 
-        fun fra(bosituasjoner: List<Grunnlag.Bosituasjon>): Satsoversikt {
+        fun fra(bosituasjoner: List<Grunnlag.Bosituasjon>, satsFactory: SatsFactory): Satsoversikt {
             return bosituasjoner
                 .map { it.fullstendigOrThrow() }
                 .flatMap { bosituasjon ->
-                    bosituasjon.periode.tilMånedsperioder()
+                    bosituasjon.periode.måneder()
                         .map { måned -> måned to bosituasjon }
                         .map { (måned, bosituasjon) ->
+                            val (strategi, sats) = bosituasjon.utledBeregningsstrategi(satsFactory)
+                                .let { it to it.beregn(måned) }
                             Satsperiode(
                                 fraOgMed = måned.fraOgMed.ddMMyyyy(),
                                 tilOgMed = måned.tilOgMed.ddMMyyyy(),
-                                sats = bosituasjon.utledBeregningsstrategi().sats().toString().lowercase(),
-                                satsBeløp = bosituasjon.utledBeregningsstrategi().sats()
-                                    .månedsbeløpSomHeltall(måned.fraOgMed),
-                                satsGrunn = bosituasjon.utledBeregningsstrategi().satsgrunn().toString(),
+                                sats = sats.satskategori.toJsonstring(),
+                                satsBeløp = sats.satsForMånedAvrundet,
+                                satsGrunn = strategi.satsgrunn().toString(),
                             )
                         }
                 }.let {
-                    Satsoversikt(it.slåSammenLikePerioder().sortedBy { LocalDate.parse(it.fraOgMed, ddMMyyyyFormatter) })
+                    Satsoversikt(
+                        it.slåSammenLikePerioder()
+                            .sortedBy { LocalDate.parse(it.fraOgMed, ddMMyyyyFormatter) },
+                    )
                 }
+        }
+
+        private fun Satskategori.toJsonstring(): String {
+            return when (this) {
+                Satskategori.ORDINÆR -> "ordinær"
+                Satskategori.HØY -> "høy"
+            }
         }
 
         fun List<Satsperiode>.slåSammenLikePerioder(): List<Satsperiode> {

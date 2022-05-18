@@ -4,12 +4,14 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.avrund
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
+import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
@@ -110,16 +112,19 @@ data class SendPåminnelseNyStønadsperiodeContext(
         lagDokument: (request: LagBrevRequest.PåminnelseNyStønadsperiode) -> Either<KunneIkkeSendePåminnelse.KunneIkkeLageBrev, Dokument.UtenMetadata>,
         lagreDokument: (dokument: Dokument.MedMetadata, tx: TransactionContext) -> Unit,
         lagreContext: (context: SendPåminnelseNyStønadsperiodeContext, tx: TransactionContext) -> Unit,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeSendePåminnelse, SendPåminnelseNyStønadsperiodeContext> {
         return if (skalSendePåminnelse(sak)) {
             hentPerson(sak.fnr)
                 .flatMap { person ->
+                    val dagensDato = LocalDate.now(clock)
                     lagDokument(
                         LagBrevRequest.PåminnelseNyStønadsperiode(
                             person = person,
-                            dagensDato = LocalDate.now(clock),
+                            dagensDato = dagensDato,
                             saksnummer = sak.saksnummer,
                             utløpsdato = id().yearMonth.atEndOfMonth(),
+                            halvtGrunnbeløp = formuegrenserFactory.forDato(dagensDato).formuegrense.avrund(),
                         ),
                     )
                 }.map { dokument ->

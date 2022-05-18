@@ -17,14 +17,16 @@ import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.migratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
-import org.mockito.kotlin.mock
 import java.time.Clock
+import java.time.LocalDate
 
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 
@@ -116,35 +118,46 @@ internal val dbMetricsStub: DbMetrics = object : DbMetrics {
 }
 
 internal fun mockedDb() = TestDatabaseBuilder.build()
-internal fun embeddedPostgres(clock: Clock = fixedClock) = DatabaseBuilder.build(
+internal fun embeddedPostgres(
+    clock: Clock = fixedClock,
+    satsFactory: SatsFactory = satsFactoryTest,
+) = DatabaseBuilder.build(
     embeddedDatasource = migratedDb(),
     dbMetrics = dbMetricsStub,
     clock = clock,
+    satsFactory = satsFactory,
 )
 
 internal fun Application.testSusebakover(
     clock: Clock = fixedClock,
     databaseRepos: DatabaseRepos = mockedDb(),
-    clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),
+    clients: Clients = TestClientsBuilder(clock, databaseRepos)
+        .build(applicationConfig),
     unleash: Unleash = FakeUnleash().apply { enableAll() },
+    /** Bruk gjeldende satser i hht angitt [clock] */
+    satsFactory: SatsFactory = satsFactoryTest.gjeldende(LocalDate.now(clock)),
     services: Services = ServiceBuilder.build(
         // build actual clients
         databaseRepos = databaseRepos,
         clients = clients,
-        behandlingMetrics = mock(),
-        søknadMetrics = mock(),
+        behandlingMetrics = org.mockito.kotlin.mock(),
+        søknadMetrics = org.mockito.kotlin.mock(),
         clock = clock,
         unleash = unleash,
+        satsFactory = satsFactory,
     ),
-    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
+    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(
+        databaseRepos.person,
+        services,
+    ),
 ) {
     return susebakover(
+        clock = clock,
+        applicationConfig = applicationConfig,
         databaseRepos = databaseRepos,
         clients = clients,
         services = services,
         accessCheckProxy = accessCheckProxy,
-        applicationConfig = applicationConfig,
-        clock = clock,
     )
 }
 

@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
@@ -68,6 +69,7 @@ internal class BeregnRoutesKtTest {
         embeddedDatasource = dataSource,
         dbMetrics = dbMetricsStub,
         clock = fixedClock,
+        satsFactory = satsFactoryTest,
     )
 
     private fun services(dataSource: DataSource, databaseRepos: DatabaseRepos = repos(dataSource)) =
@@ -78,6 +80,7 @@ internal class BeregnRoutesKtTest {
             søknadMetrics = mock(),
             clock = fixedClock,
             unleash = mock(),
+            satsFactory = satsFactoryTest,
         )
 
     @Test
@@ -171,8 +174,8 @@ internal class BeregnRoutesKtTest {
             testApplication {
                 application {
                     testSusebakover(
-                        services = services,
                         databaseRepos = repos,
+                        services = services,
                     )
                 }
                 services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(

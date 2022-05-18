@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -327,7 +328,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         avslåttUførevilkårUtenGrunnlag(
                             periode = år(2021),
                         ),
-                        Vilkår.Formue.IkkeVurdert,
+                        formuevilkårIkkeVurdert(),
                         UtenlandsoppholdVilkår.IkkeVurdert,
                     ),
                 ).second

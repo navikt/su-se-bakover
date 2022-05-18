@@ -7,13 +7,13 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.avrund
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.periode.minus
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.Grunnbeløp.Companion.`0,5G`
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag.Companion.equals
@@ -53,13 +53,13 @@ sealed class Inngangsvilkår {
 
 fun Set<Vilkår>.erLik(other: Set<Vilkår>): Boolean {
     return count() == other.count() &&
-        mapIndexed() { index, vilkår -> other.toList()[index].erLik(vilkår) }
+        mapIndexed { index, vilkår -> other.toList()[index].erLik(vilkår) }
             .all { it }
 }
 
 fun Nel<Vurderingsperiode>.erLik(other: Nel<Vurderingsperiode>): Boolean {
     return count() == other.count() &&
-        mapIndexed() { index, vilkår -> other[index].erLik(vilkår) }
+        mapIndexed { index, vurderingsperiode -> other[index].erLik(vurderingsperiode) }
             .all { it }
 }
 
@@ -159,7 +159,7 @@ sealed class Vilkårsvurderinger {
 
     data class Søknadsbehandling(
         override val uføre: Vilkår.Uførhet = Vilkår.Uførhet.IkkeVurdert,
-        override val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
+        override val formue: Vilkår.Formue,
         val flyktning: FlyktningVilkår = FlyktningVilkår.IkkeVurdert,
         val lovligOpphold: LovligOppholdVilkår = LovligOppholdVilkår.IkkeVurdert,
         val fastOpphold: FastOppholdINorgeVilkår = FastOppholdINorgeVilkår.IkkeVurdert,
@@ -250,6 +250,7 @@ sealed class Vilkårsvurderinger {
             behandlingsinformasjon: Behandlingsinformasjon,
             grunnlagsdata: Grunnlagsdata, // For validering av formue
             clock: Clock,
+            formuegrenserFactory: FormuegrenserFactory,
         ): Søknadsbehandling {
             return behandlingsinformasjon.vilkår.mapNotNull {
                 when (it) {
@@ -266,7 +267,7 @@ sealed class Vilkårsvurderinger {
                         it.tilVilkår(stønadsperiode, clock)
                     }
                     is Behandlingsinformasjon.Formue -> {
-                        it.tilVilkår(stønadsperiode, grunnlagsdata.bosituasjon, clock)
+                        it.tilVilkår(stønadsperiode, grunnlagsdata.bosituasjon, clock, formuegrenserFactory)
                     }
                     is Behandlingsinformasjon.PersonligOppmøte -> {
                         it.tilVilkår(stønadsperiode, clock)
@@ -282,9 +283,12 @@ sealed class Vilkårsvurderinger {
         }
 
         // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
-        fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Søknadsbehandling = copy(
+        fun oppdaterStønadsperiode(
+            stønadsperiode: Stønadsperiode,
+            formuegrenserFactory: FormuegrenserFactory,
+        ): Søknadsbehandling = copy(
             uføre = uføre.oppdaterStønadsperiode(stønadsperiode),
-            formue = formue.oppdaterStønadsperiode(stønadsperiode),
+            formue = formue.oppdaterStønadsperiode(stønadsperiode, formuegrenserFactory),
             flyktning = flyktning.oppdaterStønadsperiode(stønadsperiode),
             lovligOpphold = lovligOpphold.oppdaterStønadsperiode(stønadsperiode),
             fastOpphold = fastOpphold.oppdaterStønadsperiode(stønadsperiode),
@@ -294,17 +298,18 @@ sealed class Vilkårsvurderinger {
         )
 
         companion object {
-            val IkkeVurdert = Søknadsbehandling(
-                uføre = Vilkår.Uførhet.IkkeVurdert,
-                formue = Vilkår.Formue.IkkeVurdert,
-                flyktning = FlyktningVilkår.IkkeVurdert,
-                lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
-                fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
-                institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
-                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
-                personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
-                opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
-            )
+            fun ikkeVurdert() =
+                Søknadsbehandling(
+                    uføre = Vilkår.Uførhet.IkkeVurdert,
+                    formue = Vilkår.Formue.IkkeVurdert,
+                    flyktning = FlyktningVilkår.IkkeVurdert,
+                    lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                    fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                    institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                    utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
+                    personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                    opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                )
         }
     }
 
@@ -377,15 +382,18 @@ sealed class Vilkårsvurderinger {
             )
         }
 
-        fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Revurdering = copy(
+        fun oppdaterStønadsperiode(
+            stønadsperiode: Stønadsperiode,
+            formuegrenserFactory: FormuegrenserFactory,
+        ): Revurdering = copy(
             uføre = uføre.oppdaterStønadsperiode(stønadsperiode),
-            formue = formue.oppdaterStønadsperiode(stønadsperiode),
+            formue = formue.oppdaterStønadsperiode(stønadsperiode, formuegrenserFactory),
             utenlandsopphold = utenlandsopphold.oppdaterStønadsperiode(stønadsperiode),
             opplysningsplikt = opplysningsplikt.oppdaterStønadsperiode(stønadsperiode),
         )
 
         companion object {
-            val IkkeVurdert = Revurdering(
+            fun ikkeVurdert() = Revurdering(
                 uføre = Vilkår.Uførhet.IkkeVurdert,
                 formue = Vilkår.Formue.IkkeVurdert,
                 utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
@@ -466,7 +474,7 @@ sealed class Vilkår {
     abstract val vilkår: Inngangsvilkår
 
     abstract fun hentTidligesteDatoForAvslag(): LocalDate?
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkår
+
     abstract fun erLik(other: Vilkår): Boolean
     abstract fun lagTidslinje(periode: Periode): Vilkår
     abstract fun slåSammenLikePerioder(): Vilkår
@@ -475,7 +483,7 @@ sealed class Vilkår {
         override val vilkår = Inngangsvilkår.Uførhet
         abstract val grunnlag: List<Grunnlag.Uføregrunnlag>
 
-        abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uførhet
+        abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uførhet
 
         abstract override fun lagTidslinje(periode: Periode): Uførhet
 
@@ -654,7 +662,11 @@ sealed class Vilkår {
         override val vilkår = Inngangsvilkår.Formue
         abstract val grunnlag: List<Formuegrunnlag>
 
-        abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue
+        abstract fun oppdaterStønadsperiode(
+            stønadsperiode: Stønadsperiode,
+            formuegrenserFactory: FormuegrenserFactory,
+        ): Formue
+
         abstract override fun lagTidslinje(periode: Periode): Formue
         abstract override fun slåSammenLikePerioder(): Formue
 
@@ -669,12 +681,6 @@ sealed class Vilkår {
          * periodene bevares.
          */
         abstract fun fjernEPSFormue(perioder: List<Periode>): Formue
-
-        /**
-         * Definert i paragraf 8 til 0.5 G som vanligvis endrer seg 1. mai, årlig.
-         */
-        val formuegrenser: List<Pair<LocalDate, Int>> =
-            `0,5G`.gyldigPåDatoOgSenere(LocalDate.of(2021, 1, 1))
 
         object IkkeVurdert : Formue() {
             override val resultat: Resultat = Resultat.Uavklart
@@ -696,7 +702,10 @@ sealed class Vilkår {
 
             override val grunnlag = emptyList<Formuegrunnlag>()
 
-            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue = this
+            override fun oppdaterStønadsperiode(
+                stønadsperiode: Stønadsperiode,
+                formuegrenserFactory: FormuegrenserFactory,
+            ): Formue = this
 
             override fun lagTidslinje(periode: Periode): IkkeVurdert {
                 return this
@@ -710,11 +719,15 @@ sealed class Vilkår {
         data class Vurdert private constructor(
             val vurderingsperioder: Nel<Vurderingsperiode.Formue>,
         ) : Formue() {
-            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue {
+
+            override fun oppdaterStønadsperiode(
+                stønadsperiode: Stønadsperiode,
+                formuegrenserFactory: FormuegrenserFactory,
+            ): Formue {
                 check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn èn vurdering" }
                 return this.copy(
                     vurderingsperioder = this.vurderingsperioder.map {
-                        it.oppdaterStønadsperiode(stønadsperiode)
+                        it.oppdaterStønadsperiode(stønadsperiode, formuegrenserFactory)
                     },
                 )
             }
@@ -772,9 +785,13 @@ sealed class Vilkår {
 
                 fun tryCreateFromGrunnlag(
                     grunnlag: Nel<Formuegrunnlag>,
+                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<UgyldigFormuevilkår, Vurdert> {
                     val vurderingsperioder = grunnlag.map {
-                        Vurderingsperiode.Formue.tryCreateFromGrunnlag(it)
+                        Vurderingsperiode.Formue.tryCreateFromGrunnlag(
+                            grunnlag = it,
+                            formuegrenserFactory = formuegrenserFactory,
+                        )
                     }
                     return fromVurderingsperioder(vurderingsperioder)
                 }
@@ -784,7 +801,7 @@ sealed class Vilkår {
                 ): Vurdert =
                     fromVurderingsperioder(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
-                fun fromVurderingsperioder(
+                private fun fromVurderingsperioder(
                     vurderingsperioder: Nel<Vurderingsperiode.Formue>,
                 ): Either<UgyldigFormuevilkår, Vurdert> {
                     if (vurderingsperioder.harOverlappende()) {
@@ -802,7 +819,6 @@ sealed class Vilkår {
 }
 
 sealed class Vurderingsperiode {
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vurderingsperiode
     abstract val id: UUID
     abstract val opprettet: Tidspunkt
     abstract val resultat: Resultat
@@ -826,7 +842,7 @@ sealed class Vurderingsperiode {
         val begrunnelse: String?,
     ) : Vurderingsperiode(), KanPlasseresPåTidslinje<Uføre> {
 
-        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uføre {
+        fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uføre {
             return this.copy(
                 periode = stønadsperiode.periode,
                 grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
@@ -908,6 +924,16 @@ sealed class Vurderingsperiode {
         }
     }
 
+    /**
+     * En vurderingsperiode for formue er i dag splittet på resultat.
+     * Slik at en vurderingsperiode kun kan opprettes med ett resultat (innvilget eller avslag).
+     * Klassen støtter å hente uavklart fra databasen (TODO(satsfactory_formue): Sjekk om det finnes tilfeller at dette i preprod/prod-basen.
+     * Resultatet er avhengig av formueverdiene i forhold til formuegrensene.
+     * Dvs. at formuesummen vurderingsperioden må være mindre enn alle formuegrensene for at man skal få innvilget.
+     * Formuegrensene kan variere innenfor perioden.
+     * Dersom formuesummen er mellom [minGrenseverdi,maxGrenseverdi] vil vi i teorien ha et delvis avslag som i praksis blir et fullstendig avslag.
+     * For en søknadsbehandling er dette korrekt, men for en stønadsendring (revurdering/regulering/etc.) er ikke dette nødvendigvis korrekt.
+     */
     data class Formue private constructor(
         override val id: UUID = UUID.randomUUID(),
         override val opprettet: Tidspunkt,
@@ -916,10 +942,25 @@ sealed class Vurderingsperiode {
         override val periode: Periode,
     ) : Vurderingsperiode(), KanPlasseresPåTidslinje<Formue> {
 
-        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue {
-            return this.copy(
-                periode = stønadsperiode.periode,
+        init {
+            require(periode == grunnlag.periode) {
+                "perioden: $periode og grunnlaget sin periode: ${grunnlag.periode} må være lik."
+            }
+        }
+
+        /**
+         * Kun ment brukt fra søknadsbehandling.
+         * Resultatet kan endre seg dersom man treffer en annen formuegrense med lavere verdi og man overskrider denne.
+         */
+        fun oppdaterStønadsperiode(
+            stønadsperiode: Stønadsperiode,
+            formuegrenserFactory: FormuegrenserFactory,
+        ): Formue {
+            // Vi ønsker å regne ut resultatet på nytt, noe ikke copy-funksjonen gjør.
+            return tryCreateFromGrunnlag(
+                id = this.id,
                 grunnlag = this.grunnlag.oppdaterPeriode(stønadsperiode.periode),
+                formuegrenserFactory = formuegrenserFactory,
             )
         }
 
@@ -990,7 +1031,13 @@ sealed class Vurderingsperiode {
                 grunnlag: Formuegrunnlag,
                 periode: Periode,
             ): Formue {
-                return tryCreate(id, opprettet, resultat, grunnlag, periode).getOrHandle {
+                return tryCreate(
+                    id = id,
+                    opprettet = opprettet,
+                    resultat = resultat,
+                    grunnlag = grunnlag,
+                    vurderingsperiode = periode,
+                ).getOrHandle {
                     throw IllegalArgumentException(it.toString())
                 }
             }
@@ -1017,13 +1064,15 @@ sealed class Vurderingsperiode {
             }
 
             fun tryCreateFromGrunnlag(
+                id: UUID = UUID.randomUUID(),
                 grunnlag: Formuegrunnlag,
+                formuegrenserFactory: FormuegrenserFactory,
             ): Formue {
                 return Formue(
-                    id = UUID.randomUUID(),
+                    id = id,
                     opprettet = grunnlag.opprettet,
-                    resultat = if (grunnlag.periode.tilMånedsperioder().all {
-                        grunnlag.sumFormue() <= `0,5G`.påDato(it.fraOgMed)
+                    resultat = if (grunnlag.periode.måneder().all {
+                        grunnlag.sumFormue() <= formuegrenserFactory.forMåned(it).formuegrense.avrund()
                     }
                     ) Resultat.Innvilget else Resultat.Avslag,
                     grunnlag = grunnlag,
@@ -1079,3 +1128,5 @@ fun <T> List<T>.slåSammenLikePerioder(): Nel<T> where T : Vurderingsperiode, T 
         },
     )
 }
+
+// fun Nel<Vurderingsperiode.Formue>.periode() = this.map { it.periode }.periode()

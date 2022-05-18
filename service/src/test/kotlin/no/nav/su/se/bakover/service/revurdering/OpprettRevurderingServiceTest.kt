@@ -59,6 +59,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
@@ -812,7 +813,8 @@ internal class OpprettRevurderingServiceTest {
                     bosituasjon = bosituasjon,
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                    uførevilkår,
+                    uføre = uførevilkår,
+                    formue = formuevilkårIkkeVurdert(),
                 ),
                 stønadsperiode = Stønadsperiode.create(periodePlussEtÅr),
             ),

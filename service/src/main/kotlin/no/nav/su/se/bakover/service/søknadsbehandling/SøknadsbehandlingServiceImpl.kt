@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
@@ -41,6 +42,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
@@ -87,6 +89,8 @@ internal class SøknadsbehandlingServiceImpl(
     private val sessionFactory: SessionFactory,
     private val avkortingsvarselRepo: AvkortingsvarselRepo,
     private val tilbakekrevingService: TilbakekrevingService,
+    private val formuegrenserFactory: FormuegrenserFactory,
+    private val satsFactory: SatsFactory,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -188,7 +192,7 @@ internal class SøknadsbehandlingServiceImpl(
     ): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
         return statusovergang(
             søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.TilVilkårsvurdert(validertBehandlingsinformasjon, clock),
+            statusovergang = Statusovergang.TilVilkårsvurdert(validertBehandlingsinformasjon, clock, formuegrenserFactory),
         ).let { vilkårsvurdert ->
             søknadsbehandlingRepo.lagre(vilkårsvurdert)
             vilkårsvurdert.right()
@@ -202,6 +206,8 @@ internal class SøknadsbehandlingServiceImpl(
         return søknadsbehandling.beregn(
             begrunnelse = request.begrunnelse,
             clock = clock,
+            satsFactory = satsFactory,
+            formuegrenserFactory = formuegrenserFactory,
         ).mapLeft { feil ->
             when (feil) {
                 is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand -> {
@@ -552,6 +558,7 @@ internal class SøknadsbehandlingServiceImpl(
             søknadsbehandlingId = request.behandlingId,
             stønadsperiode = request.stønadsperiode,
             clock = clock,
+            formuegrenserFactory = formuegrenserFactory,
         ).mapLeft {
             SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
         }.map {
@@ -573,7 +580,7 @@ internal class SøknadsbehandlingServiceImpl(
             return KunneIkkeLeggeTilUføreVilkår.UgyldigInput(it).left()
         }
 
-        val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(vilkår, clock)
+        val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(vilkår, clock, formuegrenserFactory)
             .getOrHandle {
                 return when (it) {
                     is Søknadsbehandling.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand -> {
@@ -610,7 +617,7 @@ internal class SøknadsbehandlingServiceImpl(
             return it.left()
         }
 
-        return søknadsbehandling.oppdaterBosituasjon(bosituasjon, clock).mapLeft {
+        return søknadsbehandling.oppdaterBosituasjon(bosituasjon, clock, formuegrenserFactory).mapLeft {
             KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
@@ -637,7 +644,7 @@ internal class SøknadsbehandlingServiceImpl(
         ).mapLeft {
             return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
         }.map { vilkårsvurdert ->
-            return vilkårsvurdert.oppdaterBosituasjon(bosituasjon, clock).mapLeft {
+            return vilkårsvurdert.oppdaterBosituasjon(bosituasjon, clock, formuegrenserFactory).mapLeft {
                 KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it)
             }.map {
                 søknadsbehandlingRepo.lagre(it)
@@ -654,7 +661,7 @@ internal class SøknadsbehandlingServiceImpl(
          *  I flere av funksjonene i denne fila bruker vi [Statusovergang] og [no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor] for å bestemme om det er en gyldig statusovergang, men i dette tilfellet bruker vi domenemodellen sin funksjon leggTilFradragsgrunnlag til dette.
          * Vi ønsker gradvis å gå over til sistenevnte måte å gjøre det på.
          */
-        val oppdatertBehandling = behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag).getOrHandle {
+        val oppdatertBehandling = behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag, formuegrenserFactory).getOrHandle {
             return it.toService().left()
         }
 
@@ -710,7 +717,7 @@ internal class SøknadsbehandlingServiceImpl(
             }
         }
 
-        val vilkårsvurdert = søknadsbehandling.leggTilUtenlandsopphold(vilkår, clock)
+        val vilkårsvurdert = søknadsbehandling.leggTilUtenlandsopphold(vilkår, clock, formuegrenserFactory)
             .getOrHandle {
                 return it.tilService().left()
             }
@@ -723,7 +730,7 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilOpplysningspliktVilkår(request.vilkår, clock)
+        return søknadsbehandling.leggTilOpplysningspliktVilkår(request.vilkår, clock, formuegrenserFactory)
             .mapLeft {
                 KunneIkkeLeggeTilOpplysningsplikt.Søknadsbehandling(it)
             }.map {

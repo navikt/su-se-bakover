@@ -226,7 +226,7 @@ fun simulering(
 
 fun simuleringFeilutbetaling(
     vararg perioder: Periode,
-    simulertePerioder: List<SimulertPeriode> = perioder.map { it.tilMånedsperioder() }.flatten()
+    simulertePerioder: List<SimulertPeriode> = perioder.map { it.måneder() }.flatten()
         .map { simulertPeriodeFeilutbetaling(it) },
 ): Simulering {
     return Simulering(

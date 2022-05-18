@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.MånedBeløp
 import no.nav.su.se.bakover.domain.Månedsbeløp
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -32,6 +31,7 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import org.junit.jupiter.api.Test
@@ -54,9 +54,15 @@ internal class AvkortingsplanTest {
         Avkortingsplan(
             feilutbetaltBeløp = Månedsbeløp(
                 listOf(
-                    MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
-                    MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
-                    MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
+                    MånedBeløp(
+                        januar(2021),
+                        Beløp(satsFactoryTest.høy(januar(2021)).satsForMånedAvrundet),
+                    ),
+                    MånedBeløp(
+                        februar(2021),
+                        Beløp(satsFactoryTest.høy(februar(2021)).satsForMånedAvrundet),
+                    ),
+                    MånedBeløp(mars(2021), Beløp(satsFactoryTest.høy(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
             beregning = søknadsbehandling.beregning,
@@ -65,19 +71,19 @@ internal class AvkortingsplanTest {
             it shouldHaveSize 3
             it[0].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed),
+                    beløp = satsFactoryTest.høy(januar(2021)).satsForMånedAvrundet,
                     periode = januar(2021),
                 ),
             )
             it[1].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed),
+                    beløp = satsFactoryTest.høy(februar(2021)).satsForMånedAvrundet,
                     periode = februar(2021),
                 ),
             )
             it[2].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed),
+                    beløp = satsFactoryTest.høy(mars(2021)).satsForMånedAvrundet,
                     periode = mars(2021),
                 ),
             )
@@ -94,7 +100,7 @@ internal class AvkortingsplanTest {
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.januar(2021)).toDouble(),
+                            månedsbeløp = satsFactoryTest.høy(januar(2021)).satsForMånedAsDouble,
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -105,7 +111,7 @@ internal class AvkortingsplanTest {
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.mai(2021)).toDouble(),
+                            månedsbeløp = satsFactoryTest.høy(mai(2021)).satsForMånedAsDouble,
                             periode = Periode.create(1.mai(2021), 30.september(2021)),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -119,9 +125,9 @@ internal class AvkortingsplanTest {
         Avkortingsplan(
             feilutbetaltBeløp = Månedsbeløp(
                 listOf(
-                    MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
-                    MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
-                    MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
+                    MånedBeløp(januar(2021), Beløp(satsFactoryTest.høy(januar(2021)).satsForMånedAvrundet)),
+                    MånedBeløp(februar(2021), Beløp(satsFactoryTest.høy(februar(2021)).satsForMånedAvrundet)),
+                    MånedBeløp(mars(2021), Beløp(satsFactoryTest.høy(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
             beregning = søknadsbehandling.beregning,
@@ -129,19 +135,19 @@ internal class AvkortingsplanTest {
         ).lagFradrag().getOrFail().let {
             it[0].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = 21989,
+                    beløp = 20946,
                     periode = oktober(2021),
                 ),
             )
             it[1].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = 21989,
+                    beløp = 20946,
                     periode = november(2021),
                 ),
             )
             it[2].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = 18860,
+                    beløp = 20946,
                     periode = desember(2021),
                 ),
             )
@@ -158,7 +164,7 @@ internal class AvkortingsplanTest {
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.januar(2021)).toDouble(),
+                            månedsbeløp = satsFactoryTest.høy(januar(2021)).satsForMånedAsDouble,
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -169,7 +175,7 @@ internal class AvkortingsplanTest {
                         opprettet = fixedTidspunkt,
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.Sosialstønad,
-                            månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.mai(2021)).toDouble(),
+                            månedsbeløp = satsFactoryTest.høy(mai(2021)).satsForMånedAsDouble,
                             periode = Periode.create(1.mai(2021), 31.desember(2021)),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -183,9 +189,15 @@ internal class AvkortingsplanTest {
         Avkortingsplan(
             feilutbetaltBeløp = Månedsbeløp(
                 listOf(
-                    MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
-                    MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
-                    MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
+                    MånedBeløp(
+                        januar(2021),
+                        Beløp(satsFactoryTest.høy(januar(2021)).satsForMånedAvrundet),
+                    ),
+                    MånedBeløp(
+                        februar(2021),
+                        Beløp(satsFactoryTest.høy(februar(2021)).satsForMånedAvrundet),
+                    ),
+                    MånedBeløp(mars(2021), Beløp(satsFactoryTest.høy(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
             beregning = søknadsbehandling.beregning,
@@ -217,9 +229,15 @@ internal class AvkortingsplanTest {
         Avkortingsplan(
             feilutbetaltBeløp = Månedsbeløp(
                 listOf(
-                    MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
-                    MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
-                    MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
+                    MånedBeløp(
+                        januar(2021),
+                        Beløp(satsFactoryTest.høy(januar(2021)).satsForMånedAvrundet),
+                    ),
+                    MånedBeløp(
+                        februar(2021),
+                        Beløp(satsFactoryTest.høy(februar(2021)).satsForMånedAvrundet),
+                    ),
+                    MånedBeløp(mars(2021), Beløp(satsFactoryTest.høy(mars(2021)).satsForMånedAvrundet)),
                 ),
             ).sum(),
             beregning = søknadsbehandling.beregning,
@@ -252,13 +270,13 @@ internal class AvkortingsplanTest {
             )
             it[4].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = 11989,
+                    beløp = 10946,
                     periode = mai(2021),
                 ),
             )
             it[5].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = 7065,
+                    beløp = 8108,
                     periode = juni(2021),
                 ),
             )

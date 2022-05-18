@@ -27,13 +27,6 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
     ) : GrunnlagsdataOgVilkårsvurderinger() {
 
-        companion object {
-            val IkkeVurdert = Søknadsbehandling(
-                Grunnlagsdata.IkkeVurdert,
-                Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
-            )
-        }
-
         init {
             kastHvisPerioderIkkeErLike()
         }
@@ -43,13 +36,6 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
     ) : GrunnlagsdataOgVilkårsvurderinger() {
-
-        companion object {
-            val IkkeVurdert = Revurdering(
-                Grunnlagsdata.IkkeVurdert,
-                Vilkårsvurderinger.Revurdering.IkkeVurdert,
-            )
-        }
 
         init {
             kastHvisPerioderIkkeErLike()

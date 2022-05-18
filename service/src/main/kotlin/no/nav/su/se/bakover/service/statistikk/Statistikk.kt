@@ -127,7 +127,7 @@ sealed class Statistikk {
      * @param vedtakstype Type vedtak, dvs. førstegangssøknad, revurdering, klage, osv
      * @param vedtaksresultat Resultatet på vedtaket, f.eks. Innvilget, Opphørt, osv
      * @param behandlendeEnhetKode Kode som angir hvilken enhet som faktisk utfører behandlingen på det gjeldende tidspunktet
-     * @param ytelseVirkningstidspunkt Dato for når stønadsmottakers ytelse tredde i kraft første gang
+     * @param ytelseVirkningstidspunkt Dato for når stønadsmottakers ytelse trådte i kraft første gang
      * @param gjeldendeStonadVirkningstidspunkt Dato for når gjeldende stønadsperiode startes
      * @param gjeldendeStonadStopptidspunkt Dato for når gjeldende stønadsperiode avsluttes
      * @param gjeldendeStonadUtbetalingsstart Dato for når utbetalingene starter for gjeldende stønadsperiode

@@ -185,7 +185,11 @@ internal class StansAvYtelseServiceTest {
 
         val serviceAndMocks = RevurderingServiceMocks(
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(periode = periode, vedtakListe = nonEmptyListOf(vedtak), clock = fixedClock).right()
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(
+                    periode = periode,
+                    vedtakListe = nonEmptyListOf(vedtak),
+                    clock = fixedClock,
+                ).right()
             },
             utbetalingService = mock {
                 on { simulerStans(any()) } doReturn simulertUtbetaling().right()
@@ -493,7 +497,7 @@ internal class StansAvYtelseServiceTest {
         )
         val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             periode = periode,
-            simulering = simuleringFeilutbetaling(*periode.tilMånedsperioder().toTypedArray()),
+            simulering = simuleringFeilutbetaling(*periode.måneder().toTypedArray()),
         ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {

@@ -253,7 +253,11 @@ internal class GjenopptakAvYtelseServiceTest {
                 on { hentForSakId(any()) } doReturn sak.vedtakListe
             },
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(periode = periode, vedtakListe = nonEmptyListOf(vedtak), clock = fixedClock).right()
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(
+                    periode = periode,
+                    vedtakListe = nonEmptyListOf(vedtak),
+                    clock = fixedClock,
+                ).right()
             },
             utbetalingService = mock {
                 on { simulerGjenopptak(any()) } doReturn simulertGjenopptakUtbetaling().right()
@@ -477,7 +481,7 @@ internal class GjenopptakAvYtelseServiceTest {
             tilOgMed = år(2021).tilOgMed,
         )
         val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
-            simulering = simuleringFeilutbetaling(*periode.tilMånedsperioder().toTypedArray()),
+            simulering = simuleringFeilutbetaling(*periode.måneder().toTypedArray()),
         ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {

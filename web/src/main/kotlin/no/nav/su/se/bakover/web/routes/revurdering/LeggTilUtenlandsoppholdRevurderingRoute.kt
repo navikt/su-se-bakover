@@ -12,6 +12,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
@@ -59,6 +60,7 @@ private data class UtenlandsoppholdJson(
 
 internal fun Route.leggTilUtlandsoppholdRoute(
     revurderingService: RevurderingService,
+    satsFactory: SatsFactory,
 ) {
     post("$revurderingPath/{revurderingId}/utenlandsopphold") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -70,7 +72,7 @@ internal fun Route.leggTilUtlandsoppholdRoute(
                         revurderingService.leggTilUtenlandsopphold(req).mapLeft {
                             it.tilResultat()
                         }.map {
-                            Resultat.json(HttpStatusCode.OK, serialize(it.toJson()))
+                            Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory)))
                         }.getOrHandle { it },
                     )
                 }

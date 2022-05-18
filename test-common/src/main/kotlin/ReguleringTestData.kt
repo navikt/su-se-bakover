@@ -71,7 +71,7 @@ fun iverksattAutomatiskRegulering(
     reguleringstype = reguleringstype,
     saksbehandler = saksbehandler,
 )
-    .beregn(clock, null).getOrFail()
+    .beregn(satsFactoryTest, null, clock).getOrFail()
     .simuler { simulertUtbetaling().right() }.getOrFail()
     .tilIverksatt()
 
@@ -115,7 +115,10 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         clock = clock,
     )
     val sak = sakOgVedtak.first
-    val regulering = sak.opprettEllerOppdaterRegulering(regulerFraOgMed, fixedClock).getOrFail()
+    val regulering = sak.opprettEllerOppdaterRegulering(
+        startDato = regulerFraOgMed,
+        clock = fixedClock,
+    ).getOrFail()
 
     return Pair(
         sak.copy(

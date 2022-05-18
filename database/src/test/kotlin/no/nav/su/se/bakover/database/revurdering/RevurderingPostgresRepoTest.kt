@@ -35,13 +35,13 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
+import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -107,7 +107,7 @@ internal class RevurderingPostgresRepoTest {
         beregning = vedtak.beregning,
         forhåndsvarsel = null,
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+        vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
         avkorting = opprettet.avkorting.håndter(),
@@ -128,7 +128,7 @@ internal class RevurderingPostgresRepoTest {
         revurderingsårsak = opprettet.revurderingsårsak,
         forhåndsvarsel = null,
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+        vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
         avkorting = opprettet.avkorting.håndter(),
@@ -149,7 +149,7 @@ internal class RevurderingPostgresRepoTest {
         revurderingsårsak = opprettet.revurderingsårsak,
         forhåndsvarsel = null,
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+        vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
         avkorting = opprettet.avkorting.håndter(),
@@ -168,7 +168,7 @@ internal class RevurderingPostgresRepoTest {
         revurderingsårsak = beregnet.revurderingsårsak,
         forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+        vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
         avkorting = beregnet.avkorting.håndter(),
@@ -188,7 +188,7 @@ internal class RevurderingPostgresRepoTest {
         revurderingsårsak = beregnet.revurderingsårsak,
         forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+        vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
         avkorting = beregnet.avkorting.håndter(),
@@ -490,7 +490,7 @@ internal class RevurderingPostgresRepoTest {
                 ),
                 forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling
@@ -527,7 +527,7 @@ internal class RevurderingPostgresRepoTest {
                 simulering = simulering,
                 forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
@@ -580,7 +580,7 @@ internal class RevurderingPostgresRepoTest {
                 ),
                 forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet
@@ -617,7 +617,7 @@ internal class RevurderingPostgresRepoTest {
                 skalFøreTilUtsendingAvVedtaksbrev = false,
                 forhåndsvarsel = null,
                 grunnlagsdata = opprettet.grunnlagsdata,
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
@@ -644,7 +644,7 @@ internal class RevurderingPostgresRepoTest {
                 skalFøreTilUtsendingAvVedtaksbrev = false,
                 forhåndsvarsel = null,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             )
@@ -679,7 +679,7 @@ internal class RevurderingPostgresRepoTest {
                 skalFøreTilUtsendingAvVedtaksbrev = true,
                 forhåndsvarsel = null,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
@@ -715,7 +715,7 @@ internal class RevurderingPostgresRepoTest {
                 skalFøreTilUtsendingAvVedtaksbrev = false,
                 forhåndsvarsel = null,
                 grunnlagsdata = opprettet.grunnlagsdata,
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
@@ -740,7 +740,7 @@ internal class RevurderingPostgresRepoTest {
                 skalFøreTilUtsendingAvVedtaksbrev = false,
                 forhåndsvarsel = null,
                 grunnlagsdata = opprettet.grunnlagsdata,
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             )

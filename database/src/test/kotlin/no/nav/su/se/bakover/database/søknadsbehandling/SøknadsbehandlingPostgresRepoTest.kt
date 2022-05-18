@@ -32,7 +32,9 @@ import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.behandlingsinformasjonAlleVilkårInnvilget
 import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
@@ -161,6 +163,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 .beregn(
                     begrunnelse = null,
                     clock = fixedClock,
+                    satsFactory = testDataHelper.satsFactory,
+                    formuegrenserFactory = testDataHelper.satsFactory.formuegrenserFactory,
                 ).getOrFail()
                 .also {
                     repo.lagre(it)
@@ -190,7 +194,11 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     }
                 }
             // Tilbake til vilkårsvurdert
-            simulert.tilVilkårsvurdert(behandlingsinformasjonAlleVilkårInnvilget, clock = fixedClock)
+            simulert.tilVilkårsvurdert(
+                behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+                clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
+            )
                 .also { vilkårsvurdert ->
                     repo.lagre(vilkårsvurdert)
                     repo.hent(vilkårsvurdert.id) shouldBe vilkårsvurdert
@@ -417,6 +425,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 avkortingsvarselRepo = avkortingsvarselRepoMock,
                 grunnlagsdataOgVilkårsvurderingerPostgresRepo = mock(),
                 clock = mock(),
+                satsFactory = satsFactoryTest,
             )
 
             repo.lagre(
@@ -472,6 +481,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 avkortingsvarselRepo = avkortingsvarselRepoMock,
                 grunnlagsdataOgVilkårsvurderingerPostgresRepo = mock(),
                 clock = mock(),
+                satsFactory = satsFactoryTest,
             )
 
             repo.lagre(

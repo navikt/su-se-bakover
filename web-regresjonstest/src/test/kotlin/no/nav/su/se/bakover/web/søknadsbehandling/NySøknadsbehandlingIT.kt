@@ -38,12 +38,6 @@ internal class NySøknadsbehandlingIT {
                         {
                          "beløp":20946,
                          "fraOgMed":"2021-01-01",
-                         "tilOgMed":"2021-04-30",
-                         "type":"NY"
-                        },
-                        {
-                         "beløp":21989,
-                         "fraOgMed":"2021-05-01",
                          "tilOgMed":"2021-12-31",
                          "type":"NY"
                         }

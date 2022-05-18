@@ -25,7 +25,11 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
+import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlle
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlleRevurdering
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
@@ -120,7 +124,7 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `alle vilkår uavklart gir uavklart`() {
-            Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert
+            vilkårsvurderingSøknadsbehandlingIkkeVurdert()
                 .let {
                     it.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(it.vilkår)
                 }
@@ -147,10 +151,10 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `ingen vurderingsperioder gir uavklart vilkår`() {
-            Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
+            vilkårsvurderingSøknadsbehandlingIkkeVurdert().resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
                 setOf(
                     Vilkår.Uførhet.IkkeVurdert,
-                    Vilkår.Formue.IkkeVurdert,
+                    formuevilkårIkkeVurdert(),
                     FlyktningVilkår.IkkeVurdert,
                     LovligOppholdVilkår.IkkeVurdert,
                     FastOppholdINorgeVilkår.IkkeVurdert,
@@ -170,7 +174,7 @@ internal class VilkårsvurderingerTest {
             vilkårsvurderingerSøknadsbehandlingInnvilget(periode = gammel)
                 .let {
                     it.periode shouldBe gammel
-                    it.oppdaterStønadsperiode(Stønadsperiode.create(ny, "")).periode shouldBe ny
+                    it.oppdaterStønadsperiode(Stønadsperiode.create(ny, ""), formuegrenserFactoryTest).periode shouldBe ny
                 }
         }
 
@@ -216,6 +220,7 @@ internal class VilkårsvurderingerTest {
                     bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
                 ),
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).let {
                 it.resultat shouldBe Vilkårsvurderingsresultat.Avslag(
                     vilkår = setOf(it.flyktning),
@@ -226,11 +231,11 @@ internal class VilkårsvurderingerTest {
         @Test
         fun `legg til erstatter eksisternde vilkår med nytt`() {
             val innvilget = vilkårsvurderingerSøknadsbehandlingInnvilget()
-            val uavklart = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert
+            val uavklart = vilkårsvurderingSøknadsbehandlingIkkeVurdert()
 
             uavklart.vilkår shouldBe setOf(
                 Vilkår.Uførhet.IkkeVurdert,
-                Vilkår.Formue.IkkeVurdert,
+                formuevilkårIkkeVurdert(),
                 FlyktningVilkår.IkkeVurdert,
                 LovligOppholdVilkår.IkkeVurdert,
                 FastOppholdINorgeVilkår.IkkeVurdert,
@@ -244,7 +249,7 @@ internal class VilkårsvurderingerTest {
 
             uavklartMedUføre.vilkår shouldBe setOf(
                 innvilget.uføre,
-                Vilkår.Formue.IkkeVurdert,
+                formuevilkårIkkeVurdert(),
                 FlyktningVilkår.IkkeVurdert,
                 LovligOppholdVilkår.IkkeVurdert,
                 FastOppholdINorgeVilkår.IkkeVurdert,
@@ -258,7 +263,7 @@ internal class VilkårsvurderingerTest {
 
             uavklartUtenUføreIgjen.vilkår shouldBe setOf(
                 Vilkår.Uførhet.IkkeVurdert,
-                Vilkår.Formue.IkkeVurdert,
+                formuevilkårIkkeVurdert(),
                 FlyktningVilkår.IkkeVurdert,
                 LovligOppholdVilkår.IkkeVurdert,
                 FastOppholdINorgeVilkår.IkkeVurdert,
@@ -344,7 +349,7 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `alle vilkår uavklart gir uavklart`() {
-            Vilkårsvurderinger.Revurdering.IkkeVurdert
+            vilkårsvurderingRevurderingIkkeVurdert()
                 .let {
                     it.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(it.vilkår)
                 }
@@ -365,10 +370,10 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `ingen vurderingsperioder gir uavklart vilkår`() {
-            Vilkårsvurderinger.Revurdering.IkkeVurdert.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
+            vilkårsvurderingRevurderingIkkeVurdert().resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
                 setOf(
                     Vilkår.Uførhet.IkkeVurdert,
-                    Vilkår.Formue.IkkeVurdert,
+                    formuevilkårIkkeVurdert(),
                     UtenlandsoppholdVilkår.IkkeVurdert,
                     OpplysningspliktVilkår.IkkeVurdert,
                 ),
@@ -383,20 +388,14 @@ internal class VilkårsvurderingerTest {
             vilkårsvurderingerRevurderingInnvilget(periode = gammel)
                 .let {
                     it.periode shouldBe gammel
-                    it.oppdaterStønadsperiode(Stønadsperiode.create(ny, "")).periode shouldBe ny
+                    it.oppdaterStønadsperiode(Stønadsperiode.create(ny, ""), formuegrenserFactoryTest).periode shouldBe ny
                 }
         }
 
         @Test
         fun `periode for ikke vurderte vilkår`() {
-            Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert.periode shouldBe null
-            Vilkårsvurderinger.Revurdering.IkkeVurdert.periode shouldBe null
-        }
-
-        @Test
-        fun `periode for vurderte vilkår`() {
-            Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert.periode shouldBe null
-            Vilkårsvurderinger.Revurdering.IkkeVurdert.periode shouldBe null
+            vilkårsvurderingSøknadsbehandlingIkkeVurdert().periode shouldBe null
+            vilkårsvurderingRevurderingIkkeVurdert().periode shouldBe null
         }
 
         @Test

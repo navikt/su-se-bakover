@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.periode.Periode
@@ -18,6 +17,7 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.formuevilkårUtenEps0Innvilget
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
@@ -31,7 +31,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
             val behandlingId = UUID.randomUUID()
-            val vilkår = Vilkår.Formue.IkkeVurdert
+            val vilkår = formuevilkårIkkeVurdert()
             dataSource.withTransaction { session ->
                 repo.lagre(behandlingId, vilkår, session)
                 repo.hent(behandlingId, session).let {
@@ -44,7 +44,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
         }
     }
 
-    private fun formuegrunnlagz(
+    private fun formuegrunnlag(
         periode: Periode,
         bosituasjon: Grunnlag.Bosituasjon.Fullstendig = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
             id = UUID.randomUUID(),
@@ -86,39 +86,6 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
         )
     }
 
-    private fun formuegrunnlag(
-        periode: Periode,
-        epsFormue: Formuegrunnlag.Verdier? = null,
-    ) = NonEmptyList.fromListUnsafe(
-        listOf(
-            Formuegrunnlag.create(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = periode,
-                epsFormue = epsFormue,
-                søkersFormue = Formuegrunnlag.Verdier.create(
-                    verdiIkkePrimærbolig = 9,
-                    verdiEiendommer = 10,
-                    verdiKjøretøy = 11,
-                    innskudd = 12,
-                    verdipapir = 13,
-                    pengerSkyldt = 14,
-                    kontanter = 15,
-                    depositumskonto = 10,
-                ),
-                begrunnelse = "dfgdfgdfgsdfgdfg",
-                bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    periode = periode,
-                    fnr = Fnr.generer(),
-                    begrunnelse = "i87i78i78i87i",
-                ),
-                behandlingsPeriode = periode,
-            ),
-        ),
-    )
-
     @Test
     fun `lagrer og henter innvilget med epsFormue`() {
         val periode = år(2021)
@@ -128,7 +95,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
             val behandlingId = UUID.randomUUID()
             val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
-                grunnlag = nonEmptyListOf(formuegrunnlagz(periode)),
+                grunnlag = nonEmptyListOf(formuegrunnlag(periode)),
             )
             dataSource.withTransaction { session ->
                 repo.lagre(behandlingId, vilkår, session)
@@ -152,7 +119,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val behandlingId = UUID.randomUUID()
             val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
                 grunnlag = nonEmptyListOf(
-                    formuegrunnlagz(
+                    formuegrunnlag(
                         periode = periode,
                         bosituasjon = bosituasjongrunnlagEnslig(periode = periode),
                         epsFormue = null,
@@ -181,7 +148,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val behandlingId = UUID.randomUUID()
             val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
                 grunnlag = nonEmptyListOf(
-                    formuegrunnlagz(
+                    formuegrunnlag(
                         periode = periode,
                         epsFormue = Formuegrunnlag.Verdier.create(
                             verdiIkkePrimærbolig = 1,
@@ -221,11 +188,12 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                     Vurderingsperiode.Formue.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
+                        // TODO(satsfactory_formue) jah: Man kan ikke opprette formuevilkår/vurdering/grunnlag som uavklart lenger. Kan sjekke at det ikke finnes spor av denne i basen og fjerne muligheten?
                         resultat = Resultat.Uavklart,
-                        grunnlag = formuegrunnlagz(
+                        grunnlag = formuegrunnlag(
                             periode = periode,
                             bosituasjon = bosituasjongrunnlagEnslig(periode = periode),
-                            epsFormue = null
+                            epsFormue = null,
                         ),
                         periode = periode,
                     ),
@@ -257,13 +225,13 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                 testDataHelper.formueVilkårsvurderingPostgresRepo.hent(søknadsbehandling.id, session) shouldBe vilkår
                 testDataHelper.formueVilkårsvurderingPostgresRepo.lagre(
                     søknadsbehandling.id,
-                    Vilkår.Formue.IkkeVurdert,
+                    formuevilkårIkkeVurdert(),
                     session,
                 )
                 testDataHelper.formueVilkårsvurderingPostgresRepo.hent(
                     behandlingId = søknadsbehandling.id,
                     session = session,
-                ) shouldBe Vilkår.Formue.IkkeVurdert
+                ) shouldBe formuevilkårIkkeVurdert()
 
                 testDataHelper.formuegrunnlagPostgresRepo.hentFormuegrunnlag(
                     formuegrunnlagId = grunnlag.first().id,

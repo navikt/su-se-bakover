@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
 import no.nav.su.se.bakover.domain.tidslinje.masker
@@ -267,6 +268,7 @@ sealed class Grunnlag {
     sealed class Bosituasjon : Grunnlag() {
         abstract override val id: UUID
         abstract val opprettet: Tidspunkt
+        abstract val satskategori: Satskategori?
 
         /**
          * Bosituasjon med ektefelle/partner/samboer.
@@ -339,6 +341,7 @@ sealed class Grunnlag {
 
         sealed class Fullstendig : Bosituasjon(), KanPlasseresPåTidslinje<Fullstendig> {
             abstract val begrunnelse: String?
+            abstract override val satskategori: Satskategori
 
             sealed class EktefellePartnerSamboer : Fullstendig() {
                 abstract val fnr: Fnr
@@ -354,6 +357,9 @@ sealed class Grunnlag {
                         override val fnr: Fnr,
                         override val begrunnelse: String?,
                     ) : EktefellePartnerSamboer() {
+
+                        override val satskategori: Satskategori = Satskategori.ORDINÆR
+
                         override fun erLik(other: Grunnlag): Boolean {
                             if (other !is UførFlyktning) {
                                 return false
@@ -381,6 +387,9 @@ sealed class Grunnlag {
                         override val fnr: Fnr,
                         override val begrunnelse: String?,
                     ) : EktefellePartnerSamboer() {
+
+                        override val satskategori: Satskategori = Satskategori.HØY
+
                         override fun erLik(other: Grunnlag): Boolean {
                             if (other !is IkkeUførFlyktning) {
                                 return false
@@ -409,6 +418,9 @@ sealed class Grunnlag {
                     override val fnr: Fnr,
                     override val begrunnelse: String?,
                 ) : EktefellePartnerSamboer() {
+
+                    override val satskategori: Satskategori = Satskategori.ORDINÆR
+
                     override fun erLik(other: Grunnlag): Boolean {
                         if (other !is SektiSyvEllerEldre) {
                             return false
@@ -437,6 +449,9 @@ sealed class Grunnlag {
                 override val periode: Periode,
                 override val begrunnelse: String?,
             ) : Fullstendig() {
+
+                override val satskategori: Satskategori = Satskategori.HØY
+
                 override fun harEPS(): Boolean {
                     return false
                 }
@@ -464,6 +479,9 @@ sealed class Grunnlag {
                 override val periode: Periode,
                 override val begrunnelse: String?,
             ) : Fullstendig() {
+
+                override val satskategori: Satskategori = Satskategori.ORDINÆR
+
                 override fun harEPS(): Boolean {
                     return false
                 }
@@ -487,6 +505,9 @@ sealed class Grunnlag {
         }
 
         sealed class Ufullstendig : Bosituasjon() {
+
+            override val satskategori: Nothing? = null
+
             /** Dette er en midlertid tilstand hvor det er valgt Ikke Eps, men ikke tatt stilling til bosituasjon Enslig eller med voksne
              Data klassen kan godt få et bedre navn... */
             data class HarIkkeEps(

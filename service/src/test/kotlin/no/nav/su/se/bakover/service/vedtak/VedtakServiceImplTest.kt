@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -40,8 +39,10 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.plus
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -251,7 +252,7 @@ internal class VedtakServiceImplTest {
         actual shouldBe GjeldendeVedtaksdata(
             periode = år(2021),
             vedtakListe = nonEmptyListOf(sakOgVedtak1.second, sakOgVedtak2.second),
-            fixedClock,
+            clock = fixedClock,
         )
     }
 
@@ -262,6 +263,7 @@ internal class VedtakServiceImplTest {
         vedtakRepo = vedtakRepo,
         sakService = sakService,
         clock = fixedClock,
+        satsFactory = satsFactoryTest,
     )
 
     private fun innvilgetVedtak(fnr: Fnr) =
@@ -290,7 +292,7 @@ internal class VedtakServiceImplTest {
                 fritekstTilBrev = "",
                 stønadsperiode = Stønadsperiode.create(år(2021)),
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
+                vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,
             ),
             UUID30.randomUUID(),

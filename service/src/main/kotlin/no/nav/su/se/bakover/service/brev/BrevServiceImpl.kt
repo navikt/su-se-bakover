@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.person.IdentClient
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.person.PersonService
@@ -46,6 +47,7 @@ internal class BrevServiceImpl(
     private val microsoftGraphApiOppslag: IdentClient,
     private val utbetalingService: UtbetalingService,
     private val clock: Clock,
+    private val satsFactory: SatsFactory,
 ) : BrevService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -239,5 +241,6 @@ internal class BrevServiceImpl(
                     )
             },
             clock = clock,
+            satsFactory = satsFactory,
         )
 }

@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
@@ -41,6 +42,7 @@ class ReguleringServiceImpl(
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
     private val tilbakekrevingService: TilbakekrevingService,
+    private val satsFactory: SatsFactory,
 ) : ReguleringService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers: MutableList<EventObserver> = mutableListOf()
@@ -52,17 +54,20 @@ class ReguleringServiceImpl(
     private fun blirBeregningEndret(sak: Sak, regulering: Regulering.OpprettetRegulering): Boolean {
         if (regulering.inneholderAvslag()) return true
 
-        val reguleringMedBeregning = regulering.beregn(clock = clock, begrunnelse = null)
-            .getOrHandle {
-                when (it) {
-                    is Regulering.KunneIkkeBeregne.BeregningFeilet -> {
-                        throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
-                    }
-                    is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> {
-                        throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Feil status")
-                    }
+        val reguleringMedBeregning = regulering.beregn(
+            satsFactory = satsFactory,
+            begrunnelse = null,
+            clock = clock,
+        ).getOrHandle {
+            when (it) {
+                is Regulering.KunneIkkeBeregne.BeregningFeilet -> {
+                    throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
+                }
+                is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> {
+                    throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Feil status")
                 }
             }
+        }
 
         return !reguleringMedBeregning.beregning!!.getMånedsberegninger().all { månedsberegning ->
             sak.hentGjeldendeUtbetaling(
@@ -92,7 +97,10 @@ class ReguleringServiceImpl(
                 return@map KunneIkkeOppretteRegulering.FantIkkeSak.left()
             }
 
-            val regulering = sak.opprettEllerOppdaterRegulering(startDato, clock).getOrHandle { feil ->
+            val regulering = sak.opprettEllerOppdaterRegulering(
+                startDato = startDato,
+                clock = clock,
+            ).getOrHandle { feil ->
                 // TODO jah: Dersom en [OpprettetRegulering] allerede eksisterte i databasen, bør vi kanskje slette den her.
                 when (feil) {
                     Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
@@ -155,7 +163,10 @@ class ReguleringServiceImpl(
         if (regulering.erFerdigstilt) return KunneIkkeRegulereManuelt.AlleredeFerdigstilt.left()
 
         val sak = sakRepo.hentSak(sakId = regulering.sakId) ?: return KunneIkkeRegulereManuelt.FantIkkeSak.left()
-        val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(regulering.periode.fraOgMed, clock)
+        val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+            fraOgMed = regulering.periode.fraOgMed,
+            clock = clock,
+        )
             .getOrHandle { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
 
         if (gjeldendeVedtaksdata.harStans())
@@ -167,8 +178,9 @@ class ReguleringServiceImpl(
         if (tilbakekrevingService.hentAvventerKravgrunnlag(sak.id).isNotEmpty())
             return KunneIkkeRegulereManuelt.AvventerKravgrunnlag.left()
 
-        val reguleringMedNyttGrunnlag = sak.opprettEllerOppdaterRegulering(regulering.periode.fraOgMed, clock)
-            .getOrHandle { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
+        val reguleringMedNyttGrunnlag =
+            sak.opprettEllerOppdaterRegulering(regulering.periode.fraOgMed, clock)
+                .getOrHandle { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
 
         return reguleringMedNyttGrunnlag
             .copy(reguleringstype = regulering.reguleringstype)
@@ -182,21 +194,24 @@ class ReguleringServiceImpl(
     }
 
     private fun ferdigstillOgIverksettRegulering(regulering: Regulering.OpprettetRegulering): Either<KunneIkkeFerdigstilleOgIverksette, Regulering.IverksattRegulering> {
-        return regulering.beregn(clock = clock, begrunnelse = null)
-            .mapLeft { kunneikkeBeregne ->
-                when (kunneikkeBeregne) {
-                    is Regulering.KunneIkkeBeregne.BeregningFeilet -> {
-                        log.error(
-                            "Regulering for saksnummer ${regulering.saksnummer}: Feilet. Beregning feilet.",
-                            kunneikkeBeregne.feil,
-                        )
-                    }
-                    is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> {
-                        log.error("Regulering for saksnummer ${regulering.saksnummer}: Feilet. Beregning feilet. Ikke lov å beregne i denne statusen")
-                    }
+        return regulering.beregn(
+            satsFactory = satsFactory,
+            begrunnelse = null,
+            clock = clock,
+        ).mapLeft { kunneikkeBeregne ->
+            when (kunneikkeBeregne) {
+                is Regulering.KunneIkkeBeregne.BeregningFeilet -> {
+                    log.error(
+                        "Regulering for saksnummer ${regulering.saksnummer}: Feilet. Beregning feilet.",
+                        kunneikkeBeregne.feil,
+                    )
                 }
-                KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne
+                is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> {
+                    log.error("Regulering for saksnummer ${regulering.saksnummer}: Feilet. Beregning feilet. Ikke lov å beregne i denne statusen")
+                }
             }
+            KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne
+        }
             .flatMap { beregnetRegulering ->
                 beregnetRegulering.simuler(utbetalingService::simulerUtbetaling)
                     .mapLeft {

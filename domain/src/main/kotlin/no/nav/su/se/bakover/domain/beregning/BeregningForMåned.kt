@@ -1,37 +1,45 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import no.nav.su.se.bakover.common.periode.Månedsperiode
-import no.nav.su.se.bakover.domain.Grunnbeløp
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
+import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadForMåned
+import no.nav.su.se.bakover.domain.satser.Satskategori
 
 /**
- * Gjelder for kun 1 måned. TODO jah: Slett interfacet Månedsberegning og erstatt med dette.
+ * Gjelder for kun 1 måned.
+ * [måned], [fradrag] og [fullSupplerendeStønadForMåned] sin måned må være den samme.
+ *
+ * TODO jah: Slett interfacet Månedsberegning og erstatt med dette.
  */
 data class BeregningForMåned(
-    override val måned: Månedsperiode,
-    private val sats: Sats,
+    override val måned: Måned,
     private val fradrag: List<FradragForMåned>,
+    override val fullSupplerendeStønadForMåned: FullSupplerendeStønadForMåned,
     private val fribeløpForEps: Double = 0.0,
     private val merknader: Merknader.Beregningsmerknad = Merknader.Beregningsmerknad(),
     private val sumYtelse: Int,
     private val sumFradrag: Double,
-    private val satsbeløp: Double,
 ) : Månedsberegning {
 
-    override val periode: Månedsperiode = måned
+    override val periode: Måned = måned
+
     init {
-        require(fradrag.all { it.periode == periode }) { "Fradrag må være gjeldende for aktuell måned" }
+        require(fradrag.all { it.måned == måned }) { "Fradrag må være gjeldende for aktuell måned" }
+        require(periode == fullSupplerendeStønadForMåned.periode) {
+            "perioden: $periode må være lik `fullSupplerendeStønadForMåned`: ${fullSupplerendeStønadForMåned.periode} sin periode."
+        }
     }
 
     override fun getSumYtelse(): Int = sumYtelse
-
     override fun getSumFradrag() = sumFradrag
 
-    override fun getBenyttetGrunnbeløp(): Int = Grunnbeløp.`1G`.heltallPåDato(periode.fraOgMed)
-    override fun getSats(): Sats = sats
-    override fun getSatsbeløp(): Double = satsbeløp
-    override fun getFradrag(): List<Fradrag> = fradrag
+    /**
+     * Obs: Denne returnerer grunnbeløp per år
+     */
+    override fun getBenyttetGrunnbeløp(): Int = fullSupplerendeStønadForMåned.grunnbeløp.grunnbeløpPerÅr
+    override fun getSats(): Satskategori = fullSupplerendeStønadForMåned.satskategori
+    override fun getSatsbeløp(): Double = fullSupplerendeStønadForMåned.satsForMånedAsDouble
+    override fun getFradrag(): List<FradragForMåned> = fradrag
     override fun getFribeløpForEps(): Double = fribeløpForEps
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
@@ -45,6 +53,6 @@ data class BeregningForMåned(
     }
 
     fun beløpStørreEnn0MenMindreEnnToProsentAvHøySats(): Boolean {
-        return getSumYtelse() > 0 && getSumYtelse() < Sats.toProsentAvHøy(periode)
+        return getSumYtelse() > 0 && getSumYtelse() < fullSupplerendeStønadForMåned.toProsentAvHøyForMånedAsDouble
     }
 }

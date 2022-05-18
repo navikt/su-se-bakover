@@ -10,14 +10,14 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.juli
+import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.beregning
@@ -26,6 +26,8 @@ import no.nav.su.se.bakover.test.beregningAvslagUnderMinstebeløp
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
+import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -78,7 +80,7 @@ internal class VurderOpphørVedRevurderingTest {
             fradragsgrunnlag = nonEmptyListOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = november(2021),
-                    arbeidsinntekt = Sats.HØY.månedsbeløpSomHeltall(1.november(2021)) - 100.0,
+                    arbeidsinntekt = satsFactoryTest.høy(november(2021)).satsForMånedAsDouble - 100.0,
                 ),
             ),
         )
@@ -97,7 +99,7 @@ internal class VurderOpphørVedRevurderingTest {
             fradragsgrunnlag = nonEmptyListOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = Periode.create(1.juli(2021), 31.desember(2021)),
-                    arbeidsinntekt = Sats.HØY.månedsbeløpSomHeltall(1.juli(2021)) - 100.0,
+                    arbeidsinntekt = satsFactoryTest.høy(juli(2021)).satsForMånedAsDouble - 100.0,
                 ),
             ),
         )
@@ -116,7 +118,7 @@ internal class VurderOpphørVedRevurderingTest {
             fradragsgrunnlag = nonEmptyListOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = Periode.create(1.juni(2021), 31.desember(2021)),
-                    arbeidsinntekt = Sats.HØY.månedsbeløpSomHeltall(1.juni(2021)) - 100.0,
+                    arbeidsinntekt = satsFactoryTest.høy(juni(2021)).satsForMånedAsDouble - 100.0,
                 ),
             ),
         )
@@ -216,7 +218,7 @@ internal class VurderOpphørVedRevurderingTest {
     fun `kaster exception hvis vilkårsvurderinger svarer med uavklart`() {
         assertThrows<IllegalStateException> {
             VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
                 beregning = mock(),
                 clock = fixedClock,
             )

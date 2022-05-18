@@ -16,9 +16,7 @@ import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.revurdering.AnnullerAvkorting
-import no.nav.su.se.bakover.domain.revurdering.Normal
-import no.nav.su.se.bakover.domain.revurdering.VidereførAvkorting
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -29,6 +27,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.opprettetRevurdering
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
@@ -54,6 +53,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     clock = fixedClock,
                 ).getOrFail(),
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).decide() shouldBe beOfType<Normal>()
         }
 
@@ -79,6 +79,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     clock = fixedClock,
                 ).getOrFail(),
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).decide() shouldBe beOfType<VidereførAvkorting>()
         }
 
@@ -123,6 +124,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     clock = fixedClock,
                 ).getOrFail(),
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).decide() shouldBe beOfType<AnnullerAvkorting>()
         }
     }
@@ -175,6 +177,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 clock = fixedClock,
             ).getOrFail(),
             clock = fixedClock,
+            beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
         ).decide() shouldBe beOfType<AnnullerAvkorting>()
     }
 
@@ -200,6 +203,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     clock = fixedClock,
                 ).getOrFail(),
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).decide() shouldBe beOfType<Normal>()
         }
 
@@ -234,6 +238,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     clock = fixedClock,
                 ).getOrFail(),
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).decide() shouldBe beOfType<VidereførAvkorting>()
         }
 
@@ -269,6 +274,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         clock = fixedClock,
                     ).getOrFail(),
                     clock = fixedClock,
+                    beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
                 ).decide()
             }.let {
                 it.message shouldContain "Må revurdere hele perioden for opprinngelig avkorting ved annullering."
@@ -322,6 +328,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         clock = fixedClock,
                     ).getOrFail(),
                     clock = fixedClock,
+                    beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
                 ).decide()
             }.let {
                 it.message shouldContain "Dato for opphør må være tidligere enn eller lik fra og med dato for opprinnelig avkorting som annulleres"
@@ -367,6 +374,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         clock = fixedClock,
                     ).getOrFail(),
                     clock = fixedClock,
+                    beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
                 ).decide()
             }.let {
                 it.message shouldContain "Må revurdere hele perioden for opprinngelig avkorting ved annullering."
@@ -404,6 +412,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     clock = fixedClock,
                 ).getOrFail(),
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).decide() shouldBe beOfType<VidereførAvkorting>()
         }
 
@@ -458,6 +467,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     clock = fixedClock,
                 ).getOrFail(),
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).decide() shouldBe beOfType<VidereførAvkorting>()
         }
 
@@ -518,6 +528,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     clock = fixedClock,
                 ).getOrFail(),
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).decide() shouldBe beOfType<VidereførAvkorting>()
         }
 
@@ -552,6 +563,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     clock = fixedClock,
                 ).getOrFail(),
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).decide() shouldBe beOfType<AnnullerAvkorting>()
         }
 
@@ -593,6 +605,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     clock = fixedClock,
                 ).getOrFail(),
                 clock = fixedClock,
+                beregningStrategyFactory = BeregningStrategyFactory(fixedClock, satsFactoryTest),
             ).decide() shouldBe beOfType<AnnullerAvkorting>()
         }
     }

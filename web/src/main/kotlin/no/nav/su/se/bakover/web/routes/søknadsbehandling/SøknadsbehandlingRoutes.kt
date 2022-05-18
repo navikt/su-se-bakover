@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
@@ -79,7 +80,8 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
 internal fun Route.søknadsbehandlingRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
-    clock: Clock
+    clock: Clock,
+    satsFactory: SatsFactory,
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -139,7 +141,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                 call.sikkerlogg("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
                                 call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
                                 SuMetrics.behandlingStartet(SuMetrics.Behandlingstype.SØKNAD)
-                                call.svar(Created.jsonBody(it))
+                                call.svar(Created.jsonBody(it, satsFactory))
                             },
                         )
                     }
@@ -212,7 +214,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                     },
                                 )
                             }.map {
-                                call.svar(Created.jsonBody(it))
+                                call.svar(Created.jsonBody(it, satsFactory))
                             }
                         }
                     }
@@ -234,7 +236,7 @@ internal fun Route.søknadsbehandlingRoutes(
                 }.map {
                     call.sikkerlogg("Hentet behandling med id $behandlingId")
                     call.audit(it.fnr, AuditLogEvent.Action.ACCESS, it.id)
-                    call.svar(OK.jsonBody(it))
+                    call.svar(OK.jsonBody(it, satsFactory))
                 }
             }
         }
@@ -262,7 +264,7 @@ internal fun Route.søknadsbehandlingRoutes(
                         {
                             call.sikkerlogg("Oppdaterte behandlingsinformasjon med behandlingsid $behandlingId")
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                            call.svar(OK.jsonBody(it))
+                            call.svar(OK.jsonBody(it, satsFactory))
                         },
                     )
                 }
@@ -311,7 +313,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                 }.map { behandling ->
                                     call.sikkerlogg("Beregner på søknadsbehandling med id $behandlingId")
                                     call.audit(behandling.fnr, AuditLogEvent.Action.UPDATE, behandling.id)
-                                    call.svar(Created.jsonBody(behandling))
+                                    call.svar(Created.jsonBody(behandling, satsFactory))
                                 }
                         }
                 }
@@ -386,7 +388,7 @@ internal fun Route.søknadsbehandlingRoutes(
                     {
                         call.sikkerlogg("Oppdatert simulering for behandling med id $behandlingId")
                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, behandlingId)
-                        call.svar(OK.jsonBody(it))
+                        call.svar(OK.jsonBody(it, satsFactory))
                     },
                 )
             }
@@ -426,7 +428,7 @@ internal fun Route.søknadsbehandlingRoutes(
                             {
                                 call.sikkerlogg("Sendte behandling med id $behandlingId til attestering")
                                 call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                                call.svar(OK.jsonBody(it))
+                                call.svar(OK.jsonBody(it, satsFactory))
                             },
                         )
                     }
@@ -471,7 +473,7 @@ internal fun Route.søknadsbehandlingRoutes(
                         call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                         SuMetrics.vedtakIverksatt(SuMetrics.Behandlingstype.SØKNAD)
-                        call.svar(OK.jsonBody(it))
+                        call.svar(OK.jsonBody(it, satsFactory))
                     },
                 )
             }
@@ -520,7 +522,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                 ifRight = {
                                     call.sikkerlogg("Underkjente behandling med id: $behandlingId")
                                     call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                                    call.svar(OK.jsonBody(it))
+                                    call.svar(OK.jsonBody(it, satsFactory))
                                 },
                             )
                         } else {

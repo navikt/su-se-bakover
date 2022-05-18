@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
@@ -35,6 +36,7 @@ import no.nav.su.se.bakover.web.withSakId
 
 internal fun Route.beregnOgSimulerRevurdering(
     revurderingService: RevurderingService,
+    satsFactory: SatsFactory,
 ) {
     post("$revurderingPath/{revurderingId}/beregnOgSimuler") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -51,7 +53,7 @@ internal fun Route.beregnOgSimulerRevurdering(
                         call.svar(
                             Resultat.json(
                                 HttpStatusCode.Created,
-                                serialize(response.toJson()),
+                                serialize(response.toJson(satsFactory)),
                             ),
                         )
                     }
@@ -67,8 +69,8 @@ internal data class RevurderingOgFeilmeldingerResponseJson(
     val varselmeldinger: List<ErrorJson>,
 )
 
-internal fun RevurderingOgFeilmeldingerResponse.toJson() = RevurderingOgFeilmeldingerResponseJson(
-    revurdering = revurdering.toJson(),
+internal fun RevurderingOgFeilmeldingerResponse.toJson(satsFactory: SatsFactory) = RevurderingOgFeilmeldingerResponseJson(
+    revurdering = revurdering.toJson(satsFactory),
     feilmeldinger = feilmeldinger.map { it.toJson() },
     varselmeldinger = varselmeldinger.map { it.toJson() },
 )

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueVerdier
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.service.revurdering.LeggTilFormuegrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -87,6 +88,7 @@ private data class FormueBody(
 
 internal fun Route.leggTilFormueRevurderingRoute(
     revurderingService: RevurderingService,
+    satsFactory: SatsFactory,
 ) {
     post("$revurderingPath/{revurderingId}/formuegrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -103,7 +105,7 @@ internal fun Route.leggTilFormueRevurderingRoute(
                                 call.svar(
                                     Resultat.json(
                                         HttpStatusCode.OK,
-                                        serialize(it.toJson()),
+                                        serialize(it.toJson(satsFactory)),
                                     ),
                                 )
                             }.mapLeft { kunneIkkeLeggeTilFormuegrunnlag ->

@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
@@ -46,6 +47,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandl
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.tilbakekrevingErVurdert
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.beregning.BeregnRevurderingStrategyDecider
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
@@ -391,11 +393,16 @@ sealed class Revurdering :
         eksisterendeUtbetalinger: List<Utbetaling>,
         clock: Clock,
         gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+        satsFactory: SatsFactory,
     ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         val (revurdering, beregning) = BeregnRevurderingStrategyDecider(
             revurdering = this,
             gjeldendeVedtaksdata = gjeldendeVedtaksdata,
             clock = clock,
+            beregningStrategyFactory = BeregningStrategyFactory(
+                clock = clock,
+                satsFactory = satsFactory
+            ),
         ).decide().beregn().getOrHandle { return it.left() }
 
         fun opphør(revurdering: OpprettetRevurdering, revurdertBeregning: Beregning): BeregnetRevurdering.Opphørt =
@@ -1134,7 +1141,7 @@ sealed class SimulertRevurdering : Revurdering() {
             return forhåndsvarsel.prøvOvergangTilSkalIkkeForhåndsvarsles().map { this.copy(forhåndsvarsel = it) }
         }
 
-        override fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering.Innvilget> {
+        override fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Innvilget> {
             return forhåndsvarsel.prøvOvergangTilSendt()
                 .map { copy(forhåndsvarsel = it) }
         }
@@ -1255,7 +1262,7 @@ sealed class SimulertRevurdering : Revurdering() {
             return forhåndsvarsel.prøvOvergangTilSkalIkkeForhåndsvarsles().map { this.copy(forhåndsvarsel = it) }
         }
 
-        override fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering.Opphørt> {
+        override fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {
             return forhåndsvarsel.prøvOvergangTilSendt()
                 .map { copy(forhåndsvarsel = it) }
         }
@@ -1594,9 +1601,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
         eksisterendeUtbetalinger: List<Utbetaling>,
         clock: Clock,
         gjeldendeVedtaksdata: GjeldendeVedtaksdata,
-    ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
-        throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
-    }
+        satsFactory: SatsFactory
+    ) = throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
 
     sealed class KunneIkkeIverksetteRevurdering {
         object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
@@ -1800,8 +1806,8 @@ sealed class IverksattRevurdering : Revurdering() {
         eksisterendeUtbetalinger: List<Utbetaling>,
         clock: Clock,
         gjeldendeVedtaksdata: GjeldendeVedtaksdata,
-    ) =
-        throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
+        satsFactory: SatsFactory,
+    ) = throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
 }
 
 sealed class UnderkjentRevurdering : Revurdering() {

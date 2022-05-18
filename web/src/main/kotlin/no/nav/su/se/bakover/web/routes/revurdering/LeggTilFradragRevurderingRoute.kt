@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -34,6 +35,7 @@ import java.time.Clock
 internal fun Route.leggTilFradragRevurdering(
     revurderingService: RevurderingService,
     clock: Clock,
+    satsFactory: SatsFactory,
 ) {
     data class BeregningForRevurderingBody(
         val fradrag: List<FradragJson>,
@@ -82,7 +84,7 @@ internal fun Route.leggTilFradragRevurdering(
                                     call.sikkerlogg("Lagret fradrag for revudering $revurderingId på $sakId")
                                     Resultat.json(
                                         HttpStatusCode.OK,
-                                        serialize(it.toJson()),
+                                        serialize(it.toJson(satsFactory)),
                                     )
                                 }
                             }.getOrHandle { it },

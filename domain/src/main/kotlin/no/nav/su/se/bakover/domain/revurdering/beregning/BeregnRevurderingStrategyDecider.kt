@@ -2,12 +2,9 @@ package no.nav.su.se.bakover.domain.revurdering.beregning
 
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.revurdering.AnnullerAvkorting
-import no.nav.su.se.bakover.domain.revurdering.BeregnRevurderingStrategy
-import no.nav.su.se.bakover.domain.revurdering.Normal
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.revurdering.VidereførAvkorting
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
@@ -17,12 +14,13 @@ internal class BeregnRevurderingStrategyDecider(
     private val revurdering: Revurdering,
     private val gjeldendeVedtaksdata: GjeldendeVedtaksdata,
     private val clock: Clock,
+    private val beregningStrategyFactory: BeregningStrategyFactory,
 ) {
     fun decide(): BeregnRevurderingStrategy {
         /**
          * Lurer typesystemet til å snevre inn valgmulighetene for avkorting ved å forsøke en vanlig beregning først.
          */
-        val avkorting = Normal(revurdering, clock).beregn()
+        val avkorting = Normal(revurdering, beregningStrategyFactory).beregn()
             .getOrHandle { throw IllegalStateException(it.toString()) }.first.avkorting
 
         val avkortingsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.filter {
@@ -32,17 +30,17 @@ internal class BeregnRevurderingStrategyDecider(
         return when (avkorting) {
             is AvkortingVedRevurdering.Uhåndtert.IngenUtestående -> {
                 if (avkortingsgrunnlag.isEmpty()) {
-                    Normal(revurdering, clock)
+                    Normal(revurdering, beregningStrategyFactory)
                 } else {
                     when {
                         annullerMedInnvilgelse(revurdering, gjeldendeVedtaksdata) -> {
-                            AnnullerAvkorting(revurdering, clock)
+                            AnnullerAvkorting(revurdering, beregningStrategyFactory)
                         }
                         annullerMedOpphør(revurdering, gjeldendeVedtaksdata) -> {
-                            AnnullerAvkorting(revurdering, clock)
+                            AnnullerAvkorting(revurdering, beregningStrategyFactory)
                         }
                         else -> {
-                            VidereførAvkorting(revurdering, avkortingsgrunnlag, clock)
+                            VidereførAvkorting(revurdering, avkortingsgrunnlag, clock, beregningStrategyFactory)
                         }
                     }
                 }
@@ -54,25 +52,25 @@ internal class BeregnRevurderingStrategyDecider(
                 if (avkortingsgrunnlag.isEmpty()) {
                     when {
                         annullerMedInnvilgelse(revurdering, gjeldendeVedtaksdata) -> {
-                            AnnullerAvkorting(revurdering, clock)
+                            AnnullerAvkorting(revurdering, beregningStrategyFactory)
                         }
                         annullerMedOpphør(revurdering, gjeldendeVedtaksdata) -> {
-                            AnnullerAvkorting(revurdering, clock)
+                            AnnullerAvkorting(revurdering, beregningStrategyFactory)
                         }
                         else -> {
-                            Normal(revurdering, clock)
+                            Normal(revurdering, beregningStrategyFactory)
                         }
                     }
                 } else {
                     when {
                         annullerMedInnvilgelse(revurdering, gjeldendeVedtaksdata) -> {
-                            VidereførAvkorting(revurdering, avkortingsgrunnlag, clock)
+                            VidereførAvkorting(revurdering, avkortingsgrunnlag, clock, beregningStrategyFactory)
                         }
                         annullerMedOpphør(revurdering, gjeldendeVedtaksdata) -> {
-                            VidereførAvkorting(revurdering, avkortingsgrunnlag, clock)
+                            VidereførAvkorting(revurdering, avkortingsgrunnlag, clock, beregningStrategyFactory)
                         }
                         else -> {
-                            VidereførAvkorting(revurdering, avkortingsgrunnlag, clock)
+                            VidereførAvkorting(revurdering, avkortingsgrunnlag, clock, beregningStrategyFactory)
                         }
                     }
                 }
@@ -103,7 +101,7 @@ internal class BeregnRevurderingStrategyDecider(
         revurdering: Revurdering,
         gjeldendeVedtaksdata: GjeldendeVedtaksdata,
     ): List<AvkortingVedRevurdering.Iverksatt.HarProdusertNyttAvkortingsvarsel> {
-        return revurdering.periode.tilMånedsperioder()
+        return revurdering.periode.måneder()
             .map { gjeldendeVedtaksdata.gjeldendeVedtakPåDato(it.fraOgMed) }
             .distinct()
             .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()

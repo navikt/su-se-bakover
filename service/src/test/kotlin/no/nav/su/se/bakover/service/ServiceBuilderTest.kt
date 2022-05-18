@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.test.defaultMock
+import no.nav.su.se.bakover.test.satsFactoryTest
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -60,6 +61,7 @@ internal class ServiceBuilderTest {
             søknadMetrics = mock(),
             clock = Clock.systemUTC(),
             unleash = mock(),
+            satsFactory = satsFactoryTest,
         ).let {
             (it.sak as SakServiceImpl).observers shouldContain it.statistikk
             (it.søknadsbehandling as SøknadsbehandlingServiceImpl).getObservers() shouldContain it.statistikk

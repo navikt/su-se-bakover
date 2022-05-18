@@ -38,3 +38,7 @@ fun List<Fradrag>.sum(type: Fradragstype): Double {
 fun List<Fradrag>.sumEksklusiv(type: Fradragstype): Double {
     return filterNot { it.fradragstype == type }.sumOf { it.månedsbeløp }
 }
+
+fun List<Fradrag>.sum(): Double {
+    return sumOf { it.månedsbeløp }
+}

@@ -5,8 +5,10 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.fnr
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -22,6 +24,8 @@ import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTest
 import org.mockito.kotlin.mock
 import java.time.Clock
 
@@ -52,6 +56,8 @@ internal fun createSøknadsbehandlingService(
     sessionFactory: SessionFactory = TestSessionFactory(),
     avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
     tilbakekrevingService: TilbakekrevingService = mock(),
+    formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTest,
+    satsFactory: SatsFactory = satsFactoryTest,
 ) = SøknadsbehandlingServiceImpl(
     søknadService = søknadService,
     søknadsbehandlingRepo = søknadsbehandlingRepo,
@@ -68,6 +74,8 @@ internal fun createSøknadsbehandlingService(
     sessionFactory = sessionFactory,
     avkortingsvarselRepo = avkortingsvarselRepo,
     tilbakekrevingService = tilbakekrevingService,
+    formuegrenserFactory = formuegrenserFactory,
+    satsFactory = satsFactory,
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
@@ -87,6 +95,8 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
     val tilbakekrevingService: TilbakekrevingService = defaultMock(),
+    val formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTest,
+    val satsFactory: SatsFactory = satsFactoryTest,
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadService = søknadService,
@@ -104,6 +114,8 @@ internal data class SøknadsbehandlingServiceAndMocks(
         sessionFactory = sessionFactory,
         avkortingsvarselRepo = avkortingsvarselRepo,
         tilbakekrevingService = tilbakekrevingService,
+        formuegrenserFactory = formuegrenserFactory,
+        satsFactory = satsFactory,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {

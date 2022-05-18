@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.satsFactoryTest
 import org.junit.jupiter.api.Test
 
 internal class EpsUnder67OgUførFlyktningBeregningTest {
@@ -96,9 +97,9 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = beregningsgrunnlag.beregningsperiode,
-                    strategy = BeregningStrategy.EpsUnder67ÅrOgUførFlyktning,
+                    strategy = BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest),
                 )
-            )
+            ),
         ).let {
             it.getSumYtelse() shouldBe 86568
             it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr + (epsFolketrydPrÅr + epsAnnenNorskPrÅr - uføreOrdinærSatsbeløp))

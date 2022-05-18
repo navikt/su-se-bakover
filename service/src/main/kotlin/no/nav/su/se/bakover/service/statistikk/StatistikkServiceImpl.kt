@@ -67,8 +67,15 @@ internal class StatistikkServiceImpl(
                                 .filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse>()
                                 .minOf { it.periode.fraOgMed }
 
-                            publiser(StønadsstatistikkMapper(clock).map(event.vedtak, aktørId, ytelseVirkningstidspunkt, sak))
-                        }
+                            publiser(
+                                StønadsstatistikkMapper(clock).map(
+                                    event.vedtak,
+                                    aktørId,
+                                    ytelseVirkningstidspunkt,
+                                    sak,
+                                ),
+                            )
+                        },
                     )
                 }
             }

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeGjenopptaYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
@@ -36,6 +37,7 @@ import no.nav.su.se.bakover.web.withSakId
 
 internal fun Route.gjenopptaUtbetaling(
     revurderingService: RevurderingService,
+    satsFactory: SatsFactory,
 ) {
     post("$revurderingPath/gjenoppta") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -62,8 +64,8 @@ internal fun Route.gjenopptaUtbetaling(
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.Created,
-                                    serialize(it.toJson())
-                                )
+                                    serialize(it.toJson(satsFactory)),
+                                ),
                             )
                         },
                     )
@@ -99,8 +101,8 @@ internal fun Route.gjenopptaUtbetaling(
                                 call.svar(
                                     Resultat.json(
                                         HttpStatusCode.OK,
-                                        serialize(it.toJson())
-                                    )
+                                        serialize(it.toJson(satsFactory)),
+                                    ),
                                 )
                             },
                         )
@@ -125,8 +127,8 @@ internal fun Route.gjenopptaUtbetaling(
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.OK,
-                                    serialize(it.toJson())
-                                )
+                                    serialize(it.toJson(satsFactory)),
+                                ),
                             )
                         },
                     )

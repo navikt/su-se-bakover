@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.person.PersonService
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formueGrunnlagUtenEpsAvslått
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.person
@@ -39,11 +41,14 @@ import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doReturnConsecutively
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import java.time.Clock
+import java.time.LocalDate
 import java.time.Month
 import java.time.YearMonth
 import java.time.ZoneOffset
@@ -92,6 +97,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             jobContextRepo = mock {
                 on { hent<SendPåminnelseNyStønadsperiodeContext>(any()) } doReturn null
             },
+            formuegrenserFactory = formuegrenserFactoryTest,
         ).let { serviceAndMocks ->
             val expectedContext = SendPåminnelseNyStønadsperiodeContext(
                 clock = desemberClock,
@@ -110,6 +116,17 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             )
 
             serviceAndMocks.service.sendPåminnelser() shouldBe expectedContext
+
+            val captor = argumentCaptor<LagBrevRequest>()
+            verify(serviceAndMocks.brevService, times(2)).lagDokument(captor.capture())
+
+            captor.lastValue shouldBe LagBrevRequest.PåminnelseNyStønadsperiode(
+                person = person(),
+                dagensDato = LocalDate.of(2021, Month.DECEMBER, 11),
+                saksnummer = Saksnummer(3001),
+                utløpsdato = LocalDate.of(2021, Month.DECEMBER, 31),
+                halvtGrunnbeløp = 50676,
+            )
 
             verify(serviceAndMocks.brevService).lagreDokument(
                 dokument = argThat {
@@ -396,6 +413,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
         val brevService: BrevService = mock(),
         val personService: PersonService = mock(),
         val jobContextRepo: JobContextRepo = mock(),
+        val formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTest,
     ) {
         val service = SendPåminnelserOmNyStønadsperiodeServiceImpl(
             clock = clock,
@@ -404,6 +422,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             brevService = brevService,
             personService = personService,
             jobContextRepo = jobContextRepo,
+            formuegrenserFactory = formuegrenserFactory,
         )
 
         fun verifyNoMoreInteractions() {

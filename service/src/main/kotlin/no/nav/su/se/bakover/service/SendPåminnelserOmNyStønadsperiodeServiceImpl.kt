@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.JobContextRepo
 import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.person.PersonService
 import org.slf4j.LoggerFactory
@@ -20,6 +21,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImpl(
     private val brevService: BrevService,
     private val personService: PersonService,
     private val jobContextRepo: JobContextRepo,
+    private val formuegrenserFactory: FormuegrenserFactory,
 ) : SendPåminnelserOmNyStønadsperiodeService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -55,6 +57,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImpl(
                     lagreContext = { ctx, tx ->
                         jobContextRepo.lagre(ctx, tx)
                     },
+                    formuegrenserFactory = formuegrenserFactory,
                 ).fold(
                     {
                         log.error("Feil: ${it::class} ved utsending av påminnelse for sak: ${sak.saksnummer}, hopper over.")

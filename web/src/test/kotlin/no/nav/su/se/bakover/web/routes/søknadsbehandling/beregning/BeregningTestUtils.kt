@@ -1,19 +1,19 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.august
 import no.nav.su.se.bakover.common.toTidspunkt
-import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.satser.Satskategori
+import no.nav.su.se.bakover.test.satsFactoryTest
 import java.time.LocalDateTime
 import java.time.Month
 import java.time.ZoneOffset
@@ -36,35 +36,30 @@ internal object TestMånedsberegning : Månedsberegning {
     override fun getSumYtelse(): Int = 19946
     override fun getSumFradrag(): Double = 1000.0
     override fun getBenyttetGrunnbeløp(): Int = 101351
-    override fun getSats(): Sats = Sats.HØY
+    override fun getSats(): Satskategori = Satskategori.HØY
     override fun getSatsbeløp(): Double = 20637.32
-    override fun getFradrag(): List<Fradrag> = listOf(TestFradrag, TestFradragEps)
+    override fun getFradrag(): List<FradragForMåned> = listOf(TestFradrag, TestFradragEps)
     override fun getFribeløpForEps(): Double = 0.0
     override fun getMerknader(): List<Merknad.Beregning> = emptyList()
 
     override val periode: Periode = august(2020)
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
-    override val måned: Månedsperiode = august(2020)
+    override val måned: Måned = august(2020)
+    override val fullSupplerendeStønadForMåned = satsFactoryTest.høy(august(2021))
 }
 
-internal object TestFradrag : Fradrag {
-    override val fradragstype: Fradragstype = Fradragstype.Arbeidsinntekt
-    override val månedsbeløp: Double = 1000.0
-    override val utenlandskInntekt: UtenlandskInntekt? = null
-    override val tilhører: FradragTilhører = FradragTilhører.BRUKER
-    override val periode: Periode = august(2020)
-    override fun copy(args: CopyArgs.Snitt): Fradrag? {
-        throw NotImplementedError()
-    }
-}
+internal val TestFradrag = FradragForMåned(
+    fradragstype = Fradragstype.Arbeidsinntekt,
+    månedsbeløp = 1000.0,
+    utenlandskInntekt = null,
+    tilhører = FradragTilhører.BRUKER,
+    måned = august(2020),
+)
 
-internal object TestFradragEps : Fradrag {
-    override val fradragstype: Fradragstype = Fradragstype.Arbeidsinntekt
-    override val månedsbeløp: Double = 20000.0
-    override val utenlandskInntekt: UtenlandskInntekt? = null
-    override val tilhører: FradragTilhører = FradragTilhører.EPS
-    override val periode: Periode = august(2020)
-    override fun copy(args: CopyArgs.Snitt): Fradrag? {
-        throw NotImplementedError()
-    }
-}
+internal val TestFradragEps = FradragForMåned(
+    fradragstype = Fradragstype.Arbeidsinntekt,
+    månedsbeløp = 20000.0,
+    utenlandskInntekt = null,
+    tilhører = FradragTilhører.EPS,
+    måned = august(2020),
+)

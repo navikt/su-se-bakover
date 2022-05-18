@@ -169,22 +169,22 @@ sealed class Utbetalingsstrategi {
             val slåttSammenUføregrunnlag =
                 uføregrunnlag.slåSammenPeriodeOgUføregrad()
 
-            val månedsperioder = slåttSammenMånedsberegninger.map {
+            val måneder = slåttSammenMånedsberegninger.map {
                 it.periode
             }.flatMap {
-                it.tilMånedsperioder()
+                it.måneder()
             }.distinct()
 
             val uføregrunnlagPerioder = slåttSammenUføregrunnlag.map {
                 it.first
             }.flatMap {
-                it.tilMånedsperioder()
+                it.måneder()
             }.distinct()
 
-            val uføregrunnlagInneholderAlleMånedsperioder = uføregrunnlagPerioder.containsAll(månedsperioder)
+            val uføregrunnlagInneholderAlleMåneder = uføregrunnlagPerioder.containsAll(måneder)
 
-            if (!uføregrunnlagInneholderAlleMånedsperioder) {
-                throw UtbetalingStrategyException("Uføregrunnlaget inneholder ikke alle beregningsperiodene. Grunnlagsperiodene: $uføregrunnlagPerioder, beregningsperiodene: $månedsperioder")
+            if (!uføregrunnlagInneholderAlleMåneder) {
+                throw UtbetalingStrategyException("Uføregrunnlaget inneholder ikke alle beregningsperiodene. Grunnlagsperiodene: $uføregrunnlagPerioder, beregningsperiodene: $måneder")
             }
 
             return slåttSammenUføregrunnlag.flatMap { grunnlag ->

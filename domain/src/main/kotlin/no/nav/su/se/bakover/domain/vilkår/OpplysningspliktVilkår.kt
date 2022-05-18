@@ -23,7 +23,7 @@ sealed class OpplysningspliktVilkår : Vilkår() {
     abstract val grunnlag: List<Opplysningspliktgrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): OpplysningspliktVilkår
-    abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): OpplysningspliktVilkår
+    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): OpplysningspliktVilkår
     abstract override fun slåSammenLikePerioder(): OpplysningspliktVilkår
 
     object IkkeVurdert : OpplysningspliktVilkår() {
@@ -123,7 +123,7 @@ data class VurderingsperiodeOpplysningsplikt private constructor(
     override val periode: Periode,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeOpplysningsplikt> {
 
-    override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeOpplysningsplikt {
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeOpplysningsplikt {
         return create(
             id = id,
             opprettet = opprettet,

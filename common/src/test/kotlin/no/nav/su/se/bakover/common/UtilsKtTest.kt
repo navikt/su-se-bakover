@@ -72,4 +72,11 @@ internal class UtilsKtTest {
     fun `Formatterer dato til format ddMMyyyy`() {
         1.januar(2020).ddMMyyyy() shouldBe "01.01.2020"
     }
+
+    @Test
+    fun `isEqualOrBefore`() {
+        1.januar(2021).isEqualOrBefore(1.januar(2021)) shouldBe true
+        1.januar(2021).isEqualOrBefore(2.januar(2021)) shouldBe true
+        2.januar(2021).isEqualOrBefore(1.januar(2021)) shouldBe false
+    }
 }

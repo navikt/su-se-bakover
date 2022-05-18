@@ -1,24 +1,36 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.lagFradrag
+import no.nav.su.se.bakover.test.satsFactoryTest
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 internal class PeriodisertBeregningTest {
+
+    private val forventetInntekt = lagFradrag(
+        type = Fradragstype.ForventetInntekt,
+        beløp = 0.0,
+        periode = Periode.create(1.januar(2020), 31.desember(2022)),
+        tilhører = FradragTilhører.BRUKER,
+    )
+
     @Test
     fun `summerer måned uten fradrag`() {
         val månedsberegning = MånedsberegningFactory.ny(
             måned = januar(2020),
-            sats = Sats.HØY,
-            fradrag = emptyList()
+            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            fradrag = listOf(forventetInntekt),
         )
         månedsberegning.getSumYtelse() shouldBe 20637
         månedsberegning.getSumFradrag() shouldBe 0
@@ -28,36 +40,19 @@ internal class PeriodisertBeregningTest {
     fun `summerer måned med fradrag`() {
         val månedsberegning = MånedsberegningFactory.ny(
             måned = januar(2020),
-            sats = Sats.HØY,
+            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
             fradrag = listOf(
+                forventetInntekt,
                 FradragForMåned(
                     fradragstype = Fradragstype.Kontantstøtte,
                     månedsbeløp = 5000.0,
                     måned = januar(2020),
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         )
         månedsberegning.getSumYtelse() shouldBe 15637
         månedsberegning.getSumFradrag() shouldBe 5000
-    }
-
-    @Test
-    fun `godtar ikke fradrag fra andre måneder`() {
-        assertThrows<IllegalArgumentException> {
-            MånedsberegningFactory.ny(
-                måned = januar(2020),
-                sats = Sats.HØY,
-                fradrag = listOf(
-                    FradragForMåned(
-                        fradragstype = Fradragstype.Kontantstøtte,
-                        månedsbeløp = 5000.0,
-                        måned = desember(2020),
-                        tilhører = FradragTilhører.BRUKER
-                    )
-                )
-            )
-        }
     }
 
     @Test
@@ -65,15 +60,16 @@ internal class PeriodisertBeregningTest {
         val periode = januar(2020)
         val månedsberegning = MånedsberegningFactory.ny(
             måned = periode,
-            sats = Sats.ORDINÆR,
+            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
             fradrag = listOf(
+                forventetInntekt,
                 FradragForMåned(
                     fradragstype = Fradragstype.Kontantstøtte,
                     månedsbeløp = 123000.0,
                     måned = periode,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         )
         månedsberegning.getSumYtelse() shouldBe 0
     }
@@ -83,15 +79,16 @@ internal class PeriodisertBeregningTest {
         val periode = januar(2020)
         val månedsberegning = MånedsberegningFactory.ny(
             måned = periode,
-            sats = Sats.ORDINÆR,
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
             fradrag = listOf(
+                forventetInntekt,
                 FradragForMåned(
                     fradragstype = Fradragstype.Kontantstøtte,
                     månedsbeløp = 123000.0,
                     måned = periode,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         )
         månedsberegning.getSumYtelse() shouldBe 0
         månedsberegning.getSumFradrag() shouldBe 18973.02
@@ -101,15 +98,15 @@ internal class PeriodisertBeregningTest {
     fun `henter aktuelt grunnbeløp for periode`() {
         val m1 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            sats = Sats.ORDINÆR,
-            fradrag = emptyList()
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
+            fradrag = listOf(forventetInntekt),
         )
         m1.getBenyttetGrunnbeløp() shouldBe 99858
 
         val m2 = MånedsberegningFactory.ny(
             måned = desember(2020),
-            sats = Sats.ORDINÆR,
-            fradrag = emptyList()
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
+            fradrag = listOf(forventetInntekt),
         )
         m2.getBenyttetGrunnbeløp() shouldBe 101351
     }
@@ -121,12 +118,15 @@ internal class PeriodisertBeregningTest {
             månedsbeløp = 1234.56,
             måned = januar(2020),
             utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER
+            tilhører = FradragTilhører.BRUKER,
         )
         val m1 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            sats = Sats.ORDINÆR,
-            fradrag = listOf(f1)
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
+            fradrag = listOf(
+                forventetInntekt,
+                f1,
+            ),
         )
         m1.getFradrag() shouldBe listOf(f1)
     }
@@ -138,12 +138,15 @@ internal class PeriodisertBeregningTest {
             månedsbeløp = 1234.56,
             måned = januar(2020),
             utenlandskInntekt = null,
-            tilhører = FradragTilhører.EPS
+            tilhører = FradragTilhører.EPS,
         )
         val m1 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            sats = Sats.ORDINÆR,
-            fradrag = listOf(f1)
+            strategy = BeregningStrategy.EpsUnder67År(satsFactoryTest),
+            fradrag = listOf(
+                forventetInntekt,
+                f1,
+            ),
         )
         m1.erFradragForEpsBenyttetIBeregning() shouldBe true
 
@@ -152,12 +155,15 @@ internal class PeriodisertBeregningTest {
             månedsbeløp = 1234.56,
             måned = januar(2020),
             utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER
+            tilhører = FradragTilhører.BRUKER,
         )
         val m2 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            sats = Sats.ORDINÆR,
-            fradrag = listOf(f2)
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
+            fradrag = listOf(
+                forventetInntekt,
+                f2,
+            ),
         )
 
         m2.erFradragForEpsBenyttetIBeregning() shouldBe false

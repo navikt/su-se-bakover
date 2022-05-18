@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.requireType
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simulertRevurdering
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -261,6 +262,7 @@ class BrevForTilbakekrevingTest {
                 sak.utbetalingstidslinje().gjeldendeForDato(forDato)!!.beløp.right()
             },
             clock = clock,
+            satsFactory = satsFactoryTest,
         )
     }
 }

@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -38,10 +40,13 @@ import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.bosituasjon
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.expectedBosituasjonJson
 import no.nav.su.se.bakover.web.routes.grunnlag.FradragsgrunnlagJsonTest.Companion.expectedFradragsgrunnlagJson
@@ -90,7 +95,7 @@ internal class RevurderingJsonTest {
                 uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
                 ),
-                formue = Vilkår.Formue.IkkeVurdert,
+                formue = formuevilkårIkkeVurdert(),
                 utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                 opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
             ),
@@ -128,14 +133,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -154,8 +152,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<OpprettetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
+        deserialize<OpprettetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
     }
 
     @Test
@@ -176,7 +174,7 @@ internal class RevurderingJsonTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -212,10 +210,10 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
+                      {
+                            "gyldigFra":"2022-05-01",
+                            "beløp":53550
+                      },
                       {
                           "gyldigFra": "2021-05-01",
                           "beløp": 53200
@@ -223,7 +221,7 @@ internal class RevurderingJsonTest {
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
-                      }
+                      }                     
                     ],
                     "vurderinger": []
                   },
@@ -238,8 +236,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest(1.mai(2022).fixedClock()))), true)
+        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest(1.mai(2022).fixedClock()))
     }
 
     @Test
@@ -260,7 +258,7 @@ internal class RevurderingJsonTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -296,14 +294,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -322,8 +313,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
+        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
     }
 
     @Test
@@ -344,7 +335,7 @@ internal class RevurderingJsonTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -380,14 +371,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -406,8 +390,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
+        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
     }
 
     @Test
@@ -429,7 +413,7 @@ internal class RevurderingJsonTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -476,14 +460,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -506,8 +483,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<SimulertRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
+        deserialize<SimulertRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
     }
 
     @Test
@@ -529,7 +506,7 @@ internal class RevurderingJsonTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -570,14 +547,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -598,8 +568,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<SimulertRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
+        deserialize<SimulertRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
     }
 
     @Test
@@ -621,7 +591,7 @@ internal class RevurderingJsonTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.Vurdert,
@@ -663,14 +633,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -691,8 +654,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson()
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
+        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
     }
 
     @Test
@@ -714,7 +677,7 @@ internal class RevurderingJsonTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -756,14 +719,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -784,8 +740,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson()
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
+        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
     }
 
     @Test
@@ -807,7 +763,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             skalFøreTilUtsendingAvVedtaksbrev = false,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -846,14 +802,6 @@ internal class RevurderingJsonTest {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
-                         "gyldigFra":"2022-05-01",
-                         "beløp":53550
-                      },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
-                      {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
                       }
@@ -873,8 +821,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson()
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
+        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
     }
 
     @Test
@@ -905,7 +853,7 @@ internal class RevurderingJsonTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -953,15 +901,7 @@ internal class RevurderingJsonTest {
                   "bosituasjon": [],
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
-                    "formuegrenser": [
-                      {
-                         "gyldigFra":"2022-05-01",
-                         "beløp":53550
-                      },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                    "formuegrenser": [                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -981,8 +921,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(expected, serialize(revurdering.toJson()), true)
-        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson()
+        JSONAssert.assertEquals(expected, serialize(revurdering.toJson(satsFactoryTest)), true)
+        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson(satsFactoryTest)
     }
 
     @Test
@@ -1013,7 +953,7 @@ internal class RevurderingJsonTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -1063,14 +1003,6 @@ internal class RevurderingJsonTest {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
-                         "gyldigFra":"2022-05-01",
-                         "beløp":53550
-                      },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
-                      {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
                       }
@@ -1089,8 +1021,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(expected, serialize(revurdering.toJson()), true)
-        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson()
+        JSONAssert.assertEquals(expected, serialize(revurdering.toJson(satsFactoryTest)), true)
+        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson(satsFactoryTest)
     }
 
     @Test
@@ -1121,7 +1053,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             skalFøreTilUtsendingAvVedtaksbrev = false,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -1167,14 +1099,6 @@ internal class RevurderingJsonTest {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
-                         "gyldigFra":"2022-05-01",
-                         "beløp":53550
-                      },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
-                      {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
                       }
@@ -1193,8 +1117,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(expected, serialize(revurdering.toJson()), true)
-        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson()
+        JSONAssert.assertEquals(expected, serialize(revurdering.toJson(satsFactoryTest)), true)
+        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson(satsFactoryTest)
     }
 
     @Test
@@ -1224,7 +1148,7 @@ internal class RevurderingJsonTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -1273,14 +1197,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                   "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -1303,8 +1220,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
+        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
     }
 
     @Test
@@ -1334,7 +1251,7 @@ internal class RevurderingJsonTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -1376,14 +1293,6 @@ internal class RevurderingJsonTest {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
-                         "gyldigFra":"2022-05-01",
-                         "beløp":53550
-                      },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
-                      {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
                       }
@@ -1403,8 +1312,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
+        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
     }
 
     @Test
@@ -1434,7 +1343,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             skalFøreTilUtsendingAvVedtaksbrev = true,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -1472,14 +1381,6 @@ internal class RevurderingJsonTest {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
-                         "gyldigFra":"2022-05-01",
-                         "beløp":53550
-                      },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
-                      {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
                       }
@@ -1499,8 +1400,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
+        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
     }
 
     @Test
@@ -1529,7 +1430,7 @@ internal class RevurderingJsonTest {
                   "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())},
+                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTest))},
                   "utenlandsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(simulertRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)}
                 },
@@ -1539,7 +1440,7 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(
             simulertRevurderingJson,
-            serialize(simulertRevurdering.toJson()), true,
+            serialize(simulertRevurdering.toJson(satsFactoryTest)), true,
         )
 
         val iverksattRevurdering = simulertRevurdering.iverksett(
@@ -1567,7 +1468,7 @@ internal class RevurderingJsonTest {
                   "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())},
+                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTest))},
                   "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(simulertRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)}
                 },
@@ -1577,7 +1478,7 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(
             iverksattRevurderingJson,
-            serialize(iverksattRevurdering.toJson()), true,
+            serialize(iverksattRevurdering.toJson(satsFactoryTest)), true,
         )
     }
 
@@ -1607,7 +1508,7 @@ internal class RevurderingJsonTest {
                   "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())},
+                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTest))},
                   "utenlandsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(simulertRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)}
                 },
@@ -1618,7 +1519,7 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(
             simulertRevurderingJson,
-            serialize(simulertRevurdering.toJson()), true,
+            serialize(simulertRevurdering.toJson(satsFactoryTest)), true,
         )
 
         val iverksattRevurdering = simulertRevurdering.iverksett(attesteringIverksatt(clock = fixedClock))
@@ -1645,7 +1546,7 @@ internal class RevurderingJsonTest {
                   "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())},
+                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTest))},
                   "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(iverksattRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)}
                 },
@@ -1655,7 +1556,7 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(
             iverksattRevurderingJson,
-            serialize(iverksattRevurdering.toJson()), true,
+            serialize(iverksattRevurdering.toJson(satsFactoryTest)), true,
         )
     }
 

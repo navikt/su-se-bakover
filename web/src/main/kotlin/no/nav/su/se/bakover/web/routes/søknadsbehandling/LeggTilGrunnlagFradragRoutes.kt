@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
@@ -40,6 +41,7 @@ import kotlin.reflect.KClass
 internal fun Route.leggTilGrunnlagFradrag(
     behandlingService: SøknadsbehandlingService,
     clock: Clock,
+    satsFactory: SatsFactory,
 ) {
 
     data class Body(
@@ -92,7 +94,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                                         call.sikkerlogg("Lagret fradrag for behandling $behandlingId på $sakId")
                                         Resultat.json(
                                             HttpStatusCode.Created,
-                                            serialize(it.toJson()),
+                                            serialize(it.toJson(satsFactory)),
                                         )
                                     }
                             }.getOrHandle { it },

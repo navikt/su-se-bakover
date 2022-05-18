@@ -61,7 +61,7 @@ class SimuleringStub(
                 clock = clock,
             )
 
-            utbetalingsperiode.tilMånedsperioder()
+            utbetalingsperiode.måneder()
                 .asSequence()
                 .map { måned ->
                     val utbetaltLinje = tidslinje.gjeldendeForDato(måned.fraOgMed)

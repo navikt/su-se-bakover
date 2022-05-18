@@ -72,6 +72,7 @@ import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -90,6 +91,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -97,10 +99,13 @@ internal class SøknadsbehandlingRoutesKtTest {
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
 
+    private val satsFactory = satsFactoryTest.gjeldende(LocalDate.now(fixedClock))
+
     private fun repos(dataSource: DataSource) = DatabaseBuilder.build(
         embeddedDatasource = dataSource,
         dbMetrics = dbMetricsStub,
         clock = fixedClock,
+        satsFactory = satsFactory,
     )
 
     private fun services(
@@ -114,6 +119,7 @@ internal class SøknadsbehandlingRoutesKtTest {
             søknadMetrics = mock(),
             clock = fixedClock,
             unleash = mock(),
+            satsFactory = satsFactory,
         )
 
     @Nested
@@ -171,8 +177,8 @@ internal class SøknadsbehandlingRoutesKtTest {
             testApplication {
                 application {
                     testSusebakover(
-                        services = services,
                         databaseRepos = repos,
+                        services = services,
                     )
                 }
                 val objects = setupMedAlleVilkårOppfylt(services, repos)
@@ -231,9 +237,9 @@ internal class SøknadsbehandlingRoutesKtTest {
             testApplication {
                 application {
                     testSusebakover(
+                        databaseRepos = repos,
                         clients = clients,
                         services = services,
-                        databaseRepos = repos,
                     )
                 }
                 val objects = setupMedAlleVilkårOppfylt(services, repos)
@@ -270,8 +276,8 @@ internal class SøknadsbehandlingRoutesKtTest {
             testApplication {
                 application {
                     testSusebakover(
-                        services = services,
                         databaseRepos = repos,
+                        services = services,
                     )
                 }
                 val uavklartVilkårsvurdertSøknadsbehandling = setup(services, repos)
@@ -332,8 +338,8 @@ internal class SøknadsbehandlingRoutesKtTest {
             testApplication {
                 application {
                     testSusebakover(
-                        services = services,
                         databaseRepos = repos,
+                        services = services,
                     )
                 }
                 val objects = setupMedAlleVilkårOppfylt(services, repos, epsFnr = Fnr("12345678910"))
@@ -695,7 +701,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 val services = services(repos)
                 withFerdigbehandletSakForBruker(services, repos) { objects ->
                     testApplication {
-                        application { testSusebakover(services = services, databaseRepos = repos) }
+                        application { testSusebakover(databaseRepos = repos, services = services) }
                         client.patch("$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn") {
                             header(
                                 HttpHeaders.Authorization,
@@ -768,9 +774,9 @@ internal class SøknadsbehandlingRoutesKtTest {
                 testApplication {
                     application {
                         testSusebakover(
+                            databaseRepos = repos,
                             clients = clients,
                             services = services,
-                            databaseRepos = repos,
                         )
                     }
                     val objects = setupMedAlleVilkårOppfylt(services, repos)
@@ -998,9 +1004,9 @@ internal class SøknadsbehandlingRoutesKtTest {
         testApplication {
             application {
                 testSusebakover(
+                    databaseRepos = repos,
                     clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig),
                     services = services,
-                    databaseRepos = repos,
                 )
             }
             val objects = setupMedAlleVilkårOppfylt(services, repos)

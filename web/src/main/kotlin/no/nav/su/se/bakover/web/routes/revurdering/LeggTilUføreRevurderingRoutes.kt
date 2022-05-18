@@ -8,6 +8,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
@@ -22,6 +23,7 @@ import no.nav.su.se.bakover.web.withRevurderingId
 
 internal fun Route.leggTilGrunnlagRevurderingRoutes(
     revurderingService: RevurderingService,
+    satsFactory: SatsFactory,
 ) {
     post("$revurderingPath/{revurderingId}/uføregrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -36,7 +38,7 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                     }.map {
                                         Resultat.json(
                                             HttpStatusCode.Created,
-                                            serialize(it.toJson())
+                                            serialize(it.toJson(satsFactory))
                                         )
                                     }
                             }.getOrHandle { it },

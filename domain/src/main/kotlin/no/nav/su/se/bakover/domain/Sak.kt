@@ -10,13 +10,13 @@ import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
@@ -32,7 +32,7 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
-import org.jetbrains.annotations.TestOnly
+import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -88,25 +88,6 @@ data class Sak(
         return TidslinjeForUtbetalinger(
             periode = periode,
             utbetalingslinjer = utbetalingslinjer,
-        )
-    }
-
-    @TestOnly
-    fun hentGjeldendeVilkårOgGrunnlag(
-        periode: Periode,
-        clock: Clock,
-    ): GrunnlagsdataOgVilkårsvurderinger.Revurdering {
-        return hentGjeldendeVedtaksdata(
-            periode = periode,
-            clock = clock,
-        ).fold(
-            { GrunnlagsdataOgVilkårsvurderinger.Revurdering.IkkeVurdert },
-            {
-                GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-                    grunnlagsdata = it.grunnlagsdata,
-                    vilkårsvurderinger = it.vilkårsvurderinger,
-                )
-            },
         )
     }
 
@@ -175,10 +156,12 @@ data class Sak(
      * Per nå så er det kun Vedtak i form av [VedtakSomKanRevurderes.EndringIYtelse] som bidrar til dette, bortsett fra [VedtakSomKanRevurderes.IngenEndringIYtelse] som har
      * andre beregnings-beløp som ikke skal ha en påverkan på saken.
      * */
-    fun hentGjeldendeMånedsberegningForMåned(månedsperiode: Periode, clock: Clock): Månedsberegning? {
-        assert(månedsperiode.getAntallMåneder() == 1)
+    fun hentGjeldendeMånedsberegningForMåned(
+        måned: Måned,
+        clock: Clock,
+    ): Månedsberegning? {
         return GjeldendeVedtaksdata(
-            periode = månedsperiode,
+            periode = måned,
             vedtakListe = NonEmptyList.fromListUnsafe(
                 vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
                     .filterNot { it is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse || it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse || it is VedtakSomKanRevurderes.IngenEndringIYtelse }
@@ -187,7 +170,7 @@ data class Sak(
                     },
             ),
             clock = clock,
-        ).gjeldendeVedtakPåDato(månedsperiode.fraOgMed)?.let {
+        ).gjeldendeVedtakPåDato(måned.fraOgMed)?.let {
             when (it) {
                 is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> it.beregning
                 is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> it.beregning
@@ -198,7 +181,7 @@ data class Sak(
                 is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.GjenopptakAvYtelse")
             }
         }?.let { beregning ->
-            beregning.getMånedsberegninger().associateBy { it.periode }[månedsperiode]
+            beregning.getMånedsberegninger().associateBy { it.periode }[måned]
         }
     }
 
@@ -287,6 +270,7 @@ data class Sak(
         søknadsbehandlingId: UUID,
         stønadsperiode: Stønadsperiode,
         clock: Clock,
+        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert> {
         val søknadsbehandling = søknadsbehandlinger.singleOrNull {
             it.id == søknadsbehandlingId
@@ -319,6 +303,7 @@ data class Sak(
         return søknadsbehandling.oppdaterStønadsperiode(
             oppdatertStønadsperiode = stønadsperiode,
             clock = clock,
+            formuegrenserFactory = formuegrenserFactory,
         ).mapLeft {
             when (it) {
                 is Søknadsbehandling.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
@@ -351,7 +336,7 @@ data class Sak(
      * @return Dersom Either.Left: Disse skal det ikke lages noen regulering for. Denne funksjonen har logget.
      */
     fun opprettEllerOppdaterRegulering(
-        // TODO jah: Bytt til three ten sin MonthYear (Da slipper vi en unødvendig left)
+        // TODO jah: Bytt til YearMonth (Da slipper vi en unødvendig left)
         startDato: LocalDate,
         clock: Clock,
     ): Either<KunneIkkeOppretteEllerOppdatereRegulering, Regulering.OpprettetRegulering> {
@@ -382,11 +367,12 @@ data class Sak(
             if (it.count() != 1) return KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig.left()
         }.single()
 
-        val gjeldendeVedtaksdata = this.hentGjeldendeVedtaksdata(periode = periode, clock = clock)
-            .getOrHandle { feil ->
-                log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
-                return KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
-            }
+        val gjeldendeVedtaksdata =
+            this.hentGjeldendeVedtaksdata(periode = periode, clock = clock)
+                .getOrHandle { feil ->
+                    log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
+                    return KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
+                }
 
         return Regulering.opprettRegulering(
             id = reguleringsId,

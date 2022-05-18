@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageAvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.AuditLogEvent
@@ -28,6 +29,7 @@ import no.nav.su.se.bakover.web.withRevurderingId
 
 internal fun Route.avsluttRevurderingRoute(
     revurderingService: RevurderingService,
+    satsFactory: SatsFactory,
 ) {
     data class AvsluttRevurderingBody(
         val begrunnelse: String,
@@ -48,7 +50,7 @@ internal fun Route.avsluttRevurderingRoute(
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.OK,
-                                    serialize(it.toJson())
+                                    serialize(it.toJson(satsFactory))
                                 )
                             )
                         },

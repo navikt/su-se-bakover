@@ -13,13 +13,13 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -119,7 +119,7 @@ internal class GjeldendeVedtaksdataTest {
         )
         data.gjeldendeVedtakPåDato(1.mai(2021)) shouldBe null
         data.grunnlagsdata shouldBe Grunnlagsdata.IkkeVurdert
-        data.vilkårsvurderinger shouldBe Vilkårsvurderinger.Revurdering.IkkeVurdert
+        data.vilkårsvurderinger shouldBe vilkårsvurderingRevurderingIkkeVurdert()
         assertThrows<IllegalStateException> {
             data.garantertSammenhengendePeriode()
         }

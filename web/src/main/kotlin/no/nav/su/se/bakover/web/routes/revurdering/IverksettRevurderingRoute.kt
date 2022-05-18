@@ -7,6 +7,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.FantIkkeRevurdering
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.web.withRevurderingId
 
 internal fun Route.iverksettRevurderingRoute(
     revurderingService: RevurderingService,
+    satsFactory: SatsFactory,
 ) {
     post("$revurderingPath/{revurderingId}/iverksett") {
         authorize(Brukerrolle.Attestant) {
@@ -47,7 +49,7 @@ internal fun Route.iverksettRevurderingRoute(
                         call.sikkerlogg("Iverksatt revurdering med id $revurderingId")
                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                         SuMetrics.vedtakIverksatt(SuMetrics.Behandlingstype.REVURDERING)
-                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
                     },
                 )
             }

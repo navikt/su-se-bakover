@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -46,6 +45,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Disabled
@@ -77,6 +77,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
@@ -103,6 +104,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
@@ -136,6 +138,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
                 it.beregning.harAlleMånederMerknadForAvslag() shouldBe true
@@ -161,6 +164,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
@@ -187,6 +191,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe false
                 it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
@@ -215,6 +220,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe false
                 it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
@@ -236,6 +242,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe false
                 it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
@@ -265,6 +272,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
@@ -291,6 +299,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
@@ -306,12 +315,12 @@ internal class RevurderingBeregnTest {
                 fradragsgrunnlag = listOf(
                     fradragsgrunnlagArbeidsinntekt(
                         periode = Periode.create(1.januar(2021), 30.april(2021)),
-                        arbeidsinntekt = (Sats.HØY.månedsbeløp(1.januar(2021)) - 250),
+                        arbeidsinntekt = (satsFactoryTest.høy(januar(2021)).satsForMånedAsDouble - 250),
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     fradragsgrunnlagArbeidsinntekt(
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                        arbeidsinntekt = (Sats.HØY.månedsbeløp(1.mai(2021)) - 250),
+                        arbeidsinntekt = (satsFactoryTest.høy(mai(2021)).satsForMånedAsDouble - 250),
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
@@ -322,6 +331,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
@@ -361,16 +371,17 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let { beregnet ->
                 beregnet shouldBe beOfType<BeregnetRevurdering.Innvilget>()
                 beregnet.beregning.getSumYtelse() shouldBeGreaterThan 0
                 beregnet.beregning.getMånedsberegninger()[0].getSumYtelse() shouldBe 0
                 beregnet.beregning.getMånedsberegninger()[0].getFradrag()
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
-                    .sumOf { it.månedsbeløp } shouldBe 21989
+                    .sumOf { it.månedsbeløp } shouldBe 20946
                 beregnet.beregning.getMånedsberegninger()[1].getSumYtelse() shouldBe 0
                 beregnet.beregning.getMånedsberegninger()[2].getSumYtelse() shouldBe
-                    (3 * Sats.HØY.månedsbeløpSomHeltall(mai(2021).fraOgMed)) - expectedTotalAvkorting
+                    (3 * satsFactoryTest.høy(mai(2021)).satsForMånedAvrundet) - expectedTotalAvkorting
                 beregnet.beregning.getFradrag()
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp } shouldBe expectedTotalAvkorting
@@ -381,7 +392,7 @@ internal class RevurderingBeregnTest {
                         opprettet = Tidspunkt.now(fixedClock),
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.AvkortingUtenlandsopphold,
-                            månedsbeløp = 21989.0,
+                            månedsbeløp = 20946.0,
                             periode = mai(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -392,7 +403,7 @@ internal class RevurderingBeregnTest {
                         opprettet = Tidspunkt.now(fixedClock),
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.AvkortingUtenlandsopphold,
-                            månedsbeløp = 21989.0,
+                            månedsbeløp = 20946.0,
                             periode = juni(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -403,7 +414,7 @@ internal class RevurderingBeregnTest {
                         opprettet = Tidspunkt.now(fixedClock),
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.AvkortingUtenlandsopphold,
-                            månedsbeløp = 16022.0,
+                            månedsbeløp = 18108.0,
                             periode = juli(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -460,6 +471,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
+                satsFactory = satsFactoryTest,
             ).getOrFail().let { beregnet ->
                 beregnet shouldBe beOfType<BeregnetRevurdering.Innvilget>()
                 beregnet.beregning.getSumYtelse() shouldBeGreaterThan 0
@@ -469,11 +481,11 @@ internal class RevurderingBeregnTest {
                     .sumOf { it.månedsbeløp } shouldBe 3750
                 beregnet.beregning.getMånedsberegninger()[0].getFradrag()
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
-                    .sumOf { it.månedsbeløp } shouldBe 18239
+                    .sumOf { it.månedsbeløp } shouldBe 17196
                 beregnet.beregning.getMånedsberegninger()[1].getSumYtelse() shouldBe 0
                 beregnet.beregning.getMånedsberegninger()[2].getSumYtelse() shouldBe 0
                 beregnet.beregning.getMånedsberegninger()[3].getSumYtelse() shouldBe
-                    (4 * Sats.HØY.månedsbeløpSomHeltall(mai(2021).fraOgMed)) - (4 * arbeidsinntekt) - expectedTotalAvkorting
+                    (4 * satsFactoryTest.høy(mai(2021)).satsForMånedAvrundet) - (4 * arbeidsinntekt) - expectedTotalAvkorting
                 beregnet.beregning.getFradrag()
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp } shouldBe expectedTotalAvkorting
@@ -495,7 +507,7 @@ internal class RevurderingBeregnTest {
                         opprettet = Tidspunkt.now(fixedClock),
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.AvkortingUtenlandsopphold,
-                            månedsbeløp = 18239.0,
+                            månedsbeløp = 17196.0,
                             periode = mai(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -506,7 +518,7 @@ internal class RevurderingBeregnTest {
                         opprettet = Tidspunkt.now(fixedClock),
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.AvkortingUtenlandsopphold,
-                            månedsbeløp = 18239.0,
+                            månedsbeløp = 17196.0,
                             periode = juni(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -517,7 +529,7 @@ internal class RevurderingBeregnTest {
                         opprettet = Tidspunkt.now(fixedClock),
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.AvkortingUtenlandsopphold,
-                            månedsbeløp = 18239.0,
+                            månedsbeløp = 17196.0,
                             periode = juli(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -528,7 +540,7 @@ internal class RevurderingBeregnTest {
                         opprettet = Tidspunkt.now(fixedClock),
                         fradrag = FradragFactory.nyFradragsperiode(
                             fradragstype = Fradragstype.AvkortingUtenlandsopphold,
-                            månedsbeløp = 5283.0,
+                            månedsbeløp = 8412.0,
                             periode = august(2021),
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
@@ -565,6 +577,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
+                satsFactory = satsFactoryTest,
             ) shouldBe Revurdering.KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes.left()
         }
     }
@@ -598,6 +611,7 @@ internal class RevurderingBeregnTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
+                satsFactory = satsFactoryTest,
             ) shouldBe Revurdering.KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes.left()
         }
     }

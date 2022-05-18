@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toJson
@@ -20,12 +21,13 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
         fun create(
             grunnlagsdata: Grunnlagsdata,
             vilkårsvurderinger: Vilkårsvurderinger,
+            satsFactory: SatsFactory,
         ): GrunnlagsdataOgVilkårsvurderingerJson {
             return GrunnlagsdataOgVilkårsvurderingerJson(
                 uføre = vilkårsvurderinger.uføreVilkår().toJson(),
                 fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag.toJson() },
                 bosituasjon = grunnlagsdata.bosituasjon.toJson(),
-                formue = vilkårsvurderinger.formueVilkår().toJson(),
+                formue = vilkårsvurderinger.formueVilkår().toJson(satsFactory),
                 utenlandsopphold = vilkårsvurderinger.utenlandsoppholdVilkår().toJson(),
                 opplysningsplikt = vilkårsvurderinger.opplysningspliktVilkår().toJson(),
             )
@@ -33,4 +35,10 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     }
 }
 
-internal fun GrunnlagsdataOgVilkårsvurderinger.toJson(): GrunnlagsdataOgVilkårsvurderingerJson = GrunnlagsdataOgVilkårsvurderingerJson.create(this.grunnlagsdata, this.vilkårsvurderinger)
+internal fun GrunnlagsdataOgVilkårsvurderinger.toJson(satsFactory: SatsFactory): GrunnlagsdataOgVilkårsvurderingerJson {
+    return GrunnlagsdataOgVilkårsvurderingerJson.create(
+        grunnlagsdata = this.grunnlagsdata,
+        vilkårsvurderinger = this.vilkårsvurderinger,
+        satsFactory = satsFactory,
+    )
+}

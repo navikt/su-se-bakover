@@ -3,25 +3,28 @@ package no.nav.su.se.bakover.domain.beregning
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadForMåned
+import no.nav.su.se.bakover.domain.satser.Satskategori
 
 interface Månedsberegning : PeriodisertInformasjon {
     fun getSumYtelse(): Int
     fun getSumFradrag(): Double
     fun getBenyttetGrunnbeløp(): Int
-    fun getSats(): Sats
+    fun getSats(): Satskategori
     fun getSatsbeløp(): Double
-    fun getFradrag(): List<Fradrag>
+    fun getFradrag(): List<FradragForMåned>
     fun getFribeløpForEps(): Double
     fun getMerknader(): List<Merknad.Beregning>
 
     fun erFradragForEpsBenyttetIBeregning() =
         getFradrag().any { it.fradragstype == Fradragstype.BeregnetFradragEPS }
 
-    val måned: Månedsperiode
+    val måned: Måned
+    val fullSupplerendeStønadForMåned: FullSupplerendeStønadForMåned
 
     /**
      * Sammenligner alle metodene.
@@ -38,6 +41,8 @@ interface Månedsberegning : PeriodisertInformasjon {
         if (getSatsbeløp() != other.getSatsbeløp()) return false
         if (getFradrag() != other.getFradrag()) return false
         if (getFribeløpForEps() != other.getFribeløpForEps()) return false
+        if (måned != other.måned) return false
+        if (periode != other.periode) return false
         return true
     }
 

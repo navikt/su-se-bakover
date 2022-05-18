@@ -105,8 +105,8 @@ internal class StønadsstatistikkMapperTest {
                     Statistikk.Stønad.Månedsbeløp(
                         måned = it,
                         stonadsklassifisering = Statistikk.Stønadsklassifisering.BOR_ALENE,
-                        bruttosats = 21989,
-                        nettosats = 18989,
+                        bruttosats = 20946,
+                        nettosats = 17946,
                         inntekter = listOf(
                             Statistikk.Inntekt(
                                 inntektstype = "ForventetInntekt",
@@ -206,8 +206,8 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-05-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 21989,
-                      "nettosats": 18989,
+                      "bruttosats": 20946,
+                      "nettosats": 17946,
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
@@ -219,8 +219,8 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-06-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 21989,
-                      "nettosats": 18989,
+                      "bruttosats": 20946,
+                      "nettosats": 17946,
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
@@ -232,8 +232,8 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-07-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 21989,
-                      "nettosats": 18989,
+                      "bruttosats": 20946,
+                      "nettosats": 17946,
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
@@ -245,8 +245,8 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-08-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 21989,
-                      "nettosats": 18989,
+                      "bruttosats": 20946,
+                      "nettosats": 17946,
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
@@ -258,8 +258,8 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-09-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 21989,
-                      "nettosats": 18989,
+                      "bruttosats": 20946,
+                      "nettosats": 17946,
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
@@ -271,8 +271,8 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-10-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 21989,
-                      "nettosats": 18989,
+                      "bruttosats": 20946,
+                      "nettosats": 17946,
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
@@ -284,8 +284,8 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-11-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 21989,
-                      "nettosats": 18989,
+                      "bruttosats": 20946,
+                      "nettosats": 17946,
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
@@ -297,8 +297,8 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-12-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 21989,
-                      "nettosats": 18989,
+                      "bruttosats": 20946,
+                      "nettosats": 17946,
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",

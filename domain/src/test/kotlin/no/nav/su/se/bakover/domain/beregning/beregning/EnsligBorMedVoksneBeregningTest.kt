@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.satsFactoryTest
 import org.junit.jupiter.api.Test
 
 internal class EnsligBorMedVoksneBeregningTest {
@@ -92,9 +93,9 @@ internal class EnsligBorMedVoksneBeregningTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = beregningsgrunnlag.beregningsperiode,
-                    strategy = BeregningStrategy.BorMedVoksne,
+                    strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
                 )
-            )
+            ),
         ).let {
             it.getSumYtelse() shouldBe 155892
             it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr + utenlandskInntektPrÅr).plusOrMinus(0.5)

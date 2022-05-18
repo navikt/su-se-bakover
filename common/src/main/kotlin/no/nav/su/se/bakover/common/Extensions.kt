@@ -7,9 +7,18 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.UUID
 
-fun Double.positiveOrZero() = max(0.0, this)
-fun Double.limitedUpwardsTo(limit: Double) = min(limit, this)
-fun Double.roundToDecimals(decimals: Int) = BigDecimal(this).setScale(decimals, RoundingMode.HALF_UP).toDouble()
+fun Double.positiveOrZero(): Double = max(0.0, this)
+fun Double.limitedUpwardsTo(limit: Double): Double = min(limit, this)
+fun Double.roundToDecimals(decimals: Int): Double = this.toBigDecimal().roundToDecimals(decimals)
+fun BigDecimal.roundToDecimals(decimals: Int): Double = this.setScale(decimals, RoundingMode.HALF_UP).toDouble()
+fun BigDecimal.scaleTo4(): BigDecimal = this.setScale(4, RoundingMode.HALF_UP)
+
+/**
+ * Runder av til nærmeste heltall basert på Norges Banks avrundingsregler (HALF_UP).
+ *
+ * @throws ArithmeticException dersom vi mister informasjon i konverteringa
+ */
+fun BigDecimal.avrund(): Int = this.setScale(0, RoundingMode.HALF_UP).intValueExact()
 
 fun <A, B> Pair<A, A>.mapBoth(f: (A) -> B): Pair<B, B> =
     Pair(f(first), f(second))

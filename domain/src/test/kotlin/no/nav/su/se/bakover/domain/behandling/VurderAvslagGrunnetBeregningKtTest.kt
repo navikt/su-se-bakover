@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.IngenMerknaderForAvslag
 import no.nav.su.se.bakover.domain.beregning.Merknad
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.beregning.finnMerknaderForPeriode
 import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvslag
 import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknad
@@ -29,6 +28,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.satsFactoryTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -42,8 +42,9 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `beregning med sum ytelse nøyaktig lik null skal gi avslag`() {
         val periode = januar(2021)
-        val fradrag = lagFradrag(Sats.HØY.månedsbeløp(periode.fraOgMed), periode)
-        val beregning = lagBeregningMedFradrag(fradrag, strategy = BeregningStrategy.BorAlene)
+        val fradrag =
+            lagFradrag(satsFactoryTest.høy(periode).satsForMånedAsDouble, periode)
+        val beregning = lagBeregningMedFradrag(fradrag, strategy = BeregningStrategy.BorAlene(satsFactoryTest))
 
         beregning.getSumYtelse() shouldBe 0
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
@@ -60,7 +61,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         val januar = lagFradrag(1000000.0, januar(2021))
         val desember = lagFradrag(100000.0, desember(2021))
 
-        val beregning = lagBeregningMedFradrag(januar, desember, strategy = BeregningStrategy.BorAlene)
+        val beregning = lagBeregningMedFradrag(januar, desember, strategy = BeregningStrategy.BorAlene(satsFactoryTest))
 
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
             grunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT,
@@ -75,9 +76,9 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `beregning med alle måneder under minstebeløp skal gi avslag`() {
         val januar = lagFradrag(20750.0, Periode.create(1.januar(2021), 30.april(2021)))
-        val desember = lagFradrag(21800.0, Periode.create(1.mai(2021), 31.desember(2021)))
+        val desember = lagFradrag(20800.0, Periode.create(1.mai(2021), 31.desember(2021)))
 
-        val beregning = lagBeregningMedFradrag(januar, desember, strategy = BeregningStrategy.BorAlene)
+        val beregning = lagBeregningMedFradrag(januar, desember, strategy = BeregningStrategy.BorAlene(satsFactoryTest))
 
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
             grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE,
@@ -94,7 +95,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     fun `beregning med en måned for EPS under minstebeløp skal gi avslag`() {
         val marsEPS = lagFradrag(285_000.0, mars(2021), tilhører = FradragTilhører.EPS)
 
-        val beregning = lagBeregningMedFradrag(marsEPS, strategy = BeregningStrategy.Eps67EllerEldre)
+        val beregning = lagBeregningMedFradrag(marsEPS, strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTest))
 
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
             grunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT,
@@ -110,7 +111,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         val januar = lagFradrag(18500.0, januar(2021))
         val desember = lagFradrag(16400.0, desember(2021))
 
-        val beregning = lagBeregningMedFradrag(januar, desember, strategy = BeregningStrategy.BorAlene)
+        val beregning = lagBeregningMedFradrag(januar, desember, strategy = BeregningStrategy.BorAlene(satsFactoryTest))
 
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
 
@@ -122,7 +123,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         val januar = lagFradrag(30000.0, januar(2021))
         val desember = lagFradrag(2500.0, desember(2021))
 
-        val beregning = lagBeregningMedFradrag(januar, desember, strategy = BeregningStrategy.BorAlene)
+        val beregning = lagBeregningMedFradrag(januar, desember, strategy = BeregningStrategy.BorAlene(satsFactoryTest))
 
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
             grunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT,
@@ -138,7 +139,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         val januar = lagFradrag(30000.0, januar(2021), Fradragstype.Sosialstønad)
         val desember = lagFradrag(2500.0, desember(2021))
 
-        val beregning = lagBeregningMedFradrag(januar, desember, strategy = BeregningStrategy.BorAlene)
+        val beregning = lagBeregningMedFradrag(januar, desember, strategy = BeregningStrategy.BorAlene(satsFactoryTest))
 
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
 
@@ -148,10 +149,11 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `avslag dersom det eksisterer 1 måned med beløp under minstegrense`() {
         val januar = lagFradrag(2500.0, januar(2021))
-        val juni = lagFradrag(21900.0, juni(2021))
+        val juni = lagFradrag(20750.0, juni(2021))
         val desember = lagFradrag(2500.0, desember(2021))
 
-        val beregning = lagBeregningMedFradrag(januar, juni, desember, strategy = BeregningStrategy.BorAlene)
+        val beregning = lagBeregningMedFradrag(januar, juni, desember, strategy = BeregningStrategy.BorAlene(satsFactoryTest))
+
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
             grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE,
         )
@@ -167,7 +169,8 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         val juni = lagFradrag(21900.0, juni(2021), Fradragstype.Sosialstønad)
         val desember = lagFradrag(2500.0, desember(2021))
 
-        val beregning = lagBeregningMedFradrag(januar, juni, desember, strategy = BeregningStrategy.EpsUnder67År)
+        val beregning =
+            lagBeregningMedFradrag(januar, juni, desember, strategy = BeregningStrategy.EpsUnder67År(satsFactoryTest))
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
         beregning.finnFørsteMånedMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
     }
@@ -178,7 +181,8 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         val juni = lagFradrag(21900.0, juni(2021), Fradragstype.Sosialstønad, FradragTilhører.EPS)
         val desember = lagFradrag(2500.0, desember(2021))
 
-        val beregning = lagBeregningMedFradrag(januar, juni, desember, strategy = BeregningStrategy.EpsUnder67År)
+        val beregning =
+            lagBeregningMedFradrag(januar, juni, desember, strategy = BeregningStrategy.EpsUnder67År(satsFactoryTest))
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
         beregning.finnFørsteMånedMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
         beregning.finnMerknaderForPeriode(juni(2021)) shouldBe listOf(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
@@ -190,7 +194,8 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         val juni = lagFradrag(21900.0, juni(2021), Fradragstype.AvkortingUtenlandsopphold)
         val desember = lagFradrag(5000.0, desember(2021))
 
-        val beregning = lagBeregningMedFradrag(januar, juni, desember, strategy = BeregningStrategy.EpsUnder67År)
+        val beregning =
+            lagBeregningMedFradrag(januar, juni, desember, strategy = BeregningStrategy.EpsUnder67År(satsFactoryTest))
         beregning.finnMånederMedMerknad()
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
         beregning.finnFørsteMånedMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
@@ -209,7 +214,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             juniAvkorting,
             juniSosialstønad,
             desember,
-            strategy = BeregningStrategy.EpsUnder67År,
+            strategy = BeregningStrategy.EpsUnder67År(satsFactoryTest),
         )
 
         beregning.finnMånederMedMerknad()
@@ -226,7 +231,13 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         val desember = lagFradrag(2500.0, desember(2021))
 
         val beregning =
-            lagBeregningMedFradrag(januar, juni, juniEPS, desember, strategy = BeregningStrategy.EpsUnder67År)
+            lagBeregningMedFradrag(
+                januar,
+                juni,
+                juniEPS,
+                desember,
+                strategy = BeregningStrategy.EpsUnder67År(satsFactoryTest),
+            )
 
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
 

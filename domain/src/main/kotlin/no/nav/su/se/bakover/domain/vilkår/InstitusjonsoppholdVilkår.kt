@@ -21,7 +21,7 @@ sealed class InstitusjonsoppholdVilkår : Vilkår() {
     abstract val grunnlag: List<InstitusjonsoppholdGrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): InstitusjonsoppholdVilkår
-    abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): InstitusjonsoppholdVilkår
+    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): InstitusjonsoppholdVilkår
     abstract override fun slåSammenLikePerioder(): InstitusjonsoppholdVilkår
 
     object IkkeVurdert : InstitusjonsoppholdVilkår() {
@@ -117,7 +117,7 @@ data class VurderingsperiodeInstitusjonsopphold private constructor(
     val begrunnelse: String?,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeInstitusjonsopphold> {
 
-    override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeInstitusjonsopphold {
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeInstitusjonsopphold {
         return create(
             id = id,
             opprettet = opprettet,

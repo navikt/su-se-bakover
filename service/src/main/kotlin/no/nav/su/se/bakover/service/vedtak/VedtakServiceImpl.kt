@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
@@ -23,6 +24,7 @@ internal class VedtakServiceImpl(
     private val vedtakRepo: VedtakRepo,
     private val sakService: SakService,
     private val clock: Clock,
+    private val satsFactory: SatsFactory,
 ) : VedtakService {
 
     override fun lagre(vedtak: Vedtak) {

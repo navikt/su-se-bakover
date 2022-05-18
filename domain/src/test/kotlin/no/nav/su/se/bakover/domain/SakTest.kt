@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.plus
@@ -388,6 +389,7 @@ internal class SakTest {
             val actual = vilkårsvurdert.oppdaterStønadsperiode(
                 oppdatertStønadsperiode = Stønadsperiode.create(nyPeriode, ""),
                 clock = fixedClock,
+                formuegrenserFactory = formuegrenserFactoryTest,
             ).getOrFail()
 
             vilkårsvurdert.periode shouldNotBe nyPeriode
@@ -417,6 +419,7 @@ internal class SakTest {
                     søknadsbehandlingId = opprettetSøknadsbehandling.id,
                     stønadsperiode = Stønadsperiode.create(nyPeriode, ""),
                     clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode.left()
             }
         }
@@ -445,6 +448,7 @@ internal class SakTest {
                     søknadsbehandlingId = mellomToAndrePerioder.id,
                     stønadsperiode = nyPeriode,
                     clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer.left()
             }
         }
@@ -488,6 +492,7 @@ internal class SakTest {
                     søknadsbehandlingId = nySøknadsbehandlingMedOpplysningsplikt.id,
                     stønadsperiode = nyStønadsperiode,
                     clock = tikkendeKlokke,
+                    formuegrenserFactory = formuegrenserFactoryTest,
                 ).getOrFail() shouldBe nySøknadsbehandlingMedOpplysningsplikt
 
                 listOf(
@@ -500,6 +505,7 @@ internal class SakTest {
                         søknadsbehandlingId = nySøknadsbehandlingMedOpplysningsplikt.id,
                         stønadsperiode = stønadsperiode,
                         clock = tikkendeKlokke,
+                        formuegrenserFactory = formuegrenserFactoryTest,
                     ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
                 }
 
@@ -517,6 +523,7 @@ internal class SakTest {
                         søknadsbehandlingId = nySøknadsbehandlingMedOpplysningsplikt.id,
                         stønadsperiode = stønadsperiode,
                         clock = tikkendeKlokke,
+                        formuegrenserFactory = formuegrenserFactoryTest,
                     ).getOrFail() shouldBe nySøknadsbehandlingMedOpplysningsplikt.copy(
                         stønadsperiode = stønadsperiode,
                     )
@@ -550,11 +557,11 @@ internal class SakTest {
             ).let { (sak, vedtak) ->
                 vedtak shouldBe beOfType<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
 
-                stønadsperiode.periode.tilMånedsperioder().none {
+                stønadsperiode.periode.måneder().none {
                     sak.ytelseUtløperVedUtløpAv(it)
                 } shouldBe true
 
-                revurderingsperiode.tilMånedsperioder().none {
+                revurderingsperiode.måneder().none {
                     sak.ytelseUtløperVedUtløpAv(it)
                 } shouldBe true
             }

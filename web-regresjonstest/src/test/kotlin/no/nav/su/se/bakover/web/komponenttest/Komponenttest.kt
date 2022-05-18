@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.susebakover
@@ -29,9 +30,11 @@ class AppComponents private constructor(
 ) {
     companion object {
         fun instance(clock: Clock, dataSource: DataSource): AppComponents {
+            val satsFactory = satsFactoryTest(clock)
             val databaseRepos: DatabaseRepos = SharedRegressionTestData.databaseRepos(
                 dataSource = dataSource,
                 clock = clock,
+                satsFactory = satsFactory,
             )
             val clients: Clients = TestClientsBuilder(
                 clock = clock,
@@ -45,6 +48,7 @@ class AppComponents private constructor(
                 søknadMetrics = mock(),
                 clock = clock,
                 unleash = unleash,
+                satsFactory = satsFactory,
             )
             val accessCheckProxy = AccessCheckProxy(
                 personRepo = databaseRepos.person,
@@ -52,7 +56,7 @@ class AppComponents private constructor(
             )
             return AppComponents(
                 clock = clock,
-                databaseRepos = SharedRegressionTestData.databaseRepos(dataSource = dataSource, clock = clock),
+                databaseRepos = databaseRepos,
                 clients = clients,
                 unleash = unleash,
                 services = services,
@@ -78,12 +82,12 @@ internal fun withKomptestApplication(
 private fun Application.testSusebakover(appComponents: AppComponents) {
     return susebakover(
         clock = appComponents.clock,
+        applicationConfig = SharedRegressionTestData.applicationConfig,
+        unleash = appComponents.unleash,
         databaseRepos = appComponents.databaseRepos,
         clients = appComponents.clients,
         services = appComponents.services,
-        unleash = appComponents.unleash,
         accessCheckProxy = appComponents.accessCheckProxy,
-        applicationConfig = SharedRegressionTestData.applicationConfig,
     )
 }
 

@@ -21,7 +21,7 @@ sealed class FastOppholdINorgeVilkår : Vilkår() {
     abstract val grunnlag: List<FastOppholdINorgeGrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): FastOppholdINorgeVilkår
-    abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FastOppholdINorgeVilkår
+    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FastOppholdINorgeVilkår
     abstract override fun slåSammenLikePerioder(): FastOppholdINorgeVilkår
 
     object IkkeVurdert : FastOppholdINorgeVilkår() {
@@ -116,7 +116,7 @@ data class VurderingsperiodeFastOppholdINorge private constructor(
     val begrunnelse: String?,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeFastOppholdINorge> {
 
-    override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeFastOppholdINorge {
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeFastOppholdINorge {
         return create(
             id = id,
             opprettet = opprettet,

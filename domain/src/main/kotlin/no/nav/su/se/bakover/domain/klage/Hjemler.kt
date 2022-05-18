@@ -62,7 +62,7 @@ sealed interface Hjemler : List<Hjemmel> {
 }
 
 /**
- * Dato er den siste datoen for når loven ble endret eller tredde i kraft for SU ufør.
+ * Dato er den siste datoen for når loven ble endret eller trådte i kraft for SU ufør.
  * Første gyldige dato er 2021-01-01 for SU ufør.
  *
  * TODO jah: Flytt disse ut i et eget lov/paragraf konsept (utenfor klage). Bør kunne gjenbrukes for referanser til loven i søknadsbehandling og revurderinger.

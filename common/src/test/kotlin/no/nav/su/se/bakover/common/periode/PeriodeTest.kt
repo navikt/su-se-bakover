@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.common.periode
 
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.assertions.throwables.shouldThrowExactly
@@ -19,6 +20,7 @@ import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.september
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
@@ -36,7 +38,7 @@ internal class PeriodeTest {
     @Test
     fun `periodisert fra og med og til og med`() {
         val periode = år(2021)
-        val periodisert = periode.tilMånedsperioder()
+        val periodisert = periode.måneder()
         periode.fraOgMed shouldBe 1.januar(2021)
         periode.tilOgMed shouldBe 31.desember(2021)
         periodisert.first().fraOgMed shouldBe 1.januar(2021)
@@ -48,14 +50,14 @@ internal class PeriodeTest {
     @Test
     fun `periodiserer måneder`() {
         val periode = januar(2021)
-        val periodisert = periode.tilMånedsperioder()
+        val periodisert = periode.måneder()
         periodisert shouldBe listOf(januar(2021))
     }
 
     @Test
     fun `periodiserer flere måneder`() {
         val periode = Periode.create(1.januar(2021), 30.april(2021))
-        val periodisert = periode.tilMånedsperioder()
+        val periodisert = periode.måneder()
         periodisert shouldBe listOf(
             januar(2021),
             februar(2021),
@@ -767,5 +769,338 @@ internal class PeriodeTest {
             år(2021),
             år(2022)
         ).harOverlappende() shouldBe true
+    }
+
+    @Nested
+    inner class `liste av perioder til måneder()` {
+
+        @Test
+        fun `månedsperiode forblir månedsperioder`() {
+            listOf(
+                januar(2021),
+                februar(2021),
+                mars(2021),
+            ).måneder() shouldBe listOf(
+                januar(2021),
+                februar(2021),
+                mars(2021),
+            )
+        }
+
+        @Test
+        fun `sorterte perioder til sorterte månedsperioder`() {
+            nonEmptyListOf(
+                Periode.create(1.januar(2021), 28.februar(2021)),
+                Periode.create(1.mars(2021), 30.april(2021)),
+            ).måneder() shouldBe listOf(
+                januar(2021),
+                februar(2021),
+                mars(2021),
+                april(2021),
+            )
+        }
+
+        @Test
+        fun `duplikate perioder til ikke-duplikate-månedsperioder`() {
+            listOf(
+                Periode.create(1.januar(2021), 28.februar(2021)),
+                Periode.create(1.januar(2021), 28.februar(2021)),
+            ).måneder() shouldBe listOf(
+                januar(2021),
+                februar(2021),
+            )
+        }
+
+        @Test
+        fun `usorterte perioder til sorterte månedsperioder`() {
+            nonEmptyListOf(
+                Periode.create(1.mars(2021), 30.april(2021)),
+                Periode.create(1.januar(2021), 28.februar(2021)),
+            ).måneder() shouldBe listOf(
+                januar(2021),
+                februar(2021),
+                mars(2021),
+                april(2021),
+            )
+        }
+
+        @Test
+        fun `usorterte duplikate ikke-sammenhengde perioder til sorterte unike ikke-sammenhengende månedsperioder`() {
+            listOf(
+                Periode.create(1.april(2021), 31.mai(2021)),
+                Periode.create(1.januar(2021), 28.februar(2021)),
+                Periode.create(1.april(2021), 31.mai(2021)),
+                Periode.create(1.januar(2021), 28.februar(2021)),
+            ).måneder() shouldBe listOf(
+                januar(2021),
+                februar(2021),
+                april(2021),
+                mai(2021),
+            )
+        }
+    }
+
+    @Nested
+    inner class `erSortert()` {
+
+        @Test
+        fun `sorter liste en måned`() {
+            listOf(
+                januar(2021)
+            ).erSortert() shouldBe true
+        }
+
+        @Test
+        fun `sorter liste duplikater`() {
+            listOf(
+                Periode.create(1.januar(2021), 28.februar(2021)),
+                Periode.create(1.januar(2021), 28.februar(2021)),
+            ).erSortert() shouldBe true
+        }
+        @Test
+        fun `sorter liste usammenhengende`() {
+            listOf(
+                Periode.create(1.januar(2021), 28.februar(2021)),
+                Periode.create(1.april(2021), 31.mai(2021)),
+            ).erSortert() shouldBe true
+        }
+
+        @Test
+        fun `ikke-sorter liste usammenhengende`() {
+            listOf(
+                Periode.create(1.april(2021), 31.mai(2021)),
+                Periode.create(1.januar(2021), 28.februar(2021)),
+            ).erSortert() shouldBe false
+        }
+
+        @Test
+        fun `ikke-sortert liste sammenhengende`() {
+            listOf(
+                februar(2021),
+                januar(2021),
+            ).erSortert() shouldBe false
+        }
+
+        @Test
+        fun `ikke-sortert liste duplikater`() {
+            listOf(
+                februar(2021),
+                januar(2021),
+                februar(2021),
+            ).erSortert() shouldBe false
+        }
+    }
+
+    @Nested
+    inner class `harDuplikater()` {
+        @Test
+        fun `usortert med to like måneder er duplikat`() {
+            listOf(
+                februar(2021),
+                januar(2021),
+                februar(2021),
+            ).harDuplikater() shouldBe true
+        }
+
+        @Test
+        fun `to like måneder er duplikat`() {
+            listOf(
+                februar(2021),
+                februar(2021),
+            ).harDuplikater() shouldBe true
+        }
+
+        @Test
+        fun `enkel måned har ikke duplikater`() {
+            listOf(
+                februar(2021),
+            ).harDuplikater() shouldBe false
+        }
+
+        @Test
+        fun `enkel periode har ikke duplikater`() {
+            listOf(
+                år(2021),
+            ).harDuplikater() shouldBe false
+        }
+
+        @Test
+        fun `flere tilstøtende perioder har ikke duplikater`() {
+            listOf(
+                år(2021),
+                år(2023),
+            ).harDuplikater() shouldBe false
+        }
+
+        @Test
+        fun `flere ikke-sammenhengende perioder har ikke duplikater`() {
+            listOf(
+                år(2021),
+                år(2023),
+            ).harDuplikater() shouldBe false
+        }
+
+        @Test
+        fun `to like perioder har duplikater`() {
+            listOf(
+                år(2021),
+                år(2021),
+            ).harDuplikater() shouldBe true
+        }
+
+        @Test
+        fun `perioder med overlapp har dupliakter`() {
+            listOf(
+                Periode.create(1.januar(2021), 31.mars(2021)),
+                Periode.create(1.mars(2021), 31.juli(2021)),
+            ).harDuplikater() shouldBe true
+        }
+    }
+
+    @Nested
+    inner class `erSammenhengende()` {
+        @Test
+        fun `enkel måned er sammenhengende`() {
+            listOf(
+                januar(2021),
+            ).erSammenhengende() shouldBe true
+        }
+
+        @Test
+        fun `enkel duplikat måned er sammenhengende`() {
+            listOf(
+                januar(2021),
+                januar(2021),
+            ).erSammenhengende() shouldBe true
+        }
+
+        @Test
+        fun `enkel periode er sammenhengende`() {
+            listOf(
+                år(2021),
+            ).erSammenhengende() shouldBe true
+        }
+
+        @Test
+        fun `enkel duplikat periode er sammenhengende`() {
+            listOf(
+                år(2021),
+                år(2021),
+            ).erSammenhengende() shouldBe true
+        }
+
+        @Test
+        fun `tilstøtende måneder er sammenhengende`() {
+            listOf(
+                januar(2021),
+                februar(2021),
+            ).erSammenhengende() shouldBe true
+        }
+
+        @Test
+        fun `tilstøtende år er sammenhengende`() {
+            listOf(
+                år(2021),
+                år(2022),
+            ).erSammenhengende() shouldBe true
+        }
+
+        @Test
+        fun `ikke-tilstøtende måneder er ikke sammenhengende`() {
+            listOf(
+                januar(2021),
+                mars(2021),
+            ).erSammenhengende() shouldBe false
+        }
+
+        @Test
+        fun `ikke-tilstøtende perioder er ikke sammenhengende`() {
+            listOf(
+                Periode.create(1.januar(2021), 28.februar(2021)),
+                Periode.create(1.april(2021), 31.juli(2021)),
+            ).erSammenhengende() shouldBe false
+        }
+    }
+
+    @Nested
+    inner class `erSammenhengendeSortertOgUtenDuplikater()` {
+        @Test
+        fun `enkel måned gir true`() {
+            listOf(
+                januar(2021),
+            ).erSammenhengendeSortertOgUtenDuplikater() shouldBe true
+        }
+
+        @Test
+        fun `enkel periode gir true`() {
+            listOf(
+                Periode.create(1.april(2021), 31.juli(2021)),
+            ).erSammenhengendeSortertOgUtenDuplikater() shouldBe true
+        }
+
+        @Test
+        fun `tilstøtende måneder gir true`() {
+            listOf(
+                januar(2021),
+                februar(2021),
+            ).erSammenhengendeSortertOgUtenDuplikater() shouldBe true
+        }
+
+        @Test
+        fun `tilstøtende perioder gir true`() {
+            listOf(
+                år(2021),
+                år(2022),
+            ).erSammenhengendeSortertOgUtenDuplikater() shouldBe true
+        }
+
+        @Test
+        fun `usortert måneder gir false`() {
+            listOf(
+                februar(2021),
+                januar(2021),
+            ).erSammenhengendeSortertOgUtenDuplikater() shouldBe false
+        }
+
+        @Test
+        fun `usortert perioder gir false`() {
+            listOf(
+                år(2022),
+                år(2021),
+            ).erSammenhengendeSortertOgUtenDuplikater() shouldBe false
+        }
+
+        @Test
+        fun `ikke-sammenhengende måneder gir false`() {
+            listOf(
+                januar(2021),
+                mars(2021),
+            ).associateWith { Any() }.erSammenhengendeSortertOgUtenDuplikater() shouldBe false
+        }
+
+        @Test
+        fun `ikke-sammenhengende perioder gir false`() {
+            listOf(
+                år(2021),
+                år(2023),
+            ).erSammenhengendeSortertOgUtenDuplikater() shouldBe false
+        }
+
+        @Test
+        fun `duplikat måned gir false`() {
+            listOf(
+                januar(2021),
+                januar(2021),
+            ).erSammenhengendeSortertOgUtenDuplikater() shouldBe false
+        }
+
+        @Test
+        fun `duplikat periode gir false`() {
+            listOf(
+                år(2021),
+                år(2022),
+                år(2022),
+            ).erSammenhengendeSortertOgUtenDuplikater() shouldBe false
+        }
     }
 }

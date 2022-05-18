@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.AuditLogEvent
@@ -42,6 +43,7 @@ internal const val sakPath = "/saker"
 internal fun Route.sakRoutes(
     sakService: SakService,
     clock: Clock,
+    satsFactory: SatsFactory,
 ) {
     post("$sakPath/søk") {
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
@@ -74,7 +76,7 @@ internal fun Route.sakRoutes(
                                         call.svar(
                                             Resultat.json(
                                                 OK,
-                                                serialize(it.toJson(clock)),
+                                                serialize(it.toJson(clock, satsFactory)),
                                             ),
                                         )
                                     }
@@ -102,7 +104,7 @@ internal fun Route.sakRoutes(
                                         },
                                         {
                                             call.audit(it.fnr, AuditLogEvent.Action.ACCESS, null)
-                                            Resultat.json(OK, serialize((it.toJson(clock))))
+                                            Resultat.json(OK, serialize((it.toJson(clock, satsFactory))))
                                         },
                                     ),
                                 )
@@ -161,7 +163,7 @@ internal fun Route.sakRoutes(
                         { NotFound.errorJson("Fant ikke sak med id: $sakId", "fant_ikke_sak") },
                         {
                             call.audit(it.fnr, AuditLogEvent.Action.ACCESS, null)
-                            Resultat.json(OK, serialize((it.toJson(clock))))
+                            Resultat.json(OK, serialize((it.toJson(clock, satsFactory))))
                         },
                     ),
                 )
@@ -193,7 +195,7 @@ internal fun Route.sakRoutes(
                             {
                                 Resultat.json(
                                     OK,
-                                    serialize((Response(it?.grunnlagsdataOgVilkårsvurderinger?.toJson()))),
+                                    serialize((Response(it?.grunnlagsdataOgVilkårsvurderinger?.toJson(satsFactory)))),
                                 )
                             },
                         ),

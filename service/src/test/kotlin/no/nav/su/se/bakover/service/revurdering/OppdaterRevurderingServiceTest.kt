@@ -53,6 +53,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
@@ -66,6 +67,7 @@ import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -105,7 +107,7 @@ internal class OppdaterRevurderingServiceTest {
         ),
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
             uføre = vilkårsvurderingUføre,
-            formue = Vilkår.Formue.IkkeVurdert,
+            formue = formuevilkårIkkeVurdert(),
             utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
         ),
@@ -292,7 +294,7 @@ internal class OppdaterRevurderingServiceTest {
                             ),
                         ),
                     ),
-                    vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+                    vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
                     informasjonSomRevurderes = it.informasjonSomRevurderes,
                     avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
                     tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
@@ -442,7 +444,7 @@ internal class OppdaterRevurderingServiceTest {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
                 // simuler at det er gjort endringer før oppdatering
                 grunnlagsdata = Grunnlagsdata.create(),
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             )
         }
 

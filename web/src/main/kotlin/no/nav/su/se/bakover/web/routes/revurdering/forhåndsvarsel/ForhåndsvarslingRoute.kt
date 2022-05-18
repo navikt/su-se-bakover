@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
@@ -36,6 +37,7 @@ import no.nav.su.se.bakover.web.withRevurderingId
 
 internal fun Route.forhåndsvarslingRoute(
     revurderingService: RevurderingService,
+    satsFactory: SatsFactory,
 ) {
 
     data class ForhåndsvarsleBody(val forhåndsvarselhandling: Forhåndsvarselhandling, val fritekst: String)
@@ -50,7 +52,7 @@ internal fun Route.forhåndsvarslingRoute(
                         fritekst = body.fritekst,
                     ).map {
                         call.sikkerlogg("Forhåndsvarslet bruker med revurderingId $revurderingId")
-                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
                     }.mapLeft {
                         call.svar(it.tilResultat())
                     }
@@ -157,7 +159,7 @@ internal fun Route.forhåndsvarslingRoute(
                                 call.svar(
                                     Resultat.json(
                                         HttpStatusCode.OK,
-                                        serialize(it.toJson())
+                                        serialize(it.toJson(satsFactory))
                                     )
                                 )
                             },

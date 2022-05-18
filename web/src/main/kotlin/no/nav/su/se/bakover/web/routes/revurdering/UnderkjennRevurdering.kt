@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.AuditLogEvent
@@ -52,7 +53,8 @@ data class UnderkjennBody(
 }
 
 internal fun Route.underkjennRevurdering(
-    revurderingService: RevurderingService
+    revurderingService: RevurderingService,
+    satsFactory: SatsFactory,
 ) {
     patch("$revurderingPath/{revurderingId}/underkjenn") {
         authorize(Brukerrolle.Attestant) {
@@ -91,7 +93,7 @@ internal fun Route.underkjennRevurdering(
                                         call.svar(
                                             Resultat.json(
                                                 HttpStatusCode.OK,
-                                                serialize(it.toJson())
+                                                serialize(it.toJson(satsFactory))
                                             )
                                         )
                                     }

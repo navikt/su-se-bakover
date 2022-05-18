@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjonRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjonerRequest
@@ -71,6 +72,7 @@ private data class JsonBody(
 
 internal fun Route.LeggTilBosituasjonRevurderingRoute(
     revurderingService: RevurderingService,
+    satsFactory: SatsFactory,
 ) {
     post("$revurderingPath/{revurderingId}/bosituasjongrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -87,7 +89,7 @@ internal fun Route.LeggTilBosituasjonRevurderingRoute(
                                             call.sikkerlogg("Lagret bosituasjon for revudering $revurderingId på $sakId")
                                             Resultat.json(
                                                 HttpStatusCode.OK,
-                                                serialize(respons.toJson()),
+                                                serialize(respons.toJson(satsFactory)),
                                             )
                                         }
                                 }.getOrHandle { it },

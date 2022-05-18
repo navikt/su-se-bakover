@@ -62,7 +62,11 @@ class StønadsstatistikkMapper(
                 is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> emptyList()
 
                 is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> emptyList()
-                is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> mapBeregning(vedtak, sak, clock)
+                is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> mapBeregning(
+                    vedtak = vedtak,
+                    sak = sak,
+                    clock = clock,
+                )
                 is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> mapBeregning(vedtak, vedtak.beregning)
             },
             versjon = nå.toEpochMilli(),
@@ -93,7 +97,7 @@ private fun mapBeregning(
     sak: Sak,
     clock: Clock,
 ): List<Statistikk.Stønad.Månedsbeløp> =
-    vedtak.periode.tilMånedsperioder().map {
+    vedtak.periode.måneder().map {
         sak.hentGjeldendeMånedsberegningForMåned(it, clock)!!
     }.map {
         tilMånedsbeløp(it, vedtak)

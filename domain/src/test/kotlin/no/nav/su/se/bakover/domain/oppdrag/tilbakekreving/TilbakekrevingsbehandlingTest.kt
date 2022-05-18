@@ -63,8 +63,8 @@ internal class TilbakekrevingsbehandlingTest {
                         ),
                         Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse(
                             kodeKlasse = KlasseKode.SUUFORE,
-                            beløpTidligereUtbetaling = BigDecimal("21989"),
-                            beløpNyUtbetaling = BigDecimal("9489"),
+                            beløpTidligereUtbetaling = BigDecimal("20946"),
+                            beløpNyUtbetaling = BigDecimal("8446"),
                             beløpSomSkalTilbakekreves = BigDecimal("12500"),
                             beløpSomIkkeTilbakekreves = BigDecimal.ZERO,
                             beløpSkatt = BigDecimal("4395"),
@@ -194,8 +194,8 @@ internal class TilbakekrevingsbehandlingTest {
                         ),
                         Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse(
                             kodeKlasse = KlasseKode.SUUFORE,
-                            beløpTidligereUtbetaling = BigDecimal("21989"),
-                            beløpNyUtbetaling = BigDecimal("9489"),
+                            beløpTidligereUtbetaling = BigDecimal("20946"),
+                            beløpNyUtbetaling = BigDecimal("8446"),
                             beløpSomSkalTilbakekreves = BigDecimal.ZERO,
                             beløpSomIkkeTilbakekreves = BigDecimal("12500"),
                             beløpSkatt = BigDecimal.ZERO,

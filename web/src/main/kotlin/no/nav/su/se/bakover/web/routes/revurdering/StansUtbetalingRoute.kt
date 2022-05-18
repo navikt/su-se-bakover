@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -35,6 +36,7 @@ import java.time.LocalDate
 
 internal fun Route.stansUtbetaling(
     revurderingService: RevurderingService,
+    satsFactory: SatsFactory,
 ) {
     post("$revurderingPath/stans") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -62,7 +64,7 @@ internal fun Route.stansUtbetaling(
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.Created,
-                                    serialize(it.toJson())
+                                    serialize(it.toJson(satsFactory))
                                 )
                             )
                         },
@@ -100,7 +102,7 @@ internal fun Route.stansUtbetaling(
                                 call.svar(
                                     Resultat.json(
                                         HttpStatusCode.OK,
-                                        serialize(it.toJson())
+                                        serialize(it.toJson(satsFactory))
                                     )
                                 )
                             },
@@ -126,7 +128,7 @@ internal fun Route.stansUtbetaling(
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.OK,
-                                    serialize(it.toJson())
+                                    serialize(it.toJson(satsFactory))
                                 )
                             )
                         },

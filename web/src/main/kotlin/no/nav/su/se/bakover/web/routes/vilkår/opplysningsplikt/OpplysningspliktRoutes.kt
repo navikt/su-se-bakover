@@ -9,6 +9,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilOpplysningsplikt
@@ -27,6 +28,7 @@ import java.util.UUID
 internal fun Route.opplysningspliktRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
     revurderingService: RevurderingService,
+    satsFactory: SatsFactory,
 ) {
     post("/vilkar/opplysningsplikt") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -45,7 +47,7 @@ internal fun Route.opplysningspliktRoutes(
                                     {
                                         Resultat.json(
                                             HttpStatusCode.Created,
-                                            serialize(it.toJson()),
+                                            serialize(it.toJson(satsFactory)),
                                         )
                                     },
                                 )
@@ -59,7 +61,7 @@ internal fun Route.opplysningspliktRoutes(
                                     {
                                         Resultat.json(
                                             HttpStatusCode.Created,
-                                            serialize(it.toJson()),
+                                            serialize(it.toJson(satsFactory)),
                                         )
                                     },
                                 )

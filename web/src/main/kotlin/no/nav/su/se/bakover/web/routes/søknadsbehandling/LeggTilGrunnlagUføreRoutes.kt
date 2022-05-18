@@ -8,6 +8,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.web.withBody
 
 internal fun Route.leggTilUføregrunnlagRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
+    satsFactory: SatsFactory,
 ) {
     post("$behandlingPath/{behandlingId}/grunnlag/uføre") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -35,7 +37,7 @@ internal fun Route.leggTilUføregrunnlagRoutes(
                                 }.map {
                                     Resultat.json(
                                         HttpStatusCode.Created,
-                                        serialize(it.toJson())
+                                        serialize(it.toJson(satsFactory))
                                     )
                                 }
                             }.getOrHandle {

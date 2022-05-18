@@ -1,109 +1,98 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
-import no.nav.su.se.bakover.common.periode.Månedsperiode
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.Garantipensjonsnivå
-import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.satser.Garantipensjonsnivå
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import java.lang.Double.max
 
-enum class FradragStrategyName {
-    Enslig,
-    EpsOver67År,
-    EpsUnder67ÅrOgUførFlyktning,
-    EpsUnder67År
-}
+sealed class FradragStrategy {
 
-sealed class FradragStrategy(private val name: FradragStrategyName) {
-    fun getName() = name
-
-    fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Månedsperiode, List<FradragForMåned>> {
+    fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Måned, List<FradragForMåned>> {
         val periodiserteFradrag = fradrag
             .flatMap { FradragFactory.periodiser(it) }
             .groupBy { it.periode }
-        val beregningsperiodeMedFradrag: Map<Månedsperiode, List<FradragForMåned>> =
-            beregningsperiode.tilMånedsperioder().associateWith { (periodiserteFradrag[it] ?: emptyList()) }
+        val beregningsperiodeMedFradrag: Map<Måned, List<FradragForMåned>> =
+            beregningsperiode.måneder().associateWith { (periodiserteFradrag[it] ?: emptyList()) }
 
         validate(beregningsperiodeMedFradrag)
         return beregnFradrag(beregningsperiodeMedFradrag)
     }
 
-    protected open fun validate(fradrag: Map<Månedsperiode, List<FradragForMåned>>) {
+    protected open fun validate(fradrag: Map<Måned, List<FradragForMåned>>) {
         require(fradrag.values.all { it.`har nøyaktig en forventet inntekt for bruker`() }) { "Hver måned i beregningsperioden må inneholde nøyaktig ett fradrag for brukers forventede inntekt" }
     }
 
-    protected abstract fun beregnFradrag(fradrag: Map<Månedsperiode, List<FradragForMåned>>): Map<Månedsperiode, List<FradragForMåned>>
+    protected abstract fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>>
 
-    abstract fun getEpsFribeløp(periode: Periode): Double
+    abstract fun getEpsFribeløp(måned: Måned): Double
 
-    object Enslig : FradragStrategy(FradragStrategyName.Enslig) {
-        override fun beregnFradrag(fradrag: Map<Månedsperiode, List<FradragForMåned>>): Map<Månedsperiode, List<FradragForMåned>> {
+    object Enslig : FradragStrategy() {
+        override fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>> {
             return fradrag.mapValues { it.value.filter { fradrag -> fradrag.tilhører == FradragTilhører.BRUKER } }
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
         }
 
-        override fun getEpsFribeløp(periode: Periode): Double = 0.0
+        override fun getEpsFribeløp(måned: Måned): Double = 0.0
     }
 
-    object EpsOver67År : FradragStrategy(FradragStrategyName.EpsOver67År) {
-        override fun beregnFradrag(fradrag: Map<Månedsperiode, List<FradragForMåned>>): Map<Månedsperiode, List<FradragForMåned>> {
+    object EpsOver67År : FradragStrategy() {
+        override fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>> {
             return fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
                 .`fjern EPS fradrag opp til garantipensjonsnivå`()
         }
 
-        override fun getEpsFribeløp(periode: Periode): Double = periodisertSumGarantipensjonsnivå(periode)
+        override fun getEpsFribeløp(måned: Måned): Double = periodisertSumGarantipensjonsnivå(måned)
 
-        private fun periodisertSumGarantipensjonsnivå(periode: Periode) =
-            Garantipensjonsnivå.Ordinær.periodiser(periode).values.sumOf { it }
+        private fun periodisertSumGarantipensjonsnivå(måned: Måned) = Garantipensjonsnivå.Ordinær.forMåned(måned)
 
-        private fun Map<Månedsperiode, List<FradragForMåned>>.`fjern EPS fradrag opp til garantipensjonsnivå`(): Map<Månedsperiode, List<FradragForMåned>> {
-            return mapValues {
+        private fun Map<Måned, List<FradragForMåned>>.`fjern EPS fradrag opp til garantipensjonsnivå`(): Map<Måned, List<FradragForMåned>> {
+            return mapValues { (måned, fradrag) ->
                 `fjern EPS fradrag opp til beløpsgrense`(
-                    måned = it.key,
-                    beløpsgrense = periodisertSumGarantipensjonsnivå(it.key),
-                    fradrag = it.value,
+                    måned = måned,
+                    beløpsgrense = periodisertSumGarantipensjonsnivå(måned),
+                    fradrag = fradrag,
                 )
             }
         }
     }
 
-    object EpsUnder67ÅrOgUførFlyktning : FradragStrategy(FradragStrategyName.EpsUnder67ÅrOgUførFlyktning) {
-        override fun beregnFradrag(fradrag: Map<Månedsperiode, List<FradragForMåned>>): Map<Månedsperiode, List<FradragForMåned>> {
+    data class EpsUnder67ÅrOgUførFlyktning(val satsfactory: SatsFactory) :
+        FradragStrategy() {
+        override fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>> {
             return fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
                 .`fjern EPS fradrag opp til satsbeløp`()
         }
 
-        override fun getEpsFribeløp(periode: Periode): Double = periodisertSumSatsbeløp(periode)
+        override fun getEpsFribeløp(måned: Måned): Double = satsfactory.ordinær(måned).satsForMånedAsDouble
 
-        private fun periodisertSumSatsbeløp(periode: Periode) =
-            Sats.ORDINÆR.periodiser(periode).values.sumOf { it }
-
-        private fun Map<Månedsperiode, List<FradragForMåned>>.`fjern EPS fradrag opp til satsbeløp`(): Map<Månedsperiode, List<FradragForMåned>> {
-            return mapValues {
+        private fun Map<Måned, List<FradragForMåned>>.`fjern EPS fradrag opp til satsbeløp`(): Map<Måned, List<FradragForMåned>> {
+            return mapValues { (måned, fradrag) ->
                 `fjern EPS fradrag opp til beløpsgrense`(
-                    it.key,
-                    periodisertSumSatsbeløp(it.key),
-                    it.value,
+                    måned = måned,
+                    beløpsgrense = getEpsFribeløp(måned),
+                    fradrag = fradrag,
                 )
             }
         }
     }
 
-    object EpsUnder67År : FradragStrategy(FradragStrategyName.EpsUnder67År) {
-        override fun beregnFradrag(fradrag: Map<Månedsperiode, List<FradragForMåned>>): Map<Månedsperiode, List<FradragForMåned>> =
+    object EpsUnder67År : FradragStrategy() {
+        override fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>> =
             fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
                 .`slå sammen eps sine fradrag til en og samme type`()
 
-        override fun getEpsFribeløp(periode: Periode): Double = 0.0
+        override fun getEpsFribeløp(måned: Måned): Double = 0.0
 
-        private fun Map<Månedsperiode, List<FradragForMåned>>.`slå sammen eps sine fradrag til en og samme type`(): Map<Månedsperiode, List<FradragForMåned>> {
+        private fun Map<Måned, List<FradragForMåned>>.`slå sammen eps sine fradrag til en og samme type`(): Map<Måned, List<FradragForMåned>> {
             return mapValues { `slå sammen eps sine fradrag til en og samme type`(it.key, it.value) }
         }
 
         private fun `slå sammen eps sine fradrag til en og samme type`(
-            periode: Månedsperiode,
+            måned: Måned,
             fradrag: List<FradragForMåned>,
         ): List<FradragForMåned> {
             val (epsFradrag, søkersFradrag) = fradrag.partition { it.tilhører == FradragTilhører.EPS }
@@ -112,7 +101,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.BeregnetFradragEPS,
                     månedsbeløp = epsFradrag.sumOf { it.månedsbeløp },
-                    periode = periode,
+                    periode = måned,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),
@@ -121,7 +110,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         }
     }
 
-    protected fun Map<Månedsperiode, List<FradragForMåned>>.`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`(): Map<Månedsperiode, List<FradragForMåned>> {
+    protected fun Map<Måned, List<FradragForMåned>>.`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`(): Map<Måned, List<FradragForMåned>> {
         return mapValues { `filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`(it.value) }
     }
 
@@ -140,7 +129,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
     }
 
     protected fun `fjern EPS fradrag opp til beløpsgrense`(
-        måned: Månedsperiode,
+        måned: Måned,
         beløpsgrense: Double,
         fradrag: List<FradragForMåned>,
     ): List<FradragForMåned> {
@@ -175,14 +164,4 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
 
     private fun List<FradragForMåned>.`har nøyaktig en forventet inntekt for bruker`() =
         singleOrNull { it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.ForventetInntekt } != null
-
-    companion object {
-        fun fromName(name: FradragStrategyName) =
-            when (name) {
-                FradragStrategyName.Enslig -> Enslig
-                FradragStrategyName.EpsOver67År -> EpsOver67År
-                FradragStrategyName.EpsUnder67ÅrOgUførFlyktning -> EpsUnder67ÅrOgUførFlyktning
-                FradragStrategyName.EpsUnder67År -> EpsUnder67År
-            }
-    }
 }

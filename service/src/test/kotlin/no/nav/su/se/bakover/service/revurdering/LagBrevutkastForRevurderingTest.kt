@@ -18,8 +18,6 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
@@ -28,6 +26,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -38,6 +37,7 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.utbetalingslinje
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -175,7 +175,7 @@ internal class LagBrevutkastForRevurderingTest {
             revurderingsårsak = RevurderingTestUtils.revurderingsårsak,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
+            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
         )
@@ -260,7 +260,10 @@ internal class LagBrevutkastForRevurderingTest {
                         any(),
                         any(),
                     )
-                } doReturn sak.kopierGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail().right()
+                } doReturn sak.kopierGjeldendeVedtaksdata(
+                    fraOgMed = revurdering.periode.fraOgMed,
+                    clock = fixedClock,
+                ).getOrFail().right()
             },
         ).beregnOgSimuler(
             revurderingId = revurderingId,
@@ -294,7 +297,7 @@ internal class LagBrevutkastForRevurderingTest {
     fun `uavklarte vilkår kaster exception`() {
         val (sak, revurdering) = opprettetRevurdering(
             vilkårOverrides = listOf(
-                Vilkår.Formue.IkkeVurdert
+                formuevilkårIkkeVurdert()
             )
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -315,7 +318,10 @@ internal class LagBrevutkastForRevurderingTest {
                             any(),
                             any(),
                         )
-                    } doReturn sak.kopierGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail()
+                    } doReturn sak.kopierGjeldendeVedtaksdata(
+                        fraOgMed = revurdering.periode.fraOgMed,
+                        clock = fixedClock,
+                    ).getOrFail()
                         .right()
                 },
             ).beregnOgSimuler(

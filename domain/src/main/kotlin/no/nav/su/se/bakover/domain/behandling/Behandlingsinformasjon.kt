@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
@@ -346,6 +347,7 @@ data class Behandlingsinformasjon(
             stønadsperiode: Stønadsperiode,
             bosituasjon: List<Grunnlag.Bosituasjon>,
             clock: Clock,
+            formuegrenserFactory: FormuegrenserFactory,
         ): Vilkår.Formue {
             return Vilkår.Formue.Vurdert.tryCreateFromGrunnlag(
                 grunnlag = nonEmptyListOf(
@@ -388,6 +390,7 @@ data class Behandlingsinformasjon(
                         throw IllegalArgumentException("Kunne ikke instansiere ${Formuegrunnlag::class.simpleName}. Melding: $it")
                     },
                 ),
+                formuegrenserFactory = formuegrenserFactory,
             ).getOrHandle {
                 throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Formue.Vurdert::class.simpleName}. Melding: $it")
             }

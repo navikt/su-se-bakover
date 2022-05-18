@@ -49,6 +49,7 @@ import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simulertFeilutbetaling
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.stansetSøknadsbehandlingMedÅpenRegulering
@@ -490,10 +491,11 @@ internal class ReguleringServiceImplTest {
                 on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn testData.second.right()
             },
             sessionFactory = TestSessionFactory(),
+            clock = fixedClock,
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
-            clock = fixedClock,
+            satsFactory = satsFactoryTest,
         )
     }
 
@@ -511,8 +513,8 @@ internal class ReguleringServiceImplTest {
             ),
 
             sak.kopierGjeldendeVedtaksdata(
-                reguleringsdato,
-                fixedClock,
+                fraOgMed = reguleringsdato,
+                clock = fixedClock,
             ).getOrFail(),
             sak.utbetalingstidslinje().gjeldendeForDato(reguleringsdato),
         )

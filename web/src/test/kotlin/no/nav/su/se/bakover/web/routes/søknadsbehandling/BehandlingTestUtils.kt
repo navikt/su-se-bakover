@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.søknadsinnholdAlder
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.bosituasjon
@@ -127,6 +128,7 @@ object BehandlingTestUtils {
                 vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
             ),
             utenlandsopphold = utenlandsopphold,
+            formue = formuevilkårIkkeVurdert(),
             opplysningsplikt = tilstrekkeligDokumentert(
                 periode = stønadsperiode.periode
             )

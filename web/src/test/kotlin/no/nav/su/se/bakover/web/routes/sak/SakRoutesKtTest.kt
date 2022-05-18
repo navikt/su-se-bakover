@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
@@ -48,6 +49,7 @@ internal class SakRoutesKtTest {
         embeddedDatasource = datasource,
         dbMetrics = dbMetricsStub,
         clock = fixedClock,
+        satsFactory = satsFactoryTest,
     )
     private fun services(reps: DatabaseRepos) = ServiceBuilder.build(
         databaseRepos = reps,
@@ -56,6 +58,7 @@ internal class SakRoutesKtTest {
         søknadMetrics = mock(),
         clock = fixedClock,
         unleash = FakeUnleash().apply { enableAll() },
+        satsFactory = satsFactoryTest,
     )
 
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()

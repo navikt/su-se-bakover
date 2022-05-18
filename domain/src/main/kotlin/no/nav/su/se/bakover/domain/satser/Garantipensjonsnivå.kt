@@ -1,11 +1,16 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover.domain.satser
 
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.Måned
 import java.time.LocalDate
 import java.time.Month
 
 /**
- * https://www.nav.no/no/nav-og-samfunn/kontakt-nav/oversikt-over-satser/garantipensjon_kap
+ * Fra [lov om supplerende stønad](https://lovdata.no/dokument/NL/lov/2005-04-29-21):
+ * - Med garantipensjonsnivå meiner ein i lova her satsene etter [folketrygdlova § 20-9](https://lovdata.no/dokument/NL/lov/1997-02-28-19/KAPITTEL_7-2#%C2%A720-9).
+ * - Garantipensjonen fastsettes med en ordinær og en høy sats som gjelder ved 67 år for ugradert pensjon med full trygdetid.
+ * - Satser: https://www.nav.no/no/nav-og-samfunn/kontakt-nav/oversikt-over-satser/garantipensjon_kap
+ *
+ * TODO jah: Gjør denne dynamisk i senere PR
  */
 enum class Garantipensjonsnivå {
     Ordinær;
@@ -20,13 +25,7 @@ enum class Garantipensjonsnivå {
         .sortedByDescending { it.key }
         .first { dato.isAfter(it.key) || dato.isEqual(it.key) }.value.get(this)
 
-    fun periodiser(periode: Periode): Map<Periode, Double> {
-        return periode
-            .tilMånedsperioder()
-            .associateWith { garantipensjonsnivåSomMånedsbeløp(it.tilOgMed) }
-    }
-
-    private fun garantipensjonsnivåSomMånedsbeløp(dato: LocalDate) = this.forDato(dato) / 12.0
+    fun forMåned(måned: Måned) = this.forDato(måned.fraOgMed) / 12.0
 
     private inner class Pensjonsnivåverdier(val ordinær: Int) {
         fun get(nivå: Garantipensjonsnivå) =

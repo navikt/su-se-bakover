@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import io.ktor.server.routing.Route
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.forhåndsvarslingRoute
@@ -13,40 +14,41 @@ internal fun Route.revurderingRoutes(
     revurderingService: RevurderingService,
     vedtakService: VedtakService,
     clock: Clock,
+    satsFactory: SatsFactory,
 ) {
-    opprettRevurderingRoute(revurderingService)
+    opprettRevurderingRoute(revurderingService, satsFactory)
 
-    oppdaterRevurderingRoute(revurderingService)
+    oppdaterRevurderingRoute(revurderingService, satsFactory)
 
-    beregnOgSimulerRevurdering(revurderingService)
+    beregnOgSimulerRevurdering(revurderingService, satsFactory)
 
-    oppdaterTilbakekrevingsbehandlingRoute(revurderingService)
+    oppdaterTilbakekrevingsbehandlingRoute(revurderingService, satsFactory)
 
-    forhåndsvarslingRoute(revurderingService)
+    forhåndsvarslingRoute(revurderingService, satsFactory)
 
-    sendRevurderingTilAttestering(revurderingService)
+    sendRevurderingTilAttestering(revurderingService, satsFactory)
 
-    underkjennRevurdering(revurderingService)
+    underkjennRevurdering(revurderingService, satsFactory)
 
-    iverksettRevurderingRoute(revurderingService)
+    iverksettRevurderingRoute(revurderingService, satsFactory)
 
     brevutkastForRevurdering(revurderingService)
 
-    leggTilGrunnlagRevurderingRoutes(revurderingService)
+    leggTilGrunnlagRevurderingRoutes(revurderingService, satsFactory)
 
-    leggTilUtlandsoppholdRoute(revurderingService)
+    leggTilUtlandsoppholdRoute(revurderingService, satsFactory)
 
-    leggTilFradragRevurdering(revurderingService, clock)
+    leggTilFradragRevurdering(revurderingService, clock, satsFactory)
 
-    LeggTilBosituasjonRevurderingRoute(revurderingService)
+    LeggTilBosituasjonRevurderingRoute(revurderingService, satsFactory)
 
-    leggTilFormueRevurderingRoute(revurderingService)
+    leggTilFormueRevurderingRoute(revurderingService, satsFactory)
 
-    hentGrunnlagRevurderingRoutes(revurderingService, vedtakService)
+    hentGrunnlagRevurderingRoutes(revurderingService, vedtakService, satsFactory)
 
-    stansUtbetaling(revurderingService)
+    stansUtbetaling(revurderingService, satsFactory)
 
-    gjenopptaUtbetaling(revurderingService)
+    gjenopptaUtbetaling(revurderingService, satsFactory)
 
-    avsluttRevurderingRoute(revurderingService)
+    avsluttRevurderingRoute(revurderingService, satsFactory)
 }

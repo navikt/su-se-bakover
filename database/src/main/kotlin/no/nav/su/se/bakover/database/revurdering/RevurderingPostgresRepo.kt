@@ -60,6 +60,7 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
@@ -137,6 +138,7 @@ internal class RevurderingPostgresRepo(
     private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
     private val tilbakekrevingRepo: TilbakekrevingPostgresRepo,
     reguleringPostgresRepo: ReguleringPostgresRepo,
+    private val satsFactory: SatsFactory,
 ) : RevurderingRepo {
     private val vedtakRepo = VedtakPostgresRepo(
         sessionFactory = sessionFactory,
@@ -145,6 +147,7 @@ internal class RevurderingPostgresRepo(
         revurderingRepo = this,
         klageRepo = klageRepo,
         reguleringRepo = reguleringPostgresRepo,
+        satsFactory = satsFactory,
     )
 
     private val stansAvYtelseRepo = StansAvYtelsePostgresRepo(
@@ -236,7 +239,7 @@ internal class RevurderingPostgresRepo(
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
         val opprettet = tidspunkt("opprettet")
         val tilRevurdering = vedtakRepo.hent(uuid("vedtakSomRevurderesId"), session)!! as VedtakSomKanRevurderes
-        val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning()
+        val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(satsFactory)
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val saksbehandler = string("saksbehandler")
         val oppgaveId = stringOrNull("oppgaveid")
