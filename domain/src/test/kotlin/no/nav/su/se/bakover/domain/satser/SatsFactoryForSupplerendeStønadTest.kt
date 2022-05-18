@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.satser
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.april
@@ -10,14 +11,16 @@ import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.scaleTo4
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.satsFactoryTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.time.Clock
 import java.time.LocalDate
 import java.time.Month
 
-internal class FullSupplerendeStønadFactoryTest {
+internal class SatsFactoryForSupplerendeStønadTest {
 
     @Nested
     inner class UførFlyktning {
@@ -25,20 +28,20 @@ internal class FullSupplerendeStønadFactoryTest {
         @Test
         fun `ordinær - desember 2014 er ikke tilgjengelig`() {
             shouldThrow<IllegalStateException> {
-                satsFactoryTest.ordinær(desember(2014))
+                satsFactoryTest(clock = Clock.systemUTC()).ordinær(desember(2014))
             }.message shouldBe "Kan ikke avgjøre full supplerende stønad for måned: Måned(årOgMåned=2014-12). Vi har bare data for perioden: Periode(fraOgMed=2015-01-01, tilOgMed=2029-12-31)"
         }
 
         @Test
         fun `høy - desember 2014 er ikke tilgjengelig`() {
             shouldThrow<IllegalStateException> {
-                satsFactoryTest.høy(desember(2014))
+                satsFactoryTest(clock = Clock.systemUTC()).høy(desember(2014))
             }.message shouldBe "Kan ikke avgjøre full supplerende stønad for måned: Måned(årOgMåned=2014-12). Vi har bare data for perioden: Periode(fraOgMed=2015-01-01, tilOgMed=2029-12-31)"
         }
 
         @Test
         fun `ordinær - januar 2021`() {
-            satsFactoryTest.ordinær(januar(2021)).let {
+            satsFactoryTest(clock = Clock.systemUTC()).ordinær(januar(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = januar(2021),
                     satskategori = Satskategori.ORDINÆR,
@@ -46,6 +49,7 @@ internal class FullSupplerendeStønadFactoryTest {
                         måned = januar(2021),
                         grunnbeløpPerÅr = 101351,
                         ikrafttredelse = 1.mai(2020),
+                        virkningstidspunkt = 1.mai(2020),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.28),
@@ -66,7 +70,7 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `høy - januar 2021`() {
-            satsFactoryTest.høy(januar(2021)).let {
+            satsFactoryTest(clock = Clock.systemUTC()).høy(januar(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = januar(2021),
                     satskategori = Satskategori.HØY,
@@ -74,6 +78,7 @@ internal class FullSupplerendeStønadFactoryTest {
                         måned = januar(2021),
                         grunnbeløpPerÅr = 101351,
                         ikrafttredelse = 1.mai(2020),
+                        virkningstidspunkt = 1.mai(2020),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.48),
@@ -94,7 +99,7 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `ordinær - mai 2021`() {
-            satsFactoryTest.ordinær(mai(2021)).let {
+            satsFactoryTest(clock = Clock.systemUTC()).ordinær(mai(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = mai(2021),
                     satskategori = Satskategori.ORDINÆR,
@@ -102,6 +107,7 @@ internal class FullSupplerendeStønadFactoryTest {
                         måned = mai(2021),
                         grunnbeløpPerÅr = 106399,
                         ikrafttredelse = 1.mai(2021),
+                        virkningstidspunkt = 1.mai(2021),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.28),
@@ -122,7 +128,7 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `høy - mai 2021`() {
-            satsFactoryTest.høy(mai(2021)).let {
+            satsFactoryTest(clock = Clock.systemUTC()).høy(mai(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = mai(2021),
                     satskategori = Satskategori.HØY,
@@ -130,6 +136,7 @@ internal class FullSupplerendeStønadFactoryTest {
                         måned = mai(2021),
                         grunnbeløpPerÅr = 106399,
                         ikrafttredelse = 1.mai(2021),
+                        virkningstidspunkt = 1.mai(2021),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.48),
@@ -150,7 +157,7 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `ordinær - mai 2022`() {
-            satsFactoryTest.ordinær(mai(2022)).let {
+            satsFactoryTest(clock = Clock.systemUTC()).ordinær(mai(2022)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = mai(2022),
                     satskategori = Satskategori.ORDINÆR,
@@ -158,6 +165,7 @@ internal class FullSupplerendeStønadFactoryTest {
                         måned = mai(2022),
                         grunnbeløpPerÅr = 107099,
                         ikrafttredelse = 1.mai(2022),
+                        virkningstidspunkt = 1.mai(2022),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.28),
@@ -178,7 +186,7 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `høy - mai 2022`() {
-            satsFactoryTest.høy(mai(2022)).let {
+            satsFactoryTest(clock = Clock.systemUTC()).høy(mai(2022)).let {
                 it shouldBe FullSupplerendeStønadForMåned(
                     måned = mai(2022),
                     satskategori = Satskategori.HØY,
@@ -186,6 +194,7 @@ internal class FullSupplerendeStønadFactoryTest {
                         måned = mai(2022),
                         grunnbeløpPerÅr = 107099,
                         ikrafttredelse = 1.mai(2022),
+                        virkningstidspunkt = 1.mai(2022),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = Faktor(2.48),
@@ -207,7 +216,7 @@ internal class FullSupplerendeStønadFactoryTest {
         @Test
         fun `finn siste g-endringsdato for 2021-04-30`() {
             val expectedIkrafttredelse = 1.mai(2020)
-            satsFactoryTest.høy(april(2021)).let {
+            satsFactoryTest(clock = Clock.systemUTC()).høy(april(2021)).let {
                 it.grunnbeløp.ikrafttredelse shouldBe expectedIkrafttredelse
                 it.ikrafttredelse shouldBe expectedIkrafttredelse
             }
@@ -216,7 +225,7 @@ internal class FullSupplerendeStønadFactoryTest {
         @Test
         fun `finn siste g-endringsdato for 2021-05-01`() {
             val expectedIkrafttredelse = LocalDate.of(2021, Month.MAY, 1)
-            satsFactoryTest.høy(mai(2021)).let {
+            satsFactoryTest(clock = Clock.systemUTC()).høy(mai(2021)).let {
                 it.grunnbeløp.ikrafttredelse shouldBe expectedIkrafttredelse
                 it.ikrafttredelse shouldBe expectedIkrafttredelse
             }
@@ -224,36 +233,65 @@ internal class FullSupplerendeStønadFactoryTest {
 
         @Test
         fun `verdi for mai 2022 i januar 2020`() {
-            satsFactoryTest.forSatskategori(mai(2022), Satskategori.HØY, 1.januar(2020)).let {
-                it shouldBe FullSupplerendeStønadForMåned(
-                    måned = mai(2022),
-                    satskategori = Satskategori.HØY,
-                    grunnbeløp = GrunnbeløpForMåned(
+            satsFactoryTest(clock = 1.januar(2020).fixedClock()).forSatskategori(mai(2022), Satskategori.HØY)
+                .let {
+                    it shouldBe FullSupplerendeStønadForMåned(
                         måned = mai(2022),
-                        grunnbeløpPerÅr = 99858,
-                        ikrafttredelse = 1.mai(2019),
-                    ),
-                    minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
-                        faktor = Faktor(2.48),
-                        satsKategori = Satskategori.HØY,
-                        ikrafttredelse = 1.januar(2015),
-                        måned = mai(2022),
-                    ),
-                    toProsentAvHøyForMåned = BigDecimal("412.7464"), // 2.48 * G2022-5 * 0.02 / 12
-                )
-                it.satsPerÅr shouldBe BigDecimal("247647.84") // 2.48 * G2022-5
-                it.satsForMåned.scaleTo4() shouldBe BigDecimal("20637.3200") // 2.48 * G2022-5 / 12
-                it.satsForMånedAvrundet shouldBe 20637
-                it.satsForMånedAsDouble shouldBe 20637.3200
-                it.ikrafttredelse shouldBe 1.mai(2019)
-                it.toProsentAvHøyForMånedAsDouble shouldBe 412.7464
-            }
+                        satskategori = Satskategori.HØY,
+                        grunnbeløp = GrunnbeløpForMåned(
+                            måned = mai(2022),
+                            grunnbeløpPerÅr = 99858,
+                            ikrafttredelse = 1.mai(2019),
+                            virkningstidspunkt = 1.mai(2019),
+                        ),
+                        minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                            faktor = Faktor(2.48),
+                            satsKategori = Satskategori.HØY,
+                            ikrafttredelse = 1.januar(2015),
+                            måned = mai(2022),
+                        ),
+                        toProsentAvHøyForMåned = BigDecimal("412.7464"), // 2.48 * G2022-5 * 0.02 / 12
+                    )
+                    it.satsPerÅr shouldBe BigDecimal("247647.84") // 2.48 * G2022-5
+                    it.satsForMåned.scaleTo4() shouldBe BigDecimal("20637.3200") // 2.48 * G2022-5 / 12
+                    it.satsForMånedAvrundet shouldBe 20637
+                    it.satsForMånedAsDouble shouldBe 20637.3200
+                    it.ikrafttredelse shouldBe 1.mai(2019)
+                    it.toProsentAvHøyForMånedAsDouble shouldBe 412.7464
+                }
         }
 
         @Test
         fun `historisk med dagens dato er lik seg selv`() {
-            satsFactoryTest.forSatskategori(mai(2022), Satskategori.HØY, LocalDate.now()) shouldBe
-                satsFactoryTest.forSatskategori(mai(2022), Satskategori.HØY)
+            satsFactoryTest(clock = Clock.systemUTC()).forSatskategori(
+                mai(2022),
+                Satskategori.HØY,
+            ) shouldBe
+                satsFactoryTest(clock = Clock.systemUTC()).forSatskategori(mai(2022), Satskategori.HØY)
+        }
+
+        @Test
+        fun `klokke påvirker hvilke satser som er tilgjengelig`() {
+            val nå = satsFactoryTest(clock = Clock.systemUTC())
+            val før = satsFactoryTest(clock = fixedClock)
+            val forMåned = mai(2021)
+
+            nå.høy(forMåned).grunnbeløp shouldBe GrunnbeløpForMåned(
+                måned = mai(2021),
+                grunnbeløpPerÅr = 106399,
+                ikrafttredelse = 1.mai(2021),
+                virkningstidspunkt = 1.mai(2021),
+            )
+            val gammelMai = før.høy(forMåned).grunnbeløp
+
+            gammelMai shouldBe GrunnbeløpForMåned(
+                måned = mai(2021),
+                grunnbeløpPerÅr = 101351,
+                ikrafttredelse = 1.mai(2020),
+                virkningstidspunkt = 1.mai(2020),
+            )
+
+            nå.gjeldende(LocalDate.now(fixedClock)).høy(forMåned).grunnbeløp shouldBe gammelMai
         }
     }
 }

@@ -23,9 +23,10 @@ internal class FormuegrenserFactoryTest {
             grunnbeløpForMåned = GrunnbeløpForMåned(
                 måned = januar(2021),
                 grunnbeløpPerÅr = 101351,
-                ikrafttredelse = 1.mai(2020)
+                ikrafttredelse = 1.mai(2020),
+                virkningstidspunkt = 1.mai(2020),
             ),
-            faktor = Faktor(0.5)
+            faktor = Faktor(0.5),
         )
     }
 
@@ -35,9 +36,10 @@ internal class FormuegrenserFactoryTest {
             grunnbeløpForMåned = GrunnbeløpForMåned(
                 måned = februar(2021),
                 grunnbeløpPerÅr = 101351,
-                ikrafttredelse = 1.mai(2020)
+                ikrafttredelse = 1.mai(2020),
+                virkningstidspunkt = 1.mai(2020),
             ),
-            faktor = Faktor(0.5)
+            faktor = Faktor(0.5),
         )
     }
 
@@ -47,9 +49,10 @@ internal class FormuegrenserFactoryTest {
             grunnbeløpForMåned = GrunnbeløpForMåned(
                 måned = mars(2021),
                 grunnbeløpPerÅr = 101351,
-                ikrafttredelse = 1.mai(2020)
+                ikrafttredelse = 1.mai(2020),
+                virkningstidspunkt = 1.mai(2020),
             ),
-            faktor = Faktor(0.5)
+            faktor = Faktor(0.5),
         )
     }
 
@@ -59,9 +62,10 @@ internal class FormuegrenserFactoryTest {
             grunnbeløpForMåned = GrunnbeløpForMåned(
                 måned = april(2021),
                 grunnbeløpPerÅr = 101351,
-                ikrafttredelse = 1.mai(2020)
+                ikrafttredelse = 1.mai(2020),
+                virkningstidspunkt = 1.mai(2020),
             ),
-            faktor = Faktor(0.5)
+            faktor = Faktor(0.5),
         )
     }
 
@@ -71,9 +75,10 @@ internal class FormuegrenserFactoryTest {
             grunnbeløpForMåned = GrunnbeløpForMåned(
                 måned = mai(2021),
                 grunnbeløpPerÅr = 106399,
-                ikrafttredelse = 1.mai(2021)
+                ikrafttredelse = 1.mai(2021),
+                virkningstidspunkt = 1.mai(2021),
             ),
-            faktor = Faktor(0.5)
+            faktor = Faktor(0.5),
         ).also {
             it.ikrafttredelse shouldBe 1.mai(2021)
             it.formuegrense shouldBe BigDecimal("53199.5")
@@ -86,9 +91,10 @@ internal class FormuegrenserFactoryTest {
             grunnbeløpForMåned = GrunnbeløpForMåned(
                 måned = mai(2022),
                 grunnbeløpPerÅr = 107099,
-                ikrafttredelse = 1.mai(2022)
+                ikrafttredelse = 1.mai(2022),
+                virkningstidspunkt = 1.mai(2022),
             ),
-            faktor = Faktor(0.5)
+            faktor = Faktor(0.5),
         )
     }
 }

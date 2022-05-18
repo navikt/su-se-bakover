@@ -19,15 +19,6 @@ interface SatsFactory {
     ): FullSupplerendeStønadForMåned
 
     /**
-     * Henter ut verdien slik den ville sett ut [påDato] ved å ta hensyn til eventuell ikrafttredelse av nye grunnbeløp/satser siden [påDato]
-     */
-    fun forSatskategori(
-        måned: Måned,
-        satskategori: Satskategori,
-        påDato: LocalDate,
-    ): FullSupplerendeStønadForMåned
-
-    /**
      * Returnerer en ny factory som opererer med verdiene som var gjeldende [påDato]
      */
     fun gjeldende(påDato: LocalDate): SatsFactory

@@ -90,7 +90,7 @@ fun Application.susebakover(
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     unleash: Unleash = UnleashBuilder.build(applicationConfig),
-    satsFactory: SatsFactory = SatsFactoryForSupplerendeStønad(),
+    satsFactory: SatsFactory = SatsFactoryForSupplerendeStønad(clock = clock),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(
         databaseConfig = applicationConfig.database,
         dbMetrics = DbMicrometerMetrics(),

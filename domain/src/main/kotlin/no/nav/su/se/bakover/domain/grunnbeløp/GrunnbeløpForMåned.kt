@@ -10,6 +10,7 @@ data class GrunnbeløpForMåned(
     val måned: Måned,
     val grunnbeløpPerÅr: Int,
     val ikrafttredelse: LocalDate,
+    val virkningstidspunkt: LocalDate,
 ) {
     init {
         require(grunnbeløpPerÅr >= 0)

@@ -21,12 +21,15 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
+import no.nav.su.se.bakover.domain.grunnbeløp.Grunnbeløpsendring
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.satsFactoryTest
+import org.jetbrains.kotlin.psi.classInitializerVisitor
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.Clock
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -195,16 +198,15 @@ internal class PersistertBeregningTest {
     @Test
     fun `må kunne hente opp og berike persisterte månedsberegninger selv om g-har endret seg`() {
         val gammeltGrunnbeløp = SatsFactoryForSupplerendeStønad(
-            grunnbeløpFactory = GrunnbeløpFactory.createFromGrunnbeløp(
-                listOf(
-                    1.mai(2014) to 88370,
-                    1.mai(2015) to 90068,
-                    1.mai(2016) to 92576,
-                    1.mai(2017) to 93634,
-                    1.mai(2018) to 96883,
-                    1.mai(2019) to 99858,
-                    1.mai(2020) to 101351,
-                ),
+            clock = Clock.systemUTC(),
+            grunnbeløpsendringer = listOf(
+                Grunnbeløpsendring(1.mai(2014), 1.mai(2014), 88370),
+                Grunnbeløpsendring(1.mai(2015), 1.mai(2015), 90068),
+                Grunnbeløpsendring(1.mai(2016), 1.mai(2016), 92576),
+                Grunnbeløpsendring(1.mai(2017), 1.mai(2017), 93634),
+                Grunnbeløpsendring(1.mai(2018), 1.mai(2018), 96883),
+                Grunnbeløpsendring(1.mai(2019), 1.mai(2019), 99858),
+                Grunnbeløpsendring(1.mai(2020), 1.mai(2020), 101351),
             ),
         )
         val beregningMedGammelG = createBeregning(
@@ -215,17 +217,15 @@ internal class PersistertBeregningTest {
         )
 
         val nyttGrunnbeløp = SatsFactoryForSupplerendeStønad(
-            grunnbeløpFactory = GrunnbeløpFactory.createFromGrunnbeløp(
-                listOf(
-                    1.mai(2014) to 88370,
-                    1.mai(2015) to 90068,
-                    1.mai(2016) to 92576,
-                    1.mai(2017) to 93634,
-                    1.mai(2018) to 96883,
-                    1.mai(2019) to 99858,
-                    1.mai(2020) to 101351,
-                    1.mai(2021) to 106399,
-                ),
+            clock = Clock.systemUTC(),
+            grunnbeløpsendringer = listOf(
+                Grunnbeløpsendring(1.mai(2014), 1.mai(2014), 88370),
+                Grunnbeløpsendring(1.mai(2015), 1.mai(2015), 90068),
+                Grunnbeløpsendring(1.mai(2016), 1.mai(2016), 92576),
+                Grunnbeløpsendring(1.mai(2017), 1.mai(2017), 93634),
+                Grunnbeløpsendring(1.mai(2018), 1.mai(2018), 96883),
+                Grunnbeløpsendring(1.mai(2019), 1.mai(2019), 99858),
+                Grunnbeløpsendring(1.mai(2020), 1.mai(2020), 101351),
             ),
         )
 
