@@ -124,7 +124,7 @@ internal class SøknadRoutesKtTest {
                 }
                 val createResponse = defaultRequest(
                     Post,
-                    uføresøknadPath,
+                    "/soknad/ufore",
                     listOf(Brukerrolle.Veileder),
                 ) {
                     header(ContentType, Json.toString())
@@ -153,7 +153,7 @@ internal class SøknadRoutesKtTest {
             val fnr = Fnr.generer()
             val søknadInnhold: SøknadsinnholdUføre = søknadInnhold(fnr)
             val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadsinnholdUføreJson())
-            defaultRequest(Post, uføresøknadPath, listOf(Brukerrolle.Veileder)) {
+            defaultRequest(Post, "/soknad/ufore", listOf(Brukerrolle.Veileder)) {
                 header("Content-type", Json.toString())
                 setBody(soknadJson)
             }.apply {
@@ -226,7 +226,7 @@ internal class SøknadRoutesKtTest {
                 }
                 defaultRequest(
                     Post,
-                    uføresøknadPath,
+                    "/soknad/ufore",
                     listOf(Brukerrolle.Veileder),
                 ) {
                     header(ContentType, Json.toString())
@@ -255,7 +255,7 @@ internal class SøknadRoutesKtTest {
             }
             defaultRequest(
                 method = Post,
-                uri = "$uføresøknadPath/$søknadId/lukk",
+                uri = "soknad/$søknadId/lukk",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 header(ContentType, Json.toString())
@@ -285,7 +285,7 @@ internal class SøknadRoutesKtTest {
             application { testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)) }
             defaultRequest(
                 method = Post,
-                uri = "$uføresøknadPath/$søknadId/lukk",
+                uri = "soknad/$søknadId/lukk",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 header(ContentType, Json.toString())
@@ -315,7 +315,7 @@ internal class SøknadRoutesKtTest {
             application { testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)) }
             defaultRequest(
                 method = Post,
-                uri = "$uføresøknadPath/$søknadId/lukk",
+                uri = "soknad/$søknadId/lukk",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 header(ContentType, Json.toString())
@@ -346,7 +346,7 @@ internal class SøknadRoutesKtTest {
             application { testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)) }
             defaultRequest(
                 method = Post,
-                uri = "$uføresøknadPath/$søknadId/lukk",
+                uri = "soknad/$søknadId/lukk",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 header(ContentType, Json.toString())
@@ -377,7 +377,7 @@ internal class SøknadRoutesKtTest {
             }
             defaultRequest(
                 method = Post,
-                uri = "$uføresøknadPath/$søknadId/lukk/brevutkast",
+                uri = "soknad/$søknadId/lukk/brevutkast",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -409,7 +409,7 @@ internal class SøknadRoutesKtTest {
             }
             defaultRequest(
                 method = Post,
-                uri = "$uføresøknadPath/$søknadId/avslag",
+                uri = "soknad/$søknadId/avslag",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
