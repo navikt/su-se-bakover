@@ -91,6 +91,7 @@ class SøknadTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             søknadMetrics = mock(),
+            toggleService = mock(),
             clock = fixedClock,
         ).apply { addObserver(observerMock) }
 
@@ -131,6 +132,7 @@ class SøknadTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             søknadMetrics = mock(),
+            toggleService = mock(),
             clock = fixedClock,
         )
 
@@ -234,6 +236,7 @@ class SøknadTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             søknadMetrics = mock(),
+            toggleService = mock(),
             clock = fixedClock,
         ).apply { addObserver(observerMock) }
 
@@ -317,6 +320,7 @@ class SøknadTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             søknadMetrics = mock(),
+            toggleService = mock(),
             clock = fixedClock,
         )
 
@@ -525,6 +529,7 @@ class SøknadTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             søknadMetrics = mock(),
+            toggleService = mock(),
             clock = fixedClock,
         )
 

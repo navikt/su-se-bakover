@@ -37,6 +37,7 @@ class HentSøknadTest {
             personService = mock(),
             oppgaveService = mock(),
             søknadMetrics = mock(),
+            toggleService = mock(),
             clock = fixedClock
         )
 
@@ -67,6 +68,7 @@ class HentSøknadTest {
             personService = mock(),
             oppgaveService = mock(),
             søknadMetrics = mock(),
+            toggleService = mock(),
             clock = fixedClock,
         )
 

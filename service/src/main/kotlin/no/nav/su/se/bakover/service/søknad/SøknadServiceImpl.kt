@@ -19,6 +19,8 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.SøknadsinnholdAlder
+import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -30,6 +32,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.service.toggles.ToggleService
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -43,6 +46,7 @@ internal class SøknadServiceImpl(
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
     private val søknadMetrics: SøknadMetrics,
+    private val toggleService: ToggleService,
     private val clock: Clock,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -52,6 +56,10 @@ internal class SøknadServiceImpl(
 
     override fun nySøknad(søknadInnhold: SøknadInnhold, identBruker: NavIdentBruker): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
         val innsendtFødselsnummer: Fnr = søknadInnhold.personopplysninger.fnr
+
+        if (!søknadInnhold.kanSendeInnSøknad()) {
+            return KunneIkkeOppretteSøknad.SøknadsinnsendingIkkeTillatt.left()
+        }
 
         val person = personService.hentPerson(innsendtFødselsnummer).getOrHandle {
             // Dette bør ikke skje i normal flyt, siden vi allerede har gjort en tilgangssjekk mot PDL (kode6/7).
@@ -247,7 +255,7 @@ internal class SøknadServiceImpl(
                                 søknadOpprettet = søknad.opprettet,
                                 søknadInnhold = søknad.søknadInnhold,
                                 clock = clock,
-                            )
+                            ),
                         ).mapLeft {
                             log.error("Hent søknad-PDF: Kunne ikke generere PDF. Originalfeil: $it")
                             KunneIkkeLageSøknadPdf.KunneIkkeLagePdf
@@ -255,5 +263,12 @@ internal class SøknadServiceImpl(
                     }
                 }
             }
+    }
+
+    private fun SøknadInnhold.kanSendeInnSøknad(): Boolean {
+        return when (this) {
+            is SøknadsinnholdAlder -> toggleService.isEnabled(ToggleService.supstonadAalderInnsending)
+            is SøknadsinnholdUføre -> true
+        }
     }
 }

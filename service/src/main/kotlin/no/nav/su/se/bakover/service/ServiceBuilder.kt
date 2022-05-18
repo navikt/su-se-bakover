@@ -40,6 +40,7 @@ object ServiceBuilder {
         unleash: Unleash,
     ): Services {
         val personService = PersonServiceImpl(clients.personOppslag)
+        val toggleService = ToggleServiceImpl(unleash)
         val statistikkService = StatistikkServiceImpl(
             clients.kafkaPublisher,
             personService,
@@ -82,6 +83,7 @@ object ServiceBuilder {
             personService = personService,
             oppgaveService = oppgaveService,
             søknadMetrics = søknadMetrics,
+            toggleService = toggleService,
             clock = clock,
         ).apply {
             addObserver(statistikkService)
@@ -114,7 +116,6 @@ object ServiceBuilder {
             tilbakekrevingClient = clients.tilbakekrevingClient,
         )
 
-        val toggleService = ToggleServiceImpl(unleash)
         val revurderingService = RevurderingServiceImpl(
             utbetalingService = utbetalingService,
             revurderingRepo = databaseRepos.revurderingRepo,

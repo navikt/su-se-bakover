@@ -21,6 +21,7 @@ object FantIkkeSøknad
 
 sealed class KunneIkkeOppretteSøknad {
     object FantIkkePerson : KunneIkkeOppretteSøknad()
+    object SøknadsinnsendingIkkeTillatt : KunneIkkeOppretteSøknad()
 }
 
 sealed class KunneIkkeLageSøknadPdf {

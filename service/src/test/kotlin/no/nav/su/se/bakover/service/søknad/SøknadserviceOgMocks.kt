@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -24,6 +25,7 @@ internal data class SøknadserviceOgMocks(
     val personService: PersonService = mock(),
     val oppgaveService: OppgaveService = mock(),
     val søknadMetrics: SøknadMetrics = mock(),
+    val toggleService: ToggleService = mock(),
     val clock: Clock = fixedClock,
     val runTest: SøknadserviceOgMocks.() -> Unit,
 ) {
@@ -36,6 +38,7 @@ internal data class SøknadserviceOgMocks(
         personService = personService,
         oppgaveService = oppgaveService,
         søknadMetrics = søknadMetrics,
+        toggleService = toggleService,
         clock = fixedClock,
     )
 
