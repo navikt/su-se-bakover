@@ -42,7 +42,6 @@ class SatsFactoryForSupplerendeStønad(
         clock = clock,
         grunnbeløpsendringer = grunnbeløpsendringer.let {
             if (ApplicationConfig.isNotProd()) {
-                log.warn("Inkluderer fiktiv G-verdi for 2022. Skal ikke dukke opp i prod!")
                 // TODO(satsfactory_grunnbeløp_2022) Husk å bytt denne til nyeste før merge til master.
                 it + Grunnbeløpsendring(1.mai(2022), 1.mai(2022), 107099)
             } else it
@@ -85,7 +84,7 @@ class SatsFactoryForSupplerendeStønad(
     }
 
     override fun gjeldende(påDato: LocalDate): SatsFactory {
-        //instansier en ny factory med en klokke som representerer nåtid fo påDato
+        // instansier en ny factory med en klokke som representerer nåtid fo påDato
         return SatsFactoryForSupplerendeStønad(clock = påDato.fixedClock())
     }
 

@@ -30,9 +30,11 @@ class AppComponents private constructor(
 ) {
     companion object {
         fun instance(clock: Clock, dataSource: DataSource): AppComponents {
+            val satsFactory = satsFactoryTest(clock)
             val databaseRepos: DatabaseRepos = SharedRegressionTestData.databaseRepos(
                 dataSource = dataSource,
                 clock = clock,
+                satsFactory = satsFactory,
             )
             val clients: Clients = TestClientsBuilder(
                 clock = clock,
@@ -46,7 +48,7 @@ class AppComponents private constructor(
                 søknadMetrics = mock(),
                 clock = clock,
                 unleash = unleash,
-                satsFactory = satsFactoryTest
+                satsFactory = satsFactory,
             )
             val accessCheckProxy = AccessCheckProxy(
                 personRepo = databaseRepos.person,
@@ -54,7 +56,7 @@ class AppComponents private constructor(
             )
             return AppComponents(
                 clock = clock,
-                databaseRepos = SharedRegressionTestData.databaseRepos(dataSource = dataSource, clock = clock),
+                databaseRepos = databaseRepos,
                 clients = clients,
                 unleash = unleash,
                 services = services,

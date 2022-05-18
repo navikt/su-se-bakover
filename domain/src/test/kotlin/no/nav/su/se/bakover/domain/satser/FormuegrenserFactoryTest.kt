@@ -12,10 +12,11 @@ import no.nav.su.se.bakover.domain.vilkår.FormuegrenseForMåned
 import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.time.Clock
 
 internal class FormuegrenserFactoryTest {
 
-    private val formuegrense = formuegrenserFactoryTest
+    private val formuegrense = formuegrenserFactoryTest(Clock.systemUTC())
 
     @Test
     fun `januar 2021`() {

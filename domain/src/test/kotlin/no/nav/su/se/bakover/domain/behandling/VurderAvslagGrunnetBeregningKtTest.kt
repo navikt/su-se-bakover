@@ -76,7 +76,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `beregning med alle måneder under minstebeløp skal gi avslag`() {
         val januar = lagFradrag(20750.0, Periode.create(1.januar(2021), 30.april(2021)))
-        val desember = lagFradrag(21800.0, Periode.create(1.mai(2021), 31.desember(2021)))
+        val desember = lagFradrag(20800.0, Periode.create(1.mai(2021), 31.desember(2021)))
 
         val beregning = lagBeregningMedFradrag(januar, desember, strategy = BeregningStrategy.BorAlene(satsFactoryTest))
 
@@ -149,11 +149,11 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `avslag dersom det eksisterer 1 måned med beløp under minstegrense`() {
         val januar = lagFradrag(2500.0, januar(2021))
-        val juni = lagFradrag(21900.0, juni(2021))
+        val juni = lagFradrag(20750.0, juni(2021))
         val desember = lagFradrag(2500.0, desember(2021))
 
-        val beregning =
-            lagBeregningMedFradrag(januar, juni, desember, strategy = BeregningStrategy.BorAlene(satsFactoryTest))
+        val beregning = lagBeregningMedFradrag(januar, juni, desember, strategy = BeregningStrategy.BorAlene(satsFactoryTest))
+
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
             grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE,
         )

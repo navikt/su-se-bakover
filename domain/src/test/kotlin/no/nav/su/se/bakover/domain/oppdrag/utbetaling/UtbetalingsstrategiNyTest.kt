@@ -604,7 +604,7 @@ internal class UtbetalingsstrategiNyTest {
                     opprettet = actual.utbetalingslinjer.first().opprettet,
                     fraOgMed = 1.mai(2021),
                     tilOgMed = 31.desember(2021),
-                    beløp = 21989,
+                    beløp = 20946,
                     forrigeUtbetalingslinjeId = null,
                     uføregrad = Uføregrad.parse(50),
                 ),
@@ -651,7 +651,7 @@ internal class UtbetalingsstrategiNyTest {
                     opprettet = actual.utbetalingslinjer.first().opprettet,
                     fraOgMed = 1.mai(2021),
                     tilOgMed = 31.mai(2021),
-                    beløp = 21989,
+                    beløp = 20946,
                     forrigeUtbetalingslinjeId = null,
                     uføregrad = Uføregrad.parse(50),
                 ),
@@ -660,7 +660,7 @@ internal class UtbetalingsstrategiNyTest {
                     opprettet = actual.utbetalingslinjer.last().opprettet,
                     fraOgMed = 1.juni(2021),
                     tilOgMed = 31.desember(2021),
-                    beløp = 21989,
+                    beløp = 20946,
                     forrigeUtbetalingslinjeId = actual.utbetalingslinjer.first().id,
                     uføregrad = Uføregrad.parse(70),
                 ),
@@ -721,7 +721,7 @@ internal class UtbetalingsstrategiNyTest {
             uføregrunnlag = uføreList,
         ).generate()
 
-        actual.utbetalingslinjer.size shouldBe 3
+        actual.utbetalingslinjer.size shouldBe 2
         actual shouldBe expectedUtbetaling(
             actual = actual,
             oppdragslinjer = nonEmptyListOf(
@@ -729,18 +729,9 @@ internal class UtbetalingsstrategiNyTest {
                     utbetalingslinjeId = actual.utbetalingslinjer.first().id,
                     opprettet = actual.utbetalingslinjer.first().opprettet,
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 30.april(2021),
+                    tilOgMed = 31.mai(2021),
                     beløp = 14946,
                     forrigeUtbetalingslinjeId = null,
-                    uføregrad = Uføregrad.parse(50),
-                ),
-                expectedUtbetalingslinje(
-                    utbetalingslinjeId = actual.utbetalingslinjer[1].id,
-                    opprettet = actual.utbetalingslinjer[1].opprettet,
-                    fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.mai(2021),
-                    beløp = 15989,
-                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer.first().id,
                     uføregrad = Uføregrad.parse(50),
                 ),
                 expectedUtbetalingslinje(
@@ -748,8 +739,8 @@ internal class UtbetalingsstrategiNyTest {
                     opprettet = actual.utbetalingslinjer.last().opprettet,
                     fraOgMed = 1.juni(2021),
                     tilOgMed = 31.desember(2021),
-                    beløp = 12989,
-                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer[1].id,
+                    beløp = 11946,
+                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer.first().id,
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
@@ -816,7 +807,7 @@ internal class UtbetalingsstrategiNyTest {
             uføregrunnlag = uføreList,
         ).generate()
 
-        actual.utbetalingslinjer.size shouldBe 3
+        actual.utbetalingslinjer.size shouldBe 2
         actual shouldBe expectedUtbetaling(
             actual = actual,
             oppdragslinjer = nonEmptyListOf(
@@ -824,18 +815,9 @@ internal class UtbetalingsstrategiNyTest {
                     utbetalingslinjeId = actual.utbetalingslinjer.first().id,
                     opprettet = actual.utbetalingslinjer.first().opprettet,
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 30.april(2021),
+                    tilOgMed = 31.mai(2021),
                     beløp = 14946,
                     forrigeUtbetalingslinjeId = null,
-                    uføregrad = Uføregrad.parse(50),
-                ),
-                expectedUtbetalingslinje(
-                    utbetalingslinjeId = actual.utbetalingslinjer[1].id,
-                    opprettet = actual.utbetalingslinjer[1].opprettet,
-                    fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.mai(2021),
-                    beløp = 15989,
-                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer.first().id,
                     uføregrad = Uføregrad.parse(50),
                 ),
                 expectedUtbetalingslinje(
@@ -843,8 +825,8 @@ internal class UtbetalingsstrategiNyTest {
                     opprettet = actual.utbetalingslinjer.last().opprettet,
                     fraOgMed = 1.juni(2021),
                     tilOgMed = 31.desember(2021),
-                    beløp = 12989,
-                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer[1].id,
+                    beløp = 11946,
+                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer.first().id,
                     uføregrad = Uføregrad.parse(70),
                 ),
             ),
@@ -918,7 +900,7 @@ internal class UtbetalingsstrategiNyTest {
                     opprettet = actual.utbetalingslinjer.first().opprettet,
                     fraOgMed = 1.juni(2021),
                     tilOgMed = 31.desember(2021),
-                    beløp = 21989,
+                    beløp = 20946,
                     forrigeUtbetalingslinjeId = null,
                     uføregrad = Uføregrad.parse(70),
                 ),
@@ -965,7 +947,7 @@ internal class UtbetalingsstrategiNyTest {
                     opprettet = actual.utbetalingslinjer.first().opprettet,
                     fraOgMed = 1.juni(2021),
                     tilOgMed = 30.november(2021),
-                    beløp = 21989,
+                    beløp = 20946,
                     forrigeUtbetalingslinjeId = null,
                     uføregrad = Uføregrad.parse(70),
                 ),

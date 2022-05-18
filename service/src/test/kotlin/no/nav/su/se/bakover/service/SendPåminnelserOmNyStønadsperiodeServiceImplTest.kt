@@ -125,7 +125,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 dagensDato = LocalDate.of(2021, Month.DECEMBER, 11),
                 saksnummer = Saksnummer(3001),
                 utløpsdato = LocalDate.of(2021, Month.DECEMBER, 31),
-                halvtGrunnbeløp = 53200,
+                halvtGrunnbeløp = 50676,
             )
 
             verify(serviceAndMocks.brevService).lagreDokument(

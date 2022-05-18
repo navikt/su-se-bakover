@@ -310,7 +310,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = satsoversikt2021Enslig,
+                        satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
                     ).right()
                 }
             }
@@ -361,7 +361,7 @@ internal class LagBrevRequestVisitorTest {
                     forventetInntektStørreEnn0 = false,
                     dagensDato = fixedLocalDate,
                     saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                    satsoversikt = satsoversikt2021Enslig,
+                    satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
                 ).right()
             }
         }
@@ -393,7 +393,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = satsoversikt2021Enslig,
+                        satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
                     ).right()
 
                     it.brevRequest.map { brevRequest ->
@@ -495,7 +495,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = satsoversikt2021Enslig,
+                        satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
                     ).right()
                 }
             }
@@ -529,7 +529,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = satsoversikt2021Enslig,
+                        satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
                     ).right()
                 }
             }
@@ -641,7 +641,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = satsoversikt2021Enslig,
+                        satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
                     ).right()
                 }
             }
@@ -683,7 +683,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = satsoversikt2021Enslig,
+                        satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
                     ).right()
                 }
             }
@@ -785,7 +785,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = satsoversikt2021Enslig,
+                        satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
                     ).right()
                 }
             }
@@ -820,7 +820,7 @@ internal class LagBrevRequestVisitorTest {
                         forventetInntektStørreEnn0 = false,
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
-                        satsoversikt = satsoversikt2021Enslig,
+                        satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
                     ).right()
                 }
             }
@@ -869,7 +869,7 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
             saksnummer = søknadsbehandling.saksnummer,
-            satsoversikt = satsoversikt2021Enslig,
+            satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
         ).right()
     }
 
@@ -935,7 +935,7 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
             saksnummer = søknadsbehandling.saksnummer,
-            satsoversikt = satsoversikt2021Enslig,
+            satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
         ).right()
     }
 
@@ -1157,7 +1157,7 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             dagensDato = fixedLocalDate,
             saksnummer = revurdering.saksnummer,
-            satsoversikt = satsoversikt2021Enslig,
+            satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
         ).right()
 
         brevRevurdering.brevRequest.map { brevRequest ->
@@ -1264,7 +1264,7 @@ internal class LagBrevRequestVisitorTest {
             saksnummer = revurdering.saksnummer,
             opphørsdato = revurdering.periode.fraOgMed,
             avkortingsBeløp = null,
-            satsoversikt = satsoversikt2021Enslig,
+            satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
             halvtGrunnbeløp = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
         ).right()
 
@@ -1314,7 +1314,7 @@ internal class LagBrevRequestVisitorTest {
             saksnummer = revurdering.saksnummer,
             opphørsdato = revurdering.periode.fraOgMed,
             avkortingsBeløp = null,
-            satsoversikt = satsoversikt2021Enslig,
+            satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
             halvtGrunnbeløp = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
         ).right()
     }
@@ -1411,7 +1411,7 @@ internal class LagBrevRequestVisitorTest {
             saksnummer = revurdering.saksnummer,
             opphørsdato = revurdering.periode.fraOgMed,
             avkortingsBeløp = null,
-            satsoversikt = satsoversikt2021Enslig,
+            satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
             halvtGrunnbeløp = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
         ).right()
     }
@@ -1494,7 +1494,7 @@ internal class LagBrevRequestVisitorTest {
                 gjeldendeMånedsutbetaling = 120,
                 dagensDato = fixedLocalDate,
                 saksnummer = revurdering.saksnummer,
-                satsoversikt = satsoversikt2021Enslig,
+                satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
             )
 
             it.brevInnhold should beOfType<BrevInnhold.VedtakIngenEndring>()
@@ -1591,20 +1591,13 @@ internal class LagBrevRequestVisitorTest {
         periodeList = listOf(),
     )
 
-    private val satsoversikt2021Enslig = Satsoversikt(
+    private val `satsoversikt2021EnsligPr01-01-21` = Satsoversikt(
         perioder = listOf(
             Satsoversikt.Satsperiode(
                 fraOgMed = "01.01.2021",
-                tilOgMed = "30.04.2021",
-                sats = "høy",
-                satsBeløp = 20946,
-                satsGrunn = "ENSLIG",
-            ),
-            Satsoversikt.Satsperiode(
-                fraOgMed = "01.05.2021",
                 tilOgMed = "31.12.2021",
                 sats = "høy",
-                satsBeløp = 21989,
+                satsBeløp = 20946,
                 satsGrunn = "ENSLIG",
             ),
         ),

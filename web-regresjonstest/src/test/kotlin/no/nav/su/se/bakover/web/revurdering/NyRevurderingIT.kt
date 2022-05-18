@@ -54,7 +54,7 @@ internal class NyRevurderingIT {
                                         "type": "NY"
                                     },
                                     {
-                                        "beløp":10482,
+                                        "beløp":8563,
                                         "fraOgMed": "2021-05-01",
                                         "tilOgMed": "2021-12-31",
                                         "type": "NY"

@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
@@ -150,12 +151,13 @@ internal object SharedRegressionTestData {
     internal fun databaseRepos(
         dataSource: DataSource = migratedDb(),
         clock: Clock = fixedClock,
+        satsFactory: SatsFactory = satsFactoryTest(clock),
     ): DatabaseRepos {
         return DatabaseBuilder.build(
             embeddedDatasource = dataSource,
             dbMetrics = dbMetricsStub,
             clock = clock,
-            satsFactory = satsFactoryTest,
+            satsFactory = satsFactory,
         )
     }
 
@@ -206,7 +208,11 @@ internal object SharedRegressionTestData {
 
     private fun Application.testSusebakover(
         clock: Clock = fixedClock,
-        databaseRepos: DatabaseRepos = databaseRepos(clock = clock),
+        satsFactory: SatsFactory = satsFactoryTest(clock),
+        databaseRepos: DatabaseRepos = databaseRepos(
+            clock = clock,
+            satsFactory = satsFactory,
+        ),
         clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),
         unleash: Unleash = FakeUnleash().apply { enableAll() },
         services: Services = ServiceBuilder.build(
@@ -216,7 +222,7 @@ internal object SharedRegressionTestData {
             søknadMetrics = mock(),
             clock = clock,
             unleash = unleash,
-            satsFactory = satsFactoryTest,
+            satsFactory = satsFactory,
         ),
         accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
     ) {

@@ -135,19 +135,19 @@ internal class AvkortingsplanTest {
         ).lagFradrag().getOrFail().let {
             it[0].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = 21989,
+                    beløp = 20946,
                     periode = oktober(2021),
                 ),
             )
             it[1].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = 21989,
+                    beløp = 20946,
                     periode = november(2021),
                 ),
             )
             it[2].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = 18860,
+                    beløp = 20946,
                     periode = desember(2021),
                 ),
             )
@@ -270,13 +270,13 @@ internal class AvkortingsplanTest {
             )
             it[4].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = 11989,
+                    beløp = 10946,
                     periode = mai(2021),
                 ),
             )
             it[5].shouldBeEqualToExceptId(
                 expectAvkorting(
-                    beløp = 7065,
+                    beløp = 8108,
                     periode = juni(2021),
                 ),
             )

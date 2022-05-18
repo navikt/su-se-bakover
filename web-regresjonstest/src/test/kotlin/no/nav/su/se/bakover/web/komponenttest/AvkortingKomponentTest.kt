@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
@@ -24,7 +25,6 @@ import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
 import java.time.Clock
-import java.time.ZoneOffset
 import java.util.UUID
 
 class AvkortingKomponentTest {
@@ -35,8 +35,7 @@ class AvkortingKomponentTest {
         //             |-- Behandling som bruker avkorting -|
 
         val fnr = Fnr.generer().toString()
-        val tisdpunktForRevurdering: Clock =
-            Clock.fixed(1.mai(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+        val tisdpunktForRevurdering: Clock = 1.mai(2021).fixedClock()
         val clock = TikkendeKlokke(tisdpunktForRevurdering)
         val behandlingStartDato = 1.januar(2021)
         val behandlingSluttDato = 31.desember(2021)
@@ -109,7 +108,7 @@ class AvkortingKomponentTest {
                     it.beløp shouldBe 1043 // (21989-20946=1043)
                 }
                 utbetalingstidslinje[3].shouldBeType<UtbetalingslinjePåTidslinje.Ny>().let {
-                    it.periode shouldBe Periode.create(1.juli(2021), 30.april(2022))
+                    it.periode shouldBe Periode.create(1.juli(2021), 31.mai(2022))
                     it.beløp shouldBe 21989
                 }
             }

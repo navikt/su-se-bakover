@@ -166,14 +166,6 @@ internal class FormuevilkårJsonTest {
    ],
    "resultat":"VilkårOppfylt",
    "formuegrenser":[
-       {
-         "gyldigFra":"2022-05-01",
-         "beløp":53550
-      },
-      {
-         "gyldigFra":"2021-05-01",
-         "beløp":53200
-      },
       {
          "gyldigFra":"2020-05-01",
          "beløp":50676

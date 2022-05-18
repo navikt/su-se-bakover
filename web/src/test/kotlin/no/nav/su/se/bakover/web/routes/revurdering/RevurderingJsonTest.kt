@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -131,14 +133,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -215,10 +210,10 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
+                      {
+                            "gyldigFra":"2022-05-01",
+                            "beløp":53550
+                      },
                       {
                           "gyldigFra": "2021-05-01",
                           "beløp": 53200
@@ -226,7 +221,7 @@ internal class RevurderingJsonTest {
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
-                      }
+                      }                     
                     ],
                     "vurderinger": []
                   },
@@ -241,8 +236,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
-        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest(1.mai(2022).fixedClock()))), true)
+        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest(1.mai(2022).fixedClock()))
     }
 
     @Test
@@ -299,14 +294,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -383,14 +371,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -479,14 +460,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -573,14 +547,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -666,14 +633,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -759,14 +719,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -848,14 +801,6 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                      {
-                         "gyldigFra":"2022-05-01",
-                         "beløp":53550
-                      },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -956,15 +901,7 @@ internal class RevurderingJsonTest {
                   "bosituasjon": [],
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
-                    "formuegrenser": [
-                      {
-                         "gyldigFra":"2022-05-01",
-                         "beløp":53550
-                      },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                    "formuegrenser": [                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -1066,14 +1003,6 @@ internal class RevurderingJsonTest {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
-                         "gyldigFra":"2022-05-01",
-                         "beløp":53550
-                      },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
-                      {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
                       }
@@ -1169,14 +1098,6 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                      {
-                         "gyldigFra":"2022-05-01",
-                         "beløp":53550
-                      },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -1276,14 +1197,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                   "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                     {
-                        "gyldigFra":"2022-05-01",
-                        "beløp":53550
-                     },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
+                     
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -1379,14 +1293,6 @@ internal class RevurderingJsonTest {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
-                         "gyldigFra":"2022-05-01",
-                         "beløp":53550
-                      },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
-                      {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
                       }
@@ -1474,14 +1380,6 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
-                      {
-                         "gyldigFra":"2022-05-01",
-                         "beløp":53550
-                      },
-                      {
-                          "gyldigFra": "2021-05-01",
-                          "beløp": 53200
-                      },
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676

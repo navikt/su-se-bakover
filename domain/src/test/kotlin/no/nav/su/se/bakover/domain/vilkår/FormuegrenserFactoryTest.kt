@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.satser.Faktor
 import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.time.Clock
 import java.time.Month
 import java.time.YearMonth
 
@@ -15,7 +16,7 @@ internal class FormuegrenserFactoryTest {
 
     @Test
     fun `ikrafttredelser fra mai 2005`() {
-        formuegrenserFactoryTest.ikrafttredelser(YearMonth.of(2005, Month.MAY)) shouldBe listOf(
+        formuegrenserFactoryTest(Clock.systemUTC()).ikrafttredelser(YearMonth.of(2005, Month.MAY)) shouldBe listOf(
             1.mai(2022) to BigDecimal("53549.5"),
             1.mai(2021) to BigDecimal("53199.5"),
             1.mai(2020) to BigDecimal("50675.5"),
@@ -39,7 +40,7 @@ internal class FormuegrenserFactoryTest {
 
     @Test
     fun `ikrafttredelser fra mai 2021`() {
-        formuegrenserFactoryTest.ikrafttredelser(YearMonth.of(2021, Month.MAY)) shouldBe listOf(
+        formuegrenserFactoryTest(Clock.systemUTC()).ikrafttredelser(YearMonth.of(2021, Month.MAY)) shouldBe listOf(
             1.mai(2022) to BigDecimal("53549.5"),
             1.mai(2021) to BigDecimal("53199.5"),
         )
@@ -47,19 +48,19 @@ internal class FormuegrenserFactoryTest {
 
     @Test
     fun `ikrafttredelser fra mai 2022`() {
-        formuegrenserFactoryTest.ikrafttredelser(YearMonth.of(2022, Month.MAY)) shouldBe listOf(
+        formuegrenserFactoryTest(Clock.systemUTC()).ikrafttredelser(YearMonth.of(2022, Month.MAY)) shouldBe listOf(
             1.mai(2022) to BigDecimal("53549.5"),
         )
     }
 
     @Test
     fun `ikrafttredelser fra mai 2023`() {
-        formuegrenserFactoryTest.ikrafttredelser(YearMonth.of(2023, Month.MAY)) shouldBe emptyList()
+        formuegrenserFactoryTest(Clock.systemUTC()).ikrafttredelser(YearMonth.of(2023, Month.MAY)) shouldBe emptyList()
     }
 
     @Test
     fun `januar 2021`() {
-        formuegrenserFactoryTest.forMåned(januar(2021)) shouldBe FormuegrenseForMåned(
+        formuegrenserFactoryTest(Clock.systemUTC()).forMåned(januar(2021)) shouldBe FormuegrenseForMåned(
             grunnbeløpForMåned = GrunnbeløpForMåned(
                 måned = januar(2021),
                 grunnbeløpPerÅr = 101351,

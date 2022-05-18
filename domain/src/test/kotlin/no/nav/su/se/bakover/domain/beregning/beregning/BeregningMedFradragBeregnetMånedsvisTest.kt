@@ -564,7 +564,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 ),
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.Kapitalinntekt,
-                    månedsbeløp = 21750.0,
+                    månedsbeløp = 20750.0,
                     periode = desember(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,

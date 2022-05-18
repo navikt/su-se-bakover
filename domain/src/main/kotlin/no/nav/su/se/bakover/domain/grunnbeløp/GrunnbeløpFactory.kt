@@ -65,7 +65,7 @@ class GrunnbeløpFactory(
      */
     fun gjeldende(påDato: LocalDate): GrunnbeløpFactory {
         return GrunnbeløpFactory(
-            clock = påDato.fixedClock(), //lager en fixed clock som representerer nåtid for påDato
+            clock = påDato.fixedClock(), // lager en fixed clock som representerer nåtid for påDato
             grunnbeløpsendringer = grunnbeløpsendringer,
         )
     }

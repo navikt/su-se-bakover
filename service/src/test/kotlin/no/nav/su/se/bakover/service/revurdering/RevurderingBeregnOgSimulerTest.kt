@@ -478,7 +478,7 @@ internal class RevurderingBeregnOgSimulerTest {
 
     @Test
     fun `tar med gjeldende grunnlag for avkorting for revurderingsperioden ved beregning`() {
-        val expectedAvkorting = 2 * 21989
+        val expectedAvkorting = 2 * 20946
 
         val tikkendeKlokke = TikkendeKlokke()
 

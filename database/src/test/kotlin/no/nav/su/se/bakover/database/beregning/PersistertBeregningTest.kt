@@ -3,7 +3,9 @@ package no.nav.su.se.bakover.database.beregning
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
@@ -20,16 +22,11 @@ import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
-import no.nav.su.se.bakover.domain.grunnbeløp.Grunnbeløpsendring
-import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.satsFactoryTest
-import org.jetbrains.kotlin.psi.classInitializerVisitor
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.Clock
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -37,10 +34,11 @@ internal class PersistertBeregningTest {
 
     @Test
     fun `serialiserer og derserialiserer beregning`() {
+        val clock = 1.mai(2021).fixedClock()
         val actualBeregning = createBeregning(
-            opprettet = mai(2021).fraOgMed.startOfDay(zoneIdOslo),
+            opprettet = Tidspunkt.now(clock),
             periode = mai(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTest(clock)),
         )
         //language=json
         val expectedJson = """
@@ -125,7 +123,7 @@ internal class PersistertBeregningTest {
         """.trimIndent()
         val actualJson: String = actualBeregning.serialiser()
         JSONAssert.assertEquals(expectedJson, actualJson, true)
-        actualJson.deserialiserBeregning(satsFactoryTest) shouldBe actualBeregning
+        actualJson.deserialiserBeregning(satsFactoryTest(1.mai(2021).fixedClock())) shouldBe actualBeregning
     }
 
     @Test
@@ -197,37 +195,18 @@ internal class PersistertBeregningTest {
 
     @Test
     fun `må kunne hente opp og berike persisterte månedsberegninger selv om g-har endret seg`() {
-        val gammeltGrunnbeløp = SatsFactoryForSupplerendeStønad(
-            clock = Clock.systemUTC(),
-            grunnbeløpsendringer = listOf(
-                Grunnbeløpsendring(1.mai(2014), 1.mai(2014), 88370),
-                Grunnbeløpsendring(1.mai(2015), 1.mai(2015), 90068),
-                Grunnbeløpsendring(1.mai(2016), 1.mai(2016), 92576),
-                Grunnbeløpsendring(1.mai(2017), 1.mai(2017), 93634),
-                Grunnbeløpsendring(1.mai(2018), 1.mai(2018), 96883),
-                Grunnbeløpsendring(1.mai(2019), 1.mai(2019), 99858),
-                Grunnbeløpsendring(1.mai(2020), 1.mai(2020), 101351),
-            ),
-        )
+        val gammeltGrunnbeløp = satsFactoryTest(clock = 30.april(2020).fixedClock(),)
+
         val beregningMedGammelG = createBeregning(
             periode = Periode.create(1.januar(2020), 31.desember(2022)),
-            opprettet = 3.mars(2021).startOfDay(zoneIdOslo),
+            opprettet = 3.mars(2020).startOfDay(zoneIdOslo),
             begrunnelse = "davai",
             strategy = BeregningStrategy.BorAlene(gammeltGrunnbeløp),
         )
 
-        val nyttGrunnbeløp = SatsFactoryForSupplerendeStønad(
-            clock = Clock.systemUTC(),
-            grunnbeløpsendringer = listOf(
-                Grunnbeløpsendring(1.mai(2014), 1.mai(2014), 88370),
-                Grunnbeløpsendring(1.mai(2015), 1.mai(2015), 90068),
-                Grunnbeløpsendring(1.mai(2016), 1.mai(2016), 92576),
-                Grunnbeløpsendring(1.mai(2017), 1.mai(2017), 93634),
-                Grunnbeløpsendring(1.mai(2018), 1.mai(2018), 96883),
-                Grunnbeløpsendring(1.mai(2019), 1.mai(2019), 99858),
-                Grunnbeløpsendring(1.mai(2020), 1.mai(2020), 101351),
-            ),
-        )
+        val nyttGrunnbeløp = satsFactoryTest(clock = 1.mai(2020).fixedClock())
+
+        gammeltGrunnbeløp.grunnbeløp(mai(2020)) shouldNotBe nyttGrunnbeløp.grunnbeløp(mai(2020))
 
         beregningMedGammelG.serialiser().deserialiserBeregning(nyttGrunnbeløp) shouldBe beregningMedGammelG
     }
