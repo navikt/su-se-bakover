@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
-import no.nav.su.se.bakover.web.routes.søknad.uføresøknadPath
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
@@ -109,7 +108,7 @@ private fun ApplicationTestBuilder.nySøknad(
     return runBlocking {
         defaultRequest(
             HttpMethod.Post,
-            uføresøknadPath,
+            "soknad/ufore",
             listOf(brukerrolle),
         ) {
             setBody(requestJson)
