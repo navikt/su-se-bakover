@@ -5,8 +5,8 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
@@ -46,7 +46,7 @@ class HentSøknadTest {
 
     @Test
     fun `fant søknad`() {
-        val søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()
+        val søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build()
         val søknadId = UUID.randomUUID()
         val søknad = Søknad.Ny(
             id = søknadId,

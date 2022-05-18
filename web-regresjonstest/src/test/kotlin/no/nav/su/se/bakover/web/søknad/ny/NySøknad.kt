@@ -108,7 +108,7 @@ private fun ApplicationTestBuilder.nySøknad(
     return runBlocking {
         defaultRequest(
             HttpMethod.Post,
-            "/soknad",
+            "soknad/ufore",
             listOf(brukerrolle),
         ) {
             setBody(requestJson)

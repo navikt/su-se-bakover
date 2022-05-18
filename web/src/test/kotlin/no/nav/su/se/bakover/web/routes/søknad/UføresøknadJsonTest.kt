@@ -18,7 +18,7 @@ import org.skyscreamer.jsonassert.JSONAssert
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-internal class SøknadJsonTest {
+internal class UføresøknadJsonTest {
     companion object {
         internal val søknad = Søknad.Ny(
             sakId = sakId,
@@ -37,6 +37,7 @@ internal class SøknadJsonTest {
           "sakId": "$sakId",
           "opprettet": "$opprettetTidspunkt",
           "søknadInnhold": {
+            "type": "uføre",
             "uførevedtak":{
                 "harUførevedtak":true
             },

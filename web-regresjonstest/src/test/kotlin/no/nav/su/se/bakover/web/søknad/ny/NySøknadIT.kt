@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb
 import no.nav.su.se.bakover.web.sak.assertSakJson
 import no.nav.su.se.bakover.web.sak.hent.hentSak
-import no.nav.su.se.bakover.web.søknad.digitalSøknadJson
+import no.nav.su.se.bakover.web.søknad.digitalUføreSøknadJson
 import no.nav.su.se.bakover.web.søknad.papirsøknadJson
 import org.junit.jupiter.api.Test
 
@@ -31,7 +31,7 @@ internal class NySøknadIT {
             assertSakJson(
                 actualSakJson = actualSakJson,
                 expectedSaksnummer = 2021,
-                expectedSøknader = "[${digitalSøknadJson(fnr)}]",
+                expectedSøknader = "[${digitalUføreSøknadJson(fnr)}]",
             )
         }
     }
