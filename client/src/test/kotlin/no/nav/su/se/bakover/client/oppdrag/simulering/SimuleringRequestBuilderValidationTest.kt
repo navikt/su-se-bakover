@@ -4,16 +4,14 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.utbetalingslinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import org.junit.jupiter.api.Test
 import org.xml.sax.helpers.DefaultHandler
@@ -43,13 +41,10 @@ internal class SimuleringRequestBuilderValidationTest {
                     saksnummer = saksnummer,
                     sakId = sakId,
                     utbetalingslinjer = nonEmptyListOf(
-                        Utbetalingslinje.Ny(
-                            opprettet = fixedTidspunkt,
-                            fraOgMed = 1.januar(2020),
-                            tilOgMed = 31.januar(2020),
+                        utbetalingslinje(
+                            periode = januar(2020),
                             beløp = 10,
                             forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid,
-                            uføregrad = Uføregrad.parse(50),
                         ),
                     ),
                     fnr = Fnr("12345678910"),
@@ -62,7 +57,7 @@ internal class SimuleringRequestBuilderValidationTest {
             ),
         ).build().request
 
-        val skjema = this::class.java.getResource("/simulering/simulerFpServiceServiceTypes.xsd").toURI()
+        val skjema = this::class.java.getResource("/simulering/simulerFpServiceServiceTypes.xsd")!!.toURI()
         val s: Schema = SchemaFactory
             .newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
             .newSchema(File(skjema))

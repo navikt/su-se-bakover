@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
@@ -136,6 +137,7 @@ internal fun Utbetalingslinje.toOppdragslinjeForKonsistensavstemming(attestanter
         forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
         beløp = beløp,
         attestanter = attestanter,
+        kjøreplan = kjøreplan
     )
 }
 
@@ -164,4 +166,5 @@ data class OppdragslinjeForKonsistensavstemming(
     var forrigeUtbetalingslinjeId: UUID30?,
     val beløp: Int,
     val attestanter: NonEmptyList<NavIdentBruker>,
+    val kjøreplan: Utbetalingskjøreplan
 )

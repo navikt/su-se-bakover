@@ -101,7 +101,6 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontr
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.regulering.BeregnOgSimulerFeilet
 import no.nav.su.se.bakover.service.regulering.BeregnRequest
 import no.nav.su.se.bakover.service.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.service.regulering.KunneIkkeOppretteRegulering
@@ -894,10 +893,6 @@ open class AccessCheckProxy(
             reguleringService = object : ReguleringService {
                 override fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
                     return services.reguleringService.startRegulering(startDato)
-                }
-
-                override fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering> {
-                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, Regulering.AvsluttetRegulering> {

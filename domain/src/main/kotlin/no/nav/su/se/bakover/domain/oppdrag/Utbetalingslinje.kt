@@ -19,6 +19,12 @@ sealed class Utbetalingslinje {
     abstract val beløp: Int
     abstract val periode: Periode
     abstract val uføregrad: Uføregrad?
+    abstract val kjøreplan: Utbetalingskjøreplan
+
+    companion object {
+        /** Vi ønsker bare å bruke kjøreplan ved etterbetaling i noen spesifikke tilfeller som f.eks. regulering. */
+        private val defaultKjøreplan = Utbetalingskjøreplan.NEI
+    }
 
     data class Ny(
         override val id: UUID30 = UUID30.randomUUID(),
@@ -28,6 +34,7 @@ sealed class Utbetalingslinje {
         override var forrigeUtbetalingslinjeId: UUID30?,
         override val beløp: Int,
         override val uføregrad: Uføregrad?,
+        override val kjøreplan: Utbetalingskjøreplan = defaultKjøreplan
     ) : Utbetalingslinje() {
 
         @JsonIgnore
@@ -55,6 +62,7 @@ sealed class Utbetalingslinje {
             override val beløp: Int,
             override val virkningstidspunkt: LocalDate,
             override val uføregrad: Uføregrad?,
+            override val kjøreplan: Utbetalingskjøreplan = defaultKjøreplan
         ) : Endring() {
             override val linjeStatus = LinjeStatus.OPPHØR
 
@@ -74,6 +82,7 @@ sealed class Utbetalingslinje {
                 beløp = utbetalingslinje.beløp,
                 virkningstidspunkt = virkningstidspunkt,
                 uføregrad = utbetalingslinje.uføregrad,
+                kjøreplan = utbetalingslinje.kjøreplan,
             )
         }
 
@@ -86,6 +95,7 @@ sealed class Utbetalingslinje {
             override val beløp: Int,
             override val virkningstidspunkt: LocalDate,
             override val uføregrad: Uføregrad?,
+            override val kjøreplan: Utbetalingskjøreplan = defaultKjøreplan
         ) : Endring() {
             override val linjeStatus = LinjeStatus.STANS
 
@@ -105,6 +115,7 @@ sealed class Utbetalingslinje {
                 beløp = utbetalingslinje.beløp,
                 virkningstidspunkt = virkningstidspunkt,
                 uføregrad = utbetalingslinje.uføregrad,
+                kjøreplan = utbetalingslinje.kjøreplan,
             )
         }
 
@@ -117,6 +128,7 @@ sealed class Utbetalingslinje {
             override val beløp: Int,
             override val virkningstidspunkt: LocalDate,
             override val uføregrad: Uføregrad?,
+            override val kjøreplan: Utbetalingskjøreplan = defaultKjøreplan
         ) : Endring() {
             override val linjeStatus = LinjeStatus.REAKTIVERING
 
@@ -136,6 +148,7 @@ sealed class Utbetalingslinje {
                 beløp = utbetalingslinje.beløp,
                 virkningstidspunkt = virkningstidspunkt,
                 uføregrad = utbetalingslinje.uføregrad,
+                kjøreplan = utbetalingslinje.kjøreplan,
             )
         }
 

@@ -10,20 +10,18 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.client.oppdrag.toAvstemmingsdatoFormat
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
@@ -32,6 +30,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
+import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.math.BigDecimal
@@ -144,14 +143,9 @@ class AvstemmingPublisherTest {
                 saksnummer = saksnummer,
                 sakId = sakId,
                 utbetalingslinjer = nonEmptyListOf(
-                    Utbetalingslinje.Ny(
-                        id = UUID30.randomUUID(),
-                        opprettet = Tidspunkt.EPOCH,
-                        fraOgMed = 1.januar(2021),
-                        tilOgMed = 31.januar(2021),
-                        forrigeUtbetalingslinjeId = null,
+                    utbetalingslinje(
+                        periode = januar(2021),
                         beløp = 5000,
-                        uføregrad = Uføregrad.parse(50),
                     ),
                 ),
                 fnr = Fnr("12345678910"),

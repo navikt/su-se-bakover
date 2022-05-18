@@ -54,7 +54,7 @@ internal class UtbetalingKvitteringResponseTest {
                         sats = "20637",
                         fradragTillegg = UtbetalingRequest.Oppdragslinje.FradragTillegg.TILLEGG,
                         typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND,
-                        brukKjoreplan = "N",
+                        brukKjoreplan = UtbetalingRequest.Oppdragslinje.Kjøreplan.NEI,
                         saksbehId = "SU",
                         utbetalesTilId = "18127621833",
                         refDelytelseId = null,

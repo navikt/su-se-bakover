@@ -6,14 +6,16 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.utbetalingslinje
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
@@ -33,21 +35,15 @@ class UtbetalingXmlMappingTest {
         )
     }
 
-    private val førsteUtbetalingsLinje = Utbetalingslinje.Ny(
-        opprettet = fixedTidspunkt,
-        fraOgMed = 1.januar(2020),
-        tilOgMed = 31.januar(2020),
+    private val førsteUtbetalingsLinje = utbetalingslinje(
+        periode = januar(2020),
         beløp = 10,
-        forrigeUtbetalingslinjeId = null,
-        uføregrad = Uføregrad.parse(50),
     )
-    private val andreUtbetalingslinje = Utbetalingslinje.Ny(
-        opprettet = fixedTidspunkt,
-        fraOgMed = 1.februar(2020),
-        tilOgMed = 29.februar(2020),
+    private val andreUtbetalingslinje = utbetalingslinje(
+        periode = februar(2020),
         beløp = 20,
         forrigeUtbetalingslinjeId = førsteUtbetalingsLinje.id,
-        uføregrad = Uføregrad.parse(60),
+        uføregrad = 60,
     )
 
     private val tredjeUtbetalingslinje = Utbetalingslinje.Endring.Opphør(

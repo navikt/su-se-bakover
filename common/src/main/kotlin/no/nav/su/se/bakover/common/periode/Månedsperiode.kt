@@ -13,9 +13,20 @@ data class Månedsperiode(
     /** Brukes for å deserialisere fra json */
     @JsonCreator
     constructor(fraOgMed: LocalDate, tilOgMed: LocalDate) : this(YearMonth.of(fraOgMed.year, fraOgMed.month)) {
-        require(fraOgMed.year == tilOgMed.year)
-        require(fraOgMed.month == tilOgMed.month)
+        require(fraOgMed.year == tilOgMed.year) {
+            "fraOgMed og tilOgMed må være innenfor samme år"
+        }
+        require(fraOgMed.month == tilOgMed.month) {
+            "fraOgMed og tilOgMed må være innenfor samme måned"
+        }
         validateOrThrow(fraOgMed, tilOgMed)
+    }
+
+    operator fun rangeTo(that: Månedsperiode): Periode {
+        if (this == that) return this
+        return create(this.fraOgMed, that.tilOgMed).also {
+            require(this.før(that))
+        }
     }
 
     override fun equals(other: Any?) = super.equals(other)

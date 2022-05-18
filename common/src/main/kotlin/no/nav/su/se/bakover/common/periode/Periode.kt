@@ -151,7 +151,7 @@ open class Periode private constructor(
         @JvmStatic
         protected fun validateOrThrow(fraOgMed: LocalDate, tilOgMed: LocalDate) {
             validate(fraOgMed, tilOgMed).tapLeft {
-                throw throw IllegalArgumentException(it.toString())
+                throw IllegalArgumentException(it.toString())
             }
         }
 

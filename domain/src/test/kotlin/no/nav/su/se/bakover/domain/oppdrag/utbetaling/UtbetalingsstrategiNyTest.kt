@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
@@ -88,6 +89,7 @@ internal class UtbetalingsstrategiNyTest {
             utbetalinger = listOf(),
             clock = fixedClock,
             uføregrunnlag = uføregrunnlagListe,
+            kjøreplan = Utbetalingskjøreplan.NEI,
         ).generate()
 
         val first = actual.utbetalingslinjer.first()
@@ -164,7 +166,8 @@ internal class UtbetalingsstrategiNyTest {
                 tilOgMed = 31.desember(2020),
             ),
             clock = fixedClock,
-            uføregrunnlagListe,
+            uføregrunnlag = uføregrunnlagListe,
+            kjøreplan = Utbetalingskjøreplan.NEI,
         ).generate()
 
         nyUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
@@ -312,7 +315,8 @@ internal class UtbetalingsstrategiNyTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             beregning = createBeregning(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
             clock = fixedClock,
-            uføregrunnlagListe,
+            uføregrunnlag = uføregrunnlagListe,
+            kjøreplan = Utbetalingskjøreplan.NEI,
         ).generate()
         actualUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
             id = actualUtbetaling.id,
@@ -388,7 +392,8 @@ internal class UtbetalingsstrategiNyTest {
                 )
             ),
             clock = fixedClock,
-            uføregrunnlagListe,
+            uføregrunnlag = uføregrunnlagListe,
+            kjøreplan = Utbetalingskjøreplan.NEI,
         ).generate()
         actualUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
             id = actualUtbetaling.id,
@@ -445,6 +450,7 @@ internal class UtbetalingsstrategiNyTest {
                 clock = fixedClock,
                 beregning = BeregningMedTomMånedsbereninger,
                 uføregrunnlag = uføreList,
+                kjøreplan = Utbetalingskjøreplan.NEI,
             ).generate()
         }
     }
@@ -471,6 +477,7 @@ internal class UtbetalingsstrategiNyTest {
                 clock = fixedClock,
                 beregning = BeregningMedTomMånedsbereninger,
                 uføregrunnlag = uføreList,
+                kjøreplan = Utbetalingskjøreplan.NEI,
             ).generate()
         }
     }
@@ -504,6 +511,7 @@ internal class UtbetalingsstrategiNyTest {
                 clock = fixedClock,
                 beregning = BeregningMedTomMånedsbereninger,
                 uføregrunnlag = uføreList,
+                kjøreplan = Utbetalingskjøreplan.NEI,
             ).generate()
         }
     }
@@ -520,6 +528,7 @@ internal class UtbetalingsstrategiNyTest {
                 clock = fixedClock,
                 beregning = createBeregning(1.januar(2021), 31.desember(2021)),
                 uføregrunnlag = emptyList(),
+                kjøreplan = Utbetalingskjøreplan.NEI,
             ).generate()
         }
     }
@@ -567,6 +576,7 @@ internal class UtbetalingsstrategiNyTest {
                     )
                 ),
                 uføregrunnlag = emptyList(),
+                kjøreplan = Utbetalingskjøreplan.NEI,
             ).generate()
         }
     }
@@ -592,6 +602,7 @@ internal class UtbetalingsstrategiNyTest {
             clock = fixedClock,
             beregning = createBeregning(1.mai(2021), 31.desember(2021)),
             uføregrunnlag = uføreList,
+            kjøreplan = Utbetalingskjøreplan.NEI,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 1
@@ -639,6 +650,7 @@ internal class UtbetalingsstrategiNyTest {
             clock = fixedClock,
             beregning = createBeregning(1.mai(2021), 31.desember(2021)),
             uføregrunnlag = uføreList,
+            kjøreplan = Utbetalingskjøreplan.NEI,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 2
@@ -718,6 +730,7 @@ internal class UtbetalingsstrategiNyTest {
                 )
             ),
             uføregrunnlag = uføreList,
+            kjøreplan = Utbetalingskjøreplan.NEI,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 3
@@ -813,6 +826,7 @@ internal class UtbetalingsstrategiNyTest {
                 )
             ),
             uføregrunnlag = uføreList,
+            kjøreplan = Utbetalingskjøreplan.NEI,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 3
@@ -872,6 +886,7 @@ internal class UtbetalingsstrategiNyTest {
                 clock = fixedClock,
                 beregning = createBeregning(1.januar(2021), 31.desember(2021)),
                 uføregrunnlag = uføreList,
+                kjøreplan = Utbetalingskjøreplan.NEI,
             ).generate()
         }.also {
             it.message shouldContain "Uføregrunnlaget inneholder ikke alle beregningsperiodene. Grunnlagsperiodene:"
@@ -906,6 +921,7 @@ internal class UtbetalingsstrategiNyTest {
             clock = fixedClock,
             beregning = createBeregning(1.juni(2021), 31.desember(2021)),
             uføregrunnlag = uføreList,
+            kjøreplan = Utbetalingskjøreplan.NEI,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 1
@@ -953,6 +969,7 @@ internal class UtbetalingsstrategiNyTest {
             clock = fixedClock,
             beregning = createBeregning(1.juni(2021), 30.november(2021)),
             uføregrunnlag = uføreList,
+            kjøreplan = Utbetalingskjøreplan.NEI,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 1

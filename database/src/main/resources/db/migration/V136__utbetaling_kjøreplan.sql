@@ -1,0 +1,1 @@
+alter table utbetalingslinje add column if not exists kjøreplan bool not null default false;

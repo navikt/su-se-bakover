@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
@@ -113,7 +114,11 @@ internal class UtbetalingPostgresRepo(
             "utbetalingId" to utbetalingId,
             "forrigeUtbetalingslinjeId" to utbetalingslinje.forrigeUtbetalingslinjeId,
             "belop" to utbetalingslinje.beløp,
-            "uforegrad" to utbetalingslinje.uføregrad?.value
+            "uforegrad" to utbetalingslinje.uføregrad?.value,
+            "kjoreplan" to when (utbetalingslinje.kjøreplan) {
+                Utbetalingskjøreplan.JA -> true
+                Utbetalingskjøreplan.NEI -> false
+            },
         )
 
         val params = when (utbetalingslinje) {
@@ -128,8 +133,8 @@ internal class UtbetalingPostgresRepo(
             is Utbetalingslinje.Ny -> baseParams
         }
         """
-            insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp, status, statusFraOgMed, uføregrad)
-            values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop, :status, :statusFraOgMed, :uforegrad)
+            insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp, status, statusFraOgMed, uføregrad, kjøreplan)
+            values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop, :status, :statusFraOgMed, :uforegrad, :kjoreplan)
         """.insert(params, session)
 
         return utbetalingslinje

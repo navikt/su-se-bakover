@@ -34,19 +34,7 @@ sealed class KunneIkkeRegulereManuelt {
 }
 
 sealed class BeregnOgSimulerFeilet {
-    object FantIkkeRegulering : BeregnOgSimulerFeilet()
-    object KunneIkkeBeregne : BeregnOgSimulerFeilet()
     object KunneIkkeSimulere : BeregnOgSimulerFeilet()
-}
-
-sealed class KunneIkkeIverksetteRegulering {
-    object ReguleringErAlleredeIverksatt : KunneIkkeIverksetteRegulering()
-    object FantIkkeRegulering : KunneIkkeIverksetteRegulering()
-}
-
-sealed class KunneIkkeLeggeTilFradrag {
-    object ReguleringErAlleredeIverksatt : KunneIkkeLeggeTilFradrag()
-    object FantIkkeRegulering : KunneIkkeLeggeTilFradrag()
 }
 
 sealed class KunneIkkeOppretteRegulering {
@@ -63,7 +51,6 @@ sealed class KunneIkkeAvslutte {
 
 interface ReguleringService {
     fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>>
-    fun beregnOgSimuler(request: BeregnRequest): Either<BeregnOgSimulerFeilet, Regulering.OpprettetRegulering>
     fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, Regulering.AvsluttetRegulering>
     fun hentStatus(): List<Regulering>
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>

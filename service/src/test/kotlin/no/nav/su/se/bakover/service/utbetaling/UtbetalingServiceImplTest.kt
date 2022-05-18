@@ -10,16 +10,16 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringNy
 import no.nav.su.se.bakover.test.simuleringOpphørt
 import no.nav.su.se.bakover.test.simuleringStans
+import no.nav.su.se.bakover.test.utbetalingslinje
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Nested
@@ -55,13 +56,9 @@ internal class UtbetalingServiceImplTest {
     private val avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt)
 
     private val dummyUtbetalingslinjer = nonEmptyListOf(
-        Utbetalingslinje.Ny(
-            opprettet = fixedTidspunkt,
-            fraOgMed = 1.januar(2020),
-            tilOgMed = 31.januar(2020),
-            forrigeUtbetalingslinjeId = null,
+        utbetalingslinje(
+            periode = januar(2020),
             beløp = 0,
-            uføregrad = Uføregrad.parse(50),
         ),
     )
 
@@ -183,14 +180,10 @@ internal class UtbetalingServiceImplTest {
         @Test
         fun `henter utbetalingslinjen som gjelder for datoen som sendes inn`() {
             val expectedGjeldendeUtbetalingslinje =
-                Utbetalingslinje.Ny(
+                utbetalingslinje(
                     id = UUID30.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.januar(2020),
-                    forrigeUtbetalingslinjeId = null,
+                    periode = januar(2020),
                     beløp = 53821,
-                    uføregrad = Uføregrad.parse(50),
                 )
 
             val utbetalingRepoMock = mock<UtbetalingRepo> {
@@ -198,23 +191,13 @@ internal class UtbetalingServiceImplTest {
                     utbetalingForSimulering.copy(
                         utbetalingslinjer = nonEmptyListOf(
                             expectedGjeldendeUtbetalingslinje,
-                            Utbetalingslinje.Ny(
-                                id = UUID30.randomUUID(),
-                                opprettet = fixedTidspunkt,
-                                fraOgMed = 1.februar(2020),
-                                tilOgMed = 29.februar(2020),
-                                forrigeUtbetalingslinjeId = null,
+                            utbetalingslinje(
+                                periode = februar(2020),
                                 beløp = 53821,
-                                uføregrad = Uføregrad.parse(50),
                             ),
-                            Utbetalingslinje.Ny(
-                                id = UUID30.randomUUID(),
-                                opprettet = fixedTidspunkt,
-                                fraOgMed = 1.mars(2020),
-                                tilOgMed = 31.mars(2020),
-                                forrigeUtbetalingslinjeId = null,
+                            utbetalingslinje(
+                                periode = mars(2020),
                                 beløp = 53821,
-                                uføregrad = Uføregrad.parse(50),
                             ),
                         ),
                     ),
