@@ -100,7 +100,7 @@ internal class SakPostgresRepo(
         return dbMetrics.timeQuery("opprettSak") {
             sessionFactory.withSession { session ->
                 """
-                with inserted_sak as (insert into sak (id, fnr, opprettet) values (:sakId, :fnr, :opprettet))
+                with inserted_sak as (insert into sak (id, fnr, opprettet, type) values (:sakId, :fnr, :opprettet, :type))
                 insert into søknad (id, sakId, søknadInnhold, opprettet) values (:soknadId, :sakId, to_json(:soknad::json), :opprettet)
                 """.insert(
                     mapOf(
@@ -109,6 +109,7 @@ internal class SakPostgresRepo(
                         "opprettet" to sak.opprettet,
                         "soknadId" to sak.søknad.id,
                         "soknad" to objectMapper.writeValueAsString(sak.søknad.søknadInnhold),
+                        "type" to sak.søknad.type.value
                     ),
                     session,
                 )
