@@ -6,7 +6,6 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
@@ -23,7 +22,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -91,7 +90,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
                 saksbehandler = saksbehandler,
                 beregning = beregnetBehandling.beregning,
                 uføregrunnlag = emptyList(),
-                kjøreplan = Utbetalingskjøreplan.NEI,
+                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
             ),
         )
         verify(søknadsbehandlingRepoMock).lagre(expected)
@@ -144,7 +143,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
                 saksbehandler = saksbehandler,
                 beregning = beregnetBehandling.beregning,
                 uføregrunnlag = emptyList(),
-                kjøreplan = Utbetalingskjøreplan.NEI,
+                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
             ),
         )
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, utbetalingServiceMock)

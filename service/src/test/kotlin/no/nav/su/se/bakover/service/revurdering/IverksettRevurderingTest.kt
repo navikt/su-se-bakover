@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.kontrollsamtale.UgyldigStatusovergang
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -89,7 +89,7 @@ internal class IverksettRevurderingTest {
                         saksbehandler = attestant,
                         beregning = revurderingTilAttestering.beregning,
                         uføregrunnlag = revurderingTilAttestering.vilkårsvurderinger.uføre.grunnlag,
-                        kjøreplan = Utbetalingskjøreplan.NEI,
+                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                     ),
                     simulering = revurderingTilAttestering.simulering,
                 )

@@ -177,7 +177,7 @@ internal class UtbetalingServiceImpl(
             beregning = request.beregning,
             uføregrunnlag = request.uføregrunnlag,
             clock = clock,
-            kjøreplan = request.kjøreplan,
+            kjøreplan = request.utbetalingsinstruksjonForEtterbetaling,
         ).generate()
 
         val simuleringsperiode = request.beregning.periode

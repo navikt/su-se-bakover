@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
@@ -41,7 +41,7 @@ fun utbetalingslinje(
     beløp: Int = 15000,
     forrigeUtbetalingslinjeId: UUID30? = null,
     uføregrad: Int = 50,
-    kjøreplan: Utbetalingskjøreplan = Utbetalingskjøreplan.NEI,
+    kjøreplan: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
 ) = Utbetalingslinje.Ny(
     id = id,
     opprettet = Tidspunkt.now(clock),
@@ -50,7 +50,7 @@ fun utbetalingslinje(
     forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
     beløp = beløp,
     uføregrad = Uføregrad.parse(uføregrad),
-    kjøreplan = kjøreplan,
+    utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
 )
 
 fun nyUtbetalingForSimulering(
@@ -75,7 +75,7 @@ fun nyUtbetalingForSimulering(
                     vilkår.uføre.grunnlag
                 }
             },
-            kjøreplan = Utbetalingskjøreplan.NEI,
+            kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
         ).generate()
     }
 }

@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
@@ -707,7 +707,7 @@ internal class RevurderingServiceImpl(
                                 saksbehandler = saksbehandler,
                                 beregning = beregnetRevurdering.beregning,
                                 uføregrunnlag = beregnetRevurdering.vilkårsvurderinger.uføre.grunnlag,
-                                kjøreplan = Utbetalingskjøreplan.NEI,
+                                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                             ),
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
@@ -1251,7 +1251,7 @@ internal class RevurderingServiceImpl(
                                 saksbehandler = attestant,
                                 beregning = revurdering.beregning,
                                 uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
-                                kjøreplan = Utbetalingskjøreplan.NEI,
+                                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                             ),
                             simulering = revurdering.simulering,
                         ),

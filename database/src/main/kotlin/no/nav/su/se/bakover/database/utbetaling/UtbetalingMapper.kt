@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -28,8 +27,7 @@ data class UtbetalingMapper(
     val utbetalingsrequest: Utbetalingsrequest,
     val kvittering: Kvittering?,
     val avstemmingId: UUID30?,
-    val behandler: NavIdentBruker,
-    val kjøretøy: Utbetalingskjøreplan = Utbetalingskjøreplan.NEI
+    val behandler: NavIdentBruker
 ) {
     fun map(): Utbetaling.OversendtUtbetaling = when (kvittering) {
         null -> {

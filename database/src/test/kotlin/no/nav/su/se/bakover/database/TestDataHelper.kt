@@ -74,7 +74,7 @@ import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -166,7 +166,7 @@ internal val avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt)
 
 internal fun utbetalingslinje(
     periode: Periode = stønadsperiode2021.periode,
-    kjøreplan: Utbetalingskjøreplan = Utbetalingskjøreplan.NEI
+    kjøreplan: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig
 ): Utbetalingslinje.Ny {
     return no.nav.su.se.bakover.test.utbetalingslinje(
         periode = periode,
