@@ -42,6 +42,7 @@ object ServiceBuilder {
         satsFactory: SatsFactory,
     ): Services {
         val personService = PersonServiceImpl(clients.personOppslag)
+        val toggleService = ToggleServiceImpl(unleash)
         val statistikkService = StatistikkServiceImpl(
             publisher = clients.kafkaPublisher,
             personService = personService,
@@ -86,6 +87,7 @@ object ServiceBuilder {
             personService = personService,
             oppgaveService = oppgaveService,
             søknadMetrics = søknadMetrics,
+            toggleService = toggleService,
             clock = clock,
         ).apply {
             addObserver(statistikkService)
@@ -119,7 +121,6 @@ object ServiceBuilder {
             tilbakekrevingClient = clients.tilbakekrevingClient,
         )
 
-        val toggleService = ToggleServiceImpl(unleash)
         val revurderingService = RevurderingServiceImpl(
             utbetalingService = utbetalingService,
             revurderingRepo = databaseRepos.revurderingRepo,

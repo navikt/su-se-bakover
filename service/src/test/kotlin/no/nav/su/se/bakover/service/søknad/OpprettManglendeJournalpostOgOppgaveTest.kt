@@ -81,6 +81,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             personService = mock(),
             oppgaveService = mock(),
             søknadMetrics = mock(),
+            toggleService = mock(),
             clock = fixedClock,
         )
 
@@ -117,6 +118,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             personService = mock(),
             oppgaveService = mock(),
             søknadMetrics = mock(),
+            toggleService = mock(),
             clock = fixedClock,
         )
 
@@ -162,6 +164,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             personService = personServiceMock,
             oppgaveService = mock(),
             søknadMetrics = mock(),
+            toggleService = mock(),
             clock = fixedClock,
         )
 
@@ -213,6 +216,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             personService = personServiceMock,
             oppgaveService = mock(),
             søknadMetrics = mock(),
+            toggleService = mock(),
             clock = fixedClock,
         )
 
@@ -275,6 +279,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             søknadMetrics = mock(),
+            toggleService = mock(),
             clock = fixedClock,
         )
 
@@ -348,6 +353,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             søknadMetrics = mock(),
+            toggleService = mock(),
             clock = fixedClock,
         )
 

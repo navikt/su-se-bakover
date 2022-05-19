@@ -4,6 +4,7 @@ import arrow.core.Either
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
+import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -22,6 +23,7 @@ import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
+import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
@@ -63,21 +65,25 @@ internal fun Route.søknadRoutes(
 ) {
     post("$søknadPath/{type}") {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
-            call.withStringParam("type") {
+            call.withStringParam("type") { type ->
                 Either.catch { deserialize<SøknadsinnholdJson>(call) }.fold(
                     ifLeft = {
                         call.application.environment.log.info(it.message, it)
                         call.svar(Feilresponser.ugyldigBody)
                     },
-                    ifRight = {
-                        val identBruker = when (it.forNav) {
+                    ifRight = { søknadsinnholdJson ->
+                        val identBruker = when (søknadsinnholdJson.forNav) {
                             is DigitalSøknad -> NavIdentBruker.Veileder(call.suUserContext.navIdent)
                             is Papirsøknad -> NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
                         }
-                        søknadService.nySøknad(it.toSøknadsinnhold(), identBruker).fold(
-                            { call.svar(Feilresponser.fantIkkePerson) },
+                        søknadService.nySøknad(søknadsinnholdJson.toSøknadsinnhold(), identBruker).fold(
+                            { call.svar(it.tilResultat(type)) },
                             { (saksnummer, søknad) ->
-                                call.audit(søknad.søknadInnhold.personopplysninger.fnr, AuditLogEvent.Action.CREATE, null)
+                                call.audit(
+                                    søknad.søknadInnhold.personopplysninger.fnr,
+                                    AuditLogEvent.Action.CREATE,
+                                    null,
+                                )
                                 call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
                                 SuMetrics.søknadMottatt(
                                     if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad)
@@ -227,4 +233,12 @@ internal fun Route.søknadRoutes(
             }
         }
     }
+}
+
+private fun KunneIkkeOppretteSøknad.tilResultat(type: String) = when (this) {
+    KunneIkkeOppretteSøknad.FantIkkePerson -> Feilresponser.fantIkkePerson
+    KunneIkkeOppretteSøknad.SøknadsinnsendingIkkeTillatt -> Forbidden.errorJson(
+        "Innsending av type søknad $type, er ikke tillatt",
+        "innsending_av_søknad_ikke_tillatt",
+    )
 }
