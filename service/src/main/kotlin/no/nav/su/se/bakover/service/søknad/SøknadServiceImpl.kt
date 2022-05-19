@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
@@ -73,38 +72,38 @@ internal class SøknadServiceImpl(
             log.error("Ny søknad: Personen har et nyere fødselsnummer i PDL enn det som ble sendt inn. Bruker det nyeste fødselsnummeret istedet. Personoppslaget burde ha returnert det nyeste fødselsnummeret og bør sjekkes opp.")
         }
 
-        val (sak: Sak, søknad: Søknad.Ny) = sakService.hentSak(fnr).fold(
+        val (saksnummer: Saksnummer, søknad: Søknad.Ny) = sakService.hentSakidOgSaksnummer(fnr).fold(
             {
                 log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
                 val nySak = sakFactory.nySakMedNySøknad(fnr, søknadsinnholdMedNyesteFødselsnummer).also {
                     sakService.opprettSak(it)
                 }
-                val opprettetSak =
-                    sakService.hentSak(fnr).getOrElse { throw RuntimeException("Feil ved henting av sak") }
-                Pair(opprettetSak, nySak.søknad)
+                val sakIdSaksnummerFnr =
+                    sakService.hentSakidOgSaksnummer(fnr).getOrElse { throw RuntimeException("Feil ved henting av sak") }
+                Pair(sakIdSaksnummerFnr.saksnummer, nySak.søknad)
             },
             {
                 log.info("Ny søknad: Fant eksisterende sak for fødselsnummmer. Oppretter ny søknad på eksisterende sak.")
                 val søknad = Søknad.Ny(
-                    sakId = it.id,
+                    sakId = it.sakId,
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
                     søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
                 )
                 søknadRepo.opprettSøknad(søknad, identBruker)
 
-                Pair(it.copy(søknader = (it.søknader + søknad)), søknad)
+                Pair(it.saksnummer, søknad)
             },
         )
         // Ved å gjøre increment først, kan vi lage en alert dersom vi får mismatch på dette.
         søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
-        opprettJournalpostOgOppgave(sak, person, søknad)
+        opprettJournalpostOgOppgave(saksnummer, person, søknad)
         observers.forEach { observer ->
             observer.handle(
-                Event.Statistikk.SøknadStatistikk.SøknadMottatt(søknad, sak.saksnummer),
+                Event.Statistikk.SøknadStatistikk.SøknadMottatt(søknad, saksnummer),
             )
         }
-        return Pair(sak.saksnummer, søknad).right()
+        return Pair(saksnummer, søknad).right()
     }
 
     override fun lukkSøknad(søknad: Søknad.Journalført.MedOppgave.Lukket, sessionContext: SessionContext) {
@@ -157,12 +156,12 @@ internal class SøknadServiceImpl(
     }
 
     private fun opprettJournalpostOgOppgave(
-        sak: Sak,
+        saksnummer: Saksnummer,
         person: Person,
         søknad: Søknad.Ny,
     ) {
         // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
-        opprettJournalpost(sak.saksnummer, søknad, person).map { journalførtSøknad ->
+        opprettJournalpost(saksnummer, søknad, person).map { journalførtSøknad ->
             opprettOppgave(journalførtSøknad, person)
         }
     }
