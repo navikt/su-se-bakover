@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -238,7 +238,7 @@ internal class SøknadsbehandlingServiceImpl(
                         saksbehandler = request.saksbehandler,
                         beregning = beregning,
                         uføregrunnlag = saksbehandling.vilkårsvurderinger.uføre.grunnlag,
-                        kjøreplan = Utbetalingskjøreplan.NEI,
+                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                     ),
                 ).map {
                     it.simulering
@@ -395,7 +395,7 @@ internal class SøknadsbehandlingServiceImpl(
                                 saksbehandler = request.attestering.attestant,
                                 beregning = iverksattBehandling.beregning,
                                 uføregrunnlag = iverksattBehandling.vilkårsvurderinger.uføre.grunnlag,
-                                kjøreplan = Utbetalingskjøreplan.NEI,
+                                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                             ),
                             simulering = iverksattBehandling.simulering,
                         ),

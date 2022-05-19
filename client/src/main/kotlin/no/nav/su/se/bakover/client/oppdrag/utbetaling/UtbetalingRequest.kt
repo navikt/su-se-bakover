@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 
 /**
@@ -206,9 +206,9 @@ data class UtbetalingRequest(
                 }
 
                 internal fun Utbetalingslinje.tilKjøreplan(): Kjøreplan {
-                    return when (this.kjøreplan) {
-                        Utbetalingskjøreplan.JA -> Kjøreplan.JA
-                        Utbetalingskjøreplan.NEI -> Kjøreplan.NEI
+                    return when (this.utbetalingsinstruksjonForEtterbetalinger) {
+                        UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling -> Kjøreplan.JA
+                        UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig -> Kjøreplan.NEI
                     }
                 }
             }

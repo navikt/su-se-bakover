@@ -15,7 +15,7 @@ sealed interface SimulerUtbetalingRequest {
     interface NyUtbetalingRequest : SimulerUtbetalingRequest {
         val beregning: Beregning
         val uføregrunnlag: List<Grunnlag.Uføregrunnlag>
-        val kjøreplan: Utbetalingskjøreplan
+        val utbetalingsinstruksjonForEtterbetaling: UtbetalingsinstruksjonForEtterbetalinger
     }
 
     interface OpphørRequest : SimulerUtbetalingRequest {
@@ -35,7 +35,7 @@ sealed interface SimulerUtbetalingRequest {
         override val saksbehandler: NavIdentBruker,
         override val beregning: Beregning,
         override val uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
-        override val kjøreplan: Utbetalingskjøreplan,
+        override val utbetalingsinstruksjonForEtterbetaling: UtbetalingsinstruksjonForEtterbetalinger,
     ) : NyUtbetalingRequest
 
     data class Opphør(

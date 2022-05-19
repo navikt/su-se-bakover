@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
@@ -121,7 +121,7 @@ internal class UtbetalingPostgresRepoTest {
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                     utbetalingslinjer = nonEmptyListOf(
                         utbetalingslinje(
-                            kjøreplan = Utbetalingskjøreplan.JA,
+                            kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
                         )
                     )
                 ).third

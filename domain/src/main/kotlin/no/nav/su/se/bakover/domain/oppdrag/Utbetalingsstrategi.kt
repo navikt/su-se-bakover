@@ -129,7 +129,7 @@ sealed class Utbetalingsstrategi {
         val beregning: Beregning,
         val clock: Clock,
         val uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
-        val kjøreplan: Utbetalingskjøreplan,
+        val kjøreplan: UtbetalingsinstruksjonForEtterbetalinger,
     ) : Utbetalingsstrategi() {
         fun generate(): Utbetaling.UtbetalingForSimulering {
             val utbetalingslinjer = createUtbetalingsperioder(beregning, uføregrunnlag).map {
@@ -140,7 +140,7 @@ sealed class Utbetalingsstrategi {
                     forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
                     beløp = it.beløp,
                     uføregrad = it.uføregrad,
-                    kjøreplan = kjøreplan
+                    utbetalingsinstruksjonForEtterbetalinger = kjøreplan
                 )
             }.also {
                 it.zipWithNext { a, b -> b.link(a) }

@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingskjøreplan
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
@@ -115,9 +115,9 @@ internal class UtbetalingPostgresRepo(
             "forrigeUtbetalingslinjeId" to utbetalingslinje.forrigeUtbetalingslinjeId,
             "belop" to utbetalingslinje.beløp,
             "uforegrad" to utbetalingslinje.uføregrad?.value,
-            "kjoreplan" to when (utbetalingslinje.kjøreplan) {
-                Utbetalingskjøreplan.JA -> true
-                Utbetalingskjøreplan.NEI -> false
+            "kjoreplan" to when (utbetalingslinje.utbetalingsinstruksjonForEtterbetalinger) {
+                UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling -> true
+                UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig -> false
             },
         )
 
