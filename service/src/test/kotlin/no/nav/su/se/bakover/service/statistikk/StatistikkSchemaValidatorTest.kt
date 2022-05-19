@@ -57,7 +57,7 @@ internal class StatistikkSchemaValidatorTest {
                     stonadsklassifisering = Statistikk.Stønadsklassifisering.BOR_ALENE,
                     bruttosats = 10000,
                     nettosats = 5000,
-                    inntekter = listOf(Statistikk.Inntekt("Arbeidsinntekt", 5000)),
+                    inntekter = listOf(Statistikk.Inntekt("Arbeidsinntekt", 5000, "BRUKER", false)),
                     fradragSum = 5000,
                 ),
             ),

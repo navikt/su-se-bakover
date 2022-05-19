@@ -115,6 +115,8 @@ private fun tilMånedsbeløp(
         Statistikk.Inntekt(
             inntektstype = fradrag.fradragstype.toString(),
             beløp = fradrag.månedsbeløp.toLong(),
+            tilhører = fradrag.tilhører.toString(),
+            erUtenlandsk = fradrag.utenlandskInntekt != null
         )
     },
     fradragSum = månedsberegning.getSumFradrag().toLong(),

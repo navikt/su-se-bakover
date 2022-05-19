@@ -43,7 +43,7 @@ internal class KlageinstanshendelsePostgresRepo(
                         .insert(
                             params = mapOf(
                                 "id" to hendelse.id,
-                                "opprettet" to hendelse.opprettet,
+                                /**/"opprettet" to hendelse.opprettet,
                                 "type" to KlageinstanshendelseType.UPROSESSERT.toString(),
                                 "metadata" to hendelse.metadata.toDatabaseJson(),
                             ),

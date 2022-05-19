@@ -96,6 +96,8 @@ internal class StønadsstatistikkMapperTest {
                             Statistikk.Inntekt(
                                 inntektstype = "ForventetInntekt",
                                 beløp = 3000,
+                                tilhører = "BRUKER",
+                                erUtenlandsk = false
                             ),
                         ),
                         fradragSum = 3000,
@@ -111,6 +113,8 @@ internal class StønadsstatistikkMapperTest {
                             Statistikk.Inntekt(
                                 inntektstype = "ForventetInntekt",
                                 beløp = 3000,
+                                tilhører = "BRUKER",
+                                erUtenlandsk = false
                             ),
                         ),
                         fradragSum = 3000,
@@ -159,7 +163,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -172,7 +178,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -185,7 +193,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -198,7 +208,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -211,7 +223,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -224,7 +238,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -237,7 +253,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -250,7 +268,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -263,7 +283,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -276,7 +298,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -289,7 +313,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -302,7 +328,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000

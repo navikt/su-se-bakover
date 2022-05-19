@@ -124,7 +124,15 @@
                 "beløp": {
                   "type": "number",
                   "description": "Inntekten i kroner per måned."
-                }
+                },
+	            "tilhører": {
+		          "type": "string",
+		          "description": "Hvem tilhører inntekten? "
+	            },
+	            "erUtenlandsk": {
+		          "type": "boolean",
+		          "description": "Er inntekten fra utlandet?"
+	            }
               }
             }
           },
