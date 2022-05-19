@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoM�
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -151,15 +152,15 @@ data class Sak(
     }
 
     /**
-     * Brukes for å hente den seneste gjeldenden/brukte månedsberegningen for en gitt måned i saken.
+     * Brukes for å hente den seneste gjeldenden/brukte beregningen for en gitt måned i saken.
      *
      * Per nå så er det kun Vedtak i form av [VedtakSomKanRevurderes.EndringIYtelse] som bidrar til dette, bortsett fra [VedtakSomKanRevurderes.IngenEndringIYtelse] som har
      * andre beregnings-beløp som ikke skal ha en påverkan på saken.
      * */
-    fun hentGjeldendeMånedsberegningForMåned(
+    fun hentGjeldendeBeregningForEndringIYtelse(
         måned: Måned,
         clock: Clock,
-    ): Månedsberegning? {
+    ): Beregning? {
         return GjeldendeVedtaksdata(
             periode = måned,
             vedtakListe = NonEmptyList.fromListUnsafe(
@@ -180,8 +181,6 @@ data class Sak(
                 is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.StansAvYtelse")
                 is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.GjenopptakAvYtelse")
             }
-        }?.let { beregning ->
-            beregning.getMånedsberegninger().associateBy { it.periode }[måned]
         }
     }
 
