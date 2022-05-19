@@ -425,7 +425,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 0
+                          "beløp": 0,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 0
@@ -438,7 +440,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 0
+                          "beløp": 0,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 0
@@ -491,7 +495,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 0
+                          "beløp": 0,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 0
@@ -504,7 +510,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 0
+                          "beløp": 0,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 0
