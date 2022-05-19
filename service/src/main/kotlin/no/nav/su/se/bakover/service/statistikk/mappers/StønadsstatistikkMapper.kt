@@ -93,7 +93,6 @@ private fun mapBeregning(
     val alleFradrag = beregning.tilFradragPerMåned()
     val månedsberegninger = beregning.getMånedsberegninger().associateBy { it.måned }
 
-
     return beregning.periode.måneder().map { måned ->
         Statistikk.Stønad.Månedsbeløp(
             inntekter = alleFradrag[måned]?.map { it ->
@@ -117,7 +116,6 @@ fun Beregning?.tilFradragPerMåned(): Map<Måned, List<FradragForMåned>> = this
     beregning.getFradrag()
         .flatMap { FradragFactory.periodiser(it) }
 }?.groupBy { it.måned } ?: emptyMap()
-
 
 private fun mapBeregning(
     vedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse,
