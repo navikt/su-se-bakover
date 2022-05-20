@@ -156,7 +156,7 @@ data class Sak(
      * Per nå så er det kun Vedtak i form av [VedtakSomKanRevurderes.EndringIYtelse] som bidrar til dette, bortsett fra [VedtakSomKanRevurderes.IngenEndringIYtelse] som har
      * andre beregnings-beløp som ikke skal ha en påverkan på saken.
      * */
-    fun hentGjeldendeBeregningForEndringIYtelse(
+    fun hentGjeldendeBeregningForEndringIYtelsePåDato(
         måned: Måned,
         clock: Clock,
     ): Beregning? {

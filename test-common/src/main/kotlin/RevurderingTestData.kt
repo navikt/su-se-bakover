@@ -1399,8 +1399,8 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             id = revurderingId,
             opprettet = Tidspunkt.now(clock),
             periode = periode,
-            grunnlagsdata = vedtak.behandling.grunnlagsdata,
-            vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
+            grunnlagsdata = sak.kopierGjeldendeVedtaksdata(periode.fraOgMed, clock).getOrFail().grunnlagsdata,
+            vilkårsvurderinger = sak.kopierGjeldendeVedtaksdata(periode.fraOgMed, clock).getOrFail().vilkårsvurderinger,
             tilRevurdering = vedtak,
             saksbehandler = saksbehandler,
             simulering = simulering,
@@ -1478,6 +1478,8 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
         clock = clock,
     ),
 ): Pair<Sak, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
+    require(sakOgVedtakSomKanRevurderes.first.vedtakListe.last() is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse)
+
     return sakOgVedtakSomKanRevurderes.let { (sak, vedtak) ->
         val revurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
             id = revurderingId,
