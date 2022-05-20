@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.common.periode
 
-import com.fasterxml.jackson.annotation.JsonCreator
 import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
@@ -10,18 +9,6 @@ data class Måned private constructor(
     // Vi ønsker ikke ha denne i json enda, men holder oss til Periode sin fraOgMed og tilOgMed
     private val årOgMåned: YearMonth,
 ) : Periode(årOgMåned) {
-    /** Brukes for å deserialisere fra json */
-    @JsonCreator
-    constructor(fraOgMed: LocalDate, tilOgMed: LocalDate) : this(YearMonth.of(fraOgMed.year, fraOgMed.month)) {
-        require(fraOgMed.year == tilOgMed.year) {
-            "fraOgMed og tilOgMed må være innenfor samme år"
-        }
-        require(fraOgMed.month == tilOgMed.month) {
-            "fraOgMed og tilOgMed må være innenfor samme måned"
-        }
-        validateOrThrow(fraOgMed, tilOgMed)
-    }
-
     operator fun rangeTo(that: Måned): Periode {
         if (this == that) return this
         return create(this.fraOgMed, that.tilOgMed).also {

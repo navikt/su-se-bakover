@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.common.periode
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeSameInstanceAs
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
@@ -190,5 +191,12 @@ internal class MånedTest {
                 YearMonth.of(2022, Month.MARCH),
             ) shouldBe Periode.create(1.november(2021), 31.mars(2022))
         }
+    }
+
+    @Test
+    fun `allerede opprettede måneder caches`() {
+        Periode.create(1.januar(2022), 31.januar(2022)).måneder().single() shouldBeSameInstanceAs januar(2022)
+        Måned.fra(YearMonth.of(2022, Month.JANUARY)) shouldBeSameInstanceAs januar(2022)
+        Måned.fra(1.januar(2022), 31.januar(2022)) shouldBeSameInstanceAs Måned.fra(YearMonth.of(2022, Month.JANUARY))
     }
 }
