@@ -16,7 +16,7 @@ data class PeriodeJson(
 
     /** @throws IllegalArgumentException dersom [fraOgMed] eller [tilOgMed] ikke kan parses til [Måned] */
     fun tilMåned(): Måned {
-        return Måned(LocalDate.parse(fraOgMed), LocalDate.parse(tilOgMed))
+        return Måned.fra(LocalDate.parse(fraOgMed), LocalDate.parse(tilOgMed))
     }
 
     fun tryToPeriode(): Either<Periode.UgyldigPeriode, Periode> {

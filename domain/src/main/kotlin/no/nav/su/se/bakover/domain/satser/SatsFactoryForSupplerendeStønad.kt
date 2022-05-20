@@ -71,6 +71,7 @@ class SatsFactoryForSupplerendeStønad(
         grunnbeløpFactory,
         minsteÅrligYtelseForUføretrygdede,
     )
+    private val cache = CachedSatsfactoryForSupplerendeStønad(mutableSetOf(this))
 
     private fun factoryForSatskategori(satskategori: Satskategori): FullSupplerendeStønadFactory {
         return when (satskategori) {
@@ -83,9 +84,13 @@ class SatsFactoryForSupplerendeStønad(
         return factoryForSatskategori(satskategori).forMåned(måned)
     }
 
+    /**
+     * Instansierer en ny factory med en klokke som representerer nåtid [påDato].
+     * Legger til eventuelle nye factories for samme klokke i en [cache], slik at påfølgende operasjoner
+     * ikke blir like kostbare mtp minneforbruk.
+     */
     override fun gjeldende(påDato: LocalDate): SatsFactory {
-        // instansier en ny factory med en klokke som representerer nåtid fo påDato
-        return SatsFactoryForSupplerendeStønad(clock = påDato.fixedClock())
+        return cache.getOrAdd(SatsFactoryForSupplerendeStønad(påDato.fixedClock()))
     }
 
     override fun høy(måned: Måned): FullSupplerendeStønadForMåned {
@@ -98,5 +103,29 @@ class SatsFactoryForSupplerendeStønad(
 
     override fun grunnbeløp(måned: Måned): GrunnbeløpForMåned {
         return grunnbeløpFactory.forMåned(måned)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is SatsFactoryForSupplerendeStønad &&
+            other.grunnbeløpFactory == grunnbeløpFactory &&
+            other.minsteÅrligYtelseForUføretrygdede == minsteÅrligYtelseForUføretrygdede &&
+            other.formuegrenserFactory == formuegrenserFactory
+    }
+
+    override fun hashCode(): Int {
+        var result = 31 + grunnbeløpFactory.hashCode()
+        result = 31 * result + minsteÅrligYtelseForUføretrygdede.hashCode()
+        result = 31 * result + formuegrenserFactory.hashCode()
+        return result
+    }
+
+    private class CachedSatsfactoryForSupplerendeStønad(
+        private val cache: MutableSet<SatsFactoryForSupplerendeStønad> = mutableSetOf(),
+    ) {
+        fun getOrAdd(factory: SatsFactoryForSupplerendeStønad): SatsFactoryForSupplerendeStønad {
+            return cache.add(factory).let {
+                cache.elementAt(cache.indexOf(factory))
+            }
+        }
     }
 }

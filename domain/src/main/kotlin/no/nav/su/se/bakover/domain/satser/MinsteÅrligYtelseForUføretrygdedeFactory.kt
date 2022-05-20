@@ -75,4 +75,16 @@ data class MinsteÅrligYtelseForUføretrygdedeFactory(
         return satser[måned]
             ?: throw IllegalStateException("Har ikke minste årlige ytelse for uføretrygdede for måned: $måned. Vi har bare data for perioden: ${satser.periode()}")
     }
+
+    override fun equals(other: Any?): Boolean {
+        return other is MinsteÅrligYtelseForUføretrygdedeFactory &&
+            other.ordinær == ordinær &&
+            other.høy == høy
+    }
+
+    override fun hashCode(): Int {
+        var result = ordinær.hashCode()
+        result = 31 * result + høy.hashCode()
+        return result
+    }
 }

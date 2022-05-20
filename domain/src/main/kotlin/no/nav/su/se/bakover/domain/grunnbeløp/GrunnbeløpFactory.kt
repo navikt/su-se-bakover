@@ -46,7 +46,7 @@ class GrunnbeløpFactory(
 
     fun alleGrunnbeløp(fraOgMed: LocalDate): List<GrunnbeløpForMåned> {
         return månedTilGrunnbeløp.filterValues {
-            it.måned starterSamtidigEllerSenere Måned(
+            it.måned starterSamtidigEllerSenere Måned.fra(
                 YearMonth.of(
                     fraOgMed.year,
                     fraOgMed.month,
@@ -68,6 +68,14 @@ class GrunnbeløpFactory(
             clock = påDato.fixedClock(), // lager en fixed clock som representerer nåtid for påDato
             grunnbeløpsendringer = grunnbeløpsendringer,
         )
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is GrunnbeløpFactory && this.månedTilGrunnbeløp == other.månedTilGrunnbeløp
+    }
+
+    override fun hashCode(): Int {
+        return månedTilGrunnbeløp.hashCode()
     }
 }
 

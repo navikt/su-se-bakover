@@ -72,13 +72,13 @@ internal class MånedTest {
         januar(2021) shouldBe januar(2021)
         januar(2021) shouldNotBe februar(2021)
 
-        Måned(1.januar(2021), 31.januar(2021)) shouldBe Måned(1.januar(2021), 31.januar(2021))
-        Måned(1.januar(2021), 31.januar(2021)) shouldNotBe Måned(1.februar(2021), 28.februar(2021))
+        Måned.fra(1.januar(2021), 31.januar(2021)) shouldBe Måned.fra(1.januar(2021), 31.januar(2021))
+        Måned.fra(1.januar(2021), 31.januar(2021)) shouldNotBe Måned.fra(1.februar(2021), 28.februar(2021))
 
-        januar(2021) shouldBe Måned(1.januar(2021), 31.januar(2021))
+        januar(2021) shouldBe Måned.fra(1.januar(2021), 31.januar(2021))
         januar(2021) shouldBe Periode.create(1.januar(2021), 31.januar(2021))
 
-        februar(2021) shouldNotBe Måned(1.januar(2021), 31.januar(2021))
+        februar(2021) shouldNotBe Måned.fra(1.januar(2021), 31.januar(2021))
         februar(2021) shouldNotBe Periode.create(1.januar(2021), 31.januar(2021))
     }
 
@@ -97,16 +97,16 @@ internal class MånedTest {
     inner class FraOgMedTilOgMedConstructor {
         @Test
         fun `januar`() {
-            Måned(
+            Måned.fra(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.januar(2021),
-            ) shouldBe Måned(YearMonth.of(2021, Month.JANUARY))
+            ) shouldBe Måned.fra(YearMonth.of(2021, Month.JANUARY))
         }
 
         @Test
         fun `fra og med må være første i måneden`() {
             shouldThrow<IllegalArgumentException> {
-                Måned(
+                Måned.fra(
                     fraOgMed = 2.januar(2021),
                     tilOgMed = 31.januar(2021),
                 )
@@ -116,7 +116,7 @@ internal class MånedTest {
         @Test
         fun `til og med må være siste i måneden`() {
             shouldThrow<IllegalArgumentException> {
-                Måned(
+                Måned.fra(
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 1.januar(2021),
                 )
@@ -126,7 +126,7 @@ internal class MånedTest {
         @Test
         fun `fraOgMed og tilOgMed må være innenfor samme måned`() {
             shouldThrow<IllegalArgumentException> {
-                Måned(
+                Måned.fra(
                     fraOgMed = 1.februar(2021),
                     tilOgMed = 31.januar(2021),
                 )
@@ -136,7 +136,7 @@ internal class MånedTest {
         @Test
         fun `fraOgMed og tilOgMed må være innenfor samme år`() {
             shouldThrow<IllegalArgumentException> {
-                Måned(
+                Måned.fra(
                     fraOgMed = 1.desember(2021),
                     tilOgMed = 31.januar(2022),
                 )
@@ -148,12 +148,12 @@ internal class MånedTest {
     inner class YearMonthConstructor {
         @Test
         fun `fraOgMed`() {
-            Måned(YearMonth.of(2021, 1)).fraOgMed.let {
+            Måned.fra(YearMonth.of(2021, 1)).fraOgMed.let {
                 it shouldBe LocalDate.of(2021, 1, 1)
                 it shouldBe LocalDate.of(2021, Month.JANUARY, 1)
             }
 
-            Måned(YearMonth.of(2021, Month.JANUARY)).fraOgMed.let {
+            Måned.fra(YearMonth.of(2021, Month.JANUARY)).fraOgMed.let {
                 it shouldBe LocalDate.of(2021, 1, 1)
                 it shouldBe LocalDate.of(2021, Month.JANUARY, 1)
             }
@@ -161,32 +161,32 @@ internal class MånedTest {
 
         @Test
         fun `tilOgMed`() {
-            Måned(YearMonth.of(2021, Month.JANUARY)).tilOgMed shouldBe LocalDate.of(2021, Month.JANUARY, 31)
+            Måned.fra(YearMonth.of(2021, Month.JANUARY)).tilOgMed shouldBe LocalDate.of(2021, Month.JANUARY, 31)
         }
 
         @Test
         fun `rangeTo`() {
-            Måned(
+            Måned.fra(
                 YearMonth.of(2021, Month.JANUARY),
-            )..Måned(
+            )..Måned.fra(
                 YearMonth.of(2021, Month.JANUARY),
-            ) shouldBe Måned(YearMonth.of(2021, Month.JANUARY))
+            ) shouldBe Måned.fra(YearMonth.of(2021, Month.JANUARY))
 
-            Måned(
+            Måned.fra(
                 YearMonth.of(2021, Month.JANUARY),
-            )..Måned(
+            )..Måned.fra(
                 YearMonth.of(2021, Month.FEBRUARY),
             ) shouldBe Periode.create(1.januar(2021), 28.februar(2021))
 
-            Måned(
+            Måned.fra(
                 YearMonth.of(2021, Month.JANUARY),
-            )..Måned(
+            )..Måned.fra(
                 YearMonth.of(2021, Month.MARCH),
             ) shouldBe Periode.create(1.januar(2021), 31.mars(2021))
 
-            Måned(
+            Måned.fra(
                 YearMonth.of(2021, Month.NOVEMBER),
-            )..Måned(
+            )..Måned.fra(
                 YearMonth.of(2022, Month.MARCH),
             ) shouldBe Periode.create(1.november(2021), 31.mars(2022))
         }

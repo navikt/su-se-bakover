@@ -38,7 +38,7 @@ class FormuegrenserFactory(
     }
 
     fun forDato(dato: LocalDate): FormuegrenseForMåned {
-        return forMåned(Måned(dato.startOfMonth(), dato.endOfMonth()))
+        return forMåned(Måned.fra(dato.startOfMonth(), dato.endOfMonth()))
     }
 
     /**
@@ -52,5 +52,13 @@ class FormuegrenserFactory(
             .map { it.value.ikrafttredelse to it.value.formuegrense }
             .distinct()
             .sortedByDescending { it.first }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is FormuegrenserFactory && other.månedTilFormuegrense == this.månedTilFormuegrense
+    }
+
+    override fun hashCode(): Int {
+        return månedTilFormuegrense.hashCode()
     }
 }
