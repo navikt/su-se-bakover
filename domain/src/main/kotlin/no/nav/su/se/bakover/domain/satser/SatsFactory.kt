@@ -28,7 +28,7 @@ interface SatsFactory {
     fun høy(måned: Måned): FullSupplerendeStønadForMåned
     fun ordinær(måned: Måned): FullSupplerendeStønadForMåned
     fun grunnbeløp(dato: LocalDate): GrunnbeløpForMåned {
-        return grunnbeløp(Måned(YearMonth.of(dato.year, dato.month)))
+        return grunnbeløp(Måned.fra(YearMonth.of(dato.year, dato.month)))
     }
 
     fun grunnbeløp(måned: Måned): GrunnbeløpForMåned

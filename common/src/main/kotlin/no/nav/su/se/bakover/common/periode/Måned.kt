@@ -1,27 +1,14 @@
 package no.nav.su.se.bakover.common.periode
 
-import com.fasterxml.jackson.annotation.JsonCreator
 import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
 
-data class Måned(
+data class Måned private constructor(
     // Vi ønsker ikke ha denne i json enda, men holder oss til Periode sin fraOgMed og tilOgMed
     private val årOgMåned: YearMonth,
 ) : Periode(årOgMåned) {
-    /** Brukes for å deserialisere fra json */
-    @JsonCreator
-    constructor(fraOgMed: LocalDate, tilOgMed: LocalDate) : this(YearMonth.of(fraOgMed.year, fraOgMed.month)) {
-        require(fraOgMed.year == tilOgMed.year) {
-            "fraOgMed og tilOgMed må være innenfor samme år"
-        }
-        require(fraOgMed.month == tilOgMed.month) {
-            "fraOgMed og tilOgMed må være innenfor samme måned"
-        }
-        validateOrThrow(fraOgMed, tilOgMed)
-    }
-
     operator fun rangeTo(that: Måned): Periode {
         if (this == that) return this
         return create(this.fraOgMed, that.tilOgMed).also {
@@ -40,12 +27,40 @@ data class Måned(
     }
 
     fun plusMonths(monthsToAdd: Long): Måned {
-        return Måned(årOgMåned.plusMonths(monthsToAdd))
+        return fra(årOgMåned.plusMonths(monthsToAdd))
     }
 
     companion object {
+        private val factory = CacheingFactory()
         fun now(clock: Clock): Måned {
-            return Måned(YearMonth.now(clock))
+            return factory.fra(YearMonth.now(clock))
+        }
+
+        fun fra(yearMonth: YearMonth): Måned {
+            return factory.fra(yearMonth)
+        }
+
+        fun fra(fraOgMed: LocalDate, tilOgMed: LocalDate): Måned {
+            return factory.fra(fraOgMed, tilOgMed)
+        }
+
+        private class CacheingFactory(
+            private val cached: MutableMap<YearMonth, Måned> = mutableMapOf(),
+        ) {
+            fun fra(yearMonth: YearMonth): Måned {
+                return cached.getOrPut(yearMonth) { Måned(yearMonth) }
+            }
+
+            fun fra(fraOgMed: LocalDate, tilOgMed: LocalDate): Måned {
+                require(fraOgMed.year == tilOgMed.year) {
+                    "fraOgMed og tilOgMed må være innenfor samme år"
+                }
+                require(fraOgMed.month == tilOgMed.month) {
+                    "fraOgMed og tilOgMed må være innenfor samme måned"
+                }
+                validateOrThrow(fraOgMed, tilOgMed)
+                return fra(YearMonth.of(fraOgMed.year, fraOgMed.month))
+            }
         }
     }
 
@@ -58,7 +73,7 @@ data class Måned(
  */
 fun Periode.tilMåned(): Måned {
     require(this.getAntallMåneder() == 1)
-    return Måned(YearMonth.of(this.fraOgMed.year, this.fraOgMed.month))
+    return Måned.fra(YearMonth.of(this.fraOgMed.year, this.fraOgMed.month))
 }
 
 /**

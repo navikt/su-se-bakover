@@ -1,10 +1,16 @@
 package no.nav.su.se.bakover.domain.satser
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeSameInstanceAs
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.april
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.januar
@@ -12,6 +18,7 @@ import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.scaleTo4
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.satsFactoryTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -24,7 +31,6 @@ internal class SatsFactoryForSupplerendeStønadTest {
 
     @Nested
     inner class UførFlyktning {
-
         @Test
         fun `ordinær - desember 2014 er ikke tilgjengelig`() {
             shouldThrow<IllegalStateException> {
@@ -292,6 +298,50 @@ internal class SatsFactoryForSupplerendeStønadTest {
             )
 
             nå.gjeldende(LocalDate.now(fixedClock)).høy(forMåned).grunnbeløp shouldBe gammelMai
+        }
+
+        @Test
+        fun `factory for allerede utregnede verdier caches`() {
+            val satsFactory = satsFactoryTest
+
+            satsFactory.gjeldende(fixedLocalDate) shouldBeSameInstanceAs satsFactoryTest
+
+            val verdier = Periode.create(1.januar(2020), 30.april(2022))
+                .måneder()
+                .map { satsFactory.gjeldende(it.fraOgMed) }
+                .distinct()
+
+            verdier shouldHaveSize 3
+
+            val factoryMai19TilMai20 = verdier[0]
+            val factoryMai20TilMai21 = verdier[1]
+            val factoryMai21TilMai22 = verdier[2]
+
+            factoryMai19TilMai20.gjeldende(1.juni(2019)) shouldBeSameInstanceAs factoryMai19TilMai20
+            factoryMai19TilMai20.gjeldende(1.mars(2020)) shouldBeSameInstanceAs factoryMai19TilMai20
+            factoryMai20TilMai21.gjeldende(1.juni(2020)) shouldBeSameInstanceAs factoryMai20TilMai21
+            factoryMai20TilMai21.gjeldende(1.mars(2021)) shouldBeSameInstanceAs factoryMai20TilMai21
+            factoryMai21TilMai22.gjeldende(1.juni(2021)) shouldBeSameInstanceAs factoryMai21TilMai22
+            factoryMai21TilMai22.gjeldende(1.mars(2022)) shouldBeSameInstanceAs factoryMai21TilMai22
+
+            factoryMai19TilMai20.høy(januar(2022)).grunnbeløp shouldBe GrunnbeløpForMåned(
+                måned = januar(2022),
+                grunnbeløpPerÅr = 99858,
+                ikrafttredelse = 1.mai(2019),
+                virkningstidspunkt = 1.mai(2019),
+            )
+            factoryMai20TilMai21.høy(januar(2022)).grunnbeløp shouldBe GrunnbeløpForMåned(
+                måned = januar(2022),
+                grunnbeløpPerÅr = 101351,
+                ikrafttredelse = 1.mai(2020),
+                virkningstidspunkt = 1.mai(2020),
+            )
+            factoryMai21TilMai22.høy(januar(2022)).grunnbeløp shouldBe GrunnbeløpForMåned(
+                måned = januar(2022),
+                grunnbeløpPerÅr = 106399,
+                ikrafttredelse = 1.mai(2021),
+                virkningstidspunkt = 1.mai(2021),
+            )
         }
     }
 }

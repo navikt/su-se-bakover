@@ -32,7 +32,7 @@ open class Periode protected constructor(
         return NonEmptyList.fromListUnsafe(
             (0L until getAntallMåneder()).map {
                 val currentMonth = fraOgMed.plusMonths(it)
-                Måned(YearMonth.of(currentMonth.year, currentMonth.month))
+                Måned.fra(YearMonth.of(currentMonth.year, currentMonth.month))
             },
         )
     }
@@ -337,7 +337,7 @@ fun <T> List<Pair<LocalDate, T>>.periodisert(
 
     val sortertStigendeDato: List<Triple<LocalDate, Måned, T>> =
         this.sortedBy { it.first }
-            .map { Triple(it.first, Måned(YearMonth.of(it.first.year, it.first.month)), it.second) }
+            .map { Triple(it.first, Måned.fra(YearMonth.of(it.first.year, it.first.month)), it.second) }
 
     val verdierMellomElementer = sortertStigendeDato
         .zipWithNext()
@@ -367,18 +367,18 @@ fun List<Periode>.harOverlappende(): Boolean {
     return if (isEmpty()) false else this.any { p1 -> this.minus(p1).any { p2 -> p1 overlapper p2 } }
 }
 
-fun januar(year: Int) = Måned(YearMonth.of(year, Month.JANUARY))
-fun februar(year: Int) = Måned(YearMonth.of(year, Month.FEBRUARY))
-fun mars(year: Int) = Måned(YearMonth.of(year, Month.MARCH))
-fun april(year: Int) = Måned(YearMonth.of(year, Month.APRIL))
-fun mai(year: Int) = Måned(YearMonth.of(year, Month.MAY))
-fun juni(year: Int) = Måned(YearMonth.of(year, Month.JUNE))
-fun juli(year: Int) = Måned(YearMonth.of(year, Month.JULY))
-fun august(year: Int) = Måned(YearMonth.of(year, Month.AUGUST))
-fun september(year: Int) = Måned(YearMonth.of(year, Month.SEPTEMBER))
-fun oktober(year: Int) = Måned(YearMonth.of(year, Month.OCTOBER))
-fun november(year: Int) = Måned(YearMonth.of(year, Month.NOVEMBER))
-fun desember(year: Int) = Måned(YearMonth.of(year, Month.DECEMBER))
+fun januar(year: Int) = Måned.fra(YearMonth.of(year, Month.JANUARY))
+fun februar(year: Int) = Måned.fra(YearMonth.of(year, Month.FEBRUARY))
+fun mars(year: Int) = Måned.fra(YearMonth.of(year, Month.MARCH))
+fun april(year: Int) = Måned.fra(YearMonth.of(year, Month.APRIL))
+fun mai(year: Int) = Måned.fra(YearMonth.of(year, Month.MAY))
+fun juni(year: Int) = Måned.fra(YearMonth.of(year, Month.JUNE))
+fun juli(year: Int) = Måned.fra(YearMonth.of(year, Month.JULY))
+fun august(year: Int) = Måned.fra(YearMonth.of(year, Month.AUGUST))
+fun september(year: Int) = Måned.fra(YearMonth.of(year, Month.SEPTEMBER))
+fun oktober(year: Int) = Måned.fra(YearMonth.of(year, Month.OCTOBER))
+fun november(year: Int) = Måned.fra(YearMonth.of(year, Month.NOVEMBER))
+fun desember(year: Int) = Måned.fra(YearMonth.of(year, Month.DECEMBER))
 fun år(year: Int) = Periode.create(
     fraOgMed = YearMonth.of(year, Month.JANUARY).atDay(1),
     tilOgMed = YearMonth.of(year, Month.DECEMBER).atEndOfMonth(),
