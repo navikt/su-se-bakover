@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
@@ -580,5 +581,6 @@ internal class BrevServiceImplTest {
         utbetalinger = listOf(),
         revurderinger = listOf(),
         vedtakListe = listOf(),
+        type = Søknadstype.UFØRE
     )
 }

@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -143,6 +144,7 @@ internal class VedtakServiceImplTest {
                 utbetalinger = listOf(),
                 revurderinger = listOf(),
                 vedtakListe = listOf(),
+                type = Søknadstype.UFØRE,
             ).right()
         }
         createService(
@@ -168,6 +170,7 @@ internal class VedtakServiceImplTest {
                 søknadsbehandlinger = listOf(),
                 utbetalinger = listOf(),
                 revurderinger = listOf(),
+                type = Søknadstype.UFØRE,
                 vedtakListe = listOf(
                     vedtakMock,
                 ),

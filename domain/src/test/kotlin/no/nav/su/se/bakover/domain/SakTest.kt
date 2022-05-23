@@ -68,6 +68,7 @@ internal class SakTest {
                 utbetalinger = listOf(),
                 revurderinger = listOf(),
                 vedtakListe = listOf(),
+                type = Søknadstype.UFØRE
             ).hentPerioderMedLøpendeYtelse() shouldBe emptyList()
         }
 

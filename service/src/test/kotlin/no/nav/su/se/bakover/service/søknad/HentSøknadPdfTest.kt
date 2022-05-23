@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
+import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.service.argThat
@@ -49,7 +50,8 @@ class HentSøknadPdfTest {
         opprettet = Tidspunkt.EPOCH,
         fnr = Fnr(fnr = "12345678901"),
         søknader = listOf(søknad),
-        utbetalinger = emptyList()
+        utbetalinger = emptyList(),
+        type = Søknadstype.UFØRE,
     )
     private val person = Person(
         ident = Ident(

@@ -10,7 +10,18 @@ import java.time.LocalDate
 import java.util.UUID
 
 enum class Søknadstype(val value: String) {
-    ALDER("alder"), UFØRE("uføre")
+    ALDER("alder"), UFØRE("uføre");
+
+    companion object {
+        fun from(value: String): Søknadstype =
+            when (value) {
+                UFØRE.value -> UFØRE
+                ALDER.value -> ALDER
+                else -> {
+                    throw IllegalArgumentException("Ukjent type angitt")
+                }
+            }
+    }
 }
 
 sealed class Søknad {

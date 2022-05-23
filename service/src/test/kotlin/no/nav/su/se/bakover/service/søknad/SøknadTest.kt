@@ -21,12 +21,13 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
+import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
@@ -63,7 +64,8 @@ class SøknadTest {
         saksnummer = saksnummer,
         opprettet = Tidspunkt.EPOCH,
         fnr = fnr,
-        utbetalinger = emptyList()
+        utbetalinger = emptyList(),
+        type = Søknadstype.UFØRE,
     )
     private val pdf = "pdf-data".toByteArray()
     private val journalpostId = JournalpostId("1")
@@ -114,7 +116,7 @@ class SøknadTest {
             on { hentPerson(any()) } doReturn person.right()
         }
         val sakServiceMock: SakService = mock {
-            on { hentSakidOgSaksnummer(any()) } doReturn FantIkkeSak.left() doReturn SakIdSaksnummerFnr(sak.id, sak.saksnummer, fnr).right()
+            on { hentSakidOgSaksnummer(any()) } doReturn FantIkkeSak.left() doReturn SakInfo(sak.id, sak.saksnummer, fnr, Søknadstype.UFØRE).right()
         }
 
         val pdfGeneratorMock: PdfGenerator = mock {
@@ -212,7 +214,7 @@ class SøknadTest {
             on { hentPerson(any()) } doReturn person.right()
         }
         val sakServiceMock: SakService = mock {
-            on { hentSakidOgSaksnummer(any()) } doReturn SakIdSaksnummerFnr(sak.id, sak.saksnummer, fnr).right()
+            on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(sak.id, sak.saksnummer, fnr, Søknadstype.UFØRE).right()
         }
         val søknadRepoMock: SøknadRepo = mock()
         val pdfGeneratorMock: PdfGenerator = mock {
@@ -299,7 +301,7 @@ class SøknadTest {
             on { hentPerson(any()) } doReturn person.right()
         }
         val sakServiceMock: SakService = mock {
-            on { hentSakidOgSaksnummer(any()) } doReturn SakIdSaksnummerFnr(sak.id, sak.saksnummer, fnr).right()
+            on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(sak.id, sak.saksnummer, fnr, Søknadstype.UFØRE).right()
         }
         val søknadRepoMock: SøknadRepo = mock()
         val pdfGeneratorMock: PdfGenerator = mock {
@@ -400,7 +402,7 @@ class SøknadTest {
 
         SøknadserviceOgMocks(
             sakService = mock {
-                on { hentSakidOgSaksnummer(any()) } doReturn SakIdSaksnummerFnr(sak.id, sak.saksnummer, fnr).right()
+                on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(sak.id, sak.saksnummer, fnr, Søknadstype.UFØRE).right()
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -473,6 +475,7 @@ class SøknadTest {
                     argThat {
                         it.shouldBeEqualToIgnoringFields(
                             OppgaveConfig.Søknad(
+                                søknadstype = Søknadstype.UFØRE,
                                 journalpostId = journalpostId,
                                 søknadId = UUID.randomUUID(), // ignored
                                 aktørId = person.ident.aktørId,
@@ -506,7 +509,7 @@ class SøknadTest {
             on { hentPerson(any()) } doReturn person.right()
         }
         val sakServiceMock: SakService = mock {
-            on { hentSakidOgSaksnummer(any()) } doReturn SakIdSaksnummerFnr(sak.id, sak.saksnummer, fnr).right()
+            on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(sak.id, sak.saksnummer, fnr, Søknadstype.UFØRE).right()
         }
         val søknadRepoMock: SøknadRepo = mock()
         val pdfGeneratorMock: PdfGenerator = mock {
@@ -595,6 +598,7 @@ class SøknadTest {
                 argThat {
                     it.shouldBeEqualToIgnoringFields(
                         OppgaveConfig.Søknad(
+                            søknadstype = Søknadstype.UFØRE,
                             journalpostId = journalpostId,
                             søknadId = UUID.randomUUID(), // ignored
                             aktørId = person.ident.aktørId,

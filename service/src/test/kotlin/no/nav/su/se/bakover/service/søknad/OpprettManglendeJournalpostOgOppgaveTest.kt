@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -55,7 +56,8 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         fnr = fnr,
         søknader = emptyList(),
         søknadsbehandlinger = emptyList(),
-        utbetalinger = emptyList()
+        utbetalinger = emptyList(),
+        type = Søknadstype.UFØRE,
     )
     private val person = Person(
         ident = Ident(
@@ -302,6 +304,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
                 argThat {
                     it shouldBe OppgaveConfig.Søknad(
+                        søknadstype = Søknadstype.UFØRE,
                         journalpostId = journalførtSøknad.journalpostId,
                         søknadId = journalførtSøknad.id,
                         aktørId = person.ident.aktørId,
@@ -403,6 +406,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
                 argThat {
                     it shouldBe OppgaveConfig.Søknad(
+                        søknadstype = Søknadstype.UFØRE,
                         journalpostId = journalførtSøknad.journalpostId,
                         søknadId = journalførtSøknad.id,
                         aktørId = person.ident.aktørId,

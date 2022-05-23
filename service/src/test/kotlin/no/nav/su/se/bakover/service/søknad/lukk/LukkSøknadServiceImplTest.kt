@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST
 import no.nav.su.se.bakover.domain.Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET
+import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.brev.BrevConfig
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
@@ -21,7 +22,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -138,10 +139,11 @@ internal class LukkSøknadServiceImplTest {
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
-            on { hentSakidOgSaksnummer(any()) } doReturn SakIdSaksnummerFnr(
+            on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
+                type = Søknadstype.UFØRE,
             ).right()
         }
         val brevServiceMock = mock<BrevService> {
@@ -334,10 +336,11 @@ internal class LukkSøknadServiceImplTest {
 
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
-            on { hentSakidOgSaksnummer(any()) } doReturn SakIdSaksnummerFnr(
+            on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
+                type = Søknadstype.UFØRE,
             ).right()
         }
 
@@ -599,10 +602,11 @@ internal class LukkSøknadServiceImplTest {
         }
 
         val sakServiceMock = mock<SakService> {
-            on { hentSakidOgSaksnummer(any()) } doReturn SakIdSaksnummerFnr(
+            on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
+                type = Søknadstype.UFØRE,
             ).right()
         }
 
@@ -712,10 +716,11 @@ internal class LukkSøknadServiceImplTest {
             on { hentPerson(any()) } doReturn person(sak.fnr).right()
         }
         val sakServiceMock = mock<SakService> {
-            on { hentSakidOgSaksnummer(any()) } doReturn SakIdSaksnummerFnr(
+            on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
+                type = Søknadstype.UFØRE,
             ).right()
         }
         ServiceOgMocks(
@@ -766,10 +771,11 @@ internal class LukkSøknadServiceImplTest {
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
-            on { hentSakidOgSaksnummer(any()) } doReturn SakIdSaksnummerFnr(
+            on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
+                type = Søknadstype.UFØRE,
             ).right()
         }
         ServiceOgMocks(
@@ -863,10 +869,11 @@ internal class LukkSøknadServiceImplTest {
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
-            on { hentSakidOgSaksnummer(any()) } doReturn SakIdSaksnummerFnr(
+            on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
+                type = Søknadstype.UFØRE,
             ).right()
         }
         val brevServiceMock = mock<BrevService> {
@@ -990,10 +997,11 @@ internal class LukkSøknadServiceImplTest {
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
-            on { hentSakidOgSaksnummer(any()) } doReturn SakIdSaksnummerFnr(
+            on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
+                type = Søknadstype.UFØRE,
             ).right()
         }
         ServiceOgMocks(
