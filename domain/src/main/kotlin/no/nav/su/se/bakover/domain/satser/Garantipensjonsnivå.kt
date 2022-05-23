@@ -19,6 +19,7 @@ enum class Garantipensjonsnivå {
         LocalDate.of(2019, Month.MAY, 1) to Pensjonsnivåverdier(ordinær = 176099),
         LocalDate.of(2020, Month.MAY, 1) to Pensjonsnivåverdier(ordinær = 177724),
         LocalDate.of(2021, Month.MAY, 1) to Pensjonsnivåverdier(ordinær = 187252),
+        LocalDate.of(2022, Month.MAY, 1) to Pensjonsnivåverdier(ordinær = 193862),
     )
 
     fun forDato(dato: LocalDate): Int = datoToGarantipensjonsnivå.entries

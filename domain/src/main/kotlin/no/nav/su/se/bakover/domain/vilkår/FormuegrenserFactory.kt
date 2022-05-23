@@ -46,10 +46,10 @@ class FormuegrenserFactory(
      * Hver dato gir tilhørende formuegrense per år.
      * E.g. (2021-05-01 to 53199.5) siden formuegrensen fom. 5. mai 2021 var en halv G. Grunnbeløpet var da 106399.
      */
-    fun ikrafttredelser(fraOgMed: YearMonth): List<Pair<LocalDate, BigDecimal>> {
+    fun virkningstidspunkt(fraOgMed: YearMonth): List<Pair<LocalDate, BigDecimal>> {
         return månedTilFormuegrense
-            .filter { it.value.ikrafttredelse >= fraOgMed.atDay(1) }
-            .map { it.value.ikrafttredelse to it.value.formuegrense }
+            .filter { it.value.virkningstidspunkt >= fraOgMed.atDay(1) }
+            .map { it.value.virkningstidspunkt to it.value.formuegrense }
             .distinct()
             .sortedByDescending { it.first }
     }

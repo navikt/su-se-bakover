@@ -38,8 +38,8 @@ internal fun Vilkår.Formue.toJson(satsFactory: SatsFactory): FormuevilkårJson 
         // TODO("håndter_formue egentlig knyttet til formuegrenser")
         // TODO jah + jacob:  Denne bør flyttes til et eget endepunkt i de tilfellene vi ikke har fylt ut formuegrunnlaget/vilkåret enda.
         //  I de tilfellene vi har fylt ut formue og det har blitt lagret i databasen, bør grunnlaget innholde grensene og frontend bør bruke de derfra.
-        // jah: For ufør trenger vi fra 2021-01-01 og da gjelder grunnbeløpet med ikrafttredelse 2020-05-01 fram til og med 2021-04-30
-        formuegrenser = satsFactory.formuegrenserFactory.ikrafttredelser(YearMonth.of(2020, 5)).toJson(),
+        // jah: For ufør trenger vi fra 2021-01-01 og da gjelder grunnbeløpet med virkningstidspunkt 2020-05-01 fram til og med 2021-04-30
+        formuegrenser = satsFactory.formuegrenserFactory.virkningstidspunkt(YearMonth.of(2020, 5)).toJson(),
     )
 }
 

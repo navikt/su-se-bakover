@@ -81,7 +81,7 @@ internal class FormuegrenserFactoryTest {
             ),
             faktor = Faktor(0.5),
         ).also {
-            it.ikrafttredelse shouldBe 1.mai(2021)
+            it.virkningstidspunkt shouldBe 1.mai(2021)
             it.formuegrense shouldBe BigDecimal("53199.5")
         }
     }
@@ -91,8 +91,8 @@ internal class FormuegrenserFactoryTest {
         formuegrense.forMåned(mai(2022)) shouldBe FormuegrenseForMåned(
             grunnbeløpForMåned = GrunnbeløpForMåned(
                 måned = mai(2022),
-                grunnbeløpPerÅr = 107099,
-                ikrafttredelse = 1.mai(2022),
+                grunnbeløpPerÅr = 111477,
+                ikrafttredelse = 20.mai(2022),
                 virkningstidspunkt = 1.mai(2022),
             ),
             faktor = Faktor(0.5),

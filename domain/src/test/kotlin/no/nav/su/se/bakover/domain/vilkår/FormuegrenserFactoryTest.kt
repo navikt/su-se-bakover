@@ -15,9 +15,9 @@ import java.time.YearMonth
 internal class FormuegrenserFactoryTest {
 
     @Test
-    fun `ikrafttredelser fra mai 2005`() {
-        formuegrenserFactoryTest(Clock.systemUTC()).ikrafttredelser(YearMonth.of(2005, Month.MAY)) shouldBe listOf(
-            1.mai(2022) to BigDecimal("53549.5"),
+    fun `virkningstidspunkt fra mai 2005`() {
+        formuegrenserFactoryTest(Clock.systemUTC()).virkningstidspunkt(YearMonth.of(2005, Month.MAY)) shouldBe listOf(
+            1.mai(2022) to BigDecimal("55738.5"),
             1.mai(2021) to BigDecimal("53199.5"),
             1.mai(2020) to BigDecimal("50675.5"),
             1.mai(2019) to BigDecimal("49929.0"),
@@ -39,23 +39,23 @@ internal class FormuegrenserFactoryTest {
     }
 
     @Test
-    fun `ikrafttredelser fra mai 2021`() {
-        formuegrenserFactoryTest(Clock.systemUTC()).ikrafttredelser(YearMonth.of(2021, Month.MAY)) shouldBe listOf(
-            1.mai(2022) to BigDecimal("53549.5"),
+    fun `virkningstidspunkt fra mai 2021`() {
+        formuegrenserFactoryTest(Clock.systemUTC()).virkningstidspunkt(YearMonth.of(2021, Month.MAY)) shouldBe listOf(
+            1.mai(2022) to BigDecimal("55738.5"),
             1.mai(2021) to BigDecimal("53199.5"),
         )
     }
 
     @Test
-    fun `ikrafttredelser fra mai 2022`() {
-        formuegrenserFactoryTest(Clock.systemUTC()).ikrafttredelser(YearMonth.of(2022, Month.MAY)) shouldBe listOf(
-            1.mai(2022) to BigDecimal("53549.5"),
+    fun `virkningstidspunkt fra mai 2022`() {
+        formuegrenserFactoryTest(Clock.systemUTC()).virkningstidspunkt(YearMonth.of(2022, Month.MAY)) shouldBe listOf(
+            1.mai(2022) to BigDecimal("55738.5"),
         )
     }
 
     @Test
-    fun `ikrafttredelser fra mai 2023`() {
-        formuegrenserFactoryTest(Clock.systemUTC()).ikrafttredelser(YearMonth.of(2023, Month.MAY)) shouldBe emptyList()
+    fun `virkningstidspunkt fra mai 2023`() {
+        formuegrenserFactoryTest(Clock.systemUTC()).virkningstidspunkt(YearMonth.of(2023, Month.MAY)) shouldBe emptyList()
     }
 
     @Test
@@ -69,7 +69,7 @@ internal class FormuegrenserFactoryTest {
             ),
             faktor = Faktor(0.5),
         ).also {
-            it.ikrafttredelse shouldBe 1.mai(2020)
+            it.virkningstidspunkt shouldBe 1.mai(2020)
             it.formuegrense shouldBe BigDecimal("50675.5")
             it.formuegrenseMedToDesimaler shouldBe 50675.50
         }
