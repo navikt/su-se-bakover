@@ -169,8 +169,8 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     satskategori = Satskategori.ORDINÆR,
                     grunnbeløp = GrunnbeløpForMåned(
                         måned = mai(2022),
-                        grunnbeløpPerÅr = 107099,
-                        ikrafttredelse = 1.mai(2022),
+                        grunnbeløpPerÅr = 111477,
+                        ikrafttredelse = 20.mai(2022),
                         virkningstidspunkt = 1.mai(2022),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
@@ -179,14 +179,14 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ikrafttredelse = 1.januar(2015),
                         måned = mai(2022),
                     ),
-                    toProsentAvHøyForMåned = BigDecimal("442.6758666666666666666666666666667"), // 2.48 * G2022-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("460.7716"), // 2.48 * G2022-5 * 0.02 / 12
                 )
-                it.satsPerÅr shouldBe BigDecimal("244185.72") // 2.28 * G2022-5
-                it.satsForMåned shouldBe BigDecimal("20348.81") // 2.28 * G2022-5 / 12
-                it.satsForMånedAvrundet shouldBe 20349
-                it.satsForMånedAsDouble shouldBe 20348.81
-                it.ikrafttredelse shouldBe 1.mai(2022)
-                it.toProsentAvHøyForMånedAsDouble shouldBe 442.6758666666666666666666666666667
+                it.satsPerÅr shouldBe BigDecimal("254167.56") // 2.28 * G2022-5
+                it.satsForMåned shouldBe BigDecimal("21180.63") // 2.28 * G2022-5 / 12
+                it.satsForMånedAvrundet shouldBe 21181
+                it.satsForMånedAsDouble shouldBe 21180.63
+                it.ikrafttredelse shouldBe 20.mai(2022)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 460.7716
             }
         }
 
@@ -198,8 +198,8 @@ internal class SatsFactoryForSupplerendeStønadTest {
                     satskategori = Satskategori.HØY,
                     grunnbeløp = GrunnbeløpForMåned(
                         måned = mai(2022),
-                        grunnbeløpPerÅr = 107099,
-                        ikrafttredelse = 1.mai(2022),
+                        grunnbeløpPerÅr = 111477,
+                        ikrafttredelse = 20.mai(2022),
                         virkningstidspunkt = 1.mai(2022),
                     ),
                     minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
@@ -208,14 +208,14 @@ internal class SatsFactoryForSupplerendeStønadTest {
                         ikrafttredelse = 1.januar(2015),
                         måned = mai(2022),
                     ),
-                    toProsentAvHøyForMåned = BigDecimal("442.6758666666666666666666666666667"), // 2.48 * G2022-5 * 0.02 / 12
+                    toProsentAvHøyForMåned = BigDecimal("460.7716"), // 2.48 * G2022-5 * 0.02 / 12
                 )
-                it.satsPerÅr shouldBe BigDecimal("265605.52") // 2.48 * G2022-5
-                it.satsForMåned.scaleTo4() shouldBe BigDecimal("22133.7933") // 2.48 * G2022-5 / 12
-                it.satsForMånedAvrundet shouldBe 22134
-                it.satsForMånedAsDouble shouldBe 22133.793333333335
-                it.ikrafttredelse shouldBe 1.mai(2022)
-                it.toProsentAvHøyForMånedAsDouble shouldBe 442.6758666666666666666666666666667
+                it.satsPerÅr shouldBe BigDecimal("276462.96") // 2.48 * G2022-5
+                it.satsForMåned.scaleTo4() shouldBe BigDecimal("23038.5800") // 2.48 * G2022-5 / 12
+                it.satsForMånedAvrundet shouldBe 23039
+                it.satsForMånedAsDouble shouldBe 23038.5800
+                it.ikrafttredelse shouldBe 20.mai(2022)
+                it.toProsentAvHøyForMånedAsDouble shouldBe 460.7716
             }
         }
 

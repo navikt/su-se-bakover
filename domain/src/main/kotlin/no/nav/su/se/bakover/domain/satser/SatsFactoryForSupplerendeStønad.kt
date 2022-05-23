@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.satser
 
 import arrow.core.Nel
-import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
@@ -36,16 +35,12 @@ class SatsFactoryForSupplerendeStønad(
         Grunnbeløpsendring(1.mai(2019), 1.mai(2019), 99858),
         Grunnbeløpsendring(1.mai(2020), 1.mai(2020), 101351),
         Grunnbeløpsendring(1.mai(2021), 1.mai(2021), 106399),
+        Grunnbeløpsendring(1.mai(2022), 20.mai(2022), 111477),
     ),
 ) : SatsFactory {
     private val grunnbeløpFactory: GrunnbeløpFactory = GrunnbeløpFactory(
         clock = clock,
-        grunnbeløpsendringer = grunnbeløpsendringer.let {
-            if (ApplicationConfig.isNotProd()) {
-                // TODO(satsfactory_grunnbeløp_2022) Husk å bytt denne til nyeste før merge til master.
-                it + Grunnbeløpsendring(1.mai(2022), 1.mai(2022), 107099)
-            } else it
-        },
+        grunnbeløpsendringer = grunnbeløpsendringer,
     )
 
     private val minsteÅrligYtelseForUføretrygdede: MinsteÅrligYtelseForUføretrygdedeFactory =

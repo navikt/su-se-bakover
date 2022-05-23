@@ -21,7 +21,11 @@ data class FormuegrenseForMåned(
     val grunnbeløpForMåned: GrunnbeløpForMåned,
     val faktor: Faktor = Faktor(0.5),
 ) {
-    val ikrafttredelse: LocalDate = grunnbeløpForMåned.ikrafttredelse
+    /**
+     * Dette er ikke nødvendigvis det samme som ikrafttredelse. Grunnbeløpet kan f.eks. tre i kraft rundt 20. mai., mens virkningstidspunktet de siste årene har vært 1. mai.
+     * Når det kommer til lover kan ikrafttredesen være både før og etter virkningstidspunktet.
+     */
+    val virkningstidspunkt: LocalDate = grunnbeløpForMåned.virkningstidspunkt
 
     val formuegrense: BigDecimal = grunnbeløpForMåned.grunnbeløpPerÅr.toBigDecimal().multiply(faktor.toBigDecimal())
     val formuegrenseMedToDesimaler: Double = grunnbeløpForMåned.grunnbeløpPerÅr.toBigDecimal().multiply(faktor.toBigDecimal()).roundToDecimals(2)
@@ -30,7 +34,7 @@ data class FormuegrenseForMåned(
 
     init {
         require(grunnbeløpForMåned.måned == måned)
-        require(måned.fraOgMed >= ikrafttredelse)
+        require(måned.fraOgMed >= virkningstidspunkt)
     }
 }
 

@@ -212,7 +212,7 @@ internal class RevurderingJsonTest {
                     "formuegrenser": [
                       {
                             "gyldigFra":"2022-05-01",
-                            "beløp":53550
+                            "beløp":55739
                       },
                       {
                           "gyldigFra": "2021-05-01",
@@ -236,8 +236,14 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest(1.mai(2022).fixedClock()))), true)
-        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest(1.mai(2022).fixedClock()))
+        JSONAssert.assertEquals(
+            revurderingJson,
+            serialize(revurdering.toJson(satsFactoryTest(20.mai(2022).fixedClock()))),
+            true,
+        )
+        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(
+            satsFactoryTest(20.mai(2022).fixedClock()),
+        )
     }
 
     @Test

@@ -14,8 +14,8 @@ data class GrunnbeløpForMåned(
 ) {
     init {
         require(grunnbeløpPerÅr >= 0)
-        require(ikrafttredelse.isEqualOrBefore(måned.fraOgMed)) {
-            "ikraftredelse: $ikrafttredelse må være lik eller før ${måned.fraOgMed}"
+        require(virkningstidspunkt.isEqualOrBefore(måned.fraOgMed)) {
+            "virkningstidspunkt: $virkningstidspunkt må være lik eller før ${måned.fraOgMed}"
         }
     }
 
