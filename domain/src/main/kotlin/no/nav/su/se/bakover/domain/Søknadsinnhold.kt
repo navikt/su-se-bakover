@@ -32,6 +32,11 @@ sealed interface SøknadInnhold {
             personopplysninger = personopplysninger.copy(fnr = fnr),
         )
     }
+
+    fun type() = when (this) {
+        is SøknadsinnholdAlder -> Søknadstype.ALDER
+        is SøknadsinnholdUføre -> Søknadstype.UFØRE
+    }
 }
 
 data class SøknadsinnholdAlder(

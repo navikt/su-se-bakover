@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Person
@@ -27,6 +26,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
@@ -114,7 +114,7 @@ class SøknadTest {
             on { hentPerson(any()) } doReturn person.right()
         }
         val sakServiceMock: SakService = mock {
-            on { hentSak(any<Fnr>()) } doReturn FantIkkeSak.left() doReturn sak.right()
+            on { hentSakidOgSaksnummer(any()) } doReturn FantIkkeSak.left() doReturn SakIdSaksnummerFnr(sak.id, sak.saksnummer, fnr).right()
         }
 
         val pdfGeneratorMock: PdfGenerator = mock {
@@ -144,7 +144,7 @@ class SøknadTest {
             pdfGeneratorMock
         ) {
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
+            verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
             verify(sakServiceMock).opprettSak(
                 argThat {
                     it shouldBe NySak(
@@ -160,7 +160,7 @@ class SøknadTest {
                     )
                 }
             )
-            verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
+            verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
                     it shouldBe SøknadPdfInnhold.create(
@@ -212,7 +212,7 @@ class SøknadTest {
             on { hentPerson(any()) } doReturn person.right()
         }
         val sakServiceMock: SakService = mock {
-            on { hentSak(any<Fnr>()) } doReturn sak.right()
+            on { hentSakidOgSaksnummer(any()) } doReturn SakIdSaksnummerFnr(sak.id, sak.saksnummer, fnr).right()
         }
         val søknadRepoMock: SøknadRepo = mock()
         val pdfGeneratorMock: PdfGenerator = mock {
@@ -251,7 +251,7 @@ class SøknadTest {
             observerMock
         ) {
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
+            verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
             verify(søknadRepoMock).opprettSøknad(
                 argThat {
                     it shouldBe Søknad.Ny(
@@ -299,7 +299,7 @@ class SøknadTest {
             on { hentPerson(any()) } doReturn person.right()
         }
         val sakServiceMock: SakService = mock {
-            on { hentSak(any<Fnr>()) } doReturn sak.right()
+            on { hentSakidOgSaksnummer(any()) } doReturn SakIdSaksnummerFnr(sak.id, sak.saksnummer, fnr).right()
         }
         val søknadRepoMock: SøknadRepo = mock()
         val pdfGeneratorMock: PdfGenerator = mock {
@@ -334,7 +334,7 @@ class SøknadTest {
             dokArkivMock
         ) {
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
+            verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
             verify(søknadRepoMock).opprettSøknad(
                 argThat {
                     it shouldBe Søknad.Ny(
@@ -400,7 +400,7 @@ class SøknadTest {
 
         SøknadserviceOgMocks(
             sakService = mock {
-                on { hentSak(any<Fnr>()) } doReturn sak.right()
+                on { hentSakidOgSaksnummer(any()) } doReturn SakIdSaksnummerFnr(sak.id, sak.saksnummer, fnr).right()
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -419,7 +419,7 @@ class SøknadTest {
             val actual = service.nySøknad(søknadInnhold, innsender)
             inOrder(*allMocks()) {
                 verify(personService).hentPerson(argThat { it shouldBe sak.fnr })
-                verify(sakService).hentSak(argThat<Fnr> { it shouldBe sak.fnr })
+                verify(sakService).hentSakidOgSaksnummer(argThat { it shouldBe sak.fnr })
                 verify(søknadRepo).opprettSøknad(
                     argThat {
                         it shouldBe Søknad.Ny(
@@ -506,7 +506,7 @@ class SøknadTest {
             on { hentPerson(any()) } doReturn person.right()
         }
         val sakServiceMock: SakService = mock {
-            on { hentSak(any<Fnr>()) } doReturn sak.right()
+            on { hentSakidOgSaksnummer(any()) } doReturn SakIdSaksnummerFnr(sak.id, sak.saksnummer, fnr).right()
         }
         val søknadRepoMock: SøknadRepo = mock()
         val pdfGeneratorMock: PdfGenerator = mock {
@@ -543,7 +543,7 @@ class SøknadTest {
             oppgaveServiceMock
         ) {
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
+            verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
             verify(søknadRepoMock).opprettSøknad(
                 argThat {
                     it shouldBe Søknad.Ny(
