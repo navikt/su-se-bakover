@@ -69,14 +69,6 @@ class GrunnbeløpFactory(
             grunnbeløpsendringer = grunnbeløpsendringer,
         )
     }
-
-    override fun equals(other: Any?): Boolean {
-        return other is GrunnbeløpFactory && this.månedTilGrunnbeløp == other.månedTilGrunnbeløp
-    }
-
-    override fun hashCode(): Int {
-        return månedTilGrunnbeløp.hashCode()
-    }
 }
 
 data class Grunnbeløpsendring(
