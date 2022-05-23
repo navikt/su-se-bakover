@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.token.JwtToken
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -68,7 +69,7 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = mock(),
             ),
         )
-        client.aktørId(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.Ukjent.left()
+        client.aktørId(Fnr("12345678912"), JwtToken.BrukerToken("ignored because of mock")) shouldBe KunneIkkeHentePerson.Ukjent.left()
     }
 
     @Test
@@ -86,7 +87,7 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = mock(),
             ),
         )
-        client.aktørId(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.Ukjent.left()
+        client.aktørId(Fnr("12345678912"), JwtToken.BrukerToken("ignored because of mock")) shouldBe KunneIkkeHentePerson.Ukjent.left()
     }
 
     @Test
@@ -128,7 +129,7 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = azureAdMock,
             ),
         )
-        client.aktørId(Fnr("12345678912")) shouldBe AktørId("2751637578706").right()
+        client.aktørId(Fnr("12345678912"), JwtToken.BrukerToken("ignored because of mock")) shouldBe AktørId("2751637578706").right()
     }
 
     @Test
@@ -169,7 +170,7 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = azureAdMock,
             ),
         )
-        client.aktørId(Fnr("12345678912")) shouldBe AktørId("2751637578706").right()
+        client.aktørId(Fnr("12345678912"), JwtToken.BrukerToken("ignored because of mock")) shouldBe AktørId("2751637578706").right()
     }
 
     @Test
@@ -218,7 +219,7 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = azureAdMock,
             ),
         )
-        client.person(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
+        client.person(Fnr("12345678912"), JwtToken.BrukerToken("ignored because of mock")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
     }
 
     @Test
@@ -235,7 +236,7 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = mock(),
             ),
         )
-        client.person(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.Ukjent.left()
+        client.person(Fnr("12345678912"), JwtToken.BrukerToken("ignored because of mock")) shouldBe KunneIkkeHentePerson.Ukjent.left()
     }
 
     @Test
@@ -358,7 +359,7 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = azureAdMock,
             ),
         )
-        client.person(Fnr("07028820547")) shouldBe PdlData(
+        client.person(Fnr("07028820547"), JwtToken.BrukerToken("ignored because of mock")) shouldBe PdlData(
             ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
             navn = PdlData.Navn(
                 fornavn = "NYDELIG",
@@ -514,7 +515,7 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = azureAdMock,
             ),
         )
-        client.person(Fnr("07028820547")) shouldBe PdlData(
+        client.person(Fnr("07028820547"), JwtToken.BrukerToken("ignored because of mock")) shouldBe PdlData(
             ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
             navn = PdlData.Navn(
                 fornavn = "NYDELIG",
@@ -673,7 +674,7 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = azureAdMock,
             ),
         )
-        client.person(Fnr("07028820547")) shouldBe PdlData(
+        client.person(Fnr("07028820547"), JwtToken.BrukerToken("ignored because of mock")) shouldBe PdlData(
             ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
             navn = PdlData.Navn(
                 fornavn = "NYDELIG",
@@ -858,7 +859,7 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = azureAdMock,
             ),
         )
-        client.person(Fnr("07028820547")) shouldBe PdlData(
+        client.person(Fnr("07028820547"), JwtToken.BrukerToken("ignored because of mock")) shouldBe PdlData(
             ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
             navn = PdlData.Navn(
                 fornavn = "NYDELIG",

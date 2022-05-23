@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.token.JwtToken
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Telefonnummer
@@ -30,7 +31,6 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.IkkeTilgangTilPerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.Ukjent
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import java.time.LocalDate
 
 internal data class PdlClientConfig(
@@ -47,8 +47,8 @@ internal class PdlClient(
     private val hentPersonQuery = this::class.java.getResource("/hentPerson.graphql")?.readText()!!
     private val hentIdenterQuery = this::class.java.getResource("/hentIdenter.graphql")?.readText()!!
 
-    fun person(fnr: Fnr): Either<KunneIkkeHentePerson, PdlData> {
-        return config.azureAd.onBehalfOfToken(MDC.get("Authorization"), config.vars.clientId).let { token ->
+    fun person(fnr: Fnr, brukerToken: JwtToken.BrukerToken): Either<KunneIkkeHentePerson, PdlData> {
+        return config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
             kallPDLMedOnBehalfOfToken<PersonResponseData>(fnr, hentPersonQuery, token)
                 .flatMap { mapResponse(it) }
         }
@@ -105,7 +105,7 @@ internal class PdlClient(
                     doedsfall.firstNotNullOfOrNull { it.doedsdato }.let {
                         if (it == null) {
                             log.error("Hentet en person som er registrert død, uten dødsdato. Se sikker logg for innhold")
-                            sikkerLogg.error("Hentet en person som er registrert død, uten dødsdato", person)
+                            sikkerLogg.error("Hentet en person som er registrert død, uten dødsdato. Person=$person")
                         }
                         it
                     }
@@ -116,8 +116,8 @@ internal class PdlClient(
 
     private fun folkeregisteretAsMaster(metadata: Metadata) = metadata.master.lowercase() == "freg"
 
-    fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-        return config.azureAd.onBehalfOfToken(MDC.get("Authorization"), config.vars.clientId).let { token ->
+    fun aktørId(fnr: Fnr, brukerToken: JwtToken.BrukerToken): Either<KunneIkkeHentePerson, AktørId> {
+        return config.azureAd.onBehalfOfToken(brukerToken.value, config.vars.clientId).let { token ->
             kallPDLMedOnBehalfOfToken<IdentResponseData>(fnr, hentIdenterQuery, token).map {
                 val identer = it.hentIdenter ?: return FantIkkePerson.left()
                 finnIdent(identer).aktørId
@@ -208,7 +208,7 @@ internal class PdlClient(
         objectMapper.typeFactory.constructParametricType(PdlResponse::class.java, clazz)
 }
 
-data class PdlResponse<T>(
+internal data class PdlResponse<T>(
     val data: T,
     val errors: List<PdlError>?,
 ) {
@@ -227,26 +227,26 @@ data class PdlResponse<T>(
     }
 }
 
-data class PdlError(
+internal data class PdlError(
     val message: String,
     val path: List<String>,
     val extensions: PdlExtension,
 )
 
-data class PdlExtension(
+internal data class PdlExtension(
     val code: String,
 )
 
-data class IdentResponseData(
+internal data class IdentResponseData(
     val hentIdenter: HentIdenter?,
 )
 
-data class PersonResponseData(
+internal data class PersonResponseData(
     val hentPerson: HentPerson?,
     val hentIdenter: HentIdenter?,
 )
 
-data class HentPerson(
+internal data class HentPerson(
     val navn: List<NavnResponse>,
     val telefonnummer: List<TelefonnummerResponse>,
     val bostedsadresse: List<Bostedsadresse>,
@@ -262,51 +262,51 @@ data class HentPerson(
     val doedsfall: List<Doedsfall>,
 )
 
-data class NavnResponse(
+internal data class NavnResponse(
     val etternavn: String,
     val fornavn: String,
     val mellomnavn: String?,
     val metadata: Metadata,
 )
 
-data class TelefonnummerResponse(
+internal data class TelefonnummerResponse(
     val landskode: String,
     val nummer: String,
     val prioritet: Int,
 )
 
-data class Statsborgerskap(
+internal data class Statsborgerskap(
     val land: String,
     val gyldigFraOgMed: LocalDate?,
     val gyldigTilOgMed: LocalDate?,
 )
 
-data class Metadata(
+internal data class Metadata(
     val master: String,
 )
 
-data class HentIdenter(
+internal data class HentIdenter(
     val identer: List<Id>,
 )
 
-data class Id(
+internal data class Id(
     val gruppe: String,
     val ident: String,
 )
 
-data class Kjønn(
+internal data class Kjønn(
     val kjoenn: String,
 )
 
-data class Fødsel(
+internal data class Fødsel(
     val foedselsdato: LocalDate,
 )
 
-data class Adressebeskyttelse(
+internal data class Adressebeskyttelse(
     val gradering: String,
 )
 
-data class VergemaalEllerFremtidsfullmakt(
+internal data class VergemaalEllerFremtidsfullmakt(
     val type: String?,
     val vergeEllerFullmektig: VergeEllerFullmektig,
 ) {
@@ -316,17 +316,18 @@ data class VergemaalEllerFremtidsfullmakt(
     )
 }
 
-data class Fullmakt(
+internal data class Fullmakt(
     val motpartsRolle: FullmaktsRolle,
     val gyldigFraOgMed: LocalDate,
     val gyldigTilOgMed: LocalDate,
 ) {
+    @Suppress("unused")
     enum class FullmaktsRolle {
         FULLMAKTSGIVER,
         FULLMEKTIG
     }
 }
 
-data class Doedsfall(
+internal data class Doedsfall(
     val doedsdato: LocalDate?,
 )

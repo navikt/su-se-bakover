@@ -41,6 +41,9 @@ subprojects {
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.5.0")
         implementation("io.confluent:kafka-avro-serializer:7.1.0")
         implementation("org.apache.avro:avro:1.11.0")
+        implementation("com.github.ben-manes.caffeine:caffeine:3.1.0")
+        implementation("io.micrometer:micrometer-core:1.9.0")
+        implementation("io.micrometer:micrometer-registry-prometheus:1.9.0")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 
