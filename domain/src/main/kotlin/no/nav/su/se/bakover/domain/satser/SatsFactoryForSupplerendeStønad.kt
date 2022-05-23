@@ -71,7 +71,9 @@ class SatsFactoryForSupplerendeStønad(
         grunnbeløpFactory,
         minsteÅrligYtelseForUføretrygdede,
     )
-    private val cache = CachedSatsfactoryForSupplerendeStønad(mutableSetOf(this))
+    private val cache = CachedSatsfactoryForSupplerendeStønad(
+        mutableMapOf(grunnbeløpsendringer.gjeldende(LocalDate.now(clock)).ikrafttredelse to this),
+    )
 
     private fun factoryForSatskategori(satskategori: Satskategori): FullSupplerendeStønadFactory {
         return when (satskategori) {
@@ -90,7 +92,7 @@ class SatsFactoryForSupplerendeStønad(
      * ikke blir like kostbare mtp minneforbruk.
      */
     override fun gjeldende(påDato: LocalDate): SatsFactory {
-        return cache.getOrAdd(SatsFactoryForSupplerendeStønad(påDato.fixedClock()))
+        return cache.getOrAdd(grunnbeløpsendringer.gjeldende(påDato).ikrafttredelse)
     }
 
     override fun høy(måned: Måned): FullSupplerendeStønadForMåned {
@@ -105,27 +107,15 @@ class SatsFactoryForSupplerendeStønad(
         return grunnbeløpFactory.forMåned(måned)
     }
 
-    override fun equals(other: Any?): Boolean {
-        return other is SatsFactoryForSupplerendeStønad &&
-            other.grunnbeløpFactory == grunnbeløpFactory &&
-            other.minsteÅrligYtelseForUføretrygdede == minsteÅrligYtelseForUføretrygdede &&
-            other.formuegrenserFactory == formuegrenserFactory
-    }
-
-    override fun hashCode(): Int {
-        var result = 31 + grunnbeløpFactory.hashCode()
-        result = 31 * result + minsteÅrligYtelseForUføretrygdede.hashCode()
-        result = 31 * result + formuegrenserFactory.hashCode()
-        return result
-    }
-
     private class CachedSatsfactoryForSupplerendeStønad(
-        private val cache: MutableSet<SatsFactoryForSupplerendeStønad> = mutableSetOf(),
+        private val cache: MutableMap<LocalDate, SatsFactoryForSupplerendeStønad> = mutableMapOf(),
     ) {
-        fun getOrAdd(factory: SatsFactoryForSupplerendeStønad): SatsFactoryForSupplerendeStønad {
-            return cache.add(factory).let {
-                cache.elementAt(cache.indexOf(factory))
-            }
+        fun getOrAdd(ikrafttredelse: LocalDate): SatsFactoryForSupplerendeStønad {
+            return cache.getOrPut(ikrafttredelse) { SatsFactoryForSupplerendeStønad(ikrafttredelse.fixedClock()) }
         }
+    }
+
+    private fun List<Grunnbeløpsendring>.gjeldende(påDato: LocalDate): Grunnbeløpsendring {
+        return sortedBy { it.ikrafttredelse }.last { it.ikrafttredelse <= påDato }
     }
 }
