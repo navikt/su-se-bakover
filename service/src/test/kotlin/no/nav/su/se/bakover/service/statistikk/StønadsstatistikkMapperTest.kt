@@ -8,9 +8,11 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
@@ -18,12 +20,15 @@ import no.nav.su.se.bakover.service.statistikk.mappers.StønadsstatistikkMapper
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.vedtakIverksattAutomatiskRegulering
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.temporal.ChronoUnit
 
 internal class StønadsstatistikkMapperTest {
     private val aktørId = AktørId("293829399")
@@ -96,6 +101,8 @@ internal class StønadsstatistikkMapperTest {
                             Statistikk.Inntekt(
                                 inntektstype = "ForventetInntekt",
                                 beløp = 3000,
+                                tilhører = "BRUKER",
+                                erUtenlandsk = false
                             ),
                         ),
                         fradragSum = 3000,
@@ -111,6 +118,8 @@ internal class StønadsstatistikkMapperTest {
                             Statistikk.Inntekt(
                                 inntektstype = "ForventetInntekt",
                                 beløp = 3000,
+                                tilhører = "BRUKER",
+                                erUtenlandsk = false
                             ),
                         ),
                         fradragSum = 3000,
@@ -159,7 +168,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -172,7 +183,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -185,7 +198,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -198,7 +213,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -211,7 +228,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -224,7 +243,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -237,7 +258,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -250,7 +273,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -263,7 +288,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -276,7 +303,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -289,7 +318,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -302,7 +333,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 3000
+                          "beløp": 3000,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 3000
@@ -397,7 +430,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 0
+                          "beløp": 0,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 0
@@ -410,10 +445,95 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 0
+                          "beløp": 0,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 0
+                    }
+                  ],
+                  "versjon": 1609462923456,
+                  "flyktningsstatus": "FLYKTNING"
+                }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(expected, actual, true)
+    }
+
+    @Test
+    fun `Gjenopptak bruker nyeste beregning for hver måned`() {
+        val stønadsperiode = Periode.create(1.januar(2021), 28.februar(2021))
+        var sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(
+                stønadsperiode,
+                "",
+            ),
+            clock = fixedClock,
+        )
+        lateinit var gjenopptakVedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse
+        sakOgVedtak = vedtakRevurderingIverksattInnvilget(sakOgVedtakSomKanRevurderes = sakOgVedtak, revurderingsperiode = Periode.create(1.februar(2021), 28.februar(2021)), clock = fixedClock.plus(1, ChronoUnit.SECONDS))
+        sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(sakOgVedtakSomKanRevurderes = sakOgVedtak, periode = stønadsperiode, clock = fixedClock.plus(2, ChronoUnit.SECONDS))
+        vedtakIverksattGjenopptakAvYtelseFraIverksattStans(sakOgVedtakSomKanRevurderes = sakOgVedtak, periode = stønadsperiode, clock = fixedClock.plus(3, ChronoUnit.SECONDS)).let {
+            sakOgVedtak = it
+            gjenopptakVedtak = it.second
+        }
+
+        val actual = objectMapper.writeValueAsString(
+            StønadsstatistikkMapper(fixedClock).map(
+                vedtak = gjenopptakVedtak,
+                aktørId = aktørId,
+                ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,
+                sak = sakOgVedtak.first,
+            ),
+        )
+        val expected = """
+                {
+                  "funksjonellTid": "2021-01-01T01:02:03.456789Z",
+                  "tekniskTid": "2021-01-01T01:02:03.456789Z",
+                  "stonadstype": "SU_UFØR",
+                  "sakId": "${sak.id}",
+                  "aktorId": 293829399,
+                  "sakstype": "GJENOPPTAK",
+                  "vedtaksdato": "2021-01-01",
+                  "vedtakstype": "GJENOPPTAK",
+                  "vedtaksresultat": "GJENOPPTATT",
+                  "behandlendeEnhetKode": "4815",
+                  "ytelseVirkningstidspunkt": "2021-01-01",
+                  "gjeldendeStonadVirkningstidspunkt": "2021-01-01",
+                  "gjeldendeStonadStopptidspunkt": "2021-02-28",
+                  "gjeldendeStonadUtbetalingsstart": "2021-01-01",
+                  "gjeldendeStonadUtbetalingsstopp": "2021-02-28",
+                  "månedsbeløp": [
+                    {
+                      "måned": "2021-01-01",
+                      "stonadsklassifisering": "BOR_ALENE",
+                      "bruttosats": 20946,
+                      "nettosats": 20946,
+                      "inntekter": [
+                        {
+                          "inntektstype": "ForventetInntekt",
+                          "beløp": 0,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
+                        }
+                      ],
+                      "fradragSum": 0
+                    },
+                    {
+                      "måned": "2021-02-01",
+                      "stonadsklassifisering": "BOR_ALENE",
+                      "bruttosats": 20946,
+                      "nettosats": 13446,
+                      "inntekter": [
+                        {
+                          "inntektstype": "Arbeidsinntekt",
+                          "beløp": 7500,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
+                        }
+                      ],
+                      "fradragSum": 7500
                     }
                   ],
                   "versjon": 1609462923456,
@@ -463,7 +583,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 0
+                          "beløp": 0,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 0
@@ -476,7 +598,9 @@ internal class StønadsstatistikkMapperTest {
                       "inntekter": [
                         {
                           "inntektstype": "ForventetInntekt",
-                          "beløp": 0
+                          "beløp": 0,
+                          "tilhører": "BRUKER",
+                          "erUtenlandsk": false
                         }
                       ],
                       "fradragSum": 0

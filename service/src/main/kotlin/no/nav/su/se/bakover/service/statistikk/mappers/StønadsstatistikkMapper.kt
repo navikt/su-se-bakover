@@ -1,12 +1,16 @@
 package no.nav.su.se.bakover.service.statistikk.mappers
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.statistikk.Statistikk
@@ -87,38 +91,56 @@ class StønadsstatistikkMapper(
 private fun mapBeregning(
     vedtak: VedtakSomKanRevurderes.EndringIYtelse,
     beregning: Beregning,
-): List<Statistikk.Stønad.Månedsbeløp> =
-    beregning.getMånedsberegninger().map {
-        tilMånedsbeløp(it, vedtak)
+): List<Statistikk.Stønad.Månedsbeløp> {
+    val alleFradrag = beregning.tilFradragPerMåned()
+    val månedsberegninger = beregning.getMånedsberegninger().associateBy { it.måned }
+
+    return beregning.periode.måneder().toList().map { måned ->
+        val fradrag = høgstAvForventetInntektOgArbeidsInntekt(alleFradrag[måned]!!)
+
+        Statistikk.Stønad.Månedsbeløp(
+            inntekter = fradrag.map {
+                Statistikk.Inntekt(
+                    inntektstype = it.fradragstype.toString(),
+                    beløp = it.månedsbeløp.toLong(),
+                    tilhører = it.tilhører.toString(),
+                    erUtenlandsk = it.utenlandskInntekt != null,
+                )
+            },
+            bruttosats = månedsberegninger[måned]?.getSatsbeløp()?.roundToInt()?.toLong()!!,
+            fradragSum = månedsberegninger[måned]?.getSumFradrag()?.toLong()!!,
+            måned = månedsberegninger[måned]?.periode?.fraOgMed.toString(),
+            nettosats = månedsberegninger[måned]?.getSumYtelse()?.toLong()!!,
+            stonadsklassifisering = stønadsklassifisering(vedtak.behandling, månedsberegninger[måned]!!),
+        )
     }
+}
+
+private fun høgstAvForventetInntektOgArbeidsInntekt(fradragForMåned: List<FradragForMåned>): List<FradragForMåned> {
+    val (IEUogArbeidsInntekt, rest) = fradragForMåned.partition { listOf(Fradragstype.ForventetInntekt, Fradragstype.Arbeidsinntekt).contains(it.fradragstype) }
+    return listOfNotNull(IEUogArbeidsInntekt.maxByOrNull { it.månedsbeløp }) + rest
+}
+
+fun Beregning?.tilFradragPerMåned(): Map<Måned, List<FradragForMåned>> = this?.let { beregning ->
+    beregning.getFradrag()
+        .flatMap { FradragFactory.periodiser(it) }
+}?.groupBy { it.måned } ?: emptyMap()
 
 private fun mapBeregning(
     vedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse,
     sak: Sak,
     clock: Clock,
-): List<Statistikk.Stønad.Månedsbeløp> =
-    vedtak.periode.måneder().map {
-        sak.hentGjeldendeMånedsberegningForMåned(it, clock)!!
-    }.map {
-        tilMånedsbeløp(it, vedtak)
-    }
+): List<Statistikk.Stønad.Månedsbeløp> {
+    val beregningForMåned = vedtak.periode.måneder()
+        .toList()
+        .flatMap {
+            val beregning = sak.hentGjeldendeBeregningForEndringIYtelsePåDato(it, clock)!!
+            mapBeregning(vedtak, beregning)
+        }
+    val gjeldendeBeregningForMåned = beregningForMåned.associateBy { it.måned }
 
-private fun tilMånedsbeløp(
-    månedsberegning: Månedsberegning,
-    vedtak: VedtakSomKanRevurderes.EndringIYtelse,
-) = Statistikk.Stønad.Månedsbeløp(
-    måned = månedsberegning.periode.fraOgMed.toString(),
-    stonadsklassifisering = stønadsklassifisering(vedtak.behandling, månedsberegning),
-    bruttosats = månedsberegning.getSatsbeløp().roundToInt().toLong(),
-    nettosats = månedsberegning.getSumYtelse().toLong(),
-    inntekter = månedsberegning.getFradrag().map { fradrag ->
-        Statistikk.Inntekt(
-            inntektstype = fradrag.fradragstype.toString(),
-            beløp = fradrag.månedsbeløp.toLong(),
-        )
-    },
-    fradragSum = månedsberegning.getSumFradrag().toLong(),
-)
+    return vedtak.periode.måneder().map { gjeldendeBeregningForMåned[it.fraOgMed.toString()]!! }
+}
 
 private fun vedtakstype(vedtak: VedtakSomKanRevurderes.EndringIYtelse) = when (vedtak) {
     is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> Statistikk.Stønad.Vedtakstype.GJENOPPTAK

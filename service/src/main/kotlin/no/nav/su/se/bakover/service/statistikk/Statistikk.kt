@@ -191,6 +191,8 @@ sealed class Statistikk {
     data class Inntekt(
         val inntektstype: String,
         val beløp: Long,
+        val tilhører: String,
+        val erUtenlandsk: Boolean
     )
 
     data class Aktør(val aktorId: Int, val rolle: String, val rolleBeskrivelse: String)
