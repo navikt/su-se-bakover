@@ -35,7 +35,7 @@ subprojects {
         implementation("net.logstash.logback:logstash-logback-encoder:7.2")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:3.1.0")
-        implementation("com.networknt:json-schema-validator:1.0.69")
+        implementation("com.networknt:json-schema-validator:1.0.70")
         implementation("no.finn.unleash:unleash-client-java:4.4.1")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.5.0")
