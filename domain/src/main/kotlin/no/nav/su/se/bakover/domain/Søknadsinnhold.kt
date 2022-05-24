@@ -82,8 +82,8 @@ data class Personopplysninger(
 )
 
 data class OppholdstillatelseAlder(
-    val eøsborger: Boolean,
-    val familiegjenforening: Boolean
+    val eøsborger: Boolean?,
+    val familiegjenforening: Boolean?
 )
 
 data class Oppholdstillatelse(

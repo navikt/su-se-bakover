@@ -125,8 +125,8 @@ data class SøknadsinnholdAlderJson(
     }
 
     data class OppholdstillatelseAlderJson(
-        val eøsborger: Boolean,
-        val familieforening: Boolean
+        val eøsborger: Boolean?,
+        val familieforening: Boolean?
     ) {
         fun toOppholdstillatelseAlder() = OppholdstillatelseAlder(eøsborger = eøsborger, familiegjenforening = familieforening)
 
