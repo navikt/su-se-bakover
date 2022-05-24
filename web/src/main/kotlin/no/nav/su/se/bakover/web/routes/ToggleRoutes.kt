@@ -6,6 +6,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.parameter
@@ -30,7 +31,7 @@ internal fun Route.toggleRoutes(toggleService: ToggleService) {
     post(TOGGLES_PATH) {
         Either.catch { deserialize<List<String>>(call) }.fold(
             ifLeft = {
-                call.application.environment.log.info(it.message, it)
+                log.info(it.message, it)
                 call.svar(Feilresponser.ugyldigBody)
             },
             ifRight = { toggleNames ->
