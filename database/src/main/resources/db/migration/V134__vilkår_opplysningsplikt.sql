@@ -60,7 +60,7 @@ utenVedtak as (
 		stønadsperiode->'periode'->>'tilOgMed' as tom,
 		b.opprettet
 	from behandling b
-		where b.id not in (select id from medVedtak) and not lukket
+		where b.id not in (select id from medVedtak) and not lukket and stønadsperiode is not null
 			union
 	select
 		b.id,
@@ -148,7 +148,7 @@ vilkår as (
 ),
 forventet as (
 	select sum(antall) as antall from (
-		select count(*) as antall from behandling where not lukket
+		select count(*) as antall from behandling where not lukket stønadsperiode is not null
 		union all
 		select count(*) as antall from revurdering where avsluttet is null
         union all
