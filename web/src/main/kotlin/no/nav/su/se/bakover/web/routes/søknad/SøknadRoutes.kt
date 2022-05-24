@@ -14,7 +14,9 @@ import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -68,7 +70,8 @@ internal fun Route.søknadRoutes(
             call.withStringParam("type") { type ->
                 Either.catch { deserialize<SøknadsinnholdJson>(call) }.fold(
                     ifLeft = {
-                        call.application.environment.log.info(it.message, it)
+                        log.error("Feil skjedde ved deserializering av søknad ved innsending")
+                        sikkerLogg.error(it.message, it)
                         call.svar(Feilresponser.ugyldigBody)
                     },
                     ifRight = { søknadsinnholdJson ->
