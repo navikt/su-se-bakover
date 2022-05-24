@@ -41,7 +41,7 @@ dependencies {
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
         exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock
     }
-    testImplementation("no.nav:kafka-embedded-env:3.1.5") {
+    testImplementation("no.nav:kafka-embedded-env:3.1.6") {
         // Breaks build: exclude(group = "org.glassfish.jersey.ext", module = "jersey-bean-validation")
         // Breaks build: exclude(group = "org.glassfish", module = "jakarta.el")
         // Breaks build: exclude(group = "org.eclipse.jetty", module = "jetty-server")
