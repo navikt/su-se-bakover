@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
@@ -269,8 +271,18 @@ class ReguleringServiceImpl(
         }
     }
 
-    override fun hentStatus(): List<Regulering> {
-        return reguleringRepo.hentReguleringerSomIkkeErIverksatt()
+    override fun hentStatus(): List<Pair<Regulering, List<ReguleringMerknad>>> {
+        val reguleringer = reguleringRepo.hentReguleringerSomIkkeErIverksatt()
+        val sakerSomAvventerForhåndsvarsel = sakRepo.hentSakerSomVenterPåForhåndsvarsling()
+
+        return reguleringer.map {
+            val tilhørendeMerknader = listOfNotNull(
+                if (it.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.any { it.fradragstype == Fradragstype.Fosterhjemsgodtgjørelse }) ReguleringMerknad.Fosterhjemsgodtgjørelse else null,
+                if (sakerSomAvventerForhåndsvarsel.contains(it.saksnummer)) ReguleringMerknad.VenterPåSvarFraForhåndsvarsel else null,
+            )
+
+            Pair(it, tilhørendeMerknader)
+        }
     }
 
     override fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer> {

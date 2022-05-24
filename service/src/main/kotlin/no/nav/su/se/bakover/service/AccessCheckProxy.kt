@@ -63,6 +63,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -899,7 +900,7 @@ open class AccessCheckProxy(
                     return services.reguleringService.avslutt(reguleringId)
                 }
 
-                override fun hentStatus(): List<Regulering> {
+                override fun hentStatus(): List<Pair<Regulering, List<ReguleringMerknad>>> {
                     return services.reguleringService.hentStatus()
                 }
 

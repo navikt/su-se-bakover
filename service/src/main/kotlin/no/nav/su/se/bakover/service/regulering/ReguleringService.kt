@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import java.time.LocalDate
 import java.util.UUID
 
@@ -52,7 +53,7 @@ sealed class KunneIkkeAvslutte {
 interface ReguleringService {
     fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>>
     fun avslutt(reguleringId: UUID): Either<KunneIkkeAvslutte, Regulering.AvsluttetRegulering>
-    fun hentStatus(): List<Regulering>
+    fun hentStatus(): List<Pair<Regulering, List<ReguleringMerknad>>>
     fun hentSakerMedÅpenBehandlingEllerStans(): List<Saksnummer>
     fun regulerManuelt(
         reguleringId: UUID,
