@@ -503,28 +503,6 @@ internal class RevurderingServiceImpl(
         return RevurderingOgFeilmeldingerResponse(revurdering, feilmeldinger.toList())
     }
 
-    override fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse> {
-        val revurdering = revurderingRepo.hent(revurderingId)
-            ?: return KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIkkeBehandling.left()
-
-        return vedtakService.kopierGjeldendeVedtaksdata(revurdering.sakId, revurdering.periode.fraOgMed)
-            .mapLeft {
-                when (it) {
-                    KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak -> KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIkkeSak
-                    KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak -> KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIngentingSomKanRevurderes
-                    is KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode -> KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.UgyldigPeriode(
-                        it.cause,
-                    )
-                }
-            }
-            .map {
-                HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(
-                    it.grunnlagsdata,
-                    it.vilkårsvurderinger,
-                )
-            }
-    }
-
     override fun oppdaterRevurdering(
         oppdaterRevurderingRequest: OppdaterRevurderingRequest,
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {

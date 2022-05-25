@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -29,7 +28,6 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
@@ -135,10 +133,6 @@ interface RevurderingService {
     fun leggTilFormuegrunnlag(
         request: LeggTilFormuegrunnlagRequest,
     ): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse>
-
-    fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(
-        revurderingId: UUID,
-    ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse>
 
     fun lagBrevutkastForAvslutting(
         revurderingId: UUID,
@@ -386,11 +380,6 @@ sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) :
         KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
 }
-
-data class HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(
-    val grunnlagsdata: Grunnlagsdata,
-    val vilkårsvurderinger: Vilkårsvurderinger,
-)
 
 sealed class StansYtelseRequest {
     abstract val sakId: UUID
