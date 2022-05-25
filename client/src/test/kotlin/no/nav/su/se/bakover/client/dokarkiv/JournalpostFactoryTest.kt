@@ -7,15 +7,14 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
-import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import java.util.Base64
-import java.util.UUID
+import java.util.*
 import kotlin.random.Random
 
 internal class JournalpostFactoryTest {
@@ -26,107 +25,6 @@ internal class JournalpostFactoryTest {
     }
     private val saksnummer = Saksnummer(Random.nextLong(2021, Long.MAX_VALUE))
     private val pdf = "".toByteArray()
-
-    @Test
-    fun `lager vedtakspost for avslagsvedtak`() {
-        val brevdata = mock<BrevInnhold> {
-            on { brevTemplate } doReturn BrevTemplate.AvslagsVedtak
-            on { toJson() } doReturn ""
-        }
-        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
-            it.shouldBeTypeOf<Journalpost.Vedtakspost>()
-            assert(it, brevdata, DokumentKategori.VB)
-        }
-    }
-
-    @Test
-    fun `lager vedtakspost for innvilget vedtak`() {
-        val brevdata = mock<BrevInnhold> {
-            on { brevTemplate } doReturn BrevTemplate.InnvilgetVedtak
-            on { toJson() } doReturn ""
-        }
-
-        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
-            it.shouldBeTypeOf<Journalpost.Vedtakspost>()
-            assert(it, brevdata, DokumentKategori.VB)
-        }
-    }
-
-    @Test
-    fun `lager journalpost for en trukket søknad`() {
-        val brevdata = mock<BrevInnhold> {
-            on { brevTemplate } doReturn BrevTemplate.TrukketSøknad
-            on { toJson() } doReturn ""
-        }
-        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
-            it.shouldBeTypeOf<Journalpost.Info>()
-            assert(it, brevdata, DokumentKategori.IB)
-        }
-    }
-
-    @Test
-    fun `lager journalpost for en avvist søknad med vedtak`() {
-        val brevdata = mock<BrevInnhold> {
-            on { brevTemplate } doReturn BrevTemplate.AvvistSøknadVedtak
-            on { toJson() } doReturn ""
-        }
-        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
-            it.shouldBeTypeOf<Journalpost.Vedtakspost>()
-            assert(it, brevdata, DokumentKategori.VB)
-        }
-    }
-
-    @Test
-    fun `lager journalpost for en avvist søknad med fritekst`() {
-        val brevdata = mock<BrevInnhold> {
-            on { brevTemplate } doReturn BrevTemplate.AvvistSøknadFritekst
-            on { toJson() } doReturn ""
-        }
-
-        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
-            it.shouldBeTypeOf<Journalpost.Info>()
-            assert(it, brevdata, DokumentKategori.IB)
-        }
-    }
-
-    @Test
-    fun `lager vedtakspost for revurdering av inntekt`() {
-        val brevdata = mock<BrevInnhold> {
-            on { brevTemplate } doReturn BrevTemplate.Revurdering.Inntekt
-            on { toJson() } doReturn ""
-        }
-
-        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
-            it.shouldBeTypeOf<Journalpost.Vedtakspost>()
-            assert(it, brevdata, DokumentKategori.VB)
-        }
-    }
-
-    @Test
-    fun `lager vedtakspost for opphørsvedtak`() {
-        val brevdata = mock<BrevInnhold> {
-            on { brevTemplate } doReturn BrevTemplate.Opphør.Opphørsvedtak
-            on { toJson() } doReturn ""
-        }
-
-        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
-            it.shouldBeTypeOf<Journalpost.Vedtakspost>()
-            assert(it, brevdata, DokumentKategori.VB)
-        }
-    }
-
-    @Test
-    fun `lager vedtakspost for vedtak ingen endring`() {
-        val brevdata = mock<BrevInnhold> {
-            on { brevTemplate } doReturn BrevTemplate.VedtakIngenEndring
-            on { toJson() } doReturn ""
-        }
-
-        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
-            it.shouldBeTypeOf<Journalpost.Vedtakspost>()
-            assert(it, brevdata, DokumentKategori.VB)
-        }
-    }
 
     @Test
     fun `lager vedtakspost for vedtak dokumentkategori vedtak`() {
@@ -142,7 +40,7 @@ internal class JournalpostFactoryTest {
             ),
         )
 
-        JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument).let {
+        JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument, Søknadstype.UFØRE).let {
             it.shouldBeTypeOf<Journalpost.Vedtakspost>()
             assert(it, dokument, DokumentKategori.VB)
         }
@@ -162,7 +60,7 @@ internal class JournalpostFactoryTest {
             ),
         )
 
-        JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument).let {
+        JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument, Søknadstype.UFØRE).let {
             it.shouldBeTypeOf<Journalpost.Info>()
             assert(it, dokument, DokumentKategori.IB)
         }
