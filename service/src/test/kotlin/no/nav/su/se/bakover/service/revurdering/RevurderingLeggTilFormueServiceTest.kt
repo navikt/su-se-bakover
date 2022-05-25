@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuegrunnlagRequest
 import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.epsFnr
@@ -86,7 +87,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).let { serviceAndMocks ->
             val actual = serviceAndMocks.revurderingService.leggTilFormuegrunnlag(
                 request = LeggTilFormuegrunnlagRequest(
-                    revurderingId = revurderingId,
+                    behandlingId = revurderingId,
                     formuegrunnlag = Nel.fromListUnsafe(listOf(nyFormue)),
                 ),
             ).getOrFail()
@@ -131,7 +132,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).let {
             it.revurderingService.leggTilFormuegrunnlag(
                 request = LeggTilFormuegrunnlagRequest(
-                    revurderingId = revurderingId,
+                    behandlingId = revurderingId,
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
                             LeggTilFormuegrunnlagRequest.Grunnlag(
@@ -144,8 +145,10 @@ internal class RevurderingLeggTilFormueServiceTest {
                     ),
                 ),
             ).getOrHandle {
-                it shouldBe KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk(
-                    Konsistensproblem.BosituasjonOgFormue.KombinasjonAvBosituasjonOgFormueErUyldig
+                it shouldBe KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(
+                    LeggTilFormuegrunnlagRequest.KunneIkkeMappeTilDomenet.Konsistenssjekk(
+                        Konsistensproblem.BosituasjonOgFormue.KombinasjonAvBosituasjonOgFormueErUyldig,
+                    ),
                 )
             }
 
@@ -169,7 +172,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).let {
             it.revurderingService.leggTilFormuegrunnlag(
                 request = LeggTilFormuegrunnlagRequest(
-                    revurderingId = revurderingId,
+                    behandlingId = revurderingId,
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
                             LeggTilFormuegrunnlagRequest.Grunnlag(
@@ -182,7 +185,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     ),
                 ),
             ).getOrHandle {
-                it shouldBe KunneIkkeLeggeTilFormuegrunnlag.FormuePeriodeErUtenforBehandlingsperioden
+                it shouldBe KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(LeggTilFormuegrunnlagRequest.KunneIkkeMappeTilDomenet.FormuePeriodeErUtenforBehandlingsperioden)
             }
 
             inOrder(
@@ -205,7 +208,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).let {
             it.revurderingService.leggTilFormuegrunnlag(
                 request = LeggTilFormuegrunnlagRequest(
-                    revurderingId = revurderingId,
+                    behandlingId = revurderingId,
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
                             LeggTilFormuegrunnlagRequest.Grunnlag(
@@ -219,7 +222,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                 ),
             ).getOrHandle {
                 it shouldBe KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk(
-                    Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode
+                    Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode,
                 )
             }
 
@@ -250,7 +253,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).let {
             it.revurderingService.leggTilFormuegrunnlag(
                 request = LeggTilFormuegrunnlagRequest(
-                    revurderingId = revurderingId,
+                    behandlingId = revurderingId,
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
                             LeggTilFormuegrunnlagRequest.Grunnlag(
@@ -269,7 +272,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     ),
                 ),
             ).getOrHandle {
-                it shouldBe KunneIkkeLeggeTilFormuegrunnlag.IkkeLovMedOverlappendePerioder
+                it shouldBe KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(LeggTilFormuegrunnlagRequest.KunneIkkeMappeTilDomenet.IkkeLovMedOverlappendePerioder)
             }
 
             inOrder(
@@ -290,7 +293,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).let {
             it.revurderingService.leggTilFormuegrunnlag(
                 LeggTilFormuegrunnlagRequest(
-                    revurderingId = revurderingId,
+                    behandlingId = revurderingId,
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
                             LeggTilFormuegrunnlagRequest.Grunnlag(
@@ -331,7 +334,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).let {
             val response = it.revurderingService.leggTilFormuegrunnlag(
                 request = LeggTilFormuegrunnlagRequest(
-                    revurderingId = revurderingId,
+                    behandlingId = revurderingId,
                     formuegrunnlag = nonEmptyListOf(
                         LeggTilFormuegrunnlagRequest.Grunnlag(
                             periode = år(2021),
@@ -373,7 +376,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).let {
             val response = it.revurderingService.leggTilFormuegrunnlag(
                 request = LeggTilFormuegrunnlagRequest(
-                    revurderingId = revurderingId,
+                    behandlingId = revurderingId,
                     formuegrunnlag = nonEmptyListOf(
                         LeggTilFormuegrunnlagRequest.Grunnlag(
                             periode = Periode.create(1.januar(2021), 31.mai(2021)),
@@ -413,7 +416,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).let {
             val response = it.revurderingService.leggTilFormuegrunnlag(
                 request = LeggTilFormuegrunnlagRequest(
-                    revurderingId = revurderingId,
+                    behandlingId = revurderingId,
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
                             LeggTilFormuegrunnlagRequest.Grunnlag(

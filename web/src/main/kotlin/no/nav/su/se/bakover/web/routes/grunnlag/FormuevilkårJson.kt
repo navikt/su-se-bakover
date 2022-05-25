@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 import no.nav.su.se.bakover.common.avrund
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -15,14 +14,14 @@ import java.time.format.DateTimeFormatter
 
 internal data class FormuevilkårJson(
     val vurderinger: List<VurderingsperiodeFormueJson>,
-    val resultat: Behandlingsinformasjon.Formue.Status,
+    val resultat: FormuevilkårStatus,
     val formuegrenser: List<FormuegrenseJson>,
 )
 
 internal data class VurderingsperiodeFormueJson(
     val id: String,
     val opprettet: String,
-    val resultat: Behandlingsinformasjon.Formue.Status,
+    val resultat: FormuevilkårStatus,
     val grunnlag: FormuegrunnlagJson,
     val periode: PeriodeJson,
 )
@@ -44,9 +43,15 @@ internal fun Vilkår.Formue.toJson(satsFactory: SatsFactory): FormuevilkårJson 
 }
 
 internal fun Resultat.toFormueStatusString() = when (this) {
-    Resultat.Avslag -> Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt
-    Resultat.Innvilget -> Behandlingsinformasjon.Formue.Status.VilkårOppfylt
-    Resultat.Uavklart -> Behandlingsinformasjon.Formue.Status.MåInnhenteMerInformasjon
+    Resultat.Avslag -> FormuevilkårStatus.VilkårIkkeOppfylt
+    Resultat.Innvilget -> FormuevilkårStatus.VilkårOppfylt
+    Resultat.Uavklart -> FormuevilkårStatus.MåInnhenteMerInformasjon
+}
+
+internal enum class FormuevilkårStatus {
+    VilkårOppfylt,
+    VilkårIkkeOppfylt,
+    MåInnhenteMerInformasjon
 }
 
 internal fun Vurderingsperiode.Formue.toJson(): VurderingsperiodeFormueJson {

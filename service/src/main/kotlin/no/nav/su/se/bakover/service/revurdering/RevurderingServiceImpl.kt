@@ -78,6 +78,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuegrunnlagRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
@@ -420,7 +421,7 @@ internal class RevurderingServiceImpl(
     override fun leggTilFormuegrunnlag(
         request: LeggTilFormuegrunnlagRequest
     ): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse> {
-        val revurdering = hent(request.revurderingId)
+        val revurdering = hent(request.behandlingId)
             .getOrHandle { return KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering.left() }
 
         // TODO("flere_satser mulig å gjøre noe for å unngå casting?")
@@ -428,7 +429,7 @@ internal class RevurderingServiceImpl(
         val bosituasjon = revurdering.grunnlagsdata.bosituasjon as List<Grunnlag.Bosituasjon.Fullstendig>
 
         val vilkår = request.toDomain(bosituasjon, revurdering.periode, clock, formuegrenserFactory).getOrHandle {
-            return it.left()
+            return KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(it).left()
         }
         return revurdering.oppdaterFormueOgMarkerSomVurdert(vilkår)
             .mapLeft {

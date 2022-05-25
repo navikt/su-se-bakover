@@ -5,10 +5,13 @@ import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.avrund
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.erSortert
+import no.nav.su.se.bakover.common.periode.harDuplikater
 import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
@@ -20,7 +23,7 @@ import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag.Companion.
 import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
@@ -248,9 +251,7 @@ sealed class Vilkårsvurderinger {
         fun oppdater(
             stønadsperiode: Stønadsperiode,
             behandlingsinformasjon: Behandlingsinformasjon,
-            grunnlagsdata: Grunnlagsdata, // For validering av formue
             clock: Clock,
-            formuegrenserFactory: FormuegrenserFactory,
         ): Søknadsbehandling {
             return behandlingsinformasjon.vilkår.mapNotNull {
                 when (it) {
@@ -265,9 +266,6 @@ sealed class Vilkårsvurderinger {
                     }
                     is Behandlingsinformasjon.Institusjonsopphold -> {
                         it.tilVilkår(stønadsperiode, clock)
-                    }
-                    is Behandlingsinformasjon.Formue -> {
-                        it.tilVilkår(stønadsperiode, grunnlagsdata.bosituasjon, clock, formuegrenserFactory)
                     }
                     is Behandlingsinformasjon.PersonligOppmøte -> {
                         it.tilVilkår(stønadsperiode, clock)
@@ -297,6 +295,26 @@ sealed class Vilkårsvurderinger {
             personligOppmøte = personligOppmøte.oppdaterStønadsperiode(stønadsperiode),
         )
 
+        /**
+         * Fjerner formue dersom søker ikke har EPS - det finnes et tilsvarende steg i [Grunnlagsdata] for fradrag.
+         */
+        fun nullstillEpsFormueHvisIngenEps(
+            bosituasjon: Grunnlag.Bosituasjon,
+        ): Vilkårsvurderinger.Søknadsbehandling {
+            return nullstillEpsFormueHvisIngenEps(nonEmptyListOf(bosituasjon))
+        }
+
+        /**
+         * Fjerner formue dersom søker ikke har EPS - det finnes et tilsvarende steg i [Grunnlagsdata] for fradrag.
+         */
+        fun nullstillEpsFormueHvisIngenEps(
+            bosituasjon: NonEmptyList<Grunnlag.Bosituasjon>,
+        ): Vilkårsvurderinger.Søknadsbehandling {
+            return this.copy(
+                formue = this.formue.fjernEPSFormue(bosituasjon.perioderUtenEPS())
+            )
+        }
+
         companion object {
             fun ikkeVurdert() =
                 Søknadsbehandling(
@@ -319,6 +337,9 @@ sealed class Vilkårsvurderinger {
         override val utenlandsopphold: UtenlandsoppholdVilkår,
         override val opplysningsplikt: OpplysningspliktVilkår,
     ) : Vilkårsvurderinger() {
+
+        // TODO jah: Legg til en init her for Vilkår.Revurdering og Vilkår.Søknadsbehandling
+        //  slik at vi blant annet kan passe på at periodene enten er null eller like dersom utfylt.
         override val vilkår: Set<Vilkår>
             get() {
                 return setOf(
@@ -391,6 +412,26 @@ sealed class Vilkårsvurderinger {
             utenlandsopphold = utenlandsopphold.oppdaterStønadsperiode(stønadsperiode),
             opplysningsplikt = opplysningsplikt.oppdaterStønadsperiode(stønadsperiode),
         )
+
+        /**
+         * Fjerner formue dersom søker ikke har EPS - det finnes et tilsvarende steg i [Grunnlagsdata] for fradrag.
+         */
+        fun nullstillEpsFormueHvisIngenEps(
+            bosituasjon: Grunnlag.Bosituasjon,
+        ): Vilkårsvurderinger.Revurdering {
+            return nullstillEpsFormueHvisIngenEps(nonEmptyListOf(bosituasjon))
+        }
+
+        /**
+         * Fjerner formue dersom søker ikke har EPS - det finnes et tilsvarende steg i [Grunnlagsdata] for fradrag.
+         */
+        fun nullstillEpsFormueHvisIngenEps(
+            bosituasjon: NonEmptyList<Grunnlag.Bosituasjon>,
+        ): Vilkårsvurderinger.Revurdering {
+            return this.copy(
+                formue = this.formue.fjernEPSFormue(bosituasjon.perioderUtenEPS())
+            )
+        }
 
         companion object {
             fun ikkeVurdert() = Revurdering(
@@ -713,6 +754,20 @@ sealed class Vilkår {
         data class Vurdert private constructor(
             val vurderingsperioder: Nel<Vurderingsperiode.Formue>,
         ) : Formue() {
+
+            /**
+             * Garanterer at disse er sortert og uten duplikater.
+             * Merk, i noen tilfeller kan periodene være usammenhengende.
+             */
+            val perioder = vurderingsperioder.map { it.periode }
+            init {
+                require(perioder.erSortert())
+                require(!perioder.harDuplikater())
+                // TODO jah + jacob: Diskuter hvorvidt denne kan være usammenhengende. Bytt denne evt. til en kommentar som forklarer hvorfor
+            }
+
+            /** Merk at vi ikke kan garantere at det er hull i perioden */
+            val periode: Periode = perioder.minAndMaxOf()
 
             override fun oppdaterStønadsperiode(
                 stønadsperiode: Stønadsperiode,

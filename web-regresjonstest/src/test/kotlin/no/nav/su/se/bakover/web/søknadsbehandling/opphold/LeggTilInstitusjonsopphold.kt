@@ -37,7 +37,6 @@ internal fun ApplicationTestBuilder.leggTilInstitusjonsopphold(
                     "institusjonsopphold":{
                       "status":"$vurdering"
                     },
-                    "formue":null,
                     "personligOppmøte":null
                   }
                 """.trimIndent(),

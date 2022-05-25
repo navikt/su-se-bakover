@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
@@ -38,7 +37,6 @@ class LeggTilUtenlandsoppholdTest {
                 periode = januar(2020),
             ),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
         ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUtenlandsopphold(
@@ -46,7 +44,6 @@ class LeggTilUtenlandsoppholdTest {
                 periode = Periode.create(1.januar(2020), 31.januar(2025)),
             ),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
         ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUtenlandsopphold(
@@ -54,7 +51,6 @@ class LeggTilUtenlandsoppholdTest {
                 periode = uavklart.periode,
             ),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
         ).isRight() shouldBe true
     }
 
@@ -76,7 +72,6 @@ class LeggTilUtenlandsoppholdTest {
             it.leggTilUtenlandsopphold(
                 utenlandsopphold = utenlandsoppholdInnvilget(),
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
             ).let { oppdatert ->
                 oppdatert.isRight() shouldBe true
                 oppdatert.getOrFail() shouldBe beInstanceOf<Søknadsbehandling.Vilkårsvurdert>()
@@ -96,7 +91,6 @@ class LeggTilUtenlandsoppholdTest {
             it.leggTilUtenlandsopphold(
                 utenlandsopphold = utenlandsoppholdInnvilget(),
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
             ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(fra = it::class, til = Søknadsbehandling.Vilkårsvurdert::class).left()
         }
     }

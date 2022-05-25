@@ -110,6 +110,8 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
     leggTilFormue(
         sakId = sakId,
         behandlingId = behandlingId,
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
     )
     leggTilPersonligOppmøte(
         sakId = sakId,

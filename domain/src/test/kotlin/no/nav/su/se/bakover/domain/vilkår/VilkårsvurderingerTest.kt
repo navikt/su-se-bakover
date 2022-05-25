@@ -18,10 +18,8 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTest
@@ -212,12 +210,7 @@ internal class VilkårsvurderingerTest {
             innvilget.oppdater(
                 stønadsperiode = Stønadsperiode.create(år(2021)),
                 behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
-                grunnlagsdata = Grunnlagsdata.create(
-                    fradragsgrunnlag = emptyList(),
-                    bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = år(2021))),
-                ),
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
             ).let {
                 it.resultat shouldBe Vilkårsvurderingsresultat.Avslag(
                     vilkår = setOf(it.flyktning),

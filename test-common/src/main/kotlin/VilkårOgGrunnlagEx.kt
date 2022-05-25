@@ -44,16 +44,52 @@ fun Formuegrunnlag.Companion.create(
     periode: Periode,
     epsFormue: Formuegrunnlag.Verdier?,
     søkersFormue: Formuegrunnlag.Verdier,
+    vararg bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+    behandlingsPeriode: Periode,
+): Formuegrunnlag = tryCreate(
+    id = id,
+    opprettet = opprettet,
+    periode = periode,
+    epsFormue = epsFormue,
+    søkersFormue = søkersFormue,
+    bosituasjon = listOf(*bosituasjon),
+    behandlingsPeriode = behandlingsPeriode,
+).getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
+
+fun Formuegrunnlag.Companion.create(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = Tidspunkt.now(),
+    periode: Periode,
+    epsFormue: Formuegrunnlag.Verdier?,
+    søkersFormue: Formuegrunnlag.Verdier,
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
     behandlingsPeriode: Periode,
 ): Formuegrunnlag = tryCreate(
-    id,
-    opprettet,
-    periode,
-    epsFormue,
-    søkersFormue,
-    listOf(bosituasjon),
-    behandlingsPeriode,
+    id = id,
+    opprettet = opprettet,
+    periode = periode,
+    epsFormue = epsFormue,
+    søkersFormue = søkersFormue,
+    bosituasjon = listOf(bosituasjon),
+    behandlingsPeriode = behandlingsPeriode,
+).getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
+
+fun Formuegrunnlag.Companion.create(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = Tidspunkt.now(),
+    periode: Periode,
+    epsFormue: Formuegrunnlag.Verdier?,
+    søkersFormue: Formuegrunnlag.Verdier,
+    bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>,
+    behandlingsPeriode: Periode,
+): Formuegrunnlag = tryCreate(
+    id = id,
+    opprettet = opprettet,
+    periode = periode,
+    epsFormue = epsFormue,
+    søkersFormue = søkersFormue,
+    bosituasjon = bosituasjon,
+    behandlingsPeriode = behandlingsPeriode,
 ).getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
 
 fun Formuegrunnlag.Verdier.Companion.empty() = create(

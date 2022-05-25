@@ -32,7 +32,6 @@ internal fun ApplicationTestBuilder.leggTilPersonligOppmøte(
                     "lovligOpphold":null,
                     "fastOppholdINorge":null,
                     "institusjonsopphold":null,
-                    "formue":null,
                     "personligOppmøte":{
                       "status": "$status"
                     }

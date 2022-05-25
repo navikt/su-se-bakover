@@ -36,6 +36,10 @@ data class LukketSøknadsbehandling private constructor(
             avkorting.kanIkke()
         }
     }
+
+    init {
+        kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
+    }
     companion object {
 
         fun tryCreate(

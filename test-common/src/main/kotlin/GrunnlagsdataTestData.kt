@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.test
 import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
@@ -39,11 +40,12 @@ fun fradragsgrunnlagArbeidsinntekt(
 
 fun bosituasjongrunnlagEnslig(
     id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
 ): Grunnlag.Bosituasjon.Fullstendig.Enslig {
     return Grunnlag.Bosituasjon.Fullstendig.Enslig(
         id = id,
-        opprettet = fixedTidspunkt,
+        opprettet = opprettet,
         periode = periode,
     )
 }

@@ -21,14 +21,10 @@ internal class NySøknadsbehandlingIT {
                 fnr = fnr,
                 fraOgMed = fixedLocalDate.startOfMonth().toString(),
                 tilOgMed = fixedLocalDate.plusMonths(11).endOfMonth().toString(),
-            ).also {
-                println(it)
-            }
+            )
             val sakId = BehandlingJson.hentSakId(opprettSøknadsbehandlingResponseJson)
             assertSakJson(
-                actualSakJson = hentSak(sakId).also {
-                    println(it)
-                },
+                actualSakJson = hentSak(sakId),
                 expectedFnr = fnr,
                 expectedId = sakId,
                 expectedUtbetalingerKanStansesEllerGjenopptas = "STANS",

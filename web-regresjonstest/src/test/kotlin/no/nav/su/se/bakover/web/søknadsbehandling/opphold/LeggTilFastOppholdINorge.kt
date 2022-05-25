@@ -37,7 +37,6 @@ internal fun ApplicationTestBuilder.leggTilFastOppholdINorge(
                       "status":"$vurdering"
                     },
                     "institusjonsopphold":null,
-                    "formue":null,
                     "personligOppmøte":null
                   }
                 """.trimIndent(),

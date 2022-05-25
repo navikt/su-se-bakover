@@ -37,7 +37,6 @@ internal fun ApplicationTestBuilder.leggTilLovligOppholdINorge(
                     },
                     "fastOppholdINorge":null,
                     "institusjonsopphold":null,
-                    "formue":null,
                     "personligOppmøte":null
                   }
                 """.trimIndent(),

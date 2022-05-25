@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -64,11 +65,13 @@ import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuegrunnlagRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
+import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
@@ -915,6 +918,19 @@ internal class SøknadsbehandlingRoutesKtTest {
                 epsFnr = epsFnr,
             ),
         )
+        services.søknadsbehandling.leggTilFormuegrunnlag(
+            LeggTilFormuegrunnlagRequest(
+                behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                formuegrunnlag = nonEmptyListOf(
+                    LeggTilFormuegrunnlagRequest.Grunnlag(
+                        periode = år(2021),
+                        epsFormue = if (epsFnr == null) null else Formuegrunnlag.Verdier.empty(),
+                        søkersFormue = Formuegrunnlag.Verdier.empty(),
+                        begrunnelse = "søknadsbehandling.leggTilFormuegrunnlag",
+                    ),
+                ),
+            ),
+        )
         services.søknadsbehandling.fullførBosituasjongrunnlag(
             FullførBosituasjonRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
@@ -924,20 +940,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         services.søknadsbehandling.vilkårsvurder(
             VilkårsvurderRequest(
                 uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                behandlingsinformasjon = if (epsFnr == null) behandlingsinformasjon else behandlingsinformasjon.copy(
-                    formue = behandlingsinformasjon.formue?.copy(
-                        epsVerdier = Behandlingsinformasjon.Formue.Verdier(
-                            verdiIkkePrimærbolig = 0,
-                            verdiEiendommer = 0,
-                            verdiKjøretøy = 0,
-                            innskudd = 0,
-                            verdipapir = 0,
-                            pengerSkyldt = 0,
-                            kontanter = 0,
-                            depositumskonto = 0,
-                        ),
-                    ),
-                ),
+                behandlingsinformasjon = behandlingsinformasjon,
             ),
         )
         if (epsFnr == null) {
@@ -986,8 +989,8 @@ internal class SøknadsbehandlingRoutesKtTest {
             )
         }
         return InnvilgetVilkårsvurdertSøknadsbehandling(
-            repos.sak.hentSak(uavklartVilkårsvurdertSøknadsbehandling.sak.id)!!,
-            repos.søknadsbehandling.hent(uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id) as Søknadsbehandling.Vilkårsvurdert.Innvilget,
+            sak = repos.sak.hentSak(uavklartVilkårsvurdertSøknadsbehandling.sak.id)!!,
+            søknadsbehandling = repos.søknadsbehandling.hent(uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id) as Søknadsbehandling.Vilkårsvurdert.Innvilget,
         )
     }
 

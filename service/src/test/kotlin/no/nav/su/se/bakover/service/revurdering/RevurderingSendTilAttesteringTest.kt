@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
@@ -178,7 +180,7 @@ internal class RevurderingSendTilAttesteringTest {
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            }
+            },
         ).let { mocks ->
             val actual = mocks.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(
@@ -220,7 +222,7 @@ internal class RevurderingSendTilAttesteringTest {
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            }
+            },
         ).let { mocks ->
             val actual = mocks.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(
@@ -274,7 +276,7 @@ internal class RevurderingSendTilAttesteringTest {
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            }
+            },
         ).let {
             it.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(
@@ -315,7 +317,7 @@ internal class RevurderingSendTilAttesteringTest {
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            }
+            },
         ).let {
             it.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(
@@ -368,7 +370,7 @@ internal class RevurderingSendTilAttesteringTest {
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            }
+            },
         ).let {
             it.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(
@@ -418,7 +420,7 @@ internal class RevurderingSendTilAttesteringTest {
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            }
+            },
         ).let {
             it.revurderingService.sendTilAttestering(
                 SendTilAttesteringRequest(
@@ -451,11 +453,17 @@ internal class RevurderingSendTilAttesteringTest {
                     grunnlag = nonEmptyListOf(
                         formueGrunnlagUtenEps0Innvilget(
                             periode = førsteUførevurderingsperiode,
-                            bosituasjon = grunnlagsdataEnsligUtenFradrag().bosituasjon.singleFullstendigOrThrow(),
+                            bosituasjon = Nel.fromListUnsafe(
+                                grunnlagsdataEnsligUtenFradrag(
+                                    periode = førsteUførevurderingsperiode,
+                                ).bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig },
+                            ),
                         ),
                         formueGrunnlagUtenEpsAvslått(
                             periode = andreUførevurderingsperiode,
-                            bosituasjon = grunnlagsdataEnsligUtenFradrag().bosituasjon.singleFullstendigOrThrow(),
+                            bosituasjon = grunnlagsdataEnsligUtenFradrag(
+                                periode = andreUførevurderingsperiode,
+                            ).bosituasjon.singleFullstendigOrThrow(),
                         ),
                     ),
                 ),
@@ -505,7 +513,7 @@ internal class RevurderingSendTilAttesteringTest {
                         it,
                         vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                             periode = stønadsperiode.periode,
-                            bosituasjon = it.bosituasjon.singleFullstendigOrThrow(),
+                            bosituasjon = Nel.fromListUnsafe(it.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }),
                         ),
                     )
                 },

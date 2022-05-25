@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.revurdering
+package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
@@ -15,8 +15,10 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueVerdier
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
-import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag.FantIkkeSøknadsbehandling
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuegrunnlagRequest
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
@@ -26,11 +28,11 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.depositumErHøyereEnnInnsku
 import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
-import no.nav.su.se.bakover.web.routes.revurdering.FormueBody.Companion.toServiceRequest
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.FormueBody.Companion.toServiceRequest
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
+import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
-import no.nav.su.se.bakover.web.withRevurderingId
 import no.nav.su.se.bakover.web.withSakId
 import java.util.UUID
 
@@ -54,7 +56,7 @@ private data class FormueBody(
                 depositumskonto = json.depositumskonto,
             )
 
-        fun List<FormueBody>.toServiceRequest(revurderingId: UUID): Either<Resultat, LeggTilFormuegrunnlagRequest> {
+        fun List<FormueBody>.toServiceRequest(behandlingId: UUID): Either<Resultat, LeggTilFormuegrunnlagRequest> {
             if (this.isEmpty()) {
                 return HttpStatusCode.BadRequest.errorJson(
                     "Formueliste kan ikke være tom",
@@ -63,7 +65,7 @@ private data class FormueBody(
             }
 
             return LeggTilFormuegrunnlagRequest(
-                behandlingId = revurderingId,
+                behandlingId = behandlingId,
                 formuegrunnlag = NonEmptyList.fromListUnsafe(
                     this.map { formueBody ->
                         LeggTilFormuegrunnlagRequest.Grunnlag(
@@ -86,22 +88,22 @@ private data class FormueBody(
     }
 }
 
-internal fun Route.leggTilFormueRevurderingRoute(
-    revurderingService: RevurderingService,
+internal fun Route.leggTilFormueForSøknadsbehandlingRoute(
+    søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
 ) {
-    post("$revurderingPath/{revurderingId}/formuegrunnlag") {
+    post("$behandlingPath/{behandlingId}/formuegrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
-                call.withRevurderingId { revurderingId ->
+                call.withBehandlingId { behandlingId ->
                     call.withBody<List<FormueBody>> { body ->
-                        body.toServiceRequest(revurderingId).mapLeft {
+                        body.toServiceRequest(behandlingId).mapLeft {
                             call.svar(it)
                         }.map { request ->
-                            revurderingService.leggTilFormuegrunnlag(
+                            søknadsbehandlingService.leggTilFormuegrunnlag(
                                 request,
                             ).map {
-                                call.sikkerlogg("Lagret formue for revudering $revurderingId på $sakId")
+                                call.sikkerlogg("Lagret formue for revudering $behandlingId på $sakId")
                                 call.svar(
                                     Resultat.json(
                                         HttpStatusCode.OK,
@@ -128,8 +130,12 @@ private fun KunneIkkeLageFormueVerdier.tilResultat() = when (this) {
 }
 
 private fun KunneIkkeLeggeTilFormuegrunnlag.tilResultat() = when (this) {
-    KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
-    is KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(this.fra, this.til)
-    is KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk -> this.feil.tilResultat()
+    FantIkkeSøknadsbehandling -> Feilresponser.fantIkkeBehandling
+    is KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeLeggeTilFormuegrunnlagTilSøknadsbehandling -> when (val f = this.feil) {
+        is Søknadsbehandling.KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
+            fra = f.fra,
+            til = f.til,
+        )
+    }
     is KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet -> this.feil.tilResultat()
 }

@@ -15,39 +15,40 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 internal fun ApplicationTestBuilder.leggTilFormue(
     sakId: String,
     behandlingId: String,
-    vurdering: String = "VilkårOppfylt",
+    begrunnelse: String = "Vurdering av formue er lagt til automatisk av LeggTilFormue.kt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
+    fraOgMed: String,
+    tilOgMed: String,
 ): String {
     return runBlocking {
         defaultRequest(
-            HttpMethod.Patch,
-            "/saker/$sakId/behandlinger/$behandlingId/informasjon",
+            HttpMethod.Post,
+            "/saker/$sakId/behandlinger/$behandlingId/formuegrunnlag",
             listOf(brukerrolle),
         ) {
             setBody(
                 //language=JSON
                 """
+                [
                   {
-                    "flyktning":null,
-                    "lovligOpphold":null,
-                    "fastOppholdINorge":null,
-                    "institusjonsopphold":null,
-                    "formue":{
-                      "status": "$vurdering",
-                      "verdier": {
-                        "verdiIkkePrimærbolig": 0,
-                        "verdiEiendommer": 0,
-                        "verdiKjøretøy": 0,
-                        "innskudd": 0,
-                        "verdipapir": 0,
-                        "pengerSkyldt": 0,
-                        "kontanter": 0,
-                        "depositumskonto": 0
-                      },
-                      "epsVerdier": null
-                    },
-                    "personligOppmøte":null
+                        "periode": {
+                          "fraOgMed": "$fraOgMed",
+                          "tilOgMed": "$tilOgMed"
+                        },
+                        "epsFormue": null,
+                        "søkersFormue": {
+                          "verdiIkkePrimærbolig": 0,
+                          "verdiEiendommer": 0,
+                          "verdiKjøretøy": 0,
+                          "innskudd": 0,
+                          "verdipapir": 0,
+                          "pengerSkyldt": 0,
+                          "kontanter": 0,
+                          "depositumskonto": 0
+                        },
+                        "begrunnelse": "$begrunnelse"
                   }
+                ]
                 """.trimIndent(),
             )
         }.apply {

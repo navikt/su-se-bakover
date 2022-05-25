@@ -53,30 +53,6 @@ internal class SøknadsbehandlingJsonTest {
                 "institusjonsopphold": {
                     "status": "VilkårOppfylt"
                 },
-                "formue": {
-                    "status": "VilkårOppfylt",
-                    "verdier": {
-                        "verdiIkkePrimærbolig": 0,
-                        "verdiEiendommer": 0,
-                        "verdiKjøretøy": 0,
-                        "innskudd": 0,
-                        "verdipapir": 0,
-                        "pengerSkyldt": 0,
-                        "kontanter": 0,
-                        "depositumskonto": 0
-                    },
-                    "epsVerdier": {
-                        "verdiIkkePrimærbolig": 0,
-                        "verdiEiendommer": 0,
-                        "verdiKjøretøy": 0,
-                        "innskudd": 0,
-                        "verdipapir": 0,
-                        "pengerSkyldt": 0,
-                        "kontanter": 0,
-                        "depositumskonto": 0
-                    },
-                    "begrunnelse": null
-                },
                 "personligOppmøte": {
                     "status": "MøttPersonlig"
                 }
@@ -174,7 +150,6 @@ internal class SøknadsbehandlingJsonTest {
             "lovligOpphold": null,
             "fastOppholdINorge": null,
             "institusjonsopphold": null,
-            "formue": null,
             "personligOppmøte": null
           },
           "søknad": $søknadJsonString,
